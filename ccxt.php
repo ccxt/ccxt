@@ -31,7 +31,6 @@ class Market {
         return $result;
     }
 
-
     public static function extract_params ($string) {
         if (preg_match_all ('/{([a-z0-9_]+?)}/ui', $string, $matches))
             return $matches[1];
@@ -55,16 +54,8 @@ class Market {
         return Market::implode_params ($string, $params);
     }
 
-    public static function base64urlencode ($base64string) {
-        return preg_replace (array (
-            '#[=]+$#u',
-            '#\+#u',
-            '#\\/#'
-        ), array (
-            '',
-            '-',
-            '_',
-        ), $base64string);
+    public static function base64urlencode ($string) {
+        return preg_replace (array ('#[=]+$#u', '#\+#u', '#\\/#'), array ('', '-', '_'), base64_encode ($string));
     }
 
     public function nonce   () { return $this->seconds (); }
@@ -90,11 +81,7 @@ class Market {
             foreach ($options as $key => $value)
                 $this->$key = $value;
 
-        $this->verbose =
-            $this->log              ||
-            $this->debug            ||
-            ($this->verbosity == 1) ||
-            $this->verbose;
+        $this->verbose = $this->log || $this->debug || ($this->verbosity == 1) || $this->verbose;
 
         if ($this->api)
             foreach ($this->api as $type => $methods)
@@ -131,39 +118,29 @@ class Market {
         $base64 = ($digest === 'base64');
         $raw = ($digest === 'raw');
         $hash = hash ($type, $request, ($raw || $base64) ? true : false);
-
         if ($base64)
             $hash = base64_encode ($hash);
-
         return $hash;
     }
 
     public function hmac ($request, $secret, $type = 'sha256', $digest = 'hex') {
-        
         $base64 = ($digest === 'base64');
         $raw = ($digest === 'raw');
         $hmac = hash_hmac ($type, $request, $secret, ($raw || $base64) ? true : false);
-
         if ($base64)
-            $hmac = base64_encode ($hmac);
-        
+            $hmac = base64_encode ($hmac);        
         return $hmac;
     }
 
     public function jwt ($request, $secret, $alg = 'HS256', $hash = 'sha256') {
-
-        $encodedHeader = Market::base64urlencode (base64_encode (json_encode (array (
-            'alg' => $alg,
-            'typ' => 'JWT',
-        ))));
-
-        $encodedData   = Market::base64urlencode (base64_encode (json_encode ($request, JSON_UNESCAPED_SLASHES)));
-        $token         = $encodedHeader . '.' . $encodedData;
-        $signature     = Market::base64urlencode (base64_encode ($this->hmac ($token, $secret, $hash, 'raw')));
+        $encodedHeader = Market::base64urlencode (json_encode (array ('alg' => $alg, 'typ' => 'JWT')));
+        $encodedData = Market::base64urlencode (json_encode ($request, JSON_UNESCAPED_SLASHES));
+        $token = $encodedHeader . '.' . $encodedData;
+        $signature = Market::base64urlencode ($this->hmac ($token, $secret, $hash, 'raw'));
         return $token . '.' . $signature;
     }
 
-    public function fetch ($url, $method = 'GET', $headers = array (), $body = null) {
+    public function fetch ($url, $method = 'GET', $headers = null, $body = null) {
 
         /*
             try {
@@ -175,6 +152,15 @@ class Market {
                 throw e
             }
         */
+
+        if (!$headers)
+            $headers = array ();
+        elseif (is_array ($headers)) {
+            $tmp = $headers;
+            $headers = array ();
+            foreach ($tmp as $key => $value)
+                $headers[] = $key . ': ' . $value;
+        }
 
         if ($this->verbose)
             var_dump ($url, $method, $headers, $body);
@@ -344,7 +330,9 @@ class Market {
         return (is_array ($product = $this->product ($product))) ? $product['symbol'] : $product;
     }
 
-    public function request ($path, $type, $method, $params) { /* stub */ }
+    public function request ($path, $type, $method, $params, $headers = null, $body = null) {
+        /* stub */
+    }
 
     function __call ($function, $params) {
 
@@ -362,28 +350,20 @@ class Market {
 class _1broker extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => '_1broker',
-            'name'      => '1Broker',
+            'id' => '_1broker',
+            'name' => '1Broker',
             'countries' => 'US',
             'rateLimit' => 2000,
-            'version'   => 'v2',
-
+            'version' => 'v2',
             'urls' => array (
-
                 'api' => 'https://1broker.com/api',        
                 'www' => 'https://1broker.com',
                 'doc' => 'https://1broker.com/?c=en/content/api-documentation',
             ),
-
             'api' => array (
-
                 'private' => array (
-
-                    'GET' => array (
-
+                    'get' => array (
                         'market/bars',
                         'market/categories',
                         'market/details',
@@ -409,65 +389,53 @@ class _1broker extends Market {
                     ),
                 ),
             ),
-
         ), $options));
     }
 
     public function fetch_categories () {
-        return $this->privateGetMarketCategories ();
+        $categories = $this->privateGetMarketCategories ();
+        return $categories['response'];
     }
     
-    public function fetch_products () { // fetch products from all categories
-
-        $products = array ();
-        
+    public function fetch_products () {
+        $result = array ();
         $categories = $this->fetch_categories ();
-        foreach ($categories['response'] as $category) {
-            
-            $contents = $this->privateGetMarketList (array (
+        for ($c = 0; $c < count ($categories); $c++) {
+            $category = $categories[$c];
+            $products = $this->privateGetMarketList (array (
                 'category' => mb_strtolower ($category),
             ));
-            
-            $products = array_merge ($products, $contents['response']);
-        }
-
-        $result = array ();
-
-        foreach ($products as $product) {
-            
-            if (($product['category'] == 'FOREX') ||
-                ($product['category'] == 'CRYPTO')) {
-            
-                $id = $product['symbol'];
-                $symbol = $product['name'];
-                list ($base, $quote) = mb_split ('\\/', $symbol);
-                $result[] = array (
-                    'id'     => $id,
-                    'symbol' => $symbol,
-                    'base'   => $base,
-                    'quote'  => $quote,
-                    'info'   => $product
-                );
-            
-            } else {
-            
-                $id = $product['symbol'];
-                $symbol = $product['symbol'];
-                $name = $product['name'];
-                $type = mb_strtolower ($product['type']);
-                $result[] = array (
-                    'id'     => $id,
-                    'symbol' => $symbol,
-                    'name'   => $name,
-                    'type'   => $type,
-                    'info'   => $product,
-                );
+            for ($p = 0; $p < count ($products['response']); $p++) {
+                $product = $products['response'][$p];
+                if (($category == 'FOREX') || ($category == 'CRYPTO')) {
+                    $id = $product['symbol'];
+                    $symbol = $product['name'];
+                    list ($base, $quote) = mb_split ('\\/', $symbol);
+                    $result[] = array (
+                        'id' => $id,
+                        'symbol' => $symbol,
+                        'base' => $base,
+                        'quote' => $quote,
+                        'info' => $product
+                    ); 
+                } else {       
+                    $id = $product['symbol'];
+                    $symbol = $product['symbol'];
+                    $name = $product['name'];
+                    $type = mb_strtolower ($product['type']);
+                    $result[] = array (
+                        'id' => $id,
+                        'symbol' => $symbol,
+                        'name' => $name,
+                        'type' => $type,
+                        'info' => $product,
+                    );
+                }
             }
         }
-
         return $result;
     }
-    
+
     public function fetch_balance () {
         return $this->privateGetUserOverview ();
     }
@@ -479,26 +447,25 @@ class _1broker extends Market {
     }
 
     public function fetch_ticker ($product) {
-        $now = time ();
         return $this->privateGetMarketBars (array (
-            'symbol'     => $this->productId ($product),
+            'symbol' => $this->productId ($product),
             'resolution' => 60,
-            'date_end'   => date ('c', $now),
-            'limit'      => 1,
+            'date_end' => date ('c', time ()),
+            'limit' => 1,
         ));
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         return $this->privateGetOrderCreate (array_merge (array (
-            'symbol'    => $this->productId ($product),
-            'margin'    => $amount,
+            'symbol' => $this->productId ($product),
+            'margin' => $amount,
             'direction' => ($side == 'sell') ? 'short' : 'long',
-            'leverage'  => 1,
-            'type'      => $side + (($type == 'market') ? '_market' : ''),
+            'leverage' => 1,
+            'type' => $side + (($type == 'market') ? '_market' : ''),
         ), ($type == 'limit') ? array ('price' => $price) : array (), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path . '.php';
         $query = array_merge (array ('token' => $this->token), $params);
         $url .= '?' . http_build_query ($query);
@@ -511,27 +478,19 @@ class _1broker extends Market {
 class cryptocapital extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
             'comment' => 'Crypto Capital API',
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'stats',
                         'historical-prices',
                         'order-book',
                         'transactions',
                     ),
                 ),
-
                 'private' => array (
-                    
                     'post' => array (
-
                         'balances-and-info',
                         'open-orders',
                         'user-transactions',
@@ -547,7 +506,6 @@ class cryptocapital extends Market {
                     ),
                 ),
             ),
-
         ), $options));
     }
 
@@ -575,34 +533,27 @@ class cryptocapital extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         return $this->privatePostOrdersNew (array_merge (array (
-            'side'     => $side,
-            'type'     => $type,
+            'side' => $side,
+            'type' => $type,
             'currency' => $this->productId ($product),
-            'amount'   => $amount,
+            'amount' => $amount,
         ), ($type == 'limit') ? array ('limit_price' => $price) : array (), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
-
         if ($type === 'public') {
-
             if ($params)
                 $url .= '?' . http_build_query ($params);
-
         } else {
-
             $query = array_merge (array (
                 'api_key' => $this->apiKey,
-                'nonce'   => $this->nonce (),
+                'nonce' => $this->nonce (),
             ), $params);
-
             $query['signature'] = $this->hmac (json_encode ($query), $this->secret);
             $body = json_encode ($query);
-            $headers = array ('Content-Type: ' . 'application/json');
+            $headers = array ('Content-Type' => 'application/json');
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -612,20 +563,16 @@ class cryptocapital extends Market {
 class _1btcxe extends cryptocapital {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => '_1btcxe', 
-            'name'      => '1BTCXE',
+            'id' => '_1btcxe', 
+            'name' => '1BTCXE',
             'countries' => 'PA', // Panama
-            'comment'   => 'Crypto Capital API',
-
+            'comment' => 'Crypto Capital API',
             'urls' => array ( 
-                'api'  => 'https://1btcxe.com/api',
-                'www'  => 'https://1btcxe.com',
+                'api' => 'https://1btcxe.com/api',
+                'www' => 'https://1btcxe.com',
                 'docs' => 'https://1btcxe.com/api-docs.php',
             ),
-            
             'products' => array (
                 'BTC/USD' => array ('id' => 'USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', ),
                 'BTC/EUR' => array ('id' => 'EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', ),
@@ -657,7 +604,6 @@ class _1btcxe extends cryptocapital {
                 'BTC/TRY' => array ('id' => 'TRY', 'symbol' => 'BTC/TRY', 'base' => 'BTC', 'quote' => 'TRY', ),
                 'BTC/ZAR' => array ('id' => 'ZAR', 'symbol' => 'BTC/ZAR', 'base' => 'BTC', 'quote' => 'ZAR', ),
             ),
-
         ), $options));
     }
 }
@@ -667,17 +613,13 @@ class _1btcxe extends cryptocapital {
 class bit2c extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'bit2c',
-            'name'      => 'Bit2C',
+            'id' => 'bit2c',
+            'name' => 'Bit2C',
             'countries' => 'IL', // Israel
             'rateLimit' => 3000,
-            'version'   => 'v2',
-
+            'version' => 'v2',
             'urls' => array (
-
                 'api' => 'https://www.bit2c.co.il',
                 'www' => 'https://www.bit2c.co.il',
                 'doc' => array (
@@ -685,23 +627,16 @@ class bit2c extends Market {
                     'https://github.com/OferE/bit2c',
                 ),
             ),
-                
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'Exchanges/{pair}/Ticker',
                         'Exchanges/{pair}/orderbook',
                         'Exchanges/{pair}/trades',
                     ),
                 ),
-
                 'private' => array (
-
                     'post' => array (
-
                         'Account/Balance',
                         'Account/Balance/v2',
                         'Merchant/CreateCheckout',
@@ -718,13 +653,11 @@ class bit2c extends Market {
                     ),
                 ),
             ),
-
             'products' => array (
                 'BTC/NIS' => array ( 'id' => 'BtcNis', 'symbol' => 'BTC/NIS', 'base' => 'BTC', 'quote' => 'NIS' ),
                 'LTC/BTC' => array ( 'id' => 'LtcBtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
                 'LTC/NIS' => array ( 'id' => 'LtcNis', 'symbol' => 'LTC/NIS', 'base' => 'LTC', 'quote' => 'NIS' ),
             ),
-
         ), $options));
     }
 
@@ -751,48 +684,34 @@ class bit2c extends Market {
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
-
         $method = 'privatePostOrderAddOrder';
-
         if ($type == 'market')
             $method += 'MarketPrice' + capitalize ($side);
-
         return $this[$method] (array_merge (array (
             'Amount' => $amount,
-            'Pair'   => $this->productId ($product),
+            'Pair' => $this->productId ($product),
         ), ($type == 'limit') ? array (
-            'Price'  => $price,
-            'Total'  => $amount * $price,
-            'IsBid'  => ($side == 'buy'),
+            'Price' => $price,
+            'Total' => $amount * $price,
+            'IsBid' => ($side == 'buy'),
         ) : array (), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . Market::implodeParams ($path, $params);
-
-        $body = null;
-        $headers = array ();
-
         if ($type === 'public') {
-
             $url .= '.json';
-
         } else {
-
             $nonce = $this->nonce ();
-            $body = http_build_query (array_merge (array (
-                'nonce' => $nonce,
-            ), $params));
-            
+            $query = array_merge (array ('nonce' => $nonce), $params);
+            $body = http_build_query ($query);
             $headers = array (
-                'Content-Type: '   . 'application/x-www-form-urlencoded',
-                'Content-Length: ' . strlen ($body), // strlen instead of mb_strlen for byte length
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body), // strlen instead of mb_strlen for byte length
                 'key: '            . $this->apiKey,
                 'sign: '           . $this->hmac ($body, $this->secret, 'sha512', 'base64'),
             );
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 };
@@ -802,33 +721,26 @@ class bit2c extends Market {
 class bitbay extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'bitbay',
-            'name'      => 'BitBay',
+            'id' => 'bitbay',
+            'name' => 'BitBay',
             'countries' => array ('PL', 'EU'), // Poland
             'rateLimit' => 1000,
-
             'urls' => array (
                 'www' => 'https://bitbay.net',
                 'api' => array (
-                    'public'  => 'https://bitbay.net/API/Public',
+                    'public' => 'https://bitbay.net/API/Public',
                     'private' => 'https://bitbay.net/API/Trading/tradingApi.php',
                 ),
                 'doc' => array (
                     'https://bitbay.net/public-api',
                     'https://bitbay.net/account/tab-api',
-                    'https://github.com/BitBayNet/API'
+                    'https://github.com/BitBayNet/API',
                 ), 
             ),
-            
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         '{id}/all',
                         '{id}/market',
                         '{id}/orderbook',
@@ -836,11 +748,8 @@ class bitbay extends Market {
                         '{id}/trades',
                     ),
                 ),
-
                 'private' => array (
-
                     'post' => array (
-
                         'info',
                         'trade',
                         'cancel',
@@ -853,7 +762,6 @@ class bitbay extends Market {
                     ),
                 ),
             ),
-
             'products' => array (
                 
                 'BTC/USD' => array ('id' => 'BTCUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
@@ -872,11 +780,12 @@ class bitbay extends Market {
                 'LSK/PLN' => array ('id' => 'LSKPLN', 'symbol' => 'LSK/PLN', 'base' => 'LSK', 'quote' => 'PLN' ),
                 'LSK/BTC' => array ('id' => 'LSKBTC', 'symbol' => 'LSK/BTC', 'base' => 'LSK', 'quote' => 'BTC' ),
             ),
-
         ), $options));
     }
 
-    public function fetch_balance () { return $this->privatePostInfo (); }
+    public function fetch_balance () { 
+        return $this->privatePostInfo ();
+    }
     
     public function fetch_order_book ($product) {
         return $this->publicGetIdOrderbook (array (
@@ -897,59 +806,49 @@ class bitbay extends Market {
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
-
         $p = $this->product ($product);
         return $this->privatePostTrade (array_merge (array (
-            'type'     => $side,
+            'type' => $side,
             'currency' => $p['base'],
-            'amount'   => $amount,            
-            'rate'     => $price,
+            'amount' => $amount,            
+            'rate' => $price,
             'payment_currency' => $p['quote'],
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$type];
-
         if ($type === 'public') {
-
             $url .= '/' . Market::implodeParams ($path, $params) . '.json';
-
         } else {
-            
             $body = http_build_query (array_merge (array (
                 'method' => $path,
                 'moment' => $this->nonce (),
             ), $params));
-
             $headers = array (
-                'Content-Type: '   . 'application/x-www-form-urlencoded',
-                'Content-Length: ' . strlen ($body),
-                'API-Key: '        . $this->apiKey,
-                'API-Hash: '       . $this->hmac ($body, $this->secret, 'sha512'),
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body),
+                'API-Key' => $this->apiKey,
+                'API-Hash' => $this->hmac ($body, $this->secret, 'sha512'),
             );
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
 
 //-----------------------------------------------------------------------------
 
-class bitcoid extends Market {
+class bitcoincoid extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
     
-            'id'        => 'bitcoid',
-            'name'      => 'Bitcoin.co.id',
+            'id' => 'bitcoincoid',
+            'name' => 'Bitcoin.co.id',
             'countries' => 'ID', // Indonesia
-            
             'urls' => array (
                 'api' => array (
-                    'public'  => 'https://vip.bitcoin.co.id/api',
+                    'public' => 'https://vip.bitcoin.co.id/api',
                     'private' => 'https://vip.bitcoin.co.id/tapi',
                 ),
                 'www' => 'https://www.bitcoin.co.id',
@@ -958,23 +857,16 @@ class bitcoid extends Market {
                     'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
                 ),
             ),
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         '{pair}/ticker',
                         '{pair}/trades',
                         '{pair}/depth',
                     ),
                 ),
-
                 'private' => array (
-
                     'post' => array (
-
                         'getInfo',
                         'transHistory',
                         'trade',
@@ -984,25 +876,24 @@ class bitcoid extends Market {
                     ),
                 ),
             ),
-
             'products' => array (
-
-                'BTC/IDR'  => array ('id' => 'btc_idr',  'symbol' => 'BTC/IDR',  'base' => 'BTC',  'quote' => 'IDR' ),
-                'BTS/BTC'  => array ('id' => 'bts_btc',  'symbol' => 'BTS/BTC',  'base' => 'BTS',  'quote' => 'BTC' ),
-                'DASH/BTC' => array ('id' => 'drk_btc',  'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC' ),
+                'BTC/IDR' => array ('id' => 'btc_idr', 'symbol' => 'BTC/IDR',  'base' => 'BTC',  'quote' => 'IDR' ),
+                'BTS/BTC' => array ('id' => 'bts_btc', 'symbol' => 'BTS/BTC',  'base' => 'BTS',  'quote' => 'BTC' ),
+                'DASH/BTC' => array ('id' => 'drk_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC' ),
                 'DOGE/BTC' => array ('id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC' ),
-                'ETH/BTC'  => array ('id' => 'eth_btc',  'symbol' => 'ETH/BTC',  'base' => 'ETH',  'quote' => 'BTC' ),
-                'LTC/BTC'  => array ('id' => 'ltc_btc',  'symbol' => 'LTC/BTC',  'base' => 'LTC',  'quote' => 'BTC' ),
-                'NXT/BTC'  => array ('id' => 'nxt_btc',  'symbol' => 'NXT/BTC',  'base' => 'NXT',  'quote' => 'BTC' ),
-                'STR/BTC'  => array ('id' => 'str_btc',  'symbol' => 'STR/BTC',  'base' => 'STR',  'quote' => 'BTC' ),
-                'NEM/BTC'  => array ('id' => 'nem_btc',  'symbol' => 'NEM/BTC',  'base' => 'NEM',  'quote' => 'BTC' ),
-                'XRP/BTC'  => array ('id' => 'xrp_btc',  'symbol' => 'XRP/BTC',  'base' => 'XRP',  'quote' => 'BTC' ),
+                'ETH/BTC' => array ('id' => 'eth_btc', 'symbol' => 'ETH/BTC',  'base' => 'ETH',  'quote' => 'BTC' ),
+                'LTC/BTC' => array ('id' => 'ltc_btc', 'symbol' => 'LTC/BTC',  'base' => 'LTC',  'quote' => 'BTC' ),
+                'NXT/BTC' => array ('id' => 'nxt_btc', 'symbol' => 'NXT/BTC',  'base' => 'NXT',  'quote' => 'BTC' ),
+                'STR/BTC' => array ('id' => 'str_btc', 'symbol' => 'STR/BTC',  'base' => 'STR',  'quote' => 'BTC' ),
+                'NEM/BTC' => array ('id' => 'nem_btc', 'symbol' => 'NEM/BTC',  'base' => 'NEM',  'quote' => 'BTC' ),
+                'XRP/BTC' => array ('id' => 'xrp_btc', 'symbol' => 'XRP/BTC',  'base' => 'XRP',  'quote' => 'BTC' ),
             ),
-
         ), $options));
     }
 
-    public function fetch_balance () { return $this->privatePostGetInfo  (); }
+    public function fetch_balance () { 
+        return $this->privatePostGetInfo ();
+    }
     
     public function fetch_order_book ($product) {
         return $this->publicGetPairDepth  (array (
@@ -1023,42 +914,32 @@ class bitcoid extends Market {
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
-
         $p = $this->product ($product);
-
         $order = array (
-            'pair'  => $p['id'],
-            'type'  => $side,
+            'pair' => $p['id'],
+            'type' => $side,
             'price' => $price,
         );
-
         $order[mb_strtolower ($p['base'])] = $amount;
         return $this->privatePostTrade (array_merge ($order, $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$type];
-
         if ($type === 'public') {
-
             $url .= '/' . Market::implodeParams ($path, $params);
-
         } else {
-            
             $body = http_build_query (array_merge (array (
                 'method' => $path,
                 'nonce' => $this->nonce (),
             ), $params));
-
             $headers = array (
-                'Content-Type: ' . 'application/x-www-form-urlencoded',
-                'Content-Length: ' . strlen ($body),
-                'Key: '            . $this->apiKey,
-                'Sign: '           . $this->hmac ($body, $this->secret, 'sha512'),
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body),
+                'Key' => $this->apiKey,
+                'Sign' => $this->hmac ($body, $this->secret, 'sha512'),
             );
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -1068,15 +949,13 @@ class bitcoid extends Market {
 class bitfinex extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'bitfinex',
-            'name'      => 'Bitfinex',
+            'id' => 'bitfinex',
+            'name' => 'Bitfinex',
             'countries' => 'US',
-
-            'urls' => array (
-            
+            'version' => 'v1',
+            'rateLimit' => 2000,
+            'urls' => array (            
                 'api' => 'https://api.bitfinex.com',
                 'www' => 'https://www.bitfinex.com',
                 'docs' => array (
@@ -1085,16 +964,9 @@ class bitfinex extends Market {
                     'https://github.com/bitfinexcom/bitfinex-api-node',
                 ),
             ),
-
-            'version' => 'v1',
-            'rateLimit' => 2000,
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'book/{symbol}',
                         'candles/{symbol}',
                         'lendbook/{currency}',
@@ -1107,11 +979,8 @@ class bitfinex extends Market {
                         'trades/{symbol}',                
                     ),                    
                 ),
-
                 'private' => array (
-
                     'post' => array (
-
                         'account_infos',
                         'balances',
                         'basket_manage',
@@ -1146,30 +1015,32 @@ class bitfinex extends Market {
                     ),
                 ),
             ),
-
         ), $options));
     }
 
     public function fetch_products () {
         $products = $this->publicGetSymbolsDetails ();
         $result = array ();
-        foreach ($products as $product) {
+        for ($p = 0; $p < count ($products); $p++) {
+            $product = $products[$p];
             $id = mb_strtoupper ($product['pair']);
             $base = mb_substr ($id, 0, 3);
             $quote = mb_substr ($id, 3, 6);
             $symbol = $base . '/' . $quote;
             $result[] = array (
-                'id'     => $id,
+                'id' => $id,
                 'symbol' => $symbol,
-                'base'   => $base,
-                'quote'  => $quote,
-                'info'   => $product,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
             );
         }
         return $result;
     }
 
-    public function fetch_balance () { return $this->privatePostBalances (); }
+    public function fetch_balance () {
+        return $this->privatePostBalances ();
+    }
     
     public function fetch_order_book ($product) {
         return $this->publicGetBookSymbol (array (
@@ -1193,40 +1064,35 @@ class bitfinex extends Market {
         return $this->privatePostOrderNew (array_merge (array (
             'symbol' => $this->productId ($product),
             'amount' => $amount.toString (),
-            'price'  => $price.toString (),
-            'side'   => $side,
-            'type'   => 'exchange ' + $type,
+            'price' => $price.toString (),
+            'side' => $side,
+            'type' => 'exchange ' + $type,
             'ocoorder' => false,
-            'buy_price_oco'  => 0,
+            'buy_price_oco' => 0,
             'sell_price_oco' => 0,
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->version . '/' . Market::implodeParams ($path, $params);
         $query = Market::omit ($params, Market::extractParams ($path));
         $url = $this->urls['api'] . $request;
-
         if ($type === 'public') {
-
             if ($query)
                 $url .= '?' . http_build_query ($query);
-
         } else {
-
-            $payload = base64_encode (json_encode (array_merge (array (
-                'nonce'   => (string) $this->nonce (),
+            $nonce = $this->nonce ();
+            $query = array_merge (array (
+                'nonce' => (string) $nonce,
                 'request' => $request,
-            ), $params)));
-
+            ), $params);
+            $payload = base64_encode (json_encode ($query));
             $headers = array (
-                'X-BFX-APIKEY: ' . $this->apiKey,
-                'X-BFX-PAYLOAD: ' . $payload,
-                'X-BFX-SIGNATURE: ' . $this->hmac ($payload, $this->secret, 'sha384'),                
+                'X-BFX-APIKEY' => $this->apiKey,
+                'X-BFX-PAYLOAD' => $payload,
+                'X-BFX-SIGNATURE' => $this->hmac ($payload, $this->secret, 'sha384'),                
             );
         }
-        
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -1236,30 +1102,20 @@ class bitfinex extends Market {
 class bitlish extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'bitlish',
-            'name'      => 'bitlish',
+            'id' => 'bitlish',
+            'name' => 'bitlish',
             'countries' => array ('UK', 'EU', 'RU'),
             'rateLimit' => 2000,
-            
             'version' => 'v1',
-
             'urls' => array (
                 'api' => 'https://bitlish.com/api',
                 'www' => 'https://bitlish.com',
-                'docs' => array (
-                    'https://bitlish.com/api',
-                ),
+                'docs' => 'https://bitlish.com/api',
             ),
-            
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'instruments',
                         'ohlcv',
                         'pairs',
@@ -1268,11 +1124,8 @@ class bitlish extends Market {
                         'trades_history',
                     ),
                 ),
-
                 'private' => array (
-
                     'post' => array (
-
                         'accounts_operations',
                         'balance',
                         'cancel_trade',
@@ -1301,23 +1154,24 @@ class bitlish extends Market {
                     ),
                 ),
             ),
-
         ), $options));
     }
 
     public function fetch_products () {
         $products = $this->publicGetPairs ();
         $result = array ();
-        foreach ($products as $product) {
+        $keys = array_keys ($products);
+        for ($p = 0; $p < count ($keys); $p++) {
+            $product = $products[$keys[$p]];
             $id = $product['id'];
             $symbol = $product['name'];
             list ($base, $quote) = mb_split ('\\/', $symbol);
             $result[] = array (
-                'id'     => $id,
+                'id' => $id,
                 'symbol' => $symbol,
-                'base'   => $base,
-                'quote'  => $quote,
-                'info'   => $product
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product
             );
         }
         return $result;
@@ -1346,34 +1200,27 @@ class bitlish extends Market {
         ));
     }
     
-    public function fetch_balance () { return $this->privatePostBalance (); }
+    public function fetch_balance () {
+        return $this->privatePostBalance ();
+    }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         return $this->privatePostCreateTrade (array_merge (array (
             'pair_id' => $this->productId ($product),
-            'dir'     => ($side == 'buy') ? 'bid' : 'ask',
-            'amount'  => $amount,
+            'dir' => ($side == 'buy') ? 'bid' : 'ask',
+            'amount' => $amount,
         ), ($type == 'limit') ? array ('price' => $price) : array (), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-
         if ($type === 'public') {
-
             if ($params)
                 $url .= '?' . http_build_query ($params);
-
         } else {
-
-            $body = json_encode (array_merge (array (
-                'token' => $this->apiKey,
-            ), $params));
-            
-            $headers = array ('Content-Type: application/json');
+            $body = json_encode (array_merge (array ('token' => $this->apiKey), $params));
+            $headers = array ('Content-Type' => 'application/json');
         }
-        
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -1383,17 +1230,14 @@ class bitlish extends Market {
 class bitmarket extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'bitmarket',
-            'name'      => 'BitMarket',
+            'id' => 'bitmarket',
+            'name' => 'BitMarket',
             'countries' => array ('PL', 'EU'),
             'rateLimit' => 3000,
-
             'urls' => array (
                 'api' => array (
-                    'public'  => 'https://www.bitmarket.net',
+                    'public' => 'https://www.bitmarket.net',
                     'private' => 'https://www.bitmarket.pl/api2/', // last slash is critical
                 ),
                 'www' => array (
@@ -1406,13 +1250,9 @@ class bitmarket extends Market {
                     'https://github.com/bitmarket-net/api',
                 ),
             ),
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'json/{market}/ticker',
                         'json/{market}/orderbook',
                         'json/{market}/trades',
@@ -1427,11 +1267,8 @@ class bitmarket extends Market {
                         'graphs/{market}/1y',
                     ),
                 ),
-
                 'private' => array (
-
                     'post' => array (
-
                         'info',
                         'trade',
                         'cancel',
@@ -1465,7 +1302,6 @@ class bitmarket extends Market {
                     ),
                 ),
             ),
-
             'products' => array (
                 'BTC/PLN' => array ('id' => 'BTCPLN',       'symbol' => 'BTC/PLN', 'base' => 'BTC', 'quote' => 'PLN' ),
                 'BTC/EUR' => array ('id' => 'BTCEUR',       'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
@@ -1473,11 +1309,12 @@ class bitmarket extends Market {
                 'LTC/BTC' => array ('id' => 'LTCBTC',       'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
                 'LMX/BTC' => array ('id' => 'LiteMineXBTC', 'symbol' => 'LMX/BTC', 'base' => 'LMX', 'quote' => 'BTC' ),
             ),
-
         ), $options));
     }
 
-    public function fetch_balance () { return $this->privatePostInfo (); }
+    public function fetch_balance () {
+        return $this->privatePostInfo ();
+    }
     
     public function fetch_order_book ($product) {
         return $this->publicGetJsonMarketOrderbook (array (
@@ -1500,33 +1337,28 @@ class bitmarket extends Market {
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         return $this->privatePostTrade (array_merge (array (
             'market' => $this->productId ($product),
-            'type'   => $side,
+            'type' => $side,
             'amount' => $amount,
-            'rate'   => $price,
+            'rate' => $price,
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$type];
-
         if ($type === 'public') {
-
-            $url .= '/' . Market::implodeParams ($path, $params) . '.json';
-
+            $url .= '/' . Market::implodeParams ($path . '.json', $params);
         } else {
-
-            $body = http_build_query (array_merge (array (
-                'tonce'  => $this->nonce (),
+            $nonce = $this->nonce ();
+            $query = array_merge (array (
+                'tonce' => $nonce,
                 'method' => $path,
-            ), $params));
-
+            ), $params);
+            $body = http_build_query ($query);
             $headers = array (
                 'API-Key: '  . $this->apiKey,
                 'API-Hash: ' . $this->hmac ($body, $this->secret, 'sha512'),
             );
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -1536,15 +1368,12 @@ class bitmarket extends Market {
 class bitmex extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'bitmex',
-            'name'      => 'BitMEX',
+            'id' => 'bitmex',
+            'name' => 'BitMEX',
             'countries' => 'SC', // Seychelles
-            'version'   => 'v1',
+            'version' => 'v1',
             'rateLimit' => 2000,
-
             'urls' => array (
                 'api' => 'https://www.bitmex.com',
                 'www' => 'https://www.bitmex.com',
@@ -1553,13 +1382,9 @@ class bitmex extends Market {
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ),
             ),
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'announcement',
                         'announcement/urgent',
                         'funding',
@@ -1585,11 +1410,8 @@ class bitmex extends Market {
                         'trade/bucketed',
                     ),
                 ),
-
                 'private' => array (
-
                     'get' => array (
-
                         'apiKey',
                         'chat',
                         'chat/channels',
@@ -1610,9 +1432,7 @@ class bitmex extends Market {
                         'user/walletHistory',
                         'user/walletSummary',
                     ),
-
                     'post' => array (
-
                         'apiKey',
                         'apiKey/disable',
                         'apiKey/enable',
@@ -1652,14 +1472,14 @@ class bitmex extends Market {
                     ),
                 ),
             ),
-
         ), $options));
     } 
 
     public function fetch_products () {
         $products = $this->publicGetInstrumentActive ();
         $result = array ();
-        foreach ($products as $product) {
+        for ($p = 0; $p < count ($products); $p++) {
+            $product = $products[$p];
             $id = $product['symbol'];
             $base = $product['underlying'];
             $quote = $product['quoteCurrency'];
@@ -1668,18 +1488,18 @@ class bitmex extends Market {
             $quote = $this->commonCurrencyCode ($quote);
             $symbol = $isFuturesContract ? $id : ($base . '/' . $quote);
             $result[] = array (
-                'id'     => $id,
+                'id' => $id,
                 'symbol' => $symbol,
-                'base'   => $base,
-                'quote'  => $quote,
-                'info'   => $product
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product
             );
         }
         return $result;
     }
 
     public function fetch_balance () {
-        return $this->privateGetUserMargin (array ('currency' => 'all' ));
+        return $this->privateGetUserMargin (array ('currency' => 'all'));
     }
     
     public function fetch_order_book ($product) {
@@ -1702,39 +1522,30 @@ class bitmex extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         return $this->privatePostOrder (array_merge (array (
-            'symbol'   => $this->productId ($product),
-            'side'     => capitalize ($side),
+            'symbol' => $this->productId ($product),
+            'side' => capitalize ($side),
             'orderQty' => $amount,
-            'ordType'  => capitalize ($type),
+            'ordType' => capitalize ($type),
         ), ($type == 'limit') ? array ('rate' => $price) : array (), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = '/api/' . $this->version . '/' . $path;
-
         if ($params)
             $query .= '?' . http_build_query ($params);
-
         $url = $this->urls['api'] . $query;
-
         if ($type === 'private') {
-
             $nonce = $this->nonce ();
-
-            if (($method === 'POST') && $params)
-                $body = json_encode ($params);
-
-            $request = implode (array ($method, $query, $nonce, $body));
-
+            if ($method === 'POST')
+                $body = $params ? json_encode ($params) : null;
+            $request = implode (array ($method, $query, (string) $nonce, $body || ''));
             $headers = array (
-                'Content-Type: '  . 'application/json',
-                'api-nonce: '     . $nonce,
-                'api-key: '       . $this->apiKey,
-                'api-signature: ' . $this->hmac ($request, $this->secret),
+                'Content-Type' => 'application/json',
+                'api-nonce' => $nonce,
+                'api-key' => $this->apiKey,
+                'api-signature' => $this->hmac ($request, $this->secret),
             );
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -1744,25 +1555,19 @@ class bitmex extends Market {
 class bitso extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'bitso',
-            'name'      => 'Bitso',
+            'id' => 'bitso',
+            'name' => 'Bitso',
             'countries' => 'MX', // Mexico
             'rateLimit' => 2000, // 30 requests per minute
-            'version'   => 'v3',
-
+            'version' => 'v3',
             'urls' => array (
-                'api'  => 'https://api.bitso.com',
-                'www'  => 'https://bitso.com',
+                'api' => 'https://api.bitso.com',
+                'www' => 'https://bitso.com',
                 'docs' => 'https://bitso.com/api_info',
             ),
-            
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
                         'available_books',
                         'ticker',
@@ -1770,11 +1575,8 @@ class bitso extends Market {
                         'trades',
                     ),
                 ),
-
                 'private' => array (
-
                     'get' => array (
-
                         'account_status',
                         'balance',
                         'fees',
@@ -1796,9 +1598,7 @@ class bitso extends Market {
                         'withdrawals/',
                         'withdrawals/{wid}',
                     ),
-
                     'post' => array (
-
                         'bitcoin_withdrawal',
                         'debit_card_withdrawal',
                         'ether_withdrawal',
@@ -1822,22 +1622,25 @@ class bitso extends Market {
     public function fetch_products () {
         $products = $this->publicGetAvailableBooks ();
         $result = array ();
-        foreach ($products['payload'] as $product) {
+        for ($p = 0; $p < count ($products['payload']); $p++) {
+            $product = $products['payload'][$p];
             $id = $product['book'];
             $symbol = str_replace ('_', '/', strtoupper ($id));
             list ($base, $quote) = explode ('/', $symbol);
             $result[] = array (
-                'id'     => $id,
+                'id' => $id,
                 'symbol' => $symbol,
-                'base'   => $base,
-                'quote'  => $quote,
-                'info'   => $product
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
             );
         }
         return $result;
     }
 
-    public function fetch_balance () { return $this->privateGetBalance (); }
+    public function fetch_balance () {
+        return $this->privateGetBalance ();
+    }
     
     public function fetch_order_book ($product) {
         return $this->publicGetOrderBook (array (
@@ -1859,34 +1662,27 @@ class bitso extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         return $this->privatePostOrders (array_merge (array (
-            'book'  =>  $this->productId ($product),
-            'side'  =>  $side,
-            'type'  =>  $type,
+            'book' => $this->productId ($product),
+            'side' => $side,
+            'type' => $type,
             'major' => $amount,
         ), ($type == 'limit') ? array ('price' => $price) : array (), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = '/' . $this->version . '/' . Market::implodeParams ($path, $params);
         $url = $this->urls['api'] . $query;
-
         if ($type === 'public') {
-
             $url .= '?' . http_build_query ($params);
-
         } else {
-
             if ($params)
                 $body = json_encode ($params);
-
-            $nonce = $this->nonce ();
-            $request = $nonce . $method . $query . $body;
+            $nonce = (string) $this->nonce ();
+            $request = implode ('', array ($nonce, $method, $query, $body || ''));
             $signature = $this->hmac ($request, $this->secret);
             $auth = $this->apiKey . ':' . $nonce . ':' . $signature;
-            $headers = array ('Authorization: ' . 'Bitso ' . $auth);
+            $headers = array ('Authorization' => 'Bitso ' . $auth);
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -1896,28 +1692,22 @@ class bitso extends Market {
 class bittrex extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'bittrex',
-            'name'      => 'Bittrex',
+            'id' => 'bittrex',
+            'name' => 'Bittrex',
             'countries' => 'US',
+            'version' => 'v1.1',
             'rateLimit' => 2000,
-            'version'   => 'v1.1',
-
             'urls' => array (
-                'api'  => 'https://bittrex.com/api',
-                'www'  => 'https://bittrex.com',
+                'api' => 'https://bittrex.com/api',
+                'www' => 'https://bittrex.com',
                 'docs' => array ( 
                     'https://bittrex.com/Home/Api',
                     'https://www.npmjs.org/package/node.bittrex.api',
                 ),
             ),
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
                     
                         'currencies',
@@ -1933,7 +1723,6 @@ class bittrex extends Market {
                 'account' => array (
 
                     'get' => array (
-
                         'balance',
                         'balances',
                         'depositaddress',
@@ -1948,7 +1737,6 @@ class bittrex extends Market {
                 'market' => array (
 
                     'get' => array (
-
                         'buylimit',
                         'buymarket',
                         'cancel',
@@ -1964,29 +1752,31 @@ class bittrex extends Market {
     public function fetch_products () {
         $products = $this->publicGetMarkets ();
         $result = array ();
-        foreach ($products['result'] as $product) {
-            $id     = $product['MarketName'];
-            $base   = $product['BaseCurrency'];
-            $quote  = $product['MarketCurrency'];
+        for ($p = 0; $p < count ($products['result']); $p++) {
+            $product = $products['result'][$p];
+            $id = $product['MarketName'];
+            $base = $product['BaseCurrency'];
+            $quote = $product['MarketCurrency'];
             $symbol = $base . '/' . $quote;
             $result[] = array (
-                'id'     => $id,
+                'id' => $id,
                 'symbol' => $symbol,
-                'base'   => $base,
-                'quote'  => $quote,
-                'info'   => $product
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product
             );
         }
         return $result;
     }
 
-    public function fetch_balance () { return $this->accountGetBalances (); }
+    public function fetch_balance () {
+        return $this->accountGetBalances (); }
     
     public function fetch_order_book ($product) {
         return $this->publicGetOrderbook (array (
             'market' => $this->productId ($product),
-            'type'   => 'both',
-            'depth'  => 50,
+            'type' => 'both',
+            'depth' => 50,
         ));
     }
     
@@ -2003,41 +1793,30 @@ class bittrex extends Market {
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
-
-        return $this['marketGet' + capitalize ($side) + $type] (array_merge (array (
-            'market'   => $this->productId ($product),
+        $method = 'marketGet' . capitalize ($side) . $type;
+        return $this[$method] (array_merge (array (
+            'market' => $this->productId ($product),
             'quantity' => $amount,
         ), ($type == 'limit') ? array ('rate' => $price) : array (), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' ;
-
         if ($type === 'public') {
-
             $url .= $type . '/' . strtolower ($method) . $path;
-
             if ($params)
                 $url .= '?' . http_build_query ($params);
-
         } else {
-
             $nonce = $this->nonce ();
-
             $url .= $type . '/';
-
             if ((($type === 'account') && ($path !== 'withdraw')) || ($path === 'openorders'))
                 $url .= strtolower ($method);
-
             $url .= $path . '?' . http_build_query (array_merge (array (
-                'nonce'  => $nonce,
+                'nonce' => $nonce,
                 'apikey' => $this->apiKey,
             ), $params));
-
-            $headers = array ('apisign: ' . $this->hmac ($url, $this->secret, 'sha512'));
+            $headers = array ('apisign' => $this->hmac ($url, $this->secret, 'sha512'));
         }
-        
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -2047,37 +1826,26 @@ class bittrex extends Market {
 class btcx extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'btcx',
-            'name'      => 'BTCX',
+            'id' => 'btcx',
+            'name' => 'BTCX',
             'countries' => array ('IS', 'US', 'EU'), // Iceland, United States, European Union
             'rateLimit' => 3000, // support in english is very poor, unable to tell rate limits
-            'version'   => 'v1',
-
+            'version' => 'v1',
             'urls' => array (
-                'api'  => 'https://btc-x.is/api',
-                'www'  => 'https://btc-x.is',
+                'api' => 'https://btc-x.is/api',
+                'www' => 'https://btc-x.is',
                 'docs' => 'https://btc-x.is/custom/api-document.html',
             ),
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'depth/{id}/{limit}',
                         'ticker/{id}',                
                         'trade/{id}/{limit}',
                     ),
                 ),
-
-                'private' => array (
-
-                    'post' => array (
-
+                'private' => array (                    'post' => array (
                         'balance',
                         'cancel',
                         'history',
@@ -2089,7 +1857,6 @@ class btcx extends Market {
                     ),
                 ),
             ),
-
             'products' => array (
                 'BTC/USD' => array ('id' => 'btc/usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD'),
                 'BTC/EUR' => array ('id' => 'btc/eur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR'),
@@ -2097,11 +1864,13 @@ class btcx extends Market {
         ), $options));
     }
 
-    public function fetch_balance () { return $this->privatePostBalance (); }
+    public function fetch_balance () {
+        return $this->privatePostBalance ();
+    }
     
     public function fetch_order_book ($product) {
         return $this->publicGetDepthIdLimit (array (
-            'id'    => $this->productId ($product),
+            'id' => $this->productId ($product),
             'limit' => 1000,
         ));
     }
@@ -2114,46 +1883,37 @@ class btcx extends Market {
     
     public function fetch_trades ($product) {
         return $this->publicGetTradeIdLimit (array (
-            'id'    => $this->productId ($product),
+            'id' => $this->productId ($product),
             'limit' => 100,
         ));
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
-
         return $this->privatePostTrade (array_merge (array (
-            'type'   => $side.toUpperCase (),
+            'type' => $side.toUpperCase (),
             'market' => $this->productId ($product),
             'amount' => $amount,
-            'price'  => $price,
+            'price' => $price,
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/';
-
         if ($type === 'public') {
-
             $url .= Market::implodeParams ($path, $params);
-
         } else {
-
             $nonce = $this->nonce ();
             $url .= $type;
-
             $body = http_build_query (array_merge (array (
                 'Method' => $path,
-                'Nonce'  => $nonce,
+                'Nonce' => $nonce,
             ), $params));
-
             $headers = array (
-                'Content-Type: ' . 'application/x-www-form-urlencoded',
-                'Key: '          . $this->apiKey,
-                'Signature: '    . $this->hmac ($body, $this->secret, 'sha512'),
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Key' => $this->apiKey,
+                'Signature' => $this->hmac ($body, $this->secret, 'sha512'),
             );
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -2163,24 +1923,18 @@ class btcx extends Market {
 class bxinth extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'bxinth',
-            'name'      => 'BX.in.th',
+            'id' => 'bxinth',
+            'name' => 'BX.in.th',
             'countries' => 'TH', // Thailand
             'rateLimit' => 2000,
-
             'urls' => array (
-                'api'  => 'https://bx.in.th/api',
-                'www'  => 'https://bx.in.th',
+                'api' => 'https://bx.in.th/api',
+                'www' => 'https://bx.in.th',
                 'docs' => 'https://bx.in.th/info/api',
             ),
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
                         '', // ticker
                         'options',
@@ -2191,11 +1945,8 @@ class bxinth extends Market {
                         'tradehistory',
                     ),
                 ),
-
                 'private' => array (
-
                     'post' => array (
-
                         'balance',
                         'biller',
                         'billgroup',
@@ -2219,31 +1970,32 @@ class bxinth extends Market {
                     ),
                 ),
             ),
-
         ), $options));
     }
 
     public function fetch_products () {
-
         $products = $this->publicGetPairing ();
-        $result = array ();
-        foreach ($products as $product) {
-            $id     = $product['pairing_id'];
-            $base   = $product['primary_currency'];
-            $quote  = $product['secondary_currency'];
+        $keys = array_keys ($products);
+        for ($p = 0; $p < count ($keys); $p++) {
+            $product = $products[$keys[$p]];
+            $id = $product['pairing_id'];
+            $base = $product['primary_currency'];
+            $quote = $product['secondary_currency'];
             $symbol = $base . '/' . $quote;
             $result[] = array (
-                'id'     => $id,
+                'id' => $id,
                 'symbol' => $symbol,
-                'base'   => $base,
-                'quote'  => $quote,
-                'info'   => $product,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
             );
         }
         return $result;
     }
 
-    public function fetch_balance () { return $this->privatePostBalance (); }
+    public function fetch_balance () {
+        return $this->privatePostBalance ();
+    }
     
     public function fetch_order_book ($product) {
         return $this->publicGetOrderbook (array (
@@ -2266,46 +2018,30 @@ class bxinth extends Market {
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         return $this->privatePostOrder (array_merge (array (
             'pairing' => $this->productId ($product),
-            'type'    => $side,
-            'amount'  => $amount,
-            'rate'    => $price,
+            'type' => $side,
+            'amount' => $amount,
+            'rate' => $price,
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path . '/';
-
         if ($params)
             $url .= '?' . http_build_query ($params);
-
-        if ($type === 'public') {
-
-        } else {
-
+        if ($type === 'private') {
             $nonce = $this->nonce ();
             $signature = $this->hash ($this->apiKey . $nonce . $this->secret, 'sha256');
-            // var twofa = $this->twofa
-
-            $body = http_build_query (array (
-                'key'       => $this->apiKey,
-                'nonce'     => $nonce,
+            $body = http_build_query (array_merge (array (
+                'key' => $this->apiKey,
+                'nonce' => $nonce,
                 'signature' => $signature,
-            ));
-
-            // $body = http_build_query ({
-            //     key: $this->apiKey,
-            //     nonce,
-            //     signature: $this->hash ($this->apiKey . nonce . $this->secret, 'sha256'),
-            //     twofa: $this->twofa,
-            // })
-
+                // 'twofa' => $this->twofa,
+            ), $params));
             $headers = array (
-                'Content-Type: '   . 'application/x-www-form-urlencoded',
-                'Content-Length: ' . strlen ($body),
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body),
             );
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -2315,30 +2051,23 @@ class bxinth extends Market {
 class ccex extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'ccex',
-            'name'      => 'C-CEX',
+            'id' => 'ccex',
+            'name' => 'C-CEX',
             'countries' => array ('DE', 'EU'),
             'rateLimit' => 2000, 
-
             'urls' => array (
                 'api' => array (
                     'tickers' => 'https://c-cex.com/t',
-                    'public'  => 'https://c-cex.com/t/api_pub.html',
+                    'public' => 'https://c-cex.com/t/api_pub.html',
                     'private' => 'https://c-cex.com/t/api.html',
                 ),
-                'www'  => 'https://c-cex.com',
+                'www' => 'https://c-cex.com',
                 'docs' => 'https://c-cex.com/?id=api',
             ),
-
             'api' => array (
-
                 'tickers' => array (
-
                     'get' => array (
-
                         'coinnames',
                         '{market}',
                         'pairs',
@@ -2346,25 +2075,17 @@ class ccex extends Market {
                         'volume_{coin}',
                     ),
                 ),
-
                 'public' => array (
-
-                    'get' => array (
-
-                        
+                    'get' => array (                       
                         'balancedistribution',
                         'markethistory',
                         'markets',
                         'marketsummaries',
                         'orderbook',
-                        
                     ),
                 ),
-
                 'private' => array (
-                    
                     'get' => array (
-
                         'buylimit',
                         'cancel',
                         'getbalance',
@@ -2383,29 +2104,32 @@ class ccex extends Market {
     public function fetch_products () {
         $products = $this->publicGetMarkets ();
         $result = array ();
-        foreach ($products['result'] as $product) {
-            $id     = $product['MarketName'];
-            $base   = $product['MarketCurrency'];
-            $quote  = $product['BaseCurrency'];
+        for ($p = 0; $p < count ($products['result']); $p++) {
+            $product = $products['result'][$p];
+            $id = $product['MarketName'];
+            $base = $product['MarketCurrency'];
+            $quote = $product['BaseCurrency'];
             $symbol = $base . '/' . $quote;
             $result[] = array (
-                'id'     => $id,
+                'id' => $id,
                 'symbol' => $symbol,
-                'base'   => $base,
-                'quote'  => $quote,
-                'info'   => $product,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
             );
         }
         return $result;
     }
 
-    public function fetch_balance () { return $this->privateGetBalances (); }
+    public function fetch_balance () {
+        return $this->privateGetBalances ();
+    }
     
     public function fetch_order_book ($product) {
         return $this->publicGetOrderbook (array (
             'market' => $this->productId ($product),
-            'type'   => 'both',
-            'depth'  => 100,
+            'type' => 'both',
+            'depth' => 100,
         ));
     }
     
@@ -2418,47 +2142,38 @@ class ccex extends Market {
     public function fetch_trades ($product) {
         return $this->publicGetMarkethistory (array (
             'market' => $this->productId ($product),
-            'type'   => 'both',
-            'depth'  => 100,
+            'type' => 'both',
+            'depth' => 100,
         ));
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
-        return $this['privateGet' + capitalize ($side) + $type] (array_merge (array (
-            'market'   => $this->productId ($product),
+        $method = 'privateGet' + capitalize ($side) + $type;
+        return $this[$method] (array_merge (array (
+            'market' => $this->productId ($product),
             'quantity' => $amount,
-            'rate'     => $price,
+            'rate' => $price,
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$type];
-
         if ($type === 'private') {
-
             $nonce = $this->nonce ();
-
             $url .= '?' . http_build_query (array_merge (array (
                 'a' => $path,
             ), array (
                 'apikey' => $this->apiKey,
                 'nonce' => $nonce,
             ), $params));
-
-            $headers = array ('apisign: ' . $this->hmac ($url, $this->secret, 'sha512'));
-
+            $headers = array ('apisign' => $this->hmac ($url, $this->secret, 'sha512'));
         } else if ($type === 'public') {
-
             $url .= '?' . http_build_query (array_merge (array (
                 'a' => 'get' . $path,
             ), $params));
-
         } else {
-
             $url .= '/' . Market::implodeParams ($path, $params) . '.json';
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -2468,26 +2183,19 @@ class ccex extends Market {
 class cex extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'cex',
-            'name'      => 'CEX.IO',
+            'id' => 'cex',
+            'name' => 'CEX.IO',
             'countries' => array ('UK', 'EU', 'CY', 'RU'),
             'rateLimit' => 2000,
-
             'urls' => array (
-                'api'  => 'https://cex.io/api',
-                'www'  => 'https://cex.io',
+                'api' => 'https://cex.io/api',
+                'www' => 'https://cex.io',
                 'docs' => 'https://cex.io/cex-api',
             ),
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'currency_limits',
                         'last_price/{pair}',
                         'last_prices/{currencies}',
@@ -2497,18 +2205,13 @@ class cex extends Market {
                         'tickers/{currencies}',
                         'trade_history/{pair}',
                     ),
-
                     'post' => array (
-
                         'convert/{pair}',
                         'price_stats/{pair}',
                     ),
                 ),
-
                 'private' => array (
-
                     'post' => array (
-
                         'active_orders_status/',
                         'archived_orders/{pair}',
                         'balance/',
@@ -2535,22 +2238,25 @@ class cex extends Market {
     public function fetch_products () {
         $products = $this->publicGetCurrencyLimits ();
         $result = array ();
-        foreach ($products['data']['pairs'] as $product) {
+        for ($p = 0; $p < count ($products['data']['pairs']); $p++) {
+            $product = $products['data']['pairs'][$p];
             $id = $product['symbol1'] . '/' . $product['symbol2'];
             $symbol = $id;
             list ($base, $quote) = explode ('/', $symbol);
             $result[] = array (
-                'id'     => $id,
+                'id' => $id,
                 'symbol' => $symbol,
-                'base'   => $base,
-                'quote'  => $quote,
-                'info'   => $product,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
             );
         }
         return $result;
     }
     
-    public function fetch_balance () { return $this->privatePostBalance (); }
+    public function fetch_balance () {
+        return $this->privatePostBalance ();
+    }
     
     public function fetch_order_book ($product) {
         return $this->publicGetOrderBookPair (array (
@@ -2572,41 +2278,30 @@ class cex extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         return $this->privatePostPlaceOrderPair (array_merge (array (
-            'pair'   => $this->productId ($product),
-            'type'   => $side,
+            'pair' => $this->productId ($product),
+            'type' => $side,
             'amount' => $amount,
-        ), ($type == 'limit') ? array (
-            'price' => $price,
-        ) : array (
-            'order_type' => $type,
-        ), $params));
+        ), ($type == 'limit') ? array ('price' => $price) : array ('order_type' => $type), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . Market::implodeParams ($path, $params);
         $query = Market::omit ($params, Market::extractParams ($path));
-
-        if ($type === 'public') {
-    
+        if ($type === 'public') {   
             if ($query)
                 $url .= '?' . http_build_query ($query);
-
         } else {
-
-            $nonce = $this->nonce ();
+            $nonce = (string) $this->nonce ();
             $body = http_build_query (array_merge (array (
-                'key'       => $this->apiKey,
+                'key' => $this->apiKey,
                 'signature' => strtoupper ($this->hmac ($nonce . $this->uid . $this->apiKey, $this->secret)),
-                'nonce'     => $nonce,
-            ), $params));
-
+                'nonce' => $nonce,
+            ), $query));
             $headers = array (
-                'Content-Type: '   . 'application/x-www-form-urlencoded',
-                'Content-Length: ' . strlen ($body),
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body),
             );
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -2616,26 +2311,19 @@ class cex extends Market {
 class coincheck extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'coincheck',
-            'name'      => 'coincheck',
+            'id' => 'coincheck',
+            'name' => 'coincheck',
             'countries' => array ('JP', 'ID'),
             'rateLimit' => 2000,
-
             'urls' => array (
-                'api'  => 'https://coincheck.com/api',
-                'www'  => 'https://coincheck.com',
+                'api' => 'https://coincheck.com/api',
+                'www' => 'https://coincheck.com',
                 'docs' => 'https://coincheck.com/documents/exchange/api',
             ),
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'exchange/orders/rate',
                         'order_books',
                         'rate/{pair}',
@@ -2643,11 +2331,8 @@ class coincheck extends Market {
                         'trades',
                     ),
                 ),
-
                 'private' => array (
-
                     'get' => array (
-
                         'accounts',
                         'accounts/balance',
                         'accounts/leverage_balance',
@@ -2661,9 +2346,7 @@ class coincheck extends Market {
                         'send_money',
                         'withdraws',
                     ),
-                    
                     'post' => array (
-
                         'bank_accounts',
                         'deposit_money/{id}/fast',
                         'exchange/orders',
@@ -2674,43 +2357,39 @@ class coincheck extends Market {
                         'send_money',
                         'withdraws',
                     ),
-
                     'delete' => array (
-
                         'bank_accounts/{id}',
                         'exchange/orders/{id}',
                         'withdraws/{id}',
                     ),
                 ),
             ),
-
             'products' => array (
-                'BTC/JPY'  => array ('id' => 'btc_jpy',  'symbol' => 'BTC/JPY',  'base' => 'BTC',  'quote' => 'JPY'), // the only real pair
-                'ETH/JPY'  => array ('id' => 'eth_jpy',  'symbol' => 'ETH/JPY',  'base' => 'ETH',  'quote' => 'JPY'),
-                'ETC/JPY'  => array ('id' => 'etc_jpy',  'symbol' => 'ETC/JPY',  'base' => 'ETC',  'quote' => 'JPY'),
-                'DAO/JPY'  => array ('id' => 'dao_jpy',  'symbol' => 'BTC/JPY',  'base' => 'BTC',  'quote' => 'JPY'),
-                'LSK/JPY'  => array ('id' => 'lsk_jpy',  'symbol' => 'BTC/JPY',  'base' => 'BTC',  'quote' => 'JPY'),
-                'FCT/JPY'  => array ('id' => 'fct_jpy',  'symbol' => 'BTC/JPY',  'base' => 'BTC',  'quote' => 'JPY'),
-                'XMR/JPY'  => array ('id' => 'xmr_jpy',  'symbol' => 'BTC/JPY',  'base' => 'BTC',  'quote' => 'JPY'),
-                'REP/JPY'  => array ('id' => 'rep_jpy',  'symbol' => 'BTC/JPY',  'base' => 'BTC',  'quote' => 'JPY'),
-                'XRP/JPY'  => array ('id' => 'xrp_jpy',  'symbol' => 'BTC/JPY',  'base' => 'BTC',  'quote' => 'JPY'),
-                'ZEC/JPY'  => array ('id' => 'zec_jpy',  'symbol' => 'BTC/JPY',  'base' => 'BTC',  'quote' => 'JPY'),
-                'XEM/JPY'  => array ('id' => 'xem_jpy',  'symbol' => 'BTC/JPY',  'base' => 'BTC',  'quote' => 'JPY'),
-                'LTC/JPY'  => array ('id' => 'ltc_jpy',  'symbol' => 'BTC/JPY',  'base' => 'BTC',  'quote' => 'JPY'),
+                'BTC/JPY' => array ('id' => 'btc_jpy',  'symbol' => 'BTC/JPY',  'base' => 'BTC',  'quote' => 'JPY'), // the only real pair
+                'ETH/JPY' => array ('id' => 'eth_jpy',  'symbol' => 'ETH/JPY',  'base' => 'ETH',  'quote' => 'JPY'),
+                'ETC/JPY' => array ('id' => 'etc_jpy',  'symbol' => 'ETC/JPY',  'base' => 'ETC',  'quote' => 'JPY'),
+                'DAO/JPY' => array ('id' => 'dao_jpy',  'symbol' => 'BTC/JPY',  'base' => 'BTC',  'quote' => 'JPY'),
+                'LSK/JPY' => array ('id' => 'lsk_jpy',  'symbol' => 'BTC/JPY',  'base' => 'BTC',  'quote' => 'JPY'),
+                'FCT/JPY' => array ('id' => 'fct_jpy',  'symbol' => 'BTC/JPY',  'base' => 'BTC',  'quote' => 'JPY'),
+                'XMR/JPY' => array ('id' => 'xmr_jpy',  'symbol' => 'BTC/JPY',  'base' => 'BTC',  'quote' => 'JPY'),
+                'REP/JPY' => array ('id' => 'rep_jpy',  'symbol' => 'BTC/JPY',  'base' => 'BTC',  'quote' => 'JPY'),
+                'XRP/JPY' => array ('id' => 'xrp_jpy',  'symbol' => 'BTC/JPY',  'base' => 'BTC',  'quote' => 'JPY'),
+                'ZEC/JPY' => array ('id' => 'zec_jpy',  'symbol' => 'BTC/JPY',  'base' => 'BTC',  'quote' => 'JPY'),
+                'XEM/JPY' => array ('id' => 'xem_jpy',  'symbol' => 'BTC/JPY',  'base' => 'BTC',  'quote' => 'JPY'),
+                'LTC/JPY' => array ('id' => 'ltc_jpy',  'symbol' => 'BTC/JPY',  'base' => 'BTC',  'quote' => 'JPY'),
                 'DASH/JPY' => array ('id' => 'dash_jpy', 'symbol' => 'DASH/JPY', 'base' => 'DASH', 'quote' => 'JPY'),
-                'ETH/JPY'  => array ('id' => 'eth_btc',  'symbol' => 'ETH/BTC',  'base' => 'ETH',  'quote' => 'BTC'),
-                'ETC/JPY'  => array ('id' => 'etc_btc',  'symbol' => 'ETC/BTC',  'base' => 'ETC',  'quote' => 'BTC'),
-                'LSK/JPY'  => array ('id' => 'lsk_btc',  'symbol' => 'LSK/BTC',  'base' => 'LSK',  'quote' => 'BTC'),
-                'FCT/JPY'  => array ('id' => 'fct_btc',  'symbol' => 'FCT/BTC',  'base' => 'FCT',  'quote' => 'BTC'),
-                'XMR/JPY'  => array ('id' => 'xmr_btc',  'symbol' => 'XMR/BTC',  'base' => 'XMR',  'quote' => 'BTC'),
-                'REP/JPY'  => array ('id' => 'rep_btc',  'symbol' => 'REP/BTC',  'base' => 'REP',  'quote' => 'BTC'),
-                'XRP/JPY'  => array ('id' => 'xrp_btc',  'symbol' => 'XRP/BTC',  'base' => 'XRP',  'quote' => 'BTC'),
-                'ZEC/JPY'  => array ('id' => 'zec_btc',  'symbol' => 'ZEC/BTC',  'base' => 'ZEC',  'quote' => 'BTC'),
-                'XEM/JPY'  => array ('id' => 'xem_btc',  'symbol' => 'XEM/BTC',  'base' => 'XEM',  'quote' => 'BTC'),
-                'LTC/JPY'  => array ('id' => 'ltc_btc',  'symbol' => 'LTC/BTC',  'base' => 'LTC',  'quote' => 'BTC'),
+                'ETH/JPY' => array ('id' => 'eth_btc',  'symbol' => 'ETH/BTC',  'base' => 'ETH',  'quote' => 'BTC'),
+                'ETC/JPY' => array ('id' => 'etc_btc',  'symbol' => 'ETC/BTC',  'base' => 'ETC',  'quote' => 'BTC'),
+                'LSK/JPY' => array ('id' => 'lsk_btc',  'symbol' => 'LSK/BTC',  'base' => 'LSK',  'quote' => 'BTC'),
+                'FCT/JPY' => array ('id' => 'fct_btc',  'symbol' => 'FCT/BTC',  'base' => 'FCT',  'quote' => 'BTC'),
+                'XMR/JPY' => array ('id' => 'xmr_btc',  'symbol' => 'XMR/BTC',  'base' => 'XMR',  'quote' => 'BTC'),
+                'REP/JPY' => array ('id' => 'rep_btc',  'symbol' => 'REP/BTC',  'base' => 'REP',  'quote' => 'BTC'),
+                'XRP/JPY' => array ('id' => 'xrp_btc',  'symbol' => 'XRP/BTC',  'base' => 'XRP',  'quote' => 'BTC'),
+                'ZEC/JPY' => array ('id' => 'zec_btc',  'symbol' => 'ZEC/BTC',  'base' => 'ZEC',  'quote' => 'BTC'),
+                'XEM/JPY' => array ('id' => 'xem_btc',  'symbol' => 'XEM/BTC',  'base' => 'XEM',  'quote' => 'BTC'),
+                'LTC/JPY' => array ('id' => 'ltc_btc',  'symbol' => 'LTC/BTC',  'base' => 'LTC',  'quote' => 'BTC'),
                 'DASH/JPY' => array ('id' => 'dash_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC'),
             ),
-
         ), $options));
     }
 
@@ -2730,48 +2409,39 @@ class coincheck extends Market {
         return $this->publicGetTrades ();
     }
 
-    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
-        
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {  
         $isMarket = ($type == 'market');
         $isBuy = ($side == 'buy');
-
+        $order_type = ($isMarket ? ($type + '_') : '') + $side;
         $order = array (
             'pair' => $this->productId ($product),
-            'order_type' => ($isMarket ? ($type + '_') : '') + $side,
+            'order_type' => $order_type,
         );
-
         if (!$isMarket)
             $order['rate'] = $price;
-
-        $order[(($isMarket && $isBuy) ? ($type + '_' + $side + '_') : '') + 'amount'] = $amount;
-
+        $prefix = (($isMarket && $isBuy) ? ($type + '_' + $side + '_') : '');
+        $order[$prefix + 'amount'] = $amount;
         return $this->privatePostExchangeOrders (array_merge ($order, $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . Market::implodeParams ($path, $params);
         $query = Market::omit ($params, Market::extractParams ($path));
-
         if ($type === 'public') {
-
             if ($query)
                 $url .= '?' . http_build_query ($query);
-
         } else {
-
-            $nonce = $this->nonce ();
-            $body = http_build_query ($query);
-
+            $nonce = (string) $this->nonce ();
+            if ($query)
+                $body = http_build_query ($query);
             $headers = array (
-                'Content-Type: '     . 'application/x-www-form-urlencoded',
-                'Content-Length: '   . strlen ($body),
-                'ACCESS-KEY: '       . $this->apiKey,
-                'ACCESS-NONCE: '     . $nonce,
-                'ACCESS-SIGNATURE: ' . $this->hmac ($nonce . $url . $body, $this->secret),
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body),
+                'ACCESS-KEY' => $this->apiKey,
+                'ACCESS-NONCE' => $nonce,
+                'ACCESS-SIGNATURE' => $this->hmac ($nonce . $url . ($body || ''), $this->secret),
             );
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -2781,31 +2451,23 @@ class coincheck extends Market {
 class coinsecure extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'coinsecure',
-            'name'      => 'Coinsecure',
+            'id' => 'coinsecure',
+            'name' => 'Coinsecure',
             'countries' => 'IN', // India
             'rateLimit' => 1000,
-            'version'   => 'v1',
-
+            'version' => 'v1',
             'urls' => array (
-
-                'api'  => 'https://api.coinsecure.in',
-                'www'  => 'https://coinsecure.in',
+                'api' => 'https://api.coinsecure.in',
+                'www' => 'https://coinsecure.in',
                 'docs' => array (
                     'https://api.coinsecure.in',
                     'https://github.com/coinsecure/plugins',
                 ),
             ),
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'bitcoin/search/confirmation/{txid}',
                         'exchange/ask/low',
                         'exchange/ask/orders',
@@ -2818,11 +2480,8 @@ class coinsecure extends Market {
                         'exchange/trades',
                     ),
                 ),
-
                 'private' => array (
-
                     'get' => array (
-
                         'mfa/authy/call',
                         'mfa/authy/sms',            
                         'netki/search/{netkiName}',
@@ -2881,9 +2540,7 @@ class coinsecure extends Market {
                         'wallet/coin/withdraw/verified',
 
                     ),
-
                     'post' => array (
-
                         'login',
                         'login/initiate',
                         'login/password/forgot',
@@ -2901,9 +2558,7 @@ class coinsecure extends Market {
                         'user/wallet/coin/withdraw/initiate',
                         'wallet/coin/withdraw/newVerifycode',
                     ),
-
                     'put' => array (
-
                         'signup/verify/{token}',
                         'user/exchange/kyc',
                         'user/exchange/bank/fiat/deposit/new',
@@ -2923,9 +2578,7 @@ class coinsecure extends Market {
                         'user/wallet/coin/withdraw/sendToExchange',
                         'user/wallet/coin/withdraw/verify',
                     ),
-
                     'delete' => array (
-
                         'user/gcm/{code}',
                         'user/logout',
                         'user/exchange/bank/coin/withdraw/unverified/cancel/{withdrawID}',
@@ -2941,11 +2594,9 @@ class coinsecure extends Market {
                     ),
                 ),
             ),
-
            'products' => array (
                 'BTC/INR' => array ('id' => 'BTC/INR', 'symbol' => 'BTC/INR', 'base' => 'BTC', 'quote' => 'INR'),
             ),
-
         ), $options));
     }
 
@@ -2966,37 +2617,26 @@ class coinsecure extends Market {
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
-
         $method = 'privatePutUserExchange';
-
         if ($type == 'market') {
             $method += 'Instant' + capitalize ($side);
-            $order =
-                ($side == 'buy') ?
-                    array ('maxFiat' => $amount) :
-                    array ('maxVol'  => $amount);
+            $order = ($side == 'buy') ? array ('maxFiat' => $amount) : array ('maxVol' => $amount);
             return $this[$method] ($order);
         } 
-            
         $method += (($side == 'buy') ? 'Bid' : 'Ask') + 'New';
         return $this[$method] (array ('rate' => $price, 'vol' => $amount));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . Market::implodeParams ($path, $params);
         $query = Market::omit ($params, Market::extractParams ($path));
-
         if ($type === 'private') {
-
-            $headers = array ('Authorization: ' . $this->apiKey);
-
+            $headers = array ('Authorization' => $this->apiKey);
             if ($query) {
                 $body = json_encode ($query);
-                $headers[] = 'Content-Type: application/json';
+                $headers['Content-Type'] = 'application/json';
             }
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -3006,31 +2646,23 @@ class coinsecure extends Market {
 class exmo extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'exmo',
-            'name'      => 'EXMO',
+            'id' => 'exmo',
+            'name' => 'EXMO',
             'countries' => array ('ES', 'RU'), // Spain, Russia
             'rateLimit' => 1000,
-            'version'   => 'v1',
-
+            'version' => 'v1',
             'urls' => array (
-
-                'api'  => 'https://api.exmo.com',
-                'www'  => 'https://exmo.me',
+                'api' => 'https://api.exmo.com',
+                'www' => 'https://exmo.me',
                 'docs' => array (
                     'https://exmo.me/ru/api_doc',
                     'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
                 ),
             ),
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'currency',
                         'order_book',
                         'pair_settings',
@@ -3038,11 +2670,8 @@ class exmo extends Market {
                         'trades',
                     ),
                 ),
-
                 'private' => array (
-
                     'post' => array (
-
                         'user_info',
                         'order_create',
                         'order_cancel',
@@ -3065,22 +2694,26 @@ class exmo extends Market {
 
     public function fetch_products () {
         $products = $this->publicGetPairSettings ();
+        $keys = array_keys ($products);
         $result = array ();
-        foreach ($products as $id => $product) {
+        for ($p = 0; $p < count ($keys); $p++) {
+            $id = $keys[$p];
+            $product = $products[$id];
             $symbol = str_replace ('_', '/', $id);
             list ($base, $quote) = explode ('/', $symbol);
             $result[] = array (
-                'id'     => $id,
+                'id' => $id,
                 'symbol' => $symbol,
-                'base'   => $base,
-                'quote'  => $quote,
-                'info'   => $product,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
             );
         }
         return $result;
     }
 
-    public function fetch_balance () { return $this->privatePostUserInfo (); }
+    public function fetch_balance () {
+        return $this->privatePostUserInfo (); }
     
     public function fetch_order_book ($product) {
         return $this->publicGetOrderBook (array (
@@ -3100,37 +2733,28 @@ class exmo extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         return $this->privatePostOrderCreate (array_merge (array (
-            'pair'     => $this->productId ($product),
+            'pair' => $this->productId ($product),
             'quantity' => $amount,
-            'price'    => $price || 0,
-            'type'     => (($type == 'market') ? 'market_' : '') + $side,
+            'price' => $price || 0,
+            'type' => (($type == 'market') ? 'market_' : '') + $side,
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-
         if ($type === 'public') {
-
             if ($params)
                 $url .= '?' . http_build_query ($params);
-
         } else {
-
             $nonce = $this->nonce ();
-            $body = http_build_query (array_merge (array (
-                'nonce' => $nonce,
-            ), $params));
-            
+            $body = http_build_query (array_merge (array ('nonce' => $nonce), $params));   
             $headers = array (
-                'Content-Type: '   . 'application/x-www-form-urlencoded',
-                'Content-Length: ' . strlen ($body),
-                'Key: '            . $this->apiKey,
-                'Sign: '           . $this->hmac ($body, $this->secret, 'sha512'),
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body),
+                'Key' => $this->apiKey,
+                'Sign' => $this->hmac ($body, $this->secret, 'sha512'),
             );
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -3140,28 +2764,19 @@ class exmo extends Market {
 class fyb extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
             'rateLimit' => 2000,
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'ticker',
                         'tickerdetailed',
                         'orderbook',
                         'trades',
                     ),
                 ),
-
                 'private' => array (
-
                     'post' => array (
-
                         'test',
                         'getaccinfo',
                         'getpendingorders',
@@ -3172,7 +2787,6 @@ class fyb extends Market {
                     ),
                 ),
             ),
-
         ), $options));
     }
 
@@ -3194,34 +2808,25 @@ class fyb extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         return $this->privatePostPlaceorder (array_merge (array (
-            'qty'   => $amount,
+            'qty' => $amount,
             'price' => $price,
-            'type'  => $side[0].toUpperCase ()
+            'type' => $side[0].toUpperCase ()
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
-
         if ($type === 'public') {
-            
             $url .= '.json';
-
         } else {
-
-            $timestamp = $this->nonce ();
-            $body = http_build_query (array_merge (array (
-                'timestamp' => $timestamp,
-            ), $params));
-
+            $nonce = $this->nonce ();
+            $body = http_build_query (array_merge (array ('timestamp' => $nonce), $params));
             $headers = array (
-                'Content-type: ' . 'application/x-www-form-urlencoded',
-                'key: '          . $this->apiKey,
-                'sig: '          . $this->hmac ($body, $this->secret, 'sha1'),
+                'Content-type' => 'application/x-www-form-urlencoded',
+                'key' => $this->apiKey,
+                'sig' => $this->hmac ($body, $this->secret, 'sha1'),
             );
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -3231,23 +2836,18 @@ class fyb extends Market {
 class fybse extends fyb {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'fybse',
-            'name'      => 'FYB-SE',
+            'id' => 'fybse',
+            'name' => 'FYB-SE',
             'countries' => 'SE', // Sweden
-            
             'urls' => array (
-                'api'  => 'https://www.fybse.se/api/SEK',
-                'www'  => 'https://www.fybse.se',
+                'api' => 'https://www.fybse.se/api/SEK',
+                'www' => 'https://www.fybse.se',
                 'docs' => 'http://docs.fyb.apiary.io',
             ),
-
             'products' => array (
                 'BTC/SEK' => array ('id' => 'SEK', 'symbol' => 'BTC/SEK', 'base' => 'BTC', 'quote' => 'SEK'),
             ),
-
         ), $options));
     }
 }
@@ -3257,23 +2857,18 @@ class fybse extends fyb {
 class fybsg extends fyb {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'fybsg',
-            'name'      => 'FYB-SG',
+            'id' => 'fybsg',
+            'name' => 'FYB-SG',
             'countries' => 'SG', // Singapore
-
             'urls' => array (
-                'api'  => 'https://www.fybsg.com/api/SGD',
-                'www'  => 'https://www.fybsg.com',
+                'api' => 'https://www.fybsg.com/api/SGD',
+                'www' => 'https://www.fybsg.com',
                 'docs' => 'http://docs.fyb.apiary.io',
             ),
-            
             'products' => array (
                 'BTC/SGD' => array ('id' => 'SGD', 'symbol' => 'BTC/SGD', 'base' => 'BTC', 'quote' => 'SGD'),
             ),
-
         ), $options));
     }
 }
@@ -3283,19 +2878,15 @@ class fybsg extends fyb {
 class hitbtc extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'hitbtc',
-            'name'      => 'HitBTC',
+            'id' => 'hitbtc',
+            'name' => 'HitBTC',
             'countries' => 'HK', 
             'rateLimit' => 2000,
-            'version'   => 1,
-
+            'version' => 1,
             'urls' => array (
-
-                'api'  => 'http://api.hitbtc.com',
-                'www'  => 'https://hitbtc.com',
+                'api' => 'http://api.hitbtc.com',
+                'www' => 'https://hitbtc.com',
                 'docs' => array (
                     'https://hitbtc.com/api',
                     'http://hitbtc-com.github.io/hitbtc-api',
@@ -3303,13 +2894,9 @@ class hitbtc extends Market {
                     'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md', // announced on June 2nd 2017
                 ),
             ),
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         '{symbol}/orderbook',
                         '{symbol}/ticker',
                         '{symbol}/trades',
@@ -3319,11 +2906,8 @@ class hitbtc extends Market {
                         'time,'
                     ),
                 ),
-
                 'trading' => array (
-
                     'get' => array (
-
                         'balance',
                         'orders/active',
                         'orders/recent',
@@ -3331,27 +2915,20 @@ class hitbtc extends Market {
                         'trades/by/order',
                         'trades',
                     ),
-
                     'post' => array (
-
                         'new_order',
                         'cancel_order',
                         'cancel_orders',
                     ),
                 ),
-
                 'payment' => array (
-
                     'get' => array (
-
                         'balance',
                         'address/{currency}',
                         'transactions',
                         'transactions/{transaction}',
                     ),
-
                     'post' => array (
-
                        'transfer_to_trading',
                         'transfer_to_main',
                         'address/{currency}',
@@ -3359,30 +2936,33 @@ class hitbtc extends Market {
                     ),
                 ),
             ),
-
         ), $options));
     }
 
     public function fetch_products () {
         $products = $this->publicGetSymbols ();
         $result = array ();
-        foreach ($products['symbols'] as $product) {
+        for ($p = 0; $p < count ($products['symbols']); $p++) {
+            $product = $products['symbols'][$p];
             $id = $product['symbol'];
             $base = $product['commodity'];
             $quote = $product['currency'];
             $symbol = $base . '/' . $quote;
             $result[] = array (
-                'id'     => $id,
+                'id' => $id,
                 'symbol' => $symbol,
-                'base'   => $base,
-                'quote'  => $quote,
-                'info'   => $product,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
             );
         }
         return $result;
     }
 
-    public function fetch_balance () { return $this->tradingGetBalance (); }
+    public function fetch_balance () {
+        return $this->tradingGetBalance ();
+    }
+    
     public function fetch_order_book ($product) {
         return $this->publicGetSymbolOrderbook (array (
             'symbol' => $this->productId ($product),
@@ -3404,44 +2984,32 @@ class hitbtc extends Market {
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         return $this->tradingPostNewOrder (array_merge (array (
             'clientOrderId' => $this->nonce (),
-            'symbol'   => $this->productId ($product),
-            'side'     => $side,
+            'symbol' => $this->productId ($product),
+            'side' => $side,
             'quantity' => $amount,
-            'type'     => $type,            
+            'type' => $type,            
         ), ($type == 'limit') ? array ('price' => $price) : array (), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/api/' . $this->version . '/' . $type . '/' . Market::implodeParams ($path, $params);
         $query = Market::omit ($params, Market::extractParams ($path));
-
         if ($type === 'public') {
-
             if ($query)
                 $url .= '?' . http_build_query ($query);
-
         } else {
-
             $nonce = $this->nonce ();
-            $query = array_merge (array (
-                'nonce'  => $nonce,
-                'apikey' => $this->apiKey,
-            ), $query);
-
+            $query = array_merge (array ('nonce' => $nonce, 'apikey' => $this->apiKey), $query);
             if ($method === 'POST')
                 if ($query)
                     $body = http_build_query ($query);
-
             if ($query)
                 $url .= '?' . http_build_query ($query);
-
             $headers = array (
-                'Content-Type: ' . 'application/x-www-form-urlencoded',
-                'X-Signature: '  . strtolower ($this->hmac ($url . ($body ? $body : ''), $this->secret, 'sha512')),
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'X-Signature' => strtolower ($this->hmac ($url . ($body || ''), $this->secret, 'sha512')),
             );
         }
-
         $url = $this->urls['api'] . $url;
         return $this->fetch ($url, $method, $headers, $body);
     }
@@ -3452,28 +3020,20 @@ class hitbtc extends Market {
 class huobi extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'huobi',
-            'name'      => 'Huobi',
+            'id' => 'huobi',
+            'name' => 'Huobi',
             'countries' => array ( 'CN', ),
             'rateLimit' => 5000,
-
             'version' => 'v3',
             'urls' => array (
-
-                'api'  => 'http://api.huobi.com',
-                'www'  => 'https://www.huobi.com',
+                'api' => 'http://api.huobi.com',
+                'www' => 'https://www.huobi.com',
                 'docs' => 'https://github.com/huobiapi/API_Docs_en/wiki',
             ),
-
             'api' => array (
-
                 'staticmarket' => array (
-
                     'get' => array (
-
                         '{id}_kline_{period}',
                         'ticker_{id}',
                         'depth_{id}',
@@ -3481,11 +3041,8 @@ class huobi extends Market {
                         'detail_{id}',
                     ),
                 ),
-
                 'usdmarket' => array (
-
                     'get' => array (
-
                         '{id}_kline_{period}',
                         'ticker_{id}',
                         'depth_{id}',
@@ -3493,11 +3050,8 @@ class huobi extends Market {
                         'detail_{id}',
                     ),
                 ),
-
                 'trade' => array (
-
                     'post' => array (
-
                         'get_account_info',
                         'get_orders',
                         'order_info',
@@ -3519,80 +3073,71 @@ class huobi extends Market {
                     ),            
                 ),
             ),
-
             'products' => array (
-
                 'BTC/CNY' => array ('id' => 'btc', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY', 'type' => 'staticmarket', ),
                 'LTC/CNY' => array ('id' => 'ltc', 'symbol' => 'LTC/CNY', 'base' => 'LTC', 'quote' => 'CNY', 'type' => 'staticmarket', ),
                 'BTC/USD' => array ('id' => 'btc', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'type' => 'usdmarket',    ),
             ),
-
         ), $options));
     }
 
-    public function fetch_balance () { return $this->tradePostGetAccountInfo (); }
+    public function fetch_balance () {
+        return $this->tradePostGetAccountInfo ();
+    }
     
     public function fetch_order_book ($product) { 
-        $f = $this->product ($product)['type'] . 'GetDepthId';
-        return $this->$f (array ('id' => $this->productId ($product)));
+        $p = $this->product ($product);
+        $usdmarket = $p['type'] == 'usdmarket';
+        $method = $usdmarket ? 'usdmarketGetDepthId' : 'staticmarketGetDepthId';
+        return $this->$method (array ('id' => $p['id']));
     }
 
-    public function fetch_ticker ($product) { 
-        $f = $this->product ($product)['type'] . 'GetTickerId';
-        return $this->$f (array ('id' => $this->productId ($product)));
+    public function fetch_ticker ($product) {
+        $p = $this->product ($product);
+        $usdmarket = $p['type'] == 'usdmarket';
+        $method = $usdmarket ? 'usdmarketGetTickerId' : 'staticmarketGetTickerId';
+        return $this->$method (array ('id' => $p['id']));
     }
 
     public function fetch_trades ($product) {
-        $f = $this->product ($product)['type'] . 'GetDetailId';
-        return $this->$f (array ('id' => $this->productId ($product)));
+        $p = $this->product ($product);
+        $usdmarket = $p['type'] == 'usdmarket';
+        $method = $usdmarket ? 'usdmarketGetDetailId' : 'staticmarketGetDetailId';
+        return $this->$method (array ('id' => $p['id']));
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
-
         $p = $this->product ($product);
         $method = capitalize ($side) + (($type == 'market') ? capitalize ($type) : '');
-
         $order = array_merge (array (
             'coin_type' => $p['coinType'],
             'amount' => $amount,
             'market' => mb_strtolower ($p['quote']),
         ), ($type == 'limit') ? array ('price' => $price) : array (), $params);
-
         return $this['tradePost' + $method] ($order);
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'];
-
         if ($type === 'trade') {
-
             $url .= '/api' . $this->version;
-
             $query = array_merge (array (
-                'method'     => $path,
+                'method' => $path,
                 'access_key' => $this->apiKey,
-                'created'    => $this->nonce (),
+                'created' => $this->nonce (),
             ), $params);
-
             ksort ($query);
-
             $query['sign'] = $this->hash (http_build_query (array_merge (array (
                 'secret_key' => $this->secret,
             ), Market::omit ($query, 'market'))));
-
             $body = http_build_query ($query);
-
             $headers = array (
-                'Content-Type: '   . 'application/x-www-form-urlencoded',
-                'Content-Length: ' . strlen ($body),
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body),
             );
-
         } else {
-
             $url .= '/' . $type . '/' . Market::implodeParams ($path, $params) . '_json.js';
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -3602,38 +3147,27 @@ class huobi extends Market {
 class jubi extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'jubi',
-            'name'      => 'jubi.com',
+            'id' => 'jubi',
+            'name' => 'jubi.com',
             'countries' => 'CN',
             'rateLimit' => 2000,
-            'version'   => 'v1',
-
+            'version' => 'v1',
             'urls' => array (
-
-                'api'  => 'https://www.jubi.com/api',
-                'www'  => 'https://www.jubi.com',
+                'api' => 'https://www.jubi.com/api',
+                'www' => 'https://www.jubi.com',
                 'docs' => 'https://www.jubi.com/help/api.html',
             ),
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'depth',
                         'orders',
                         'ticker',
                     ),
                 ),
-
                 'private' => array (
-
                     'post' => array (
-
                         'balance',
                         'trade_add',
                         'trade_cancel',
@@ -3643,57 +3177,56 @@ class jubi extends Market {
                     ),
                 ),
             ),
-
             'products' => array (
-
-                'BTC/CNY'  => array ('id' => 'btc',  'symbol' => 'BTC/CNY',  'base' => 'BTC',  'quote' => 'CNY'),
-                'ETH/CNY'  => array ('id' => 'eth',  'symbol' => 'ETH/CNY',  'base' => 'ETH',  'quote' => 'CNY'),
-                'ANS/CNY'  => array ('id' => 'ans',  'symbol' => 'ANS/CNY',  'base' => 'ANS',  'quote' => 'CNY'),
-                'BLK/CNY'  => array ('id' => 'blk',  'symbol' => 'BLK/CNY',  'base' => 'BLK',  'quote' => 'CNY'),
-                'DNC/CNY'  => array ('id' => 'dnc',  'symbol' => 'DNC/CNY',  'base' => 'DNC',  'quote' => 'CNY'),
+                'BTC/CNY' => array ('id' => 'btc',  'symbol' => 'BTC/CNY',  'base' => 'BTC',  'quote' => 'CNY'),
+                'ETH/CNY' => array ('id' => 'eth',  'symbol' => 'ETH/CNY',  'base' => 'ETH',  'quote' => 'CNY'),
+                'ANS/CNY' => array ('id' => 'ans',  'symbol' => 'ANS/CNY',  'base' => 'ANS',  'quote' => 'CNY'),
+                'BLK/CNY' => array ('id' => 'blk',  'symbol' => 'BLK/CNY',  'base' => 'BLK',  'quote' => 'CNY'),
+                'DNC/CNY' => array ('id' => 'dnc',  'symbol' => 'DNC/CNY',  'base' => 'DNC',  'quote' => 'CNY'),
                 'DOGE/CNY' => array ('id' => 'doge', 'symbol' => 'DOGE/CNY', 'base' => 'DOGE', 'quote' => 'CNY'),
-                'EAC/CNY'  => array ('id' => 'eac',  'symbol' => 'EAC/CNY',  'base' => 'EAC',  'quote' => 'CNY'),
-                'ETC/CNY'  => array ('id' => 'etc',  'symbol' => 'ETC/CNY',  'base' => 'ETC',  'quote' => 'CNY'),
-                'FZ/CNY'   => array ('id' => 'fz',   'symbol' => 'FZ/CNY',   'base' => 'FZ',   'quote' => 'CNY'),
+                'EAC/CNY' => array ('id' => 'eac',  'symbol' => 'EAC/CNY',  'base' => 'EAC',  'quote' => 'CNY'),
+                'ETC/CNY' => array ('id' => 'etc',  'symbol' => 'ETC/CNY',  'base' => 'ETC',  'quote' => 'CNY'),
+                'FZ/CNY' => array ('id' => 'fz',   'symbol' => 'FZ/CNY',   'base' => 'FZ',   'quote' => 'CNY'),
                 'GOOC/CNY' => array ('id' => 'gooc', 'symbol' => 'GOOC/CNY', 'base' => 'GOOC', 'quote' => 'CNY'),
                 'GAME/CNY' => array ('id' => 'game', 'symbol' => 'GAME/CNY', 'base' => 'GAME', 'quote' => 'CNY'),
-                'HLB/CNY'  => array ('id' => 'hlb',  'symbol' => 'HLB/CNY',  'base' => 'HLB',  'quote' => 'CNY'),
-                'IFC/CNY'  => array ('id' => 'ifc',  'symbol' => 'IFC/CNY',  'base' => 'IFC',  'quote' => 'CNY'),
-                'JBC/CNY'  => array ('id' => 'jbc',  'symbol' => 'JBC/CNY',  'base' => 'JBC',  'quote' => 'CNY'),
-                'KTC/CNY'  => array ('id' => 'ktc',  'symbol' => 'KTC/CNY',  'base' => 'KTC',  'quote' => 'CNY'),
-                'LKC/CNY'  => array ('id' => 'lkc',  'symbol' => 'LKC/CNY',  'base' => 'LKC',  'quote' => 'CNY'),
-                'LSK/CNY'  => array ('id' => 'lsk',  'symbol' => 'LSK/CNY',  'base' => 'LSK',  'quote' => 'CNY'),
-                'LTC/CNY'  => array ('id' => 'ltc',  'symbol' => 'LTC/CNY',  'base' => 'LTC',  'quote' => 'CNY'),
-                'MAX/CNY'  => array ('id' => 'max',  'symbol' => 'MAX/CNY',  'base' => 'MAX',  'quote' => 'CNY'),
-                'MET/CNY'  => array ('id' => 'met',  'symbol' => 'MET/CNY',  'base' => 'MET',  'quote' => 'CNY'),
+                'HLB/CNY' => array ('id' => 'hlb',  'symbol' => 'HLB/CNY',  'base' => 'HLB',  'quote' => 'CNY'),
+                'IFC/CNY' => array ('id' => 'ifc',  'symbol' => 'IFC/CNY',  'base' => 'IFC',  'quote' => 'CNY'),
+                'JBC/CNY' => array ('id' => 'jbc',  'symbol' => 'JBC/CNY',  'base' => 'JBC',  'quote' => 'CNY'),
+                'KTC/CNY' => array ('id' => 'ktc',  'symbol' => 'KTC/CNY',  'base' => 'KTC',  'quote' => 'CNY'),
+                'LKC/CNY' => array ('id' => 'lkc',  'symbol' => 'LKC/CNY',  'base' => 'LKC',  'quote' => 'CNY'),
+                'LSK/CNY' => array ('id' => 'lsk',  'symbol' => 'LSK/CNY',  'base' => 'LSK',  'quote' => 'CNY'),
+                'LTC/CNY' => array ('id' => 'ltc',  'symbol' => 'LTC/CNY',  'base' => 'LTC',  'quote' => 'CNY'),
+                'MAX/CNY' => array ('id' => 'max',  'symbol' => 'MAX/CNY',  'base' => 'MAX',  'quote' => 'CNY'),
+                'MET/CNY' => array ('id' => 'met',  'symbol' => 'MET/CNY',  'base' => 'MET',  'quote' => 'CNY'),
                 'MRYC/CNY' => array ('id' => 'mryc', 'symbol' => 'MRYC/CNY', 'base' => 'MRYC', 'quote' => 'CNY'),        
-                'MTC/CNY'  => array ('id' => 'mtc',  'symbol' => 'MTC/CNY',  'base' => 'MTC',  'quote' => 'CNY'),
-                'NXT/CNY'  => array ('id' => 'nxt',  'symbol' => 'NXT/CNY',  'base' => 'NXT',  'quote' => 'CNY'),
-                'PEB/CNY'  => array ('id' => 'peb',  'symbol' => 'PEB/CNY',  'base' => 'PEB',  'quote' => 'CNY'),
-                'PGC/CNY'  => array ('id' => 'pgc',  'symbol' => 'PGC/CNY',  'base' => 'PGC',  'quote' => 'CNY'),
-                'PLC/CNY'  => array ('id' => 'plc',  'symbol' => 'PLC/CNY',  'base' => 'PLC',  'quote' => 'CNY'),
-                'PPC/CNY'  => array ('id' => 'ppc',  'symbol' => 'PPC/CNY',  'base' => 'PPC',  'quote' => 'CNY'),
-                'QEC/CNY'  => array ('id' => 'qec',  'symbol' => 'QEC/CNY',  'base' => 'QEC',  'quote' => 'CNY'),
-                'RIO/CNY'  => array ('id' => 'rio',  'symbol' => 'RIO/CNY',  'base' => 'RIO',  'quote' => 'CNY'),
-                'RSS/CNY'  => array ('id' => 'rss',  'symbol' => 'RSS/CNY',  'base' => 'RSS',  'quote' => 'CNY'),
-                'SKT/CNY'  => array ('id' => 'skt',  'symbol' => 'SKT/CNY',  'base' => 'SKT',  'quote' => 'CNY'),
-                'TFC/CNY'  => array ('id' => 'tfc',  'symbol' => 'TFC/CNY',  'base' => 'TFC',  'quote' => 'CNY'),
-                'VRC/CNY'  => array ('id' => 'vrc',  'symbol' => 'VRC/CNY',  'base' => 'VRC',  'quote' => 'CNY'),
-                'VTC/CNY'  => array ('id' => 'vtc',  'symbol' => 'VTC/CNY',  'base' => 'VTC',  'quote' => 'CNY'),
-                'WDC/CNY'  => array ('id' => 'wdc',  'symbol' => 'WDC/CNY',  'base' => 'WDC',  'quote' => 'CNY'),
-                'XAS/CNY'  => array ('id' => 'xas',  'symbol' => 'XAS/CNY',  'base' => 'XAS',  'quote' => 'CNY'),
-                'XPM/CNY'  => array ('id' => 'xpm',  'symbol' => 'XPM/CNY',  'base' => 'XPM',  'quote' => 'CNY'),
-                'XRP/CNY'  => array ('id' => 'xrp',  'symbol' => 'XRP/CNY',  'base' => 'XRP',  'quote' => 'CNY'),
+                'MTC/CNY' => array ('id' => 'mtc',  'symbol' => 'MTC/CNY',  'base' => 'MTC',  'quote' => 'CNY'),
+                'NXT/CNY' => array ('id' => 'nxt',  'symbol' => 'NXT/CNY',  'base' => 'NXT',  'quote' => 'CNY'),
+                'PEB/CNY' => array ('id' => 'peb',  'symbol' => 'PEB/CNY',  'base' => 'PEB',  'quote' => 'CNY'),
+                'PGC/CNY' => array ('id' => 'pgc',  'symbol' => 'PGC/CNY',  'base' => 'PGC',  'quote' => 'CNY'),
+                'PLC/CNY' => array ('id' => 'plc',  'symbol' => 'PLC/CNY',  'base' => 'PLC',  'quote' => 'CNY'),
+                'PPC/CNY' => array ('id' => 'ppc',  'symbol' => 'PPC/CNY',  'base' => 'PPC',  'quote' => 'CNY'),
+                'QEC/CNY' => array ('id' => 'qec',  'symbol' => 'QEC/CNY',  'base' => 'QEC',  'quote' => 'CNY'),
+                'RIO/CNY' => array ('id' => 'rio',  'symbol' => 'RIO/CNY',  'base' => 'RIO',  'quote' => 'CNY'),
+                'RSS/CNY' => array ('id' => 'rss',  'symbol' => 'RSS/CNY',  'base' => 'RSS',  'quote' => 'CNY'),
+                'SKT/CNY' => array ('id' => 'skt',  'symbol' => 'SKT/CNY',  'base' => 'SKT',  'quote' => 'CNY'),
+                'TFC/CNY' => array ('id' => 'tfc',  'symbol' => 'TFC/CNY',  'base' => 'TFC',  'quote' => 'CNY'),
+                'VRC/CNY' => array ('id' => 'vrc',  'symbol' => 'VRC/CNY',  'base' => 'VRC',  'quote' => 'CNY'),
+                'VTC/CNY' => array ('id' => 'vtc',  'symbol' => 'VTC/CNY',  'base' => 'VTC',  'quote' => 'CNY'),
+                'WDC/CNY' => array ('id' => 'wdc',  'symbol' => 'WDC/CNY',  'base' => 'WDC',  'quote' => 'CNY'),
+                'XAS/CNY' => array ('id' => 'xas',  'symbol' => 'XAS/CNY',  'base' => 'XAS',  'quote' => 'CNY'),
+                'XPM/CNY' => array ('id' => 'xpm',  'symbol' => 'XPM/CNY',  'base' => 'XPM',  'quote' => 'CNY'),
+                'XRP/CNY' => array ('id' => 'xrp',  'symbol' => 'XRP/CNY',  'base' => 'XRP',  'quote' => 'CNY'),
                 'XSGS/CNY' => array ('id' => 'xsgs', 'symbol' => 'XSGS/CNY', 'base' => 'XSGS', 'quote' => 'CNY'),
-                'YTC/CNY'  => array ('id' => 'ytc',  'symbol' => 'YTC/CNY',  'base' => 'YTC',  'quote' => 'CNY'),
-                'ZET/CNY'  => array ('id' => 'zet',  'symbol' => 'ZET/CNY',  'base' => 'ZET',  'quote' => 'CNY'),
-                'ZCC/CNY'  => array ('id' => 'zcc',  'symbol' => 'ZCC/CNY',  'base' => 'ZCC',  'quote' => 'CNY'),        
+                'YTC/CNY' => array ('id' => 'ytc',  'symbol' => 'YTC/CNY',  'base' => 'YTC',  'quote' => 'CNY'),
+                'ZET/CNY' => array ('id' => 'zet',  'symbol' => 'ZET/CNY',  'base' => 'ZET',  'quote' => 'CNY'),
+                'ZCC/CNY' => array ('id' => 'zcc',  'symbol' => 'ZCC/CNY',  'base' => 'ZCC',  'quote' => 'CNY'),        
             ),
-
         ), $options));
     }
     
-    public function fetch_balance  () { return $this->privatePostBalance (); }
+    public function fetch_balance  () {
+        return $this->privatePostBalance ();
+    }
     
     public function fetch_order_book ($product) {
         return $this->publicGetDepth (array (
@@ -3716,38 +3249,30 @@ class jubi extends Market {
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         return $this->privatePostTradeAdd (array_merge (array (
             'amount' => $amount,
-            'price'  => $price,
-            'type'   => $side,
-            'coin'   => $this->productId ($product),
+            'price' => $price,
+            'type' => $side,
+            'coin' => $this->productId ($product),
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-
         if ($type === 'public') {
-    
             if ($params)
                 $url .= '?' . http_build_query ($params);
-
         } else {
-
             $nonce = (string) $this->nonce ();
             $query = array_merge (array (
-                'key'   => $this->apiKey,
+                'key' => $this->apiKey,
                 'nonce' => $nonce,
             ), $params);
-
             $query['signature'] = $this->hmac (http_build_query ($query), $this->hash ($this->secret));
             $body = http_build_query ($query);
-
             $headers = array (
-                'Content-Type: '   . 'application/x-www-form-urlencoded',
-                'Content-Length: ' . strlen ($body),
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body),
             );
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -3758,17 +3283,13 @@ class jubi extends Market {
 class kraken extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'kraken',
-            'name'      => 'Kraken',
+            'id' => 'kraken',
+            'name' => 'Kraken',
             'countries' => 'US',
-            'version'   => 0,
+            'version' => '0',
             'rateLimit' => 3000,
-
             'urls' => array (
-
                 'api' => 'https://api.kraken.com',
                 'www' => 'https://www.kraken.com',
                 'docs' => array (
@@ -3776,13 +3297,9 @@ class kraken extends Market {
                     'https://github.com/nothingisdead/npm-kraken-api',
                 ),
             ),
-            
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'Assets',
                         'AssetPairs',
                         'Depth',
@@ -3793,11 +3310,8 @@ class kraken extends Market {
                         'Trades',
                     ),
                 ),
-
                 'private' => array (
-
                     'post' => array (
-
                         'AddOrder',
                         'Balance',
                         'CancelOrder',
@@ -3821,27 +3335,29 @@ class kraken extends Market {
                     ),
                 ),
             ),
-
         ), $options));
     }
 
     public function fetch_products () {
         $products = $this->publicGetAssetPairs ();
+        $keys = array_keys ($products['result']);
         $result = array ();
-        foreach ($products['result'] as $id => $product) {
+        for ($p = 0; $p < count ($keys); $p++) {
+            $id = $keys[$p];
+            $product = $products['result'][$id];
             $base = $product['base'];
             $quote = $product['quote'];
-            $base  = ($base[0]  != 'X' && $base[0]  != 'Z') ? $base  : mb_substr ($base, 1);
-            $quote = ($quote[0] != 'X' && $quote[0] != 'Z') ? $quote : mb_substr ($quote, 1);
-            $base  = $this->commonCurrencyCode ($base);
+            $base = (($base[0] == 'X') || ($base[0] == 'Z')) ? mb_substr ($base, 1) : $base;
+            $quote = (($quote[0] == 'X') || ($quote[0] == 'Z')) ? mb_substr ($quote, 1) : $quote;
+            $base = $this->commonCurrencyCode ($base);
             $quote = $this->commonCurrencyCode ($quote);
             $symbol = (mb_strpos ($id, '.d') !== false) ? $product['altname'] : ($base . '/' . $quote);
             $result[] = array (
-                'id'     => $id,
+                'id' => $id,
                 'symbol' => $symbol,
-                'base'   => $base,
-                'quote'  => $quote,
-                'info'   => $product,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
             );
         }
         return $result;
@@ -3865,92 +3381,71 @@ class kraken extends Market {
         ));
     }
     
-    public function fetch_balance () { return $this->privatePostBalance (); }
+    public function fetch_balance () {
+        return $this->privatePostBalance ();
+    }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         return $this->privatePostAddOrder (array_merge (array (
-            'pair'   => $this->productId ($product),
-            'type'   => $side,
+            'pair' => $this->productId ($product),
+            'type' => $side,
             'ordertype' => $type,
             'volume' => $amount,
         ), ($type == 'limit') ? array ('price' => $price) : array (), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-    
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . $this->version . '/' . $type . '/' . $path;
-
         if ($type === 'public') {
-
             if ($params)
                 $url .= '?' . http_build_query ($params);
-
         } else {
-
-            $nonce  = $this->nonce ();
-            
-            $body   = http_build_query (array_merge (array (
-                'nonce' => $nonce,
-            ), $params));
-            
-            $query  = $url . $this->hash ($nonce . $body, 'sha256', 'raw');                   
+            $nonce = (string) $this->nonce ();
+            $query = array_merge (array ('nonce' => $nonce), $params);
+            $body = http_build_query ($query);
+            $query = $url . $this->hash ($nonce . $body, 'sha256', 'raw');
             $secret = base64_decode ($this->secret);
-
             $headers = array (
-                'API-Key: '      . $this->apiKey,
-                'API-Sign: '     . $this->hmac ($query, $secret, 'sha512', 'base64'),
-                'Content-Type: ' . 'application/x-www-form-urlencoded',
+                'API-Key' => $this->apiKey,
+                'API-Sign' => $this->hmac ($query, $secret, 'sha512', 'base64'),
+                'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-
         $url = $this->urls['api'] . $url;
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
-
 
 //-----------------------------------------------------------------------------
 
 class luno extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'luno',
-            'name'      => 'luno',
+            'id' => 'luno',
+            'name' => 'luno',
             'countries' => array ('UK', 'SG', 'ZA'), // UK, Singapore, South Africa
             'rateLimit' => 5000,
-
+            'version' => '1',
             'urls' => array (
-
-                'api'  => 'https://api.mybitx.com/api',
-                'www'  => 'https://www.luno.com',
+                'api' => 'https://api.mybitx.com/api',
+                'www' => 'https://www.luno.com',
                 'docs' => array (
                     'https://npmjs.org/package/bitx',
                     'https://github.com/bausmeier/node-bitx',
                 ),
             ),
-
-            'version' => '1',
-
             'api' => array (
-            
                 'public' => array (
-
                     'get' => array (
-
                         'orderbook',
                         'ticker',
                         'tickers',
                         'trades',
                     ),
                 ),
-
                 'private' => array (
-
                     'get' => array (
-
                         'accounts/{id}/pending',
                         'accounts/{id}/transactions',
                         'balance',
@@ -3963,9 +3458,7 @@ class luno extends Market {
                         'withdrawals',
                         'withdrawals/{id}',
                     ),
-
                     'post' => array (
-
                         'accounts',
                         'postorder',
                         'marketorder',
@@ -3976,43 +3469,41 @@ class luno extends Market {
                         'quotes',
                         'oauth2/grant',
                     ),
-
                     'put' => array (
-
                         'quotes/{id}',
                     ),
-
                     'delete' => array (
-
                         'quotes/{id}',
                         'withdrawals/{id}',
                     ),
                 ),
             ),
-
         ), $options));
     }
 
     public function fetch_products () {
         $products = $this->publicGetTickers ();
         $result = array ();
-        foreach ($products['tickers'] as $product) {
+        for ($p = 0; $p < count ($products['tickers']); $p++) {
+            $product = $products['tickers'][$p];
             $id = $product['pair'];
-            $base =  $this->commonCurrencyCode (mb_substr ($id, 0, 3));
+            $base = $this->commonCurrencyCode (mb_substr ($id, 0, 3));
             $quote = $this->commonCurrencyCode (mb_substr ($id, 3, 6));
             $symbol = $base . '/' . $quote;
             $result[] = array (
-                'id'     => $id,
+                'id' => $id,
                 'symbol' => $symbol,
-                'base'   => $base,
-                'quote'  => $quote,
-                'info'   => $product,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
             );
         }
         return $result;
     }
 
-    public function fetch_balance () { return $this->privateGetBalance (); }
+    public function fetch_balance () {
+        return $this->privateGetBalance ();
+    }
     
     public function fetch_order_book ($product) {
         return $this->publicGetOrderbook (array (
@@ -4033,44 +3524,32 @@ class luno extends Market {
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
-
         if ($type == 'market') {
-
             $order = array (
                 'pair' => $this->productId ($product),
                 'type' => $side.toUpperCase (),
             );
-
             $volume = (($side == 'buy') ? 'counter' : 'base') + '_volume';
             $order[$volume] = $amount;
-
             return $this->privatePostMarketorder (array_merge ($order, $params));
         }
-
         return $this->privatePostOrder (array_merge (array (
-            'pair'   => $this->productId ($product),
-            'type'   => ($side == 'buy') ? 'BID' : 'ASK',
+            'pair' => $this->productId ($product),
+            'type' => ($side == 'buy') ? 'BID' : 'ASK',
             'volume' => $amount,
-            'price'  => $price,
+            'price' => $price,
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . Market::implodeParams ($path, $params);
         $query = Market::omit ($params, Market::extractParams ($path));
-
         if ($query)
-                $url .= '?' . http_build_query ($query);
-
-        if ($type === 'public') {
-
-        } else {
-
+            $url .= '?' . http_build_query ($query);
+        if ($type === 'private') {
             $auth = base64_encode ($this->apiKey . ':' . $this->secret);
-            $headers = array ('Authorization: ' . 'Basic ' . $auth);
+            $headers = array ('Authorization' => 'Basic ' . $auth);
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -4088,18 +3567,12 @@ class luno extends Market {
 class okcoin extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
             'version' => 'v1',
             'rateLimit' => 2000,
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'depth',
                         'exchange_rate',
                         'future_depth',
@@ -4116,11 +3589,8 @@ class okcoin extends Market {
                         'trades',    
                     ),
                 ),
-
                 'private' => array (
-
                     'post' => array (
-
                         'account_records',
                         'batch_trade',
                         'borrow_money',
@@ -4161,7 +3631,6 @@ class okcoin extends Market {
                     ),
                 ),
             ),
-
         ), $options));
     }
 
@@ -4183,39 +3652,32 @@ class okcoin extends Market {
         ));
     }
     
-    public function fetch_balance () { return $this->privatePostUserinfo (); }
+    public function fetch_balance () {
+        return $this->privatePostUserinfo ();
+    }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
-
         return $this->privatePostTrade (array_merge (array (
             'symbol' => $this->productId ($product),
-            'type'   => $side + (($type == 'market') ? '_market' : ''),
+            'type' => $side + (($type == 'market') ? '_market' : ''),
             'amount' => $amount,
         ), ($type == 'limit') ? array ('price' => $price) : array (), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
-        $url = '/api/' . $this->version . '/' . $path . '.do';
-        
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = '/api/' . $this->version . '/' . $path . '.do';        
         if ($type == 'public') {
-            
             if ($params)
                 $url .= '?' . http_build_query ($params);
-
         } else {
-
             $query = array_merge (array ('api_key' => $this->apiKey ), $params);
-           
             ksort ($query);
-
             // secret key must be at the end of querystring
             $queryString = http_build_query ($query) . '&secret_key=' . $this->secret;
             $query['sign'] = strtoupper ($this->hash ($queryString));
             $body = http_build_query ($query);
-            $headers = array ('Content-type: application/x-www-form-urlencoded');
+            $headers = array ('Content-type' => 'application/x-www-form-urlencoded');
         }
-
         $url = $this->urls['api'] . $url;
         return $this->fetch ($url, $method, $headers, $body);
     }
@@ -4226,25 +3688,19 @@ class okcoin extends Market {
 class okcoincny extends okcoin {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'okcoincny',
-            'name'      => 'OKCoin CNY',
+            'id' => 'okcoincny',
+            'name' => 'OKCoin CNY',
             'countries' => 'CN',
-
             'urls' => array (
-
-                'api'  => 'https://www.okcoin.cn',
-                'www'  => 'https://www.okcoin.cn',
+                'api' => 'https://www.okcoin.cn',
+                'www' => 'https://www.okcoin.cn',
                 'docs' => 'https://www.okcoin.cn/rest_getStarted.html',
             ),
-
             'products' => array (
                 'BTC/CNY' => array ('id' => 'btc_cny', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY'),
                 'LTC/CNY' => array ('id' => 'ltc_cny', 'symbol' => 'LTC/CNY', 'base' => 'LTC', 'quote' => 'CNY'),
             ),
-
         ), $options));
     }
 }
@@ -4254,23 +3710,18 @@ class okcoincny extends okcoin {
 class okcoinusd extends okcoin {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'okcoinusd',
-            'name'      => 'OKCoin USD',
+            'id' => 'okcoinusd',
+            'name' => 'OKCoin USD',
             'countries' => array ('CN', 'US'),
-
             'urls' => array (
-
-                'api'  => 'https://www.okcoin.com',
-                'www'  => 'https://www.okcoin.com',
+                'api' => 'https://www.okcoin.com',
+                'www' => 'https://www.okcoin.com',
                 'docs' => array (
                     'https://www.okcoin.com/rest_getStarted.html',
                     'https://www.npmjs.com/package/okcoin.com',
                 ),
             ),
-
             'products' => array (
                 'BTC/USD' => array ('id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD'),
                 'LTC/USD' => array ('id' => 'ltc_usd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD'),
@@ -4284,18 +3735,14 @@ class okcoinusd extends okcoin {
 class poloniex extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'poloniex',
-            'name'      => 'Poloniex',
+            'id' => 'poloniex',
+            'name' => 'Poloniex',
             'countries' => 'US',
             'rateLimit' => 1000, // 6 calls per second
-
             'urls' => array (
-
                 'api' => array (
-                    'public'  => 'https://poloniex.com/public',
+                    'public' => 'https://poloniex.com/public',
                     'private' => 'https://poloniex.com/tradingApi',
                 ),
                 'www' => 'https://poloniex.com',
@@ -4304,13 +3751,9 @@ class poloniex extends Market {
                     'http://pastebin.com/dMX7mZE0',
                 ),
             ),
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'return24hVolume',
                         'returnChartData',
                         'returnCurrencies',
@@ -4320,11 +3763,8 @@ class poloniex extends Market {
                         'returnTradeHistory',
                     ),
                 ),
-
                 'private' => array (
-
                     'post' => array (
-
                         'buy',
                         'cancelLoanOffer',
                         'cancelOrder',
@@ -4361,16 +3801,19 @@ class poloniex extends Market {
 
     public function fetch_products () {
         $products = $this->publicGetReturnTicker ();
+        $keys = array_keys ($products);
         $result = array ();
-        foreach ($products as $id => $product) {
+        for ($p = 0; $p < count ($keys); $p++) {
+            $id = $keys[$p];
+            $product = $products[$id];
             $symbol = str_replace ('_', '/', $id);
             list ($base, $quote) = explode ('/', $symbol);
             $result[] = array (
-                'id'     => $id,
+                'id' => $id,
                 'symbol' => $symbol,
-                'base'   => $base,
-                'quote'  => $quote,
-                'info'   => $product,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
             );
         }
         return $result;
@@ -4399,36 +3842,28 @@ class poloniex extends Market {
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
-        return $this['privatePost' + capitalize ($side)] (array_merge (array (
+        $method = 'privatePost' + capitalize ($side);
+        return $this[$method] (array_merge (array (
             'currencyPair' => $this->productId ($product),
-            'rate'   => $price,
+            'rate' => $price,
             'amount' => $amount,
         ), $params));
-
-        return $this->privatePostOrders (array_merge ($order, $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$type];
-
         $query = array_merge (array ('command' => $path), $params);
-
         if ($type === 'public') {
-
             $url .= '?' . http_build_query ($query);
-
         } else {
-
             $query['nonce'] = $this->nonce ();
             $body = http_build_query ($query);
             $headers = array (
-                'Content-Type: ' . 'application/x-www-form-urlencoded',
-                'Key: '          . $this->apiKey,
-                'Sign: '         . $this->hmac ($body, $this->secret, 'sha512'),
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Key' => $this->apiKey,
+                'Sign' => $this->hmac ($body, $this->secret, 'sha512'),
             );
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -4439,38 +3874,27 @@ class poloniex extends Market {
 class quadrigacx extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'quadrigacx',
-            'name'      => 'QuadrigaCX',
+            'id' => 'quadrigacx',
+            'name' => 'QuadrigaCX',
             'countries' => 'CA',
             'rateLimit' => 2000,
-
             'version' => 'v2',
             'urls' => array (
-
-                'api'  => 'https://api.quadrigacx.com',
-                'www'  => 'https://www.quadrigacx.com',
+                'api' => 'https://api.quadrigacx.com',
+                'www' => 'https://www.quadrigacx.com',
                 'docs' => 'https://www.quadrigacx.com/api_info',
             ),
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'order_book',
                         'ticker',                
                         'transactions',
                     ),
                 ),
-
                 'private' => array (
-
                     'post' => array (
-
                         'balance',
                         'bitcoin_deposit_address',
                         'bitcoin_withdrawal',
@@ -4485,19 +3909,18 @@ class quadrigacx extends Market {
                     ),
                 ),
             ),
-
             'products' => array (
-
                 'BTC/CAD' => array ('id' => 'btc_cad', 'symbol' => 'BTC/CAD', 'base' => 'BTC', 'quote' => 'CAD'),
                 'BTC/USD' => array ('id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD'),
                 'ETH/BTC' => array ('id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC'),
                 'ETH/CAD' => array ('id' => 'eth_cad', 'symbol' => 'ETH/CAD', 'base' => 'ETH', 'quote' => 'CAD'),
             ),
-
         ), $options));
     }
 
-    public function fetch_balance () { return $this->privatePostBalance (); }
+    public function fetch_balance () {
+        return $this->privatePostBalance ();
+    }
     
     public function fetch_order_book ($product) {
         return $this->publicGetOrderBook (array (
@@ -4520,11 +3943,11 @@ class quadrigacx extends Market {
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         return $this['privatePost' + capitalize ($side)] (array_merge (array (
             'amount' => $amount,
-            'book'   => $this->productId ($product),
+            'book' => $this->productId ($product),
         ), ($type == 'limit') ? array ('price' => $price) : array (), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
 
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
 
@@ -4545,8 +3968,8 @@ class quadrigacx extends Market {
 
             $body = json_encode ($query);
             $headers = array (
-                'Content-Type: '   . 'application/json',
-                'Content-Length: ' . strlen ($body),
+                'Content-Type' => 'application/json',
+                'Content-Length' => strlen ($body),
             );
         }
 
@@ -4559,30 +3982,21 @@ class quadrigacx extends Market {
 class quoine extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'quoine',
-            'name'      => 'QUOINE',
+            'id' => 'quoine',
+            'name' => 'QUOINE',
             'countries' => array ('JP', 'SG', 'VN'), // Asia: Japan, Singapore, Vietnam
-            'timeout'   => 10000,
-            'version'   => 2,
+            'timeout' => 10000,
+            'version' => 2,
             'rateLimit' => 2000,
-
             'urls' => array (
-
-                'api'  => 'https://api.quoine.com',
-                'www'  => 'https://www.quoine.com',
+                'api' => 'https://api.quoine.com',
+                'www' => 'https://www.quoine.com',
                 'docs' => 'https://developers.quoine.com',
             ),
-            
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'products',
                         'products/{id}',
                         'products/{id}/price_levels',
@@ -4590,11 +4004,8 @@ class quoine extends Market {
                         'ir_ladders/{currency}',
                     ),
                 ),
-
                 'private' => array (
-
                     'get' => array (
-
                         'accounts/balance',
                         'crypto_accounts',
                         'executions/me',
@@ -4609,16 +4020,12 @@ class quoine extends Market {
                         'trading_accounts',
                         'trading_accounts/{id}',
                     ),
-
                     'post' => array (
-
                         'fiat_accounts',
                         'loan_bids',
                         'orders',
                     ),
-
                     'put' => array (
-
                         'loan_bids/{id}/close',
                         'loans/{id}',
                         'orders/{id}',
@@ -4636,17 +4043,18 @@ class quoine extends Market {
     public function fetch_products () {
         $products = $this->publicGetProducts ();
         $result = array ();
-        foreach ($products as $product) {
+        for ($p = 0; $p < count ($products); $p++) {
+            $product = $products[$p];
             $id = $product['id'];
             $base = $product['base_currency'];
             $quote = $product['quoted_currency'];
             $symbol = $base . '/' . $quote;
             $result[] = array (
-                'id'     => $id,
+                'id' => $id,
                 'symbol' => $symbol,
-                'base'   => $base,
-                'quote'  => $quote,
-                'info'   => $product,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
             );
         }
         return $result;
@@ -4676,13 +4084,13 @@ class quoine extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         return $this->privatePostOrders (array_merge (array (
-                'order' => array_merge (array (
-                    'order_type' => $type,
-                    'product_id' => $this->productId ($product),
-                    'side'       => $side,
-                    'quantity'   => $amount,
-                ), ($type == 'limit') ? array ('price' => $price) : array ()),
-            ), $params));
+            'order' => array_merge (array (
+                'order_type' => $type,
+                'product_id' => $this->productId ($product),
+                'side' => $side,
+                'quantity' => $amount,
+            ), ($type == 'limit') ? array ('price' => $price) : array ()),
+        ), $params));
     }
 
     public function cancelOrder ($id, $params = array ()) {
@@ -4691,36 +4099,27 @@ class quoine extends Market {
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
-        $headers = array (
-            'X-Quoine-API-Version: ' . $this->version,
-            'Content-Type: '         . 'application/json',
-        );
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . Market::implodeParams ($path, $params);
         $query = Market::omit ($params, Market::extractParams ($path));
-
-        if ($query)
-            $url .= '?' . http_build_query ($query);
-        
+        $headers = array (
+            'X-Quoine-API-Version' => $this->version,
+            'Content-Type' => 'application/json',
+        );        
         if ($type === 'public') {
+            if ($query)
+                $url .= '?' . http_build_query ($query);
         } else {
-
             $nonce = (int) $this->nonce ();
-
-            $query = array (
-                'path'     => $url, 
-                'nonce'    => $nonce, 
+            $request = array (
+                'path' => $url, 
+                'nonce' => $nonce, 
                 'token_id' => $this->apiKey,
-                'iat'      => floor ($nonce / 1000),
+                'iat' => floor ($nonce / 1000),
             );
-
-            $signature = $this->jwt ($query, $this->secret);
-            $body = ($params ? http_build_query ($params) : null);
-            $headers[] = 'X-Quoine-Auth: ' . $signature;
+            $body = $params ? http_build_query ($query) : null;
+            $headers['X-Quoine-Auth'] = $this->jwt ($request, $this->secret);
         }
-        
         return $this->fetch ($this->urls['api'] . $url, $method, $headers, $body);
     }
 }
@@ -4730,39 +4129,28 @@ class quoine extends Market {
 class therock extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'therock',
-            'name'      => 'TheRockTrading',
+            'id' => 'therock',
+            'name' => 'TheRockTrading',
             'countries' => 'MT',
             'rateLimit' => 1000,
-            'version'   => 'v1',
-
+            'version' => 'v1',
             'urls' => array (
-
-                'api'  => 'https://api.therocktrading.com',
-                'www'  => 'https://therocktrading.com',
+                'api' => 'https://api.therocktrading.com',
+                'www' => 'https://therocktrading.com',
                 'docs' => 'https://api.therocktrading.com/doc/',
             ),
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'funds/{id}/orderbook',
                         'funds/{id}/ticker',
                         'funds/{id}/trades',
                         'funds/tickers',
                     ),
                 ),
-
                 'private' => array (
-
                     'get' => array (
-
                         'atms/withdraw',
                         'balances',
                         'balances/{id}',
@@ -4782,12 +4170,10 @@ class therock extends Market {
                         'withdraw_limits/{id}',
                         'withdraw_limits',
                     ),
-
                     'post' => array (
                         'atms/withdraw',
                         'funds/{fund_id}/orders',
                     ),
-
                     'delete' => array (
                         'funds/{fund_id}/orders/{id}',
                         'funds/{fund_id}/orders/remove_all',
@@ -4800,22 +4186,24 @@ class therock extends Market {
     public function fetch_products () {
         $products = $this->publicGetFundsTickers ();
         $result = array ();
-        foreach ($products['tickers'] as $product) {
+        for ($p = 0; $p < count ($products['tickers']); $p++) {
+            $product = $products['tickers'][$p];
             $id = $product['fund_id'];
             $base = mb_substr ($id, 0, 3);
             $quote = mb_substr ($id, 3, 6);
             $symbol = $base . '/' . $quote;
             $result[] = array (
-                'id'     => $id,
+                'id' => $id,
                 'symbol' => $symbol,
-                'base'   => $base,
-                'quote'  => $quote,
-                'info'   => $product);
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product);
         }
         return $result;
     }
 
-    public function fetch_balance () { return $this->privateGetBalances (); }
+    public function fetch_balance () {
+        return $this->privateGetBalances (); }
     
     public function fetch_order_book ($product) {
         return $this->publicGetFundsIdOrderbook (array (
@@ -4838,28 +4226,26 @@ class therock extends Market {
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         return $this->privatePostFundsFundIdOrders (array_merge (array (
             'fund_id' => $this->productId ($product),
-            'side'    => $side,
-            'amount'  => $amount,
+            'side' => $side,
+            'amount' => $amount,
         ), ($type == 'limit') ? array ('price' => $price) : array (), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . Market::implodeParams ($path, $params);
         $query = Market::omit ($params, Market::extractParams ($path));
-
         if ($type === 'private') {
-
-            $nonce = $this->nonce ();
-            $body = json_encode ($query);
+            $nonce = $this->nonce ();            
             $headers = array (
-                'Content-Type: ' . 'application/json',
-                'X-TRT-KEY: '    . $this->apiKey,
-                'X-TRT-NONCE: '  . $nonce,
-                'X-TRT-SIGN: '   . $this->hmac ($nonce . $url, $this->secret, 'sha512'),
+                'X-TRT-KEY' => $this->apiKey,
+                'X-TRT-NONCE' => $nonce,
+                'X-TRT-SIGN' => $this->hmac ($nonce . $url, $this->secret, 'sha512'),
             );
+            if ($query) {
+                $body = json_encode ($query);
+                $headers['Content-Type'] = 'application/json';
+            }
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -4870,28 +4256,20 @@ class therock extends Market {
 class vaultoro extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'vaultoro',
-            'name'      => 'Vaultoro',
+            'id' => 'vaultoro',
+            'name' => 'Vaultoro',
             'countries' => 'CH',
             'rateLimit' => 1000,
-            'version'   => 1,
-
+            'version' => 1,
             'urls' => array (
-
-                'api'  => 'https://api.vaultoro.com',
-                'www'  => 'https://www.vaultoro.com',
+                'api' => 'https://api.vaultoro.com',
+                'www' => 'https://www.vaultoro.com',
                 'docs' => 'https://api.vaultoro.com',
             ),
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'bidandask',
                         'buyorders',
                         'latest',
@@ -4904,18 +4282,13 @@ class vaultoro extends Market {
                         'transactions/month',
                     ),
                 ),
-
                 'private' => array (
-
                     'get' => array (
-
                         'balance',
                         'mytrades',
                         'orders',
                     ),
-
                     'post' => array (
-
                         'buy/{symbol}/{type}',
                         'cancel/{orderid',
                         'sell/{symbol}/{type}',
@@ -4923,33 +4296,31 @@ class vaultoro extends Market {
                     ),
                 ),
             ),
-
         ), $options));
     }
 
     public function fetch_products () {
-
-        $result  = $this->publicGetMarkets ();
-        
-        $base    = $result['data']['BaseCurrency'];
-        $quote   = $result['data']['MarketCurrency'];
-        $symbol  = $base . '/' . $quote;
-        $baseId  = $base;
+        $products  = $this->publicGetMarkets ();
+        $product = $products['data'];
+        $base = $product['BaseCurrency'];
+        $quote = $product['MarketCurrency'];
+        $symbol = $base . '/' . $quote;
+        $baseId = $base;
         $quoteId = $quote;
-        $id      = $result['data']['MarketName'];
-        
+        $id = $product['MarketName'];
         return array (array (
-            'id'      => $id,
-            'symbol'  => $symbol,
-            'base'    => $base,
-            'quote'   => $quote,
-            'baseId'  => $baseId,
+            'id' => $id,
+            'symbol' => $symbol,
+            'base' => $base,
+            'quote' => $quote,
+            'baseId' => $baseId,
             'quoteId' => $quoteId,
-            'info'    => $result['data'],
+            'info' => $product,
         ));
     }
 
-    public function fetch_balance () { return $this->privateGetBalance (); }
+    public function fetch_balance () {
+        return $this->privateGetBalance (); }
     
     public function fetch_order_book ($product) { 
         return $this->publicGetOrderbook ();
@@ -4968,31 +4339,29 @@ class vaultoro extends Market {
         $method = 'privatePost' + capitalize ($side) + 'SymbolType';
         return $this[$method] (array_merge (array (
             'symbol' => mb_strtolower ($p['quoteId']),
-            'type'   => $type,
-            'gld'    => $amount,
-        ), ($type == 'limit') ? array ('price' => $price) : array (), $params));
+            'type' => $type,
+            'gld' => $amount,
+            'price' => $price || 1,
+        ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/';
-
         if ($type === 'public') {
-
             $url .= $path;
-
         } else {
-
             $nonce = $this->nonce ();
-            $query = array_merge (array ('nonce' => $nonce, 'apikey' => $this->apiKey ), $params);
-            $url .= $this->version . '/' . $path . '?' . http_build_query ($query);
-
+            $url .= $this->version . '/' . $this->implodeParams ($path, $params);
+            $query = array_merge (array (
+                'nonce' => $nonce,
+                'apikey' => $this->apiKey,
+            ), Market::omit ($params, Market::extractParams ($path)));
+            $url .= '?' . http_build_query ($query);
             $headers = array (
-                'Content-Type: ' . 'application/json',
-                'X-Signature: '  . $this->hmac ($url, $this->secret),
+                'Content-Type' => 'application/json',
+                'X-Signature' => $this->hmac ($url, $this->secret),
             );
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -5002,30 +4371,22 @@ class vaultoro extends Market {
 class virwox extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'virwox',
-            'name'      => 'VirWoX',
+            'id' => 'virwox',
+            'name' => 'VirWoX',
             'countries' => 'AT',
             'rateLimit' => 1000,
-
             'urls' => array (
-
                 'api' => array (
                     'public' =>  'http://api.virwox.com/api/json.php',
                     'private' => 'https://www.virwox.com/api/trading.php',
                 ),
-                'www'  => 'https://www.virwox.com',
+                'www' => 'https://www.virwox.com',
                 'docs' => 'https://www.virwox.com/developers.php',
             ),
-
             'api' => array (
-
                 'public' => array (
-
                     'get' => array (
-
                         'getInstruments',
                         'getBestPrices',
                         'getMarketDepth',
@@ -5037,9 +4398,7 @@ class virwox extends Market {
                         'getGridList',
                         'getGridStatistics',
                     ),
-
                     'post' => array (
-
                         'getInstruments',
                         'getBestPrices',
                         'getMarketDepth',
@@ -5052,11 +4411,8 @@ class virwox extends Market {
                         'getGridStatistics',
                     ),
                 ),
-
                 'private' => array (
-
                     'get' => array (
-
                         'cancelOrder',
                         'getBalances',
                         'getCommissionDiscount',
@@ -5064,9 +4420,7 @@ class virwox extends Market {
                         'getTransactions',
                         'placeOrder',
                     ),
-
                     'post' => array (
-
                         'cancelOrder',
                         'getBalances',
                         'getCommissionDiscount',
@@ -5076,24 +4430,26 @@ class virwox extends Market {
                     ),
                 ),
             ),
-
         ), $options));
     }
 
     public function fetch_products () {
         $products = $this->publicGetInstruments ();
+        $keys = array_keys ($products['result']);
         $result = array ();
-        foreach ($products['result'] as $product) {
-            $id     = $product['instrumentID'];
+        for ($p = 0; $p < count ($keys); $p++) {
+            $product = $products['result'][$keys[$p]];
+            $id = $product['instrumentID'];
             $symbol = $product['symbol'];
-            $base   = $product['longCurrency'];
-            $quote  = $product['shortCurrency'];
+            $base = $product['longCurrency'];
+            $quote = $product['shortCurrency'];
             $result[] = array (
-                'id'     => $id,
+                'id' => $id,
                 'symbol' => $symbol,
-                'base'   => $base,
-                'quote'  => $quote,
-                'info'   => $product);
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
+            );
         }
         return $result;
     }
@@ -5101,8 +4457,8 @@ class virwox extends Market {
     
     public function fetch_order_book  ($product) {
         return $this->publicPostGetMarketDepth (array (
-            'symbols'   => array ($this->symbol ($product)),
-            'buyDepth'  => 100,
+            'symbols' => array ($this->symbol ($product)),
+            'buyDepth' => 100,
             'sellDepth' => 100,
         ));
     }
@@ -5133,40 +4489,32 @@ class virwox extends Market {
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         return $this->privatePostPlaceOrder (array_merge (array (
             'instrument' => $this->symbol ($product),
-            'orderType'  => mb_strtolower ($side),
-            'amount'     => $amount,
+            'orderType' => mb_strtolower ($side),
+            'amount' => $amount,
         ), ($type == 'limit') ? array ('price' => $price) : array (), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array ()) {
-
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$type];
         $auth = ($type === 'public') ? array () : array (
-            'key'  => $this->apiKey,
+            'key' => $this->apiKey,
             'user' => $this->login,
             'pass' => $this->password,   
         );
-
         $nonce = $this->nonce ();
-
         if ($method === 'GET') {
-
-            $url .= '?' . http_build_query (array_merge ($auth, array ( 
+            $url .= '?' . http_build_query (array_merge (array ( 
                 'method' => $path, 
-                'id'     => $nonce,
-            ), $params));
-
+                'id' => $nonce,
+            ), $auth, $params));
         } else {
-
-            $headers = array ('Content-type: application/json');
-
+            $headers = array ('Content-type' => 'application/json');
             $body = json_encode (array (
                 'method' => $path,
                 'params' => array_merge ($auth, $params),
-                'id'     => $nonce,
+                'id' => $nonce,
             ));
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -5176,39 +4524,28 @@ class virwox extends Market {
 class yobit extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'yobit',
-            'name'      => 'YoBit',
+            'id' => 'yobit',
+            'name' => 'YoBit',
             'countries' => 'RU',
             'rateLimit' => 2000, // responses are cached every 2 seconds
-            'version'   => 3,
-            
+            'version' => 3,
             'urls' => array (
-
-                'api'  => 'https://yobit.net',
-                'www'  => 'https://www.yobit.net',
+                'api' => 'https://yobit.net',
+                'www' => 'https://www.yobit.net',
                 'docs' => 'https://www.yobit.net/en/api/',
             ),
-
             'api' => array (
-
                 'api' => array (
-
                     'get' => array (
-
                         'depth/{pairs}',
                         'info',
                         'ticker/{pairs}',
                         'trades/{pairs}',
                     ),
                 ),
-
                 'tapi' => array (
-
                     'post' => array (
-
                         'ActiveOrders',
                         'CancelOrder',
                         'GetDepositAddress',
@@ -5220,28 +4557,31 @@ class yobit extends Market {
                     ),
                 ),
             ),
-
         ), $options));
     }
 
     public function fetch_products () {
         $products = $this->apiGetInfo ();
+        $keys = array_keys ($products['pairs']);
         $result = array ();
-        foreach ($products['pairs'] as $id => $product) {
+        for ($p = 0; $p < count ($keys); $p++) {
+            $id = $keys[$p];
+            $product = $products['pairs'][$id];
             $symbol = str_replace ('_', '/', strtoupper ($id));
             list ($base, $quote) = explode ('/', $symbol);
             $result[] = array (
-                'id'     => $id,
+                'id' => $id,
                 'symbol' => $symbol,
-                'base'   => $base,
-                'quote'  => $quote,
-                'info'   => $product,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
             );
         }
         return $result;
     }
 
-    public function fetch_balance () { return $this->tapiPostGetInfo (); }
+    public function fetch_balance () {
+        return $this->tapiPostGetInfo (); }
     
     public function fetch_order_book ($product) {
         return $this->apiGetDepthPairs  (array (
@@ -5263,41 +4603,29 @@ class yobit extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         return $this->tapiPostTrade (array_merge (array (
-            'pair'   => $this->productId ($product),
-            'type'   => $side,
+            'pair' => $this->productId ($product),
+            'type' => $side,
             'amount' => $amount,
         ), ($type == 'limit') ? array ('rate' => $price) : array (), $params));
     }
 
     public function request ($path, $type = 'api', $method = 'GET', $params = array ()) {
-
         $url = $this->urls['api'] . '/' . $type;
-
         if ($type === 'api') {
-
             $url .= '/' . $this->version . '/' . Market::implodeParams ($path, $params);
             $query = Market::omit ($params, Market::extractParams ($path));
-
             if ($query)
                 $url .= '?' . http_build_query ($query);
-
         } else {
-
             $nonce = $this->nonce ();
-            $query = array_merge (array (
-                'method' => $path,
-                'nonce' => $nonce,
-            ), $params);
-
+            $query = array_merge (array ('method' => $path, 'nonce' => $nonce), $params);
             $body = http_build_query ($query);
-
             $headers = array (
-                'Content-Type: ' . 'application/x-www-form-urlencoded',
-                'key: '          . $this->apiKey,
-                'sign: '         . $this->hmac ($body, $this->secret, 'sha512'),
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'key' => $this->apiKey,
+                'sign' => $this->hmac ($body, $this->secret, 'sha512'),
             );
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
@@ -5307,19 +4635,15 @@ class yobit extends Market {
 class zaif extends Market {
 
     public function __construct ($options = array ()) {
-
         parent::__construct (array_merge (array (
-
-            'id'        => 'zaif',
-            'name'      => 'Zaif',
+            'id' => 'zaif',
+            'name' => 'Zaif',
             'countries' => 'JP',
             'rateLimit' => 3000,
-
             'version' => 1,
             'urls' => array (
-
-                'api'  => 'https://api.zaif.jp',
-                'www'  => 'https://zaif.jp',
+                'api' => 'https://api.zaif.jp',
+                'www' => 'https://zaif.jp',
                 'docs' => array (
                     'https://corp.zaif.jp/api-docs',
                     'https://corp.zaif.jp/api-docs/api_links',
@@ -5327,13 +4651,9 @@ class zaif extends Market {
                     'https://github.com/you21979/node-zaif',
                 ),
             ),
-
             'api' => array (
-
                 'api' => array (
-
                     'get' => array (
-
                         'depth/{pair}',
                         'currencies/{pair}',
                         'currencies/all',
@@ -5344,11 +4664,8 @@ class zaif extends Market {
                         'trades/{pair}',
                     ),
                 ),
-
                 'tapi' => array (
-
                     'post' => array (
-
                         'active_orders',
                         'cancel_order',
                         'deposit_history',
@@ -5362,11 +4679,8 @@ class zaif extends Market {
                         'withdraw_history',
                     ),
                 ),
-
                 'ecapi' => array (
-
                     'post' => array (
-
                         'createInvoice',
                         'getInvoice',
                         'getInvoiceIdsByOrderNumber',
@@ -5374,31 +4688,31 @@ class zaif extends Market {
                     ),
                 ),
             ),
-
         ), $options));
     }
 
     public function fetch_products () {
-
         $products = $this->apiGetCurrencyPairsAll ();
         $result = array ();
-
-        foreach ($products as $product) {
-            $id     = $product['currency_pair'];
+        for ($p = 0; $p < count ($products); $p++) {
+            $product = $products[$p];
+            $id = $product['currency_pair'];
             $symbol = $product['name'];
             list ($base, $quote) = explode ('/', $symbol);
             $result[] = array (
-                'id'     => $id,
+                'id' => $id,
                 'symbol' => $symbol,
-                'base'   => $base,
-                'quote'  => $quote,
-                'info'   => $product,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
             );
         }
         return $result;
     }
 
-    public function fetch_balance () { return $this->tapiPostGetInfo (); }
+    public function fetch_balance () {
+        return $this->tapiPostGetInfo ();
+    }
     
     public function fetch_order_book ($product) {
         return $this->apiGetDepthPair (array (
@@ -5433,34 +4747,24 @@ class zaif extends Market {
     }
 
     public function request ($path, $type = 'api', $method = 'GET', $params = array ()) {
-        
         $url = $this->urls['api'] . '/' . $type;
-
         if ($type === 'api') {
-
             $url .= '/' . $this->version . '/' . Market::implodeParams ($path, $params);
-
         } else {
-
             $nonce = $this->nonce ();
-            
             $body = http_build_query (array_merge (array (
                 'method' => $path,
                 'nonce' => $nonce
             ), $params));
-
             $headers = array (
-                'Content-Type: '   . 'application/x-www-form-urlencoded',
-                'Content-Length: ' . strlen ($body),
-                'Key: '            . $this->apiKey,
-                'Sign: '           . $this->hmac ($body, $this->secret, 'sha512'),
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body),
+                'Key' => $this->apiKey,
+                'Sign' => $this->hmac ($body, $this->secret, 'sha512'),
             );
         }
-
         return $this->fetch ($url, $method, $headers, $body);
     }
 }
-
-//-----------------------------------------------------------------------------
 
 ?>

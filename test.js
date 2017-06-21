@@ -5,8 +5,8 @@ const countries = require ('./countries')
 const asTable   = require ('as-table')
 const util      = require ('util')
 
-let verbose = true
 let markets
+let verbose = true
 
 try {
 
@@ -16,84 +16,89 @@ try {
 
     markets = { // defaults
 
-        // _1broker:   { verbose, apiKey: '', token: '', },
-        _1btcxe:    { verbose, apiKey: '', secret: '', },
-        bit2c:      { verbose, apiKey: '', secret: '', },
-        bitbay:     { verbose, apiKey: '', secret: '', },
-        bitcoid:    { verbose, apiKey: '', secret: '', },
-        bitfinex:   { verbose, apiKey: '', secret: '', },
-        bitlish:    { verbose, apiKey: '', login: '', password: '', },
-        bitmarket:  { verbose, apiKey: '', secret: '', },    
-        bitmex:     { verbose, apiKey: '', secret: '', },
-        bitso:      { verbose, apiKey: '', secret: '', },
-        bittrex:    { verbose, apiKey: '', secret: '', },
-        btcx:       { verbose, apiKey: '', secret: '', },    
-        bxinth:     { verbose, apiKey: '', secret: '', },    
-        ccex:       { verbose, apiKey: '', secret: '', },
-        cex:        { verbose, apiKey: '', secret: '', uid: '', }, 
-        coincheck:  { verbose, apiKey: '', secret: '', },
-        coinsecure: { verbose, apiKey: '', },
-        exmo:       { verbose, apiKey: '', secret: '', },
-        fybse:      { verbose, apiKey: '', secret: '', },
-        fybsg:      { verbose, apiKey: '', secret: '', }, 
-        hitbtc:     { verbose, apiKey: '', secret: '', },
-        huobi:      { verbose, apiKey: '', secret: '', },    
-        jubi:       { verbose, apiKey: '', secret: '', },    
-        kraken:     { verbose, apiKey: '', secret: '', },    
-        luno:       { verbose, apiKey: '', secret: '', },
-        okcoinusd:  { verbose, apiKey: '', secret: '', },
-        okcoincny:  { verbose, apiKey: '', secret: '', },
-        poloniex:   { verbose, apiKey: '', secret: '', },
-        quadrigacx: { verbose, apiKey: '', secret: '', uid: 123, },    
-        quoine:     { verbose, apiKey: '', secret: '', },    
-        therock:    { verbose, apiKey: '', secret: '', },    
-        vaultoro:   { verbose, apiKey: '', secret: '', },
-        virwox:     { verbose, apiKey: '', login: '', password: '', },
-        yobit:      { verbose, apiKey: '', secret: '', },
-        zaif:       { verbose, apiKey: '', secret: '', },
+        _1broker:    { 'verbose': verbose, apiKey: '', token: '', },
+        _1btcxe:     { 'verbose': verbose, apiKey: '', secret: '', },
+        bit2c:       { 'verbose': verbose, apiKey: '', secret: '', },
+        bitbay:      { 'verbose': verbose, apiKey: '', secret: '', },
+        bitcoincoid: { 'verbose': verbose, apiKey: '', secret: '', },
+        bitfinex:    { 'verbose': verbose, apiKey: '', secret: '', },
+        bitlish:     { 'verbose': verbose, apiKey: '', login: '', password: '', },
+        bitmarket:   { 'verbose': verbose, apiKey: '', secret: '', },    
+        bitmex:      { 'verbose': verbose, apiKey: '', secret: '', },
+        bitso:       { 'verbose': verbose, apiKey: '', secret: '', },
+        bittrex:     { 'verbose': verbose, apiKey: '', secret: '', },
+        btcx:        { 'verbose': verbose, apiKey: '', secret: '', },    
+        bxinth:      { 'verbose': verbose, apiKey: '', secret: '', },    
+        ccex:        { 'verbose': verbose, apiKey: '', secret: '', },
+        cex:         { 'verbose': verbose, apiKey: '', secret: '', uid: '', }, 
+        coincheck:   { 'verbose': verbose, apiKey: '', secret: '', },
+        coinsecure:  { 'verbose': verbose, apiKey: '', },
+        exmo:        { 'verbose': verbose, apiKey: '', secret: '', },
+        fybse:       { 'verbose': verbose, apiKey: '', secret: '', },
+        fybsg:       { 'verbose': verbose, apiKey: '', secret: '', }, 
+        hitbtc:      { 'verbose': verbose, apiKey: '', secret: '', },
+        huobi:       { 'verbose': verbose, apiKey: '', secret: '', },    
+        jubi:        { 'verbose': verbose, apiKey: '', secret: '', },    
+        kraken:      { 'verbose': verbose, apiKey: '', secret: '', },    
+        luno:        { 'verbose': verbose, apiKey: '', secret: '', },
+        okcoinusd:   { 'verbose': verbose, apiKey: '', secret: '', },
+        okcoincny:   { 'verbose': verbose, apiKey: '', secret: '', },
+        poloniex:    { 'verbose': verbose, apiKey: '', secret: '', },
+        quadrigacx:  { 'verbose': verbose, apiKey: '', secret: '', uid: 123, },    
+        quoine:      { 'verbose': verbose, apiKey: '', secret: '', },    
+        therock:     { 'verbose': verbose, apiKey: '', secret: '', },    
+        vaultoro:    { 'verbose': verbose, apiKey: '', secret: '', },
+        virwox:      { 'verbose': verbose, apiKey: '', login: '', password: '', },
+        yobit:       { 'verbose': verbose, apiKey: '', secret: '', },
+        zaif:        { 'verbose': verbose, apiKey: '', secret: '', },
     }
 }
 
-var countryName = function (code) {
-    return ((typeof countries[code] !== 'undefined') ? countries[code] : code)
-}
+// console.log (ccxt)
 
 for (let id in markets)
     markets[id] = new (ccxt)[id] (markets[id])
 
 console.log (Object.values (ccxt).length)
 
-let delay = ms => new Promise (resolve => setTimeout (resolve, ms))
+var countryName = function (code) {
+    return ((typeof countries[code] !== 'undefined') ? countries[code] : code)
+}
+
+
+let sleep = async ms => await new Promise (resolve => setTimeout (resolve, ms))
 
 let testMarket = market => new Promise (async resolve => {
+
+    let delay = 2000
 
     let products  = await market.loadProducts ()
     // Object.values (market.products).map (x => console.log (market.id, x.id))
     // console.log (market.id, 'products', market.products)
-    console.log (market.id, 'symbols', Object.keys (market.products).join (', '))
+    console.log (market.id, Object.keys (market.products).length, 'symbols', Object.keys (market.products).join (', '))
 
-    // await delay (1000)
+    // sleep (delay)
 
     // let orderbook = await market.fetchOrderBook (Object.keys (market.products)[0])
     // console.log (market.id, orderbook)
 
-    // await delay (1000)
+    // sleep (delay)
 
     // let ticker = await market.fetchTicker ('BTC/SLL')
     // let ticker = await market.fetchTicker (Object.keys (market.products)[0])
     // console.log (market.id, ticker)
     
-    // await delay (1000)
+    // sleep (delay)
     
     // let trades = await market.fetchTrades (Object.keys (market.products)[0])
     // console.log (market.id, trades)
 
-    // await delay (1000)
+    // sleep (delay)
 
     // let balance = await market.fetchBalance ()
     // console.log (market.id, 'balance', balance)
 
-    // await delay (1000)
+    // sleep (delay)
 
     // try {
 
@@ -105,7 +110,7 @@ let testMarket = market => new Promise (async resolve => {
     //     console.log (market.id, 'error', 'market sell', e)
     // }
 
-    // await delay (1000)
+    // sleep (delay)
 
     // try {
 
@@ -117,7 +122,7 @@ let testMarket = market => new Promise (async resolve => {
     //     console.log (market.id, 'error', 'market buy', e)
     // }
 
-    // await delay (1000)
+    // sleep (delay)
 
     // try {
 
@@ -129,7 +134,7 @@ let testMarket = market => new Promise (async resolve => {
     //     console.log (market.id, 'error', 'limit sell', e)
     // }
 
-    // await delay (1000)
+    // sleep (delay)
 
     // try {
 
@@ -152,21 +157,19 @@ var test = async function () {
 
     //-------------------------------------------------------------------------
     // list all supported exchanges
-
-    console.log (asTable.configure ({ delimiter: ' | ' }) (Object.values (markets).map (market => {
-
-        let website = Array.isArray (market.urls.www) ? market.urls.www[0] : market.urls.www
-        let countries = Array.isArray (market.countries) ? market.countries.map (countryName).join (', ') : countryName (market.countries)
-
-        return {
-            ' ': '',
-            'id':        market.id,
-            'name':      '[' + market.name + '](' + website + ')',  
-            'countries': countries,
-            // 'notes':     'Full support',
-            '  ': '',
-        }
-    })))
+    //
+    // console.log (asTable.configure ({ delimiter: ' | ' }) (Object.values (markets).map (market => {
+    //     let website = Array.isArray (market.urls.www) ? market.urls.www[0] : market.urls.www
+    //     let countries = Array.isArray (market.countries) ? market.countries.map (countryName).join (', ') : countryName (market.countries)
+    //     return {
+    //         ' ': '',
+    //         'id':        market.id,
+    //         'name':      '[' + market.name + '](' + website + ')',  
+    //         'countries': countries,
+    //         // 'notes':     'Full support',
+    //         '  ': '',
+    //     }        
+    // })))
 
     // Object.keys (markets).forEach (async id => {
 
@@ -176,14 +179,13 @@ var test = async function () {
 
             await testMarket (market)
 
-
         } catch (e) {
 
             console.log (market.id, e)
             process.exit ()   
         }
 
-        await delay (1000)
+        sleep (1000)
 
     // })
 

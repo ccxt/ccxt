@@ -14,48 +14,48 @@ except ImportError:
 
 	markets = { # defaults
 
-		# '_1broker':   { 'verbose': verbose, 'apiKey': '' },
-		'_1btcxe':    { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'bit2c':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'bitbay':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'bitcoid':    { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'bitfinex':   { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'bitlish':    { 'verbose': verbose, 'apiKey': '', 'login': '', 'password': '' },
-		'bitmarket':  { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'bitmex':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'bitso':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'bittrex':    { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'btcx':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'bxinth':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'ccex':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'cex':        { 'verbose': verbose, 'apiKey': '', 'secret': '', 'uid': '' },
-		'coincheck':  { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'coinsecure': { 'verbose': verbose, 'apiKey': '' },
-		'exmo':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'fybse':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'fybsg':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'hitbtc':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'huobi':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'jubi':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'kraken':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'luno':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'okcoinusd':  { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'okcoincny':  { 'verbose': verbose, 'apiKey': '', 'secret' : '' },
-		'poloniex':   { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'quadrigacx': { 'verbose': verbose, 'apiKey': '', 'secret': '', 'uid': '' },
-		'quoine':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'therock':    { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'vaultoro':   { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'virwox':     { 'verbose': verbose, 'apiKey': '', 'login': '', 'password': '' },
-		'yobit':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-		'zaif':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'_1broker':    { 'verbose': verbose, 'apiKey': '' },
+		'_1btcxe':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'bit2c':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'bitbay':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'bitcoincoid': { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'bitfinex':    { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'bitlish':     { 'verbose': verbose, 'apiKey': '', 'login': '', 'password': '' },
+		'bitmarket':   { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'bitmex':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'bitso':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'bittrex':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'btcx':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'bxinth':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'ccex':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'cex':         { 'verbose': verbose, 'apiKey': '', 'secret': '', 'uid': '' },
+		'coincheck':   { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'coinsecure':  { 'verbose': verbose, 'apiKey': '' },
+		'exmo':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'fybse':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'fybsg':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'hitbtc':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'huobi':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'jubi':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'kraken':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'luno':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'okcoinusd':   { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'okcoincny':   { 'verbose': verbose, 'apiKey': '', 'secret' : '' },
+		'poloniex':    { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'quadrigacx':  { 'verbose': verbose, 'apiKey': '', 'secret': '', 'uid': '' },
+		'quoine':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'therock':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'vaultoro':    { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'virwox':      { 'verbose': verbose, 'apiKey': '', 'login': '', 'password': '' },
+		'yobit':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'zaif':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 	}
 
 #------------------------------------------------------------------------------
 
 tuples = ccxt.Market.sort (markets)
+
 # print (tuples)
-# sys.exit ()
 
 for (id, params) in tuples:
 	market = getattr (ccxt, id)
@@ -70,13 +70,10 @@ def test_market (market):
 	# print (market.id)
 
 	products = market.load_products ()
-	# print (market.id, 'products')
-	# print (products)
-	
+	# print (market.id, 'products', products)
 
 	keys = products.keys ()
-	# print (market.id , 'symbols')
-	# print (keys)
+	print (market.id , len (keys), 'symbols', keys)
 	# time.sleep (delay)
 
 	symbol = products.keys ()[0]
@@ -103,17 +100,19 @@ def test_market (market):
 	# print (trades)
 	# time.sleep (delay)
 
-	for symbol in keys:
-		ticker = market.fetch_ticker (symbol)
-		print (market.id, symbol, 'ticker',
-			ticker['datetime'],
-			'high: '    + str (ticker['high']),
-			'low: '     + str (ticker['low']),
-			'bid: '     + str (ticker['bid']),
-			'ask: '     + str (ticker['ask']),
-			'volume: '  + str (ticker['volume']),
-		)
-		time.sleep (delay)
+	# for symbol in keys:
+	# 	if symbol.find ('.d') < 0:
+	# 		# print (market.id, symbol, market.product (symbol))
+	# 		ticker = market.fetch_ticker (symbol)
+	# 		print (market.id, symbol, 'ticker',
+	# 			ticker['datetime'],
+	# 			'high: '    + str (ticker['high']),
+	# 			'low: '     + str (ticker['low']),
+	# 			'bid: '     + str (ticker['bid']),
+	# 			'ask: '     + str (ticker['ask']),
+	# 			'volume: '  + str (ticker['volume']),
+	# 		)
+	# 		time.sleep (delay)
 
 	#--------------------------------------------------------------------------
 	# private API
@@ -146,11 +145,11 @@ def test_market (market):
 	# print (limitSell)
 	# time.sleep (delay)
 
-for (id, params) in tuples:
-	try:
-		test_market (markets[id])
-	except Exception as e:
-		print (type (e).__name__, e.args)
-		sys.exit ()
+# for (id, params) in tuples:
+# 	try:
+# 		test_market (markets[id])
+# 	except Exception as e:
+# 		print (type (e).__name__, e.args)
+# 		sys.exit ()
 
-# test_market (markets['zaif'])
+test_market (markets['zaif'])
