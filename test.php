@@ -107,7 +107,7 @@ function test_market ($market) {
 //     }
 // }
 
-$market = $markets['zaif'];
+$market = $markets['bitso'];
 test_market ($market);
 
 ?>

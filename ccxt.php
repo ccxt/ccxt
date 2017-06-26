@@ -1670,7 +1670,7 @@ class bitso extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $query = '/' . $this->version . '/' . Market::implodeParams ($path, $params);
+        $query = '/' . $this->version . '/' . $this->implodeParams ($path, $params);
         $url = $this->urls['api'] . $query;
         if ($type === 'public') {
             $url .= '?' . http_build_query ($params);

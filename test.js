@@ -6,7 +6,7 @@ const asTable   = require ('as-table')
 const util      = require ('util')
 
 let markets
-let verbose = true
+let verbose = false
 
 try {
 
@@ -56,8 +56,10 @@ try {
 
 // console.log (ccxt)
 
-for (let id in markets)
+for (let id in markets) {
     markets[id] = new (ccxt)[id] (markets[id])
+    markets[id].verbose = verbose
+}
 
 console.log (Object.values (ccxt).length)
 
@@ -73,9 +75,12 @@ let testMarket = market => new Promise (async resolve => {
     let delay = 2000
 
     let products  = await market.loadProducts ()
+
+    let keys = Object.keys (products)
+    console.log (market.id , keys.length, 'symbols', keys.join (', '))
     // Object.values (market.products).map (x => console.log (market.id, x.id))
     // console.log (market.id, 'products', market.products)
-    console.log (market.id, Object.keys (market.products).length, 'symbols', Object.keys (market.products).join (', '))
+    // console.log (market.id, Object.keys (market.products).length, 'symbols', Object.keys (market.products).join (', '))
 
     // sleep (delay)
 
@@ -84,9 +89,39 @@ let testMarket = market => new Promise (async resolve => {
 
     // sleep (delay)
 
+    // let symbol = keys[0]
+    // let symbols = [
+    //     'BTC/USD',
+    //     'BTC/CNY',
+    //     'BTC/ETH',
+    //     'ETH/BTC',
+    //     'BTC/JPY',
+    //     'LTC/BTC',
+    // ]
+    // for (let s in symbols) {
+    //     if (symbols[s] in keys) {
+    //         symbol = symbols[s]
+    //         break
+    //     }
+    // }
+
+    for (let s in keys) {
+        let symbol = keys[s]
+        let ticker = await market.fetchTicker (symbol)
+        console.log (market.id, symbol, 'ticker',
+            ticker['datetime'],
+            'high: '    + ticker['high'],
+            'low: '     + ticker['low'],
+            'bid: '     + ticker['bid'],
+            'ask: '     + ticker['ask'],
+            'volume: '  + ticker['quoteVolume'])
+        await sleep (delay)
+    }
+
     // let ticker = await market.fetchTicker ('BTC/SLL')
-    // let ticker = await market.fetchTicker (Object.keys (market.products)[0])
-    // console.log (market.id, ticker)
+    // let ticker = await market.fetchTicker (symbol)
+    // console.log (market.id, symbol, 'ticker')
+    // console.log (ticker)
     
     // sleep (delay)
     
@@ -173,7 +208,7 @@ var test = async function () {
 
     // Object.keys (markets).forEach (async id => {
 
-        var market = markets.zaif //markets[id]
+        var market = markets.bitso //markets[id]
 
         try {
 

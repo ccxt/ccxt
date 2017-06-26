@@ -237,43 +237,36 @@ class Market (object):
         return int (time.time () * 1000000)
 
     @staticmethod
-    def parse_time (timestamp):
+    def iso8601 (timestamp):
+        return (datetime
+            .datetime
+            .utcfromtimestamp (timestamp)
+            .strftime ('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z')
+        # datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
-        # YYYY = '(?P<YYYY>[0-9]{4})-'
-        # MM   = '(?P<MM>[0-9]{2})-'
-        # DD   = '(?P<DD>[0-9]{2})T'
-        # H    = '(?P<H>[0-9]{2}):'
-        # M    = '(?P<M>[0-9]{2}):'
-        # S    = '(?P<S>[0-9]{2})'
-        # MS   = '\.?(?P<MS>[0-9]+?)'
-        # hh   = '\+?(?P<hh>[0-9]{2})'
-        # mm   = '(?:\:?(?P<mm>[0-9]{2}))?'
-        # offset = '(?:' hh + mm + ')?'
-        # suffix = '(?:' MS + '|' + offset + ')?Z?'
-        # r'' + YYYY + MM + DD + H + M + S + suffix
-        # re.findall (regex, timestamp, re.IGNORECASE) 
-
-        dt = datetime.datetime
-        if type (timestamp) in [str, unicode]:
-            try:
-                timestamp = dt.strptime (timestamp, "%Y-%m-%dT%H:%M:%S.%f")
-            except ValueError:
-                try:
-                    timestamp = dt.strptime (timestamp, "%Y-%m-%dT%H:%M:%S.%fZ")
-                except ValueError:
-                    try:
-                        timestamp = dt.strptime (timestamp, "%Y-%m-%dT%H:%M:%S")
-                    except ValueError:
-                        try:
-                            timestamp = dt.strptime (timestamp, "%Y-%m-%dT%H:%M:%S+00:00")
-                        except ValueError:
-                            timestamp = dt.utcfromtimestamp (int (float (timestamp)))
-            timestamp = calendar.timegm (timestamp.timetuple ())
-        else:
-            timestamp = int (float (timestamp)) if timestamp else Market.seconds ()
-        if timestamp > 0xffffffff:
-            timestamp = int (round (timestamp / 1000))
-        return timestamp
+    @staticmethod
+    def parse8601 (timestamp):
+        yyyy = '([0-9]{4})-?'
+        mm   = '([0-9]{2})-?'
+        dd   = '([0-9]{2})(?:T|[\s])?'
+        h    = '([0-9]{2}):?'
+        m    = '([0-9]{2}):?'
+        s    = '([0-9]{2})'
+        ms   = '(\.[0-9]{3})?'
+        tz = '(?:(\+|\-)([0-9]{2})\:?([0-9]{2})|Z)?'
+        regex = r'' + yyyy + mm + dd + h + m + s + ms + tz
+        match = re.search (regex, timestamp, re.IGNORECASE)
+        yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups ()
+        ms = ms or '.000'
+        sign = sign or ''
+        sign = int (sign + '1')
+        hours = int (hours or 0) * sign
+        minutes = int (minutes or 0) * sign
+        offset = datetime.timedelta (hours = hours, minutes = minutes)
+        string = yyyy + mm + dd + h + m + s + ms + 'Z'
+        dt = datetime.datetime.strptime (string, "%Y%m%d%H%M%S.%fZ")
+        dt = dt + offset
+        return calendar.timegm (dt.utctimetuple ())
 
     @staticmethod
     def hash (request, hash = 'md5', digest = 'hex'):
@@ -638,16 +631,42 @@ class cryptocapital (Market):
             'currency': self.productId (product),
         })
     
+    # def fetch_ticker (self, product):
+    #     response = self.publicGetStats ({ 'currency': self.productId (product) })
+    #     ticker = response['stats']
+    #     return self.parse_ticker (ticker, product, {
+    #         'high':   'max',
+    #         'low':    'min',
+    #         'last':   'last_price',
+    #         'change': 'daily_change',
+    #         'volume': 'total_btc_traded',
+    #     })
+
     def fetch_ticker (self, product):
-        response = self.publicGetStats ({ 'currency': self.productId (product) })
-        ticker = response['stats']
-        return self.parse_ticker (ticker, product, {
-            'high':   'max',
-            'low':    'min',
-            'last':   'last_price',
-            'change': 'daily_change',
-            'volume': 'total_btc_traded',
+        response = self.publicGetStats ({
+            'currency': self.productId (product),
         })
+        ticker = response['stats']
+        timestamp = self.milliseconds ()
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso (timestamp),
+            'high': float (ticker['max']),
+            'low': float (ticker['min']),
+            'bid': float (ticker['bid']),
+            'ask': float (ticker['ask']),
+            'vwap': None,
+            'open': float (ticker['open']),
+            'close': None,
+            'first': None,
+            'last': float (ticker['last_price']),
+            'change': float (ticker['daily_change']),
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['total_btc_traded']),
+        }
+
     
     def fetch_trades (self, product):
         return self.publicGetTransactions ({
@@ -1721,24 +1740,48 @@ class bitso (Market):
         return self.publicGetOrderBook ({
             'book': self.productId (product),
         })
-    
+
     def fetch_ticker (self, product):
-        return self.parse_ticker (self.publicGetTicker ({
+        response = self.publicGetTicker ({
             'book': self.productId (product),
-        }) ['payload'], product) 
-    
+        })
+        ticker = response['payload']
+        timestamp = self.parse8601 (ticker['created_at'])
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['bid']),
+            'ask': float (ticker['ask']),
+            'vwap': float (ticker['vwap']),
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['volume']),
+            'info': ticker,
+        }
+
     def fetch_trades (self, product):
         return self.publicGetTrades ({
             'book': self.productId (product),
         })
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
-        return self.privatePostOrders (self.extend ({
+        order = {
             'book': self.productId (product),
             'side': side,
             'type': type,
             'major': amount,
-        }, { 'price': price } if type == 'limit' else {}, params))
+        }
+        if type == 'limit':
+            order['price'] = price
+        return self.privatePostOrders (self.extend (order, params))
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         query = '/' + self.version + '/' + self.implodeParams (path, params)
@@ -4095,12 +4138,13 @@ class quoine (Market):
         if type == 'market':
             raise NotImplementedError (self.id + ' allows limit orders only')
         return self.privatePostOrders (self.extend ({
-            'order': self.extend ({
+            'order': {
                 'order_type': type,
                 'product_id': self.productId (product),
                 'side': side,
                 'quantity': amount,
-            }, { 'price': price } if type == 'limit' else {}),
+                'price': price,
+            },
         }, params))
 
     def cancelOrder (id, params = {}):
@@ -4479,7 +4523,6 @@ class virwox (Market):
                 (p['quote'], float (ticker['shortVolume'])),
             ]),
         })
-        return self.parse_ticker (tickers[keys[0]])
 
     def fetch_trades (self, product):
         return self.publicGetRawTradeData ({
@@ -4730,7 +4773,8 @@ class zaif (Market):
             'currency_pair': self.productId (product),
             'action': 'bid' if side == 'buy' else 'ask',
             'amount': amount,
-        }, { 'price': price } if type == 'limit' else {}, params))
+            'price': price,
+        }, params))
 
     def cancelOrder (id, params = {}):
         return self.tapiPostCancelOrder (self.extend ({

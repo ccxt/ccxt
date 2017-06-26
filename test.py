@@ -100,19 +100,19 @@ def test_market (market):
 	# print (trades)
 	# time.sleep (delay)
 
-	# for symbol in keys:
-	# 	if symbol.find ('.d') < 0:
-	# 		# print (market.id, symbol, market.product (symbol))
-	# 		ticker = market.fetch_ticker (symbol)
-	# 		print (market.id, symbol, 'ticker',
-	# 			ticker['datetime'],
-	# 			'high: '    + str (ticker['high']),
-	# 			'low: '     + str (ticker['low']),
-	# 			'bid: '     + str (ticker['bid']),
-	# 			'ask: '     + str (ticker['ask']),
-	# 			'volume: '  + str (ticker['volume']),
-	# 		)
-	# 		time.sleep (delay)
+	for symbol in keys:
+		if symbol.find ('.d') < 0:
+			# print (market.id, symbol, market.product (symbol))
+			ticker = market.fetch_ticker (symbol)
+			print (market.id, symbol, 'ticker',
+				ticker['datetime'],
+				'high: '    + str (ticker['high']),
+				'low: '     + str (ticker['low']),
+				'bid: '     + str (ticker['bid']),
+				'ask: '     + str (ticker['ask']),
+				'volume: '  + str (ticker['quoteVolume']),
+			)
+			time.sleep (delay)
 
 	#--------------------------------------------------------------------------
 	# private API
@@ -152,4 +152,4 @@ def test_market (market):
 # 		print (type (e).__name__, e.args)
 # 		sys.exit ()
 
-test_market (markets['zaif'])
+test_market (markets['bitso'])
