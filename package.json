@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "A library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs",
   "main": "ccxt.es5.js",
   "repository": {
@@ -22,9 +22,9 @@
     "babel-preset-es2015": "^6.24.1"
   },
   "author": {
-    "name" : "Igor Kroitor",
-    "email" : "igor.kroitor@gmail.com",
-    "url" : "https://github.com/kroitor"
+    "name": "Igor Kroitor",
+    "email": "igor.kroitor@gmail.com",
+    "url": "https://github.com/kroitor"
   },
   "license": "MIT",
   "bugs": {
