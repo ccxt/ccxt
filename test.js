@@ -107,15 +107,17 @@ let testMarket = market => new Promise (async resolve => {
 
     for (let s in keys) {
         let symbol = keys[s]
-        let ticker = await market.fetchTicker (symbol)
-        console.log (market.id, symbol, 'ticker',
-            ticker['datetime'],
-            'high: '    + ticker['high'],
-            'low: '     + ticker['low'],
-            'bid: '     + ticker['bid'],
-            'ask: '     + ticker['ask'],
-            'volume: '  + ticker['quoteVolume'])
-        await sleep (delay)
+        if (symbol.indexOf ('.d') < 0) {
+            let ticker = await market.fetchTicker (symbol)
+            console.log (market.id, symbol, 'ticker',
+                ticker['datetime'],
+                'high: '    + ticker['high'],
+                'low: '     + ticker['low'],
+                'bid: '     + ticker['bid'],
+                'ask: '     + ticker['ask'],
+                'volume: '  + ticker['quoteVolume'])
+            await sleep (delay)
+        }
     }
 
     // let ticker = await market.fetchTicker ('BTC/SLL')
@@ -130,10 +132,10 @@ let testMarket = market => new Promise (async resolve => {
 
     // sleep (delay)
 
-    // let balance = await market.fetchBalance ()
-    // console.log (market.id, 'balance', balance)
+    let balance = await market.fetchBalance ()
+    console.log (market.id, 'balance', balance)
 
-    // sleep (delay)
+    sleep (delay)
 
     // try {
 
@@ -208,7 +210,7 @@ var test = async function () {
 
     // Object.keys (markets).forEach (async id => {
 
-        var market = markets.bitso //markets[id]
+        var market = markets.ccex //markets[id]
 
         try {
 
