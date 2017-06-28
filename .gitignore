@@ -1,3 +1,8 @@
 node_modules/
 npm-debug.log
 .DS_Store
+config.js
+config.py
+config.php
+dist/
+tmp/
