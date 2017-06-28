@@ -47,7 +47,7 @@ var flat = function (array) {
     return array.reduce ((acc, cur) => acc.concat (cur), [])
 }
 
-var querystring = function (object) {
+var urlencode = function (object) {
     return Object.keys (object).map (key => 
         encodeURIComponent (key) + '=' + encodeURIComponent (object[key])).join ('&')
 }
@@ -64,7 +64,7 @@ if (isNode) {
     }
 
     var stringToBase64 = function (string) {
-        return new Buffer  (string).toString ('base64')
+        return new Buffer (string).toString ('base64')
     }
 
     var utf16ToBase64 = function (string) {
@@ -148,15 +148,15 @@ if (isNode) {
     }
 }
 
-var base64urlencode = function (base64string) {
+var urlencodeBase64 = function (base64string) {
     return base64string.replace (/[=]+$/, '').replace (/\+/g, '-').replace (/\//g, '_') 
 }
 
 var jwt = function (request, secret, alg = 'HS256', hash = 'sha256') {
-    var encodedHeader = base64urlencode (stringToBase64 (JSON.stringify ({ 'alg': alg, 'typ': 'JWT' })))
-    var encodedData = base64urlencode (stringToBase64 (JSON.stringify (request)))
+    var encodedHeader = urlencodeBase64 (stringToBase64 (JSON.stringify ({ 'alg': alg, 'typ': 'JWT' })))
+    var encodedData = urlencodeBase64 (stringToBase64 (JSON.stringify (request)))
     var token = [ encodedHeader, encodedData ].join ('.')
-    var signature = base64urlencode (utf16ToBase64 (hmac (token, secret, hash, 'utf16')))
+    var signature = urlencodeBase64 (utf16ToBase64 (hmac (token, secret, hash, 'utf16')))
     return [ token, signature ].join ('.')
 }
 
@@ -166,11 +166,11 @@ var Market = function (config) {
 
     this.hash = hash
     this.hmac = hmac
-    this.jwt  = jwt
+    this.jwt = jwt
     this.stringToBinary = stringToBinary
     this.stringToBase64 = stringToBase64
     this.base64ToBinary = base64ToBinary
-    this.urlencode = querystring
+    this.urlencode = urlencode
     this.omit = omit
     this.extend = extend
     this.flatten = flat
@@ -240,8 +240,6 @@ var Market = function (config) {
     // }
 
     this.fetch = function (url, method = 'GET', headers = undefined, body = undefined) {
-
-        
 
         if (isNode)
             headers = extend ({
@@ -521,7 +519,7 @@ var _1broker = {
             let category = categories[c];
             let products = await this.privateGetMarketList ({ 
                 'category': category.toLowerCase (),
-            })
+            });
             for (let p = 0; p < products['response'].length; p++) {
                 let product = products['response'][p];
                 if ((category == 'FOREX') || (category == 'CRYPTO')) {
@@ -598,7 +596,7 @@ var _1broker = {
 
 var cryptocapital = {
 
-    comment: 'Crypto Capital API',
+    'comment': 'Crypto Capital API',
     'api': {
         'public': {
             'get': [
@@ -835,20 +833,18 @@ var bit2c = {
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePostOrderAddOrder';
-        params = this.extend ({
+        let order = {
             'Amount': amount,
             'Pair': this.productId (product),
-        }, params);
+        };
         if (type == 'market') {
-            method += 'MarketPrice' + capitalize (side);
+            method += 'MarketPrice' + this.capitalize (side);
         } else {
-            params = this.extend ({
-                'Price': price,
-                'Total': amount * price,
-                'IsBid': (side == 'buy'),
-            }, params);
+            order['Price'] = price;
+            order['Total'] = amount * price;
+            order['IsBid'] = (side == 'buy');
         }
-        return this[method] (params);
+        return this[method] (this.extend (order, params));
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1104,11 +1100,12 @@ var bitcoincoid = {
     createOrder (product, type, side, amount, price = undefined, params = {}) {
         let p = this.product (product);
         let order = {
-            'pair': p.id,
+            'pair': p['id'],
             'type': side,
             'price': price,
         };
-        order[p['base'].toLowerCase ()] = amount;
+        let base = p['base'].toLowerCase ();
+        order[base] = amount;
         return this.privatePostTrade (this.extend (order, params));
     },
 
@@ -1279,16 +1276,18 @@ var bitfinex = {
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.version + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + request;
-        if (type == 'public') {
-            url += '?' + this.urlencode (params);
+        if (type == 'public') {            
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
         } else {
             let nonce = this.nonce ();
-            let query = this.extend ({
+            query = this.extend ({
                 'nonce': nonce.toString (),
                 'request': request,
-            }, params);
-            let payload = new Buffer (JSON.stringify (query)).toString ('base64'); // FIXME
+            }, query);
+            let payload = this.stringToBase64 (JSON.stringify (query));
             headers = {
                 'X-BFX-APIKEY': this.apiKey,
                 'X-BFX-PAYLOAD': payload,
@@ -1309,7 +1308,7 @@ var bitlish = {
     'rateLimit': 2000,    
     'version': 'v1',
     'urls': {
-        api: 'https://bitlish.com/api',
+        'api': 'https://bitlish.com/api',
         'www': 'https://bitlish.com',
         'docs': 'https://bitlish.com/api',
     },
@@ -1358,7 +1357,7 @@ var bitlish = {
     async fetchProducts () {
         let products = await this.publicGetPairs ();
         let result = [];
-        let keys = Object.keys (products)
+        let keys = Object.keys (products);
         for (let p = 0; p < keys.length; p++) {
             let product = products[keys[p]];
             let id = product['id'];
@@ -1376,8 +1375,9 @@ var bitlish = {
     },
 
     async fetchTicker (product) {
+        let p = this.product (product);
         let tickers = await this.publicGetTickers ();
-        let ticker = tickers[this.productId (product)];
+        let ticker = tickers[p['id']];
         let timestamp = this.milliseconds ();
         return {
             'timestamp': timestamp,
@@ -1424,11 +1424,14 @@ var bitlish = {
     },    
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-        return this.privatePostCreateTrade (this.extend ({
+        let order = {
             'pair_id': this.productId (product),
             'dir': (side == 'buy') ? 'bid' : 'ask',
             'amount': amount,
-        }, (type == 'limit') ? { 'price': price } : {}, params));
+        };
+        if (type == 'limit')
+            order['price'] = price;
+        return this.privatePostCreateTrade (this.extend (order, params));
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1457,7 +1460,7 @@ var bitmarket = {
             'public': 'https://www.bitmarket.net',
             'private': 'https://www.bitmarket.pl/api2/', // last slash is critical
         },
-        www: [
+        'www': [
             'https://www.bitmarket.pl',
             'https://www.bitmarket.net',
         ],
@@ -1528,19 +1531,19 @@ var bitmarket = {
     },
 
     fetchBalance () {
-        return this.privatePostInfo ()
+        return this.privatePostInfo ();
     },
 
     fetchOrderBook (product) { 
         return this.publicGetJsonMarketOrderbook ({
             'market': this.productId (product),
-        })
+        });
     },
 
     async fetchTicker (product) {
         let ticker = await this.publicGetJsonMarketTicker ({
             'market': this.productId (product),
-        })
+        });
         let timestamp = this.milliseconds ();
         return {
             'timestamp': timestamp,
@@ -1566,7 +1569,7 @@ var bitmarket = {
     fetchTrades (product) {
         return this.publicGetJsonMarketTrades ({
             'market': this.productId (product),
-        })
+        });
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
@@ -1575,7 +1578,7 @@ var bitmarket = {
             'type': side,
             'amount': amount,
             'rate': price,
-        }, params))
+        }, params));
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1608,7 +1611,7 @@ var bitmex = {
     'version': 'v1',
     'rateLimit': 2000,
     'urls': {
-        api: 'https://www.bitmex.com',
+        'api': 'https://www.bitmex.com',
         'www': 'https://www.bitmex.com',
         'docs': [
             'https://www.bitmex.com/app/apiOverview',
@@ -1713,7 +1716,7 @@ var bitmex = {
             let isFuturesContract = id != (base + quote);
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
-            let symbol = isFuturesContract ? id : (base + '/' + quote)
+            let symbol = isFuturesContract ? id : (base + '/' + quote);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -1722,11 +1725,11 @@ var bitmex = {
                 'info': product,
             });
         }
-        return result
+        return result;
     },
 
     fetchBalance () {
-        return this.privateGetUserMargin ({ currency: 'all' });
+        return this.privateGetUserMargin ({ 'currency': 'all' });
     },
 
     fetchOrderBook (product) {
@@ -1744,7 +1747,8 @@ var bitmex = {
             'reverse': true,            
         };
         let quotes = await this.publicGetQuoteBucketed (request);
-        let quote = quotes[quotes.length - 1];
+        let quotesLength = quotes.length;
+        let quote = quotes[quotesLength - 1];
         let tickers = await this.publicGetTradeBucketed (request);
         let ticker = tickers[0];
         let timestamp = this.milliseconds ();
@@ -1776,12 +1780,15 @@ var bitmex = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-        return this.privatePostOrder (this.extend ({
+        let order = {
             'symbol': this.productId (product),
-            'side': capitalize (side),
+            'side': this.capitalize (side),
             'orderQty': amount,
-            'ordType': capitalize (type),
-        }, (type == 'limit') ? { 'rate': price } : {}, params));
+            'ordType': this.capitalize (type),
+        };
+        if (type == 'limit')
+            order['rate'] = price;
+        return this.privatePostOrder (this.extend (order, params));
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1792,7 +1799,8 @@ var bitmex = {
         if (type == 'private') {
             let nonce = this.nonce ();
             if (method == 'POST')
-                body = Object.keys (params).length ? JSON.stringify (params) : undefined;
+                if (Object.keys (params).length)
+                    body = JSON.stringify (params);
             let request = [ method, query, nonce.toString (), body || ''].join ('');
             headers = {
                 'Content-Type': 'application/json',
@@ -2080,11 +2088,14 @@ var bittrex = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-        let method = 'marketGet' + capitalize (side) + type;
-        return this[method] (this.extend ({
+        let method = 'marketGet' + this.capitalize (side) + type;
+        let order = {
             'market': this.productId (product),
             'quantity': amount,
-        }, (type == 'limit') ? { 'rate': price } : {}, params));
+        };
+        if (type == 'limit')
+            order['rate'] = price;
+        return this[method] (this.extend (order, params));
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -2152,7 +2163,7 @@ var btcx = {
     },
 
     fetchOrderBook (product) { 
-        let p = this.product (product)
+        let p = this.product (product);
         return this.publicGetDepthIdLimit ({ 
             'id': this.productId (product),
             'limit': 1000,
@@ -2455,28 +2466,26 @@ var ccex = {
             'market': this.productId (product).toLowerCase (),
         });
         let ticker = response['ticker'];
-        console.log (response);
-        return ticker;
-        // let timestamp = this.milliseconds ();
-        // return {
-        //     'timestamp': timestamp,
-        //     'datetime': this.iso8601 (timestamp),
-        //     'high': undefined,
-        //     'low': undefined,
-        //     'bid': parseFloat (ticker['orderbook']['bids']['highbid']),
-        //     'ask': parseFloat (ticker['orderbook']['asks']['highbid']),
-        //     'vwap': undefined,
-        //     'open': undefined,
-        //     'close': undefined,
-        //     'first': undefined,
-        //     'last': parseFloat (ticker['last_price']),
-        //     'change': parseFloat (ticker['change']),
-        //     'percentage': undefined,
-        //     'average': undefined,
-        //     'baseVolume': undefined,
-        //     'quoteVolume': parseFloat (ticker['volume_24hours']),
-        //     'info': ticker,
-        // };
+        let timestamp = ticker['updated'] * 1000;
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['buy']),
+            'ask': parseFloat (ticker['sell']),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['lastprice']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': parseFloat (ticker['avg']),
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['buysupport']),
+            'info': ticker,
+        };
     },
 
     fetchTrades (product) {
@@ -2488,7 +2497,7 @@ var ccex = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-        let method = 'privateGet' + capitalize (side) + type;
+        let method = 'privateGet' + this.capitalize (side) + type;
         return this[method] (this.extend ({
             'market': this.productId (product),
             'quantity': amount,
@@ -2500,12 +2509,12 @@ var ccex = {
         let url = this.urls['api'][type];
         if (type == 'private') {
             let nonce = this.nonce ().toString ();
-            url += '?' + this.urlencode (this.extend ({
+            let query = this.keysort (this.extend ({
                 'a': path,
-            }, {
                 'apikey': this.apiKey,
                 'nonce': nonce,
             }, params));
+            url += '?' + this.urlencode (query);
             headers = { 'apisign': this.hmac (url, this.secret, 'sha512') };
         } else if (type == 'public') {
             url += '?' + this.urlencode (this.extend ({
@@ -2633,11 +2642,16 @@ var cex = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-        return this.privatePostPlaceOrderPair (this.extend ({
+        let order = {
             'pair': this.productId (product),
             'type': side,
-            'amount': amount,
-        }, (type == 'limit') ? { 'price': price } : { 'order_type': type }, params));
+            'amount': amount,            
+        };
+        if (type == 'limit')
+            order['price'] = price;
+        else
+            order['order_type'] = type;
+        return this.privatePostPlaceOrderPair (this.extend (order, params));
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -2719,30 +2733,30 @@ var coincheck = {
         },
     },
     'products': {
-        'BTC/JPY':  { id: 'btc_jpy',  symbol: 'BTC/JPY',  base: 'BTC',  quote: 'JPY' }, // the only real pair
-        // 'ETH/JPY':  { id: 'eth_jpy',  symbol: 'ETH/JPY',  base: 'ETH',  quote: 'JPY' },
-        // 'ETC/JPY':  { id: 'etc_jpy',  symbol: 'ETC/JPY',  base: 'ETC',  quote: 'JPY' },
-        // 'DAO/JPY':  { id: 'dao_jpy',  symbol: 'DAO/JPY',  base: 'DAO',  quote: 'JPY' },
-        // 'LSK/JPY':  { id: 'lsk_jpy',  symbol: 'LSK/JPY',  base: 'LSK',  quote: 'JPY' },
-        // 'FCT/JPY':  { id: 'fct_jpy',  symbol: 'FCT/JPY',  base: 'FCT',  quote: 'JPY' },
-        // 'XMR/JPY':  { id: 'xmr_jpy',  symbol: 'XMR/JPY',  base: 'XMR',  quote: 'JPY' },
-        // 'REP/JPY':  { id: 'rep_jpy',  symbol: 'REP/JPY',  base: 'REP',  quote: 'JPY' },
-        // 'XRP/JPY':  { id: 'xrp_jpy',  symbol: 'XRP/JPY',  base: 'XRP',  quote: 'JPY' },
-        // 'ZEC/JPY':  { id: 'zec_jpy',  symbol: 'ZEC/JPY',  base: 'ZEC',  quote: 'JPY' },
-        // 'XEM/JPY':  { id: 'xem_jpy',  symbol: 'XEM/JPY',  base: 'XEM',  quote: 'JPY' },
-        // 'LTC/JPY':  { id: 'ltc_jpy',  symbol: 'LTC/JPY',  base: 'LTC',  quote: 'JPY' },
-        // 'DASH/JPY': { 'id': 'dash_jpy', 'symbol': 'DASH/JPY', 'base': 'DASH', 'quote': 'JPY' },
-        // 'ETH/BTC':  { id: 'eth_btc',  symbol: 'ETH/BTC',  base: 'ETH',  quote: 'BTC' },
-        // 'ETC/BTC':  { id: 'etc_btc',  symbol: 'ETC/BTC',  base: 'ETC',  quote: 'BTC' },
-        // 'LSK/BTC':  { id: 'lsk_btc',  symbol: 'LSK/BTC',  base: 'LSK',  quote: 'BTC' },
-        // 'FCT/BTC':  { id: 'fct_btc',  symbol: 'FCT/BTC',  base: 'FCT',  quote: 'BTC' },
-        // 'XMR/BTC':  { id: 'xmr_btc',  symbol: 'XMR/BTC',  base: 'XMR',  quote: 'BTC' },
-        // 'REP/BTC':  { id: 'rep_btc',  symbol: 'REP/BTC',  base: 'REP',  quote: 'BTC' },
-        // 'XRP/BTC':  { id: 'xrp_btc',  symbol: 'XRP/BTC',  base: 'XRP',  quote: 'BTC' },
-        // 'ZEC/BTC':  { id: 'zec_btc',  symbol: 'ZEC/BTC',  base: 'ZEC',  quote: 'BTC' },
-        // 'XEM/BTC':  { id: 'xem_btc',  symbol: 'XEM/BTC',  base: 'XEM',  quote: 'BTC' },
-        // 'LTC/BTC':  { id: 'ltc_btc',  symbol: 'LTC/BTC',  base: 'LTC',  quote: 'BTC' },
-        // 'DASH/BTC': { 'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
+        'BTC/JPY':  { 'id': 'btc_jpy',  'symbol': 'BTC/JPY',  'base': 'BTC',  'quote': 'JPY' }, // the only real pair
+        'ETH/JPY':  { 'id': 'eth_jpy',  'symbol': 'ETH/JPY',  'base': 'ETH',  'quote': 'JPY' },
+        'ETC/JPY':  { 'id': 'etc_jpy',  'symbol': 'ETC/JPY',  'base': 'ETC',  'quote': 'JPY' },
+        'DAO/JPY':  { 'id': 'dao_jpy',  'symbol': 'DAO/JPY',  'base': 'DAO',  'quote': 'JPY' },
+        'LSK/JPY':  { 'id': 'lsk_jpy',  'symbol': 'LSK/JPY',  'base': 'LSK',  'quote': 'JPY' },
+        'FCT/JPY':  { 'id': 'fct_jpy',  'symbol': 'FCT/JPY',  'base': 'FCT',  'quote': 'JPY' },
+        'XMR/JPY':  { 'id': 'xmr_jpy',  'symbol': 'XMR/JPY',  'base': 'XMR',  'quote': 'JPY' },
+        'REP/JPY':  { 'id': 'rep_jpy',  'symbol': 'REP/JPY',  'base': 'REP',  'quote': 'JPY' },
+        'XRP/JPY':  { 'id': 'xrp_jpy',  'symbol': 'XRP/JPY',  'base': 'XRP',  'quote': 'JPY' },
+        'ZEC/JPY':  { 'id': 'zec_jpy',  'symbol': 'ZEC/JPY',  'base': 'ZEC',  'quote': 'JPY' },
+        'XEM/JPY':  { 'id': 'xem_jpy',  'symbol': 'XEM/JPY',  'base': 'XEM',  'quote': 'JPY' },
+        'LTC/JPY':  { 'id': 'ltc_jpy',  'symbol': 'LTC/JPY',  'base': 'LTC',  'quote': 'JPY' },
+        'DASH/JPY': { 'id': 'dash_jpy', 'symbol': 'DASH/JPY', 'base': 'DASH', 'quote': 'JPY' },
+        'ETH/BTC':  { 'id': 'eth_btc',  'symbol': 'ETH/BTC',  'base': 'ETH',  'quote': 'BTC' },
+        'ETC/BTC':  { 'id': 'etc_btc',  'symbol': 'ETC/BTC',  'base': 'ETC',  'quote': 'BTC' },
+        'LSK/BTC':  { 'id': 'lsk_btc',  'symbol': 'LSK/BTC',  'base': 'LSK',  'quote': 'BTC' },
+        'FCT/BTC':  { 'id': 'fct_btc',  'symbol': 'FCT/BTC',  'base': 'FCT',  'quote': 'BTC' },
+        'XMR/BTC':  { 'id': 'xmr_btc',  'symbol': 'XMR/BTC',  'base': 'XMR',  'quote': 'BTC' },
+        'REP/BTC':  { 'id': 'rep_btc',  'symbol': 'REP/BTC',  'base': 'REP',  'quote': 'BTC' },
+        'XRP/BTC':  { 'id': 'xrp_btc',  'symbol': 'XRP/BTC',  'base': 'XRP',  'quote': 'BTC' },
+        'ZEC/BTC':  { 'id': 'zec_btc',  'symbol': 'ZEC/BTC',  'base': 'ZEC',  'quote': 'BTC' },
+        'XEM/BTC':  { 'id': 'xem_btc',  'symbol': 'XEM/BTC',  'base': 'XEM',  'quote': 'BTC' },
+        'LTC/BTC':  { 'id': 'ltc_btc',  'symbol': 'LTC/BTC',  'base': 'LTC',  'quote': 'BTC' },
+        'DASH/BTC': { 'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
     },
 
     fetchBalance () {
@@ -2782,17 +2796,20 @@ var coincheck = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-        let isMarket = (type == 'market');
-        let isBuy = (side == 'buy');
-        let order_type = (isMarket ? (type + '_') : '') + side;
+        let prefix = '';
         let order = {
             'pair': this.productId (product),
-            'order_type': order_type,
         };
-        if (!isMarket)
+        if (type == 'market') {
+            let order_type = type + '_' + side;
+            order['order_type'] = order_type;
+            let prefix = (side == buy) ? (order_type + '_') : '';
+            order[prefix + 'amount'] = amount;
+        } else {
+            order['order_type'] = side;
             order['rate'] = price;
-        let prefix = (isMarket && isBuy) ? (type + '_' + side + '_') : '';
-        order[prefix + 'amount'] = amount;
+            order['amount'] = amount;
+        }
         return this.privatePostExchangeOrders (this.extend (order, params));
     },
 
@@ -2805,7 +2822,7 @@ var coincheck = {
         } else {
             let nonce = this.nonce ().toString ();
             if (Object.keys (query).length)
-                body = this.urlencode (query);
+                body = this.urlencode (this.keysort (query));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
@@ -3006,13 +3023,20 @@ var coinsecure = {
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePutUserExchange';
+        let order = {};
         if (type == 'market') {       
-            method += 'Instant' + capitalize (side);
-            let order = (side == 'buy') ? { 'maxFiat': amount } : { 'maxVol': amount };
-            return this[method] (order);
-        } 
-        method += ((side == 'buy') ? 'Bid' : 'Ask') + 'New';
-        return this[method] ({ 'rate': price, 'vol': amount });
+            method += 'Instant' + this.capitalize (side);
+            if (side == 'buy')
+                order['maxFiat'] = amount;
+            else
+                order['maxVol'] = amount;
+        } else {
+            let direction = (side == 'buy') ? 'Bid' : 'Ask';
+            method += direction + 'New';
+            order['rate'] = price;
+            order['vol'] = amount;
+        }
+        return this[method] (self.extend (order, params));
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -3079,7 +3103,7 @@ var exmo = {
     async fetchProducts () {
         let products = await this.publicGetPairSettings ();
         let keys = Object.keys (products);
-        let result = []
+        let result = [];
         for (let p = 0; p < keys.length; p++) {
             let id = keys[p];
             let product = products[id];
@@ -3139,12 +3163,16 @@ var exmo = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-        return this.privatePostOrderCreate (this.extend ({
+        let prefix = '';
+        if (type =='market')
+            prefix = 'market_';
+        let order = {
             'pair': this.productId (product),
             'quantity': amount,
             'price': price || 0,
-            'type': ((type == 'market') ? 'market_' : '') + side,
-        }, params));
+            'type': prefix + side,
+        };
+        return this.privatePostOrderCreate (this.extend (order, params));
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -3259,7 +3287,7 @@ var fyb = {
 var fybse = extend (fyb, {
     'id': 'fybse',
     'name': 'FYB-SE',
-    'countries': [ 'SE', ],
+    'countries': 'SE', // Sweden
     'urls': {
         'api': 'https://www.fybse.se/api/SEK',
         'www': 'https://www.fybse.se',
@@ -3275,7 +3303,7 @@ var fybse = extend (fyb, {
 var fybsg = extend (fyb, {
     'id': 'fybsg',
     'name': 'FYB-SG',
-    'countries': [ 'SG', ],
+    'countries': 'SG', // Singapore
     'urls': {
         'api': 'https://www.fybsg.com/api/SGD',
         'www': 'https://www.fybsg.com',
@@ -3292,7 +3320,7 @@ var hitbtc = {
 
     'id': 'hitbtc',
     'name': 'HitBTC',
-    'countries': 'HK',
+    'countries': 'HK', // Hong Kong
     'rateLimit': 2000,
     'version': 1,
     'urls': {
@@ -3364,7 +3392,7 @@ var hitbtc = {
                 'info': product,
             });
         }
-        return result
+        return result;
     },
 
     fetchBalance () {
@@ -3410,13 +3438,16 @@ var hitbtc = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-        return this.tradingPostNewOrder (this.extend ({
+        let order = {
             'clientOrderId': this.nonce (),
             'symbol': this.productId (product),
             'side': side,
             'quantity': amount,
             'type': type,            
-        }, (type == 'limit') ? { 'price': price } : {}, params));
+        };
+        if (type == 'limit')
+            order['price'] = price;
+        return this.tradingPostNewOrder (this.extend (order, params));
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -3511,8 +3542,7 @@ var huobi = {
 
     fetchOrderBook (product) {
         let p = this.product (product);
-        let usdmarket = p['type'] == 'usdmarket';
-        let method = usdmarket ? 'usdmarketGetDepthId' : 'staticmarketGetDepthId';
+        let method = p['type'] + 'GetDepthId';
         return this[method] ({ 'id': p['id'] });
     },
 
@@ -3545,32 +3575,38 @@ var huobi = {
 
     fetchTrades (product) {
         let p = this.product (product);
-        let usdmarket = p['type'] == 'usdmarket';
-        let method = usdmarket ? 'usdmarketGetDetailId' : 'staticmarketGetDetailId';
+        let method = p['type'] + 'GetDetailId';
         return this[method] ({ 'id': p['id'] });
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
         let p = this.product (product);
-        let method = capitalize (side) + ((type == 'market') ? capitalize (type) : '');
-        let order = this.extend ({
+        let method = 'tradePost' + this.capitalize (side);
+        let order = {
             'coin_type': p['coinType'],
             'amount': amount,
             'market': p['quote'].toLowerCase (),
-        }, (type == 'limit') ? { 'price': price } : {}, params);
-        return this['tradePost' + method] (order);
+        };
+        if (type == 'limit')
+            order['price'] = price;
+        else
+            method += this.capitalize (type);
+        return this[method] (this.extend (order, params));
     },
 
     request (path, type = 'trade', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'];
         if (type == 'trade') {
             url += '/api' + this.version;
-            let query = keysort (this.extend ({
+            let query = this.keysort (this.extend ({
                 'method': path,
                 'access_key': this.apiKey,
                 'created': this.nonce (),
             }, params));
-            query['sign'] = this.hash (this.urlencode (this.extend (this.omit (query, 'market'), { 'secret_key': this.secret })));
+            let queryString = this.urlencode (this.omit (query, 'market'));
+            // secret key must be at the end of query to be signed
+            queryString += '&secret_key=' + this.secret;
+            query['sign'] = this.hash (queryString);
             body = this.urlencode (query);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -3617,48 +3653,48 @@ var jubi = {
         },
     },
     'products': {
-        'BTC/CNY':  { 'id': 'btc',  symbol: 'BTC/CNY',  base: 'BTC',  quote: 'CNY' },
-        'ETH/CNY':  { 'id': 'eth',  symbol: 'ETH/CNY',  base: 'ETH',  quote: 'CNY' },
-        'ANS/CNY':  { 'id': 'ans',  symbol: 'ANS/CNY',  base: 'ANS',  quote: 'CNY' },
-        'BLK/CNY':  { 'id': 'blk',  symbol: 'BLK/CNY',  base: 'BLK',  quote: 'CNY' },
-        'DNC/CNY':  { 'id': 'dnc',  symbol: 'DNC/CNY',  base: 'DNC',  quote: 'CNY' },
+        'BTC/CNY':  { 'id': 'btc',  'symbol': 'BTC/CNY',  'base': 'BTC',  'quote': 'CNY' },
+        'ETH/CNY':  { 'id': 'eth',  'symbol': 'ETH/CNY',  'base': 'ETH',  'quote': 'CNY' },
+        'ANS/CNY':  { 'id': 'ans',  'symbol': 'ANS/CNY',  'base': 'ANS',  'quote': 'CNY' },
+        'BLK/CNY':  { 'id': 'blk',  'symbol': 'BLK/CNY',  'base': 'BLK',  'quote': 'CNY' },
+        'DNC/CNY':  { 'id': 'dnc',  'symbol': 'DNC/CNY',  'base': 'DNC',  'quote': 'CNY' },
         'DOGE/CNY': { 'id': 'doge', 'symbol': 'DOGE/CNY', 'base': 'DOGE', 'quote': 'CNY' },
-        'EAC/CNY':  { 'id': 'eac',  symbol: 'EAC/CNY',  base: 'EAC',  quote: 'CNY' },
-        'ETC/CNY':  { 'id': 'etc',  symbol: 'ETC/CNY',  base: 'ETC',  quote: 'CNY' },
-        'FZ/CNY':   { 'id': 'fz',   symbol: 'FZ/CNY',   base: 'FZ',   quote: 'CNY' },
+        'EAC/CNY':  { 'id': 'eac',  'symbol': 'EAC/CNY',  'base': 'EAC',  'quote': 'CNY' },
+        'ETC/CNY':  { 'id': 'etc',  'symbol': 'ETC/CNY',  'base': 'ETC',  'quote': 'CNY' },
+        'FZ/CNY':   { 'id': 'fz',   'symbol': 'FZ/CNY',   'base': 'FZ',   'quote': 'CNY' },
         'GOOC/CNY': { 'id': 'gooc', 'symbol': 'GOOC/CNY', 'base': 'GOOC', 'quote': 'CNY' },
         'GAME/CNY': { 'id': 'game', 'symbol': 'GAME/CNY', 'base': 'GAME', 'quote': 'CNY' },
-        'HLB/CNY':  { 'id': 'hlb',  symbol: 'HLB/CNY',  base: 'HLB',  quote: 'CNY' },
-        'IFC/CNY':  { 'id': 'ifc',  symbol: 'IFC/CNY',  base: 'IFC',  quote: 'CNY' },
-        'JBC/CNY':  { 'id': 'jbc',  symbol: 'JBC/CNY',  base: 'JBC',  quote: 'CNY' },
-        'KTC/CNY':  { 'id': 'ktc',  symbol: 'KTC/CNY',  base: 'KTC',  quote: 'CNY' },
-        'LKC/CNY':  { 'id': 'lkc',  symbol: 'LKC/CNY',  base: 'LKC',  quote: 'CNY' },
-        'LSK/CNY':  { 'id': 'lsk',  symbol: 'LSK/CNY',  base: 'LSK',  quote: 'CNY' },
-        'LTC/CNY':  { 'id': 'ltc',  symbol: 'LTC/CNY',  base: 'LTC',  quote: 'CNY' },
-        'MAX/CNY':  { 'id': 'max',  symbol: 'MAX/CNY',  base: 'MAX',  quote: 'CNY' },
-        'MET/CNY':  { 'id': 'met',  symbol: 'MET/CNY',  base: 'MET',  quote: 'CNY' },
+        'HLB/CNY':  { 'id': 'hlb',  'symbol': 'HLB/CNY',  'base': 'HLB',  'quote': 'CNY' },
+        'IFC/CNY':  { 'id': 'ifc',  'symbol': 'IFC/CNY',  'base': 'IFC',  'quote': 'CNY' },
+        'JBC/CNY':  { 'id': 'jbc',  'symbol': 'JBC/CNY',  'base': 'JBC',  'quote': 'CNY' },
+        'KTC/CNY':  { 'id': 'ktc',  'symbol': 'KTC/CNY',  'base': 'KTC',  'quote': 'CNY' },
+        'LKC/CNY':  { 'id': 'lkc',  'symbol': 'LKC/CNY',  'base': 'LKC',  'quote': 'CNY' },
+        'LSK/CNY':  { 'id': 'lsk',  'symbol': 'LSK/CNY',  'base': 'LSK',  'quote': 'CNY' },
+        'LTC/CNY':  { 'id': 'ltc',  'symbol': 'LTC/CNY',  'base': 'LTC',  'quote': 'CNY' },
+        'MAX/CNY':  { 'id': 'max',  'symbol': 'MAX/CNY',  'base': 'MAX',  'quote': 'CNY' },
+        'MET/CNY':  { 'id': 'met',  'symbol': 'MET/CNY',  'base': 'MET',  'quote': 'CNY' },
         'MRYC/CNY': { 'id': 'mryc', 'symbol': 'MRYC/CNY', 'base': 'MRYC', 'quote': 'CNY' },        
-        'MTC/CNY':  { 'id': 'mtc',  symbol: 'MTC/CNY',  base: 'MTC',  quote: 'CNY' },
-        'NXT/CNY':  { 'id': 'nxt',  symbol: 'NXT/CNY',  base: 'NXT',  quote: 'CNY' },
-        'PEB/CNY':  { 'id': 'peb',  symbol: 'PEB/CNY',  base: 'PEB',  quote: 'CNY' },
-        'PGC/CNY':  { 'id': 'pgc',  symbol: 'PGC/CNY',  base: 'PGC',  quote: 'CNY' },
-        'PLC/CNY':  { 'id': 'plc',  symbol: 'PLC/CNY',  base: 'PLC',  quote: 'CNY' },
-        'PPC/CNY':  { 'id': 'ppc',  symbol: 'PPC/CNY',  base: 'PPC',  quote: 'CNY' },
-        'QEC/CNY':  { 'id': 'qec',  symbol: 'QEC/CNY',  base: 'QEC',  quote: 'CNY' },
-        'RIO/CNY':  { 'id': 'rio',  symbol: 'RIO/CNY',  base: 'RIO',  quote: 'CNY' },
-        'RSS/CNY':  { 'id': 'rss',  symbol: 'RSS/CNY',  base: 'RSS',  quote: 'CNY' },
-        'SKT/CNY':  { 'id': 'skt',  symbol: 'SKT/CNY',  base: 'SKT',  quote: 'CNY' },
-        'TFC/CNY':  { 'id': 'tfc',  symbol: 'TFC/CNY',  base: 'TFC',  quote: 'CNY' },
-        'VRC/CNY':  { 'id': 'vrc',  symbol: 'VRC/CNY',  base: 'VRC',  quote: 'CNY' },
-        'VTC/CNY':  { 'id': 'vtc',  symbol: 'VTC/CNY',  base: 'VTC',  quote: 'CNY' },
-        'WDC/CNY':  { 'id': 'wdc',  symbol: 'WDC/CNY',  base: 'WDC',  quote: 'CNY' },
-        'XAS/CNY':  { 'id': 'xas',  symbol: 'XAS/CNY',  base: 'XAS',  quote: 'CNY' },
-        'XPM/CNY':  { 'id': 'xpm',  symbol: 'XPM/CNY',  base: 'XPM',  quote: 'CNY' },
-        'XRP/CNY':  { 'id': 'xrp',  symbol: 'XRP/CNY',  base: 'XRP',  quote: 'CNY' },
+        'MTC/CNY':  { 'id': 'mtc',  'symbol': 'MTC/CNY',  'base': 'MTC',  'quote': 'CNY' },
+        'NXT/CNY':  { 'id': 'nxt',  'symbol': 'NXT/CNY',  'base': 'NXT',  'quote': 'CNY' },
+        'PEB/CNY':  { 'id': 'peb',  'symbol': 'PEB/CNY',  'base': 'PEB',  'quote': 'CNY' },
+        'PGC/CNY':  { 'id': 'pgc',  'symbol': 'PGC/CNY',  'base': 'PGC',  'quote': 'CNY' },
+        'PLC/CNY':  { 'id': 'plc',  'symbol': 'PLC/CNY',  'base': 'PLC',  'quote': 'CNY' },
+        'PPC/CNY':  { 'id': 'ppc',  'symbol': 'PPC/CNY',  'base': 'PPC',  'quote': 'CNY' },
+        'QEC/CNY':  { 'id': 'qec',  'symbol': 'QEC/CNY',  'base': 'QEC',  'quote': 'CNY' },
+        'RIO/CNY':  { 'id': 'rio',  'symbol': 'RIO/CNY',  'base': 'RIO',  'quote': 'CNY' },
+        'RSS/CNY':  { 'id': 'rss',  'symbol': 'RSS/CNY',  'base': 'RSS',  'quote': 'CNY' },
+        'SKT/CNY':  { 'id': 'skt',  'symbol': 'SKT/CNY',  'base': 'SKT',  'quote': 'CNY' },
+        'TFC/CNY':  { 'id': 'tfc',  'symbol': 'TFC/CNY',  'base': 'TFC',  'quote': 'CNY' },
+        'VRC/CNY':  { 'id': 'vrc',  'symbol': 'VRC/CNY',  'base': 'VRC',  'quote': 'CNY' },
+        'VTC/CNY':  { 'id': 'vtc',  'symbol': 'VTC/CNY',  'base': 'VTC',  'quote': 'CNY' },
+        'WDC/CNY':  { 'id': 'wdc',  'symbol': 'WDC/CNY',  'base': 'WDC',  'quote': 'CNY' },
+        'XAS/CNY':  { 'id': 'xas',  'symbol': 'XAS/CNY',  'base': 'XAS',  'quote': 'CNY' },
+        'XPM/CNY':  { 'id': 'xpm',  'symbol': 'XPM/CNY',  'base': 'XPM',  'quote': 'CNY' },
+        'XRP/CNY':  { 'id': 'xrp',  'symbol': 'XRP/CNY',  'base': 'XRP',  'quote': 'CNY' },
         'XSGS/CNY': { 'id': 'xsgs', 'symbol': 'XSGS/CNY', 'base': 'XSGS', 'quote': 'CNY' },
-        'YTC/CNY':  { 'id': 'ytc',  symbol: 'YTC/CNY',  base: 'YTC',  quote: 'CNY' },
-        'ZET/CNY':  { 'id': 'zet',  symbol: 'ZET/CNY',  base: 'ZET',  quote: 'CNY' },
-        'ZCC/CNY':  { 'id': 'zcc',  symbol: 'ZCC/CNY',  base: 'ZCC',  quote: 'CNY' },        
+        'YTC/CNY':  { 'id': 'ytc',  'symbol': 'YTC/CNY',  'base': 'YTC',  'quote': 'CNY' },
+        'ZET/CNY':  { 'id': 'zet',  'symbol': 'ZET/CNY',  'base': 'ZET',  'quote': 'CNY' },
+        'ZCC/CNY':  { 'id': 'zcc',  'symbol': 'ZCC/CNY',  'base': 'ZCC',  'quote': 'CNY' },        
     },
 
     fetchBalance () {
@@ -3800,11 +3836,14 @@ var kraken = {
             let product = products['result'][id];
             let base = product['base'];
             let quote = product['quote'];
-            base = ((base[0] == 'X') || (base[0] == 'Z')) ? base.slice (1) : base;
-            quote = ((quote[0] == 'X') || (quote[0] == 'Z')) ? quote.slice (1) : quote;
+            if ((base[0] == 'X') || (base[0] == 'Z'))
+                base = base.slice (1);
+            if ((quote[0] == 'X') || (quote[0] == 'Z'))
+                quote = quote.slice (1);
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
-            let symbol = (id.indexOf ('.d') >= 0) ? product['altname'] : (base + '/' + quote);
+            let darkpool = id.indexOf ('.d') >= 0;
+            let symbol = darkpool ? product['altname'] : (base + '/' + quote);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -3844,7 +3883,7 @@ var kraken = {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['vol']),
+            'baseVolume': undefined,
             'quoteVolume': parseFloat (ticker['v'][1]),
             'info': ticker,
         };
@@ -3861,12 +3900,15 @@ var kraken = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-        return this.privatePostAddOrder (this.extend ({
+        let order = {
             'pair': this.productId (product),
             'type': side,
             'ordertype': type,
             'volume': amount,
-        }, (type == 'limit') ? { 'price': price } : {}, params));
+        };
+        if (type == 'limit')
+            order['price'] = price;
+        return this.privatePostAddOrder (this.extend (order, params));
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {  
@@ -3878,8 +3920,8 @@ var kraken = {
             let nonce = this.nonce ().toString ();
             let query = this.extend ({ 'nonce': nonce }, params);
             body = this.urlencode (query);
-            query = stringToBinary (url + this.hash (nonce + body, 'sha256', 'binary'));
-            let secret = base64ToBinary (this.secret);
+            query = this.stringToBinary (url + this.hash (nonce + body, 'sha256', 'binary'));
+            let secret = this.base64ToBinary (this.secret);
             headers = {
                 'API-Key': this.apiKey,
                 'API-Sign': this.hmac (query, secret, 'sha512', 'base64'),
@@ -3958,8 +4000,10 @@ var luno = {
         for (let p = 0; p < products['tickers'].length; p++) {
             let product = products['tickers'][p];
             let id = product['pair'];
-            let base = this.commonCurrencyCode (id.slice (0, 3));
-            let quote = this.commonCurrencyCode (id.slice (3, 6));
+            let base = id.slice (0, 3);
+            let quote = id.slice (3, 6);
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -3969,7 +4013,7 @@ var luno = {
                 'info': product,
             });
         }
-        return result
+        return result;
     },
 
     fetchBalance () {
@@ -4015,22 +4059,25 @@ var luno = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let method = 'privatePost';
+        let order = { 'pair': this.productId (product) };
         if (type == 'market') {
-            let order = {
-                'pair': this.productId (product),
-                'type': side.toUpperCase ()
-            };
-            volume = ((side == 'buy') ? 'counter' : 'base') + '_volume';
-            order[volume] = amount;
-            return this.privatePostMarketorder (this.extend (order, params));
+            method += 'Marketorder';
+            order['type'] = side.toUpperCase ();
+            if (side == 'buy')
+                order['counter_volume'] = amount;
+            else
+                order['base_volume'] = amount;            
+        } else {
+            method += 'Order';
+            order['volume'] = amount;
+            order['price'] = price;
+            if (side == 'buy')
+                order['type'] = 'BID';
+            else
+                order['type'] = 'ASK';
         }
-        let order = {
-            'pair': this.productId (product),
-            'type': (side == 'buy') ? 'BID' : 'ASK',
-            'volume': amount,
-            'price': price,
-        };
-        return this.privatePostOrder (this.extend (order, params));
+        return this[method] (this.extend (order, params));
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -4039,7 +4086,7 @@ var luno = {
         if (Object.keys (query).length)
             url += '?' + this.urlencode (query);
         if (type == 'private') {
-            let auth = stringToBase64 (this.apiKey + ':' + this.secret);
+            let auth = this.stringToBase64 (this.apiKey + ':' + this.secret);
             headers = { 'Authorization': 'Basic ' + auth };
         }
         return this.fetch (url, method, headers, body);
@@ -4166,11 +4213,16 @@ var okcoin = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-        return this.privatePostTrade (this.extend ({
+        let order = {
             'symbol': this.productId (product),
-            'type': side + ((type == 'market') ? '_market' : ''),
+            'type': side,
             'amount': amount,
-        }, (type == 'limit') ? { 'price': price } : {}, params));
+        };
+        if (type == 'limit')
+            order['price'] = price;
+        else
+            order['type'] += '_market';
+        return this.privatePostTrade (this.extend (order, params));
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -4179,7 +4231,7 @@ var okcoin = {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
-            let query = keysort (this.extend ({
+            let query = this.keysort (this.extend ({
                 'api_key': this.apiKey,
             }, params));
             // secret key must be at the end of query
@@ -4240,8 +4292,8 @@ var poloniex = {
     'rateLimit': 1000, // 6 calls per second
     'urls': {
         'api': {
-            public: 'https://poloniex.com/public',
-            private: 'https://poloniex.com/tradingApi',
+            'public': 'https://poloniex.com/public',
+            'private': 'https://poloniex.com/tradingApi',
         },
         'www': 'https://poloniex.com',
         'docs': [
@@ -4360,7 +4412,7 @@ var poloniex = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-        let method = 'privatePost' + capitalize (side);
+        let method = 'privatePost' + this.capitalize (side);
         return this[method] (this.extend ({
             'currencyPair': this.productId (product),
             'rate': price,
@@ -4480,10 +4532,14 @@ var quadrigacx = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-        return this['privatePost' + capitalize (side)] (this.extend ({
+        let method = 'privatePost' + this.capitalize (side); 
+        let order = {
             'amount': amount,
             'book': this.productId (product),
-        }, (type == 'limit') ? { 'price': price } : {}, params));
+        };
+        if (type == 'limit')
+            order['price'] = price;
+        return this[method] (this.extend (order, params));
     },
 
     cancelOrder (id, params = {}) {
@@ -4520,7 +4576,6 @@ var quoine = {
     'id': 'quoine',
     'name': 'QUOINE',
     'countries': [ 'JP', 'SG', 'VN' ],
-    'timeout': 10000,
     'version': 2,
     'rateLimit': 2000,
     'urls': {
@@ -4635,18 +4690,23 @@ var quoine = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let order = {
+            'order_type': type,
+            'product_id': this.productId (product),
+            'side': side,
+            'quantity': amount,
+        };
+        if (type == 'limit')
+            order['price'] = price;
         return this.privatePostOrders (this.extend ({
-            'order': this.extend ({
-                'order_type': type,
-                'product_id': this.productId (product),
-                'side': side,
-                'quantity': amount,
-            }, (type == 'limit') ? { 'price': price } : {}),
+            'order': order,
         }, params));
     },
 
     cancelOrder (id, params = {}) {
-        return this.privatePutOrdersIdCancel (this.extend ({ id }, params));
+        return this.privatePutOrdersIdCancel (this.extend ({
+            'id': id,
+        }, params));
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -4667,7 +4727,8 @@ var quoine = {
                 'token_id': this.apiKey,
                 'iat': Math.floor (nonce / 1000), // issued at
             };
-            body = Object.keys (query).length ? JSON.stringify (query) : undefined;
+            if (Object.keys (query).length)
+                body = JSON.stringify (query);
             headers['X-Quoine-Auth'] = this.jwt (request, this.secret);
         }
         return this.fetch (this.urls['api'] + url, method, headers, body);
@@ -4753,13 +4814,13 @@ var therock = {
 
     fetchOrderBook (product) {
         return this.publicGetFundsIdOrderbook ({
-            id: this.productId (product),
+            'id': this.productId (product),
         });
     },
 
     async fetchTicker (product) {
         let ticker = await this.publicGetFundsIdTicker ({
-            id: this.productId (product),
+            'id': this.productId (product),
         });
         let timestamp = this.parse8601 (ticker['date']);
         return {
@@ -4785,15 +4846,15 @@ var therock = {
 
     fetchTrades (product) {
         return this.publicGetFundsIdTrades ({
-            id: this.productId (product),
+            'id': this.productId (product),
         });
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
-            throw new Error (this.id + ' allows limit orders only')
+            throw new Error (this.id + ' allows limit orders only');
         return this.privatePostFundsFundIdOrders (this.extend ({
-            'fund_id':  this.productId (product),
+            'fund_id': this.productId (product),
             'side': side,
             'amount': amount,
             'price': price,
@@ -4864,6 +4925,7 @@ var vaultoro = {
     },
 
     async fetchProducts () {
+        let result = [];
         let products = await this.publicGetMarkets ();
         let product = products['data'];
         let base = product['BaseCurrency'];
@@ -4872,7 +4934,7 @@ var vaultoro = {
         let baseId = base;
         let quoteId = quote;
         let id = product['MarketName'];
-        return [{
+        result.push ({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -4880,7 +4942,8 @@ var vaultoro = {
             'baseId': baseId,
             'quoteId': quoteId,
             'info': product,
-        }];
+        });
+        return result;
     },
 
     fetchBalance () {
@@ -4926,9 +4989,9 @@ var vaultoro = {
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
         let p = this.product (product);
-        let method = 'privatePost' + capitalize (side) + 'SymbolType';
+        let method = 'privatePost' + this.capitalize (side) + 'SymbolType';
         return this[method] (this.extend ({
-            'symbol': p.quoteId.toLowerCase (),
+            'symbol': p['quoteId'].toLowerCase (),
             'type': type,
             'gld': amount,
             'price': price || 1,
@@ -4966,8 +5029,8 @@ var virwox = {
     'rateLimit': 1000,
     'urls': {
         'api': {
-            public: 'http://api.virwox.com/api/json.php',
-            private: 'https://www.virwox.com/api/trading.php',
+            'public': 'http://api.virwox.com/api/json.php',
+            'private': 'https://www.virwox.com/api/trading.php',
         },
         'www': 'https://www.virwox.com',
         'docs': 'https://www.virwox.com/developers.php',
@@ -5102,25 +5165,29 @@ var virwox = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-        return this.privatePostPlaceOrder (this.extend ({
+        let order = {
             'instrument': this.symbol (product),
             'orderType': side.toUpperCase (),
             'amount': amount,
-        }, (type == 'limit') ? { 'price': price } : {}, params));
+        };
+        if (type == 'limit')
+            order['price'] = price;
+        return this.privatePostPlaceOrder (this.extend (order, params));
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][type];
-        let auth = (type == 'public') ? {} : {
-            'key': this.apiKey,
-            'user': this.login,
-            'pass': this.password,   
-        };
+        let auth = {};
+        if (type == 'public') {
+            auth['key'] = this.apiKey;
+            auth['user'] = this.login;
+            auth['pass'] = this.password;
+        }
         let nonce = this.nonce ();
         if (method == 'GET') {
             url += '?' + this.urlencode (this.extend ({ 
-                method: path, 
-                id: nonce,
+                'method': path, 
+                'id': nonce,
             }, auth, params));
         } else {
             headers = { 'Content-type': 'application/json' };
@@ -5202,7 +5269,7 @@ var yobit = {
     },
 
     async fetchTicker (product) {
-        let p = this.product (product)
+        let p = this.product (product);
         let tickers = await this.apiGetTickerPairs ({
             'pairs': p['id'],
         });
@@ -5237,7 +5304,7 @@ var yobit = {
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
-            throw new Error (this.id + ' allows limit orders only')
+            throw new Error (this.id + ' allows limit orders only');
         return this.tapiPostTrade (this.extend ({
             'pair': this.productId (product),
             'type': side,
@@ -5266,7 +5333,7 @@ var yobit = {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': this.apiKey,
-                'sign': this.hmac (body, this.secret, 'sha512')
+                'sign': this.hmac (body, this.secret, 'sha512'),
             };
         }
         return this.fetch (url, method, headers, body);
@@ -5393,7 +5460,7 @@ var zaif = {
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
-            throw new Error (this.id + ' allows limit orders only')
+            throw new Error (this.id + ' allows limit orders only');
         return this.tapiPostTrade (this.extend ({
             'currency_pair': this.productId (product),
             'action': (side == 'buy') ? 'bid' : 'ask',
