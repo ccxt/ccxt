@@ -4,8 +4,6 @@ namespace ccxt;
 
 class Market {
 
-    //--------------------------------------------------------------------------
-
     public static function split ($string, $delimiters = array (' ')) {
         return explode ($delimiters[0], str_replace ($delimiters, $delimiters[0], $string));
     }
@@ -28,6 +26,12 @@ class Market {
         $result = array ();
         foreach ($arrayOfArrays as $array)
             $result[$array[$key]] = $array;
+        return $result;
+    }
+
+    public static function keysort ($array) {
+        $result = $array;
+        ksort ($result);
         return $result;
     }
 
@@ -54,28 +58,71 @@ class Market {
         return Market::implode_params ($string, $params);
     }
 
-    public static function base64urlencode ($string) {
+    public static function urlencodeBase64 ($string) {
         return preg_replace (array ('#[=]+$#u', '#\+#u', '#\\/#'), array ('', '-', '_'), base64_encode ($string));
     }
 
-    public function nonce   () { return $this->seconds (); }
-    public function seconds () { return time (); }
+    public static function urlencode ($string) {
+        return http_build_query ($string);
+    }
+   
+    public static function seconds () {
+        return time ();
+    }
     
-    public function milliseconds () { 
+    public static function milliseconds () { 
         list ($msec, $sec) = explode (' ', microtime ());
         return $sec . substr ($msec, 2, 3);
     }
     
-    public function microseconds () {
+    public static function microseconds () {
         list ($msec, $sec) = explode (' ', microtime ());
         return $sec . str_pad (substr ($msec, 2, 6), 6, '0');
+    }
+
+    public static function iso8601 ($timestamp) {
+        $result = date ('c', (int) round ($timestamp / 1000));
+        $msec = (int) $timestamp % 1000;
+        return str_replace ('+', sprintf (".%03d+", $msec), $result);
+    }
+
+    public static function parse8601 ($timestamp) {
+        $yyyy = '([0-9]{4})-?';
+        $mm   = '([0-9]{2})-?';
+        $dd   = '([0-9]{2})(?:T|[\s])?';
+        $h    = '([0-9]{2}):?';
+        $m    = '([0-9]{2}):?';
+        $s    = '([0-9]{2})';
+        $ms   = '(\.[0-9]{3})?';
+        $tz = '(?:(\+|\-)([0-9]{2})\:?([0-9]{2})|Z)?';
+        $regex = '/' . $yyyy . $mm . $dd . $h . $m . $s . $ms . $tz.'/';
+        preg_match ($regex, $timestamp, $matches);
+        array_shift ($matches);
+        list ($yyyy, $mm, $dd, $h, $m, $s, $ms, $sign, $hours, $minutes) = $matches;
+        $ms = $ms or '.000';
+        $sign = $sign or '';
+        $sign = intval ($sign . '1');
+        $hours = (intval ($hours) or 0) * $sign;
+        $minutes = (intval ($minutes) or 0) * $sign;
+        $t = mktime ($h, $m, $s, $mm, $dd, $yyyy, 0);
+        $t += $hours * 3600 + $minutes * 60;
+        $t *= 1000;
+        return $t;
+    }
+
+    public static function yyyymmddhhmmss ($timestamp) {
+        return gmdate ('YmdHis', (int) round ($timestamp / 1000));
+    }
+
+    public function nonce () {
+        return $this->seconds ();
     }
 
     public function __construct ($options) {
         $this->curl      = curl_init ();
         $this->id        = null;
         $this->rateLimit = 2000;
-        $this->timeout   = null;
+        $this->timeout   = 10; // in seconds
 
         if ($options)
             foreach ($options as $key => $value)
@@ -116,8 +163,8 @@ class Market {
 
     public function hash ($request, $type = 'md5', $digest = 'hex') {
         $base64 = ($digest === 'base64');
-        $raw = ($digest === 'raw');
-        $hash = hash ($type, $request, ($raw || $base64) ? true : false);
+        $binary = ($digest === 'binary');
+        $hash = hash ($type, $request, ($binary || $base64) ? true : false);
         if ($base64)
             $hash = base64_encode ($hash);
         return $hash;
@@ -125,18 +172,18 @@ class Market {
 
     public function hmac ($request, $secret, $type = 'sha256', $digest = 'hex') {
         $base64 = ($digest === 'base64');
-        $raw = ($digest === 'raw');
-        $hmac = hash_hmac ($type, $request, $secret, ($raw || $base64) ? true : false);
+        $binary = ($digest === 'binary');
+        $hmac = hash_hmac ($type, $request, $secret, ($binary || $base64) ? true : false);
         if ($base64)
             $hmac = base64_encode ($hmac);        
         return $hmac;
     }
 
     public function jwt ($request, $secret, $alg = 'HS256', $hash = 'sha256') {
-        $encodedHeader = Market::base64urlencode (json_encode (array ('alg' => $alg, 'typ' => 'JWT')));
-        $encodedData = Market::base64urlencode (json_encode ($request, JSON_UNESCAPED_SLASHES));
+        $encodedHeader = $this->urlencodeBase64 (json_encode (array ('alg' => $alg, 'typ' => 'JWT')));
+        $encodedData = $this->urlencodeBase64 (json_encode ($request, JSON_UNESCAPED_SLASHES));
         $token = $encodedHeader . '.' . $encodedData;
-        $signature = Market::base64urlencode ($this->hmac ($token, $secret, $hash, 'raw'));
+        $signature = $this->urlencodeBase64 ($this->hmac ($token, $secret, $hash, 'binary'));
         return $token . '.' . $signature;
     }
 
@@ -166,7 +213,12 @@ class Market {
             var_dump ($url, $method, $headers, $body);
 
         curl_setopt ($this->curl, CURLOPT_URL, $url);
-        curl_setopt ($this->curl, CURLOPT_TIMEOUT, 20);
+
+        if ($this->timeout) {
+            curl_setopt ($this->timeout, CURLOPT_CONNECTTIMEOUT, 0); 
+            curl_setopt ($this->timeout, CURLOPT_TIMEOUT, $this->timeout); // seconds
+        }
+
         curl_setopt ($this->curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt ($this->curl, CURLOPT_SSL_VERIFYPEER, false);
 
@@ -204,16 +256,25 @@ class Market {
         return json_decode ($result, $jsonDecodeAsAssociativeArray = true);
     }
 
-    public function loadProducts () { return Market::load_products (); }
+    public function loadProducts () {
+        return $this->load_products ();
+    }
 
     public function load_products () {
         if ($this->products) return $this->products;
-        return $this->products = Market::indexBy ($this->fetch_products (), 'symbol');
+        return $this->products = $this->indexBy ($this->fetch_products (), 'symbol');
     }
 
-    public function fetch_products () { return $this->products; }
-    public function fetchProducts  () { return $this->fetch_products (); }
-    public function fetchBalance   () { return $this->fetch_balance  (); }
+    public function fetch_products () {
+        return $this->products; // stub
+    }
+    
+    public function fetchProducts  () {
+        return $this->fetch_products ();
+    }
+    public function fetchBalance () {
+        return $this->fetch_balance ();
+    }
     
     public function fetchOrderBook ($product) {
         return $this->fetch_order_book ($product);
@@ -323,7 +384,7 @@ class Market {
     }
 
     public function productId ($product) {
-        return Market::product_id ($product);
+        return $this->product_id ($product);
     }
 
     public function symbol ($product) {
@@ -468,7 +529,7 @@ class _1broker extends Market {
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path . '.php';
         $query = array_merge (array ('token' => $this->token), $params);
-        $url .= '?' . http_build_query ($query);
+        $url .= '?' . $this->urlencode ($query);
         return $this->fetch ($url, $method);
     }
 };
@@ -544,7 +605,7 @@ class cryptocapital extends Market {
         $url = $this->urls['api'] . '/' . $path;
         if ($type === 'public') {
             if ($params)
-                $url .= '?' . http_build_query ($params);
+                $url .= '?' . $this->urlencode ($params);
         } else {
             $query = array_merge (array (
                 'api_key' => $this->apiKey,
@@ -698,13 +759,13 @@ class bit2c extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . Market::implodeParams ($path, $params);
+        $url = $this->urls['api'] . '/' . $this->implodeParams ($path, $params);
         if ($type === 'public') {
             $url .= '.json';
         } else {
             $nonce = $this->nonce ();
             $query = array_merge (array ('nonce' => $nonce), $params);
-            $body = http_build_query ($query);
+            $body = $this->urlencode ($query);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body), // strlen instead of mb_strlen for byte length
@@ -819,9 +880,9 @@ class bitbay extends Market {
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$type];
         if ($type === 'public') {
-            $url .= '/' . Market::implodeParams ($path, $params) . '.json';
+            $url .= '/' . $this->implodeParams ($path, $params) . '.json';
         } else {
-            $body = http_build_query (array_merge (array (
+            $body = $this->urlencode (array_merge (array (
                 'method' => $path,
                 'moment' => $this->nonce (),
             ), $params));
@@ -927,9 +988,9 @@ class bitcoincoid extends Market {
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$type];
         if ($type === 'public') {
-            $url .= '/' . Market::implodeParams ($path, $params);
+            $url .= '/' . $this->implodeParams ($path, $params);
         } else {
-            $body = http_build_query (array_merge (array (
+            $body = $this->urlencode (array_merge (array (
                 'method' => $path,
                 'nonce' => $this->nonce (),
             ), $params));
@@ -1063,8 +1124,8 @@ class bitfinex extends Market {
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         return $this->privatePostOrderNew (array_merge (array (
             'symbol' => $this->productId ($product),
-            'amount' => $amount.toString (),
-            'price' => $price.toString (),
+            'amount' => (string) $amount,
+            'price' => (string) $price,
             'side' => $side,
             'type' => 'exchange ' + $type,
             'ocoorder' => false,
@@ -1074,12 +1135,12 @@ class bitfinex extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/' . $this->version . '/' . Market::implodeParams ($path, $params);
-        $query = Market::omit ($params, Market::extractParams ($path));
+        $request = '/' . $this->version . '/' . $this->implodeParams ($path, $params);
+        $query = $this->omit ($params, $this->extractParams ($path));
         $url = $this->urls['api'] . $request;
         if ($type === 'public') {
             if ($query)
-                $url .= '?' . http_build_query ($query);
+                $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = $this->nonce ();
             $query = array_merge (array (
@@ -1216,7 +1277,7 @@ class bitlish extends Market {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($type === 'public') {
             if ($params)
-                $url .= '?' . http_build_query ($params);
+                $url .= '?' . $this->urlencode ($params);
         } else {
             $body = json_encode (array_merge (array ('token' => $this->apiKey), $params));
             $headers = array ('Content-Type' => 'application/json');
@@ -1346,14 +1407,14 @@ class bitmarket extends Market {
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$type];
         if ($type === 'public') {
-            $url .= '/' . Market::implodeParams ($path . '.json', $params);
+            $url .= '/' . $this->implodeParams ($path . '.json', $params);
         } else {
             $nonce = $this->nonce ();
             $query = array_merge (array (
                 'tonce' => $nonce,
                 'method' => $path,
             ), $params);
-            $body = http_build_query ($query);
+            $body = $this->urlencode ($query);
             $headers = array (
                 'API-Key: '  . $this->apiKey,
                 'API-Hash: ' . $this->hmac ($body, $this->secret, 'sha512'),
@@ -1532,7 +1593,7 @@ class bitmex extends Market {
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = '/api/' . $this->version . '/' . $path;
         if ($params)
-            $query .= '?' . http_build_query ($params);
+            $query .= '?' . $this->urlencode ($params);
         $url = $this->urls['api'] . $query;
         if ($type === 'private') {
             $nonce = $this->nonce ();
@@ -1649,9 +1710,30 @@ class bitso extends Market {
     }
     
     public function fetch_ticker ($product) {
-        return $this->publicGetTicker (array (
+        $response = $this->publicGetTicker (array (
             'book' => $this->productId ($product),
         ));
+        $ticker = $response['payload'];
+        $timestamp = $this->parse8601 ($ticker['created_at']);
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => floatval ($ticker['vwap']),
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['volume']),
+            'info' => $ticker,
+        );
     }
     
     public function fetch_trades ($product) {
@@ -1673,7 +1755,7 @@ class bitso extends Market {
         $query = '/' . $this->version . '/' . $this->implodeParams ($path, $params);
         $url = $this->urls['api'] . $query;
         if ($type === 'public') {
-            $url .= '?' . http_build_query ($params);
+            $url .= '?' . $this->urlencode ($params);
         } else {
             if ($params)
                 $body = json_encode ($params);
@@ -1805,13 +1887,13 @@ class bittrex extends Market {
         if ($type === 'public') {
             $url .= $type . '/' . strtolower ($method) . $path;
             if ($params)
-                $url .= '?' . http_build_query ($params);
+                $url .= '?' . $this->urlencode ($params);
         } else {
             $nonce = $this->nonce ();
             $url .= $type . '/';
             if ((($type === 'account') && ($path !== 'withdraw')) || ($path === 'openorders'))
                 $url .= strtolower ($method);
-            $url .= $path . '?' . http_build_query (array_merge (array (
+            $url .= $path . '?' . $this->urlencode (array_merge (array (
                 'nonce' => $nonce,
                 'apikey' => $this->apiKey,
             ), $params));
@@ -1900,11 +1982,11 @@ class btcx extends Market {
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/';
         if ($type === 'public') {
-            $url .= Market::implodeParams ($path, $params);
+            $url .= $this->implodeParams ($path, $params);
         } else {
             $nonce = $this->nonce ();
             $url .= $type;
-            $body = http_build_query (array_merge (array (
+            $body = $this->urlencode (array_merge (array (
                 'Method' => $path,
                 'Nonce' => $nonce,
             ), $params));
@@ -2027,11 +2109,11 @@ class bxinth extends Market {
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path . '/';
         if ($params)
-            $url .= '?' . http_build_query ($params);
+            $url .= '?' . $this->urlencode ($params);
         if ($type === 'private') {
             $nonce = $this->nonce ();
             $signature = $this->hash ($this->apiKey . $nonce . $this->secret, 'sha256');
-            $body = http_build_query (array_merge (array (
+            $body = $this->urlencode (array_merge (array (
                 'key' => $this->apiKey,
                 'nonce' => $nonce,
                 'signature' => $signature,
@@ -2160,7 +2242,7 @@ class ccex extends Market {
         $url = $this->urls['api'][$type];
         if ($type === 'private') {
             $nonce = $this->nonce ();
-            $url .= '?' . http_build_query (array_merge (array (
+            $url .= '?' . $this->urlencode (array_merge (array (
                 'a' => $path,
             ), array (
                 'apikey' => $this->apiKey,
@@ -2168,11 +2250,11 @@ class ccex extends Market {
             ), $params));
             $headers = array ('apisign' => $this->hmac ($url, $this->secret, 'sha512'));
         } else if ($type === 'public') {
-            $url .= '?' . http_build_query (array_merge (array (
+            $url .= '?' . $this->urlencode (array_merge (array (
                 'a' => 'get' . $path,
             ), $params));
         } else {
-            $url .= '/' . Market::implodeParams ($path, $params) . '.json';
+            $url .= '/' . $this->implodeParams ($path, $params) . '.json';
         }
         return $this->fetch ($url, $method, $headers, $body);
     }
@@ -2285,14 +2367,14 @@ class cex extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . Market::implodeParams ($path, $params);
-        $query = Market::omit ($params, Market::extractParams ($path));
+        $url = $this->urls['api'] . '/' . $this->implodeParams ($path, $params);
+        $query = $this->omit ($params, $this->extractParams ($path));
         if ($type === 'public') {   
             if ($query)
-                $url .= '?' . http_build_query ($query);
+                $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = (string) $this->nonce ();
-            $body = http_build_query (array_merge (array (
+            $body = $this->urlencode (array_merge (array (
                 'key' => $this->apiKey,
                 'signature' => strtoupper ($this->hmac ($nonce . $this->uid . $this->apiKey, $this->secret)),
                 'nonce' => $nonce,
@@ -2425,15 +2507,15 @@ class coincheck extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . Market::implodeParams ($path, $params);
-        $query = Market::omit ($params, Market::extractParams ($path));
+        $url = $this->urls['api'] . '/' . $this->implodeParams ($path, $params);
+        $query = $this->omit ($params, $this->extractParams ($path));
         if ($type === 'public') {
             if ($query)
-                $url .= '?' . http_build_query ($query);
+                $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = (string) $this->nonce ();
             if ($query)
-                $body = http_build_query ($query);
+                $body = $this->urlencode ($query);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
@@ -2628,8 +2710,8 @@ class coinsecure extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . Market::implodeParams ($path, $params);
-        $query = Market::omit ($params, Market::extractParams ($path));
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implodeParams ($path, $params);
+        $query = $this->omit ($params, $this->extractParams ($path));
         if ($type === 'private') {
             $headers = array ('Authorization' => $this->apiKey);
             if ($query) {
@@ -2744,10 +2826,10 @@ class exmo extends Market {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($type === 'public') {
             if ($params)
-                $url .= '?' . http_build_query ($params);
+                $url .= '?' . $this->urlencode ($params);
         } else {
             $nonce = $this->nonce ();
-            $body = http_build_query (array_merge (array ('nonce' => $nonce), $params));   
+            $body = $this->urlencode (array_merge (array ('nonce' => $nonce), $params));   
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
@@ -2820,7 +2902,7 @@ class fyb extends Market {
             $url .= '.json';
         } else {
             $nonce = $this->nonce ();
-            $body = http_build_query (array_merge (array ('timestamp' => $nonce), $params));
+            $body = $this->urlencode (array_merge (array ('timestamp' => $nonce), $params));
             $headers = array (
                 'Content-type' => 'application/x-www-form-urlencoded',
                 'key' => $this->apiKey,
@@ -2992,19 +3074,19 @@ class hitbtc extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = '/api/' . $this->version . '/' . $type . '/' . Market::implodeParams ($path, $params);
-        $query = Market::omit ($params, Market::extractParams ($path));
+        $url = '/api/' . $this->version . '/' . $type . '/' . $this->implodeParams ($path, $params);
+        $query = $this->omit ($params, $this->extractParams ($path));
         if ($type === 'public') {
             if ($query)
-                $url .= '?' . http_build_query ($query);
+                $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = $this->nonce ();
             $query = array_merge (array ('nonce' => $nonce, 'apikey' => $this->apiKey), $query);
             if ($method === 'POST')
                 if ($query)
-                    $body = http_build_query ($query);
+                    $body = $this->urlencode ($query);
             if ($query)
-                $url .= '?' . http_build_query ($query);
+                $url .= '?' . $this->urlencode ($query);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'X-Signature' => strtolower ($this->hmac ($url . ($body || ''), $this->secret, 'sha512')),
@@ -3127,16 +3209,16 @@ class huobi extends Market {
                 'created' => $this->nonce (),
             ), $params);
             ksort ($query);
-            $query['sign'] = $this->hash (http_build_query (array_merge (array (
+            $query['sign'] = $this->hash ($this->urlencode (array_merge (array (
                 'secret_key' => $this->secret,
-            ), Market::omit ($query, 'market'))));
-            $body = http_build_query ($query);
+            ), $this->omit ($query, 'market'))));
+            $body = $this->urlencode ($query);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
             );
         } else {
-            $url .= '/' . $type . '/' . Market::implodeParams ($path, $params) . '_json.js';
+            $url .= '/' . $type . '/' . $this->implodeParams ($path, $params) . '_json.js';
         }
         return $this->fetch ($url, $method, $headers, $body);
     }
@@ -3259,15 +3341,15 @@ class jubi extends Market {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($type === 'public') {
             if ($params)
-                $url .= '?' . http_build_query ($params);
+                $url .= '?' . $this->urlencode ($params);
         } else {
             $nonce = (string) $this->nonce ();
             $query = array_merge (array (
                 'key' => $this->apiKey,
                 'nonce' => $nonce,
             ), $params);
-            $query['signature'] = $this->hmac (http_build_query ($query), $this->hash ($this->secret));
-            $body = http_build_query ($query);
+            $query['signature'] = $this->hmac ($this->urlencode ($query), $this->hash ($this->secret));
+            $body = $this->urlencode ($query);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
@@ -3369,10 +3451,38 @@ class kraken extends Market {
         ));
     }
     
+    // public function fetch_ticker ($product) {
+    //     return $this->publicGetTicker (array (
+    //         'pair' => $this->productId ($product),
+    //     ));
+    // }
+
     public function fetch_ticker ($product) {
-        return $this->publicGetTicker (array (
-            'pair' => $this->productId ($product),
+        $p = $this->product ($product);
+        $response = $this->publicGetTicker (array (
+            'pair' => $p['id'],
         ));
+        $ticker = $response['result'][$p['id']];
+        $timestamp = $this->milliseconds ();
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['h'][1]),
+            'low' => floatval ($ticker['l'][1]),
+            'bid' => floatval ($ticker['b'][0]),
+            'ask' => floatval ($ticker['a'][0]),
+            'vwap' => floatval ($ticker['p'][1]),
+            'open' => floatval ($ticker['o']),
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['c'][0]),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['v'][1]),
+            'info' => $ticker,
+        );
     }
     
     public function fetch_trades ($product) {
@@ -3398,12 +3508,12 @@ class kraken extends Market {
         $url = '/' . $this->version . '/' . $type . '/' . $path;
         if ($type === 'public') {
             if ($params)
-                $url .= '?' . http_build_query ($params);
+                $url .= '?' . $this->urlencode ($params);
         } else {
             $nonce = (string) $this->nonce ();
             $query = array_merge (array ('nonce' => $nonce), $params);
-            $body = http_build_query ($query);
-            $query = $url . $this->hash ($nonce . $body, 'sha256', 'raw');
+            $body = $this->urlencode ($query);
+            $query = $url . $this->hash ($nonce . $body, 'sha256', 'binary');
             $secret = base64_decode ($this->secret);
             $headers = array (
                 'API-Key' => $this->apiKey,
@@ -3542,10 +3652,10 @@ class luno extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . Market::implodeParams ($path, $params);
-        $query = Market::omit ($params, Market::extractParams ($path));
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implodeParams ($path, $params);
+        $query = $this->omit ($params, $this->extractParams ($path));
         if ($query)
-            $url .= '?' . http_build_query ($query);
+            $url .= '?' . $this->urlencode ($query);
         if ($type === 'private') {
             $auth = base64_encode ($this->apiKey . ':' . $this->secret);
             $headers = array ('Authorization' => 'Basic ' . $auth);
@@ -3641,9 +3751,30 @@ class okcoin extends Market {
     }
     
     public function fetch_ticker ($product) {
-        return $this->publicGetTicker (array (
+        $response = $this->publicGetTicker (array (
             'symbol' => $this->productId ($product),
         ));
+        $ticker = $response['ticker'];
+        $timestamp = intval ($response['date']) * 1000;
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['vol']),
+            'info' => $ticker,
+        );
     }
     
     public function fetch_trades ($product) {
@@ -3668,14 +3799,13 @@ class okcoin extends Market {
         $url = '/api/' . $this->version . '/' . $path . '.do';        
         if ($type == 'public') {
             if ($params)
-                $url .= '?' . http_build_query ($params);
+                $url .= '?' . $this->urlencode ($params);
         } else {
-            $query = array_merge (array ('api_key' => $this->apiKey ), $params);
-            ksort ($query);
+            $query = $this->keysort (array_merge (array ('api_key' => $this->apiKey ), $params));
             // secret key must be at the end of querystring
-            $queryString = http_build_query ($query) . '&secret_key=' . $this->secret;
+            $queryString = $this->urlencode ($query) . '&secret_key=' . $this->secret;
             $query['sign'] = strtoupper ($this->hash ($queryString));
-            $body = http_build_query ($query);
+            $body = $this->urlencode ($query);
             $headers = array ('Content-type' => 'application/x-www-form-urlencoded');
         }
         $url = $this->urls['api'] . $url;
@@ -3854,10 +3984,10 @@ class poloniex extends Market {
         $url = $this->urls['api'][$type];
         $query = array_merge (array ('command' => $path), $params);
         if ($type === 'public') {
-            $url .= '?' . http_build_query ($query);
+            $url .= '?' . $this->urlencode ($query);
         } else {
             $query['nonce'] = $this->nonce ();
-            $body = http_build_query ($query);
+            $body = $this->urlencode ($query);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
@@ -3953,7 +4083,7 @@ class quadrigacx extends Market {
 
         if ($type === 'public') {
 
-            $url .= '?' . http_build_query ($params);
+            $url .= '?' . $this->urlencode ($params);
 
         } else {
 
@@ -3986,7 +4116,6 @@ class quoine extends Market {
             'id' => 'quoine',
             'name' => 'QUOINE',
             'countries' => array ('JP', 'SG', 'VN'), // Asia: Japan, Singapore, Vietnam
-            'timeout' => 10000,
             'version' => 2,
             'rateLimit' => 2000,
             'urls' => array (
@@ -4100,24 +4229,24 @@ class quoine extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = '/' . Market::implodeParams ($path, $params);
-        $query = Market::omit ($params, Market::extractParams ($path));
+        $url = '/' . $this->implodeParams ($path, $params);
+        $query = $this->omit ($params, $this->extractParams ($path));
         $headers = array (
             'X-Quoine-API-Version' => $this->version,
             'Content-Type' => 'application/json',
         );        
         if ($type === 'public') {
             if ($query)
-                $url .= '?' . http_build_query ($query);
+                $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = (int) $this->nonce ();
             $request = array (
                 'path' => $url, 
                 'nonce' => $nonce, 
                 'token_id' => $this->apiKey,
-                'iat' => floor ($nonce / 1000),
+                'iat' => (int) floor ($nonce / 1000),
             );
-            $body = $params ? http_build_query ($query) : null;
+            $body = $params ? $this->urlencode ($query) : null;
             $headers['X-Quoine-Auth'] = $this->jwt ($request, $this->secret);
         }
         return $this->fetch ($this->urls['api'] . $url, $method, $headers, $body);
@@ -4232,8 +4361,8 @@ class therock extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . Market::implodeParams ($path, $params);
-        $query = Market::omit ($params, Market::extractParams ($path));
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implodeParams ($path, $params);
+        $query = $this->omit ($params, $this->extractParams ($path));
         if ($type === 'private') {
             $nonce = $this->nonce ();            
             $headers = array (
@@ -4355,8 +4484,8 @@ class vaultoro extends Market {
             $query = array_merge (array (
                 'nonce' => $nonce,
                 'apikey' => $this->apiKey,
-            ), Market::omit ($params, Market::extractParams ($path)));
-            $url .= '?' . http_build_query ($query);
+            ), $this->omit ($params, $this->extractParams ($path)));
+            $url .= '?' . $this->urlencode ($query);
             $headers = array (
                 'Content-Type' => 'application/json',
                 'X-Signature' => $this->hmac ($url, $this->secret),
@@ -4473,10 +4602,46 @@ class virwox extends Market {
         )); 
     }     
 
-    public function fetch_ticker ($product) { 
-        return $this->publicGetTradedPriceVolume (array (
+    // public function fetch_ticker ($product) { 
+    //     return $this->publicGetTradedPriceVolume (array (
+    //         'instrument' => $this->symbol ($product),
+    //     ));
+    // }
+
+    public function fetch_ticker ($product) {
+        $end = $this->milliseconds ();
+        $start = $end - 86400000;
+        $response = $this->publicGetTradedPriceVolume (array (
             'instrument' => $this->symbol ($product),
+            'endDate' => $this->yyyymmddhhmmss ($end),
+            'startDate' => $this->yyyymmddhhmmss ($start),
+            'HLOC' => 1,
         ));
+        $tickers = $response['result']['priceVolumeList'];
+        $keys = array_keys ($tickers);
+        $length = count ($keys);
+        $lastKey = $keys[$length - 1];
+        $ticker = $tickers[$lastKey];
+        $timestamp = $this->milliseconds ();
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => null,
+            'ask' => null,
+            'vwap' => null,
+            'open' => floatval ($ticker['open']),
+            'close' => floatval ($ticker['close']),
+            'first' => null,
+            'last' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => floatval ($ticker['longVolume']),
+            'quoteVolume' => floatval ($ticker['shortVolume']),
+            'info' => $ticker,
+        );
     }
 
     public function fetch_trades ($product) {
@@ -4503,7 +4668,7 @@ class virwox extends Market {
         );
         $nonce = $this->nonce ();
         if ($method === 'GET') {
-            $url .= '?' . http_build_query (array_merge (array ( 
+            $url .= '?' . $this->urlencode (array_merge (array ( 
                 'method' => $path, 
                 'id' => $nonce,
             ), $auth, $params));
@@ -4612,14 +4777,14 @@ class yobit extends Market {
     public function request ($path, $type = 'api', $method = 'GET', $params = array ()) {
         $url = $this->urls['api'] . '/' . $type;
         if ($type === 'api') {
-            $url .= '/' . $this->version . '/' . Market::implodeParams ($path, $params);
-            $query = Market::omit ($params, Market::extractParams ($path));
+            $url .= '/' . $this->version . '/' . $this->implodeParams ($path, $params);
+            $query = $this->omit ($params, $this->extractParams ($path));
             if ($query)
-                $url .= '?' . http_build_query ($query);
+                $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = $this->nonce ();
             $query = array_merge (array ('method' => $path, 'nonce' => $nonce), $params);
-            $body = http_build_query ($query);
+            $body = $this->urlencode ($query);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'key' => $this->apiKey,
@@ -4749,10 +4914,10 @@ class zaif extends Market {
     public function request ($path, $type = 'api', $method = 'GET', $params = array ()) {
         $url = $this->urls['api'] . '/' . $type;
         if ($type === 'api') {
-            $url .= '/' . $this->version . '/' . Market::implodeParams ($path, $params);
+            $url .= '/' . $this->version . '/' . $this->implodeParams ($path, $params);
         } else {
             $nonce = $this->nonce ();
-            $body = http_build_query (array_merge (array (
+            $body = $this->urlencode (array_merge (array (
                 'method' => $path,
                 'nonce' => $nonce
             ), $params));
