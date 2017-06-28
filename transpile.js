@@ -226,11 +226,13 @@ mm = mm < 10 ? ('0' + mm) : mm
 ss = ss < 10 ? ('0' + ss) : ss
 let dateString = [ yyyy, MM, dd, hh, mm, ss ].join ('.')
 
-let oldName = 'ccxt'
-let newName = 'tmp/ccxt.' + dateString
+let oldNamePy = 'ccxt/__init__.py'
+let oldNamePHP = 'ccxt.php'
+let newNamePy = 'tmp/ccxt.' + dateString + '.py'
+let newNamePHP = 'tmp/ccxt.' + dateString + '.php'
 
-let ccxtpy = fs.readFileSync ('ccxt.py', 'utf8')
-let ccxtphp = fs.readFileSync ('ccxt.php', 'utf8')
+let ccxtpy = fs.readFileSync (oldNamePy, 'utf8')
+let ccxtphp = fs.readFileSync (oldNamePHP, 'utf8')
 
 ccxtpy = ccxtpy.split ("\n#====") [0]
 ccxtphp = ccxtphp.split ("\n//====") [0]
@@ -248,9 +250,9 @@ ccxtphp +=
 // console.log (ccxtpy)
 console.log (ccxtphp)
 
-fs.createReadStream (oldName + '.py').pipe (fs.createWriteStream (newName + '.py'))
-fs.createReadStream (oldName + '.php').pipe (fs.createWriteStream (newName + '.php'))
-fs.truncateSync (oldName + '.py')
-fs.truncateSync (oldName + '.php')
-fs.writeFileSync (oldName + '.py', ccxtpy)
-fs.writeFileSync (oldName + '.php', ccxtphp)
+fs.createReadStream (oldNamePy).pipe (fs.createWriteStream (newNamePy))
+fs.createReadStream (oldNamePHP).pipe (fs.createWriteStream (newNamePHP))
+fs.truncateSync (oldNamePy)
+fs.truncateSync (oldNamePHP)
+fs.writeFileSync (oldNamePy, ccxtpy)
+fs.writeFileSync (oldNamePHP, ccxtphp)
