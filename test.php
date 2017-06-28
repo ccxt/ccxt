@@ -1,6 +1,8 @@
 <?php
 
-include 'ccxt.php';
+date_default_timezone_set ('UTC');
+
+include 'newccxt.php';
 
 $markets = null;
 $verbose = false;
@@ -71,8 +73,24 @@ function test_market ($market) {
     
     // echo $market->id . " products:\n";
     // var_dump ($products);
+
+    $symbols = array_keys ($products);
     
-    echo $market->id . ' ' . count (array_keys ($products)) . " symbols: " . implode (", ", array_keys ($products)) . "\n";
+    echo $market->id . ' ' . count ($symbols) . " symbols: " . implode (", ", $symbols) . "\n";
+
+    foreach ($symbols as $symbol) {
+        if (strpos ($symbol, '.d') === false) {
+            $ticker = $market->fetch_ticker ($symbol);
+            echo implode (' ', array ($market->id, $symbol, 'ticker',
+                $ticker['datetime'],
+                'high: '    . $ticker['high'],
+                'low: '     . $ticker['low'],
+                'bid: '     . $ticker['bid'],
+                'ask: '     . $ticker['ask'],
+                'volume: '  . $ticker['quoteVolume'])) . "\n";
+            usleep ($delay);
+        }
+    }
 
     // usleep ($delay);
 
@@ -92,10 +110,10 @@ function test_market ($market) {
 
     // usleep ($delay);
 
-    // $balance = $market->fetch_balance ();
-    // var_dump ($balance);
+    $balance = $market->fetch_balance ();
+    var_dump ($balance);
 
-    // usleep ($delay);
+    usleep ($delay);
 }
 
 // foreach ($markets as $id => $market) {
@@ -107,7 +125,7 @@ function test_market ($market) {
 //     }
 // }
 
-$market = $markets['bitso'];
+$market = $markets['okcoinusd'];
 test_market ($market);
 
 ?>
