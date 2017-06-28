@@ -1,8 +1,6 @@
 # coding=utf-8
 
-#------------------------------------------------------------------------------
 # Python 2 & 3
-
 import base64
 import calendar
 import collections
@@ -23,14 +21,11 @@ except ImportError:
     import urllib  as _urlencode         # Python 2
     import urllib2 as _urllib
 
-#------------------------------------------------------------------------------
-
 class Market (object):
 
-    # nonce     = Date.now
     id        = None
     rateLimit = 2000
-    timeout   = None
+    timeout   = 10
     verbose   = False
     products  = None
     tickers   = None
@@ -95,7 +90,7 @@ class Market (object):
         try:
             handler = _urllib.HTTPHandler if url.startswith ('http://') else _urllib.HTTPSHandler
             opener = _urllib.build_opener (handler)
-            response = opener.open (request).read ()
+            response = opener.open (request, timeout = self.timeout).read ()
             return json.loads (response)
         except _urllib.HTTPError as e:
             try: 
@@ -123,30 +118,9 @@ class Market (object):
             return "%s%s" % (string[0].upper (), string[1:])
         return string.upper ()
 
-    @staticmethod
-    def first_of (dictionary, keys):
-        for key in keys:
-            if key in dictionary.keys ():
-                return dictionary[key]
-
-    @staticmethod
-    def update (dictionary, mapping):
-        result = {}
-        result.update (dictionary)
-        keys = result.keys ()
-        for key in mapping:
-            if mapping[key] in keys:
-                result[key] = result.pop (mapping[key])
-            else:
-                result[key] = mapping[key]
-        return result
-
-    @staticmethod
-    def lowerkeys (dictionary):
-        result = {}
-        for key in dictionary.keys ():
-            result[key.lower ()] = dictionary[key]
-        return result
+    @staticmethod 
+    def keysort (dictionary):
+        return collections.OrderedDict (sorted (dictionary.items (), key = lambda t: t[0]))
 
     @staticmethod
     def extend (*args):
@@ -240,9 +214,8 @@ class Market (object):
     def iso8601 (timestamp):
         return (datetime
             .datetime
-            .utcfromtimestamp (timestamp)
+            .utcfromtimestamp (int (round (timestamp / 1000)))
             .strftime ('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z')
-        # datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
     @staticmethod
     def parse8601 (timestamp):
@@ -266,7 +239,7 @@ class Market (object):
         string = yyyy + mm + dd + h + m + s + ms + 'Z'
         dt = datetime.datetime.strptime (string, "%Y%m%d%H%M%S.%fZ")
         dt = dt + offset
-        return calendar.timegm (dt.utctimetuple ())
+        return calendar.timegm (dt.utctimetuple ()) * 1000
 
     @staticmethod
     def hash (request, hash = 'md5', digest = 'hex'):
@@ -295,16 +268,8 @@ class Market (object):
         encodedHeader = Market.base64urlencode (json.dumps ({ 'alg': alg, 'typ': 'JWT' }, separators = (',', ':')))
         encodedData = Market.base64urlencode (json.dumps (request, separators = (',', ':')))
         token = encodedHeader + '.' + encodedData
-        signature = base64.urlsafe_b64encode (Market.hmac (token, secret, hash, 'binary')).replace ('=', '')
+        signature = Market.base64urlencode (Market.hmac (token, secret, hash, 'binary'))
         return token + '.' + signature
-
-    @staticmethod
-    def sortencode (dictionary):
-        return _urlencode.urlencode (Market.sort (dictionary))
-
-    @staticmethod
-    def sort (dictionary):
-        return sorted (dictionary.items (), key = lambda val: val[0])
 
     def nonce (self): return Market.seconds ()
 
@@ -337,60 +302,51 @@ class Market (object):
         p = self.product (product)
         return p['symbol'] if type (p) is dict else product
 
-    def parse_ticker (self, ticker, product, replacements = {}):
-
-        print (ticker)
-
-        t = {}
-        t.update (ticker)
-        if replacements: t = self.update (self.lowerkeys (t), replacements)
-
-        p = self.product (product)
-
-        result = {}
-
-        synonyms = {
-            'high':  [ 'high', 'max', 'h', '24hhigh' ],
-            'low':   [ 'low',  'min', 'l', '24hlow'  ],
-            'bid':   [ 'bid',  'buy', 'buy_price' ],
-            'ask':   [ 'ask',  'sell', 'sell_price' ],
-            'vwap':  [ 'vwap' ],
-            'open':  [ 'open' ],
-            'close': [ 'close' ],
-            'first': [ 'first' ],
-            'change': [ 'change' ],
-            'percentage': [ 'percentage' ],
-            'last':  [ 'last', 'last_price', 'last_trade', 'last_traded_price', 'lastprice', 'll' ],
-            'average': [ 'average', 'avg', 'av', 'mid' ],
-            'baseVolume': [ 'vol_cur' ],
-            'quoteVolume': [ 'volume', 'vol', 'v', 'a', 'volume_24h', 'volume_24hours', 'rolling_24_hour_volume', '24hvolume' ],
-        }
-
-        for synonym in synonyms:
-            value = self.first_of (t, synonyms[synonym])
-            value = float (value) if value else value
-            result[synonym] = value
-        
-        timestamp = self.first_of (t, [
-            'time',
-            'timestamp',
-            'server_time',
-            'created',
-            'created_at',
-            'updated',
-        ])
-
-        timestamp = self.parse_time (timestamp)
-
-        return self.extend (result, {
-            'timestamp': timestamp,
-            'datetime':  datetime.datetime.utcfromtimestamp (timestamp).isoformat (),
-            'details':   ticker,
-            'volume':    dict ([
-                (p['base'],  result['baseVolume']),
-                (p['quote'], result['quoteVolume']),
-            ]),
-        })
+    # def parse_ticker (self, ticker, product, replacements = {}):
+    #     print (ticker)
+    #     t = {}
+    #     t.update (ticker)
+    #     if replacements: t = self.update (self.lowerkeys (t), replacements)
+    #     p = self.product (product)
+    #     result = {}
+    #     synonyms = {
+    #         'high':  [ 'high', 'max', 'h', '24hhigh' ],
+    #         'low':   [ 'low',  'min', 'l', '24hlow'  ],
+    #         'bid':   [ 'bid',  'buy', 'buy_price' ],
+    #         'ask':   [ 'ask',  'sell', 'sell_price' ],
+    #         'vwap':  [ 'vwap' ],
+    #         'open':  [ 'open' ],
+    #         'close': [ 'close' ],
+    #         'first': [ 'first' ],
+    #         'change': [ 'change' ],
+    #         'percentage': [ 'percentage' ],
+    #         'last':  [ 'last', 'last_price', 'last_trade', 'last_traded_price', 'lastprice', 'll' ],
+    #         'average': [ 'average', 'avg', 'av', 'mid' ],
+    #         'baseVolume': [ 'vol_cur' ],
+    #         'quoteVolume': [ 'volume', 'vol', 'v', 'a', 'volume_24h', 'volume_24hours', 'rolling_24_hour_volume', '24hvolume' ],
+    #     }
+    #     for synonym in synonyms:
+    #         value = self.first_of (t, synonyms[synonym])
+    #         value = float (value) if value else value
+    #         result[synonym] = value       
+    #     timestamp = self.first_of (t, [
+    #         'time',
+    #         'timestamp',
+    #         'server_time',
+    #         'created',
+    #         'created_at',
+    #         'updated',
+    #     ])
+    #     timestamp = self.parse_time (timestamp)
+    #     return self.extend (result, {
+    #         'timestamp': timestamp,
+    #         'datetime':  datetime.datetime.utcfromtimestamp (timestamp).isoformat (),
+    #         'details':   ticker,
+    #         'volume':    dict ([
+    #             (p['base'],  result['baseVolume']),
+    #             (p['quote'], result['quoteVolume']),
+    #         ]),
+    #     })
 
     def fetchBalance (self):
         return self.fetch_balance ()
@@ -826,7 +782,7 @@ class bit2c (Market):
     def create_order (self, product, type, side, amount, price = None, params = {}):
         method = 'privatePostOrderAddOrder'
         if type == 'market':
-            method += 'MarketPrice' + side.capitalize ()
+            method += 'MarketPrice' + self.capitalize (side)
         return getattr (self, method) (self.extend ({
             'Amount': amount,
             'Pair':   self.productId (product),
@@ -1212,7 +1168,7 @@ class bitfinex (Market):
                 'nonce': str (nonce),
                 'request': request,
             }, params)
-            payload = base64.standard_b64encode (json.dumps (query))
+            payload = base64.b64encode (json.dumps (query))
             headers = {
                 'X-BFX-APIKEY': self.apiKey,
                 'X-BFX-PAYLOAD': payload,
@@ -1625,9 +1581,9 @@ class bitmex (Market):
     def create_order (self, product, type, side, amount, price = None, params = {}):
         return self.privatePostOrder (self.extend ({
             'symbol': self.productId (product),
-            'side': side.capitalize (),
+            'side': self.capitalize (side),
             'orderQty': amount,
-            'ordType': type.capitalize (),
+            'ordType': self.capitalize (type),
         }, { 'rate': price } if type == 'limit' else {}, params))
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
@@ -1896,7 +1852,7 @@ class bittrex (Market):
         })
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
-        method = 'marketGet' + side.capitalize () + type
+        method = 'marketGet' + self.capitalize (side) + type
         return getattr (self, method) (self.extend ({
             'market':  self.productId (product),
             'quantity': amount,
@@ -2232,7 +2188,7 @@ class ccex (Market):
         })
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
-        method = 'privateGet' + side.capitalize () + type
+        method = 'privateGet' + self.capitalize (side) + type
         return getattr (self, method) (self.extend ({
             'market': self.productId (product),
             'quantity': amount,
@@ -2691,7 +2647,7 @@ class coinsecure (Market):
     def create_order (self, product, type, side, amount, price = None, params = {}):
         method = 'privatePutUserExchange'
         if type == 'market':
-            method += 'Instant' + side.capitalize ()
+            method += 'Instant' + self.capitalize (side)
             order = { 'maxFiat': amount } if side == 'buy' else { 'maxVol': amount }
             return getattr (self, method) (order)          
         method += ('Bid' if side == 'buy' else 'Ask') + 'New'
@@ -3164,7 +3120,7 @@ class huobi (Market):
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         p = self.product (product)
-        method = side.capitalize () + (type.capitalize () if type == 'market' else '')
+        method = self.capitalize (side) + (self.capitalize (type) if type == 'market' else '')
         order = self.extend ({
             'coin_type': p['coinType'],
             'amount': amount,
@@ -3422,21 +3378,48 @@ class kraken (Market):
         return self.publicGetDepth ({
             'pair': self.productId (product),
         })
-    
+
     def fetch_ticker (self, product):
         p = self.product (product)
-        response = self.publicGetTicker ({ 'pair': p['id'] })
+        response = self.publicGetTicker ({
+            'pair': p['id'],
+        })
         ticker = response['result'][p['id']]
-        return self.extend (self.parse_ticker ({
-            'ask': ticker['a'][0],
-            'bid': ticker['b'][0],
-            'last': ticker['c'][0],
-            'volume': ticker['v'][1],
-            'vwap': ticker['p'][1],
-            'high': ticker['h'][1],
-            'low': ticker['l'][1],
-            'open': ticker['o'],
-        }, product), { 'details': ticker })
+        timestamp = self.milliseconds ()
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['h'][1]),
+            'low': float (ticker['l'][1]),
+            'bid': float (ticker['b'][0]),
+            'ask': float (ticker['a'][0]),
+            'vwap': float (ticker['p'][1]),
+            'open': float (ticker['o']),
+            'close': None,
+            'first': None,
+            'last': float (ticker['c'][0]),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['v'][1]),
+            'info': ticker,
+        }
+    
+    # def fetch_ticker (self, product):
+    #     p = self.product (product)
+    #     response = self.publicGetTicker ({ 'pair': p['id'] })
+    #     ticker = response['result'][p['id']]
+    #     return self.extend (self.parse_ticker ({
+    #         'ask': ticker['a'][0],
+    #         'bid': ticker['b'][0],
+    #         'last': ticker['c'][0],
+    #         'volume': ticker['v'][1],
+    #         'vwap': ticker['p'][1],
+    #         'high': ticker['h'][1],
+    #         'low': ticker['l'][1],
+    #         'open': ticker['o'],
+    #     }, product), { 'details': ticker })
     
     def fetch_trades (self, product):
         return self.publicGetTrades ({
@@ -3725,12 +3708,11 @@ class okcoin (Market):
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
-            query = self.extend ({ 'api_key': self.apiKey }, params)
-            orderedQuery = collections.OrderedDict (sorted (query.items (), key = lambda t: t[0]))
+            query = self.keysort (self.extend ({ 'api_key': self.apiKey }, params))
             # secret key must be at the end of querystring
-            queryString = _urlencode.urlencode (orderedQuery) + '&secret_key=' + self.secret 
-            orderedQuery['sign'] = self.hash (queryString).upper ()
-            body = _urlencode.urlencode (orderedQuery)
+            queryString = _urlencode.urlencode (query) + '&secret_key=' + self.secret 
+            query['sign'] = self.hash (queryString).upper ()
+            body = _urlencode.urlencode (query)
             headers = { 'Content-type': 'application/x-www-form-urlencoded' }
         url = self.urls['api'] + url
         return self.fetch (url, method, headers, body)
@@ -3907,7 +3889,7 @@ class poloniex (Market):
     def create_order (self, product, type, side, amount, price = None, params = {}):
         if type == 'market':
             raise NotImplementedError (self.id + ' does not support ' + type + ' orders')
-        method = 'privatePost' + side.capitalize ()
+        method = 'privatePost' + self.capitalize (side)
         return getattr (self, method) (self.extend ({
             'currencyPair': self.productId (product),
             'rate': price,
@@ -3994,7 +3976,7 @@ class quadrigacx (Market):
         return self.publicGetTransactions ({ 'book': self.productId (product) })
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
-        method = 'privatePost' + side.capitalize ()
+        method = 'privatePost' + self.capitalize (side)
         return getattr (self, method) (self.extend ({
             'amount': amount,
             'book':   self.productId (product),
@@ -4036,7 +4018,6 @@ class quoine (Market):
             'id': 'quoine',
             'name': 'QUOINE',
             'countries': [ 'JP', 'SG', 'VN' ],
-            'timeout': 10000,
             'version': '2',
             'rateLimit': 2000,
             'urls': {
@@ -4372,7 +4353,7 @@ class vaultoro (Market):
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         p = self.product (product)
-        method = 'privatePost' + side.capitalize () + 'SymbolType'
+        method = 'privatePost' + self.capitalize (side) + 'SymbolType'
         return getattr (self, method) (self.extend ({
             'symbol': p['quoteId'].lower (),
             'type': type,
