@@ -52,7 +52,7 @@ while (markets = regex.exec (contents)) {
     ph.push ('')
     ph.push ('    public function __construct ($options = array ()) {')
     ph.push ('        parent::__construct (array_merge (array (')
-    ph.push ('        ' + params.join ("\n        ").replace (/': /g, "' => ").replace (/ {/g, ' array (').replace (/ \[/g, ' array (').replace (/\}/g, ')').replace (/\]/g, ')') + ((all.length > 1) ? ',' : ''))
+    ph.push ('        ' + params.join ("\n        ").replace (/': /g, "' => ").replace (/ {/g, ' array (').replace (/ \[/g, ' array (').replace (/\}([^\']|$)/g, ')$1').replace (/\]/g, ')') + ((all.length > 1) ? ',' : ''))
     ph.push ('        ), $options));')
     ph.push ('    }')
 
@@ -134,8 +134,8 @@ while (markets = regex.exec (contents)) {
             [ /\s\|\|\s/g, ' or ' ],
             [ /\s\&\&\s/g, ' and ' ],
             [ /this\[([^\]+]+)\]/g, 'getattr (self, $1)' ],
-            [ /([^\s]+).slice \(([^\)]+)\)/g, '$1[$2:]' ],
-            [ /([^\s]+).slice \(([^\,]+)\,\s*([^\)]+)\)/g, '$1[$2:$3]' ],
+            [ /([^\s]+).slice \(([^\,\)]+)\,\s?([^\)]+)\)/g, '$1[$2:$3]' ],
+            [ /([^\s]+).slice \(([^\)\:]+)\)/g, '$1[$2:]' ],
             [ /Math\.floor\s*\(([^\)]+)\)/g, 'int (math.floor ($1))' ],
             [ /(\([^\)]+\)|[^\s]+)\s*\?\s*(\([^\)]+\)|[^\s]+)\s*\:\s*(\([^\)]+\)|[^\s]+)/g, '$2 if $1 else $3'],
             [/ \/\//g, ' #' ],
@@ -181,8 +181,8 @@ while (markets = regex.exec (contents)) {
             [ /([^\s]+(?:\s*\(.+\))?)\.toLowerCase\s*\(\)/g, 'strtolower ($1)' ],
             [ /([^\s]+(?:\s*\(.+\))?)\.replace\s*\(([^\)]+)\)/g, 'str_replace ($2, $1)' ],
             [ /this\[([^\]+]+)\]/g, '$$this->$$$1' ],
-            [ /([^\s]+).slice \(([^\)]+)\)/g, 'mb_substr ($1, $2)' ],
-            [ /([^\s]+).slice \(([^\,]+)\,\s*([^\)]+)\)/g, 'mb_substr ($1, $2, $3)' ],
+            [ /([^\s]+).slice \(([^\)\:]+)\)/g, 'mb_substr ($1, $2)' ],
+            [ /([^\s]+).slice \(([^\,\)]+)\,\s*([^\)]+)\)/g, 'mb_substr ($1, $2, $3)' ],
             [ /([^\s]+).split \(([^\,]+)\)/g, 'str_split ($2, $1)' ],
             [ /Math\.floor\s*\(([^\)]+)\)/g, '(int) floor ($1)' ],
             // yyyymmddhhmmss

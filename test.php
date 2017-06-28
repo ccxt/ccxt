@@ -7,11 +7,11 @@ include 'ccxt.php';
 $markets = null;
 $verbose = false;
 
-try {
+if (file_exists ('config.php'))
 
     include 'config.php';
 
-} catch (Exception $e) {
+else
 
     $markets = array ( // defaults
 
@@ -51,7 +51,6 @@ try {
         'yobit'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'zaif'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
     );
-}
 
 //-----------------------------------------------------------------------------
 
@@ -110,6 +109,9 @@ function test_market ($market) {
 
     // usleep ($delay);
 
+    if ((!$market->apiKey) or (strlen ($market->apiKey) < 1))
+        return;
+
     $balance = $market->fetch_balance ();
     var_dump ($balance);
 
@@ -125,7 +127,7 @@ function test_market ($market) {
 //     }
 // }
 
-$market = $markets['okcoinusd'];
+$market = $markets['bitfinex'];
 test_market ($market);
 
 ?>

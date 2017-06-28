@@ -118,6 +118,9 @@ def test_market (market):
 	#--------------------------------------------------------------------------
 	# private API
 
+	if (not market.apiKey) or (len (market.apiKey) < 1):
+		return 
+
 	print ('balance')
 	balance = market.fetch_balance ()
 	print (balance)
@@ -153,4 +156,4 @@ def test_market (market):
 # 		print (type (e).__name__, e.args)
 # 		sys.exit ()
 
-test_market (markets['ccex'])
+test_market (markets['bitfinex'])
