@@ -2,7 +2,7 @@
 
 date_default_timezone_set ('UTC');
 
-include 'newccxt.php';
+include 'ccxt.php';
 
 $markets = null;
 $verbose = false;

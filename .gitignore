@@ -6,3 +6,4 @@ config.py
 config.php
 dist/
 tmp/
+*.pyc
