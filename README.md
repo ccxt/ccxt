@@ -57,7 +57,7 @@ The list above is updated frequently, new crypto markets, altcoin exchanges, bug
 
 The library is under MIT license, that means its absolutely free for any developer to build commercial and opensource software on top of it, but use it as is at your own risk with no warranties.
 
-Developer team is open for collaboration and available for hiring and outsourcing. If you're interested in integrating this software into an existing project or in developing new opensource and commercial projects we welcome you to read our [Public Offer](https://github.com/kroitor/ccxt/blob/master/OFFER.md).
+Developer team is open for collaboration and available for hiring and outsourcing. If you're interested in integrating this software into an existing project or in developing new opensource and commercial projects we welcome you to read our [Public Offer](#public-offer).
 
 <!-- 
 
