@@ -98,7 +98,7 @@ An alternative way of installing this library into your code is to copy a single
 ### Node.js (npm)
 
 ```shell
-> npm install ccxt
+npm install ccxt
 ```
 
 Node version of the ccxt library requires `crypto` and `node-fetch`, both of them are installed automatically by npm.
@@ -111,7 +111,7 @@ console.log (Object.keys (ccxt)) // print all available markets
 ### Python
 
 ```shell
-> pip install ccxt
+pip install ccxt
 ```
 
 Python version of the ccxt library does not require any additional dependencies and uses builtin modules only.
@@ -124,7 +124,7 @@ print dir (ccxt) # print a list of all available market classes
 ### PHP
 
 ```shell
-> git clone https://github.com/kroitor/ccxt.git
+git clone https://github.com/kroitor/ccxt.git
 ```
 
 The ccxt library in PHP requires common PHP modules:
@@ -143,13 +143,13 @@ $market = new \cxxt\$id (); // $id is a string literal id of your desired exchan
 The ccxt library can also be used in web browser client-side JavaScript for various purposes. 
 
 ```shell
-> git clone https://github.com/kroitor/ccxt.git
+git clone https://github.com/kroitor/ccxt.git
 ```
 
 The client-side JavaScript version also requires CryptoJS. Download and unpack [CryptoJS](https://code.google.com/archive/p/crypto-js/) into your working directory or clone [CryptoJS from GitHub](https://github.com/sytelus/CryptoJS).
 
 ```shell
-> git clone https://github.com/sytelus/CryptoJS
+git clone https://github.com/sytelus/CryptoJS
 ```
 
 Finally, add links to CryptoJS components and ccxt to your HTML page code:
