@@ -53,11 +53,12 @@ except ImportError:
 
 #------------------------------------------------------------------------------
 
-tuples = ccxt.Market.sort (markets)
+tuples = list (ccxt.Market.keysort (markets).items ())
 
-# print (tuples)
+print (tuples)
 
 for (id, params) in tuples:
+	# id, params = tuples[t]
 	market = getattr (ccxt, id)
 	markets[id] = market (dict (params, **({ 'id': id, 'verbose': verbose })))
 
@@ -117,10 +118,10 @@ def test_market (market):
 	#--------------------------------------------------------------------------
 	# private API
 
-	# print ('balance')
-	# balance = market.fetch_balance ()
-	# print (balance)
-	# time.sleep (delay)
+	print ('balance')
+	balance = market.fetch_balance ()
+	print (balance)
+	time.sleep (delay)
 
 	amount = 1
 	price = 0.0161
@@ -152,4 +153,4 @@ def test_market (market):
 # 		print (type (e).__name__, e.args)
 # 		sys.exit ()
 
-test_market (markets['bitso'])
+test_market (markets['ccex'])
