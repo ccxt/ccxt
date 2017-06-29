@@ -3,6 +3,7 @@
 comment="'$@'"
 
 npm run transpile &&
+npm run build &&
 git commit -am $comment &&
 npm version patch &&
 npm publish &&
