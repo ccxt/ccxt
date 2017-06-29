@@ -1671,9 +1671,9 @@ class bitmex (Market):
         request = {
             'symbol': self.product_id (product),
             'binSize': '1d',
-            'partial': true,
+            'partial': True,
             'count': 1,
-            'reverse': true,            
+            'reverse': True,            
         }
         quotes = self.publicGetQuoteBucketed (request)
         quotesLength = len (quotes)

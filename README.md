@@ -266,7 +266,7 @@ print (huobi.id,  huobi.load_products ())
 
 print (hitbtc.fetch_order_book (hitbtc_products.keys ()[0]))
 print (bitmex.fetch_ticker ('BTC/USD'))
-print (huobi.fetch_trades ('ETH/CNY'))
+print (huobi.fetch_trades ('LTC/CNY'))
 
 print (exmo.fetch_balance ())
 ```
