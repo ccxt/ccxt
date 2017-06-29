@@ -46,8 +46,9 @@ class Market (object):
                         lowercaseMethod  = method.lower ()
                         camelcaseMethod  = lowercaseMethod.capitalize ()
                         camelcaseSuffix  = ''.join ([ Market.capitalize (x) for x in splitPath ])
-                        underscoreSuffix = '_'.join ([ x.lower () for x in splitPath ])                        
-                        
+                        lowercasePath    = [ x.strip ().lower () for x in splitPath ]
+                        underscoreSuffix = '_'.join ([ k for k in lowercasePath if len (k) ])
+
                         if camelcaseSuffix.find (camelcaseMethod) == 0:
                             camelcaseSuffix = camelcaseSuffix[len (camelcaseMethod):]
 

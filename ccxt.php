@@ -141,7 +141,8 @@ class Market {
                         $lowercaseMethod  = mb_strtolower ($method);
                         $camelcaseMethod  = Market::capitalize ($lowercaseMethod);
                         $camelcaseSuffix  = implode (array_map ('\ccxt\Market::capitalize', $splitPath));
-                        $underscoreSuffix = implode ('_', array_map ('mb_strtolower', $splitPath));
+                        $lowercasePath    = array_map ('trim', array_map ('strtolower', $splitPath));
+                        $underscoreSuffix = implode ('_', array_filter ($lowercasePath));
 
                         if (mb_stripos ($camelcaseSuffix, $camelcaseMethod) === 0)
                             $camelcaseSuffix = mb_substr ($camelcaseSuffix, mb_strlen ($camelcaseMethod));

@@ -195,7 +195,7 @@ var Market = function (config) {
                         let lowercaseMethod  = method.toLowerCase ()
                         let camelcaseMethod  = capitalize (lowercaseMethod)
                         let camelcaseSuffix  = splitPath.map (capitalize).join ('')
-                        let underscoreSuffix = splitPath.map (x => x.toLowerCase ()).join ('_')
+                        let underscoreSuffix = splitPath.map (x => x.trim ().toLowerCase ()).filter (x => x.length > 0).join ('_')
 
                         if (camelcaseSuffix.indexOf (camelcaseMethod) === 0)
                             camelcaseSuffix = camelcaseSuffix.slice (camelcaseMethod.length)
