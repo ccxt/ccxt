@@ -659,7 +659,7 @@ class _1btcxe extends cryptocapital {
             'urls' => array ( 
                 'api' => 'https://1btcxe.com/api',
                 'www' => 'https://1btcxe.com',
-                'docs' => 'https://1btcxe.com/api-docs.php',
+                'doc' => 'https://1btcxe.com/api-docs.php',
             ),    
             'products' => array (
                 'BTC/USD' => array ( 'id' => 'USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', ),
@@ -840,7 +840,7 @@ class bitbay extends Market {
                     'public' => 'https://bitbay.net/API/Public',
                     'private' => 'https://bitbay.net/API/Trading/tradingApi.php',
                 ),
-                'docs' => array (
+                'doc' => array (
                     'https://bitbay.net/public-api',
                     'https://bitbay.net/account/tab-api',
                     'https://github.com/BitBayNet/API',
@@ -978,7 +978,7 @@ class bitcoincoid extends Market {
                     'private' => 'https://vip.bitcoin.co.id/tapi',
                 ),
                 'www' => 'https://www.bitcoin.co.id',
-                'docs' => array (
+                'doc' => array (
                     'https://vip.bitcoin.co.id/trade_api',
                     'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
                 ),
@@ -1109,7 +1109,7 @@ class bitfinex extends Market {
             'urls' => array (
                 'api' => 'https://api.bitfinex.com',
                 'www' => 'https://www.bitfinex.com',
-                'docs' => array (
+                'doc' => array (
                     'https://bitfinex.readme.io/v1/docs',
                     'https://bitfinex.readme.io/v2/docs',
                     'https://github.com/bitfinexcom/bitfinex-api-node',
@@ -1282,7 +1282,7 @@ class bitlish extends Market {
             'urls' => array (
                 'api' => 'https://bitlish.com/api',
                 'www' => 'https://bitlish.com',
-                'docs' => 'https://bitlish.com/api',
+                'doc' => 'https://bitlish.com/api',
             ),
             'api' => array (
                 'public' => array (
@@ -1440,7 +1440,7 @@ class bitmarket extends Market {
                     'https://www.bitmarket.pl',
                     'https://www.bitmarket.net',
                 ),
-                'docs' => array (
+                'doc' => array (
                     'https://www.bitmarket.net/docs.php?file=api_public.html',
                     'https://www.bitmarket.net/docs.php?file=api_private.html',
                     'https://github.com/bitmarket-net/api',
@@ -1593,7 +1593,7 @@ class bitmex extends Market {
             'urls' => array (
                 'api' => 'https://www.bitmex.com',
                 'www' => 'https://www.bitmex.com',
-                'docs' => array (
+                'doc' => array (
                     'https://www.bitmex.com/app/apiOverview',
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ),
@@ -1809,7 +1809,7 @@ class bitso extends Market {
             'urls' => array (
                 'api' => 'https://api.bitso.com',
                 'www' => 'https://bitso.com',
-                'docs' => 'https://bitso.com/api_info',
+                'doc' => 'https://bitso.com/api_info',
             ),
             'api' => array (
                 'public' => array (
@@ -1969,7 +1969,7 @@ class bittrex extends Market {
             'urls' => array (
                 'api' => 'https://bittrex.com/api',
                 'www' => 'https://bittrex.com',
-                'docs' => array ( 
+                'doc' => array ( 
                     'https://bittrex.com/Home/Api',
                     'https://www.npmjs.org/package/node.bittrex.api',
                 ),
@@ -2123,7 +2123,7 @@ class btcx extends Market {
             'urls' => array (
                 'api' => 'https://btc-x.is/api',
                 'www' => 'https://btc-x.is',
-                'docs' => 'https://btc-x.is/custom/api-document.html',
+                'doc' => 'https://btc-x.is/custom/api-document.html',
             ),
             'api' => array (
                 'public' => array (
@@ -2240,7 +2240,7 @@ class bxinth extends Market {
             'urls' => array (
                 'api' => 'https://bx.in.th/api',
                 'www' => 'https://bx.in.th',
-                'docs' => 'https://bx.in.th/info/api',
+                'doc' => 'https://bx.in.th/info/api',
             ),
             'api' => array (
                 'public' => array (
@@ -2393,7 +2393,7 @@ class ccex extends Market {
                     'private' => 'https://c-cex.com/t/api.html',
                 ),
                 'www' => 'https://c-cex.com',
-                'docs' => 'https://c-cex.com/?id=api',
+                'doc' => 'https://c-cex.com/?id=api',
             ),
             'api' => array (
                 'tickers' => array (
@@ -2542,7 +2542,7 @@ class cex extends Market {
             'urls' => array (
                 'api' => 'https://cex.io/api',
                 'www' => 'https://cex.io',
-                'docs' => 'https://cex.io/cex-api',
+                'doc' => 'https://cex.io/cex-api',
             ),
             'api' => array (
                 'public' => array (
@@ -2695,7 +2695,7 @@ class coincheck extends Market {
             'urls' => array (
                 'api' => 'https://coincheck.com/api',
                 'www' => 'https://coincheck.com',
-                'docs' => 'https://coincheck.com/documents/exchange/api',
+                'doc' => 'https://coincheck.com/documents/exchange/api',
             ),
             'api' => array (
                 'public' => array (
@@ -2859,7 +2859,7 @@ class coinsecure extends Market {
             'urls' => array (
                 'api' => 'https://api.coinsecure.in',
                 'www' => 'https://coinsecure.in',
-                'docs' => array (
+                'doc' => array (
                     'https://api.coinsecure.in',
                     'https://github.com/coinsecure/plugins',
                 ),
@@ -3081,7 +3081,7 @@ class exmo extends Market {
             'urls' => array (
                 'api' => 'https://api.exmo.com',
                 'www' => 'https://exmo.me',
-                'docs' => array (
+                'doc' => array (
                     'https://exmo.me/ru/api_doc',
                     'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
                 ),
@@ -3316,7 +3316,7 @@ class fybse extends fyb {
             'urls' => array (
                 'api' => 'https://www.fybse.se/api/SEK',
                 'www' => 'https://www.fybse.se',
-                'docs' => 'http://docs.fyb.apiary.io',
+                'doc' => 'http://docs.fyb.apiary.io',
             ),
             'products' => array (
                 'BTC/SEK' => array ( 'id' => 'SEK', 'symbol' => 'BTC/SEK', 'base' => 'BTC', 'quote' => 'SEK' ),
@@ -3337,7 +3337,7 @@ class fybsg extends fyb {
             'urls' => array (
                 'api' => 'https://www.fybsg.com/api/SGD',
                 'www' => 'https://www.fybsg.com',
-                'docs' => 'http://docs.fyb.apiary.io',
+                'doc' => 'http://docs.fyb.apiary.io',
             ),
             'products' => array (
                 'BTC/SGD' => array ( 'id' => 'SGD', 'symbol' => 'BTC/SGD', 'base' => 'BTC', 'quote' => 'SGD' ),
@@ -3360,7 +3360,7 @@ class hitbtc extends Market {
             'urls' => array (
                 'api' => 'http://api.hitbtc.com',
                 'www' => 'https://hitbtc.com',
-                'docs' => array (
+                'doc' => array (
                     'https://hitbtc.com/api',
                     'http://hitbtc-com.github.io/hitbtc-api',
                     'http://jsfiddle.net/bmknight/RqbYB',
@@ -3524,7 +3524,7 @@ class huobi extends Market {
             'urls' => array (
                 'api' => 'http://api.huobi.com',
                 'www' => 'https://www.huobi.com',
-                'docs' => 'https://github.com/huobiapi/API_Docs_en/wiki',
+                'doc' => 'https://github.com/huobiapi/API_Docs_en/wiki',
             ),
             'api' => array (
                 'staticmarket' => array (
@@ -3673,7 +3673,7 @@ class jubi extends Market {
             'urls' => array (
                 'api' => 'https://www.jubi.com/api',
                 'www' => 'https://www.jubi.com',
-                'docs' => 'https://www.jubi.com/help/api.html',
+                'doc' => 'https://www.jubi.com/help/api.html',
             ),
             'api' => array (
                 'public' => array (
@@ -3828,7 +3828,7 @@ class kraken extends Market {
             'urls' => array (
                 'api' => 'https://api.kraken.com',
                 'www' => 'https://www.kraken.com',
-                'docs' => array (
+                'doc' => array (
                     'https://www.kraken.com/en-us/help/api',
                     'https://github.com/nothingisdead/npm-kraken-api',
                 ),
@@ -3994,7 +3994,7 @@ class luno extends Market {
             'urls' => array (
                 'api' => 'https://api.mybitx.com/api',
                 'www' => 'https://www.luno.com',
-                'docs' => array (
+                'doc' => array (
                     'https://npmjs.org/package/bitx',
                     'https://github.com/bausmeier/node-bitx',
                 ),
@@ -4304,7 +4304,7 @@ class okcoincny extends okcoin {
             'urls' => array (
                 'api' => 'https://www.okcoin.cn',
                 'www' => 'https://www.okcoin.cn',
-                'docs' => 'https://www.okcoin.cn/rest_getStarted.html',
+                'doc' => 'https://www.okcoin.cn/rest_getStarted.html',
             ),
             'products' => array (
                 'BTC/CNY' => array ( 'id' => 'btc_cny', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY' ),
@@ -4326,7 +4326,7 @@ class okcoinusd extends okcoin {
             'urls' => array (
                 'api' => 'https://www.okcoin.com',
                 'www' => 'https://www.okcoin.com',
-                'docs' => array (
+                'doc' => array (
                     'https://www.okcoin.com/rest_getStarted.html',
                     'https://www.npmjs.com/package/okcoin.com',
                 ),
@@ -4355,7 +4355,7 @@ class poloniex extends Market {
                     'private' => 'https://poloniex.com/tradingApi',
                 ),
                 'www' => 'https://poloniex.com',
-                'docs' => array (
+                'doc' => array (
                     'https://poloniex.com/support/api/',
                     'http://pastebin.com/dMX7mZE0',
                 ),
@@ -4519,7 +4519,7 @@ class quadrigacx extends Market {
             'urls' => array (
                 'api' => 'https://api.quadrigacx.com',
                 'www' => 'https://www.quadrigacx.com',
-                'docs' => 'https://www.quadrigacx.com/api_info',
+                'doc' => 'https://www.quadrigacx.com/api_info',
             ),
             'api' => array (
                 'public' => array (
@@ -4648,7 +4648,7 @@ class quoine extends Market {
             'urls' => array (
                 'api' => 'https://api.quoine.com',
                 'www' => 'https://www.quoine.com',
-                'docs' => 'https://developers.quoine.com',
+                'doc' => 'https://developers.quoine.com',
             ),
             'api' => array (
                 'public' => array (
@@ -4818,7 +4818,7 @@ class therock extends Market {
             'urls' => array (
                 'api' => 'https://api.therocktrading.com',
                 'www' => 'https://therocktrading.com',
-                'docs' => 'https://api.therocktrading.com/doc/',
+                'doc' => 'https://api.therocktrading.com/doc/',
             ),
             'api' => array (
                 'public' => array (
@@ -4967,7 +4967,7 @@ class vaultoro extends Market {
             'urls' => array (
                 'api' => 'https://api.vaultoro.com',
                 'www' => 'https://www.vaultoro.com',
-                'docs' => 'https://api.vaultoro.com',
+                'doc' => 'https://api.vaultoro.com',
             ),
             'api' => array (
                 'public' => array (
@@ -5112,7 +5112,7 @@ class virwox extends Market {
                     'private' => 'https://www.virwox.com/api/trading.php',
                 ),
                 'www' => 'https://www.virwox.com',
-                'docs' => 'https://www.virwox.com/developers.php',
+                'doc' => 'https://www.virwox.com/developers.php',
             ),
             'api' => array (
                 'public' => array (
@@ -5296,7 +5296,7 @@ class yobit extends Market {
             'urls' => array (
                 'api' => 'https://yobit.net',
                 'www' => 'https://www.yobit.net',
-                'docs' => 'https://www.yobit.net/en/api/',
+                'doc' => 'https://www.yobit.net/en/api/',
             ),
             'api' => array (
                 'api' => array (
@@ -5439,7 +5439,7 @@ class zaif extends Market {
             'urls' => array (
                 'api' => 'https://api.zaif.jp',
                 'www' => 'https://zaif.jp',
-                'docs' => array (
+                'doc' => array (
                     'https://corp.zaif.jp/api-docs',
                     'https://corp.zaif.jp/api-docs/api_links',
                     'https://www.npmjs.com/package/zaif.jp',

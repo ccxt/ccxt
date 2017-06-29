@@ -707,7 +707,7 @@ var _1btcxe = extend (cryptocapital, {
     'urls': { 
         'api': 'https://1btcxe.com/api',
         'www': 'https://1btcxe.com',
-        'docs': 'https://1btcxe.com/api-docs.php',
+        'doc': 'https://1btcxe.com/api-docs.php',
     },    
     'products': {
         'BTC/USD': { 'id': 'USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', },
@@ -880,7 +880,7 @@ var bitbay = {
             'public': 'https://bitbay.net/API/Public',
             'private': 'https://bitbay.net/API/Trading/tradingApi.php',
         },
-        'docs': [
+        'doc': [
             'https://bitbay.net/public-api',
             'https://bitbay.net/account/tab-api',
             'https://github.com/BitBayNet/API',
@@ -1014,7 +1014,7 @@ var bitcoincoid = {
             'private': 'https://vip.bitcoin.co.id/tapi',
         },
         'www': 'https://www.bitcoin.co.id',
-        'docs': [
+        'doc': [
             'https://vip.bitcoin.co.id/trade_api',
             'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
         ],
@@ -1141,7 +1141,7 @@ var bitfinex = {
     'urls': {
         'api': 'https://api.bitfinex.com',
         'www': 'https://www.bitfinex.com',
-        'docs': [
+        'doc': [
             'https://bitfinex.readme.io/v1/docs',
             'https://bitfinex.readme.io/v2/docs',
             'https://github.com/bitfinexcom/bitfinex-api-node',
@@ -1310,7 +1310,7 @@ var bitlish = {
     'urls': {
         'api': 'https://bitlish.com/api',
         'www': 'https://bitlish.com',
-        'docs': 'https://bitlish.com/api',
+        'doc': 'https://bitlish.com/api',
     },
     'api': {
         'public': {
@@ -1464,7 +1464,7 @@ var bitmarket = {
             'https://www.bitmarket.pl',
             'https://www.bitmarket.net',
         ],
-        'docs': [
+        'doc': [
             'https://www.bitmarket.net/docs.php?file=api_public.html',
             'https://www.bitmarket.net/docs.php?file=api_private.html',
             'https://github.com/bitmarket-net/api',
@@ -1613,7 +1613,7 @@ var bitmex = {
     'urls': {
         'api': 'https://www.bitmex.com',
         'www': 'https://www.bitmex.com',
-        'docs': [
+        'doc': [
             'https://www.bitmex.com/app/apiOverview',
             'https://github.com/BitMEX/api-connectors/tree/master/official-http',
         ],
@@ -1825,7 +1825,7 @@ var bitso = {
     'urls': {
         'api': 'https://api.bitso.com',
         'www': 'https://bitso.com',
-        'docs': 'https://bitso.com/api_info',
+        'doc': 'https://bitso.com/api_info',
     },
     'api': {
         'public': {
@@ -1981,7 +1981,7 @@ var bittrex = {
     'urls': {
         'api': 'https://bittrex.com/api',
         'www': 'https://bittrex.com',
-        'docs': [ 
+        'doc': [ 
             'https://bittrex.com/Home/Api',
             'https://www.npmjs.org/package/node.bittrex.api',
         ],
@@ -2131,7 +2131,7 @@ var btcx = {
     'urls': {
         'api': 'https://btc-x.is/api',
         'www': 'https://btc-x.is',
-        'docs': 'https://btc-x.is/custom/api-document.html',
+        'doc': 'https://btc-x.is/custom/api-document.html',
     },
     'api': {
         'public': {
@@ -2244,7 +2244,7 @@ var bxinth = {
     'urls': {
         'api': 'https://bx.in.th/api',
         'www': 'https://bx.in.th',
-        'docs': 'https://bx.in.th/info/api',
+        'doc': 'https://bx.in.th/info/api',
     },
     'api': {
         'public': {
@@ -2393,7 +2393,7 @@ var ccex = {
             'private': 'https://c-cex.com/t/api.html',
         },
         'www': 'https://c-cex.com',
-        'docs': 'https://c-cex.com/?id=api',
+        'doc': 'https://c-cex.com/?id=api',
     },
     'api': {
         'tickers': {
@@ -2538,7 +2538,7 @@ var cex = {
     'urls': {
         'api': 'https://cex.io/api',
         'www': 'https://cex.io',
-        'docs': 'https://cex.io/cex-api',
+        'doc': 'https://cex.io/cex-api',
     },
     'api': {
         'public': {
@@ -2687,7 +2687,7 @@ var coincheck = {
     'urls': {
         'api': 'https://coincheck.com/api',
         'www': 'https://coincheck.com',
-        'docs': 'https://coincheck.com/documents/exchange/api',
+        'doc': 'https://coincheck.com/documents/exchange/api',
     },
     'api': {
         'public': {
@@ -2847,7 +2847,7 @@ var coinsecure = {
     'urls': {
         'api': 'https://api.coinsecure.in',
         'www': 'https://coinsecure.in',
-        'docs': [
+        'doc': [
             'https://api.coinsecure.in',
             'https://github.com/coinsecure/plugins',
         ],
@@ -3065,7 +3065,7 @@ var exmo = {
     'urls': {
         'api': 'https://api.exmo.com',
         'www': 'https://exmo.me',
-        'docs': [
+        'doc': [
             'https://exmo.me/ru/api_doc',
             'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
         ],
@@ -3291,7 +3291,7 @@ var fybse = extend (fyb, {
     'urls': {
         'api': 'https://www.fybse.se/api/SEK',
         'www': 'https://www.fybse.se',
-        'docs': 'http://docs.fyb.apiary.io',
+        'doc': 'http://docs.fyb.apiary.io',
     },
     'products': {
         'BTC/SEK': { 'id': 'SEK', 'symbol': 'BTC/SEK', 'base': 'BTC', 'quote': 'SEK' },
@@ -3307,7 +3307,7 @@ var fybsg = extend (fyb, {
     'urls': {
         'api': 'https://www.fybsg.com/api/SGD',
         'www': 'https://www.fybsg.com',
-        'docs': 'http://docs.fyb.apiary.io',
+        'doc': 'http://docs.fyb.apiary.io',
     },
     'products': {
         'BTC/SGD': { 'id': 'SGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD' },
@@ -3326,7 +3326,7 @@ var hitbtc = {
     'urls': {
         'api': 'http://api.hitbtc.com',
         'www': 'https://hitbtc.com',
-        'docs': [
+        'doc': [
             'https://hitbtc.com/api',
             'http://hitbtc-com.github.io/hitbtc-api',
             'http://jsfiddle.net/bmknight/RqbYB',
@@ -3486,7 +3486,7 @@ var huobi = {
     'urls': {
         'api': 'http://api.huobi.com',
         'www': 'https://www.huobi.com',
-        'docs': 'https://github.com/huobiapi/API_Docs_en/wiki',
+        'doc': 'https://github.com/huobiapi/API_Docs_en/wiki',
     },
     'api': {
         'staticmarket': {
@@ -3631,7 +3631,7 @@ var jubi = {
     'urls': {
         'api': 'https://www.jubi.com/api',
         'www': 'https://www.jubi.com',
-        'docs': 'https://www.jubi.com/help/api.html',
+        'doc': 'https://www.jubi.com/help/api.html',
     },
     'api': {
         'public': {
@@ -3783,7 +3783,7 @@ var kraken = {
     'urls': {
         'api': 'https://api.kraken.com',
         'www': 'https://www.kraken.com',
-        'docs': [
+        'doc': [
             'https://www.kraken.com/en-us/help/api',
             'https://github.com/nothingisdead/npm-kraken-api',
         ],
@@ -3945,7 +3945,7 @@ var luno = {
     'urls': {
         'api': 'https://api.mybitx.com/api',
         'www': 'https://www.luno.com',
-        'docs': [
+        'doc': [
             'https://npmjs.org/package/bitx',
             'https://github.com/bausmeier/node-bitx',
         ],
@@ -4254,7 +4254,7 @@ var okcoincny = extend (okcoin, {
     'urls': {
         'api': 'https://www.okcoin.cn',
         'www': 'https://www.okcoin.cn',
-        'docs': 'https://www.okcoin.cn/rest_getStarted.html',
+        'doc': 'https://www.okcoin.cn/rest_getStarted.html',
     },
     'products': {
         'BTC/CNY': { 'id': 'btc_cny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY' },
@@ -4271,7 +4271,7 @@ var okcoinusd = extend (okcoin, {
     'urls': {
         'api': 'https://www.okcoin.com',
         'www': 'https://www.okcoin.com',
-        'docs': [
+        'doc': [
             'https://www.okcoin.com/rest_getStarted.html',
             'https://www.npmjs.com/package/okcoin.com',
         ],
@@ -4296,7 +4296,7 @@ var poloniex = {
             'private': 'https://poloniex.com/tradingApi',
         },
         'www': 'https://poloniex.com',
-        'docs': [
+        'doc': [
             'https://poloniex.com/support/api/',
             'http://pastebin.com/dMX7mZE0',
         ],
@@ -4456,7 +4456,7 @@ var quadrigacx = {
     'urls': {
         'api': 'https://api.quadrigacx.com',
         'www': 'https://www.quadrigacx.com',
-        'docs': 'https://www.quadrigacx.com/api_info',
+        'doc': 'https://www.quadrigacx.com/api_info',
     },
     'api': {
         'public': {
@@ -4581,7 +4581,7 @@ var quoine = {
     'urls': {
         'api': 'https://api.quoine.com',
         'www': 'https://www.quoine.com',
-        'docs': 'https://developers.quoine.com',
+        'doc': 'https://developers.quoine.com',
     },
     'api': {
         'public': {
@@ -4747,7 +4747,7 @@ var therock = {
     'urls': {
         'api': 'https://api.therocktrading.com',
         'www': 'https://therocktrading.com',
-        'docs': 'https://api.therocktrading.com/doc/',
+        'doc': 'https://api.therocktrading.com/doc/',
     },
     'api': {
         'public': {
@@ -4892,7 +4892,7 @@ var vaultoro = {
     'urls': {
         'api': 'https://api.vaultoro.com',
         'www': 'https://www.vaultoro.com',
-        'docs': 'https://api.vaultoro.com',
+        'doc': 'https://api.vaultoro.com',
     },
     'api': {
         'public': {
@@ -5033,7 +5033,7 @@ var virwox = {
             'private': 'https://www.virwox.com/api/trading.php',
         },
         'www': 'https://www.virwox.com',
-        'docs': 'https://www.virwox.com/developers.php',
+        'doc': 'https://www.virwox.com/developers.php',
     },
     'api': {
         'public': {
@@ -5213,7 +5213,7 @@ var yobit = {
     'urls': {
         'api': 'https://yobit.net',
         'www': 'https://www.yobit.net',
-        'docs': 'https://www.yobit.net/en/api/',
+        'doc': 'https://www.yobit.net/en/api/',
     },
     'api': {
         'api': {
@@ -5352,7 +5352,7 @@ var zaif = {
     'urls': {
         'api': 'https://api.zaif.jp',
         'www': 'https://zaif.jp',
-        'docs': [
+        'doc': [
             'https://corp.zaif.jp/api-docs',
             'https://corp.zaif.jp/api-docs/api_links',
             'https://www.npmjs.com/package/zaif.jp',
