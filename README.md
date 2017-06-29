@@ -250,7 +250,7 @@ var ccxt = require ('ccxt')
 
 import ccxt
 
-hitbtc = ccxt.hitbtc ({ verbose: true })
+hitbtc = ccxt.hitbtc ({ 'verbose': True })
 bitmex = ccxt.bitmex ()
 huobi  = ccxt.huobi ()
 exmo   = ccxt.exmo ({
