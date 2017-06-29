@@ -1,5 +1,7 @@
 #!/bin/bash
+
 comment="'$@'"
+
 npm run transpile &&
 git commit -am $comment &&
 npm version patch &&
