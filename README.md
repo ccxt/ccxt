@@ -11,7 +11,7 @@ Current featurelist:
 - optional normalised data for cross-market or cross-currency analytics and arbitrage
 - an out-of-the box unified all-in-one API extremely easy to integrate
 
-[Installation](#installation) | [Usage](#usage) | [Public Offer](#public-offer)
+[Install](#install) | [Usage](#usage) | [Public Offer](#public-offer)
 
 ## Supported Cryptocurrency Exchange Markets
 
@@ -76,7 +76,7 @@ Developer team is open for collaboration and available for hiring and outsourcin
 
  -->
 
-## Installation
+## Install
 
 This library is shipped as a single-file (all-in-one module) implementation with minimalistic dependencies and requirements.
 

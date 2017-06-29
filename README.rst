@@ -20,7 +20,7 @@ trades, tickers, etc... - optional normalised data for cross-market or
 cross-currency analytics and arbitrage - an out-of-the box unified
 all-in-one API extremely easy to integrate
 
-`Installation <#installation>`__ \| `Usage <#usage>`__ \| `Public
+`Install <#install>`__ \| `Usage <#usage>`__ \| `Public
 Offer <#public-offer>`__
 
 Supported Cryptocurrency Exchange Markets
@@ -134,8 +134,8 @@ we welcome you to read our `Public Offer <#public-offer>`__.
 
     -->
 
-Installation
-------------
+Install
+-------
 
 This library is shipped as a single-file (all-in-one module)
 implementation with minimalistic dependencies and requirements.
@@ -332,7 +332,7 @@ Python
 
     import ccxt
 
-    hitbtc = ccxt.hitbtc ({ verbose: true })
+    hitbtc = ccxt.hitbtc ({ 'verbose': True })
     bitmex = ccxt.bitmex ()
     huobi  = ccxt.huobi ()
     exmo   = ccxt.exmo ({
@@ -348,7 +348,7 @@ Python
 
     print (hitbtc.fetch_order_book (hitbtc_products.keys ()[0]))
     print (bitmex.fetch_ticker ('BTC/USD'))
-    print (huobi.fetch_trades ('ETH/CNY'))
+    print (huobi.fetch_trades ('LTC/CNY'))
 
     print (exmo.fetch_balance ())
 
