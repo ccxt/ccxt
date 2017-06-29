@@ -1,4 +1,4 @@
-ccxt – CryptoCurrency eXchange Trading Library
+CCXT – CryptoCurrency eXchange Trading Library
 ==============================================
 
 A JavaScript / Python / PHP library for cryptocurrency trading and
@@ -149,8 +149,8 @@ Node.js <http://npmjs.com/package/ccxt>`__ and web browsers) -
 The easiest way to install the ccxt library is to use builtin package
 managers.
 
-You can also clone it directly into your project directory from GitHub
-repository:
+You can also clone it directly into your project directory from `ccxt
+GitHub repository <https://github.com/kroitor/ccxt>`__:
 
 .. code:: shell
 
