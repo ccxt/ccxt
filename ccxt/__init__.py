@@ -3723,7 +3723,7 @@ class kraken (Market):
                 quote = quote[1:]
             base = self.commonCurrencyCode (base)
             quote = self.commonCurrencyCode (quote)
-            darkpool = id.indexOf ('.d') >= 0
+            darkpool = id.find ('.d') >= 0
             symbol = product['altname'] if darkpool else (base + '/' + quote)
             result.append ({
                 'id': id,

@@ -125,7 +125,6 @@ while (markets = regex.exec (contents)) {
             [ /\.push\s*\(([\s\S]+)\)/g, '.append ($1)' ],
             [ /^\s*}\s*[\n]/gm, '' ],
             [ /;/g, '' ],
-            
             [ /\.toUpperCase/g, '.upper' ],
             [ /\.toLowerCase/g, '.lower' ],
             [ /JSON\.stringify/g, 'json.dumps' ],
@@ -139,6 +138,7 @@ while (markets = regex.exec (contents)) {
             [ /Math\.floor\s*\(([^\)]+)\)/g, 'int (math.floor ($1))' ],
             [ /(\([^\)]+\)|[^\s]+)\s*\?\s*(\([^\)]+\)|[^\s]+)\s*\:\s*(\([^\)]+\)|[^\s]+)/g, '$2 if $1 else $3'],
             [/ \/\//g, ' #' ],
+            [ /\.indexOf/g, '.find'],
 
             // [ /\(?.+?\)?/g, ''         ],
         ]
@@ -185,6 +185,7 @@ while (markets = regex.exec (contents)) {
             [ /([^\s]+).slice \(([^\,\)]+)\,\s*([^\)]+)\)/g, 'mb_substr ($1, $2, $3)' ],
             [ /([^\s]+).split \(([^\,]+)\)/g, 'str_split ($2, $1)' ],
             [ /Math\.floor\s*\(([^\)]+)\)/g, '(int) floor ($1)' ],
+            [ /([^\s]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0/g, 'mb_strpos ($1, $2) !== false' ],
             // yyyymmddhhmmss
         ]
 

@@ -3889,7 +3889,7 @@ class kraken extends Market {
                 $quote = mb_substr ($quote, 1);
             $base = $this->commonCurrencyCode ($base);
             $quote = $this->commonCurrencyCode ($quote);
-            $darkpool = $id.indexOf ('.d') >= 0;
+            $darkpool = mb_strpos ($id, '.d') !== false;
             $symbol = $darkpool ? $product['altname'] : ($base . '/' . $quote);
             $result[] = array (
                 'id' => $id,

@@ -127,7 +127,7 @@ function test_market ($market) {
 //     }
 // }
 
-$market = $markets['bitfinex'];
+$market = $markets['kraken'];
 test_market ($market);
 
 ?>
