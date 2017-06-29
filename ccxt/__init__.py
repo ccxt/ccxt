@@ -3212,7 +3212,7 @@ class hitbtc (Market):
             'name': 'HitBTC',
             'countries': 'HK', # Hong Kong
             'rateLimit': 2000,
-            'version': 1,
+            'version': '1',
             'urls': {
                 'api': 'http://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
@@ -4432,7 +4432,7 @@ class quoine (Market):
             'id': 'quoine',
             'name': 'QUOINE',
             'countries': [ 'JP', 'SG', 'VN' ],
-            'version': 2,
+            'version': '2',
             'rateLimit': 2000,
             'urls': {
                 'api': 'https://api.quoine.com',
@@ -4732,7 +4732,7 @@ class vaultoro (Market):
             'name': 'Vaultoro',
             'countries': 'CH',
             'rateLimit': 1000,
-            'version': 1,
+            'version': '1',
             'urls': {
                 'api': 'https://api.vaultoro.com',
                 'www': 'https://www.vaultoro.com',
@@ -5042,7 +5042,7 @@ class yobit (Market):
             'name': 'YoBit',
             'countries': 'RU',
             'rateLimit': 2000, # responses are cached every 2 seconds
-            'version': 3,
+            'version': '3',
             'urls': {
                 'api': 'https://yobit.net',
                 'www': 'https://www.yobit.net',
