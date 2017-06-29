@@ -256,12 +256,12 @@ class Market {
         return json_decode ($result, $jsonDecodeAsAssociativeArray = true);
     }
 
-    public function loadProducts () {
-        return $this->load_products ();
+    public function loadProducts ($reload = false) {
+        return $this->load_products ($reload);
     }
 
-    public function load_products () {
-        if ($this->products) return $this->products;
+    public function load_products ($reload = false) {
+        if (!$reload && $this->products) return $this->products;
         return $this->products = $this->indexBy ($this->fetch_products (), 'symbol');
     }
 

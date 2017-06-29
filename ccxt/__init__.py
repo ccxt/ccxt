@@ -273,13 +273,14 @@ class Market (object):
 
     def nonce (self): return Market.seconds ()
 
-    def load_products (self):
-        if self.products:
-            return self.products
+    def load_products (self, reload = False):
+        if not reload:
+            if self.products:
+                return self.products
         self.products = Market.indexBy (self.fetchProducts (), 'symbol')
         return self.products
 
-    def loadProducts  (self):
+    def loadProducts  (self, reload = False):
         return self.load_products  ()
     
     def fetchProducts (self):

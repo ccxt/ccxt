@@ -266,8 +266,8 @@ var Market = function (config) {
     }
 
     this.load_products = 
-    this.loadProducts = function () {
-        if (this.products)
+    this.loadProducts = function (reload = false) {
+        if (!reload && this.products)
             return new Promise ((resolve, reject) => resolve (this.products))
         return this.fetchProducts ().then (products => {
             return this.products = indexBy (products, 'symbol')
