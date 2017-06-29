@@ -20,7 +20,8 @@ trades, tickers, etc... - optional normalised data for cross-market or
 cross-currency analytics and arbitrage - an out-of-the box unified
 all-in-one API extremely easy to integrate
 
-`Install <#install>`__ \| `Usage <#usage>`__ \| `Public
+`Install <#install>`__ \| `Usage <#usage>`__ \|
+`Manual <https://github.com/kroitor/ccxt/wiki>`__ \| `Public
 Offer <#public-offer>`__
 
 Supported Cryptocurrency Exchange Markets
