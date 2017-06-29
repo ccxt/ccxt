@@ -194,23 +194,26 @@ var test = async function () {
 
     //-------------------------------------------------------------------------
     // list all supported exchanges
-    //
-    // console.log (asTable.configure ({ delimiter: ' | ' }) (Object.values (markets).map (market => {
-    //     let website = Array.isArray (market.urls.www) ? market.urls.www[0] : market.urls.www
-    //     let countries = Array.isArray (market.countries) ? market.countries.map (countryName).join (', ') : countryName (market.countries)
-    //     return {
-    //         ' ': '',
-    //         'id':        market.id,
-    //         'name':      '[' + market.name + '](' + website + ')',  
-    //         'countries': countries,
-    //         // 'notes':     'Full support',
-    //         '  ': '',
-    //     }        
-    // })))
+    
+    console.log (asTable.configure ({ delimiter: ' | ' }) (Object.values (markets).map (market => {
+        let website = Array.isArray (market.urls.www) ? market.urls.www[0] : market.urls.www
+        let countries = Array.isArray (market.countries) ? market.countries.map (countryName).join (', ') : countryName (market.countries)
+        let doc = Array.isArray (market.urls.doc) ? market.urls.doc[0] : market.urls.doc
+        return {
+            ' ': '',
+            'id':        market.id,
+            'name':      '[' + market.name + '](' + website + ')', 
+            'docs':      '[API](' + doc + ')',
+            'countries': countries,
+            
+            // 'notes':     'Full support',
+            '  ': '',
+        }        
+    })))
 
     // Object.keys (markets).forEach (async id => {
 
-        var market = markets.ccex //markets[id]
+        var market = markets.okcoinusd //markets[id]
 
         try {
 
