@@ -7,11 +7,11 @@ The ccxt library is used to connect and trade with cryptocurrency / altcoin exch
 
 Current featurelist:
 
-- support for many exchange markets, even more upcoming soon
-- fully implemented public and private APIs for all exchanges
-- all currencies, altcoins and symbols, prices, order books, trades, tickers, etc...
-- optional normalised data for cross-market or cross-currency analytics and arbitrage
-- an out-of-the box unified all-in-one API extremely easy to integrate
+-  support for many exchange markets, even more upcoming soon
+-  fully implemented public and private APIs for all exchanges
+-  all currencies, altcoins and symbols, prices, order books, trades, tickers, etc...
+-  optional normalised data for cross-market or cross-currency analytics and arbitrage
+-  an out-of-the box unified all-in-one API extremely easy to integrate
 
 Install | Usage | `Manual <https://github.com/kroitor/ccxt/wiki>`__ | Public Offer
 
@@ -109,9 +109,9 @@ This library is shipped as a single-file (all-in-one module) implementation with
 
 The main file is:
 
-- ``ccxt.js`` in JavaScript (`ccxt for Node.js <http://npmjs.com/package/ccxt>`__ and web browsers)
-- ``ccxt/__init__.py`` in Python (works in both Python 2 and 3)
-- ``ccxt.php`` in PHP
+-  ``ccxt.js`` in JavaScript (`ccxt for Node.js <http://npmjs.com/package/ccxt>`__ and web browsers)
+-  ``ccxt/__init__.py`` in Python (works in both Python 2 and 3)
+-  ``ccxt.php`` in PHP
 
 The easiest way to install the ccxt library is to use builtin package managers.
 
@@ -210,27 +210,27 @@ The ccxt library consists of a public part and a private part. Anyone can use th
 
 Public APIs include the following:
 
-- market data
-- instruments/trading pairs
-- price feeds (exchange rates)
-- order books
-- trade history
-- tickers
-- OHLC(V) for charting
-- other public endpoints
+-  market data
+-  instruments/trading pairs
+-  price feeds (exchange rates)
+-  order books
+-  trade history
+-  tickers
+-  OHLC(V) for charting
+-  other public endpoints
 
 For trading with private API you need to obtain API keys from/to exchange markets. It often means registering with exchange markets and creating API keys with your account. Most exchanges require personal info or identification. Some kind of verification may be necessary as well. If you want to trade you need to register yourself, this library will not create accounts or API keys for you. Some exchange APIs expose interface methods for registering an account from within the code itself, but most of exchanges don't. You have to sign up and create API keys with their websites.
 
 Private APIs allow the following:
 
-- manage personal account info
-- query account balances
-- trade by making market and limit orders
-- deposit and withdraw fiat and crypto funds
-- query personal orders
-- get ledger history
-- transfer funds between accounts
-- use merchant services
+-  manage personal account info
+-  query account balances
+-  trade by making market and limit orders
+-  deposit and withdraw fiat and crypto funds
+-  query personal orders
+-  get ledger history
+-  transfer funds between accounts
+-  use merchant services
 
 This library implements full public and private REST APIs for all exchanges. WebSocket and FIX implementations in JavaScript, PHP, Python and other languages coming soon.
 

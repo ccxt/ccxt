@@ -5,6 +5,7 @@ A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce wi
 The ccxt library is used to connect and trade with cryptocurrency / altcoin exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, trading strategy backtesting, bot programming, webshop integration and related software engineering. It is intented to be used by coders, developers and financial analysts to build trading algorithms on top of it.
 
 Current featurelist:
+
 - support for many exchange markets, even more upcoming soon
 - fully implemented public and private APIs for all exchanges
 - all currencies, altcoins and symbols, prices, order books, trades, tickers, etc...
@@ -61,28 +62,12 @@ The library is under MIT license, that means its absolutely free for any develop
 
 Developer team is open for collaboration and available for hiring and outsourcing. If you're interested in integrating this software into an existing project or in developing new opensource and commercial projects we welcome you to read our [Public Offer](#public-offer).
 
-<!-- 
-
-- A full list of all cryptocurrency exchange markets sorted by name alphabetically
-- A list of cryptocurrency exchange markets by countries, regions and territories
-- A list of cryptocurrency exchange markets by traded instruments, pairs, currencies, symbols, commodities, assets, stocks, indices and products
-
--------------------------------------------------------------------------------
-
-- A list of fully supported cryptocurrency exchange markets sorted by name alphabetically
-- A list of cryptocurrency exchange markets scheduled for support in nearest future
-- A list of cryptocurrency exchange markets by countries, regions and territories
-- A list of cryptocurrency exchange markets by traded pairs, currencies, symbols, commodities, assets, stocks, indices and products
-- A list of cryptocurrency exchange markets by full or partial API support status
-- A list of unsupported and closed cryptocurrency exchanges
-
- -->
-
 ## Install
 
 This library is shipped as a single-file (all-in-one module) implementation with minimalistic dependencies and requirements.
 
 The main file is:
+
 - `ccxt.js` in JavaScript ([ccxt for Node.js](http://npmjs.com/package/ccxt) and web browsers)
 - `ccxt/__init__.py` in Python (works in both Python 2 and 3)
 - `ccxt.php` in PHP
@@ -176,7 +161,8 @@ Finally, add links to CryptoJS components and ccxt to your HTML page code:
 
 The ccxt library consists of a public part and a private part. Anyone can use the public part out-of-the-box immediately after installation. Public APIs open access to public information from all exchange markets without registering user accounts and without having API keys. 
 
-Public APIs include the following: 
+Public APIs include the following:
+
 - market data
 - instruments/trading pairs
 - price feeds (exchange rates)
@@ -189,6 +175,7 @@ Public APIs include the following:
 For trading with private API you need to obtain API keys from/to exchange markets. It often means registering with exchange markets and creating API keys with your account. Most exchanges require personal info or identification. Some kind of verification may be necessary as well. If you want to trade you need to register yourself, this library will not create accounts or API keys for you. Some exchange APIs expose interface methods for registering an account from within the code itself, but most of exchanges don't. You have to sign up and create API keys with their websites.
 
 Private APIs allow the following:
+
 - manage personal account info
 - query account balances
 - trade by making market and limit orders
