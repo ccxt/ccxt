@@ -264,17 +264,9 @@ fs.truncateSync (oldNamePHP)
 fs.writeFileSync (oldNamePy, ccxtpy)
 fs.writeFileSync (oldNamePHP, ccxtphp)
 
-let readmeRst = 'README.rst'
-let rst = fs.readFileSync (readmeRst, 'utf8')
-let rstNew = rst.replace (/\`([^\`]+)\s\<\#[^\`]+\>\`\_\_/g, '$1')
-fs.writeFileSync (readmeRst, rstNew)
-// let rstNew = rst.replace (/\`Install[\s\S]+\<\#public\-offer\>\`\_\_[\n]+/gm, '')
-// let rstLines = rst.split ("\n")
-// console.log (rstNew)
-// rstLines.map (line => {
-//     if (line.match (/\#/g)) {
-//         console.log (line)
-//     }
-// })
+// let readmeRst = 'README.rst'
+// let rst = fs.readFileSync (readmeRst, 'utf8')
+// let rstNew = rst.replace (/\`([^\`]+)\s\<\#[^\`]+\>\`\_\_/g, '$1')
+// fs.writeFileSync (readmeRst, rstNew)
 
 console.log ('Transpiled successfully.')
