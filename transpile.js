@@ -52,7 +52,7 @@ while (markets = regex.exec (contents)) {
     ph.push ('')
     ph.push ('    public function __construct ($options = array ()) {')
     ph.push ('        parent::__construct (array_merge (array (')
-    ph.push ('        ' + params.join ("\n        ").replace (/': /g, "' => ").replace (/ {/g, ' array (').replace (/ \[/g, ' array (').replace (/\}([^\']|$)/g, ')$1').replace (/\]/g, ')') + ((all.length > 1) ? ',' : ''))
+    ph.push ('        ' + params.join ("\n        ").replace (/': /g, "' => ").replace (/ {/g, ' array (').replace (/ \[/g, ' array (').replace (/\}([\,\n]|$)/g, ')$1').replace (/\]/g, ')') + ((all.length > 1) ? ',' : ''))
     ph.push ('        ), $options));')
     ph.push ('    }')
 
@@ -250,7 +250,7 @@ ccxtphp +=
     "\n?>"
 
 // console.log (ccxtpy)
-console.log (ccxtphp)
+// console.log (ccxtphp)
 
 fs.createReadStream (oldNamePy).pipe (fs.createWriteStream (newNamePy))
 fs.createReadStream (oldNamePHP).pipe (fs.createWriteStream (newNamePHP))
@@ -258,3 +258,5 @@ fs.truncateSync (oldNamePy)
 fs.truncateSync (oldNamePHP)
 fs.writeFileSync (oldNamePy, ccxtpy)
 fs.writeFileSync (oldNamePHP, ccxtphp)
+
+console.log ('Transpiled successfully.')

@@ -718,9 +718,9 @@ class bit2c extends Market {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'Exchanges/{pair)/Ticker',
-                        'Exchanges/{pair)/orderbook',
-                        'Exchanges/{pair)/trades',
+                        'Exchanges/{pair}/Ticker',
+                        'Exchanges/{pair}/orderbook',
+                        'Exchanges/{pair}/trades',
                     ),
                 ),
                 'private' => array (
@@ -850,11 +850,11 @@ class bitbay extends Market {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        '{id)/all',
-                        '{id)/market',
-                        '{id)/orderbook',
-                        '{id)/ticker',
-                        '{id)/trades',
+                        '{id}/all',
+                        '{id}/market',
+                        '{id}/orderbook',
+                        '{id}/ticker',
+                        '{id}/trades',
                     ),
                 ),
                 'private' => array (
@@ -987,9 +987,9 @@ class bitcoincoid extends Market {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        '{pair)/ticker',
-                        '{pair)/trades',
-                        '{pair)/depth',
+                        '{pair}/ticker',
+                        '{pair}/trades',
+                        '{pair}/depth',
                     ),
                 ),
                 'private' => array (
@@ -1450,18 +1450,18 @@ class bitmarket extends Market {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'json/{market)/ticker',
-                        'json/{market)/orderbook',
-                        'json/{market)/trades',
+                        'json/{market}/ticker',
+                        'json/{market}/orderbook',
+                        'json/{market}/trades',
                         'json/ctransfer',
-                        'graphs/{market)/90m',
-                        'graphs/{market)/6h',
-                        'graphs/{market)/1d',
-                        'graphs/{market)/7d',
-                        'graphs/{market)/1m',
-                        'graphs/{market)/3m',
-                        'graphs/{market)/6m',
-                        'graphs/{market)/1y',
+                        'graphs/{market}/90m',
+                        'graphs/{market}/6h',
+                        'graphs/{market}/1d',
+                        'graphs/{market}/7d',
+                        'graphs/{market}/1m',
+                        'graphs/{market}/3m',
+                        'graphs/{market}/6m',
+                        'graphs/{market}/1y',
                     ),
                 ),
                 'private' => array (
@@ -2129,9 +2129,9 @@ class btcx extends Market {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'depth/{id)/{limit}',
+                        'depth/{id}/{limit}',
                         'ticker/{id}',         
-                        'trade/{id)/{limit}',
+                        'trade/{id}/{limit}',
                     ),
                 ),
                 'private' => array (
@@ -2551,7 +2551,7 @@ class cex extends Market {
                         'currency_limits',
                         'last_price/{pair}',
                         'last_prices/{currencies}',
-                        'ohlcv/hd/{yyyymmdd)/{pair}',
+                        'ohlcv/hd/{yyyymmdd}/{pair}',
                         'order_book/{pair}',
                         'ticker/{pair}',
                         'tickers/{currencies}',
@@ -2725,12 +2725,12 @@ class coincheck extends Market {
                     ),            
                     'post' => array (
                         'bank_accounts',
-                        'deposit_money/{id)/fast',
+                        'deposit_money/{id}/fast',
                         'exchange/orders',
                         'exchange/transfers/to_leverage',
                         'exchange/transfers/from_leverage',
                         'lending/borrows',
-                        'lending/borrows/{id)/repay',
+                        'lending/borrows/{id}/repay',
                         'send_money',
                         'withdraws',
                     ),
@@ -3349,6 +3349,175 @@ class fybsg extends fyb {
 
 //-----------------------------------------------------------------------------
 
+class gdax extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'gdax',
+            'name' => 'GDAX',
+            'countries' => 'US',
+            'rateLimit' => 1000,
+            'urls' => array (
+                'api' => 'https://api.gdax.com',
+                'www' => 'https://www.gdax.com',
+                'doc' => 'https://docs.gdax.com',
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'currencies',
+                        'products',
+                        'products/{id}/book',
+                        'products/{id}/candles',
+                        'products/{id}/stats',
+                        'products/{id}/ticker',
+                        'products/{id}/trades',
+                        'time',
+                    ),
+                ),
+                'private' => array (
+                    'get' => array (
+                        'accounts',
+                        'accounts/{id}',
+                        'accounts/{id}/holds',
+                        'accounts/{id}/ledger',
+                        'coinbase-accounts',
+                        'fills',
+                        'funding',
+                        'orders',
+                        'orders/{id}',
+                        'payment-methods',
+                        'position',
+                        'reports/{id}',
+                        'users/self/trailing-volume',
+                    ),
+                    'post' => array (
+                        'deposits/coinbase-account',
+                        'deposits/payment-method',
+                        'funding/repay',
+                        'orders',
+                        'position/close',
+                        'profiles/margin-transfer',
+                        'reports',
+                        'withdrawals/coinbase',
+                        'withdrawals/crypto',
+                        'withdrawals/payment-method',
+                    ),
+                    'delete' => array (
+                        'orders',
+                        'orders/{id}',
+                    ),
+                ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_products () {
+        $products = $this->publicGetProducts ();
+        $result = array ();
+        for ($p = 0; $p < count ($products); $p++) {
+            $product = $products[$p];
+            $id = $product['id'];
+            $base = $product['base_currency'];
+            $quote = $product['quote_currency'];
+            $symbol = $base . '/' . $quote;            
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_balance () {
+        return $this->privateGetAccounts ();
+    }
+
+    public function fetch_order_book ($product) {
+        return $this->publicGetProductsIdBook (array (
+            'id' => $this->product_id ($product),
+        ));
+    }
+
+    public function fetch_ticker ($product) {
+        $p = $this->product ($product);
+        $ticker = $this->publicGetProductsIdTicker (array (
+            'id' => $p['id'],
+        ));
+        $quote = $this->publicGetProductsIdStats (array (
+            'id' => $p['id'],
+        ));
+        $timestamp = $this->parse8601 ($ticker['time']);
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($quote['high']),
+            'low' => floatval ($quote['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => null,
+            'open' => floatval ($quote['open']),
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($quote['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['volume']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetProductsIdTrades (array (
+            'symbol' => $this->product_id ($product),
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        $order = array (
+            'client_oid' => $this->nonce (),
+            'product_id' => $this->product_id ($product),
+            'side' => $side,
+            'size' => $amount,
+            'type' => $type,            
+        );
+        if ($type == 'limit')
+            $order['price'] = $price;
+        return $this->privatePostOrder (array_merge ($order, $params));
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $request = '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'] . $request;
+        $query = $this->omit ($params, $this->extract_params ($path));
+        if ($type == 'public') {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
+        } else {
+            $nonce = (string) $this->nonce ();
+            if ($query)
+                $body = json_encode ($body);
+            $what = $nonce . $method . $request . ($body || '');
+            $secret = base64_decode ($this->secret);
+            $signature = $this->hash ($what, $secret, 'sha256', 'binary');
+            $headers = array (
+                'CB-ACCESS-KEY' => $this->apiKey,
+                'CB-ACCESS-SIGN' => base64_encode ($signature),
+                'CB-ACCESS-TIMESTAMP' => $nonce,
+                'CB-ACCESS-PASSPHRASE' => $this->password,
+            );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 class hitbtc extends Market {
 
     public function __construct ($options = array ()) {
@@ -3370,10 +3539,10 @@ class hitbtc extends Market {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        '{symbol)/orderbook',
-                        '{symbol)/ticker',
-                        '{symbol)/trades',
-                        '{symbol)/trades/recent',
+                        '{symbol}/orderbook',
+                        '{symbol}/ticker',
+                        '{symbol}/trades',
+                        '{symbol}/trades/recent',
                         'symbols',
                         'ticker',
                         'time,'
@@ -3530,19 +3699,19 @@ class huobi extends Market {
             'api' => array (
                 'staticmarket' => array (
                     'get' => array (
-                        '{id)_kline_{period}',
+                        '{id}_kline_{period}',
                         'ticker_{id}',
                         'depth_{id}',
-                        'depth_{id)_{length}',
+                        'depth_{id}_{length}',
                         'detail_{id}',
                     ),
                 ),
                 'usdmarket' => array (
                     'get' => array (
-                        '{id)_kline_{period}',
+                        '{id}_kline_{period}',
                         'ticker_{id}',
                         'depth_{id}',
-                        'depth_{id)_{length}',
+                        'depth_{id}_{length}',
                         'detail_{id}',
                     ),
                 ),
@@ -4011,8 +4180,8 @@ class luno extends Market {
                 ),
                 'private' => array (
                     'get' => array (
-                        'accounts/{id)/pending',
-                        'accounts/{id)/transactions',
+                        'accounts/{id}/pending',
+                        'accounts/{id}/transactions',
                         'balance',
                         'fee_info',
                         'funding_address',
@@ -4656,7 +4825,7 @@ class quoine extends Market {
                     'get' => array (
                         'products',
                         'products/{id}',
-                        'products/{id)/price_levels',
+                        'products/{id}/price_levels',
                         'executions',
                         'ir_ladders/{currency}',
                     ),
@@ -4671,9 +4840,9 @@ class quoine extends Market {
                         'loans',
                         'orders',
                         'orders/{id}',
-                        'orders/{id)/trades',
+                        'orders/{id}/trades',
                         'trades',
-                        'trades/{id)/loans',
+                        'trades/{id}/loans',
                         'trading_accounts',
                         'trading_accounts/{id}',
                     ),
@@ -4683,12 +4852,12 @@ class quoine extends Market {
                         'orders',
                     ),
                     'put' => array (
-                        'loan_bids/{id)/close',
+                        'loan_bids/{id}/close',
                         'loans/{id}',
                         'orders/{id}',
-                        'orders/{id)/cancel',
+                        'orders/{id}/cancel',
                         'trades/{id}',
-                        'trades/{id)/close',
+                        'trades/{id}/close',
                         'trades/close_all',
                         'trading_accounts/{id}',
                     ),
@@ -4824,9 +4993,9 @@ class therock extends Market {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'funds/{id)/orderbook',
-                        'funds/{id)/ticker',
-                        'funds/{id)/trades',
+                        'funds/{id}/orderbook',
+                        'funds/{id}/ticker',
+                        'funds/{id}/trades',
                         'funds/tickers',
                     ),
                 ),
@@ -4838,12 +5007,12 @@ class therock extends Market {
                         'discounts/{id}',
                         'funds',
                         'funds/{id}',
-                        'funds/{id)/trades',
-                        'funds/{fund_id)/orders',
-                        'funds/{fund_id)/orders/{id}',                
-                        'funds/{fund_id)/position_balances',
-                        'funds/{fund_id)/positions',
-                        'funds/{fund_id)/positions/{id}',
+                        'funds/{id}/trades',
+                        'funds/{fund_id}/orders',
+                        'funds/{fund_id}/orders/{id}',                
+                        'funds/{fund_id}/position_balances',
+                        'funds/{fund_id}/positions',
+                        'funds/{fund_id}/positions/{id}',
                         'transactions',
                         'transactions/{id}',
                         'withdraw_limits/{id}',
@@ -4851,11 +5020,11 @@ class therock extends Market {
                     ),
                     'post' => array (
                         'atms/withdraw',
-                        'funds/{fund_id)/orders',
+                        'funds/{fund_id}/orders',
                     ),
                     'delete' => array (
-                        'funds/{fund_id)/orders/{id}',
-                        'funds/{fund_id)/orders/remove_all',
+                        'funds/{fund_id}/orders/{id}',
+                        'funds/{fund_id}/orders/remove_all',
                     ),
                 ),
             ),
@@ -4992,9 +5161,9 @@ class vaultoro extends Market {
                         'orders',
                     ),
                     'post' => array (
-                        'buy/{symbol)/{type}',
+                        'buy/{symbol}/{type}',
                         'cancel/{orderid',
-                        'sell/{symbol)/{type}',
+                        'sell/{symbol}/{type}',
                         'withdraw',
                     ),
                 ),

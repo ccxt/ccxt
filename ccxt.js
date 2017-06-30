@@ -3259,6 +3259,170 @@ var fybsg = extend (fyb, {
 
 //-----------------------------------------------------------------------------
 
+var gdax = {
+    'id': 'gdax',
+    'name': 'GDAX',
+    'countries': 'US',
+    'rateLimit': 1000,
+    'urls': {
+        'api': 'https://api.gdax.com',
+        'www': 'https://www.gdax.com',
+        'doc': 'https://docs.gdax.com',
+    },
+    'api': {
+        'public': {
+            'get': [
+                'currencies',
+                'products',
+                'products/{id}/book',
+                'products/{id}/candles',
+                'products/{id}/stats',
+                'products/{id}/ticker',
+                'products/{id}/trades',
+                'time',
+            ],
+        },
+        'private': {
+            'get': [
+                'accounts',
+                'accounts/{id}',
+                'accounts/{id}/holds',
+                'accounts/{id}/ledger',
+                'coinbase-accounts',
+                'fills',
+                'funding',
+                'orders',
+                'orders/{id}',
+                'payment-methods',
+                'position',
+                'reports/{id}',
+                'users/self/trailing-volume',
+            ],
+            'post': [
+                'deposits/coinbase-account',
+                'deposits/payment-method',
+                'funding/repay',
+                'orders',
+                'position/close',
+                'profiles/margin-transfer',
+                'reports',
+                'withdrawals/coinbase',
+                'withdrawals/crypto',
+                'withdrawals/payment-method',
+            ],
+            'delete': [
+                'orders',
+                'orders/{id}',
+            ],
+        },
+    },
+
+    async fetchProducts () {
+        let products = await this.publicGetProducts ();
+        let result = [];
+        for (let p = 0; p < products.length; p++) {
+            let product = products[p];
+            let id = product['id'];
+            let base = product['base_currency'];
+            let quote = product['quote_currency'];
+            let symbol = base + '/' + quote;            
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            });
+        }
+        return result;
+    },
+
+    fetchBalance () {
+        return this.privateGetAccounts ();
+    },
+
+    fetchOrderBook (product) {
+        return this.publicGetProductsIdBook ({
+            'id': this.productId (product),
+        });
+    },
+
+    async fetchTicker (product) {
+        let p = this.product (product);
+        let ticker = await this.publicGetProductsIdTicker ({
+            'id': p['id'],
+        });
+        let quote = await this.publicGetProductsIdStats ({
+            'id': p['id'],
+        });
+        let timestamp = this.parse8601 (ticker['time']);
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (quote['high']),
+            'low': parseFloat (quote['low']),
+            'bid': parseFloat (ticker['bid']),
+            'ask': parseFloat (ticker['ask']),
+            'vwap': undefined,
+            'open': parseFloat (quote['open']),
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (quote['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['volume']),
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        return this.publicGetProductsIdTrades ({
+            'symbol': this.productId (product),
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let order = {
+            'client_oid': this.nonce (),
+            'product_id': this.productId (product),
+            'side': side,
+            'size': amount,
+            'type': type,            
+        };
+        if (type == 'limit')
+            order['price'] = price;
+        return this.privatePostOrder (this.extend (order, params));
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let request = '/' + this.implodeParams (path, params);
+        let url = this.urls['api'] + request;
+        let query = this.omit (params, this.extractParams (path));
+        if (type == 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            let nonce = this.nonce ().toString ();
+            if (Object.keys (query).length)
+                body = JSON.stringify (body);
+            let what = nonce + method + request + (body || '');
+            let secret = this.base64ToBinary (this.secret);
+            let signature = this.hash (what, secret, 'sha256', 'binary');
+            headers = {
+                'CB-ACCESS-KEY': this.apiKey,
+                'CB-ACCESS-SIGN': this.stringToBase64 (signature),
+                'CB-ACCESS-TIMESTAMP': nonce,
+                'CB-ACCESS-PASSPHRASE': this.password,
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var hitbtc = {
 
     'id': 'hitbtc',
@@ -5463,6 +5627,7 @@ var markets = {
     'exmo':        exmo,
     'fybse':       fybse,
     'fybsg':       fybsg,
+    'gdax':        gdax,
     'hitbtc':      hitbtc,
     'huobi':       huobi,
     'jubi':        jubi,

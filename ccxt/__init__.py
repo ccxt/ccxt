@@ -3161,6 +3161,166 @@ class fybsg (fyb):
 
 #------------------------------------------------------------------------------
 
+class gdax (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'gdax',
+            'name': 'GDAX',
+            'countries': 'US',
+            'rateLimit': 1000,
+            'urls': {
+                'api': 'https://api.gdax.com',
+                'www': 'https://www.gdax.com',
+                'doc': 'https://docs.gdax.com',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'currencies',
+                        'products',
+                        'products/{id}/book',
+                        'products/{id}/candles',
+                        'products/{id}/stats',
+                        'products/{id}/ticker',
+                        'products/{id}/trades',
+                        'time',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'accounts',
+                        'accounts/{id}',
+                        'accounts/{id}/holds',
+                        'accounts/{id}/ledger',
+                        'coinbase-accounts',
+                        'fills',
+                        'funding',
+                        'orders',
+                        'orders/{id}',
+                        'payment-methods',
+                        'position',
+                        'reports/{id}',
+                        'users/self/trailing-volume',
+                    ],
+                    'post': [
+                        'deposits/coinbase-account',
+                        'deposits/payment-method',
+                        'funding/repay',
+                        'orders',
+                        'position/close',
+                        'profiles/margin-transfer',
+                        'reports',
+                        'withdrawals/coinbase',
+                        'withdrawals/crypto',
+                        'withdrawals/payment-method',
+                    ],
+                    'delete': [
+                        'orders',
+                        'orders/{id}',
+                    ],
+                },
+            },
+        }
+        params.update (config)
+        super (gdax, self).__init__ (params)
+
+    def fetch_products (self):
+        products = self.publicGetProducts ()
+        result = []
+        for p in range (0, len (products)):
+            product = products[p]
+            id = product['id']
+            base = product['base_currency']
+            quote = product['quote_currency']
+            symbol = base + '/' + quote            
+            result.append ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            })
+        return result
+
+    def fetch_balance (self):
+        return self.privateGetAccounts ()
+
+    def fetch_order_book (self, product):
+        return self.publicGetProductsIdBook ({
+            'id': self.product_id (product),
+        })
+
+    def fetch_ticker (self, product):
+        p = self.product (product)
+        ticker = self.publicGetProductsIdTicker ({
+            'id': p['id'],
+        })
+        quote = self.publicGetProductsIdStats ({
+            'id': p['id'],
+        })
+        timestamp = self.parse8601 (ticker['time'])
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (quote['high']),
+            'low': float (quote['low']),
+            'bid': float (ticker['bid']),
+            'ask': float (ticker['ask']),
+            'vwap': None,
+            'open': float (quote['open']),
+            'close': None,
+            'first': None,
+            'last': float (quote['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['volume']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetProductsIdTrades ({
+            'symbol': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        order = {
+            'client_oid': self.nonce (),
+            'product_id': self.product_id (product),
+            'side': side,
+            'size': amount,
+            'type': type,            
+        }
+        if type == 'limit':
+            order['price'] = price
+        return self.privatePostOrder (self.extend (order, params))
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        request = '/' + self.implode_params (path, params)
+        url = self.urls['api'] + request
+        query = self.omit (params, self.extract_params (path))
+        if type == 'public':
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
+            nonce = self.nonce ().toString ()
+            if query:
+                body = json.dumps (body)
+            what = nonce + method + request + (body or '')
+            secret = base64.b64decode (self.secret)
+            signature = self.hash (what, secret, hashlib.sha256, 'binary')
+            headers = {
+                'CB-ACCESS-KEY': self.apiKey,
+                'CB-ACCESS-SIGN': base64.b64encode (signature),
+                'CB-ACCESS-TIMESTAMP': nonce,
+                'CB-ACCESS-PASSPHRASE': self.password,
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class hitbtc (Market):
 
     def __init__ (self, config = {}):
