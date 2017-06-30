@@ -6,6 +6,7 @@ A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce wi
 The ccxt library is used to connect and trade with cryptocurrency / altcoin exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, trading strategy backtesting, bot programming, webshop integration and related software engineering. It is intented to be used by coders, developers and financial analysts to build trading algorithms on top of it.
 
 Current featurelist:
+
 - support for many exchange markets, even more upcoming soon
 - fully implemented public and private APIs for all exchanges
 - all currencies, altcoins and symbols, prices, order books, trades, tickers, etc...
@@ -107,6 +108,7 @@ Install
 This library is shipped as a single-file (all-in-one module) implementation with minimalistic dependencies and requirements.
 
 The main file is:
+
 - ``ccxt.js`` in JavaScript (`ccxt for Node.js <http://npmjs.com/package/ccxt>`__ and web browsers)
 - ``ccxt/__init__.py`` in Python (works in both Python 2 and 3)
 - ``ccxt.php`` in PHP
@@ -207,6 +209,7 @@ Intro
 The ccxt library consists of a public part and a private part. Anyone can use the public part out-of-the-box immediately after installation. Public APIs open access to public information from all exchange markets without registering user accounts and without having API keys.
 
 Public APIs include the following:
+
 - market data
 - instruments/trading pairs
 - price feeds (exchange rates)
@@ -219,6 +222,7 @@ Public APIs include the following:
 For trading with private API you need to obtain API keys from/to exchange markets. It often means registering with exchange markets and creating API keys with your account. Most exchanges require personal info or identification. Some kind of verification may be necessary as well. If you want to trade you need to register yourself, this library will not create accounts or API keys for you. Some exchange APIs expose interface methods for registering an account from within the code itself, but most of exchanges don't. You have to sign up and create API keys with their websites.
 
 Private APIs allow the following:
+
 - manage personal account info
 - query account balances
 - trade by making market and limit orders
