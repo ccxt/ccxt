@@ -1997,7 +1997,7 @@ class btcchina (Market):
         params = {
             'id': 'btcchina',
             'name': 'BTCChina',
-            'countries': [ 'CN', 'US' ],
+            'countries': 'CN',
             'rateLimit': 3000,
             'version': 'v1',
             'urls': {

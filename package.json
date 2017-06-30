@@ -9,8 +9,8 @@
   },
   "scripts": {
     "test": "mocha --reporter spec --watch",
+    "mdrst": "pandoc --wrap=preserve --from=markdown --to=rst --output=README.rst README.md",
     "transpile": "node transpile",
-    "mdrst": "pandoc --from=markdown --to=rst --output=README.rst README.md",
     "build": "babel ccxt.js --source-maps inline --out-file ccxt.es5.js"
   },
   "dependencies": {

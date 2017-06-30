@@ -304,6 +304,7 @@ var_dump ($quoine->fetch_balance ());
 Developer team is open for collaboration and available for hiring and outsourcing. 
 
 We can:
+
 - implement a cryptocurrency trading strategy for you
 - integrate APIs for any exchange markets you want
 - create bots for algorithmic trading, arbitrage, scalping and HFT

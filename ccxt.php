@@ -2118,7 +2118,7 @@ class btcchina extends Market {
         parent::__construct (array_merge (array (
             'id' => 'btcchina',
             'name' => 'BTCChina',
-            'countries' => array ( 'CN', 'US' ),
+            'countries' => 'CN',
             'rateLimit' => 3000,
             'version' => 'v1',
             'urls' => array (
