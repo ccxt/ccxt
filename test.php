@@ -35,6 +35,7 @@ else
         'exmo'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'fybse'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'fybsg'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
+        'gdax'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', 'password' => ''),
         'hitbtc'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'huobi'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'jubi'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),

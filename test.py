@@ -34,6 +34,7 @@ except ImportError:
 		'exmo':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'fybse':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'fybsg':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'gdax':        { 'verbose': verbose, 'apiKey': '', 'secret': '', 'password': '' },
 		'hitbtc':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'huobi':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'jubi':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
