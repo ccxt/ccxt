@@ -9,9 +9,9 @@
   },
   "scripts": {
     "test": "mocha --reporter spec --watch",
-    "transpile": "node transpile && pandoc --from=markdown --to=rst --output=README.rst README.md",
-    "build": "babel ccxt.js --source-maps inline --out-file ccxt.es5.js",
-    "prepublish": "npm run build"
+    "transpile": "node transpile",
+    "mdrst": "pandoc --from=markdown --to=rst --output=README.rst README.md",
+    "build": "babel ccxt.js --source-maps inline --out-file ccxt.es5.js"
   },
   "dependencies": {
     "crypto": "*",
