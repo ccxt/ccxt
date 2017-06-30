@@ -369,63 +369,6 @@ var Market = function (config) {
         return this.createOrder (product, 'market', side, amount, undefined, params)
     }
 
-    this.parse_ticker = 
-    this.parseTicker = function (ticker, product, replacements = {}) {
-
-        // print (ticker)
-
-        // t = {}
-        // t.update (ticker)
-        // if replacements: t = self.update (self.lowerkeys (t), replacements)
-
-        // p = self.product (product)
-
-        // result = {}
-
-        // synonyms = {
-        //     'high':  [ 'high', 'max', 'h', '24hhigh' ],
-        //     'low':   [ 'low',  'min', 'l', '24hlow'  ],
-        //     'bid':   [ 'bid',  'buy', 'buy_price' ],
-        //     'ask':   [ 'ask',  'sell', 'sell_price' ],
-        //     'vwap':  [ 'vwap' ],
-        //     'open':  [ 'open' ],
-        //     'close': [ 'close' ],
-        //     'first': [ 'first' ],
-        //     'change': [ 'change' ],
-        //     'percentage': [ 'percentage' ],
-        //     'last':  [ 'last', 'last_price', 'last_trade', 'last_traded_price', 'lastprice', 'll' ],
-        //     'average': [ 'average', 'avg', 'av', 'mid' ],
-        //     'baseVolume': [ 'vol_cur' ],
-        //     'quoteVolume': [ 'volume', 'vol', 'v', 'a', 'volume_24h', 'volume_24hours', 'rolling_24_hour_volume', '24hvolume' ],
-        // }
-
-        // for synonym in synonyms:
-        //     value = self.first_of (t, synonyms[synonym])
-        //     value = float (value) if value else value
-        //     result[synonym] = value
-        
-        // timestamp = self.first_of (t, [
-        //     'time',
-        //     'timestamp',
-        //     'server_time',
-        //     'created',
-        //     'created_at',
-        //     'updated',
-        // ])
-
-        // timestamp = self.parse_time (timestamp)
-
-        // return this.extend (result, {
-        //     'timestamp': timestamp,
-        //     'datetime': datetime.datetime.utcfromtimestamp (timestamp).isoformat (),
-        //     'details': ticker,
-        //     'volume': dict ([
-        //         (p['base'],  result['baseVolume']),
-        //         (p['quote'], result['quoteVolume']),
-        //     ]),
-        // })
-    }
-
     this.iso8601        = timestamp => new Date (timestamp).toISOString ()
     this.parse8601      = Date.parse 
     this.seconds        = () => Math.floor (this.milliseconds () / 1000)

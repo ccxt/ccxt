@@ -272,7 +272,8 @@ class Market (object):
         signature = Market.base64urlencode (Market.hmac (token, secret, hash, 'binary'))
         return token + '.' + signature
 
-    def nonce (self): return Market.seconds ()
+    def nonce (self):
+        return Market.seconds ()
 
     def load_products (self, reload = False):
         if not reload:
@@ -303,52 +304,6 @@ class Market (object):
     def symbol (self, product):
         p = self.product (product)
         return p['symbol'] if type (p) is dict else product
-
-    # def parse_ticker (self, ticker, product, replacements = {}):
-    #     print (ticker)
-    #     t = {}
-    #     t.update (ticker)
-    #     if replacements: t = self.update (self.lowerkeys (t), replacements)
-    #     p = self.product (product)
-    #     result = {}
-    #     synonyms = {
-    #         'high':  [ 'high', 'max', 'h', '24hhigh' ],
-    #         'low':   [ 'low',  'min', 'l', '24hlow'  ],
-    #         'bid':   [ 'bid',  'buy', 'buy_price' ],
-    #         'ask':   [ 'ask',  'sell', 'sell_price' ],
-    #         'vwap':  [ 'vwap' ],
-    #         'open':  [ 'open' ],
-    #         'close': [ 'close' ],
-    #         'first': [ 'first' ],
-    #         'change': [ 'change' ],
-    #         'percentage': [ 'percentage' ],
-    #         'last':  [ 'last', 'last_price', 'last_trade', 'last_traded_price', 'lastprice', 'll' ],
-    #         'average': [ 'average', 'avg', 'av', 'mid' ],
-    #         'baseVolume': [ 'vol_cur' ],
-    #         'quoteVolume': [ 'volume', 'vol', 'v', 'a', 'volume_24h', 'volume_24hours', 'rolling_24_hour_volume', '24hvolume' ],
-    #     }
-    #     for synonym in synonyms:
-    #         value = self.first_of (t, synonyms[synonym])
-    #         value = float (value) if value else value
-    #         result[synonym] = value       
-    #     timestamp = self.first_of (t, [
-    #         'time',
-    #         'timestamp',
-    #         'server_time',
-    #         'created',
-    #         'created_at',
-    #         'updated',
-    #     ])
-    #     timestamp = self.parse_time (timestamp)
-    #     return self.extend (result, {
-    #         'timestamp': timestamp,
-    #         'datetime':  datetime.datetime.utcfromtimestamp (timestamp).isoformat (),
-    #         'details':   ticker,
-    #         'volume':    dict ([
-    #             (p['base'],  result['baseVolume']),
-    #             (p['quote'], result['quoteVolume']),
-    #         ]),
-    #     })
 
     def fetchBalance (self):
         return self.fetch_balance ()
