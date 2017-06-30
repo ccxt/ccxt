@@ -3,7 +3,7 @@ CCXT – CryptoCurrency eXchange Trading Library
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
-The ccxt library is used to connect and trade with cryptocurrency / altcoin exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, trading strategy backtesting, bot programming, webshop integration and related software engineering. It is intented to be used by coders, developers and financial analysts to build trading algorithms on top of it.
+The ccxt library is used to connect and trade with cryptocurrency / altcoin exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, webshop integration and related software engineering. It is intented to be used by coders, developers and financial analysts to build trading algorithms on top of it.
 
 Current featurelist:
 
@@ -43,7 +43,7 @@ Supported Cryptocurrency Exchange Markets
 +---------------+---------------------------------------------------+---------------------------------------------------------------------+-------------------------------+
 | bittrex       | `Bittrex <https://bittrex.com>`__                 | `API <https://bittrex.com/Home/Api>`__                              | US                            |
 +---------------+---------------------------------------------------+---------------------------------------------------------------------+-------------------------------+
-| btcchina      | `BTCChina <https://www.btcchina.com>`__           | `API <https://www.btcchina.com/apidocs>`__                          | China, US                     |
+| btcchina      | `BTCChina <https://www.btcchina.com>`__           | `API <https://www.btcchina.com/apidocs>`__                          | China                         |
 +---------------+---------------------------------------------------+---------------------------------------------------------------------+-------------------------------+
 | btcx          | `BTCX <https://btc-x.is>`__                       | `API <https://btc-x.is/custom/api-document.html>`__                 | Iceland, US, EU               |
 +---------------+---------------------------------------------------+---------------------------------------------------------------------+-------------------------------+

@@ -2,7 +2,7 @@
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
-The ccxt library is used to connect and trade with cryptocurrency / altcoin exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, trading strategy backtesting, bot programming, webshop integration and related software engineering. It is intented to be used by coders, developers and financial analysts to build trading algorithms on top of it.
+The ccxt library is used to connect and trade with cryptocurrency / altcoin exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, webshop integration and related software engineering. It is intented to be used by coders, developers and financial analysts to build trading algorithms on top of it.
 
 Current featurelist:
 
@@ -29,7 +29,7 @@ Current featurelist:
 | bitmex      | [BitMEX](https://www.bitmex.com)             | [API](https://www.bitmex.com/app/apiOverview)                  | Seychelles                  |
 | bitso       | [Bitso](https://bitso.com)                   | [API](https://bitso.com/api_info)                              | Mexico                      |
 | bittrex     | [Bittrex](https://bittrex.com)               | [API](https://bittrex.com/Home/Api)                            | US                          |
-| btcchina    | [BTCChina](https://www.btcchina.com)         | [API](https://www.btcchina.com/apidocs)                        | China, US                   |
+| btcchina    | [BTCChina](https://www.btcchina.com)         | [API](https://www.btcchina.com/apidocs)                        | China                       |
 | btcx        | [BTCX](https://btc-x.is)                     | [API](https://btc-x.is/custom/api-document.html)               | Iceland, US, EU             |
 | bxinth      | [BX.in.th](https://bx.in.th)                 | [API](https://bx.in.th/info/api)                               | Thailand                    |
 | ccex        | [C-CEX](https://c-cex.com)                   | [API](https://c-cex.com/?id=api)                               | Germany, EU                 |
