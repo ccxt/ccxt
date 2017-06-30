@@ -1162,8 +1162,8 @@ class bitfinex (Market):
     def create_order (self, product, type, side, amount, price = None, params = {}):
         return self.privatePostOrderNew (self.extend ({
             'symbol': self.product_id (product),
-            'amount': amount.toString (),
-            'price': price.toString (),
+            'amount': str (amount),
+            'price': str (price),
             'side': side,
             'type': 'exchange ' + type,
             'ocoorder': false,
@@ -1181,7 +1181,7 @@ class bitfinex (Market):
         else:
             nonce = self.nonce ()
             query = self.extend ({
-                'nonce': nonce.toString (),
+                'nonce': str (nonce),
                 'request': request,
             }, query)
             payload = base64.b64encode (json.dumps (query))
@@ -1680,11 +1680,11 @@ class bitmex (Market):
             query += '?' + _urlencode.urlencode (params)
         url = self.urls['api'] + query
         if type == 'private':
-            nonce = self.nonce ()
+            nonce = str (self.nonce ())
             if method == 'POST':
                 if params:
                     body = json.dumps (params)
-            request = ''.join ([ method, query, nonce.toString (), body or ''])
+            request = [ method, query, nonce, body or ''].join ('')
             headers = {
                 'Content-Type': 'application/json',
                 'api-nonce': nonce,
@@ -1837,8 +1837,8 @@ class bitso (Market):
         else:
             if params:
                 body = json.dumps (params)
-            nonce = self.nonce ().toString ()
-            request = ''.join ([ nonce, method, query, body or '' ])
+            nonce = str (self.nonce ())
+            request = [ nonce, method, query, body or '' ].join ('')
             signature = self.hmac (request, self.secret)
             auth = self.apiKey + ':' + nonce + ':' + signature
             headers = { 'Authorization': "Bitso " + auth }
@@ -1987,6 +1987,183 @@ class bittrex (Market):
                 'apikey': self.apiKey,
             }, params))
             headers = { 'apisign': self.hmac (url, self.secret, hashlib.sha512) }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
+class btcchina (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'btcchina',
+            'name': 'BTCChina',
+            'countries': [ 'CN', 'US' ],
+            'rateLimit': 3000,
+            'version': 'v1',
+            'urls': {
+                'api': {
+                    'public': 'https://data.btcchina.com/data',
+                    'private': 'https://api.btcchina.com/api_trade_v1.php',
+                },
+                'www': 'https://www.btcchina.com',
+                'doc': 'https://www.btcchina.com/apidocs'
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'historydata',
+                        'orderbook',
+                        'ticker',
+                        'trades',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'BuyIcebergOrder',
+                        'BuyOrder',
+                        'BuyOrder2',
+                        'BuyStopOrder',
+                        'CancelIcebergOrder',
+                        'CancelOrder',
+                        'CancelStopOrder',
+                        'GetAccountInfo',
+                        'getArchivedOrder',
+                        'getArchivedOrders',
+                        'GetDeposits',
+                        'GetIcebergOrder',
+                        'GetIcebergOrders',
+                        'GetMarketDepth',
+                        'GetMarketDepth2',
+                        'GetOrder',
+                        'GetOrders',
+                        'GetStopOrder',
+                        'GetStopOrders',
+                        'GetTransactions',
+                        'GetWithdrawal',
+                        'GetWithdrawals',
+                        'RequestWithdrawal',
+                        'SellIcebergOrder',
+                        'SellOrder',
+                        'SellOrder2',
+                        'SellStopOrder',
+                    ],
+                },
+            },
+        }
+        params.update (config)
+        super (btcchina, self).__init__ (params)
+
+    def fetch_products (self):
+        products = self.publicGetTicker ({
+            'market': 'all',
+        })
+        result = []
+        keys = products.keys ()
+        for p in range (0, len (keys)):
+            key = keys[p]
+            product = products[key]
+            parts = key.split ('_')
+            id = parts[1]
+            base = id[0:3]
+            quote = id[3:6]
+            base = base.upper ()
+            quote = quote.upper ()
+            symbol = base + '/' + quote
+            result.append ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            })
+        return result
+
+    def fetch_balance (self):
+        return self.privatePostGetAccountInfo ()
+
+    def fetch_order_book (self, product):
+        return self.publicGetOrderbook ({
+            'market': self.product_id (product),
+        })
+
+    def fetch_ticker (self, product):
+        p = self.product (product)
+        tickers = self.publicGetTicker ({
+            'market': p['id'],
+        })
+        ticker = tickers['ticker']
+        timestamp = ticker['date'] * 1000
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['buy']),
+            'ask': float (ticker['sell']),
+            'vwap': float (ticker['vwap']),
+            'open': float (ticker['open']),
+            'close': float (ticker['prev_close']),
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['vol']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetTrades ({
+            'market': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        p = self.product (product)
+        method = 'privatePost' + side.upper () + 'Order2'
+        order = {}
+        id = p['id'].upper ()
+        if type == 'market':
+            order['params'] = [ None, amount, id ]
+        else:
+            order['params'] = [ price, amount, id ]
+        return getattr (self, method) (self.extend (order, params))
+
+    def nonce (self):
+        return self.microseconds ()
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][type] + '/' + path
+        if type == 'public':
+            if params:
+                url += '?' + _urlencode.urlencode (params)
+        else:
+            p = []
+            if 'params' in params:
+                p = params['params']
+            nonce = self.nonce ()
+            request = {
+                'method': path,
+                'id': nonce,
+                'params': p,
+            }
+            p = ','.join (p)
+            body = json.dumps (request)
+            query = (
+                'tonce=' + nonce +
+                '&accesskey=' + self.apiKey +
+                '&requestmethod=' + method.lower () +
+                '&id=' + nonce +
+                '&method=' + path +
+                '&params=' + p
+            )
+            signature = self.hmac (query, self.secret, hashlib.sha1)
+            auth = self.apiKey + ':' + signature 
+            headers = {
+                'Content-Length': len (body),
+                'Authorization': 'Basic ' + base64.b64encode (query),
+                'Json-Rpc-Tonce': nonce,
+            }
         return self.fetch (url, method, headers, body)
 
 #------------------------------------------------------------------------------
@@ -2368,7 +2545,7 @@ class ccex (Market):
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][type]
         if type == 'private':
-            nonce = self.nonce ().toString ()
+            nonce = str (self.nonce ())
             query = self.keysort (self.extend ({
                 'a': path,
                 'apikey': self.apiKey,
@@ -2516,7 +2693,7 @@ class cex (Market):
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
-            nonce = self.nonce ().toString ()
+            nonce = str (self.nonce ())
             body = _urlencode.urlencode (self.extend ({
                 'key': self.apiKey,
                 'signature': self.hmac (nonce + self.uid + self.apiKey, self.secret).upper (),
@@ -2671,7 +2848,7 @@ class coincheck (Market):
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
-            nonce = self.nonce ().toString ()
+            nonce = str (self.nonce ())
             if query:
                 body = _urlencode.urlencode (self.keysort (query))
             headers = {
@@ -3305,9 +3482,9 @@ class gdax (Market):
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
-            nonce = self.nonce ().toString ()
+            nonce = str (self.nonce ())
             if query:
-                body = json.dumps (body)
+                body = json.dumps (query)
             what = nonce + method + request + (body or '')
             secret = base64.b64decode (self.secret)
             signature = self.hash (what, secret, hashlib.sha256, 'binary')
@@ -3751,7 +3928,7 @@ class jubi (Market):
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
-            nonce = self.nonce ().toString ()
+            nonce = str (self.nonce ())
             query = self.extend ({
                 'key': self.apiKey,
                 'nonce': nonce,
@@ -3908,7 +4085,7 @@ class kraken (Market):
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
-            nonce = self.nonce ().toString ()
+            nonce = str (self.nonce ())
             query = self.extend ({ 'nonce': nonce }, params)
             body = _urlencode.urlencode (query)
             query = url + self.hash (nonce + body, hashlib.sha256, 'binary')
@@ -4526,7 +4703,7 @@ class quadrigacx (Market):
             url += '?' + _urlencode.urlencode (params)
         else:
             nonce = self.nonce ()
-            request = ''.join ([ nonce, self.uid, self.apiKey ])
+            request = [ nonce, self.uid, self.apiKey ].join ('')
             signature = self.hmac (request, self.secret)
             query = self.extend ({ 
                 'key': self.apiKey,
@@ -4828,7 +5005,7 @@ class therock (Market):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
         if type == 'private':
-            nonce = self.nonce ().toString ()
+            nonce = str (self.nonce ())
             headers = {
                 'X-TRT-KEY': self.apiKey,
                 'X-TRT-NONCE': nonce,

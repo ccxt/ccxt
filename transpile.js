@@ -140,7 +140,10 @@ while (markets = regex.exec (contents)) {
             [/ \/\//g, ' #' ],
             [ /\.indexOf/g, '.find'],
             [ /\strue/g, ' True'],
-
+            [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '($1 in $2.keys ())' ],
+            [ /([^\s]+\s*\(\))\.toString \(\)/g, 'str ($1)' ],
+            [ /([^\s]+)\.toString \(\)/g, 'str ($1)' ],                
+            [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, '$2.join ($1)' ],
             // [ /\(?.+?\)?/g, ''         ],
         ]
 
@@ -172,7 +175,7 @@ while (markets = regex.exec (contents)) {
             [ /(\s)await(\s)/g, '$1' ],
             [ /([\S])\: /g, '$1 => ' ],
             [ /\{([^\;\{]+?)\}([^\s])/g, 'array ($1)$2' ],
-            [ /\[\s*([^\]]+?)\s*\]\.join\s*\((\s*[^\)]+?)\s*\)/g, "implode ($2, array ($1))" ],
+            [ /\[\s*([^\]]+?)\s*\]\.join\s*\(\s*([^\)]+?)\s*\)/g, "implode ($2, array ($1))" ],
             [ /\[\s([^\]]+?)\s\]/g, 'array ($1)' ],
             [ /JSON\.stringify/g, 'json_encode' ],
             [ /\sparseFloat\s/g, ' floatval '],
@@ -184,9 +187,11 @@ while (markets = regex.exec (contents)) {
             [ /this\[([^\]+]+)\]/g, '$$this->$$$1' ],
             [ /([^\s]+).slice \(([^\)\:]+)\)/g, 'mb_substr ($1, $2)' ],
             [ /([^\s]+).slice \(([^\,\)]+)\,\s*([^\)]+)\)/g, 'mb_substr ($1, $2, $3)' ],
-            [ /([^\s]+).split \(([^\,]+)\)/g, 'str_split ($2, $1)' ],
+            [ /([^\s]+).split \(([^\,]+)\)/g, 'explode ($2, $1)' ],
             [ /Math\.floor\s*\(([^\)]+)\)/g, '(int) floor ($1)' ],
             [ /([^\s]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0/g, 'mb_strpos ($1, $2) !== false' ],
+            [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '(array_key_exists ($1, $2))' ],
+            [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode ($2, $1)' ],
             // yyyymmddhhmmss
         ]
 

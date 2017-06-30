@@ -25,6 +25,7 @@ except ImportError:
 		'bitmex':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'bitso':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'bittrex':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'btcchina':    { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'btcx':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'bxinth':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'ccex':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
@@ -56,7 +57,7 @@ except ImportError:
 
 tuples = list (ccxt.Market.keysort (markets).items ())
 
-print (tuples)
+# print (tuples)
 
 for (id, params) in tuples:
 	# id, params = tuples[t]
@@ -157,4 +158,4 @@ def test_market (market):
 # 		print (type (e).__name__, e.args)
 # 		sys.exit ()
 
-test_market (markets['bitfinex'])
+test_market (markets['btcchina'])

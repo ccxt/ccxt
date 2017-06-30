@@ -472,7 +472,7 @@ class _1broker extends Market {
                 if (($category == 'FOREX') || ($category == 'CRYPTO')) {
                     $id = $product['symbol'];
                     $symbol = $product['name'];
-                    list ($base, $quote) = str_split ('/', $symbol);
+                    list ($base, $quote) = explode ('/', $symbol);
                     $result[] = array (
                         'id' => $id,
                         'symbol' => $symbol,
@@ -1337,7 +1337,7 @@ class bitlish extends Market {
             $product = $products[$keys[$p]];
             $id = $product['id'];
             $symbol = $product['name'];
-            list ($base, $quote) = str_split ('/', $symbol);
+            list ($base, $quote) = explode ('/', $symbol);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -1780,11 +1780,11 @@ class bitmex extends Market {
             $query .= '?' . $this->urlencode ($params);
         $url = $this->urls['api'] . $query;
         if ($type == 'private') {
-            $nonce = $this->nonce ();
+            $nonce = (string) $this->nonce ();
             if ($method == 'POST')
                 if ($params)
                     $body = json_encode ($params);
-            $request = implode ('', array ($method, $query, (string) $nonce, $body || ''));
+            $request = implode ('', array ($method, $query, $nonce, $body || ''));
             $headers = array (
                 'Content-Type' => 'application/json',
                 'api-nonce' => $nonce,
@@ -1870,7 +1870,7 @@ class bitso extends Market {
             $product = $products['payload'][$p];
             $id = $product['book'];
             $symbol = str_replace ('_', '/', strtoupper ($id));
-            list ($base, $quote) = str_split ('/', $symbol);
+            list ($base, $quote) = explode ('/', $symbol);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -2105,6 +2105,194 @@ class bittrex extends Market {
                 'apikey' => $this->apiKey,
             ), $params));
             $headers = array ( 'apisign' => $this->hmac ($url, $this->secret, 'sha512') );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+class btcchina extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'btcchina',
+            'name' => 'BTCChina',
+            'countries' => array ( 'CN', 'US' ),
+            'rateLimit' => 3000,
+            'version' => 'v1',
+            'urls' => array (
+                'api' => array (
+                    'public' => 'https://data.btcchina.com/data',
+                    'private' => 'https://api.btcchina.com/api_trade_v1.php',
+                ),
+                'www' => 'https://www.btcchina.com',
+                'doc' => 'https://www.btcchina.com/apidocs'
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'historydata',
+                        'orderbook',
+                        'ticker',
+                        'trades',
+                    ),
+                ),
+                'private' => array (
+                    'post' => array (
+                        'BuyIcebergOrder',
+                        'BuyOrder',
+                        'BuyOrder2',
+                        'BuyStopOrder',
+                        'CancelIcebergOrder',
+                        'CancelOrder',
+                        'CancelStopOrder',
+                        'GetAccountInfo',
+                        'getArchivedOrder',
+                        'getArchivedOrders',
+                        'GetDeposits',
+                        'GetIcebergOrder',
+                        'GetIcebergOrders',
+                        'GetMarketDepth',
+                        'GetMarketDepth2',
+                        'GetOrder',
+                        'GetOrders',
+                        'GetStopOrder',
+                        'GetStopOrders',
+                        'GetTransactions',
+                        'GetWithdrawal',
+                        'GetWithdrawals',
+                        'RequestWithdrawal',
+                        'SellIcebergOrder',
+                        'SellOrder',
+                        'SellOrder2',
+                        'SellStopOrder',
+                    ),
+                ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_products () {
+        $products = $this->publicGetTicker (array (
+            'market' => 'all',
+        ));
+        $result = array ();
+        $keys = array_keys ($products);
+        for ($p = 0; $p < count ($keys); $p++) {
+            $key = $keys[$p];
+            $product = $products[$key];
+            $parts = explode ('_', $key);
+            $id = $parts[1];
+            $base = mb_substr ($id, 0, 3);
+            $quote = mb_substr ($id, 3, 6);
+            $base = strtoupper ($base);
+            $quote = strtoupper ($quote);
+            $symbol = $base . '/' . $quote;
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_balance () {
+        return $this->privatePostGetAccountInfo ();
+    }
+
+    public function fetch_order_book ($product) {
+        return $this->publicGetOrderbook (array (
+            'market' => $this->product_id ($product),
+        ));
+    }
+
+    public function fetch_ticker ($product) {
+        $p = $this->product ($product);
+        $tickers = $this->publicGetTicker (array (
+            'market' => $p['id'],
+        ));
+        $ticker = $tickers['ticker'];
+        $timestamp = $ticker['date'] * 1000;
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
+            'vwap' => floatval ($ticker['vwap']),
+            'open' => floatval ($ticker['open']),
+            'close' => floatval ($ticker['prev_close']),
+            'first' => null,
+            'last' => floatval ($ticker['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['vol']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetTrades (array (
+            'market' => $this->product_id ($product),
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        $p = $this->product ($product);
+        $method = 'privatePost' . strtoupper ($side) . 'Order2';
+        $order = array ();
+        $id = strtoupper ($p['id']);
+        if ($type == 'market') {
+            $order['params'] = array (null, $amount, $id);
+        } else {
+            $order['params'] = array ($price, $amount, $id);
+        }
+        return $this->$method (array_merge ($order, $params));
+    }
+
+    public function nonce () {
+        return $this->microseconds ();
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$type] . '/' . $path;
+        if ($type == 'public') {
+            if ($params)
+                $url .= '?' . $this->urlencode ($params);
+        } else {
+            $p = array ();
+            if (array_key_exists ('params', $params))
+                $p = $params['params'];
+            $nonce = $this->nonce ();
+            $request = array (
+                'method' => $path,
+                'id' => $nonce,
+                'params' => $p,
+            );
+            $p = implode (',', $p);
+            $body = json_encode ($request);
+            $query = (
+                'tonce=' . $nonce .
+                '&accesskey=' . $this->apiKey .
+                '&requestmethod=' . strtolower ($method) .
+                '&id=' . $nonce .
+                '&$method=' . $path .
+                '&$params=' . $p
+            );
+            $signature = $this->hmac ($query, $this->secret, 'sha1');
+            $auth = $this->apiKey . ':' . $signature; 
+            $headers = array (
+                'Content-Length' => strlen ($body),
+                'Authorization' => 'Basic ' . base64_encode ($query),
+                'Json-Rpc-Tonce' => $nonce,
+            );
         }
         return $this->fetch ($url, $method, $headers, $body);
     }
@@ -2594,7 +2782,7 @@ class cex extends Market {
             $product = $products['data']['pairs'][$p];
             $id = $product['symbol1'] . '/' . $product['symbol2'];
             $symbol = $id;
-            list ($base, $quote) = str_split ('/', $symbol);
+            list ($base, $quote) = explode ('/', $symbol);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -3127,7 +3315,7 @@ class exmo extends Market {
             $id = $keys[$p];
             $product = $products[$id];
             $symbol = str_replace ('_', '/', $id);
-            list ($base, $quote) = str_split ('/', $symbol);
+            list ($base, $quote) = explode ('/', $symbol);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -3501,7 +3689,7 @@ class gdax extends Market {
         } else {
             $nonce = (string) $this->nonce ();
             if ($query)
-                $body = json_encode ($body);
+                $body = json_encode ($query);
             $what = $nonce . $method . $request . ($body || '');
             $secret = base64_decode ($this->secret);
             $signature = $this->hash ($what, $secret, 'sha256', 'binary');
@@ -4586,7 +4774,7 @@ class poloniex extends Market {
             $id = $keys[$p];
             $product = $products[$id];
             $symbol = str_replace ('_', '/', $id);
-            list ($base, $quote) = str_split ('/', $symbol);
+            list ($base, $quote) = explode ('/', $symbol);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -5501,7 +5689,7 @@ class yobit extends Market {
             $id = $keys[$p];
             $product = $products['pairs'][$id];
             $symbol = str_replace ('_', '/', strtoupper ($id));
-            list ($base, $quote) = str_split ('/', $symbol);
+            list ($base, $quote) = explode ('/', $symbol);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -5663,7 +5851,7 @@ class zaif extends Market {
             $product = $products[$p];
             $id = $product['currency_pair'];
             $symbol = $product['name'];
-            list ($base, $quote) = str_split ('/', $symbol);
+            list ($base, $quote) = explode ('/', $symbol);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,

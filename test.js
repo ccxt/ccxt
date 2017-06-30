@@ -27,8 +27,9 @@ try {
         bitmex:      { 'verbose': verbose, apiKey: '', secret: '', },
         bitso:       { 'verbose': verbose, apiKey: '', secret: '', },
         bittrex:     { 'verbose': verbose, apiKey: '', secret: '', },
-        btcx:        { 'verbose': verbose, apiKey: '', secret: '', },    
-        bxinth:      { 'verbose': verbose, apiKey: '', secret: '', },    
+        btcchina:    { 'verbose': verbose, apiKey: '', secret: '', },
+        btcx:        { 'verbose': verbose, apiKey: '', secret: '', },
+        bxinth:      { 'verbose': verbose, apiKey: '', secret: '', },
         ccex:        { 'verbose': verbose, apiKey: '', secret: '', },
         cex:         { 'verbose': verbose, apiKey: '', secret: '', uid: '', }, 
         coincheck:   { 'verbose': verbose, apiKey: '', secret: '', },
@@ -214,7 +215,7 @@ var test = async function () {
 
     // Object.keys (markets).forEach (async id => {
 
-        var market = markets.gdax //markets[id]
+        var market = markets.btcchina //markets[id]
 
         try {
 

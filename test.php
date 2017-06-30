@@ -26,6 +26,7 @@ else
         'bitmex'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'bitso'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'bittrex'     => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
+        'btcchina'    => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'btcx'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'bxinth'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'ccex'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
@@ -128,7 +129,7 @@ function test_market ($market) {
 //     }
 // }
 
-$market = $markets['kraken'];
+$market = $markets['btcchina'];
 test_market ($market);
 
 ?>

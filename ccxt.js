@@ -1740,11 +1740,11 @@ var bitmex = {
             query += '?' + this.urlencode (params);
         let url = this.urls['api'] + query;
         if (type == 'private') {
-            let nonce = this.nonce ();
+            let nonce = this.nonce ().toString ();
             if (method == 'POST')
                 if (Object.keys (params).length)
                     body = JSON.stringify (params);
-            let request = [ method, query, nonce.toString (), body || ''].join ('');
+            let request = [ method, query, nonce, body || ''].join ('');
             headers = {
                 'Content-Type': 'application/json',
                 'api-nonce': nonce,
@@ -2057,6 +2057,190 @@ var bittrex = {
                 'apikey': this.apiKey,
             }, params));
             headers = { 'apisign': this.hmac (url, this.secret, 'sha512') };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
+var btcchina = {
+
+    'id': 'btcchina',
+    'name': 'BTCChina',
+    'countries': [ 'CN', 'US' ],
+    'rateLimit': 3000,
+    'version': 'v1',
+    'urls': {
+        'api': {
+            'public': 'https://data.btcchina.com/data',
+            'private': 'https://api.btcchina.com/api_trade_v1.php',
+        },
+        'www': 'https://www.btcchina.com',
+        'doc': 'https://www.btcchina.com/apidocs'
+    },
+    'api': {
+        'public': {
+            'get': [
+                'historydata',
+                'orderbook',
+                'ticker',
+                'trades',
+            ],
+        },
+        'private': {
+            'post': [
+                'BuyIcebergOrder',
+                'BuyOrder',
+                'BuyOrder2',
+                'BuyStopOrder',
+                'CancelIcebergOrder',
+                'CancelOrder',
+                'CancelStopOrder',
+                'GetAccountInfo',
+                'getArchivedOrder',
+                'getArchivedOrders',
+                'GetDeposits',
+                'GetIcebergOrder',
+                'GetIcebergOrders',
+                'GetMarketDepth',
+                'GetMarketDepth2',
+                'GetOrder',
+                'GetOrders',
+                'GetStopOrder',
+                'GetStopOrders',
+                'GetTransactions',
+                'GetWithdrawal',
+                'GetWithdrawals',
+                'RequestWithdrawal',
+                'SellIcebergOrder',
+                'SellOrder',
+                'SellOrder2',
+                'SellStopOrder',
+            ],
+        },
+    },
+
+    async fetchProducts () {
+        let products = await this.publicGetTicker ({
+            'market': 'all',
+        });
+        let result = [];
+        let keys = Object.keys (products);
+        for (let p = 0; p < keys.length; p++) {
+            let key = keys[p];
+            let product = products[key];
+            let parts = key.split ('_');
+            let id = parts[1];
+            let base = id.slice (0, 3);
+            let quote = id.slice (3, 6);
+            base = base.toUpperCase ();
+            quote = quote.toUpperCase ();
+            let symbol = base + '/' + quote;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            });
+        }
+        return result;
+    },
+
+    fetchBalance () {
+        return this.privatePostGetAccountInfo ();
+    },
+
+    fetchOrderBook (product) {
+        return this.publicGetOrderbook ({
+            'market': this.productId (product),
+        });
+    },
+
+    async fetchTicker (product) {
+        let p = this.product (product);
+        let tickers = await this.publicGetTicker ({
+            'market': p['id'],
+        });
+        let ticker = tickers['ticker'];
+        let timestamp = ticker['date'] * 1000;
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['buy']),
+            'ask': parseFloat (ticker['sell']),
+            'vwap': parseFloat (ticker['vwap']),
+            'open': parseFloat (ticker['open']),
+            'close': parseFloat (ticker['prev_close']),
+            'first': undefined,
+            'last': parseFloat (ticker['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['vol']),
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        return this.publicGetTrades ({
+            'market': this.productId (product),
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let p = this.product (product);
+        let method = 'privatePost' + side.toUpperCase () + 'Order2';
+        let order = {};
+        let id = p['id'].toUpperCase ();
+        if (type == 'market') {
+            order['params'] = [ undefined, amount, id ];
+        } else {
+            order['params'] = [ price, amount, id ];
+        }
+        return this[method] (this.extend (order, params));
+    },
+
+    nonce () {
+        return this.microseconds ();
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][type] + '/' + path;
+        if (type == 'public') {
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
+        } else {
+            let p = [];
+            if ('params' in params)
+                p = params['params'];
+            let nonce = this.nonce ();
+            let request = {
+                'method': path,
+                'id': nonce,
+                'params': p,
+            };
+            p = p.join (',');
+            body = JSON.stringify (request);
+            let query = (
+                'tonce=' + nonce +
+                '&accesskey=' + this.apiKey +
+                '&requestmethod=' + method.toLowerCase () +
+                '&id=' + nonce +
+                '&method=' + path +
+                '&params=' + p
+            );
+            let signature = this.hmac (query, this.secret, 'sha1');
+            let auth = this.apiKey + ':' + signature; 
+            headers = {
+                'Content-Length': body.length,
+                'Authorization': 'Basic ' + this.stringToBase64 (query),
+                'Json-Rpc-Tonce': nonce,
+            };
         }
         return this.fetch (url, method, headers, body);
     },
@@ -3406,7 +3590,7 @@ var gdax = {
         } else {
             let nonce = this.nonce ().toString ();
             if (Object.keys (query).length)
-                body = JSON.stringify (body);
+                body = JSON.stringify (query);
             let what = nonce + method + request + (body || '');
             let secret = this.base64ToBinary (this.secret);
             let signature = this.hash (what, secret, 'sha256', 'binary');
@@ -5618,6 +5802,7 @@ var markets = {
     'bitmex':      bitmex,
     'bitso':       bitso, 
     'bittrex':     bittrex,
+    'btcchina':    btcchina,
     'btcx':        btcx,
     'bxinth':      bxinth,
     'ccex':        ccex,
