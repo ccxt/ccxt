@@ -2246,7 +2246,7 @@ class btcchina extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         $p = $this->product ($product);
-        $method = 'privatePost' . strtoupper ($side) . 'Order2';
+        $method = 'privatePost' . $this->capitalize ($side) . 'Order2';
         $order = array ();
         $id = strtoupper ($p['id']);
         if ($type == 'market') {

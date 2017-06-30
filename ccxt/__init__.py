@@ -2120,7 +2120,7 @@ class btcchina (Market):
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         p = self.product (product)
-        method = 'privatePost' + side.upper () + 'Order2'
+        method = 'privatePost' + self.capitalize (side) + 'Order2'
         order = {}
         id = p['id'].upper ()
         if type == 'market':

@@ -2194,7 +2194,7 @@ var btcchina = {
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
         let p = this.product (product);
-        let method = 'privatePost' + side.toUpperCase () + 'Order2';
+        let method = 'privatePost' + this.capitalize (side) + 'Order2';
         let order = {};
         let id = p['id'].toUpperCase ();
         if (type == 'market') {
