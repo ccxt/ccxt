@@ -12,7 +12,7 @@ Current featurelist:
 - optional normalised data for cross-market or cross-currency analytics and arbitrage
 - an out-of-the box unified all-in-one API extremely easy to integrate
 
-`Install <#install>`__ \| `Usage <#usage>`__ \| `Manual <https://github.com/kroitor/ccxt/wiki>`__ \| `Public Offer <#public-offer>`__
+Install | Usage | `Manual <https://github.com/kroitor/ccxt/wiki>`__ | Public Offer
 
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
@@ -99,26 +99,7 @@ The list above is updated frequently, new crypto markets, altcoin exchanges, bug
 
 The library is under MIT license, that means its absolutely free for any developer to build commercial and opensource software on top of it, but use it as is at your own risk with no warranties.
 
-Developer team is open for collaboration and available for hiring and outsourcing. If you're interested in integrating this software into an existing project or in developing new opensource and commercial projects we welcome you to read our `Public Offer <#public-offer>`__.
-
-.. raw:: html
-
-   <!-- 
-
-   - A full list of all cryptocurrency exchange markets sorted by name alphabetically
-   - A list of cryptocurrency exchange markets by countries, regions and territories
-   - A list of cryptocurrency exchange markets by traded instruments, pairs, currencies, symbols, commodities, assets, stocks, indices and products
-
-   -------------------------------------------------------------------------------
-
-   - A list of fully supported cryptocurrency exchange markets sorted by name alphabetically
-   - A list of cryptocurrency exchange markets scheduled for support in nearest future
-   - A list of cryptocurrency exchange markets by countries, regions and territories
-   - A list of cryptocurrency exchange markets by traded pairs, currencies, symbols, commodities, assets, stocks, indices and products
-   - A list of cryptocurrency exchange markets by full or partial API support status
-   - A list of unsupported and closed cryptocurrency exchanges
-
-    -->
+Developer team is open for collaboration and available for hiring and outsourcing. If you're interested in integrating this software into an existing project or in developing new opensource and commercial projects we welcome you to read our Public Offer.
 
 Install
 -------
