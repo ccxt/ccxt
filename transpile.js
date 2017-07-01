@@ -1,6 +1,6 @@
 "use strict";
 
-const fs = require ('fs')
+const fs        = require ('fs')
 
 function regexAll (text, array) {
     for (let i in array) {
@@ -144,7 +144,6 @@ while (markets = regex.exec (contents)) {
             [ /([^\s]+\s*\(\))\.toString \(\)/g, 'str ($1)' ],
             [ /([^\s]+)\.toString \(\)/g, 'str ($1)' ],                
             [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, '$2.join ($1)' ],
-            // [ /\(?.+?\)?/g, ''         ],
         ]
 
         let phRegex = [
@@ -160,7 +159,6 @@ while (markets = regex.exec (contents)) {
             [ /\{\}/g, 'array ()' ],
             [ /\[\]/g, 'array ()' ],
             [ /\{([^\n\}]+)\}/g, 'array ($1)' ],
-            // [ /\{([^\}]+)\}/g, 'array ($1)'],
             [ /([^a-zA-Z0-9_])let\s\[\s*([^\]]+)\s\]/g, '$1list ($2)' ],
             [ /([^a-zA-Z0-9_])let\s/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
@@ -192,7 +190,6 @@ while (markets = regex.exec (contents)) {
             [ /([^\s]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0/g, 'mb_strpos ($1, $2) !== false' ],
             [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '(array_key_exists ($1, $2))' ],
             [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode ($2, $1)' ],
-            // yyyymmddhhmmss
         ]
 
         let pyBody = regexAll (body, pyRegex)
