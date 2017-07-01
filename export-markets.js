@@ -94,7 +94,7 @@ let changeInFile = (file) => {
     console.log (file)
     let oldContent = fs.readFileSync (file, 'utf8')
     let newContent = oldContent.replace (/[\n][\n]\|[^#]+\|([\n][\n]|[\n]$|$)/m, "\n\n" + lines + "$1")
-    console.log (newContent)
+    // console.log (newContent)
     fs.writeFileSync (file, newContent)
 }
 

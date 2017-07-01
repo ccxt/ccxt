@@ -110,7 +110,7 @@ This library is shipped as a single-file (all-in-one module) implementation with
 The main file is:
 
 -  ``ccxt.js`` in JavaScript (`ccxt for Node.js <http://npmjs.com/package/ccxt>`__ and web browsers)
--  ``ccxt/__init__.py`` in Python (works in both Python 2 and 3)
+-  ``ccxt/__init__.py`` in Python (works in both Python 2 and 3, `ccxt in PyPI <https://pypi.python.org/pypi/ccxt>`__)
 -  ``ccxt.php`` in PHP
 
 The easiest way to install the ccxt library is to use builtin package managers.
@@ -126,6 +126,8 @@ An alternative way of installing this library into your code is to copy a single
 Node.js (npm)
 ~~~~~~~~~~~~~
 
+`ccxt crypto trading library in npm <http://npmjs.com/package/ccxt>`__
+
 .. code:: shell
 
     npm install ccxt
@@ -139,6 +141,8 @@ Node version of the ccxt library requires ``crypto`` and ``node-fetch``, both of
 
 Python
 ~~~~~~
+
+`ccxt algotrading library in PyPI <https://pypi.python.org/pypi/ccxt>`__
 
 .. code:: shell
 
