@@ -82,7 +82,7 @@ let values = Object.values (markets).map (market => {
         '': '![' + market.id + '](' + logo + ')',
         'id': market.id,
         'name': '[' + market.name + '](' + website + ')',
-        'ver': market.version ? market.version : '',
+        'ver': market.version ? market.version : '-',
         'doc': '[API](' + doc + ')',
         'countries': countries, 
     }        
