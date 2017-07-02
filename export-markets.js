@@ -79,7 +79,7 @@ let values = Object.values (markets).map (market => {
     let countries = Array.isArray (market.countries) ? market.countries.map (countryName).join (', ') : countryName (market.countries)
     let doc = Array.isArray (market.urls.doc) ? market.urls.doc[0] : market.urls.doc
     return {
-        '': '![' + market.id + '](' + logo + ')',
+        'logo': '![' + market.id + '](' + logo + ')',
         'id': market.id,
         'name': '[' + market.name + '](' + website + ')', 
         'docs': '[API](' + doc + ')',
