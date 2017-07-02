@@ -74,10 +74,12 @@ let sleep = async ms => await new Promise (resolve => setTimeout (resolve, ms))
 // list all supported exchanges
 
 let values = Object.values (markets).map (market => {
+    let logo = market.urls['logo']
     let website = Array.isArray (market.urls.www) ? market.urls.www[0] : market.urls.www
     let countries = Array.isArray (market.countries) ? market.countries.map (countryName).join (', ') : countryName (market.countries)
     let doc = Array.isArray (market.urls.doc) ? market.urls.doc[0] : market.urls.doc
     return {
+        '': '![' + market.id + '](' + logo + ')',
         'id': market.id,
         'name': '[' + market.name + '](' + website + ')', 
         'docs': '[API](' + doc + ')',

@@ -390,6 +390,7 @@ class _1broker (Market):
             'rateLimit': 2000,
             'version': 'v2',
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg',
                 'api': 'https://1broker.com/api',        
                 'www': 'https://1broker.com',
                 'doc': 'https://1broker.com/?c=en/content/api-documentation',
@@ -612,6 +613,7 @@ class _1btcxe (cryptocapital):
             'countries': 'PA', # Panama
             'comment': 'Crypto Capital API',
             'urls': { 
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg',
                 'api': 'https://1btcxe.com/api',
                 'www': 'https://1btcxe.com',
                 'doc': 'https://1btcxe.com/api-docs.php',
@@ -662,6 +664,7 @@ class bit2c (Market):
             'countries': 'IL', # Israel
             'rateLimit': 3000,
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
                 'api': 'https://www.bit2c.co.il',
                 'www': 'https://www.bit2c.co.il',
                 'doc': [
@@ -782,6 +785,7 @@ class bitbay (Market):
             'countries': [ 'PL', 'EU', ], # Poland
             'rateLimit': 1000,
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
                 'www': 'https://bitbay.net',
                 'api': {
                     'public': 'https://bitbay.net/API/Public',
@@ -913,6 +917,7 @@ class bitcoincoid (Market):
             'name': 'Bitcoin.co.id',
             'countries': 'ID', # Indonesia
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766138-043c7786-5ecf-11e7-882b-809c14f38b53.jpg',
                 'api': {
                     'public': 'https://vip.bitcoin.co.id/api',
                     'private': 'https://vip.bitcoin.co.id/tapi',
@@ -1040,6 +1045,7 @@ class bitfinex (Market):
             'version': 'v1',
             'rateLimit': 2000,
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
                 'api': 'https://api.bitfinex.com',
                 'www': 'https://www.bitfinex.com',
                 'doc': [
@@ -1204,6 +1210,7 @@ class bitlish (Market):
             'rateLimit': 2000,    
             'version': 'v1',
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
                 'api': 'https://bitlish.com/api',
                 'www': 'https://bitlish.com',
                 'doc': 'https://bitlish.com/api',
@@ -1346,6 +1353,7 @@ class bitmarket (Market):
             'countries': [ 'PL', 'EU', ],
             'rateLimit': 3000,
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27767011-ddda5156-5eee-11e7-9c1c-d90a5ce77069.jpg',
                 'api': {
                     'public': 'https://www.bitmarket.net',
                     'private': 'https://www.bitmarket.pl/api2/', # last slash is critical
@@ -1498,6 +1506,7 @@ class bitmex (Market):
             'version': 'v1',
             'rateLimit': 2000,
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
                 'api': 'https://www.bitmex.com',
                 'www': 'https://www.bitmex.com',
                 'doc': [
@@ -1705,6 +1714,7 @@ class bitso (Market):
             'rateLimit': 2000, # 30 requests per minute
             'version': 'v3',
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
                 'api': 'https://api.bitso.com',
                 'www': 'https://bitso.com',
                 'doc': 'https://bitso.com/api_info',
@@ -1856,6 +1866,7 @@ class bittrex (Market):
             'version': 'v1.1',
             'rateLimit': 2000,
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
                 'api': 'https://bittrex.com/api',
                 'www': 'https://bittrex.com',
                 'doc': [ 
@@ -2001,6 +2012,7 @@ class btcchina (Market):
             'rateLimit': 3000,
             'version': 'v1',
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg',
                 'api': {
                     'public': 'https://data.btcchina.com/data',
                     'private': 'https://api.btcchina.com/api_trade_v1.php',
@@ -2178,6 +2190,7 @@ class btcx (Market):
             'rateLimit': 3000, # support in english is very poor, unable to tell rate limits
             'version': 'v1',
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg',
                 'api': 'https://btc-x.is/api',
                 'www': 'https://btc-x.is',
                 'doc': 'https://btc-x.is/custom/api-document.html',
@@ -2288,6 +2301,7 @@ class bxinth (Market):
             'countries': 'TH', # Thailand
             'rateLimit': 2000,
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
                 'api': 'https://bx.in.th/api',
                 'www': 'https://bx.in.th',
                 'doc': 'https://bx.in.th/info/api',
@@ -2428,6 +2442,7 @@ class ccex (Market):
             'countries': [ 'DE', 'EU', ],
             'rateLimit': 2000,
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
                 'api': {
                     'tickers': 'https://c-cex.com/t',
                     'public': 'https://c-cex.com/t/api_pub.html',
@@ -2572,6 +2587,7 @@ class cex (Market):
             'countries': [ 'UK', 'EU', 'CY', 'RU', ],
             'rateLimit': 2000,
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
                 'api': 'https://cex.io/api',
                 'www': 'https://cex.io',
                 'doc': 'https://cex.io/cex-api',
@@ -2716,6 +2732,7 @@ class coincheck (Market):
             'countries': [ 'JP', 'ID', ],
             'rateLimit': 2000,
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
                 'api': 'https://coincheck.com/api',
                 'www': 'https://coincheck.com',
                 'doc': 'https://coincheck.com/documents/exchange/api',
@@ -2872,6 +2889,7 @@ class coinsecure (Market):
             'rateLimit': 1000,
             'version': 'v1',
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg',
                 'api': 'https://api.coinsecure.in',
                 'www': 'https://coinsecure.in',
                 'doc': [
@@ -3085,6 +3103,7 @@ class exmo (Market):
             'rateLimit': 1000, # once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1',
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
                 'api': 'https://api.exmo.com',
                 'www': 'https://exmo.me',
                 'doc': [
@@ -3304,6 +3323,7 @@ class fybse (fyb):
             'name': 'FYB-SE',
             'countries': 'SE', # Sweden
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg',
                 'api': 'https://www.fybse.se/api/SEK',
                 'www': 'https://www.fybse.se',
                 'doc': 'http://docs.fyb.apiary.io',
@@ -3325,6 +3345,7 @@ class fybsg (fyb):
             'name': 'FYB-SG',
             'countries': 'SG', # Singapore
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766513-3364d56a-5edb-11e7-9e6b-d5898bb89c81.jpg',
                 'api': 'https://www.fybsg.com/api/SGD',
                 'www': 'https://www.fybsg.com',
                 'doc': 'http://docs.fyb.apiary.io',
@@ -3347,6 +3368,7 @@ class gdax (Market):
             'countries': 'US',
             'rateLimit': 1000,
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg',
                 'api': 'https://api.gdax.com',
                 'www': 'https://www.gdax.com',
                 'doc': 'https://docs.gdax.com',
@@ -3508,6 +3530,7 @@ class hitbtc (Market):
             'rateLimit': 2000,
             'version': '1',
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api': 'http://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
                 'doc': [
@@ -3663,6 +3686,7 @@ class huobi (Market):
             'rateLimit': 5000,
             'version': 'v3',
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
                 'api': 'http://api.huobi.com',
                 'www': 'https://www.huobi.com',
                 'doc': 'https://github.com/huobiapi/API_Docs_en/wiki',
@@ -3805,6 +3829,7 @@ class jubi (Market):
             'rateLimit': 2000,
             'version': 'v1',
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg',
                 'api': 'https://www.jubi.com/api',
                 'www': 'https://www.jubi.com',
                 'doc': 'https://www.jubi.com/help/api.html',
@@ -3953,6 +3978,7 @@ class kraken (Market):
             'version': '0',
             'rateLimit': 3000,
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
                 'api': 'https://api.kraken.com',
                 'www': 'https://www.kraken.com',
                 'doc': [
@@ -4110,6 +4136,7 @@ class luno (Market):
             'rateLimit': 5000,
             'version': '1',
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
                 'api': 'https://api.mybitx.com/api',
                 'www': 'https://www.luno.com',
                 'doc': [
@@ -4403,6 +4430,7 @@ class okcoincny (okcoin):
             'name': 'OKCoin CNY',
             'countries': 'CN',
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766792-8be9157a-5ee5-11e7-926c-6d69b8d3378d.jpg',
                 'api': 'https://www.okcoin.cn',
                 'www': 'https://www.okcoin.cn',
                 'doc': 'https://www.okcoin.cn/rest_getStarted.html',
@@ -4425,6 +4453,7 @@ class okcoinusd (okcoin):
             'name': 'OKCoin USD',
             'countries': [ 'CN', 'US' ],
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',        
                 'api': 'https://www.okcoin.com',
                 'www': 'https://www.okcoin.com',
                 'doc': [
@@ -4451,6 +4480,7 @@ class poloniex (Market):
             'countries': 'US',
             'rateLimit': 1000, # 6 calls per second
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
                 'api': {
                     'public': 'https://poloniex.com/public',
                     'private': 'https://poloniex.com/tradingApi',
@@ -4608,6 +4638,7 @@ class quadrigacx (Market):
             'rateLimit': 2000,
             'version': 'v2',
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg',
                 'api': 'https://api.quadrigacx.com',
                 'www': 'https://www.quadrigacx.com',
                 'doc': 'https://www.quadrigacx.com/api_info',
@@ -4729,6 +4760,7 @@ class quoine (Market):
             'version': '2',
             'rateLimit': 2000,
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766844-9615a4e8-5ee8-11e7-8814-fcd004db8cdd.jpg',
                 'api': 'https://api.quoine.com',
                 'www': 'https://www.quoine.com',
                 'doc': 'https://developers.quoine.com',
@@ -4889,6 +4921,7 @@ class therock (Market):
             'rateLimit': 1000,
             'version': 'v1',
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
                 'api': 'https://api.therocktrading.com',
                 'www': 'https://therocktrading.com',
                 'doc': 'https://api.therocktrading.com/doc/',
@@ -5028,6 +5061,7 @@ class vaultoro (Market):
             'rateLimit': 1000,
             'version': '1',
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg',
                 'api': 'https://api.vaultoro.com',
                 'www': 'https://www.vaultoro.com',
                 'doc': 'https://api.vaultoro.com',
@@ -5162,6 +5196,7 @@ class virwox (Market):
             'countries': 'AT',
             'rateLimit': 1000,
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg',
                 'api': {
                     'public': 'http://api.virwox.com/api/json.php',
                     'private': 'https://www.virwox.com/api/trading.php',
@@ -5338,6 +5373,7 @@ class yobit (Market):
             'rateLimit': 2000, # responses are cached every 2 seconds
             'version': '3',
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
                 'api': 'https://yobit.net',
                 'www': 'https://www.yobit.net',
                 'doc': 'https://www.yobit.net/en/api/',
@@ -5471,6 +5507,7 @@ class zaif (Market):
             'rateLimit': 3000,
             'version': '1',
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
                 'api': 'https://api.zaif.jp',
                 'www': 'https://zaif.jp',
                 'doc': [
