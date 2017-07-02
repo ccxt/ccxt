@@ -1440,7 +1440,7 @@ class bitmarket extends Market {
             'countries' => array ( 'PL', 'EU', ),
             'rateLimit' => 3000,
             'urls' => array (
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27767011-ddda5156-5eee-11e7-9c1c-d90a5ce77069.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg',
                 'api' => array (
                     'public' => 'https://www.bitmarket.net',
                     'private' => 'https://www.bitmarket.pl/api2/', // last slash is critical
