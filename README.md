@@ -16,7 +16,7 @@ Current featurelist:
 
 ## Supported Cryptocurrency Exchange Markets
 
-The ccxt library currently supports the following 40 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 41 cryptocurrency exchange markets and trading APIs:
 
 |                                                                                                                    | id          | name                                         | ver | doc                                                            | countries                               |
 |--------------------------------------------------------------------------------------------------------------------|-------------|----------------------------------------------|:---:|:--------------------------------------------------------------:|-----------------------------------------|
@@ -25,6 +25,7 @@ The ccxt library currently supports the following 40 cryptocurrency exchange mar
 |![anxpro](https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg)      | anxpro      | [ANXPro](https://anxpro.com)                 | 2   | [API](https://anxpro.com/pages/api)                            | Japan, Singapore, Hong Kong, New Zealand|
 |![bit2c](https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg)       | bit2c       | [Bit2C](https://www.bit2c.co.il)             | *   | [API](https://www.bit2c.co.il/home/api)                        | Israel                                  |
 |![bitbay](https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg)      | bitbay      | [BitBay](https://bitbay.net)                 | *   | [API](https://bitbay.net/public-api)                           | Poland, EU                              |
+|![bitbays](https://user-images.githubusercontent.com/1294454/27808599-983687d2-6051-11e7-8d95-80dfcbe5cbb4.jpg)     | bitbays     | [BitBays](https://bitbays.com)               | 1   | [API](https://bitbays.com/help/api/)                           | China, UK, Hong Kong, Australia, Canada |
 |![bitcoincoid](https://user-images.githubusercontent.com/1294454/27766138-043c7786-5ecf-11e7-882b-809c14f38b53.jpg) | bitcoincoid | [Bitcoin.co.id](https://www.bitcoin.co.id)   | *   | [API](https://vip.bitcoin.co.id/trade_api)                     | Indonesia                               |
 |![bitfinex](https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg)    | bitfinex    | [Bitfinex](https://www.bitfinex.com)         | 1   | [API](https://bitfinex.readme.io/v1/docs)                      | US                                      |
 |![bitlish](https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg)     | bitlish     | [bitlish](https://bitlish.com)               | 1   | [API](https://bitlish.com/api)                                 | UK, EU, Russia                          |
@@ -114,7 +115,7 @@ Python version of the ccxt library does not require any additional dependencies 
 
 ```Python
 import ccxt
-print dir (ccxt) # print a list of all available market classes
+print (dir (ccxt)) # print a list of all available market classes
 ```
 
 ### PHP

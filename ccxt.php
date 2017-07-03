@@ -1107,6 +1107,106 @@ class bitbay extends Market {
 
 //-----------------------------------------------------------------------------
 
+class bitbays extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'bitbays',
+            'name' => 'BitBays',
+            'countries' => array ( 'CN', 'UK', 'HK', 'AU', 'CA' ),
+            'rateLimit' => 2000,
+            'version' => 'v1',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27808599-983687d2-6051-11e7-8d95-80dfcbe5cbb4.jpg',
+                'api' => 'https://bitbays.com/api',
+                'www' => 'https://bitbays.com',
+                'doc' => 'https://bitbays.com/help/api/',
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'ticker',
+                        'trades',
+                        'depth',
+                    ),
+                ),
+                'private' => array (
+                    'post' => array (
+                        'cancel',
+                        'info',
+                        'orders',
+                        'order',
+                        'transactions',
+                        'trade',
+                    ),
+                ),
+            ),
+            'products' => array (
+                'BTC/USD' => array ( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
+                'BTC/CNY' => array ( 'id' => 'btc_cny', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY' ),
+                'ODS/BTC' => array ( 'id' => 'ods_btc', 'symbol' => 'ODS/BTC', 'base' => 'ODS', 'quote' => 'BTC' ),
+                'LSK/BTC' => array ( 'id' => 'lsk_btc', 'symbol' => 'LSK/BTC', 'base' => 'LSK', 'quote' => 'BTC' ),
+                'LSK/CNY' => array ( 'id' => 'lsk_cny', 'symbol' => 'LSK/CNY', 'base' => 'LSK', 'quote' => 'CNY' ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_order_book ($product) {
+        return $this->publicGetDepth (array (
+            'market' => $this->product_id ($product),
+        ));
+    }
+
+    public function fetch_ticker ($product) {
+        return $this->publicGetTicker (array (
+            'market' => $this->product_id ($product),
+        ));
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetTrades (array (
+            'market' => $this->product_id ($product),
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        $order = array (
+            'market' => $this->product_id ($product),
+            'op' => $side,
+            'amount' => $amount,
+        );
+        if ($type == 'market') {
+            $order['order_type'] = 1;
+            $order['price'] = $price;
+        } else {
+            $order['order_type'] = 0;
+        }
+        return $this->privatePostTrade (array_merge ($order, $params));
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
+        if ($type == 'public') {
+            if ($params)
+                $url .= '?' . $this->urlencode ($params);
+        } else {
+            $nonce = $this->nonce ();
+            $body = $this->urlencode (array_merge (array (
+                'nonce' => $nonce,
+            ), $params));
+            $headers = array (
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body),
+                'Key' => $this->apiKey,
+                'Sign' => $this->hmac ($body, $this->secret, 'sha512'),
+            );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 class bitcoincoid extends Market {
 
     public function __construct ($options = array ()) {

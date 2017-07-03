@@ -1042,6 +1042,99 @@ class bitbay (Market):
 
 #------------------------------------------------------------------------------
 
+class bitbays (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'bitbays',
+            'name': 'BitBays',
+            'countries': [ 'CN', 'UK', 'HK', 'AU', 'CA' ],
+            'rateLimit': 2000,
+            'version': 'v1',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27808599-983687d2-6051-11e7-8d95-80dfcbe5cbb4.jpg',
+                'api': 'https://bitbays.com/api',
+                'www': 'https://bitbays.com',
+                'doc': 'https://bitbays.com/help/api/',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'ticker',
+                        'trades',
+                        'depth',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'cancel',
+                        'info',
+                        'orders',
+                        'order',
+                        'transactions',
+                        'trade',
+                    ],
+                },
+            },
+            'products': {
+                'BTC/USD': { 'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+                'BTC/CNY': { 'id': 'btc_cny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY' },
+                'ODS/BTC': { 'id': 'ods_btc', 'symbol': 'ODS/BTC', 'base': 'ODS', 'quote': 'BTC' },
+                'LSK/BTC': { 'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC' },
+                'LSK/CNY': { 'id': 'lsk_cny', 'symbol': 'LSK/CNY', 'base': 'LSK', 'quote': 'CNY' },
+            },
+        }
+        params.update (config)
+        super (bitbays, self).__init__ (params)
+
+    def fetch_order_book (self, product):
+        return self.publicGetDepth ({
+            'market': self.product_id (product),
+        })
+
+    def fetch_ticker (self, product):
+        return self.publicGetTicker ({
+            'market': self.product_id (product),
+        })
+
+    def fetch_trades (self, product):
+        return self.publicGetTrades ({
+            'market': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        order = {
+            'market': self.product_id (product),
+            'op': side,
+            'amount': amount,
+        }
+        if type == 'market':
+            order['order_type'] = 1
+            order['price'] = price
+        else:
+            order['order_type'] = 0
+        return self.privatePostTrade (self.extend (order, params))
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'] + '/' + self.version + '/' + path
+        if type == 'public':
+            if params:
+                url += '?' + _urlencode.urlencode (params)
+        else:
+            nonce = self.nonce ()
+            body = _urlencode.urlencode (self.extend ({
+                'nonce': nonce,
+            }, params))
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': len (body),
+                'Key': self.apiKey,
+                'Sign': self.hmac (body, self.secret, hashlib.sha512),
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class bitcoincoid (Market):
 
     def __init__ (self, config = {}):

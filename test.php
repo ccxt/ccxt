@@ -20,6 +20,7 @@ else
         'anxpro'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'bit2c'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'bitbay'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
+        'bitbays'     => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'bitcoincoid' => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'bitfinex'    => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'bitlish'     => array ('verbose' => $verbose, 'apiKey' => '', 'login' => '', 'password' => '', ),

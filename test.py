@@ -18,6 +18,7 @@ except ImportError:
 		'anxpro':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'bit2c':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'bitbay':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'bitbays':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'bitcoincoid': { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'bitfinex':    { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'bitlish':     { 'verbose': verbose, 'apiKey': '', 'login': '', 'password': '' },

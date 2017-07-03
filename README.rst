@@ -18,7 +18,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 40 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 41 cryptocurrency exchange markets and trading APIs:
 
 +---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
 | id            | name                                              | ver   | doc                                                                 | countries                                  |
@@ -32,6 +32,8 @@ The ccxt library currently supports the following 40 cryptocurrency exchange mar
 | bit2c         | `Bit2C <https://www.bit2c.co.il>`__               | \*    | `API <https://www.bit2c.co.il/home/api>`__                          | Israel                                     |
 +---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
 | bitbay        | `BitBay <https://bitbay.net>`__                   | \*    | `API <https://bitbay.net/public-api>`__                             | Poland, EU                                 |
++---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
+| bitbays       | `BitBays <https://bitbays.com>`__                 | 1     | `API <https://bitbays.com/help/api/>`__                             | China, UK, Hong Kong, Australia, Canada    |
 +---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
 | bitcoincoid   | `Bitcoin.co.id <https://www.bitcoin.co.id>`__     | \*    | `API <https://vip.bitcoin.co.id/trade_api>`__                       | Indonesia                                  |
 +---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
@@ -161,7 +163,7 @@ Python version of the ccxt library does not require any additional dependencies 
 .. code:: python
 
     import ccxt
-    print dir (ccxt) # print a list of all available market classes
+    print (dir (ccxt)) # print a list of all available market classes
 
 PHP
 ~~~

@@ -22,6 +22,7 @@ try {
         anxpro:      { 'verbose': verbose, apiKey: '', secret: '', },
         bit2c:       { 'verbose': verbose, apiKey: '', secret: '', },
         bitbay:      { 'verbose': verbose, apiKey: '', secret: '', },
+        bitbays:     { 'verbose': verbose, apiKey: '', secret: '', },
         bitcoincoid: { 'verbose': verbose, apiKey: '', secret: '', },
         bitfinex:    { 'verbose': verbose, apiKey: '', secret: '', },
         bitlish:     { 'verbose': verbose, apiKey: '', login: '', password: '', },
@@ -106,13 +107,15 @@ lines[1] = headerLine.join ('|')
 lines = lines.map (line => '|' + line + '|').join ("\n")
 
 let changeInFile = (file) => {
-    console.log (file)
+    // console.log (file)
     let oldContent = fs.readFileSync (file, 'utf8')
-    let regex = /[^\n]+[\n][\n]\|[^#]+\|([\n][\n]|[\n]$|$)/m
-    let totalString = "The ccxt library currently supports the following " + 
-        numMarkets + " cryptocurrency exchange markets and trading APIs:\n\n"
+    let beginning = "The ccxt library currently supports the following "
+    let ending = " cryptocurrency exchange markets and trading APIs:\n\n"
+    let regex = new RegExp ("[^\n]+[\n][\n]\\|[^#]+\\|([\n][\n]|[\n]$|$)", 'm')
+    let totalString = beginning + numMarkets + ending
     let replacement = totalString + lines + "$1"
     let newContent = oldContent.replace (regex, replacement)
+    // console.log (newContent)
     fs.writeFileSync (file, newContent)
 }
 
