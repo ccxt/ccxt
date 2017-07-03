@@ -96,7 +96,7 @@ class Market (object):
         try:
             handler = _urllib.HTTPHandler if url.startswith ('http://') else _urllib.HTTPSHandler
             opener = _urllib.build_opener (handler)
-            response = opener.open (request, timeout = self.timeout).read ()
+            response = opener.open (request, timeout = self.timeout).read ().decode('utf-8')
             return json.loads (response)
         except _urllib.HTTPError as e:
             try: 
