@@ -21,6 +21,11 @@ except ImportError:
     import urllib  as _urlencode         # Python 2
     import urllib2 as _urllib
 
+try:
+  basestring # Python 3
+except NameError:
+  basestring = str # Python 2
+
 class Market (object):
 
     id        = None
@@ -36,8 +41,8 @@ class Market (object):
             setattr (self, key, config[key])
 
         if self.api:
-            for apiType, methods in self.api.iteritems ():
-                for method, urls in methods.iteritems ():                    
+            for apiType, methods in self.api.items ():
+                for method, urls in methods.items ():
                     for url in urls:
                         url = url.strip ()
                         splitPath = re.compile ('[^a-zA-Z0-9]').split (url)
@@ -91,12 +96,11 @@ class Market (object):
         try:
             handler = _urllib.HTTPHandler if url.startswith ('http://') else _urllib.HTTPSHandler
             opener = _urllib.build_opener (handler)
-            response = opener.open (request, timeout = self.timeout).read ()
+            response = opener.open (request, timeout = self.timeout).read ().decode('utf-8')
             return json.loads (response)
         except _urllib.HTTPError as e:
             try: 
                 text = e.fp.read ()
-                m = re.search ('(cloudflare)', text, flags = re.IGNORECASE)
                 if re.search ('(cloudflare)', text, flags = re.IGNORECASE):
                     error = 'DDoS protection by Cloudflare'
                     print (self.id, method, url, e.code, e.msg, error)
@@ -289,7 +293,7 @@ class Market (object):
         return self.fetch_products ()
 
     def product (self, product):
-        isString = type (product) in [ str, unicode ]
+        isString = isinstance (product, basestring)
         if isString and self.products and (product in self.products):
             return self.products [product]
         return product
@@ -2336,8 +2340,7 @@ class btcchina (Market):
         })
         result = []
         keys = products.keys ()
-        for p in range (0, len (keys)):
-            key = keys[p]
+        for key in keys:
             product = products[key]
             parts = key.split ('_')
             id = parts[1]
