@@ -5109,12 +5109,15 @@ class paymium extends Market {
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
-        $method = 'privatePost' . $this->capitalize ($side);
-        return $this->$method (array_merge (array (
-            'currencyPair' => $this->product_id ($product),
-            'rate' => $price,
+        $order = array (
+            'type' => $this->capitalize ($type) . 'Order',
+            'currency' => $this->product_id ($product),
+            'direction' => $side,
             'amount' => $amount,
-        ), $params));
+        );
+        if ($type == 'market')
+            $order['price'] = $price;
+        return $this->privatePostUserOrders (array_merge ($order, $params));
     }
 
     public function cancel_order ($id, $params = array ()) {

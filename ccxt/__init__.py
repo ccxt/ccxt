@@ -2340,7 +2340,8 @@ class btcchina (Market):
         })
         result = []
         keys = products.keys ()
-        for key in keys:
+        for p in range (0, len (keys)):
+            key = keys[p]
             product = products[key]
             parts = key.split ('_')
             id = parts[1]
@@ -4837,12 +4838,15 @@ class paymium (Market):
         })
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
-        method = 'privatePost' + self.capitalize (side)
-        return getattr (self, method) (self.extend ({
-            'currencyPair': self.product_id (product),
-            'rate': price,
+        order = {
+            'type': self.capitalize (type) + 'Order',
+            'currency': self.product_id (product),
+            'direction': side,
             'amount': amount,
-        }, params))
+        }
+        if type == 'market':
+            order['price'] = price
+        return self.privatePostUserOrders (self.extend (order, params))
 
     def cancel_order (self, id, params = {}):
         return self.privatePostCancelOrder (self.extend ({
