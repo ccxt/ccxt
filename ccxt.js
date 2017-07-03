@@ -1142,7 +1142,7 @@ var bitbays = {
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['buy']),
             'ask': parseFloat (ticker['sell']),
-            'vwap': parseFloat (ticker['vwap']),
+            'vwap': undefined,
             'open': undefined,
             'close': undefined,
             'first': undefined,

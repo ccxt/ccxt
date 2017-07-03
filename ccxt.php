@@ -1170,7 +1170,7 @@ class bitbays extends Market {
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['buy']),
             'ask' => floatval ($ticker['sell']),
-            'vwap' => floatval ($ticker['vwap']),
+            'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,

@@ -1105,7 +1105,7 @@ class bitbays (Market):
             'low': float (ticker['low']),
             'bid': float (ticker['buy']),
             'ask': float (ticker['sell']),
-            'vwap': float (ticker['vwap']),
+            'vwap': None,
             'open': None,
             'close': None,
             'first': None,
