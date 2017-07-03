@@ -78,11 +78,14 @@ let values = Object.values (markets).map (market => {
     let website = Array.isArray (market.urls.www) ? market.urls.www[0] : market.urls.www
     let countries = Array.isArray (market.countries) ? market.countries.map (countryName).join (', ') : countryName (market.countries)
     let doc = Array.isArray (market.urls.doc) ? market.urls.doc[0] : market.urls.doc
+    let version = market.version ? market.version : '-'
+    if (version[0] == 'v')
+        version = version.slice (1)
     return {
         '': '![' + market.id + '](' + logo + ')',
         'id': market.id,
         'name': '[' + market.name + '](' + website + ')',
-        'ver': market.version ? market.version : '-',
+        'ver': version,
         'doc': '[API](' + doc + ')',
         'countries': countries, 
     }        
@@ -91,6 +94,13 @@ let values = Object.values (markets).map (market => {
 let exchanges = asTable.configure ({ delimiter: ' | ' }) (values)
 let lines = exchanges.split ("\n")
 lines[1] = lines[0].replace (/[^\|]/g, '-')
+let headerLine = lines[1].split ('|')
+// console.log (headerLine[3], headerLine[4])
+headerLine[3] = ':' + headerLine[3].slice (1, headerLine[3].length - 1) + ':'
+headerLine[4] = ':' + headerLine[4].slice (1, headerLine[4].length - 1) + ':'
+lines[1] = headerLine.join ('|')
+// console.log (headerLine[3], headerLine[4])
+
 lines = lines.map (line => '|' + line + '|').join ("\n")
 
 let changeInFile = (file) => {
