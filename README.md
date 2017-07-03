@@ -16,6 +16,8 @@ Current featurelist:
 
 ## Supported Cryptocurrency Exchange Markets
 
+The ccxt library currently supports the following 40 cryptocurrency exchange markets and trading APIs:
+
 |                                                                                                                    | id          | name                                         | ver | doc                                                            | countries                               |
 |--------------------------------------------------------------------------------------------------------------------|-------------|----------------------------------------------|:---:|:--------------------------------------------------------------:|-----------------------------------------|
 |![_1broker](https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg)    | _1broker    | [1Broker](https://1broker.com)               | 2   | [API](https://1broker.com/?c=en/content/api-documentation)     | US                                      |
@@ -49,6 +51,7 @@ Current featurelist:
 |![luno](https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg)        | luno        | [luno](https://www.luno.com)                 | 1   | [API](https://npmjs.org/package/bitx)                          | UK, Singapore, South Africa             |
 |![okcoinusd](https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg)   | okcoinusd   | [OKCoin USD](https://www.okcoin.com)         | 1   | [API](https://www.okcoin.com/rest_getStarted.html)             | China, US                               |
 |![okcoincny](https://user-images.githubusercontent.com/1294454/27766792-8be9157a-5ee5-11e7-926c-6d69b8d3378d.jpg)   | okcoincny   | [OKCoin CNY](https://www.okcoin.cn)          | 1   | [API](https://www.okcoin.cn/rest_getStarted.html)              | China                                   |
+|![paymium](https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg)     | paymium     | [Paymium](https://www.paymium.com)           | 1   | [API](https://www.paymium.com/page/developers)                 | France, EU                              |
 |![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)    | poloniex    | [Poloniex](https://poloniex.com)             | *   | [API](https://poloniex.com/support/api/)                       | US                                      |
 |![quadrigacx](https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg)  | quadrigacx  | [QuadrigaCX](https://www.quadrigacx.com)     | 2   | [API](https://www.quadrigacx.com/api_info)                     | Canada                                  |
 |![quoine](https://user-images.githubusercontent.com/1294454/27766844-9615a4e8-5ee8-11e7-8814-fcd004db8cdd.jpg)      | quoine      | [QUOINE](https://www.quoine.com)             | 2   | [API](https://developers.quoine.com)                           | Japan, Singapore, Vietnam               |

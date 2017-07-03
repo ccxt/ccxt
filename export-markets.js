@@ -48,6 +48,7 @@ try {
         luno:        { 'verbose': verbose, apiKey: '', secret: '', },
         okcoinusd:   { 'verbose': verbose, apiKey: '', secret: '', },
         okcoincny:   { 'verbose': verbose, apiKey: '', secret: '', },
+        paymium:     { 'verbose': verbose, apiKey: '', secret: '', },
         poloniex:    { 'verbose': verbose, apiKey: '', secret: '', },
         quadrigacx:  { 'verbose': verbose, apiKey: '', secret: '', uid: 123, },    
         quoine:      { 'verbose': verbose, apiKey: '', secret: '', },    
@@ -93,6 +94,7 @@ let values = Object.values (markets).map (market => {
     }        
 })
 
+let numMarkets = Object.keys (markets).length
 let exchanges = asTable.configure ({ delimiter: ' | ' }) (values)
 let lines = exchanges.split ("\n")
 lines[1] = lines[0].replace (/[^\|]/g, '-')
@@ -106,7 +108,11 @@ lines = lines.map (line => '|' + line + '|').join ("\n")
 let changeInFile = (file) => {
     console.log (file)
     let oldContent = fs.readFileSync (file, 'utf8')
-    let newContent = oldContent.replace (/[\n][\n]\|[^#]+\|([\n][\n]|[\n]$|$)/m, "\n\n" + lines + "$1")
+    let regex = /[^\n]+[\n][\n]\|[^#]+\|([\n][\n]|[\n]$|$)/m
+    let totalString = "The ccxt library currently supports the following " + 
+        numMarkets + " cryptocurrency exchange markets and trading APIs:\n\n"
+    let replacement = totalString + lines + "$1"
+    let newContent = oldContent.replace (regex, replacement)
     fs.writeFileSync (file, newContent)
 }
 

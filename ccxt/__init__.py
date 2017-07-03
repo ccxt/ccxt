@@ -4736,6 +4736,136 @@ class okcoinusd (okcoin):
 
 #------------------------------------------------------------------------------
 
+class paymium (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'paymium',
+            'name': 'Paymium',
+            'countries': [ 'FR', 'EU', ],
+            'rateLimit': 3000,
+            'version': 'v1',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
+                'api': 'https://paymium.com/api',
+                'www': 'https://www.paymium.com',
+                'doc': [
+                    'https://www.paymium.com/page/developers',
+                    'https://github.com/Paymium/api-documentation',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'countries',
+                        'data/{id}/ticker',
+                        'data/{id}/trades',
+                        'data/{id}/depth',
+                        'bitcoin_charts/{id}/trades',
+                        'bitcoin_charts/{id}/depth',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'merchant/get_payment/{UUID}',
+                        'user',
+                        'user/addresses',
+                        'user/addresses/{btc_address}',
+                        'user/orders',
+                        'user/orders/{UUID}',
+                        'user/price_alerts',
+                    ],
+                    'post': [
+                        'user/orders',
+                        'user/addresses',
+                        'user/payment_requests',
+                        'user/price_alerts',
+                        'merchant/create_payment',
+                    ],
+                    'delete': [
+                        'user/orders/{UUID}/cancel',
+                        'user/price_alerts/{id}',
+                    ],
+                },
+            },
+            'products': {
+                'BTC/EUR': { 'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+            },
+        }
+        params.update (config)
+        super (paymium, self).__init__ (params)
+
+    def fetch_balance (self):
+        return self.privateGetUser ()
+
+    def fetch_order_book (self, product):
+        return self.publicGetDataIdDepth  ({
+            'id': self.product_id (product),
+        })
+
+    def fetch_ticker (self, product):
+        ticker = self.publicGetDataIdTicker ({
+            'id': self.product_id (product),
+        })
+        timestamp = ticker['at'] * 1000
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['bid']),
+            'ask': float (ticker['ask']),
+            'vwap': float (ticker['vwap']),
+            'open': float (ticker['open']),
+            'close': None,
+            'first': None,
+            'last': float (ticker['price']),
+            'change': None,
+            'percentage': float (ticker['variation']),
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['volume']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetDataIdTrades ({
+            'id': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        method = 'privatePost' + self.capitalize (side)
+        return getattr (self, method) (self.extend ({
+            'currencyPair': self.product_id (product),
+            'rate': price,
+            'amount': amount,
+        }, params))
+
+    def cancel_order (self, id, params = {}):
+        return self.privatePostCancelOrder (self.extend ({
+            'orderNumber': id,
+        }, params))
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)
+        query = self.omit (params, self.extract_params (path))
+        if type == 'public':
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
+            body = json.dumps (params)
+            nonce = str (self.nonce ())            
+            auth = nonce + url + body
+            headers = {
+                'Api-Key': self.apiKey,
+                'Api-Signature': self.hmac (auth, self.secret),
+                'Api-Nonce': nonce,                
+                'Content-Type': 'application/json',
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class poloniex (Market):
 
     def __init__ (self, config = {}):

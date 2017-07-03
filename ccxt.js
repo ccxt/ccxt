@@ -4876,6 +4876,167 @@ var okcoinusd = extend (okcoin, {
 
 //-----------------------------------------------------------------------------
 
+var paymium = {
+
+    'id': 'paymium',
+    'name': 'Paymium',
+    'countries': [ 'FR', 'EU', ],
+    'rateLimit': 3000,
+    'version': 'v1',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
+        'api': 'https://paymium.com/api',
+        'www': 'https://www.paymium.com',
+        'doc': [
+            'https://www.paymium.com/page/developers',
+            'https://github.com/Paymium/api-documentation',
+        ],
+    },
+    'api': {
+        'public': {
+            'get': [
+                'countries',
+                'data/{id}/ticker',
+                'data/{id}/trades',
+                'data/{id}/depth',
+                'bitcoin_charts/{id}/trades',
+                'bitcoin_charts/{id}/depth',
+            ],
+        },
+        'private': {
+            'get': [
+                'merchant/get_payment/{UUID}',
+                'user',
+                'user/addresses',
+                'user/addresses/{btc_address}',
+                'user/orders',
+                'user/orders/{UUID}',
+                'user/price_alerts',
+            ],
+            'post': [
+                'user/orders',
+                'user/addresses',
+                'user/payment_requests',
+                'user/price_alerts',
+                'merchant/create_payment',
+            ],
+            'delete': [
+                'user/orders/{UUID}/cancel',
+                'user/price_alerts/{id}',
+            ],
+        },
+    },
+    'products': {
+        'BTC/EUR': { 'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+    },
+
+    fetchBalance () {
+        return this.privateGetUser ();
+    },
+
+    fetchOrderBook (product) {
+        return this.publicGetDataIdDepth  ({
+            'id': this.productId (product),
+        });
+    },
+
+    async fetchTicker (product) {
+        let ticker = await this.publicGetDataIdTicker ({
+            'id': this.productId (product),
+        });
+        let timestamp = ticker['at'] * 1000;
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['bid']),
+            'ask': parseFloat (ticker['ask']),
+            'vwap': parseFloat (ticker['vwap']),
+            'open': parseFloat (ticker['open']),
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['price']),
+            'change': undefined,
+            'percentage': parseFloat (ticker['variation']),
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['volume']),
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        return this.publicGetDataIdTrades ({
+            'id': this.productId (product),
+        });
+    },
+
+    /*
+
+        Description
+
+        Create trade orders.
+
+        Limit and market orders are supported, the price parameter must be omitted for market orders.
+
+        Either one of amount or currency_amount must be specified. When the amount is specified, the engine will buy or sell this amount of Bitcoins. When the currency_amount is specified, the engine will buy as much Bitcoins as possible for currency_amount or sell as much Bitcoins as necessary to obtain currency_amount.
+
+        Endpoint
+
+        method  path    authorization
+        POST    /api/v1/user/orders oauth2 (scope: trade)
+        Payload
+
+        name    description example value
+        type    must be "LimitOrder" or "MarketOrder"   "LimitOrder"
+        currency    must be "EUR"   "EUR"
+        direction   trade direction, must be "buy" or "sell"    "buy"
+        price   price per BTC, must be omitted for market orders    300.0
+        amount  BTC amount to trade (only if no currency_amount is specified)   1.0
+        currency_amount Currency amount to trade (only if no amount is specified)
+
+    */
+    
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        return this.privatePostUserOrders (this.extend (order, params));
+        let method = 'privatePost' + this.capitalize (side);
+        return this[method] (this.extend ({
+            'currencyPair': this.productId (product),
+            'rate': price,
+            'amount': amount,
+        }, params));
+    },
+
+    cancelOrder (id, params = {}) {
+        return this.privatePostCancelOrder (this.extend ({
+            'orderNumber': id,
+        }, params));
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (type == 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            body = JSON.stringify (params);
+            let nonce = this.nonce ().toString ();            
+            let auth = nonce + url + body;
+            headers = {
+                'Api-Key': this.apiKey,
+                'Api-Signature': this.hmac (auth, this.secret),
+                'Api-Nonce': nonce,                
+                'Content-Type': 'application/json',
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var poloniex = {
 
     'id': 'poloniex',
@@ -6131,6 +6292,7 @@ var markets = {
     'luno':        luno,
     'okcoincny':   okcoincny,
     'okcoinusd':   okcoinusd,
+    'paymium':     paymium,
     'poloniex':    poloniex,
     'quadrigacx':  quadrigacx,
     'quoine':      quoine,

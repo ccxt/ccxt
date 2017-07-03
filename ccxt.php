@@ -5008,6 +5008,144 @@ class okcoinusd extends okcoin {
 
 //-----------------------------------------------------------------------------
 
+class paymium extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'paymium',
+            'name' => 'Paymium',
+            'countries' => array ( 'FR', 'EU', ),
+            'rateLimit' => 3000,
+            'version' => 'v1',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
+                'api' => 'https://paymium.com/api',
+                'www' => 'https://www.paymium.com',
+                'doc' => array (
+                    'https://www.paymium.com/page/developers',
+                    'https://github.com/Paymium/api-documentation',
+                ),
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'countries',
+                        'data/{id}/ticker',
+                        'data/{id}/trades',
+                        'data/{id}/depth',
+                        'bitcoin_charts/{id}/trades',
+                        'bitcoin_charts/{id}/depth',
+                    ),
+                ),
+                'private' => array (
+                    'get' => array (
+                        'merchant/get_payment/{UUID}',
+                        'user',
+                        'user/addresses',
+                        'user/addresses/{btc_address}',
+                        'user/orders',
+                        'user/orders/{UUID}',
+                        'user/price_alerts',
+                    ),
+                    'post' => array (
+                        'user/orders',
+                        'user/addresses',
+                        'user/payment_requests',
+                        'user/price_alerts',
+                        'merchant/create_payment',
+                    ),
+                    'delete' => array (
+                        'user/orders/{UUID}/cancel',
+                        'user/price_alerts/{id}',
+                    ),
+                ),
+            ),
+            'products' => array (
+                'BTC/EUR' => array ( 'id' => 'eur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_balance () {
+        return $this->privateGetUser ();
+    }
+
+    public function fetch_order_book ($product) {
+        return $this->publicGetDataIdDepth  (array (
+            'id' => $this->product_id ($product),
+        ));
+    }
+
+    public function fetch_ticker ($product) {
+        $ticker = $this->publicGetDataIdTicker (array (
+            'id' => $this->product_id ($product),
+        ));
+        $timestamp = $ticker['at'] * 1000;
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => floatval ($ticker['vwap']),
+            'open' => floatval ($ticker['open']),
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['price']),
+            'change' => null,
+            'percentage' => floatval ($ticker['variation']),
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['volume']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetDataIdTrades (array (
+            'id' => $this->product_id ($product),
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        $method = 'privatePost' . $this->capitalize ($side);
+        return $this->$method (array_merge (array (
+            'currencyPair' => $this->product_id ($product),
+            'rate' => $price,
+            'amount' => $amount,
+        ), $params));
+    }
+
+    public function cancel_order ($id, $params = array ()) {
+        return $this->privatePostCancelOrder (array_merge (array (
+            'orderNumber' => $id,
+        ), $params));
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $query = $this->omit ($params, $this->extract_params ($path));
+        if ($type == 'public') {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
+        } else {
+            $body = json_encode ($params);
+            $nonce = (string) $this->nonce ();            
+            $auth = $nonce . $url . $body;
+            $headers = array (
+                'Api-Key' => $this->apiKey,
+                'Api-Signature' => $this->hmac ($auth, $this->secret),
+                'Api-Nonce' => $nonce,                
+                'Content-Type' => 'application/json',
+            );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 class poloniex extends Market {
 
     public function __construct ($options = array ()) {

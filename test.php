@@ -46,6 +46,7 @@ else
         'luno'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'okcoinusd'   => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'okcoincny'   => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
+        'paymium'     => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'poloniex'    => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'quadrigacx'  => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', 'uid' => '', ),
         'quoine'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),

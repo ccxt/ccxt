@@ -45,6 +45,7 @@ except ImportError:
 		'luno':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'okcoinusd':   { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'okcoincny':   { 'verbose': verbose, 'apiKey': '', 'secret' : '' },
+		'paymium':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'poloniex':    { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'quadrigacx':  { 'verbose': verbose, 'apiKey': '', 'secret': '', 'uid': '' },
 		'quoine':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },

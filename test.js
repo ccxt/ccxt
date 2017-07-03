@@ -47,6 +47,7 @@ try {
         luno:        { 'verbose': verbose, apiKey: '', secret: '', },
         okcoinusd:   { 'verbose': verbose, apiKey: '', secret: '', },
         okcoincny:   { 'verbose': verbose, apiKey: '', secret: '', },
+        paymium:     { 'verbose': verbose, apiKey: '', secret: '', },
         poloniex:    { 'verbose': verbose, apiKey: '', secret: '', },
         quadrigacx:  { 'verbose': verbose, apiKey: '', secret: '', uid: 123, },    
         quoine:      { 'verbose': verbose, apiKey: '', secret: '', },    
@@ -217,7 +218,7 @@ var test = async function () {
 
     // Object.keys (markets).forEach (async id => {
 
-        var market = markets.bitstamp //markets[id]
+        var market = markets.paymium //markets[id]
 
         try {
 
