@@ -98,7 +98,7 @@ Supported Cryptocurrency Exchange Markets
 | zaif          | `Zaif <https://zaif.jp>`__                        | 1     | `API <https://corp.zaif.jp/api-docs>`__                             | Japan                                      |
 +---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
 
-The list above is updated frequently, new crypto markets, altcoin exchanges, bug fixes, API endpoints are introduced and added on regular basis. Consult the `Manual <https://github.com/kroitor/ccxt/wiki>`__ for details. If you don't find a cryptocurrency exchange market in the list above and/or want another market to be added, post or send us a link to it by opening an issue here on GitHub or via email.
+The list above is updated frequently, new crypto markets, altcoin exchanges, bug fixes, API endpoints are introduced and added on regular basis. See the `Manual <https://github.com/kroitor/ccxt/wiki>`__ for details. If you don't find a cryptocurrency exchange market in the list above and/or want another market to be added, post or send us a link to it by opening an issue here on GitHub or via email.
 
 The library is under MIT license, that means its absolutely free for any developer to build commercial and opensource software on top of it, but use it as is at your own risk with no warranties.
 
@@ -248,7 +248,7 @@ The ccxt library supports both camelcase notation (preferred in JavaScript) and 
     market.methodName ()  // camelcase pseudocode
     market.method_name () // underscore pseudocode
 
-Consult the `Manual <https://github.com/kroitor/ccxt/wiki>`__ for more details.
+See the `Manual <https://github.com/kroitor/ccxt/wiki>`__ for more details.
 
 JavaScript
 ~~~~~~~~~~
