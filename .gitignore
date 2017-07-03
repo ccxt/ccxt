@@ -9,3 +9,4 @@ build/
 ccxt.egg-info/
 tmp/
 *.pyc
+.tox/
