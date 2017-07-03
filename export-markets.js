@@ -96,11 +96,9 @@ let exchanges = asTable.configure ({ delimiter: ' | ' }) (values)
 let lines = exchanges.split ("\n")
 lines[1] = lines[0].replace (/[^\|]/g, '-')
 let headerLine = lines[1].split ('|')
-// console.log (headerLine[3], headerLine[4])
 headerLine[3] = ':' + headerLine[3].slice (1, headerLine[3].length - 1) + ':'
 headerLine[4] = ':' + headerLine[4].slice (1, headerLine[4].length - 1) + ':'
 lines[1] = headerLine.join ('|')
-// console.log (headerLine[3], headerLine[4])
 
 lines = lines.map (line => '|' + line + '|').join ("\n")
 
@@ -108,7 +106,6 @@ let changeInFile = (file) => {
     console.log (file)
     let oldContent = fs.readFileSync (file, 'utf8')
     let newContent = oldContent.replace (/[\n][\n]\|[^#]+\|([\n][\n]|[\n]$|$)/m, "\n\n" + lines + "$1")
-    // console.log (newContent)
     fs.writeFileSync (file, newContent)
 }
 

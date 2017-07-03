@@ -317,6 +317,12 @@ Python
 
     print (exmo.fetch_balance ())
 
+    # sell 1 BTC/USD for market price (create market sell order)
+    print (exmo.id, exmo.sell ('BTC/USD', 1))
+
+    # buy 1 BTC/USD for $2500 (create limit buy order) 
+    print (exmo.id, exmo.buy ('BTC/USD', 1, 2500.00))
+
 PHP
 ~~~
 
@@ -326,8 +332,8 @@ PHP
 
     $poloniex = new \ccxt\poloniex  ();
     $bittrex  = new \ccxt\bittrex   (array ('verbose' => true));
-    $zaif     = new \ccxt\zaif      ();
-    $quoine   = new \ccxt\quoine    (array (
+    $quoine   = new \ccxt\zaif      ();
+    $zaif     = new \ccxt\quoine    (array (
         'apiKey' => 'YOUR_PUBLIC_API_KEY',
         'secret' => 'YOUR_SECRET_PRIVATE_KEY',
     ));
@@ -340,9 +346,16 @@ PHP
 
     var_dump ($poloniex->fetch_order_book (array_keys ($poloniex_products)[0]));
     var_dump ($bittrex->fetch_trades ('BTC/USD'));
+    var_dump ($quoine->fetch_ticker ('ETH/EUR'));
     var_dump ($zaif->fetch_ticker ('BTC/JPY'));
 
-    var_dump ($quoine->fetch_balance ());
+    var_dump ($zaif->fetch_balance ());
+
+    // sell 1 BTC/JPY for market price (create market sell order)
+    var_dump ($zaif->id, $zaif->sell ('BTC/JPY', 1));
+
+    // buy 1 BTC/JPY for ¥285000 (create limit buy order) 
+    var_dump ($zaif->id, $zaif->buy ('BTC/JPY', 1, 285000));
 
 Public Offer
 ------------
