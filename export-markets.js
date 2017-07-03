@@ -106,9 +106,9 @@ lines[1] = headerLine.join ('|')
 
 lines = lines.map (line => '|' + line + '|').join ("\n")
 
-let changeInFile = (file) => {
-    // console.log (file)
-    let oldContent = fs.readFileSync (file, 'utf8')
+let changeInFile = (filename) => {
+    console.log (filename)
+    let oldContent = fs.readFileSync (filename, 'utf8')
     let beginning = "The ccxt library currently supports the following "
     let ending = " cryptocurrency exchange markets and trading APIs:\n\n"
     let regex = new RegExp ("[^\n]+[\n][\n]\\|[^#]+\\|([\n][\n]|[\n]$|$)", 'm')
@@ -116,11 +116,63 @@ let changeInFile = (file) => {
     let replacement = totalString + lines + "$1"
     let newContent = oldContent.replace (regex, replacement)
     // console.log (newContent)
-    fs.writeFileSync (file, newContent)
+    fs.writeFileSync (filename, newContent)
 }
 
 changeInFile ('README.md')
 changeInFile ('../ccxt.wiki/Exchange-Markets.md')
 changeInFile ('../ccxt.wiki/Manual.md')
+
+console.log (typeof countries)
+console.log (countries)
+
+let marketsByCountries = []
+Object.keys (countries).forEach (code => { 
+    let country = countries[code]
+    let result = []
+    Object.keys (markets).forEach (id => {
+        let market = markets[id]
+        let logo = market.urls['logo']
+        let website = Array.isArray (market.urls.www) ? market.urls.www[0] : market.urls.www
+        let doc = Array.isArray (market.urls.doc) ? market.urls.doc[0] : market.urls.doc
+        let version = market.version ? market.version : '\*'
+        let shouldInclude = false
+        if (Array.isArray (market.countries)) {
+            if (market.countries.indexOf (code) > -1)
+                shouldInclude = true
+        } else {
+            if (code == market.countries)
+                shouldInclude = true
+        }
+        if (shouldInclude) {
+            result.push ({
+                'country / region': country, 
+                'logo': '![' + market.id + '](' + logo + ')',
+                'id': market.id,
+                'name': '[' + market.name + '](' + website + ')',
+                'ver': version,
+                'doc': '[API](' + doc + ')',
+            })
+        }
+    })
+    marketsByCountries = marketsByCountries.concat (result)
+});
+
+;(() => {
+    let exchanges = asTable.configure ({ delimiter: ' | ' }) (marketsByCountries)
+    let lines = exchanges.split ("\n")
+    lines[1] = lines[0].replace (/[^\|]/g, '-')
+    let headerLine = lines[1].split ('|')
+    headerLine[4] = ':' + headerLine[4].slice (1, headerLine[4].length - 1) + ':'
+    headerLine[5] = ':' + headerLine[5].slice (1, headerLine[5].length - 1) + ':'
+    lines[1] = headerLine.join ('|')
+    lines = lines.map (line => '|' + line + '|').join ("\n")
+    let result = "The ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + lines + "\n\n"
+    fs.writeFileSync ('../ccxt.wiki/Exchange-Markets-By-Country.md', result)
+    // console.log (result)
+}) ();
+
+// console.log (marketsByCountries)
+// console.log (asTable.configure ({ delimiter: ' | ' }) (marketsByCountries))
 
 console.log ('Markets exported successfully.')
