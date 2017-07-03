@@ -78,7 +78,7 @@ let values = Object.values (markets).map (market => {
     let website = Array.isArray (market.urls.www) ? market.urls.www[0] : market.urls.www
     let countries = Array.isArray (market.countries) ? market.countries.map (countryName).join (', ') : countryName (market.countries)
     let doc = Array.isArray (market.urls.doc) ? market.urls.doc[0] : market.urls.doc
-    let version = market.version ? market.version : '-'
+    let version = market.version ? market.version : '\*'
     if (version[0] == 'v')
         version = version.slice (1)
     return {

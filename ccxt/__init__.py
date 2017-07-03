@@ -655,6 +655,135 @@ class _1btcxe (cryptocapital):
 
 #------------------------------------------------------------------------------
 
+class anxpro (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'anxpro',
+            'name': 'ANXPro',
+            'countries': [ 'JP', 'SG', 'HK', 'NZ', ],
+            'version': '2',
+            'rateLimit': 2000,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
+                'api': 'https://anxpro.com/api',
+                'www': 'https://anxpro.com',
+                'doc': 'https://anxpro.com/pages/api',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        '{currency_pair}/money/ticker',
+                        '{currency_pair}/money/depth/full',
+                        '{currency_pair}/money/trade/fetch', # disabled by ANXPro
+                    ],    
+                },
+                'private': {
+                    'post': [
+                        '{currency_pair}/money/order/add',
+                        '{currency_pair}/money/order/cancel',
+                        '{currency_pair}/money/order/quote',
+                        '{currency_pair}/money/order/result',
+                        '{currency_pair}/money/orders',
+                        'money/{currency}/address',
+                        'money/{currency}/send_simple',
+                        'money/info',
+                        'money/trade/list',
+                        'money/wallet/history',
+                    ],    
+                },
+            },
+            'products': {
+                'BTC/USD': { 'id': 'BTCUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+                'BTC/HKD': { 'id': 'BTCHKD', 'symbol': 'BTC/HKD', 'base': 'BTC', 'quote': 'HKD' },
+                'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+                'BTC/CAD': { 'id': 'BTCCAD', 'symbol': 'BTC/CAD', 'base': 'BTC', 'quote': 'CAD' },
+                'BTC/AUD': { 'id': 'BTCAUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD' },
+                'BTC/SGD': { 'id': 'BTCSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD' },
+                'BTC/JPY': { 'id': 'BTCJPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY' },
+                'BTC/GBP': { 'id': 'BTCGBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP' },
+                'BTC/NZD': { 'id': 'BTCNZD', 'symbol': 'BTC/NZD', 'base': 'BTC', 'quote': 'NZD' },
+                'LTC/BTC': { 'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+                'DOGE/BTC': { 'id': 'DOGEBTC', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC' },
+                'STR/BTC': { 'id': 'STRBTC', 'symbol': 'STR/BTC', 'base': 'STR', 'quote': 'BTC' },
+                'XRP/BTC': { 'id': 'XRPBTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC' },
+            },
+        }
+        params.update (config)
+        super (anxpro, self).__init__ (params)
+
+    def fetch_balance (self):
+        return self.privatePostMoneyInfo ()
+
+    def fetch_order_book (self, product):
+        return self.publicGetCurrencyPairMoneyDepthFull ({
+            'currency_pair': self.product_id (product),
+        })
+
+    def fetch_ticker (self, product):
+        response = self.publicGetCurrencyPairMoneyTicker ({
+            'currency_pair': self.product_id (product),
+        })
+        ticker = response['data']
+        timestamp = int (ticker['dataUpdateTime'] / 1000)
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']['value']),
+            'low': float (ticker['low']['value']),
+            'bid': float (ticker['buy']['value']),
+            'ask': float (ticker['sell'])['value'],
+            'vwap': float (ticker['vwap']['value']),
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']['value']),
+            'change': None,
+            'percentage': None,
+            'average': float (ticker['avg']['value']),
+            'baseVolume': None,
+            'quoteVolume': float (ticker['vol']['value']),
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetCurrencyPairMoneyTradeFetch ({
+            'currency_pair': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        order = {
+            'currency_pair': self.product_id (product),
+            'amount_int': amount,
+            'type': side,
+        }
+        if type == 'limit':
+            order['price_int'] = price
+        return self.privatePostCurrencyPairOrderAdd (self.extend (order, params))
+
+    def nonce (self):
+        return self.milliseconds ()
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        request = self.implode_params (path, params)
+        query = self.omit (params, self.extract_params (path))
+        url = self.urls['api'] + '/' + self.version + '/' + request
+        if type == 'public':
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
+            nonce = self.nonce ()
+            body = _urlencode.urlencode (self.extend ({ 'nonce': nonce }, query))
+            secret = base64.b64decode (self.secret)
+            auth = request + "\0" + body
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Rest-Key': self.apiKey,
+                'Rest-Sign': self.hmac (auth, secret, hashlib.sha512, 'base64'),
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class bit2c (Market):
 
     def __init__ (self, config = {}):

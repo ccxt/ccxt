@@ -701,6 +701,143 @@ class _1btcxe extends cryptocapital {
 
 //-----------------------------------------------------------------------------
 
+class anxpro extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'anxpro',
+            'name' => 'ANXPro',
+            'countries' => array ( 'JP', 'SG', 'HK', 'NZ', ),
+            'version' => '2',
+            'rateLimit' => 2000,
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
+                'api' => 'https://anxpro.com/api',
+                'www' => 'https://anxpro.com',
+                'doc' => 'https://anxpro.com/pages/api',
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        '{currency_pair}/money/ticker',
+                        '{currency_pair}/money/depth/full',
+                        '{currency_pair}/money/trade/fetch', // disabled by ANXPro
+                    ),    
+                ),
+                'private' => array (
+                    'post' => array (
+                        '{currency_pair}/money/order/add',
+                        '{currency_pair}/money/order/cancel',
+                        '{currency_pair}/money/order/quote',
+                        '{currency_pair}/money/order/result',
+                        '{currency_pair}/money/orders',
+                        'money/{currency}/address',
+                        'money/{currency}/send_simple',
+                        'money/info',
+                        'money/trade/list',
+                        'money/wallet/history',
+                    ),    
+                ),
+            ),
+            'products' => array (
+                'BTC/USD' => array ( 'id' => 'BTCUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
+                'BTC/HKD' => array ( 'id' => 'BTCHKD', 'symbol' => 'BTC/HKD', 'base' => 'BTC', 'quote' => 'HKD' ),
+                'BTC/EUR' => array ( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
+                'BTC/CAD' => array ( 'id' => 'BTCCAD', 'symbol' => 'BTC/CAD', 'base' => 'BTC', 'quote' => 'CAD' ),
+                'BTC/AUD' => array ( 'id' => 'BTCAUD', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD' ),
+                'BTC/SGD' => array ( 'id' => 'BTCSGD', 'symbol' => 'BTC/SGD', 'base' => 'BTC', 'quote' => 'SGD' ),
+                'BTC/JPY' => array ( 'id' => 'BTCJPY', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY' ),
+                'BTC/GBP' => array ( 'id' => 'BTCGBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP' ),
+                'BTC/NZD' => array ( 'id' => 'BTCNZD', 'symbol' => 'BTC/NZD', 'base' => 'BTC', 'quote' => 'NZD' ),
+                'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                'DOGE/BTC' => array ( 'id' => 'DOGEBTC', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC' ),
+                'STR/BTC' => array ( 'id' => 'STRBTC', 'symbol' => 'STR/BTC', 'base' => 'STR', 'quote' => 'BTC' ),
+                'XRP/BTC' => array ( 'id' => 'XRPBTC', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC' ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_balance () {
+        return $this->privatePostMoneyInfo ();
+    }
+
+    public function fetch_order_book ($product) {
+        return $this->publicGetCurrencyPairMoneyDepthFull (array (
+            'currency_pair' => $this->product_id ($product),
+        ));
+    }
+
+    public function fetch_ticker ($product) {
+        $response = $this->publicGetCurrencyPairMoneyTicker (array (
+            'currency_pair' => $this->product_id ($product),
+        ));
+        $ticker = $response['data'];
+        $timestamp = intval ($ticker['dataUpdateTime'] / 1000);
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']['value']),
+            'low' => floatval ($ticker['low']['value']),
+            'bid' => floatval ($ticker['buy']['value']),
+            'ask' => floatval ($ticker['sell'])['value'],
+            'vwap' => floatval ($ticker['vwap']['value']),
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['last']['value']),
+            'change' => null,
+            'percentage' => null,
+            'average' => floatval ($ticker['avg']['value']),
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['vol']['value']),
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetCurrencyPairMoneyTradeFetch (array (
+            'currency_pair' => $this->product_id ($product),
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        $order = array (
+            'currency_pair' => $this->product_id ($product),
+            'amount_int' => $amount,
+            'type' => $side,
+        );
+        if ($type == 'limit')
+            $order['price_int'] = $price;
+        return $this->privatePostCurrencyPairOrderAdd (array_merge ($order, $params));
+    }
+
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $request = $this->implode_params ($path, $params);
+        $query = $this->omit ($params, $this->extract_params ($path));
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $request;
+        if ($type == 'public') {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
+        } else {
+            $nonce = $this->nonce ();
+            $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $query));
+            $secret = base64_decode ($this->secret);
+            $auth = $request . "\0" . $body;
+            $headers = array (
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Rest-Key' => $this->apiKey,
+                'Rest-Sign' => $this->hmac ($auth, $secret, 'sha512', 'base64'),
+            );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 class bit2c extends Market {
 
     public function __construct ($options = array ()) {

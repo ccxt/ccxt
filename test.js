@@ -18,6 +18,7 @@ try {
 
         _1broker:    { 'verbose': verbose, apiKey: '', token: '', },
         _1btcxe:     { 'verbose': verbose, apiKey: '', secret: '', },
+        anxpro:      { 'verbose': verbose, apiKey: '', secret: '', },
         bit2c:       { 'verbose': verbose, apiKey: '', secret: '', },
         bitbay:      { 'verbose': verbose, apiKey: '', secret: '', },
         bitcoincoid: { 'verbose': verbose, apiKey: '', secret: '', },
@@ -219,6 +220,10 @@ var test = async function () {
 
         try {
 
+            let r = market.hmac ("Test\0Message", market.base64ToBinary ("7pgj8Dm6"), 'sha512', 'base64')
+            console.log (r)
+            console.log (r == "69H45OZkKcmR9LOszbajUUPGkGT8IqasGPAWqW/1stGC2Mex2qhIB6aDbuoy7eGfMsaZiU8Y0lO3mQxlsWNPrw==")
+            process.exit ()
             await testMarket (market)
 
         } catch (e) {

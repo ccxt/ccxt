@@ -17,6 +17,7 @@ else
 
         '_1broker'    => array ('verbose' => $verbose, 'apiKey' => '', 'token' => '', ),
         '_1btcxe'     => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
+        'anxpro'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'bit2c'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'bitbay'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'bitcoincoid' => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),

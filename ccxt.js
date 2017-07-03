@@ -689,6 +689,139 @@ var _1btcxe = extend (cryptocapital, {
 
 //-----------------------------------------------------------------------------
 
+var anxpro = {
+
+    'id': 'anxpro',
+    'name': 'ANXPro',
+    'countries': [ 'JP', 'SG', 'HK', 'NZ', ],
+    'version': '2',
+    'rateLimit': 2000,
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
+        'api': 'https://anxpro.com/api',
+        'www': 'https://anxpro.com',
+        'doc': 'https://anxpro.com/pages/api',
+    },
+    'api': {
+        'public': {
+            'get': [
+                '{currency_pair}/money/ticker',
+                '{currency_pair}/money/depth/full',
+                '{currency_pair}/money/trade/fetch', // disabled by ANXPro
+            ],    
+        },
+        'private': {
+            'post': [
+                '{currency_pair}/money/order/add',
+                '{currency_pair}/money/order/cancel',
+                '{currency_pair}/money/order/quote',
+                '{currency_pair}/money/order/result',
+                '{currency_pair}/money/orders',
+                'money/{currency}/address',
+                'money/{currency}/send_simple',
+                'money/info',
+                'money/trade/list',
+                'money/wallet/history',
+            ],    
+        },
+    },
+    'products': {
+        'BTC/USD': { 'id': 'BTCUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+        'BTC/HKD': { 'id': 'BTCHKD', 'symbol': 'BTC/HKD', 'base': 'BTC', 'quote': 'HKD' },
+        'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+        'BTC/CAD': { 'id': 'BTCCAD', 'symbol': 'BTC/CAD', 'base': 'BTC', 'quote': 'CAD' },
+        'BTC/AUD': { 'id': 'BTCAUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD' },
+        'BTC/SGD': { 'id': 'BTCSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD' },
+        'BTC/JPY': { 'id': 'BTCJPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY' },
+        'BTC/GBP': { 'id': 'BTCGBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP' },
+        'BTC/NZD': { 'id': 'BTCNZD', 'symbol': 'BTC/NZD', 'base': 'BTC', 'quote': 'NZD' },
+        'LTC/BTC': { 'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+        'DOGE/BTC': { 'id': 'DOGEBTC', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC' },
+        'STR/BTC': { 'id': 'STRBTC', 'symbol': 'STR/BTC', 'base': 'STR', 'quote': 'BTC' },
+        'XRP/BTC': { 'id': 'XRPBTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC' },
+    },
+
+    fetchBalance () {
+        return this.privatePostMoneyInfo ();
+    },
+
+    fetchOrderBook (product) {
+        return this.publicGetCurrencyPairMoneyDepthFull ({
+            'currency_pair': this.productId (product),
+        });
+    },
+
+    async fetchTicker (product) {
+        let response = await this.publicGetCurrencyPairMoneyTicker ({
+            'currency_pair': this.productId (product),
+        });
+        let ticker = response['data'];
+        let timestamp = parseInt (ticker['dataUpdateTime'] / 1000);
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']['value']),
+            'low': parseFloat (ticker['low']['value']),
+            'bid': parseFloat (ticker['buy']['value']),
+            'ask': parseFloat (ticker['sell'])['value'],
+            'vwap': parseFloat (ticker['vwap']['value']),
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last']['value']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': parseFloat (ticker['avg']['value']),
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['vol']['value']),
+        };
+    },
+
+    fetchTrades (product) {
+        return this.publicGetCurrencyPairMoneyTradeFetch ({
+            'currency_pair': this.productId (product),
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let order = {
+            'currency_pair': this.productId (product),
+            'amount_int': amount,
+            'type': side,
+        };
+        if (type == 'limit')
+            order['price_int'] = price;
+        return this.privatePostCurrencyPairOrderAdd (this.extend (order, params));
+    },
+
+    nonce () {
+        return this.milliseconds ();
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let request = this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        let url = this.urls['api'] + '/' + this.version + '/' + request;
+        if (type == 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            let nonce = this.nonce ();
+            body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
+            let secret = this.base64ToBinary (this.secret);
+            let auth = request + "\0" + body;
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Rest-Key': this.apiKey,
+                'Rest-Sign': this.hmac (auth, secret, 'sha512', 'base64'),
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var bit2c = {
 
     'id': 'bit2c',
@@ -5830,6 +5963,7 @@ var markets = {
 
     '_1broker':    _1broker,
     '_1btcxe':     _1btcxe,
+    'anxpro':      anxpro,
     'bit2c':       bit2c,
     'bitbay':      bitbay,
     'bitcoincoid': bitcoincoid,
