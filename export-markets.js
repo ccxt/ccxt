@@ -19,6 +19,7 @@ try {
 
         _1broker:    { 'verbose': verbose, apiKey: '', token: '', },
         _1btcxe:     { 'verbose': verbose, apiKey: '', secret: '', },
+        anxpro:      { 'verbose': verbose, apiKey: '', secret: '', },
         bit2c:       { 'verbose': verbose, apiKey: '', secret: '', },
         bitbay:      { 'verbose': verbose, apiKey: '', secret: '', },
         bitcoincoid: { 'verbose': verbose, apiKey: '', secret: '', },
