@@ -1,7 +1,6 @@
 # coding=utf-8
 
 import ccxt
-import sys
 import time
 
 verbose = False
@@ -77,11 +76,11 @@ def test_market (market):
 	products = market.load_products ()
 	# print (market.id, 'products', products)
 
-	keys = products.keys ()
+	keys = list(products.keys ())
 	print (market.id , len (keys), 'symbols', keys)
 	# time.sleep (delay)
 
-	symbol = products.keys ()[0]
+	symbol = keys[0]
 	for s in ['BTC/USD', 'BTC/CNY', 'BTC/ETH', 'ETH/BTC', 'BTC/JPY']:
 		if s in keys:
 			symbol = s
