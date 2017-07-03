@@ -26,6 +26,7 @@ else
         'bitmarket'   => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'bitmex'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'bitso'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
+        'bitstamp'    => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', 'uid' => '', ),
         'bittrex'     => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'btcchina'    => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'btcx'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),

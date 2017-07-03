@@ -1985,6 +1985,142 @@ class bitso (Market):
 
 #------------------------------------------------------------------------------
 
+class bitstamp (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'bitstamp',
+            'name': 'Bitstamp',
+            'countries': 'UK',
+            'rateLimit': 1000,
+            'version': 'v2',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
+                'api': 'https://www.bitstamp.net/api',
+                'www': 'https://www.bitstamp.net',
+                'doc': 'https://www.bitstamp.net/api',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'order_book/{id}/',
+                        'ticker_hour/{id}/',
+                        'ticker/{id}/',
+                        'transactions/{id}/',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'balance/',
+                        'balance/{id}/',
+                        'buy/{id}/',
+                        'buy/market/{id}/',
+                        'cancel_order/',
+                        'liquidation_address/info/',
+                        'liquidation_address/new/',
+                        'open_orders/all/',
+                        'open_orders/{id}/',
+                        'sell/{id}/',
+                        'sell/market/{id}/',
+                        'transfer-from-main/',
+                        'transfer-to-main/',
+                        'user_transactions/',
+                        'user_transactions/{id}/',
+                        'withdrawal/cancel/',
+                        'withdrawal/open/',
+                        'withdrawal/status/',
+                        'xrp_address/',
+                        'xrp_withdrawal/',
+                    ],
+                },
+            },
+            'products': {
+                'BTC/USD': { 'id': 'btcusd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+                'BTC/EUR': { 'id': 'btceur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+                'EUR/USD': { 'id': 'eurusd', 'symbol': 'EUR/USD', 'base': 'EUR', 'quote': 'USD' },
+                'XRP/USD': { 'id': 'xrpusd', 'symbol': 'XRP/USD', 'base': 'XRP', 'quote': 'USD' },
+                'XRP/EUR': { 'id': 'xrpeur', 'symbol': 'XRP/EUR', 'base': 'XRP', 'quote': 'EUR' },
+                'XRP/BTC': { 'id': 'xrpbtc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC' },
+            },
+        }
+        params.update (config)
+        super (bitstamp, self).__init__ (params)
+
+    def fetch_order_book (self, product):
+        return self.publicGetOrderBookId ({
+            'id': self.product_id (product),
+        })
+
+    def fetch_ticker (self, product):
+        ticker = self.publicGetTickerId ({
+            'id': self.product_id (product),
+        })
+        timestamp = int (ticker['timestamp']) * 1000
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['bid']),
+            'ask': float (ticker['ask']),
+            'vwap': float (ticker['vwap']),
+            'open': float (ticker['open']),
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['volume']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetTransactionsId ({ 
+            'id': self.product_id (product),
+        })
+
+    def fetch_balance (self):
+        return self.privatePostBalance ()
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        method = 'privatePost' + self.capitalize (side)
+        order = {
+            'id': self.product_id (product),
+            'amount': amount,
+        }
+        if type == 'market':
+            method += 'Market'
+        else:
+            order['price'] = price
+        method += 'Id'
+        return getattr (self, method) (self.extend (order, params))
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)
+        query = self.omit (params, self.extract_params (path))
+        if type == 'public':
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
+            nonce = str (self.nonce ())
+            auth = nonce + self.uid + self.apiKey
+            signature = self.hmac (auth, self.secret)
+            query = self.extend ({
+                'key': self.apiKey,
+                'signature': signature.upper (),
+                'nonce': nonce,
+            }, query)
+            body = _urlencode.urlencode (query)
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': len (body),
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class bittrex (Market):
 
     def __init__ (self, config = {}):

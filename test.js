@@ -27,6 +27,7 @@ try {
         bitmarket:   { 'verbose': verbose, apiKey: '', secret: '', },    
         bitmex:      { 'verbose': verbose, apiKey: '', secret: '', },
         bitso:       { 'verbose': verbose, apiKey: '', secret: '', },
+        bitstamp:    { 'verbose': verbose, apiKey: '', secret: '', uid: '', },
         bittrex:     { 'verbose': verbose, apiKey: '', secret: '', },
         btcchina:    { 'verbose': verbose, apiKey: '', secret: '', },
         btcx:        { 'verbose': verbose, apiKey: '', secret: '', },
@@ -216,14 +217,10 @@ var test = async function () {
 
     // Object.keys (markets).forEach (async id => {
 
-        var market = markets.btcchina //markets[id]
+        var market = markets.bitstamp //markets[id]
 
         try {
 
-            let r = market.hmac ("Test\0Message", market.base64ToBinary ("7pgj8Dm6"), 'sha512', 'base64')
-            console.log (r)
-            console.log (r == "69H45OZkKcmR9LOszbajUUPGkGT8IqasGPAWqW/1stGC2Mex2qhIB6aDbuoy7eGfMsaZiU8Y0lO3mQxlsWNPrw==")
-            process.exit ()
             await testMarket (market)
 
         } catch (e) {

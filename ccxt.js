@@ -2057,6 +2057,145 @@ var bitso = {
 
 //-----------------------------------------------------------------------------
 
+var bitstamp = {
+
+    'id': 'bitstamp',
+    'name': 'Bitstamp',
+    'countries': 'UK',
+    'rateLimit': 1000,
+    'version': 'v2',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
+        'api': 'https://www.bitstamp.net/api',
+        'www': 'https://www.bitstamp.net',
+        'doc': 'https://www.bitstamp.net/api',
+    },
+    'api': {
+        'public': {
+            'get': [
+                'order_book/{id}/',
+                'ticker_hour/{id}/',
+                'ticker/{id}/',
+                'transactions/{id}/',
+            ],
+        },
+        'private': {
+            'post': [
+                'balance/',
+                'balance/{id}/',
+                'buy/{id}/',
+                'buy/market/{id}/',
+                'cancel_order/',
+                'liquidation_address/info/',
+                'liquidation_address/new/',
+                'open_orders/all/',
+                'open_orders/{id}/',
+                'sell/{id}/',
+                'sell/market/{id}/',
+                'transfer-from-main/',
+                'transfer-to-main/',
+                'user_transactions/',
+                'user_transactions/{id}/',
+                'withdrawal/cancel/',
+                'withdrawal/open/',
+                'withdrawal/status/',
+                'xrp_address/',
+                'xrp_withdrawal/',
+            ],
+        },
+    },
+    'products': {
+        'BTC/USD': { 'id': 'btcusd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+        'BTC/EUR': { 'id': 'btceur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+        'EUR/USD': { 'id': 'eurusd', 'symbol': 'EUR/USD', 'base': 'EUR', 'quote': 'USD' },
+        'XRP/USD': { 'id': 'xrpusd', 'symbol': 'XRP/USD', 'base': 'XRP', 'quote': 'USD' },
+        'XRP/EUR': { 'id': 'xrpeur', 'symbol': 'XRP/EUR', 'base': 'XRP', 'quote': 'EUR' },
+        'XRP/BTC': { 'id': 'xrpbtc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC' },
+    },
+    
+    fetchOrderBook (product) {
+        return this.publicGetOrderBookId ({
+            'id': this.productId (product),
+        });
+    },
+
+    async fetchTicker (product) {
+        let ticker = await this.publicGetTickerId ({
+            'id': this.productId (product),
+        });
+        let timestamp = parseInt (ticker['timestamp']) * 1000;
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['bid']),
+            'ask': parseFloat (ticker['ask']),
+            'vwap': parseFloat (ticker['vwap']),
+            'open': parseFloat (ticker['open']),
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['volume']),
+            'info': ticker,
+        };
+    },
+    
+    fetchTrades (product) {
+        return this.publicGetTransactionsId ({ 
+            'id': this.productId (product),
+        });
+    },
+    
+    fetchBalance () {
+        return this.privatePostBalance ();
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let method = 'privatePost' + this.capitalize (side);
+        let order = {
+            'id': this.productId (product),
+            'amount': amount,
+        };
+        if (type == 'market')
+            method += 'Market';
+        else
+            order['price'] = price;
+        method += 'Id';
+        return this[method] (this.extend (order, params));
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (type == 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            let nonce = this.nonce ().toString ();
+            let auth = nonce + this.uid + this.apiKey;
+            let signature = this.hmac (auth, this.secret);
+            query = this.extend ({
+                'key': this.apiKey,
+                'signature': signature.toUpperCase (),
+                'nonce': nonce,
+            }, query);
+            body = this.urlencode (query);
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': body.length,
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var bittrex = {
 
     'id': 'bittrex',
@@ -5971,7 +6110,8 @@ var markets = {
     'bitlish':     bitlish,
     'bitmarket':   bitmarket,
     'bitmex':      bitmex,
-    'bitso':       bitso, 
+    'bitso':       bitso,
+    'bitstamp':    bitstamp,
     'bittrex':     bittrex,
     'btcchina':    btcchina,
     'btcx':        btcx,

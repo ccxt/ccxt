@@ -2105,6 +2105,149 @@ class bitso extends Market {
 
 //-----------------------------------------------------------------------------
 
+class bitstamp extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'bitstamp',
+            'name' => 'Bitstamp',
+            'countries' => 'UK',
+            'rateLimit' => 1000,
+            'version' => 'v2',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
+                'api' => 'https://www.bitstamp.net/api',
+                'www' => 'https://www.bitstamp.net',
+                'doc' => 'https://www.bitstamp.net/api',
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'order_book/{id}/',
+                        'ticker_hour/{id}/',
+                        'ticker/{id}/',
+                        'transactions/{id}/',
+                    ),
+                ),
+                'private' => array (
+                    'post' => array (
+                        'balance/',
+                        'balance/{id}/',
+                        'buy/{id}/',
+                        'buy/market/{id}/',
+                        'cancel_order/',
+                        'liquidation_address/info/',
+                        'liquidation_address/new/',
+                        'open_orders/all/',
+                        'open_orders/{id}/',
+                        'sell/{id}/',
+                        'sell/market/{id}/',
+                        'transfer-from-main/',
+                        'transfer-to-main/',
+                        'user_transactions/',
+                        'user_transactions/{id}/',
+                        'withdrawal/cancel/',
+                        'withdrawal/open/',
+                        'withdrawal/status/',
+                        'xrp_address/',
+                        'xrp_withdrawal/',
+                    ),
+                ),
+            ),
+            'products' => array (
+                'BTC/USD' => array ( 'id' => 'btcusd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
+                'BTC/EUR' => array ( 'id' => 'btceur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
+                'EUR/USD' => array ( 'id' => 'eurusd', 'symbol' => 'EUR/USD', 'base' => 'EUR', 'quote' => 'USD' ),
+                'XRP/USD' => array ( 'id' => 'xrpusd', 'symbol' => 'XRP/USD', 'base' => 'XRP', 'quote' => 'USD' ),
+                'XRP/EUR' => array ( 'id' => 'xrpeur', 'symbol' => 'XRP/EUR', 'base' => 'XRP', 'quote' => 'EUR' ),
+                'XRP/BTC' => array ( 'id' => 'xrpbtc', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC' ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_order_book ($product) {
+        return $this->publicGetOrderBookId (array (
+            'id' => $this->product_id ($product),
+        ));
+    }
+
+    public function fetch_ticker ($product) {
+        $ticker = $this->publicGetTickerId (array (
+            'id' => $this->product_id ($product),
+        ));
+        $timestamp = intval ($ticker['timestamp']) * 1000;
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => floatval ($ticker['vwap']),
+            'open' => floatval ($ticker['open']),
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['volume']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetTransactionsId (array ( 
+            'id' => $this->product_id ($product),
+        ));
+    }
+
+    public function fetch_balance () {
+        return $this->privatePostBalance ();
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        $method = 'privatePost' . $this->capitalize ($side);
+        $order = array (
+            'id' => $this->product_id ($product),
+            'amount' => $amount,
+        );
+        if ($type == 'market')
+            $method .= 'Market';
+        else
+            $order['price'] = $price;
+        $method .= 'Id';
+        return $this->$method (array_merge ($order, $params));
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $query = $this->omit ($params, $this->extract_params ($path));
+        if ($type == 'public') {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
+        } else {
+            $nonce = (string) $this->nonce ();
+            $auth = $nonce . $this->uid . $this->apiKey;
+            $signature = $this->hmac ($auth, $this->secret);
+            $query = array_merge (array (
+                'key' => $this->apiKey,
+                'signature' => strtoupper ($signature),
+                'nonce' => $nonce,
+            ), $query);
+            $body = $this->urlencode ($query);
+            $headers = array (
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body),
+            );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 class bittrex extends Market {
 
     public function __construct ($options = array ()) {

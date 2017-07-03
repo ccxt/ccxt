@@ -25,6 +25,7 @@ except ImportError:
 		'bitmarket':   { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'bitmex':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'bitso':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'bitstamp':    { 'verbose': verbose, 'apiKey': '', 'secret': '', 'uid': '' },
 		'bittrex':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'btcchina':    { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'btcx':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
