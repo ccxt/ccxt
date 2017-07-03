@@ -109,7 +109,7 @@ while (markets = regex.exec (contents)) {
             [ /([^a-zA-Z0-9_])let\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
             [ /([^a-zA-Z0-9_])let\s/g, '$1' ],              
             [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
-            [ /Object\.keys\s*\((.*)\)/g, '$1.keys ()' ],
+            [ /Object\.keys\s*\((.*)\)/g, 'list ($1.keys ())' ],
             [ /\[([^\]]+)\]\.join\s*\(([^\)]+)\)/g, "$2.join ([$1])" ],                
             [ /\'(sha[0-9]+)\'/g, 'hashlib.$1'],
             [ /throw new Error \((.*)\)/g, 'raise Exception ($1)'],

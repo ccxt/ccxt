@@ -1396,7 +1396,7 @@ class bitlish (Market):
     def fetch_products (self):
         products = self.publicGetPairs ()
         result = []
-        keys = products.keys ()
+        keys = list (products.keys ())
         for p in range (0, len (keys)):
             product = products[keys[p]]
             id = product['id']
@@ -2339,7 +2339,7 @@ class btcchina (Market):
             'market': 'all',
         })
         result = []
-        keys = products.keys ()
+        keys = list (products.keys ())
         for p in range (0, len (keys)):
             key = keys[p]
             product = products[key]
@@ -2618,7 +2618,7 @@ class bxinth (Market):
 
     def fetch_products (self):
         products = self.publicGetPairing ()
-        keys = products.keys ()
+        keys = list (products.keys ())
         result = []
         for p in range (0, len (keys)):
             product = products[keys[p]]
@@ -3415,7 +3415,7 @@ class exmo (Market):
 
     def fetch_products (self):
         products = self.publicGetPairSettings ()
-        keys = products.keys ()
+        keys = list (products.keys ())
         result = []
         for p in range (0, len (keys)):
             id = keys[p]
@@ -4299,7 +4299,7 @@ class kraken (Market):
 
     def fetch_products (self):
         products = self.publicGetAssetPairs ()
-        keys = products['result'].keys ()
+        keys = list (products['result'].keys ())
         result = []
         for p in range (0, len (keys)):
             id = keys[p]
@@ -4944,7 +4944,7 @@ class poloniex (Market):
 
     def fetch_products (self):
         products = self.publicGetReturnTicker ()
-        keys = products.keys ()
+        keys = list (products.keys ())
         result = []
         for p in range (0, len (keys)):
             id = keys[p]
@@ -5658,7 +5658,7 @@ class virwox (Market):
 
     def fetch_products (self):
         products = self.publicGetInstruments ()
-        keys = products['result'].keys ()
+        keys = list (products['result'].keys ())
         result = []
         for p in range (0, len (keys)):
             product = products['result'][keys[p]]
@@ -5700,7 +5700,7 @@ class virwox (Market):
             'HLOC': 1,
         })
         tickers = response['result']['priceVolumeList']
-        keys = tickers.keys ()
+        keys = list (tickers.keys ())
         length = len (keys)
         lastKey = keys[length - 1]
         ticker = tickers[lastKey]
@@ -5808,7 +5808,7 @@ class yobit (Market):
 
     def fetch_products (self):
         products = self.apiGetInfo ()
-        keys = products['pairs'].keys ()
+        keys = list (products['pairs'].keys ())
         result = []
         for p in range (0, len (keys)):
             id = keys[p]
