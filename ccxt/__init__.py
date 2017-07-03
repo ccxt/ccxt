@@ -1093,9 +1093,30 @@ class bitbays (Market):
         })
 
     def fetch_ticker (self, product):
-        return self.publicGetTicker ({
+        response = self.publicGetTicker ({
             'market': self.product_id (product),
         })
+        ticker = response['result']
+        timestamp = self.milliseconds ()
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['buy']),
+            'ask': float (ticker['sell']),
+            'vwap': float (ticker['vwap']),
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['vol']),
+            'info': ticker,
+        }
 
     def fetch_trades (self, product):
         return self.publicGetTrades ({

@@ -1129,10 +1129,31 @@ var bitbays = {
         });
     },
     
-    fetchTicker (product) {
-        return this.publicGetTicker ({
+    async fetchTicker (product) {
+        let response = await this.publicGetTicker ({
             'market': this.productId (product),
         });
+        let ticker = response['result'];
+        let timestamp = this.milliseconds ();
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['buy']),
+            'ask': parseFloat (ticker['sell']),
+            'vwap': parseFloat (ticker['vwap']),
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['vol']),
+            'info': ticker,
+        };
     },
     
     fetchTrades (product) {

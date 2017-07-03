@@ -1158,9 +1158,30 @@ class bitbays extends Market {
     }
 
     public function fetch_ticker ($product) {
-        return $this->publicGetTicker (array (
+        $response = $this->publicGetTicker (array (
             'market' => $this->product_id ($product),
         ));
+        $ticker = $response['result'];
+        $timestamp = $this->milliseconds ();
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
+            'vwap' => floatval ($ticker['vwap']),
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['vol']),
+            'info' => $ticker,
+        );
     }
 
     public function fetch_trades ($product) {
