@@ -1113,7 +1113,7 @@ class bitbays extends Market {
         parent::__construct (array_merge (array (
             'id' => 'bitbays',
             'name' => 'BitBays',
-            'countries' => array ( 'CN', 'UK', 'HK', 'AU', 'CA' ),
+            'countries' => array ( 'CN', 'GB', 'HK', 'AU', 'CA' ),
             'rateLimit' => 2000,
             'version' => 'v1',
             'urls' => array (
@@ -1541,7 +1541,7 @@ class bitlish extends Market {
         parent::__construct (array_merge (array (
             'id' => 'bitlish',
             'name' => 'bitlish',
-            'countries' => array ( 'UK', 'EU', 'RU', ),
+            'countries' => array ( 'GB', 'EU', 'RU', ),
             'rateLimit' => 2000,    
             'version' => 'v1',
             'urls' => array (
@@ -2232,7 +2232,7 @@ class bitstamp extends Market {
         parent::__construct (array_merge (array (
             'id' => 'bitstamp',
             'name' => 'Bitstamp',
-            'countries' => 'UK',
+            'countries' => 'GB',
             'rateLimit' => 1000,
             'version' => 'v2',
             'urls' => array (
@@ -3142,7 +3142,7 @@ class cex extends Market {
         parent::__construct (array_merge (array (
             'id' => 'cex',
             'name' => 'CEX.IO',
-            'countries' => array ( 'UK', 'EU', 'CY', 'RU', ),
+            'countries' => array ( 'GB', 'EU', 'CY', 'RU', ),
             'rateLimit' => 2000,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -3460,7 +3460,7 @@ class coinmate extends Market {
         parent::__construct (array_merge (array (
             'id' => 'coinmate',
             'name' => 'CoinMate',
-            'countries' => array ( 'UK', 'CZ' ), // UK, Czech Republic
+            'countries' => array ( 'GB', 'CZ' ), // UK, Czech Republic
             'rateLimit' => 1000,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
@@ -4914,7 +4914,7 @@ class luno extends Market {
         parent::__construct (array_merge (array (
             'id' => 'luno',
             'name' => 'luno',
-            'countries' => array ( 'UK', 'SG', 'ZA', ),
+            'countries' => array ( 'GB', 'SG', 'ZA', ),
             'rateLimit' => 5000,
             'version' => '1',
             'urls' => array (

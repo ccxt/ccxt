@@ -1087,7 +1087,7 @@ var bitbays = {
 
     'id': 'bitbays',
     'name': 'BitBays',
-    'countries': [ 'CN', 'UK', 'HK', 'AU', 'CA' ],
+    'countries': [ 'CN', 'GB', 'HK', 'AU', 'CA' ],
     'rateLimit': 2000,
     'version': 'v1',
     'urls': {
@@ -1503,7 +1503,7 @@ var bitlish = {
 
     'id': 'bitlish',
     'name': 'bitlish',
-    'countries': [ 'UK', 'EU', 'RU', ],
+    'countries': [ 'GB', 'EU', 'RU', ],
     'rateLimit': 2000,    
     'version': 'v1',
     'urls': {
@@ -2178,7 +2178,7 @@ var bitstamp = {
 
     'id': 'bitstamp',
     'name': 'Bitstamp',
-    'countries': 'UK',
+    'countries': 'GB',
     'rateLimit': 1000,
     'version': 'v2',
     'urls': {
@@ -3064,7 +3064,7 @@ var cex = {
 
     'id': 'cex',
     'name': 'CEX.IO',
-    'countries': [ 'UK', 'EU', 'CY', 'RU', ],
+    'countries': [ 'GB', 'EU', 'CY', 'RU', ],
     'rateLimit': 2000,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -3374,7 +3374,7 @@ var coinmate = {
     
     'id': 'coinmate',
     'name': 'CoinMate',
-    'countries': [ 'UK', 'CZ' ], // UK, Czech Republic
+    'countries': [ 'GB', 'CZ' ], // UK, Czech Republic
     'rateLimit': 1000,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
@@ -4782,7 +4782,7 @@ var luno = {
 
     'id': 'luno',
     'name': 'luno',
-    'countries': [ 'UK', 'SG', 'ZA', ],
+    'countries': [ 'GB', 'SG', 'ZA', ],
     'rateLimit': 5000,
     'version': '1',
     'urls': {
