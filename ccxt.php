@@ -4372,7 +4372,7 @@ class gdax extends Market {
 
     public function fetch_trades ($product) {
         return $this->publicGetProductsIdTrades (array (
-            'symbol' => $this->product_id ($product),
+            'id' => $this->product_id ($product),
         ));
     }
 
