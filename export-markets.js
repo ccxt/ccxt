@@ -137,6 +137,8 @@ Object.keys (countries).forEach (code => {
         let website = Array.isArray (market.urls.www) ? market.urls.www[0] : market.urls.www
         let doc = Array.isArray (market.urls.doc) ? market.urls.doc[0] : market.urls.doc
         let version = market.version ? market.version : '\*'
+        if (version[0] == 'v')
+            version = version.slice (1)
         let shouldInclude = false
         if (Array.isArray (market.countries)) {
             if (market.countries.indexOf (code) > -1)
