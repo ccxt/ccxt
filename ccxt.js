@@ -3482,7 +3482,7 @@ var coinmate = {
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        var url = this.urls['api'] + '/' + path;
+        let url = this.urls['api'] + '/' + path;
         if (type == 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);

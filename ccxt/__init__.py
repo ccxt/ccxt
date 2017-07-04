@@ -3373,7 +3373,7 @@ class coinmate (Market):
         return getattr (self, method) (self.extend (order, params))
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        var url = self.urls['api'] + '/' + path
+        url = self.urls['api'] + '/' + path
         if type == 'public':
             if params:
                 url += '?' + _urlencode.urlencode (params)

@@ -3570,10 +3570,10 @@ class coinmate extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        var url = $this->urls['api'] . '/' . $path;
+        $url = $this->urls['api'] . '/' . $path;
         if ($type == 'public') {
             if ($params)
-                url .= '?' . $this->urlencode ($params);
+                $url .= '?' . $this->urlencode ($params);
         } else {
             $nonce = (string) $this->nonce ();
             $auth = implode (' ', array ($nonce, $this->uid, $this->apiKey));
@@ -3589,7 +3589,7 @@ class coinmate extends Market {
                 'Content-Length' => strlen ($body),
             );
         }
-        return $this->fetch (url, $method, $headers, $body);
+        return $this->fetch ($url, $method, $headers, $body);
     }
 }
 
