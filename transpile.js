@@ -143,7 +143,7 @@ while (markets = regex.exec (contents)) {
             [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '($1 in $2.keys ())' ],
             [ /([^\s]+\s*\(\))\.toString \(\)/g, 'str ($1)' ],
             [ /([^\s]+)\.toString \(\)/g, 'str ($1)' ],                
-            [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, '$2.join ($1)' ],
+            [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$2.join ($1)' ],
         ]
 
         let phRegex = [

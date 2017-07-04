@@ -1940,7 +1940,7 @@ class bitmex (Market):
             if method == 'POST':
                 if params:
                     body = json.dumps (params)
-            request = [ method, query, nonce, body or ''].join ('')
+            request = ''.join ([ method, query, nonce, body or ''])
             headers = {
                 'Content-Type': 'application/json',
                 'api-nonce': nonce,
@@ -2095,7 +2095,7 @@ class bitso (Market):
             if params:
                 body = json.dumps (params)
             nonce = str (self.nonce ())
-            request = [ nonce, method, query, body or '' ].join ('')
+            request = ''.join ([ nonce, method, query, body or '' ])
             signature = self.hmac (request, self.secret)
             auth = self.apiKey + ':' + nonce + ':' + signature
             headers = { 'Authorization': "Bitso " + auth }
@@ -3379,7 +3379,7 @@ class coinmate (Market):
                 url += '?' + _urlencode.urlencode (params)
         else:
             nonce = str (self.nonce ())
-            auth = ' [ nonce, self.uid, self.apiKey ].join (')
+            auth = ' '.join ([ nonce, self.uid, self.apiKey ])
             signature = self.hmac (auth, self.secret)
             body = _urlencode.urlencode (self.extend ({
                 'clientId': self.uid,
@@ -5383,7 +5383,7 @@ class quadrigacx (Market):
             url += '?' + _urlencode.urlencode (params)
         else:
             nonce = self.nonce ()
-            request = [ nonce, self.uid, self.apiKey ].join ('')
+            request = ''.join ([ nonce, self.uid, self.apiKey ])
             signature = self.hmac (request, self.secret)
             query = self.extend ({ 
                 'key': self.apiKey,
