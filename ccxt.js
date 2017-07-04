@@ -4704,6 +4704,10 @@ var itbit = {
         });
     },
 
+    fetchBalance () {
+        return this.privateGetWallets ();
+    },
+
     nonce () {
         return this.milliseconds ();
     },

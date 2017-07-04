@@ -4834,6 +4834,10 @@ class itbit extends Market {
         ));
     }
 
+    public function fetch_balance () {
+        return $this->privateGetWallets ();
+    }
+
     public function nonce () {
         return $this->milliseconds ();
     }

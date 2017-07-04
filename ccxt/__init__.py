@@ -4573,6 +4573,9 @@ class itbit (Market):
             'symbol': self.product_id (product),
         })
 
+    def fetch_balance (self):
+        return self.privateGetWallets ()
+
     def nonce (self):
         return self.milliseconds ()
 
