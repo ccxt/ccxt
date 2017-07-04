@@ -4481,6 +4481,145 @@ class huobi (Market):
 
 #------------------------------------------------------------------------------
 
+class itbit (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'itbit',    
+            'name': 'itBit',
+            'countries': 'US',
+            'rateLimit': 3000,
+            'version': 'v1',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
+                'api': 'https://api.itbit.com',
+                'www': 'https://www.itbit.com',
+                'doc': [
+                    'https://www.itbit.com/api',
+                    'https://api.itbit.com/docs',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'markets/{symbol}/ticker',
+                        'markets/{symbol}/order_book',
+                        'markets/{symbol}/trades',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'wallets',
+                        'wallets/{walletId}',
+                        'wallets/{walletId}/balances/{currencyCode}',
+                        'wallets/{walletId}/funding_history',
+                        'wallets/{walletId}/trades',
+                        'wallets/{walletId}/orders/{orderId}',
+                    ],
+                    'post': [
+                        'wallet_transfers',
+                        'wallets',
+                        'wallets/{walletId}/cryptocurrency_deposits',
+                        'wallets/{walletId}/cryptocurrency_withdrawals',
+                        'wallets/{walletId}/orders',
+                        'wire_withdrawal',
+                    ],
+                    'delete': [
+                        'wallets/{walletId}/orders/{orderId}',
+                    ],
+                },
+            },
+            'products': {
+                'BTC/USD': { 'id': 'XBTUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+                'BTC/SGD': { 'id': 'XBTSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD' },
+                'BTC/EUR': { 'id': 'XBTEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+            },
+        }
+        params.update (config)
+        super (itbit, self).__init__ (params)
+
+    def fetch_order_book (self, product):
+        return self.publicGetMarketsSymbolOrderBook ({ 
+            'symbol': self.product_id (product),
+        })
+
+    def fetch_ticker (self, product):
+        ticker = self.publicGetMarketsSymbolTicker ({
+            'symbol': self.product_id (product),
+        })
+        timestamp = self.parse8601 (ticker['serverTimeUTC'])
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high24h']),
+            'low': float (ticker['low24h']),
+            'bid': float (ticker['bid']),
+            'ask': float (ticker['ask']),
+            'vwap': float (ticker['vwap24h']),
+            'open': float (ticker['openToday']),
+            'close': None,
+            'first': None,
+            'last': float (ticker['lastPrice']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['volume24h']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetMarketsSymbolTrades ({
+            'symbol': self.product_id (product),
+        })
+
+    def nonce (self):
+        return self.milliseconds ()
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        if type == 'market':
+            raise Exception (self.id + ' allows limit orders only')
+        amount = str (amount)
+        price = str (price)
+        p = self.product (product)
+        order = {
+            'side': side,
+            'type': type,
+            'currency': p['base'],
+            'amount': amount,
+            'display': amount,
+            'price': price,
+            'instrument': p['id'],
+        }
+        return self.privatePostTradeAdd (self.extend (order, params))
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)
+        query = self.omit (params, self.extract_params (path))
+        if type == 'public':
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
+            if query:
+                body = json.dumps (query)
+            else:
+                body = ''
+            nonce = str (self.nonce ())
+            timestamp = nonce
+            auth = [ method, url, body, nonce, timestamp ]
+            message = nonce + json.dumps (auth)
+            hashedMessage = self.hash (message, hashlib.sha256, 'binary')
+            signature = self.hmac (url + hashedMessage, self.secret, hashlib.sha512, 'base64')
+            headers = {
+                'Authorization': self.apiKey + ':' + signature,
+                'Content-Type': 'application/json',
+                'X-Auth-Timestamp': timestamp,
+                'X-Auth-Nonce': nonce,
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class jubi (Market):
 
     def __init__ (self, config = {}):

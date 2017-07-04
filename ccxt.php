@@ -4740,6 +4740,152 @@ class huobi extends Market {
 
 //-----------------------------------------------------------------------------
 
+class itbit extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'itbit',    
+            'name' => 'itBit',
+            'countries' => 'US',
+            'rateLimit' => 3000,
+            'version' => 'v1',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
+                'api' => 'https://api.itbit.com',
+                'www' => 'https://www.itbit.com',
+                'doc' => array (
+                    'https://www.itbit.com/api',
+                    'https://api.itbit.com/docs',
+                ),
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'markets/{symbol}/ticker',
+                        'markets/{symbol}/order_book',
+                        'markets/{symbol}/trades',
+                    ),
+                ),
+                'private' => array (
+                    'get' => array (
+                        'wallets',
+                        'wallets/{walletId}',
+                        'wallets/{walletId}/balances/{currencyCode}',
+                        'wallets/{walletId}/funding_history',
+                        'wallets/{walletId}/trades',
+                        'wallets/{walletId}/orders/{orderId}',
+                    ),
+                    'post' => array (
+                        'wallet_transfers',
+                        'wallets',
+                        'wallets/{walletId}/cryptocurrency_deposits',
+                        'wallets/{walletId}/cryptocurrency_withdrawals',
+                        'wallets/{walletId}/orders',
+                        'wire_withdrawal',
+                    ),
+                    'delete' => array (
+                        'wallets/{walletId}/orders/{orderId}',
+                    ),
+                ),
+            ),
+            'products' => array (
+                'BTC/USD' => array ( 'id' => 'XBTUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
+                'BTC/SGD' => array ( 'id' => 'XBTSGD', 'symbol' => 'BTC/SGD', 'base' => 'BTC', 'quote' => 'SGD' ),
+                'BTC/EUR' => array ( 'id' => 'XBTEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_order_book ($product) {
+        return $this->publicGetMarketsSymbolOrderBook (array ( 
+            'symbol' => $this->product_id ($product),
+        ));
+    }
+
+    public function fetch_ticker ($product) {
+        $ticker = $this->publicGetMarketsSymbolTicker (array (
+            'symbol' => $this->product_id ($product),
+        ));
+        $timestamp = $this->parse8601 ($ticker['serverTimeUTC']);
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high24h']),
+            'low' => floatval ($ticker['low24h']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => floatval ($ticker['vwap24h']),
+            'open' => floatval ($ticker['openToday']),
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['lastPrice']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['volume24h']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetMarketsSymbolTrades (array (
+            'symbol' => $this->product_id ($product),
+        ));
+    }
+
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($type == 'market')
+            throw new Exception ($this->id . ' allows limit orders only');
+        $amount = (string) $amount;
+        $price = (string) $price;
+        $p = $this->product ($product);
+        $order = array (
+            'side' => $side,
+            'type' => $type,
+            'currency' => $p['base'],
+            'amount' => $amount,
+            'display' => $amount,
+            'price' => $price,
+            'instrument' => $p['id'],
+        );
+        return $this->privatePostTradeAdd (array_merge ($order, $params));
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $query = $this->omit ($params, $this->extract_params ($path));
+        if ($type == 'public') {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
+        } else {
+            if ($query)
+                $body = json_encode ($query);
+            else
+                $body = '';
+            $nonce = (string) $this->nonce ();
+            $timestamp = $nonce;
+            $auth = array ($method, $url, $body, $nonce, $timestamp);
+            $message = $nonce . json_encode ($auth);
+            $hashedMessage = $this->hash ($message, 'sha256', 'binary');
+            $signature = $this->hmac ($url . $hashedMessage, $this->secret, 'sha512', 'base64');
+            $headers = array (
+                'Authorization' => self.apiKey . ':' . $signature,
+                'Content-Type' => 'application/json',
+                'X-Auth-Timestamp' => $timestamp,
+                'X-Auth-Nonce' => $nonce,
+            );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 class jubi extends Market {
 
     public function __construct ($options = array ()) {

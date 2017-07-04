@@ -4614,6 +4614,148 @@ var huobi = {
 
 //-----------------------------------------------------------------------------
 
+var itbit = {
+
+    'id': 'itbit',    
+    'name': 'itBit',
+    'countries': 'US',
+    'rateLimit': 3000,
+    'version': 'v1',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
+        'api': 'https://api.itbit.com',
+        'www': 'https://www.itbit.com',
+        'doc': [
+            'https://www.itbit.com/api',
+            'https://api.itbit.com/docs',
+        ],
+    },
+    'api': {
+        'public': {
+            'get': [
+                'markets/{symbol}/ticker',
+                'markets/{symbol}/order_book',
+                'markets/{symbol}/trades',
+            ],
+        },
+        'private': {
+            'get': [
+                'wallets',
+                'wallets/{walletId}',
+                'wallets/{walletId}/balances/{currencyCode}',
+                'wallets/{walletId}/funding_history',
+                'wallets/{walletId}/trades',
+                'wallets/{walletId}/orders/{orderId}',
+            ],
+            'post': [
+                'wallet_transfers',
+                'wallets',
+                'wallets/{walletId}/cryptocurrency_deposits',
+                'wallets/{walletId}/cryptocurrency_withdrawals',
+                'wallets/{walletId}/orders',
+                'wire_withdrawal',
+            ],
+            'delete': [
+                'wallets/{walletId}/orders/{orderId}',
+            ],
+        },
+    },
+    'products': {
+        'BTC/USD': { 'id': 'XBTUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+        'BTC/SGD': { 'id': 'XBTSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD' },
+        'BTC/EUR': { 'id': 'XBTEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+    },
+
+    fetchOrderBook (product) {
+        return this.publicGetMarketsSymbolOrderBook ({ 
+            'symbol': this.productId (product),
+        });
+    },
+    
+    async fetchTicker (product) {
+        let ticker = await this.publicGetMarketsSymbolTicker ({
+            'symbol': this.productId (product),
+        });
+        let timestamp = this.parse8601 (ticker['serverTimeUTC']);
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high24h']),
+            'low': parseFloat (ticker['low24h']),
+            'bid': parseFloat (ticker['bid']),
+            'ask': parseFloat (ticker['ask']),
+            'vwap': parseFloat (ticker['vwap24h']),
+            'open': parseFloat (ticker['openToday']),
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['lastPrice']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['volume24h']),
+            'info': ticker,
+        };
+    },
+    
+    fetchTrades (product) {
+        return this.publicGetMarketsSymbolTrades ({
+            'symbol': this.productId (product),
+        });
+    },
+
+    nonce () {
+        return this.milliseconds ();
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        if (type == 'market')
+            throw new Error (this.id + ' allows limit orders only');
+        amount = amount.toString ();
+        price = price.toString ();
+        let p = this.product (product);
+        let order = {
+            'side': side,
+            'type': type,
+            'currency': p['base'],
+            'amount': amount,
+            'display': amount,
+            'price': price,
+            'instrument': p['id'],
+        };
+        return this.privatePostTradeAdd (this.extend (order, params));
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (type == 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            if (Object.keys (query).length)
+                body = JSON.stringify (query);
+            else
+                body = '';
+            let nonce = this.nonce ().toString ();
+            let timestamp = nonce;
+            let auth = [ method, url, body, nonce, timestamp ];
+            let message = nonce + JSON.stringify (auth);
+            let hashedMessage = this.hash (message, 'sha256', 'binary');
+            let signature = this.hmac (url + hashedMessage, this.secret, 'sha512', 'base64');
+            headers = {
+                'Authorization': self.apiKey + ':' + signature,
+                'Content-Type': 'application/json',
+                'X-Auth-Timestamp': timestamp,
+                'X-Auth-Nonce': nonce,
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var jubi = {
 
     'id': 'jubi',
@@ -6672,6 +6814,7 @@ var markets = {
     'gemini':      gemini,
     'hitbtc':      hitbtc,
     'huobi':       huobi,
+    'itbit':       itbit,
     'jubi':        jubi,
     'kraken':      kraken,
     'luno':        luno,

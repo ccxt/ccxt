@@ -44,7 +44,8 @@ try {
         gdax:        { 'verbose': verbose, apiKey: '', secret: '', password: '' }, 
         gemini:      { 'verbose': verbose, apiKey: '', secret: '', },
         hitbtc:      { 'verbose': verbose, apiKey: '', secret: '', },
-        huobi:       { 'verbose': verbose, apiKey: '', secret: '', },    
+        huobi:       { 'verbose': verbose, apiKey: '', secret: '', },
+        itbit:       { 'verbose': verbose, apiKey: '', secret: '', },
         jubi:        { 'verbose': verbose, apiKey: '', secret: '', },    
         kraken:      { 'verbose': verbose, apiKey: '', secret: '', },    
         luno:        { 'verbose': verbose, apiKey: '', secret: '', },
@@ -128,9 +129,7 @@ let testMarket = market => new Promise (async resolve => {
         }
     }
 
-    if (!market.apiKey || (market.apiKey.length < 1))
-        return true
-
+    
     // let ticker = await market.fetchTicker ('BTC/SLL')
     // let ticker = await market.fetchTicker (symbol)
     // console.log (market.id, symbol, 'ticker')
@@ -138,8 +137,11 @@ let testMarket = market => new Promise (async resolve => {
     
     // sleep (delay)
     
-    // let trades = await market.fetchTrades (Object.keys (market.products)[0])
-    // console.log (market.id, trades)
+    let trades = await market.fetchTrades (Object.keys (market.products)[0])
+    console.log (market.id, trades)
+
+    if (!market.apiKey || (market.apiKey.length < 1))
+        return true
 
     // sleep (delay)
 
@@ -224,7 +226,7 @@ var test = async function () {
 
     // Object.keys (markets).forEach (async id => {
 
-        var market = markets.gemini //markets[id]
+        var market = markets.itbit //markets[id]
 
         try {
 
