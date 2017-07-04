@@ -28,6 +28,7 @@ except ImportError:
 		'bitstamp':    { 'verbose': verbose, 'apiKey': '', 'secret': '', 'uid': '' },
 		'bittrex':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'btcchina':    { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'btce':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'btcx':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'bxinth':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'ccex':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
@@ -165,4 +166,4 @@ def test_market (market):
 # 		print (type (e).__name__, e.args)
 # 		sys.exit ()
 
-test_market (markets['mercado'])
+test_market (markets['btce'])

@@ -2713,6 +2713,152 @@ class btcchina extends Market {
 
 //-----------------------------------------------------------------------------
 
+class btce extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'btce',
+            'name' => 'BTC-e',
+            'countries' => array ( 'BG', 'RU' ), // Bulgaria, Russia
+            'version' => '3',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27843225-1b571514-611a-11e7-9208-2641a560b561.jpg',
+                'api' => 'https://btc-e.com/api',
+                'www' => 'https://btc-e.com',
+                'doc' => array (
+                    'https://btc-e.com/api/3/docs',
+                    'https://btc-e.com/tapi/docs',
+                ),
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'info',
+                        'ticker/{pair}',
+                        'depth/{pair}',
+                        'trades/{pair}',
+                    ),
+                ),
+                'private' => array (
+                    'post' => array (
+                        'getInfo',
+                        'Trade',
+                        'ActiveOrders',
+                        'OrderInfo',
+                        'CancelOrder',
+                        'TradeHistory',
+                        'TransHistory',
+                        'CoinDepositAddress',
+                        'WithdrawCoin',
+                        'CreateCoupon',
+                        'RedeemCoupon',
+                    ),
+                )
+            ),
+        ), $options));
+    }
+
+    public function fetch_products () {
+        $response = $this->publicGetInfo ();
+        $products = $response['pairs'];
+        $keys = array_keys ($products);
+        $result = array ();
+        for ($p = 0; $p < count ($keys); $p++) {
+            $id = $keys[$p];
+            $product = $products[$id];
+            list ($base, $quote) = explode ('_');
+            $base = strtoupper ($base);
+            $quote = strtoupper ($quote, $id);
+            $symbol = $base . '/' . $quote;
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_balance () {
+        return $this->privatePostGetInfo ();
+    }
+
+    public function fetch_order_book ($product) {
+        return $this->publicGetDepthPair (array (
+            'pair' => $this->product_id ($product),
+        ));
+    }
+
+    public function fetch_ticker ($product) {
+        $p = $this->product ($product);
+        $tickers = $this->publicGetTickerPair (array (
+            'pair' => $p['id'],
+        ));
+        $ticker = $tickers[$p['id']];
+        $timestamp = $ticker['updated'] * 1000;
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => floatval ($ticker['avg']),
+            'baseVolume' => floatval ($ticker['vol_cur']),
+            'quoteVolume' => floatval ($ticker['vol']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetTradesPair (array (
+            'pair' => $this->product_id ($product),
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        $order = array (
+            'pair' => $this->product_id ($product),
+            'type' => $side,
+            'amount' => $amount,
+            'rate' => $price,
+        );
+        return $this->privatePostTrade (array_merge ($order, $params));
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $query = $this->omit ($params, $this->extract_params ($path));
+        if ($type == 'public') {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
+        } else {
+            $nonce = $this->nonce ();
+            $body = $this->urlencode (array_merge (array (
+                'nonce' => $nonce,
+            ), $params));
+            $headers = array (
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body),
+                'Key' => $this->apiKey,
+                'Sign' => $this->hmac ($body, $this->secret, 'sha512'),
+            );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 class btcx extends Market {
 
     public function __construct ($options = array ()) {

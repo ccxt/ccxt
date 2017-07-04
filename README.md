@@ -16,7 +16,7 @@ Current featurelist:
 
 ## Supported Cryptocurrency Exchange Markets
 
-The ccxt library currently supports the following 45 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 46 cryptocurrency exchange markets and trading APIs:
 
 |                                                                                                                    | id          | name                                                 | ver | doc                                                            | countries                               |
 |--------------------------------------------------------------------------------------------------------------------|-------------|------------------------------------------------------|:---:|:--------------------------------------------------------------:|-----------------------------------------|
@@ -35,6 +35,7 @@ The ccxt library currently supports the following 45 cryptocurrency exchange mar
 |![bitstamp](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)    | bitstamp    | [Bitstamp](https://www.bitstamp.net)                 | 2   | [API](https://www.bitstamp.net/api)                            | UK                                      |
 |![bittrex](https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg)     | bittrex     | [Bittrex](https://bittrex.com)                       | 1.1 | [API](https://bittrex.com/Home/Api)                            | US                                      |
 |![btcchina](https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg)    | btcchina    | [BTCChina](https://www.btcchina.com)                 | 1   | [API](https://www.btcchina.com/apidocs)                        | China                                   |
+|![btce](https://user-images.githubusercontent.com/1294454/27843225-1b571514-611a-11e7-9208-2641a560b561.jpg)        | btce        | [BTC-e](https://btc-e.com)                           | 3   | [API](https://btc-e.com/api/3/docs)                            | Bulgaria, Russia                        |
 |![btcx](https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg)        | btcx        | [BTCX](https://btc-x.is)                             | 1   | [API](https://btc-x.is/custom/api-document.html)               | Iceland, US, EU                         |
 |![bxinth](https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg)      | bxinth      | [BX.in.th](https://bx.in.th)                         | *   | [API](https://bx.in.th/info/api)                               | Thailand                                |
 |![ccex](https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg)        | ccex        | [C-CEX](https://c-cex.com)                           | *   | [API](https://c-cex.com/?id=api)                               | Germany, EU                             |

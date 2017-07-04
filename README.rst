@@ -18,7 +18,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 45 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 46 cryptocurrency exchange markets and trading APIs:
 
 +---------------+-----------------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
 | id            | name                                                      | ver   | doc                                                                 | countries                                  |
@@ -52,6 +52,8 @@ The ccxt library currently supports the following 45 cryptocurrency exchange mar
 | bittrex       | `Bittrex <https://bittrex.com>`__                         | 1.1   | `API <https://bittrex.com/Home/Api>`__                              | US                                         |
 +---------------+-----------------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
 | btcchina      | `BTCChina <https://www.btcchina.com>`__                   | 1     | `API <https://www.btcchina.com/apidocs>`__                          | China                                      |
++---------------+-----------------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
+| btce          | `BTC-e <https://btc-e.com>`__                             | 3     | `API <https://btc-e.com/api/3/docs>`__                              | Bulgaria, Russia                           |
 +---------------+-----------------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
 | btcx          | `BTCX <https://btc-x.is>`__                               | 1     | `API <https://btc-x.is/custom/api-document.html>`__                 | Iceland, US, EU                            |
 +---------------+-----------------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+

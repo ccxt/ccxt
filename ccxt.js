@@ -2647,6 +2647,148 @@ var btcchina = {
     },
 }
 
+//-----------------------------------------------------------------
+
+var btce = {
+
+    'id': 'btce',
+    'name': 'BTC-e',
+    'countries': [ 'BG', 'RU' ], // Bulgaria, Russia
+    'version': '3',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27843225-1b571514-611a-11e7-9208-2641a560b561.jpg',
+        'api': 'https://btc-e.com/api',
+        'www': 'https://btc-e.com',
+        'doc': [
+            'https://btc-e.com/api/3/docs',
+            'https://btc-e.com/tapi/docs',
+        ],
+    },
+    'api': {
+        'public': {
+            'get': [
+                'info',
+                'ticker/{pair}',
+                'depth/{pair}',
+                'trades/{pair}',
+            ],
+        },
+        'private': {
+            'post': [
+                'getInfo',
+                'Trade',
+                'ActiveOrders',
+                'OrderInfo',
+                'CancelOrder',
+                'TradeHistory',
+                'TransHistory',
+                'CoinDepositAddress',
+                'WithdrawCoin',
+                'CreateCoupon',
+                'RedeemCoupon',
+            ],
+        }
+    },
+
+    async fetchProducts () {
+        let response = await this.publicGetInfo ();
+        let products = response['pairs'];
+        let keys = Object.keys (products);
+        let result = [];
+        for (let p = 0; p < keys.length; p++) {
+            let id = keys[p];
+            let product = products[id];
+            let [ base, quote ] = id.split ('_');
+            base = base.toUpperCase ();
+            quote = quote.toUpperCase ();
+            let symbol = base + '/' + quote;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            });
+        }
+        return result;
+    },
+
+    fetchBalance () {
+        return this.privatePostGetInfo ();
+    },
+
+    fetchOrderBook (product) {
+        return this.publicGetDepthPair ({
+            'pair': this.productId (product),
+        });
+    },
+
+    async fetchTicker (product) {
+        let p = this.product (product);
+        let tickers = await this.publicGetTickerPair ({
+            'pair': p['id'],
+        });
+        let ticker = tickers[p['id']];
+        let timestamp = ticker['updated'] * 1000;
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['buy']),
+            'ask': parseFloat (ticker['sell']),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': parseFloat (ticker['avg']),
+            'baseVolume': parseFloat (ticker['vol_cur']),
+            'quoteVolume': parseFloat (ticker['vol']),
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        return this.publicGetTradesPair ({
+            'pair': this.productId (product),
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let order = {
+            'pair': this.productId (product),
+            'type': side,
+            'amount': amount,
+            'rate': price,
+        };
+        return this.privatePostTrade (this.extend (order, params));
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (type == 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            let nonce = this.nonce ();
+            body = this.urlencode (this.extend ({
+                'nonce': nonce,
+            }, params));
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': body.length,
+                'Key': this.apiKey,
+                'Sign': this.hmac (body, this.secret, 'sha512'),
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
 //-----------------------------------------------------------------------------
 
 var btcx = {
@@ -6935,6 +7077,7 @@ var markets = {
     'bitstamp':    bitstamp,
     'bittrex':     bittrex,
     'btcchina':    btcchina,
+    'btce':        btce,
     'btcx':        btcx,
     'bxinth':      bxinth,
     'ccex':        ccex,

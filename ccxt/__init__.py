@@ -2563,6 +2563,143 @@ class btcchina (Market):
 
 #------------------------------------------------------------------------------
 
+class btce (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'btce',
+            'name': 'BTC-e',
+            'countries': [ 'BG', 'RU' ], # Bulgaria, Russia
+            'version': '3',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27843225-1b571514-611a-11e7-9208-2641a560b561.jpg',
+                'api': 'https://btc-e.com/api',
+                'www': 'https://btc-e.com',
+                'doc': [
+                    'https://btc-e.com/api/3/docs',
+                    'https://btc-e.com/tapi/docs',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'info',
+                        'ticker/{pair}',
+                        'depth/{pair}',
+                        'trades/{pair}',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'getInfo',
+                        'Trade',
+                        'ActiveOrders',
+                        'OrderInfo',
+                        'CancelOrder',
+                        'TradeHistory',
+                        'TransHistory',
+                        'CoinDepositAddress',
+                        'WithdrawCoin',
+                        'CreateCoupon',
+                        'RedeemCoupon',
+                    ],
+                }
+            },
+        }
+        params.update (config)
+        super (btce, self).__init__ (params)
+
+    def fetch_products (self):
+        response = self.publicGetInfo ()
+        products = response['pairs']
+        keys = list (products.keys ())
+        result = []
+        for p in range (0, len (keys)):
+            id = keys[p]
+            product = products[id]
+            base, quote = id.split ('_')
+            base = base.upper ()
+            quote = quote.upper ()
+            symbol = base + '/' + quote
+            result.append ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            })
+        return result
+
+    def fetch_balance (self):
+        return self.privatePostGetInfo ()
+
+    def fetch_order_book (self, product):
+        return self.publicGetDepthPair ({
+            'pair': self.product_id (product),
+        })
+
+    def fetch_ticker (self, product):
+        p = self.product (product)
+        tickers = self.publicGetTickerPair ({
+            'pair': p['id'],
+        })
+        ticker = tickers[p['id']]
+        timestamp = ticker['updated'] * 1000
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['buy']),
+            'ask': float (ticker['sell']),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': float (ticker['avg']),
+            'baseVolume': float (ticker['vol_cur']),
+            'quoteVolume': float (ticker['vol']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetTradesPair ({
+            'pair': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        order = {
+            'pair': self.product_id (product),
+            'type': side,
+            'amount': amount,
+            'rate': price,
+        }
+        return self.privatePostTrade (self.extend (order, params))
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)
+        query = self.omit (params, self.extract_params (path))
+        if type == 'public':
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
+            nonce = self.nonce ()
+            body = _urlencode.urlencode (self.extend ({
+                'nonce': nonce,
+            }, params))
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': len (body),
+                'Key': self.apiKey,
+                'Sign': self.hmac (body, self.secret, hashlib.sha512),
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class btcx (Market):
 
     def __init__ (self, config = {}):

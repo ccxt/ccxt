@@ -32,6 +32,7 @@ try {
         bitstamp:    { 'verbose': verbose, apiKey: '', secret: '', uid: '', },
         bittrex:     { 'verbose': verbose, apiKey: '', secret: '', },
         btcchina:    { 'verbose': verbose, apiKey: '', secret: '', },
+        btce:        { 'verbose': verbose, apiKey: '', secret: '', },
         btcx:        { 'verbose': verbose, apiKey: '', secret: '', },
         bxinth:      { 'verbose': verbose, apiKey: '', secret: '', },
         ccex:        { 'verbose': verbose, apiKey: '', secret: '', },

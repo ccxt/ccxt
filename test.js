@@ -6,7 +6,7 @@ const asTable   = require ('as-table')
 const util      = require ('util')
 
 let markets
-let verbose = false
+let verbose = true
 
 try {
 
@@ -31,6 +31,7 @@ try {
         bitstamp:    { 'verbose': verbose, apiKey: '', secret: '', uid: '', },
         bittrex:     { 'verbose': verbose, apiKey: '', secret: '', },
         btcchina:    { 'verbose': verbose, apiKey: '', secret: '', },
+        btce:        { 'verbose': verbose, apiKey: '', secret: '', },
         btcx:        { 'verbose': verbose, apiKey: '', secret: '', },
         bxinth:      { 'verbose': verbose, apiKey: '', secret: '', },
         ccex:        { 'verbose': verbose, apiKey: '', secret: '', },
@@ -227,7 +228,7 @@ var test = async function () {
 
     // Object.keys (markets).forEach (async id => {
 
-        var market = markets.mercado //markets[id]
+        var market = markets.btce //markets[id]
 
         try {
 
