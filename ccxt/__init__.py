@@ -4134,7 +4134,7 @@ class gdax (Market):
 
     def fetch_trades (self, product):
         return self.publicGetProductsIdTrades ({
-            'id': self.product_id (product),
+            'id': self.product_id (product), # fixed issue #2
         })
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
