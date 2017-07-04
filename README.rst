@@ -18,7 +18,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 43 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 44 cryptocurrency exchange markets and trading APIs:
 
 +---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
 | id            | name                                              | ver   | doc                                                                 | countries                                  |
@@ -80,6 +80,8 @@ The ccxt library currently supports the following 43 cryptocurrency exchange mar
 | hitbtc        | `HitBTC <https://hitbtc.com>`__                   | 1     | `API <https://hitbtc.com/api>`__                                    | Hong Kong                                  |
 +---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
 | huobi         | `Huobi <https://www.huobi.com>`__                 | 3     | `API <https://github.com/huobiapi/API_Docs_en/wiki>`__              | China                                      |
++---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
+| itbit         | `itBit <https://www.itbit.com>`__                 | 1     | `API <https://www.itbit.com/api>`__                                 | US                                         |
 +---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
 | jubi          | `jubi.com <https://www.jubi.com>`__               | 1     | `API <https://www.jubi.com/help/api.html>`__                        | China                                      |
 +---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+

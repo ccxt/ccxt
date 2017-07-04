@@ -42,6 +42,7 @@ except ImportError:
 		'gemini':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'hitbtc':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'huobi':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'itbit':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'jubi':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'kraken':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'luno':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
@@ -163,4 +164,4 @@ def test_market (market):
 # 		print (type (e).__name__, e.args)
 # 		sys.exit ()
 
-test_market (markets['gemini'])
+test_market (markets['itbit'])

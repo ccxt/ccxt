@@ -16,7 +16,7 @@ Current featurelist:
 
 ## Supported Cryptocurrency Exchange Markets
 
-The ccxt library currently supports the following 43 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 44 cryptocurrency exchange markets and trading APIs:
 
 |                                                                                                                    | id          | name                                         | ver | doc                                                            | countries                               |
 |--------------------------------------------------------------------------------------------------------------------|-------------|----------------------------------------------|:---:|:--------------------------------------------------------------:|-----------------------------------------|
@@ -49,6 +49,7 @@ The ccxt library currently supports the following 43 cryptocurrency exchange mar
 |![gemini](https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg)      | gemini      | [Gemini](https://gemini.com)                 | 1   | [API](https://docs.gemini.com/rest-api)                        | US                                      |
 |![hitbtc](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)      | hitbtc      | [HitBTC](https://hitbtc.com)                 | 1   | [API](https://hitbtc.com/api)                                  | Hong Kong                               |
 |![huobi](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)       | huobi       | [Huobi](https://www.huobi.com)               | 3   | [API](https://github.com/huobiapi/API_Docs_en/wiki)            | China                                   |
+|![itbit](https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg)       | itbit       | [itBit](https://www.itbit.com)               | 1   | [API](https://www.itbit.com/api)                               | US                                      |
 |![jubi](https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg)        | jubi        | [jubi.com](https://www.jubi.com)             | 1   | [API](https://www.jubi.com/help/api.html)                      | China                                   |
 |![kraken](https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg)      | kraken      | [Kraken](https://www.kraken.com)             | 0   | [API](https://www.kraken.com/en-us/help/api)                   | US                                      |
 |![luno](https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg)        | luno        | [luno](https://www.luno.com)                 | 1   | [API](https://npmjs.org/package/bitx)                          | UK, Singapore, South Africa             |

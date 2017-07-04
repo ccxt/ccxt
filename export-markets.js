@@ -45,7 +45,8 @@ try {
         gdax:        { 'verbose': verbose, apiKey: '', secret: '', password: '' }, 
         gemini:      { 'verbose': verbose, apiKey: '', secret: '', },
         hitbtc:      { 'verbose': verbose, apiKey: '', secret: '', },
-        huobi:       { 'verbose': verbose, apiKey: '', secret: '', },    
+        huobi:       { 'verbose': verbose, apiKey: '', secret: '', },
+        itbit:       { 'verbose': verbose, apiKey: '', secret: '', },
         jubi:        { 'verbose': verbose, apiKey: '', secret: '', },    
         kraken:      { 'verbose': verbose, apiKey: '', secret: '', },    
         luno:        { 'verbose': verbose, apiKey: '', secret: '', },
@@ -125,8 +126,8 @@ changeInFile ('README.md')
 changeInFile ('../ccxt.wiki/Exchange-Markets.md')
 changeInFile ('../ccxt.wiki/Manual.md')
 
-console.log (typeof countries)
-console.log (countries)
+// console.log (typeof countries)
+// console.log (countries)
 
 let marketsByCountries = []
 Object.keys (countries).forEach (code => { 

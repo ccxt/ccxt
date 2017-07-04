@@ -44,6 +44,7 @@ else
         'gemini'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'hitbtc'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'huobi'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
+        'itbit'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'jubi'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'kraken'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'luno'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
@@ -135,7 +136,7 @@ function test_market ($market) {
 //     }
 // }
 
-$market = $markets['gemini'];
+$market = $markets['itbit'];
 test_market ($market);
 
 ?>
