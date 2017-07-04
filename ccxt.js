@@ -4163,6 +4163,7 @@ var gemini = {
     'rateLimit': 2000, // 200 for private API
     'version': 'v1',
     'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
         'api': 'https://api.gemini.com',
         'www': 'https://gemini.com',
         'doc': 'https://docs.gemini.com/rest-api',
