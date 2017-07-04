@@ -4036,6 +4036,151 @@ class gdax (Market):
 
 #------------------------------------------------------------------------------
 
+class gemini (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'gemini',
+            'name': 'Gemini',
+            'countries': 'US',
+            'rateLimit': 2000, # 200 for private API
+            'version': 'v1',
+            'urls': {
+                'api': 'https://api.gemini.com',
+                'www': 'https://gemini.com',
+                'doc': 'https://docs.gemini.com/rest-api',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'symbols',
+                        'pubticker/{symbol}',
+                        'book/{symbol}',
+                        'trades/{symbol}',
+                        'auction/{symbol}',
+                        'auction/{symbol}/history',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'order/new',
+                        'order/cancel',
+                        'order/cancel/session',
+                        'order/cancel/all',
+                        'order/status',
+                        'orders',
+                        'mytrades',
+                        'tradevolume',
+                        'balances',
+                        'deposit/{currency}/newAddress',
+                        'withdraw/{currency}',
+                        'heartbeat',
+                    ],
+                },
+            },
+        }
+        params.update (config)
+        super (gemini, self).__init__ (params)
+
+    def fetch_products (self):
+        products = self.publicGetSymbols ()
+        result = []
+        for p in range (0, len (products)):
+            product = products[p]
+            id = product
+            uppercaseProduct = product.upper ()
+            base = uppercaseProduct[0:3]
+            quote = uppercaseProduct[3:6]
+            symbol = base + '/' + quote
+            result.append ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            })
+        return result
+
+    def fetch_order_book (self, product):
+        return self.publicGetBookSymbol ({
+            'symbol': self.product_id (product),
+        })
+
+    def fetch_ticker (self, product):
+        p = self.product (product)
+        ticker = self.publicGetPubtickerSymbol ({
+            'symbol': p['id'],
+        })
+        timestamp = ticker['volume']['timestamp']
+        baseVolume = p['base']
+        quoteVolume = p['quote']
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': None,
+            'low': None,
+            'bid': float (ticker['bid']),
+            'ask': float (ticker['ask']),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': float (ticker['volume'][baseVolume]),
+            'quoteVolume': float (ticker['volume'][quoteVolume]),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetTradesSymbol ({
+            'symbol': self.product_id (product),
+        })
+
+    def fetch_balance (self):
+        return self.privatePostBalances ()
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        if type == 'market':
+            raise Exception (self.id + ' allows limit orders only')
+        order = {
+            'client_order_id': self.nonce (),
+            'symbol': self.product_id (product),
+            'amount': str (amount),
+            'price': str (price),
+            'side': side,
+            'type': 'exchange limit', # gemini allows limit orders only
+        }
+        return self.privatePostOrderNew (self.extend (order, params))
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = '/' + self.version + '/' + self.implode_params (path, params)
+        query = self.omit (params, self.extract_params (path))
+        if type == 'public':
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
+            nonce = self.nonce ()
+            request = self.extend ({
+                'request': url,
+                'nonce': nonce,
+            }, query)
+            payload = base64.b64encode (json.dumps (request))
+            signature = self.hmac (payload, self.secret, hashlib.sha384)
+            headers = {
+                'Content-Type': 'text/plain',
+                'Content-Length': 0,
+                'X-GEMINI-APIKEY': self.apiKey,
+                'X-GEMINI-PAYLOAD': payload,
+                'X-GEMINI-SIGNATURE': signature,
+            }
+        url = self.urls['api'] + url
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class hitbtc (Market):
 
     def __init__ (self, config = {}):

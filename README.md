@@ -16,7 +16,7 @@ Current featurelist:
 
 ## Supported Cryptocurrency Exchange Markets
 
-The ccxt library currently supports the following 42 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 43 cryptocurrency exchange markets and trading APIs:
 
 |                                                                                                                    | id          | name                                         | ver | doc                                                            | countries                               |
 |--------------------------------------------------------------------------------------------------------------------|-------------|----------------------------------------------|:---:|:--------------------------------------------------------------:|-----------------------------------------|
@@ -46,6 +46,7 @@ The ccxt library currently supports the following 42 cryptocurrency exchange mar
 |![fybse](https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg)       | fybse       | [FYB-SE](https://www.fybse.se)               | *   | [API](http://docs.fyb.apiary.io)                               | Sweden                                  |
 |![fybsg](https://user-images.githubusercontent.com/1294454/27766513-3364d56a-5edb-11e7-9e6b-d5898bb89c81.jpg)       | fybsg       | [FYB-SG](https://www.fybsg.com)              | *   | [API](http://docs.fyb.apiary.io)                               | Singapore                               |
 |![gdax](https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg)        | gdax        | [GDAX](https://www.gdax.com)                 | *   | [API](https://docs.gdax.com)                                   | US                                      |
+|![gemini](undefined)                                                                                                | gemini      | [Gemini](https://gemini.com)                 | 1   | [API](https://docs.gemini.com/rest-api)                        | US                                      |
 |![hitbtc](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)      | hitbtc      | [HitBTC](https://hitbtc.com)                 | 1   | [API](https://hitbtc.com/api)                                  | Hong Kong                               |
 |![huobi](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)       | huobi       | [Huobi](https://www.huobi.com)               | 3   | [API](https://github.com/huobiapi/API_Docs_en/wiki)            | China                                   |
 |![jubi](https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg)        | jubi        | [jubi.com](https://www.jubi.com)             | 1   | [API](https://www.jubi.com/help/api.html)                      | China                                   |

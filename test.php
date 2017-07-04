@@ -41,6 +41,7 @@ else
         'fybse'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'fybsg'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'gdax'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', 'password' => ''),
+        'gemini'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'hitbtc'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'huobi'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'jubi'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
@@ -134,7 +135,7 @@ function test_market ($market) {
 //     }
 // }
 
-$market = $markets['btcchina'];
+$market = $markets['gemini'];
 test_market ($market);
 
 ?>

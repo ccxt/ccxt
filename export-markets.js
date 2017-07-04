@@ -43,6 +43,7 @@ try {
         fybse:       { 'verbose': verbose, apiKey: '', secret: '', },
         fybsg:       { 'verbose': verbose, apiKey: '', secret: '', },
         gdax:        { 'verbose': verbose, apiKey: '', secret: '', password: '' }, 
+        gemini:      { 'verbose': verbose, apiKey: '', secret: '', },
         hitbtc:      { 'verbose': verbose, apiKey: '', secret: '', },
         huobi:       { 'verbose': verbose, apiKey: '', secret: '', },    
         jubi:        { 'verbose': verbose, apiKey: '', secret: '', },    

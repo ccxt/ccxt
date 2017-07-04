@@ -4270,6 +4270,160 @@ class gdax extends Market {
 
 //-----------------------------------------------------------------------------
 
+class gemini extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'gemini',
+            'name' => 'Gemini',
+            'countries' => 'US',
+            'rateLimit' => 2000, // 200 for private API
+            'version' => 'v1',
+            'urls' => array (
+                'api' => 'https://api.gemini.com',
+                'www' => 'https://gemini.com',
+                'doc' => 'https://docs.gemini.com/rest-api',
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'symbols',
+                        'pubticker/{symbol}',
+                        'book/{symbol}',
+                        'trades/{symbol}',
+                        'auction/{symbol}',
+                        'auction/{symbol}/history',
+                    ),
+                ),
+                'private' => array (
+                    'post' => array (
+                        'order/new',
+                        'order/cancel',
+                        'order/cancel/session',
+                        'order/cancel/all',
+                        'order/status',
+                        'orders',
+                        'mytrades',
+                        'tradevolume',
+                        'balances',
+                        'deposit/{currency}/newAddress',
+                        'withdraw/{currency}',
+                        'heartbeat',
+                    ),
+                ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_products () {
+        $products = $this->publicGetSymbols ();
+        $result = array ();
+        for ($p = 0; $p < count ($products); $p++) {
+            $product = $products[$p];
+            $id = $product;
+            $uppercaseProduct = strtoupper ($product);
+            $base = mb_substr ($uppercaseProduct, 0, 3);
+            $quote = mb_substr ($uppercaseProduct, 3, 6);
+            $symbol = $base . '/' . $quote;
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_order_book ($product) {
+        return $this->publicGetBookSymbol (array (
+            'symbol' => $this->product_id ($product),
+        ));
+    }
+
+    public function fetch_ticker ($product) {
+        $p = $this->product ($product);
+        $ticker = $this->publicGetPubtickerSymbol (array (
+            'symbol' => $p['id'],
+        ));
+        $timestamp = $ticker['volume']['timestamp'];
+        $baseVolume = $p['base'];
+        $quoteVolume = $p['quote'];
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => null,
+            'low' => null,
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => floatval ($ticker['volume'][$baseVolume]),
+            'quoteVolume' => floatval ($ticker['volume'][$quoteVolume]),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetTradesSymbol (array (
+            'symbol' => $this->product_id ($product),
+        ));
+    }
+
+    public function fetch_balance () {
+        return $this->privatePostBalances ();
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($type == 'market')
+            throw new Exception ($this->id . ' allows limit orders only');
+        $order = array (
+            'client_order_id' => $this->nonce (),
+            'symbol' => $this->product_id ($product),
+            'amount' => (string) $amount,
+            'price' => (string) $price,
+            'side' => $side,
+            'type' => 'exchange limit', // gemini allows limit orders only
+        );
+        return $this->privatePostOrderNew (array_merge ($order, $params));
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $query = $this->omit ($params, $this->extract_params ($path));
+        if ($type == 'public') {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
+        } else {
+            $nonce = $this->nonce ();
+            $request = array_merge (array (
+                'request' => $url,
+                'nonce' => $nonce,
+            ), $query);
+            $payload = base64_encode (json_encode ($request));
+            $signature = $this->hmac ($payload, $this->secret, 'sha384');
+            $headers = array (
+                'Content-Type' => 'text/plain',
+                'Content-Length' => 0,
+                'X-GEMINI-APIKEY' => $this->apiKey,
+                'X-GEMINI-PAYLOAD' => $payload,
+                'X-GEMINI-SIGNATURE' => $signature,
+            );
+        }
+        $url = $this->urls['api'] . $url;
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 class hitbtc extends Market {
 
     public function __construct ($options = array ()) {

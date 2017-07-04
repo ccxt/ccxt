@@ -4154,6 +4154,157 @@ var gdax = {
 }
 
 //-----------------------------------------------------------------------------
+// TBD REQUIRES 2FA VIA AUTHY, A BANK ACCOUNT, IDENTITY VERIFICATION TO START
+
+var gemini = {
+    'id': 'gemini',
+    'name': 'Gemini',
+    'countries': 'US',
+    'rateLimit': 2000, // 200 for private API
+    'version': 'v1',
+    'urls': {
+        'api': 'https://api.gemini.com',
+        'www': 'https://gemini.com',
+        'doc': 'https://docs.gemini.com/rest-api',
+    },
+    'api': {
+        'public': {
+            'get': [
+                'symbols',
+                'pubticker/{symbol}',
+                'book/{symbol}',
+                'trades/{symbol}',
+                'auction/{symbol}',
+                'auction/{symbol}/history',
+            ],
+        },
+        'private': {
+            'post': [
+                'order/new',
+                'order/cancel',
+                'order/cancel/session',
+                'order/cancel/all',
+                'order/status',
+                'orders',
+                'mytrades',
+                'tradevolume',
+                'balances',
+                'deposit/{currency}/newAddress',
+                'withdraw/{currency}',
+                'heartbeat',
+            ],
+        },
+    },
+
+    async fetchProducts () {
+        let products = await this.publicGetSymbols ();
+        let result = [];
+        for (let p = 0; p < products.length; p++) {
+            let product = products[p];
+            let id = product;
+            let uppercaseProduct = product.toUpperCase ();
+            let base = uppercaseProduct.slice (0, 3);
+            let quote = uppercaseProduct.slice (3, 6);
+            let symbol = base + '/' + quote;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            });
+        }
+        return result;
+    },
+
+
+    fetchOrderBook (product) {
+        return this.publicGetBookSymbol ({
+            'symbol': this.productId (product),
+        });
+    },
+
+    async fetchTicker (product) {
+        let p = this.product (product);
+        let ticker = await this.publicGetPubtickerSymbol ({
+            'symbol': p['id'],
+        });
+        let timestamp = ticker['volume']['timestamp'];
+        let baseVolume = p['base'];
+        let quoteVolume = p['quote'];
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': parseFloat (ticker['bid']),
+            'ask': parseFloat (ticker['ask']),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': parseFloat (ticker['volume'][baseVolume]),
+            'quoteVolume': parseFloat (ticker['volume'][quoteVolume]),
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        return this.publicGetTradesSymbol ({
+            'symbol': this.productId (product),
+        });
+    },
+
+    fetchBalance () {
+        return this.privatePostBalances ();
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        if (type == 'market')
+            throw new Error (this.id + ' allows limit orders only');
+        let order = {
+            'client_order_id': this.nonce (),
+            'symbol': this.productId (product),
+            'amount': amount.toString (),
+            'price': price.toString (),
+            'side': side,
+            'type': 'exchange limit', // gemini allows limit orders only
+        };
+        return this.privatePostOrderNew (this.extend (order, params));
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = '/' + this.version + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (type == 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            let nonce = this.nonce ();
+            let request = this.extend ({
+                'request': url,
+                'nonce': nonce,
+            }, query);
+            let payload = this.stringToBase64 (JSON.stringify (request));
+            let signature = this.hmac (payload, this.secret, 'sha384');
+            headers = {
+                'Content-Type': 'text/plain',
+                'Content-Length': 0,
+                'X-GEMINI-APIKEY': this.apiKey,
+                'X-GEMINI-PAYLOAD': payload,
+                'X-GEMINI-SIGNATURE': signature,
+            };
+        }
+        url = this.urls['api'] + url;
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
 
 var hitbtc = {
 
@@ -6517,6 +6668,7 @@ var markets = {
     'fybse':       fybse,
     'fybsg':       fybsg,
     'gdax':        gdax,
+    'gemini':      gemini,
     'hitbtc':      hitbtc,
     'huobi':       huobi,
     'jubi':        jubi,

@@ -36,11 +36,13 @@ try {
         ccex:        { 'verbose': verbose, apiKey: '', secret: '', },
         cex:         { 'verbose': verbose, apiKey: '', secret: '', uid: '', }, 
         coincheck:   { 'verbose': verbose, apiKey: '', secret: '', },
+        coinmate:    { 'verbose': verbose, apiKey: '', secret: '', },
         coinsecure:  { 'verbose': verbose, apiKey: '', },
         exmo:        { 'verbose': verbose, apiKey: '', secret: '', },
         fybse:       { 'verbose': verbose, apiKey: '', secret: '', },
         fybsg:       { 'verbose': verbose, apiKey: '', secret: '', },
         gdax:        { 'verbose': verbose, apiKey: '', secret: '', password: '' }, 
+        gemini:      { 'verbose': verbose, apiKey: '', secret: '', },
         hitbtc:      { 'verbose': verbose, apiKey: '', secret: '', },
         huobi:       { 'verbose': verbose, apiKey: '', secret: '', },    
         jubi:        { 'verbose': verbose, apiKey: '', secret: '', },    
@@ -125,6 +127,9 @@ let testMarket = market => new Promise (async resolve => {
             await sleep (delay)
         }
     }
+
+    if (!market.apiKey || (market.apiKey.length < 1))
+        return true
 
     // let ticker = await market.fetchTicker ('BTC/SLL')
     // let ticker = await market.fetchTicker (symbol)
@@ -219,7 +224,7 @@ var test = async function () {
 
     // Object.keys (markets).forEach (async id => {
 
-        var market = markets.bitbays //markets[id]
+        var market = markets.gemini //markets[id]
 
         try {
 

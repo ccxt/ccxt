@@ -18,7 +18,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 42 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 43 cryptocurrency exchange markets and trading APIs:
 
 +---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
 | id            | name                                              | ver   | doc                                                                 | countries                                  |
@@ -74,6 +74,8 @@ The ccxt library currently supports the following 42 cryptocurrency exchange mar
 | fybsg         | `FYB-SG <https://www.fybsg.com>`__                | \*    | `API <http://docs.fyb.apiary.io>`__                                 | Singapore                                  |
 +---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
 | gdax          | `GDAX <https://www.gdax.com>`__                   | \*    | `API <https://docs.gdax.com>`__                                     | US                                         |
++---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
+| gemini        | `Gemini <https://gemini.com>`__                   | 1     | `API <https://docs.gemini.com/rest-api>`__                          | US                                         |
 +---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
 | hitbtc        | `HitBTC <https://hitbtc.com>`__                   | 1     | `API <https://hitbtc.com/api>`__                                    | Hong Kong                                  |
 +---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+

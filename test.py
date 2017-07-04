@@ -39,6 +39,7 @@ except ImportError:
 		'fybse':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'fybsg':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'gdax':        { 'verbose': verbose, 'apiKey': '', 'secret': '', 'password': '' },
+		'gemini':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'hitbtc':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'huobi':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'jubi':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
@@ -162,4 +163,4 @@ def test_market (market):
 # 		print (type (e).__name__, e.args)
 # 		sys.exit ()
 
-test_market (markets['btcchina'])
+test_market (markets['gemini'])
