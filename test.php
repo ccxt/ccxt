@@ -35,6 +35,7 @@ else
         'ccex'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'cex'         => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', 'uid' => '', ),
         'coincheck'   => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
+        'coinmate'    => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'coinsecure'  => array ('verbose' => $verbose, 'apiKey' => '', ),
         'exmo'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'fybse'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
