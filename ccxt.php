@@ -3454,6 +3454,125 @@ class coincheck extends Market {
 
 //-----------------------------------------------------------------------------
 
+class coinmate extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'coinmate',
+            'name' => 'CoinMate',
+            'countries' => array ( 'UK', 'CZ' ), // UK, Czech Republic
+            'rateLimit' => 1000,
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
+                'api' => 'https://coinmate.io/api',
+                'www' => 'https://coinmate.io',
+                'doc' => 'https://coinmate.io/developers',
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'orderBook',
+                        'ticker',
+                        'transactions',
+                    ),
+                ),
+                'private' => array (
+                    'post' => array (
+                        'balances',
+                        'bitcoinWithdrawal',
+                        'bitcoinDepositAddresses',
+                        'buyInstant',
+                        'buyLimit',
+                        'cancelOrder',
+                        'cancelOrderWithInfo',
+                        'createVoucher',
+                        'openOrders',
+                        'redeemVoucher',
+                        'sellInstant',
+                        'sellLimit',
+                        'transactionHistory',
+                        'unconfirmedBitcoinDeposits',
+                    ),
+                ),
+            ),
+            'products' => array (
+                'BTC/EUR' => array ( 'id' => 'BTC_EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR'  ),
+                'BTC/CZK' => array ( 'id' => 'BTC_CZK', 'symbol' => 'BTC/CZK', 'base' => 'BTC', 'quote' => 'CZK'  ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_balance () {
+        return $this->privatePostBalances ();
+    }
+
+    public function fetch_order_book ($product) {
+        return $this->publicGetOrderBook (array (
+            'currencyPair' => $this->product_id ($product),
+            'groupByPriceLimit' => 'False',
+        ));
+    }
+
+    public function fetch_ticker ($product) {
+        $response = $this->publicGetTicker (array (
+            'currencyPair' => $this->product_id ($product),
+        ));
+        $ticker = $response['data'];
+        $timestamp = $ticker['timestamp'] * 1000;
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['amount']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetTransactions (array (
+            'currencyPair' => $this->product_id ($product),
+            'minutesIntoHistory' => 10,
+        ));
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        var url = $this->urls['api'] . '/' . $path;
+        if ($type == 'public') {
+            if ($params)
+                url .= '?' . $this->urlencode ($params);
+        } else {
+            $nonce = (string) $this->nonce ();
+            $auth = implode (' ', array ($nonce, $this->uid, $this->apiKey));
+            $signature = $this->hmac ($auth, $this->secret);
+            $body = $this->urlencode (array_merge (array (
+                'clientId' => $this->uid,
+                'nonce' => $nonce,
+                'publicKey' => $this->apiKey,
+                'signature' => strtoupper ($signature),
+            ), $params));
+            $headers = array (
+                'Content-Type' =>  'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body),
+            );
+        }
+        return $this->fetch (url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 class coinsecure extends Market {
 
     public function __construct ($options = array ()) {

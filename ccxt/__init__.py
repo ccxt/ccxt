@@ -3262,6 +3262,119 @@ class coincheck (Market):
 
 #------------------------------------------------------------------------------
 
+class coinmate (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'coinmate',
+            'name': 'CoinMate',
+            'countries': [ 'UK', 'CZ' ], # UK, Czech Republic
+            'rateLimit': 1000,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
+                'api': 'https://coinmate.io/api',
+                'www': 'https://coinmate.io',
+                'doc': 'https://coinmate.io/developers',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'orderBook',
+                        'ticker',
+                        'transactions',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'balances',
+                        'bitcoinWithdrawal',
+                        'bitcoinDepositAddresses',
+                        'buyInstant',
+                        'buyLimit',
+                        'cancelOrder',
+                        'cancelOrderWithInfo',
+                        'createVoucher',
+                        'openOrders',
+                        'redeemVoucher',
+                        'sellInstant',
+                        'sellLimit',
+                        'transactionHistory',
+                        'unconfirmedBitcoinDeposits',
+                    ],
+                },
+            },
+            'products': {
+                'BTC/EUR': { 'id': 'BTC_EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'  },
+                'BTC/CZK': { 'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK'  },
+            },
+        }
+        params.update (config)
+        super (coinmate, self).__init__ (params)
+
+    def fetch_balance (self):
+        return self.privatePostBalances ()
+
+    def fetch_order_book (self, product):
+        return self.publicGetOrderBook ({
+            'currencyPair': self.product_id (product),
+            'groupByPriceLimit': 'False',
+        })
+
+    def fetch_ticker (self, product):
+        response = self.publicGetTicker ({
+            'currencyPair': self.product_id (product),
+        })
+        ticker = response['data']
+        timestamp = ticker['timestamp'] * 1000
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['bid']),
+            'ask': float (ticker['ask']),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['amount']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetTransactions ({
+            'currencyPair': self.product_id (product),
+            'minutesIntoHistory': 10,
+        })
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        var url = self.urls['api'] + '/' + path
+        if type == 'public':
+            if params:
+                url += '?' + _urlencode.urlencode (params)
+        else:
+            nonce = str (self.nonce ())
+            auth = ' [ nonce, self.uid, self.apiKey ].join (')
+            signature = self.hmac (auth, self.secret)
+            body = _urlencode.urlencode (self.extend ({
+                'clientId': self.uid,
+                'nonce': nonce,
+                'publicKey': self.apiKey,
+                'signature': signature.upper (),
+            }, params))
+            headers = {
+                'Content-Type':  'application/x-www-form-urlencoded',
+                'Content-Length': len (body),
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class coinsecure (Market):
 
     def __init__ (self, config = {}):

@@ -16,7 +16,7 @@ Current featurelist:
 
 ## Supported Cryptocurrency Exchange Markets
 
-The ccxt library currently supports the following 41 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 42 cryptocurrency exchange markets and trading APIs:
 
 |                                                                                                                    | id          | name                                         | ver | doc                                                            | countries                               |
 |--------------------------------------------------------------------------------------------------------------------|-------------|----------------------------------------------|:---:|:--------------------------------------------------------------:|-----------------------------------------|
@@ -40,6 +40,7 @@ The ccxt library currently supports the following 41 cryptocurrency exchange mar
 |![ccex](https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg)        | ccex        | [C-CEX](https://c-cex.com)                   | *   | [API](https://c-cex.com/?id=api)                               | Germany, EU                             |
 |![cex](https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg)         | cex         | [CEX.IO](https://cex.io)                     | *   | [API](https://cex.io/cex-api)                                  | UK, EU, Cyprus, Russia                  |
 |![coincheck](https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg)   | coincheck   | [coincheck](https://coincheck.com)           | *   | [API](https://coincheck.com/documents/exchange/api)            | Japan, Indonesia                        |
+|![coinmate](https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg)    | coinmate    | [CoinMate](https://coinmate.io)              | *   | [API](https://coinmate.io/developers)                          | UK, Czech Republic                      |
 |![coinsecure](https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg)  | coinsecure  | [Coinsecure](https://coinsecure.in)          | 1   | [API](https://api.coinsecure.in)                               | India                                   |
 |![exmo](https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg)        | exmo        | [EXMO](https://exmo.me)                      | 1   | [API](https://exmo.me/ru/api_doc)                              | Spain, Russia                           |
 |![fybse](https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg)       | fybse       | [FYB-SE](https://www.fybse.se)               | *   | [API](http://docs.fyb.apiary.io)                               | Sweden                                  |

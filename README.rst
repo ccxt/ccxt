@@ -18,7 +18,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 41 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 42 cryptocurrency exchange markets and trading APIs:
 
 +---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
 | id            | name                                              | ver   | doc                                                                 | countries                                  |
@@ -62,6 +62,8 @@ The ccxt library currently supports the following 41 cryptocurrency exchange mar
 | cex           | `CEX.IO <https://cex.io>`__                       | \*    | `API <https://cex.io/cex-api>`__                                    | UK, EU, Cyprus, Russia                     |
 +---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
 | coincheck     | `coincheck <https://coincheck.com>`__             | \*    | `API <https://coincheck.com/documents/exchange/api>`__              | Japan, Indonesia                           |
++---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
+| coinmate      | `CoinMate <https://coinmate.io>`__                | \*    | `API <https://coinmate.io/developers>`__                            | UK, Czech Republic                         |
 +---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+
 | coinsecure    | `Coinsecure <https://coinsecure.in>`__            | 1     | `API <https://api.coinsecure.in>`__                                 | India                                      |
 +---------------+---------------------------------------------------+-------+---------------------------------------------------------------------+--------------------------------------------+

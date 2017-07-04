@@ -3370,6 +3370,143 @@ var coincheck = {
 
 //-----------------------------------------------------------------------------
 
+var coinmate = {
+    
+    'id': 'coinmate',
+    'name': 'CoinMate',
+    'countries': [ 'UK', 'CZ' ], // UK, Czech Republic
+    'rateLimit': 1000,
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
+        'api': 'https://coinmate.io/api',
+        'www': 'https://coinmate.io',
+        'doc': [
+            'https://coinmate.io/developers',
+            'http://docs.coinmate.apiary.io/#reference',
+        ],
+    },
+    'api': {
+        'public': {
+            'get': [
+                'orderBook',
+                'ticker',
+                'transactions',
+            ],
+        },
+        'private': {
+            'post': [
+                'balances',
+                'bitcoinWithdrawal',
+                'bitcoinDepositAddresses',
+                'buyInstant',
+                'buyLimit',
+                'cancelOrder',
+                'cancelOrderWithInfo',
+                'createVoucher',
+                'openOrders',
+                'redeemVoucher',
+                'sellInstant',
+                'sellLimit',
+                'transactionHistory',
+                'unconfirmedBitcoinDeposits',
+            ],
+        },
+    },
+    'products': {
+        'BTC/EUR': { 'id': 'BTC_EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'  },
+        'BTC/CZK': { 'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK'  },
+    },
+
+    fetchBalance () {
+        return this.privatePostBalances ();
+    },
+    
+    fetchOrderBook (product) {
+        return this.publicGetOrderBook ({
+            'currencyPair': this.productId (product),
+            'groupByPriceLimit': 'False',
+        });
+    },
+    
+    async fetchTicker (product) {
+        let response = await this.publicGetTicker ({
+            'currencyPair': this.productId (product),
+        });
+        let ticker = response['data'];
+        let timestamp = ticker['timestamp'] * 1000;
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['bid']),
+            'ask': parseFloat (ticker['ask']),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['amount']),
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        return this.publicGetTransactions ({
+            'currencyPair': this.productId (product),
+            'minutesIntoHistory': 10,
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let method = 'privatePost' + this.capitalize (side);
+        let order = {
+            'currencyPair': this.productId (product),
+        };
+        if (type == 'market') {
+            if (side == 'buy')
+                order['total'] = amount; // amount in fiat
+            else
+                order['amount'] = amount; // amount in fiat
+            method += 'Instant';
+        } else {
+            order['amount'] = amount; // amount in crypto
+            order['price'] = price;
+            method += this.capitalize (type);
+        }
+        return this[method] (self.extend (order, params));
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        var url = this.urls['api'] + '/' + path;
+        if (type == 'public') {
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
+        } else {
+            let nonce = this.nonce ().toString ();
+            let auth = [ nonce, this.uid, this.apiKey ].join (' ');
+            let signature = this.hmac (auth, this.secret);
+            body = this.urlencode (this.extend ({
+                'clientId': this.uid,
+                'nonce': nonce,
+                'publicKey': this.apiKey,
+                'signature': signature.toUpperCase (),
+            }, params));
+            headers = {
+                'Content-Type':  'application/x-www-form-urlencoded',
+                'Content-Length': body.length,
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var coinsecure = {
 
     'id': 'coinsecure',
@@ -6374,6 +6511,7 @@ var markets = {
     'ccex':        ccex,
     'cex':         cex,
     'coincheck':   coincheck,
+    'coinmate':    coinmate,
     'coinsecure':  coinsecure,
     'exmo':        exmo,
     'fybse':       fybse,

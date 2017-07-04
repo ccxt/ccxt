@@ -37,6 +37,7 @@ try {
         ccex:        { 'verbose': verbose, apiKey: '', secret: '', },
         cex:         { 'verbose': verbose, apiKey: '', secret: '', uid: '', }, 
         coincheck:   { 'verbose': verbose, apiKey: '', secret: '', },
+        coinmate:    { 'verbose': verbose, apiKey: '', secret: '', },
         coinsecure:  { 'verbose': verbose, apiKey: '', },
         exmo:        { 'verbose': verbose, apiKey: '', secret: '', },
         fybse:       { 'verbose': verbose, apiKey: '', secret: '', },
