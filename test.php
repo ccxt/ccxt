@@ -48,6 +48,7 @@ else
         'jubi'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'kraken'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'luno'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
+        'mercado'     => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'okcoinusd'   => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'okcoincny'   => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'paymium'     => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
@@ -136,7 +137,7 @@ function test_market ($market) {
 //     }
 // }
 
-$market = $markets['itbit'];
+$market = $markets['mercado'];
 test_market ($market);
 
 ?>

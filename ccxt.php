@@ -5378,6 +5378,141 @@ class luno extends Market {
 
 //-----------------------------------------------------------------------------
 
+class mercado extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'mercado',
+            'name' => 'Mercado Bitcoin',
+            'countries' => 'BR', // Brazil
+            'rateLimit' => 1000,
+            'version' => 'v3',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
+                'api' => array (
+                    'public' => 'https://www.mercadobitcoin.net/api',
+                    'private' => 'https://www.mercadobitcoin.net/tapi',
+                ),
+                'www' => 'https://www.mercadobitcoin.com.br',
+                'doc' => array (
+                    'https://www.mercadobitcoin.com.br/api-doc',
+                    'https://www.mercadobitcoin.com.br/trade-api',
+                ),
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array ( // last slash critical
+                        'orderbook/',
+                        'orderbook_litecoin/',
+                        'ticker/',
+                        'ticker_litecoin/',
+                        'trades/',
+                        'trades_litecoin/',
+                        'v2/ticker/',
+                        'v2/ticker_litecoin/',
+                    ),
+                ),
+                'private' => array (
+                    'post' => array (
+                        'cancel_order',
+                        'get_account_info',
+                        'get_order',
+                        'get_withdrawal',
+                        'list_system_messages',
+                        'list_orders',
+                        'list_orderbook',
+                        'place_buy_order',
+                        'place_sell_order',
+                        'withdraw_coin',
+                    ),
+                ),
+            ),
+            'products' => array (
+                'BTC/BRL' => array ( 'id' => 'BRLBTC', 'symbol' => 'BTC/BRL', 'base' => 'BTC', 'quote' => 'BRL', 'suffix' => '' ),
+                'LTC/BRL' => array ( 'id' => 'BRLLTC', 'symbol' => 'LTC/BRL', 'base' => 'LTC', 'quote' => 'BRL', 'suffix' => 'Litecoin' ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_order_book ($product) {
+        $p = $this->product ($product);
+        $method = 'publicGetOrderbook' . $this->capitalize ($p['suffix']);
+        return $this->$method ();
+    }
+
+    public function fetch_ticker ($product) {
+        $p = $this->product ($product);
+        $method = 'publicGetV2Ticker' . $this->capitalize ($p['suffix']);
+        $response = $this->$method ();
+        $ticker = $response['ticker'];
+        $timestamp = intval ($ticker['date']) * 1000;
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['vol']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        $p = $this->product ($product);
+        $method = 'publicGetTrades' . $this->capitalize ($p['suffix']);
+        return $this->$method ();
+    }
+
+    public function fetch_balance () {
+        return $this->privatePostGetAccountInfo ();
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($type == 'market')
+            throw new Exception ($this->id . ' allows limit orders only');
+        $method = 'privatePostPlace' . $this->capitalize ($side) . 'Order';
+        $order = array (
+            'coin_pair' => $this->product_id ($product),
+            'quantity' => $amount,
+            'limit_price' => $price,
+        );
+        return $this->$method (array_merge ($order, $params));        
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$type] . '/';
+        if ($type == 'public') {
+            $url .= $path;
+        } else {
+            $url .= $this->version . '/';
+            $nonce = $this->nonce ();
+            $body = $this->urlencode (array_merge (array (
+                'tapi_method' => $path,
+                'tapi_nonce' => $nonce,
+            ), $params));
+            $auth = '/tapi/' . $this->version  . '/' . '?' . $body;
+            $headers = array (
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'TAPI-ID' => $this->apiKey,
+                'TAPI-MAC' => $this->hmac ($auth, $this->secret, 'sha512'),
+            );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 class okcoin extends Market {
 
     public function __construct ($options = array ()) {

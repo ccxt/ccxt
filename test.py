@@ -46,6 +46,7 @@ except ImportError:
 		'jubi':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'kraken':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'luno':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
+		'mercado':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'okcoinusd':   { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'okcoincny':   { 'verbose': verbose, 'apiKey': '', 'secret' : '' },
 		'paymium':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
@@ -164,4 +165,4 @@ def test_market (market):
 # 		print (type (e).__name__, e.args)
 # 		sys.exit ()
 
-test_market (markets['itbit'])
+test_market (markets['mercado'])

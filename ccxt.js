@@ -5236,6 +5236,137 @@ var luno = {
 }
 
 //-----------------------------------------------------------------------------
+
+var mercado = {
+
+    'id': 'mercado',
+    'name': 'Mercado Bitcoin',
+    'countries': 'BR', // Brazil
+    'rateLimit': 1000,
+    'version': 'v3',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
+        'api': {
+            'public': 'https://www.mercadobitcoin.net/api',
+            'private': 'https://www.mercadobitcoin.net/tapi',
+        },
+        'www': 'https://www.mercadobitcoin.com.br',
+        'doc': [
+            'https://www.mercadobitcoin.com.br/api-doc',
+            'https://www.mercadobitcoin.com.br/trade-api',
+        ],
+    },
+    'api': {
+        'public': {
+            'get': [ // last slash critical
+                'orderbook/',
+                'orderbook_litecoin/',
+                'ticker/',
+                'ticker_litecoin/',
+                'trades/',
+                'trades_litecoin/',
+                'v2/ticker/',
+                'v2/ticker_litecoin/',
+            ],
+        },
+        'private': {
+            'post': [
+                'cancel_order',
+                'get_account_info',
+                'get_order',
+                'get_withdrawal',
+                'list_system_messages',
+                'list_orders',
+                'list_orderbook',
+                'place_buy_order',
+                'place_sell_order',
+                'withdraw_coin',
+            ],
+        },
+    },
+    'products': {
+        'BTC/BRL': { 'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'suffix': '' },
+        'LTC/BRL': { 'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin' },
+    },
+
+    fetchOrderBook (product) {
+        let p = this.product (product);
+        let method = 'publicGetOrderbook' + this.capitalize (p['suffix']);
+        return this[method] ();
+    },
+
+    async fetchTicker (product) {
+        let p = this.product (product);
+        let method = 'publicGetV2Ticker' + this.capitalize (p['suffix']);
+        let response = await this[method] ();
+        let ticker = response['ticker'];
+        let timestamp = parseInt (ticker['date']) * 1000;
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['buy']),
+            'ask': parseFloat (ticker['sell']),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['vol']),
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        let p = this.product (product);
+        let method = 'publicGetTrades' + this.capitalize (p['suffix']);
+        return this[method] ();
+    },
+
+    fetchBalance () {
+        return this.privatePostGetAccountInfo ();
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        if (type == 'market')
+            throw new Error (this.id + ' allows limit orders only');
+        let method = 'privatePostPlace' + this.capitalize (side) + 'Order';
+        let order = {
+            'coin_pair': this.productId (product),
+            'quantity': amount,
+            'limit_price': price,
+        };
+        return this[method] (this.extend (order, params));        
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][type] + '/';
+        if (type == 'public') {
+            url += path;
+        } else {
+            url += this.version + '/';
+            let nonce = this.nonce ();
+            body = this.urlencode (this.extend ({
+                'tapi_method': path,
+                'tapi_nonce': nonce,
+            }, params));
+            let auth = '/tapi/' + this.version  + '/' + '?' + body;
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'TAPI-ID': this.apiKey,
+                'TAPI-MAC': this.hmac (auth, this.secret, 'sha512'),
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
 // OKCoin 
 // China
 // https://www.okcoin.com/
@@ -6822,6 +6953,7 @@ var markets = {
     'jubi':        jubi,
     'kraken':      kraken,
     'luno':        luno,
+    'mercado':     mercado,
     'okcoincny':   okcoincny,
     'okcoinusd':   okcoinusd,
     'paymium':     paymium,

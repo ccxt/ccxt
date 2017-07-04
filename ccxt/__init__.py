@@ -5085,6 +5085,134 @@ class luno (Market):
 
 #------------------------------------------------------------------------------
 
+class mercado (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'mercado',
+            'name': 'Mercado Bitcoin',
+            'countries': 'BR', # Brazil
+            'rateLimit': 1000,
+            'version': 'v3',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
+                'api': {
+                    'public': 'https://www.mercadobitcoin.net/api',
+                    'private': 'https://www.mercadobitcoin.net/tapi',
+                },
+                'www': 'https://www.mercadobitcoin.com.br',
+                'doc': [
+                    'https://www.mercadobitcoin.com.br/api-doc',
+                    'https://www.mercadobitcoin.com.br/trade-api',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [ # last slash critical
+                        'orderbook/',
+                        'orderbook_litecoin/',
+                        'ticker/',
+                        'ticker_litecoin/',
+                        'trades/',
+                        'trades_litecoin/',
+                        'v2/ticker/',
+                        'v2/ticker_litecoin/',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'cancel_order',
+                        'get_account_info',
+                        'get_order',
+                        'get_withdrawal',
+                        'list_system_messages',
+                        'list_orders',
+                        'list_orderbook',
+                        'place_buy_order',
+                        'place_sell_order',
+                        'withdraw_coin',
+                    ],
+                },
+            },
+            'products': {
+                'BTC/BRL': { 'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'suffix': '' },
+                'LTC/BRL': { 'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin' },
+            },
+        }
+        params.update (config)
+        super (mercado, self).__init__ (params)
+
+    def fetch_order_book (self, product):
+        p = self.product (product)
+        method = 'publicGetOrderbook' + self.capitalize (p['suffix'])
+        return getattr (self, method) ()
+
+    def fetch_ticker (self, product):
+        p = self.product (product)
+        method = 'publicGetV2Ticker' + self.capitalize (p['suffix'])
+        response = getattr (self, method) ()
+        ticker = response['ticker']
+        timestamp = int (ticker['date']) * 1000
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['buy']),
+            'ask': float (ticker['sell']),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['vol']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        p = self.product (product)
+        method = 'publicGetTrades' + self.capitalize (p['suffix'])
+        return getattr (self, method) ()
+
+    def fetch_balance (self):
+        return self.privatePostGetAccountInfo ()
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        if type == 'market':
+            raise Exception (self.id + ' allows limit orders only')
+        method = 'privatePostPlace' + self.capitalize (side) + 'Order'
+        order = {
+            'coin_pair': self.product_id (product),
+            'quantity': amount,
+            'limit_price': price,
+        }
+        return getattr (self, method) (self.extend (order, params))        
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][type] + '/'
+        if type == 'public':
+            url += path
+        else:
+            url += self.version + '/'
+            nonce = self.nonce ()
+            body = _urlencode.urlencode (self.extend ({
+                'tapi_method': path,
+                'tapi_nonce': nonce,
+            }, params))
+            auth = '/tapi/' + self.version  + '/' + '?' + body
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'TAPI-ID': self.apiKey,
+                'TAPI-MAC': self.hmac (auth, self.secret, hashlib.sha512),
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class okcoin (Market):
 
     def __init__ (self, config = {}):
