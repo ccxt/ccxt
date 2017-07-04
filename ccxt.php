@@ -3466,7 +3466,10 @@ class coinmate extends Market {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
                 'api' => 'https://coinmate.io/api',
                 'www' => 'https://coinmate.io',
-                'doc' => 'https://coinmate.io/developers',
+                'doc' => array (
+                    'https://coinmate.io/developers',
+                    'http://docs.coinmate.apiary.io/#reference',
+                ),
             ),
             'api' => array (
                 'public' => array (
@@ -3545,6 +3548,25 @@ class coinmate extends Market {
             'currencyPair' => $this->product_id ($product),
             'minutesIntoHistory' => 10,
         ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        $method = 'privatePost' . $this->capitalize ($side);
+        $order = array (
+            'currencyPair' => $this->product_id ($product),
+        );
+        if ($type == 'market') {
+            if ($side == 'buy')
+                $order['total'] = $amount; // $amount in fiat
+            else
+                $order['amount'] = $amount; // $amount in fiat
+            $method .= 'Instant';
+        } else {
+            $order['amount'] = $amount; // $amount in crypto
+            $order['price'] = $price;
+            $method .= $this->capitalize ($type);
+        }
+        return $this->$method (self.extend ($order, $params));
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

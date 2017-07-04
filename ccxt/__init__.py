@@ -3274,7 +3274,10 @@ class coinmate (Market):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
                 'api': 'https://coinmate.io/api',
                 'www': 'https://coinmate.io',
-                'doc': 'https://coinmate.io/developers',
+                'doc': [
+                    'https://coinmate.io/developers',
+                    'http://docs.coinmate.apiary.io/#reference',
+                ],
             },
             'api': {
                 'public': {
@@ -3351,6 +3354,23 @@ class coinmate (Market):
             'currencyPair': self.product_id (product),
             'minutesIntoHistory': 10,
         })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        method = 'privatePost' + self.capitalize (side)
+        order = {
+            'currencyPair': self.product_id (product),
+        }
+        if type == 'market':
+            if side == 'buy':
+                order['total'] = amount # amount in fiat
+            else:
+                order['amount'] = amount # amount in fiat
+            method += 'Instant'
+        else:
+            order['amount'] = amount # amount in crypto
+            order['price'] = price
+            method += self.capitalize (type)
+        return getattr (self, method) (self.extend (order, params))
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         var url = self.urls['api'] + '/' + path
