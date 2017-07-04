@@ -4253,7 +4253,7 @@ var gdax = {
 
     fetchTrades (product) {
         return this.publicGetProductsIdTrades ({
-            'symbol': this.productId (product),
+            'id': this.productId (product),
         });
     },
 
