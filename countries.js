@@ -238,6 +238,7 @@ module.exports = {
     UA: 'Ukraine',
     AE: 'United Arab Emirates',
     GB: 'UK',
+    UK: 'UK',
     US: 'US',
     UM: 'US Minor Islands',
     UY: 'Uruguay',
