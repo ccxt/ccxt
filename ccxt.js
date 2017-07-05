@@ -6192,10 +6192,17 @@ var okcoin = {
     },
 
     async fetchOrderBook (product) {
-        let response = await this.publicGetDepth ({
+        let orderbook = await this.publicGetDepth ({
             'symbol': this.productId (product),
         });
-        return response;
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        return result;
     },
 
     async fetchTicker (product) {

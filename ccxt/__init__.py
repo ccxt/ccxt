@@ -5979,10 +5979,17 @@ class okcoin (Market):
         super (okcoin, self).__init__ (params)
 
     def fetch_order_book (self, product):
-        response = self.publicGetDepth ({
+        orderbook = self.publicGetDepth ({
             'symbol': self.product_id (product),
         })
-        return response
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        return result
 
     def fetch_ticker (self, product):
         response = self.publicGetTicker ({

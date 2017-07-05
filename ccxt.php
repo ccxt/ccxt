@@ -6336,10 +6336,17 @@ class okcoin extends Market {
     }
 
     public function fetch_order_book ($product) {
-        $response = $this->publicGetDepth (array (
+        $orderbook = $this->publicGetDepth (array (
             'symbol' => $this->product_id ($product),
         ));
-        return $response;
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => $orderbook['bids'],
+            'asks' => $orderbook['asks'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        return $result;
     }
 
     public function fetch_ticker ($product) {
