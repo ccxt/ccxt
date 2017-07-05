@@ -6028,10 +6028,29 @@ class luno extends Market {
     }
 
     public function fetch_order_book ($product) {
-        $response = $this->publicGetOrderbook (array (
+        $orderbook = $this->publicGetOrderbook (array (
             'pair' => $this->product_id ($product),
         ));
-        return $response;
+        $timestamp = $orderbook['timestamp'];
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['volume']);
+                // $timestamp = $order[2] * 1000;
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {
@@ -6162,8 +6181,15 @@ class mercado extends Market {
     public function fetch_order_book ($product) {
         $p = $this->product ($product);
         $method = 'publicGetOrderbook' . $this->capitalize ($p['suffix']);
-        $response = $this->$method ();
-        return $response;
+        $orderbook = $this->$method ();
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => $orderbook['bids'],
+            'asks' => $orderbook['asks'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        return $result;
     }
 
     public function fetch_ticker ($product) {

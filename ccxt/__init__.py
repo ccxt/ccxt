@@ -5687,10 +5687,27 @@ class luno (Market):
         return self.privateGetBalance ()
 
     def fetch_order_book (self, product):
-        response = self.publicGetOrderbook ({
+        orderbook = self.publicGetOrderbook ({
             'pair': self.product_id (product),
         })
-        return response
+        timestamp = orderbook['timestamp']
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order['price'])
+                amount = float (order['volume'])
+                # timestamp = order[2] * 1000
+                result[side].append ([ price, amount ])
+        return result
 
     def fetch_ticker (self, product):
         ticker = self.publicGetTicker ({
@@ -5814,8 +5831,15 @@ class mercado (Market):
     def fetch_order_book (self, product):
         p = self.product (product)
         method = 'publicGetOrderbook' + self.capitalize (p['suffix'])
-        response = getattr (self, method) ()
-        return response
+        orderbook = getattr (self, method) ()
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        return result
 
     def fetch_ticker (self, product):
         p = self.product (product)

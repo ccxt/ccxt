@@ -5884,10 +5884,29 @@ var luno = {
     },
 
     async fetchOrderBook (product) {
-        let response = await this.publicGetOrderbook ({
+        let orderbook = await this.publicGetOrderbook ({
             'pair': this.productId (product),
         });
-        return response;
+        let timestamp = orderbook['timestamp'];
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order['price']);
+                let amount = parseFloat (order['volume']);
+                // let timestamp = order[2] * 1000;
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
     },
 
     async fetchTicker (product) {
@@ -6014,8 +6033,15 @@ var mercado = {
     async fetchOrderBook (product) {
         let p = this.product (product);
         let method = 'publicGetOrderbook' + this.capitalize (p['suffix']);
-        let response = await this[method] ();
-        return response;
+        let orderbook = await this[method] ();
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        return result;
     },
 
     async fetchTicker (product) {
