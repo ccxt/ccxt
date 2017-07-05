@@ -477,12 +477,20 @@ class _1broker (Market):
         response = self.privateGetMarketQuotes ({
             'symbols': self.product_id (product),
         })
-        book = response['response'][0]
-        timestamp = self.parse8601 (book['updated'])
-        bidPrice = float (book['bid'])
-        askPrice = float (book['ask']) 
-        bid = [ bidPrice ]
-        ask = [ askPrice ]
+        orderbook = response['response'][0]
+        timestamp = self.parse8601 (orderbook['updated'])
+        bid = {
+            'price': float (orderbook['bid']),
+            'amount': None,
+            'cost': None,
+            'timestamp': None,
+        }
+        ask = {
+            'price': float (orderbook['ask']),
+            'amount': None,
+            'cost': None,
+            'timestamp': None,
+        }
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),
@@ -496,7 +504,7 @@ class _1broker (Market):
             'resolution': 60,
             'limit': 1,
         })
-        book = self.fetchOrderBook (product)
+        orderbook = self.fetchOrderBook (product)
         ticker = result['response'][0]
         timestamp = self.parse8601 (ticker['date'])
         return {
@@ -504,8 +512,8 @@ class _1broker (Market):
             'datetime': self.iso8601 (timestamp),
             'high': float (ticker['h']),
             'low': float (ticker['l']),
-            'bid': book['bids'][0][0],
-            'ask': book['asks'][0][0],
+            'bid': orderbook['bids'][0]['price'],
+            'ask': orderbook['asks'][0]['price'],
             'vwap': None,
             'open': float (ticker['o']),
             'close': float (ticker['c']),
@@ -579,9 +587,33 @@ class cryptocapital (Market):
         return self.privatePostBalancesAndInfo ()
 
     def fetch_order_book (self, product):
-        return self.publicGetOrderBook ({
+        response = self.publicGetOrderBook ({
             'currency': self.product_id (product),
         })
+        orderbook = response['order-book']
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = { 'bids': 'bid', 'asks': 'ask' }
+        keys = list (sides.keys ())
+        for k in range (0, len (keys)):
+            key = keys[k]
+            side = sides[key]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                timestamp = int (order['timestamp']) * 1000
+                result[key].append ({
+                    'price': float (order['price']),
+                    'amount': float (order['order_amount']),
+                    'value': float (order['order_value']),
+                    'timestamp': timestamp,
+                })
+        return result
 
     def fetch_ticker (self, product):
         response = self.publicGetStats ({
@@ -753,9 +785,30 @@ class anxpro (Market):
         return self.privatePostMoneyInfo ()
 
     def fetch_order_book (self, product):
-        return self.publicGetCurrencyPairMoneyDepthFull ({
+        response = self.publicGetCurrencyPairMoneyDepthFull ({
             'currency_pair': self.product_id (product),
         })
+        orderbook = response['data']
+        timestamp = int (orderbook['dataUpdateTime']) / 1000
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                result[side].append ({
+                    'price': float (order['price']),
+                    'amount': float (order['amount']),
+                    'value': None,
+                    'timestamp': None,
+                })
+        return result
 
     def fetch_ticker (self, product):
         response = self.publicGetCurrencyPairMoneyTicker ({

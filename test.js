@@ -6,7 +6,7 @@ const asTable   = require ('as-table')
 const util      = require ('util')
 
 let markets
-let verbose = false
+let verbose = true
 
 try {
 
@@ -119,23 +119,23 @@ let testMarket = market => new Promise (async resolve => {
     for (let s in keys) {
         let symbol = keys[s]
         if (symbol.indexOf ('.d') < 0) {
-            let ticker = await market.fetchTicker (symbol)
-            console.log (market.id, symbol, 'ticker',
-                ticker['datetime'],
-                'high: '    + ticker['high'],
-                'low: '     + ticker['low'],
-                'bid: '     + ticker['bid'],
-                'ask: '     + ticker['ask'],
-                'volume: '  + ticker['quoteVolume'])
-            await sleep (delay)
+            // let ticker = await market.fetchTicker (symbol)
+            // console.log (market.id, symbol, 'ticker',
+            //     ticker['datetime'],
+            //     'high: '    + ticker['high'],
+            //     'low: '     + ticker['low'],
+            //     'bid: '     + ticker['bid'],
+            //     'ask: '     + ticker['ask'],
+            //     'volume: '  + ticker['quoteVolume'])
+            // await sleep (delay)
 
             let orderbook = await market.fetchOrderBook (symbol)
             console.log (market.id, symbol, 'order book',
                 orderbook['datetime'],
-                'bid: '       + orderbook.bids[0][0], 
-                'bidVolume: ' + orderbook.bids[0][1],
-                'ask: '       + orderbook.asks[0][0],
-                'askVolume: ' + orderbook.asks[0][1])
+                'bid: '       + orderbook.bids[0].price, 
+                'bidVolume: ' + orderbook.bids[0].amount,
+                'ask: '       + orderbook.asks[0].price,
+                'askVolume: ' + orderbook.asks[0].amount)
             await sleep (delay)
         }
     }
@@ -235,7 +235,7 @@ var test = async function () {
 
     // Object.keys (markets).forEach (async id => {
 
-        var market = markets._1btcxe
+        var market = markets.anxpro
         // var market = markets[id]
 
         try {

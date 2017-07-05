@@ -126,16 +126,12 @@ def test_market (market):
 			time.sleep (delay)
 
 			orderbook = market.fetch_order_book (symbol)
-			bid = orderbook['bids'][0][0]
-			ask = orderbook['asks'][0][0]
-			bidVolume = orderbook['bids'][0][1] if len (orderbook['bids'][0]) > 1 else 'N/A'
-			askVolume = orderbook['asks'][0][1] if len (orderbook['asks'][0]) > 1 else 'N/A'			
 			print (market.id, symbol, 'order book',
 				orderbook['datetime'],
-                'bid: ' +       str (bid), 
-                'bidVolume: ' + str (bidVolume),
-                'ask: '       + str (ask),
-                'askVolume: ' + str (askVolume),
+                'bid: ' +       str (orderbook['bids'][0]['price']), 
+                'bidVolume: ' + str (orderbook['bids'][0]['amount']),
+                'ask: '       + str (orderbook['asks'][0]['price']),
+                'askVolume: ' + str (orderbook['asks'][0]['amount']),
 			)
 			time.sleep (delay)
 
@@ -180,4 +176,4 @@ def test_market (market):
 # 		print (type (e).__name__, e.args)
 # 		sys.exit ()
 
-test_market (markets['_1broker'])
+test_market (markets['_1btcxe'])

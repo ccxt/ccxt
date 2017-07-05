@@ -103,10 +103,10 @@ function test_market ($market) {
             $orderbook = $market->fetch_order_book ($symbol);
             echo implode (' ', array ($market->id, $symbol, 'order book',
                 $orderbook['datetime'],
-                'bid: '       . @$orderbook['bids'][0][0],
-                'bidVolume: ' . @$orderbook['bids'][0][1],
-                'ask: '       . @$orderbook['asks'][0][0],
-                'askVolume: ' . @$orderbook['asks'][0][1])) . "\n";
+                'bid: '       . @$orderbook['bids'][0]['price'],
+                'bidVolume: ' . @$orderbook['bids'][0]['amount'],
+                'ask: '       . @$orderbook['asks'][0]['price'],
+                'askVolume: ' . @$orderbook['asks'][0]['amount'])) . "\n";
             usleep ($delay);
         }
     }
@@ -147,7 +147,7 @@ function test_market ($market) {
 //     }
 // }
 
-$market = $markets['_1broker'];
+$market = $markets['_1btcxe'];
 test_market ($market);
 
 ?>
