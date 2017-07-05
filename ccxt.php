@@ -5670,10 +5670,17 @@ class jubi extends Market {
     }
 
     public function fetch_order_book ($product) {
-        $response = $this->publicGetDepth (array (
+        $orderbook = $this->publicGetDepth (array (
             'coin' => $this->product_id ($product),
         ));
-        return $response;
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => $orderbook['bids'],
+            'asks' => $orderbook['asks'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        return $result;
     }
 
     public function fetch_ticker ($product) {
@@ -5829,10 +5836,31 @@ class kraken extends Market {
     }
 
     public function fetch_order_book ($product) {
+        $p = $this->product ($product);
         $response = $this->publicGetDepth  (array (
-            'pair' => $this->product_id ($product),
+            'pair' => $p['id'],
         ));
-        return $response;
+        $orderbook = $response['result'][$p['id']];
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $timestamp = $order[2] * 1000;
+                $result[$side][] = array ($price, $amount, $timestamp);
+            }
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {

@@ -5533,10 +5533,17 @@ var jubi = {
     },
 
     async fetchOrderBook (product) {
-        let response = await this.publicGetDepth ({
+        let orderbook = await this.publicGetDepth ({
             'coin': this.productId (product),
         });
-        return response;
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        return result;
     },
 
     async fetchTicker (product) {
@@ -5689,10 +5696,31 @@ var kraken = {
     },
 
     async fetchOrderBook (product) {
+        let p = this.product (product);
         let response = await this.publicGetDepth  ({
-            'pair': this.productId (product),
+            'pair': p['id'],
         });
-        return response;
+        let orderbook = response['result'][p['id']];
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order[0]);
+                let amount = parseFloat (order[1]);
+                let timestamp = order[2] * 1000;
+                result[side].push ([ price, amount, timestamp ]);
+            }
+        }
+        return result;
     },
 
     async fetchTicker (product) {

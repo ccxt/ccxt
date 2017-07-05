@@ -5349,10 +5349,17 @@ class jubi (Market):
         return self.privatePostBalance ()
 
     def fetch_order_book (self, product):
-        response = self.publicGetDepth ({
+        orderbook = self.publicGetDepth ({
             'coin': self.product_id (product),
         })
-        return response
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        return result
 
     def fetch_ticker (self, product):
         ticker = self.publicGetTicker ({ 
@@ -5500,10 +5507,29 @@ class kraken (Market):
         return result
 
     def fetch_order_book (self, product):
+        p = self.product (product)
         response = self.publicGetDepth  ({
-            'pair': self.product_id (product),
+            'pair': p['id'],
         })
-        return response
+        orderbook = response['result'][p['id']]
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order[0])
+                amount = float (order[1])
+                timestamp = order[2] * 1000
+                result[side].append ([ price, amount, timestamp ])
+        return result
 
     def fetch_ticker (self, product):
         p = self.product (product)
