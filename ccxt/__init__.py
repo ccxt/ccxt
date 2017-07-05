@@ -2379,9 +2379,26 @@ class bitstamp (Market):
         super (bitstamp, self).__init__ (params)
 
     def fetch_order_book (self, product):
-        return self.publicGetOrderBookId ({
+        orderbook = self.publicGetOrderBookId ({
             'id': self.product_id (product),
         })
+        timestamp = int (orderbook['timestamp']) * 1000
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order[0])
+                amount = float (order[1])
+                result[side].append ([ price, amount ])
+        return result
 
     def fetch_ticker (self, product):
         ticker = self.publicGetTickerId ({

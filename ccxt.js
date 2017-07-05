@@ -2462,10 +2462,29 @@ var bitstamp = {
         'XRP/BTC': { 'id': 'xrpbtc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC' },
     },
     
-    fetchOrderBook (product) {
-        return this.publicGetOrderBookId ({
+    async fetchOrderBook (product) {
+        let orderbook = await this.publicGetOrderBookId ({
             'id': this.productId (product),
         });
+        let timestamp = parseInt (orderbook['timestamp']) * 1000;
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order[0]);
+                let amount = parseFloat (order[1]);
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
     },
 
     async fetchTicker (product) {
