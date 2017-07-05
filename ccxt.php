@@ -4985,7 +4985,7 @@ class gemini extends Market {
                 $price = floatval ($order['price']);
                 $amount = floatval ($order['amount']);
                 $timestamp = intval ($order['timestamp']) * 1000;
-                $result[$side][] = array ($price, $amount);
+                $result[$side][] = array ($price, $amount, $timestamp);
             }
         }
         return $result;
@@ -5162,10 +5162,28 @@ class hitbtc extends Market {
     }
 
     public function fetch_order_book ($product) {
-        $response = $this->publicGetSymbolOrderbook (array (
+        $orderbook = $this->publicGetSymbolOrderbook (array (
             'symbol' => $this->product_id ($product),
         ));
-        return $response;
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {
