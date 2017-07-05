@@ -7751,10 +7751,17 @@ var zaif = {
     },
 
     async fetchOrderBook (product) {
-        let response = await this.apiGetDepthPair  ({
+        let orderbook = await this.apiGetDepthPair  ({
             'pair': this.productId (product),
         });
-        return response;
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        return result;
     },
 
     async fetchTicker (product) {
