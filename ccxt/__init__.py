@@ -7163,7 +7163,26 @@ class virwox (Market):
             'buyDepth': 100,
             'sellDepth': 100,
         })
-        return response
+        orderbook = response['result'][0]
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = { 'bids': 'buy', 'asks': 'sell' }
+        keys = list (sides.keys ())
+        for k in range (0, len (keys)):
+            key = keys[k]
+            side = sides[key]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order['price'])
+                amount = float (order['volume'])
+                result[key].append ([ price, amount ])
+        return result
 
     def fetch_ticker (self, product):
         end = self.milliseconds ()

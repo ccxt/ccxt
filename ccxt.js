@@ -7415,7 +7415,28 @@ var virwox = {
             'buyDepth': 100,
             'sellDepth': 100,
         });
-        return response;
+        let orderbook = response['result'][0];
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = { 'bids': 'buy', 'asks': 'sell' };
+        let keys = Object.keys (sides);
+        for (let k = 0; k < keys.length; k++) {
+            let key = keys[k];
+            let side = sides[key];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order['price']);
+                let amount = parseFloat (order['volume']);
+                result[key].push ([ price, amount ]);
+            }
+        }
+        return result;
     },
 
     async fetchTicker (product) {

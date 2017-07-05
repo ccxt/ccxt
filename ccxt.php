@@ -7597,7 +7597,28 @@ class virwox extends Market {
             'buyDepth' => 100,
             'sellDepth' => 100,
         ));
-        return $response;
+        $orderbook = $response['result'][0];
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ( 'bids' => 'buy', 'asks' => 'sell' );
+        $keys = array_keys ($sides);
+        for ($k = 0; $k < count ($keys); $k++) {
+            $key = $keys[$k];
+            $side = $sides[$key];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['volume']);
+                $result[$key][] = array ($price, $amount);
+            }
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {
