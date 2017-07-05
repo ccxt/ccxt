@@ -3535,11 +3535,33 @@ class ccex extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetOrderbook (array (
+        $response = $this->publicGetOrderbook (array (
             'market' => $this->product_id ($product),
             'type' => 'both',
             'depth' => 100,
         ));
+        $orderbook = $response['result'];
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ( 'bids' => 'buy', 'asks' => 'sell' );
+        $keys = array_keys ($sides);
+        for ($k = 0; $k < count ($keys); $k++) {
+            $key = $keys[$k];
+            $side = $sides[$key];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order['Rate']);
+                $amount = floatval ($order['Quantity']);
+                $result[$key][] = array ($price, $amount);
+            }
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {

@@ -148,7 +148,7 @@ function test_market ($market) {
 //     }
 // }
 
-$market = $markets['bxinth'];
+$market = $markets['ccex'];
 test_market ($market);
 
 ?>

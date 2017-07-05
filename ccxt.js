@@ -3456,12 +3456,34 @@ var ccex = {
         return this.privateGetBalances ();
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetOrderbook ({
+    async fetchOrderBook (product) {
+        let response = await this.publicGetOrderbook ({
             'market': this.productId (product),
             'type': 'both',
             'depth': 100,
         });
+        let orderbook = response['result'];
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = { 'bids': 'buy', 'asks': 'sell' };
+        let keys = Object.keys (sides);
+        for (let k = 0; k < keys.length; k++) {
+            let key = keys[k];
+            let side = sides[key];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order['Rate']);
+                let amount = parseFloat (order['Quantity']);
+                result[key].push ([ price, amount ]);
+            }
+        }
+        return result;
     },
 
     async fetchTicker (product) {
