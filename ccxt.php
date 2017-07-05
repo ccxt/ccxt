@@ -3040,7 +3040,8 @@ class btce extends Market {
     }
 
     public function fetch_products () {
-        $response = $this->publicGetInfo ();
+        // $response = $this->publicGetInfo ();
+        $response = array ("server_time":1499233043,"pairs":{"btc_usd":array ("decimal_places":3,"min_price":0.1,"max_price":10000,"min_amount":0.001,"hidden":0,"fee":0.2),"btc_rur":array ("decimal_places":5,"min_price":1,"max_price":1000000,"min_amount":0.001,"hidden":0,"fee":0.2),"btc_eur":array ("decimal_places":5,"min_price":0.1,"max_price":10000,"min_amount":0.001,"hidden":0,"fee":0.2),"ltc_btc":array ("decimal_places":5,"min_price":0.0001,"max_price":10,"min_amount":0.01,"hidden":0,"fee":0.2),"ltc_usd":array ("decimal_places":6,"min_price":0.0001,"max_price":1000,"min_amount":0.1,"hidden":0,"fee":0.2),"ltc_rur":array ("decimal_places":5,"min_price":0.01,"max_price":100000,"min_amount":0.01,"hidden":0,"fee":0.2),"ltc_eur":array ("decimal_places":3,"min_price":0.0001,"max_price":1000,"min_amount":0.01,"hidden":0,"fee":0.2),"nmc_btc":array ("decimal_places":5,"min_price":0.0001,"max_price":10,"min_amount":0.1,"hidden":0,"fee":0.2),"nmc_usd":array ("decimal_places":3,"min_price":0.001,"max_price":100,"min_amount":0.1,"hidden":0,"fee":0.2),"nvc_btc":array ("decimal_places":5,"min_price":0.0001,"max_price":10,"min_amount":0.1,"hidden":0,"fee":0.2),"nvc_usd":array ("decimal_places":3,"min_price":0.001,"max_price":1000,"min_amount":0.1,"hidden":0,"fee":0.2),"usd_rur":array ("decimal_places":5,"min_price":25,"max_price":150,"min_amount":0.1,"hidden":0,"fee":0.2),"eur_usd":array ("decimal_places":5,"min_price":0.5,"max_price":2,"min_amount":0.1,"hidden":0,"fee":0.2),"eur_rur":array ("decimal_places":5,"min_price":30,"max_price":200,"min_amount":0.1,"hidden":0,"fee":0.2),"ppc_btc":array ("decimal_places":5,"min_price":0.0001,"max_price":10,"min_amount":0.1,"hidden":0,"fee":0.2),"ppc_usd":array ("decimal_places":3,"min_price":0.001,"max_price":100,"min_amount":0.1,"hidden":0,"fee":0.2),"dsh_btc":array ("decimal_places":5,"min_price":0.0001,"max_price":10,"min_amount":0.01,"hidden":0,"fee":0.2),"dsh_usd":array ("decimal_places":5,"min_price":0.1,"max_price":1000,"min_amount":0.01,"hidden":0,"fee":0.2),"dsh_rur":array ("decimal_places":3,"min_price":1,"max_price":100000,"min_amount":0.01,"hidden":0,"fee":0.2),"dsh_eur":array ("decimal_places":3,"min_price":0.1,"max_price":1000,"min_amount":0.01,"hidden":0,"fee":0.2),"dsh_ltc":array ("decimal_places":3,"min_price":0.1,"max_price":600,"min_amount":0.01,"hidden":0,"fee":0.2),"dsh_eth":array ("decimal_places":3,"min_price":0.1,"max_price":600,"min_amount":0.01,"hidden":0,"fee":0.2),"eth_btc":array ("decimal_places":5,"min_price":0.0001,"max_price":10,"min_amount":0.01,"hidden":0,"fee":0.2),"eth_usd":array ("decimal_places":5,"min_price":0.0001,"max_price":1000,"min_amount":0.01,"hidden":0,"fee":0.2),"eth_eur":array ("decimal_places":5,"min_price":0.0001,"max_price":1000,"min_amount":0.01,"hidden":0,"fee":0.2),"eth_ltc":array ("decimal_places":5,"min_price":0.0001,"max_price":1000,"min_amount":0.01,"hidden":0,"fee":0.2),"eth_rur":array ("decimal_places":5,"min_price":0.0001,"max_price":100000,"min_amount":0.01,"hidden":0,"fee":0.2))}
         $products = $response['pairs'];
         $keys = array_keys ($products);
         $result = array ();
@@ -3067,9 +3068,19 @@ class btce extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetDepthPair (array (
-            'pair' => $this->product_id ($product),
+        $p = $this->product ($product);
+        $response = $this->publicGetDepthPair (array (
+            'pair' => $p['id'],
         ));
+        $orderbook = $response[$p['id']]; 
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => $orderbook['bids'],
+            'asks' => $orderbook['asks'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        return $result;
     }
 
     public function fetch_ticker ($product) {
