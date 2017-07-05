@@ -114,24 +114,25 @@ def test_market (market):
 	for symbol in keys:
 		if symbol.find ('.d') < 0:
 			# print (market.id, symbol, market.product (symbol))
-			ticker = market.fetch_ticker (symbol)
-			print (market.id, symbol, 'ticker',
-				ticker['datetime'],
-				'high: '    + str (ticker['high']),
-				'low: '     + str (ticker['low']),
-				'bid: '     + str (ticker['bid']),
-				'ask: '     + str (ticker['ask']),
-				'volume: '  + str (ticker['quoteVolume']),
-			)
-			time.sleep (delay)
+
+			# ticker = market.fetch_ticker (symbol)
+			# print (market.id, symbol, 'ticker',
+			# 	ticker['datetime'],
+			# 	'high: '    + str (ticker['high']),
+			# 	'low: '     + str (ticker['low']),
+			# 	'bid: '     + str (ticker['bid']),
+			# 	'ask: '     + str (ticker['ask']),
+			# 	'volume: '  + str (ticker['quoteVolume']),
+			# )
+			# time.sleep (delay)
 
 			orderbook = market.fetch_order_book (symbol)
 			print (market.id, symbol, 'order book',
 				orderbook['datetime'],
-                'bid: ' +       str (orderbook['bids'][0]['price']), 
-                'bidVolume: ' + str (orderbook['bids'][0]['amount']),
-                'ask: '       + str (orderbook['asks'][0]['price']),
-                'askVolume: ' + str (orderbook['asks'][0]['amount']),
+                'bid: ' +       str (orderbook['bids'][0][0]), 
+                'bidVolume: ' + str (orderbook['bids'][0][1]),
+                'ask: '       + str (orderbook['asks'][0][0]),
+                'askVolume: ' + str (orderbook['asks'][0][1]),
 			)
 			time.sleep (delay)
 
@@ -176,4 +177,4 @@ def test_market (market):
 # 		print (type (e).__name__, e.args)
 # 		sys.exit ()
 
-test_market (markets['bit2c'])
+test_market (markets['bitlish'])

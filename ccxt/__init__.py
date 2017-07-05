@@ -479,18 +479,10 @@ class _1broker (Market):
         })
         orderbook = response['response'][0]
         timestamp = self.parse8601 (orderbook['updated'])
-        bid = {
-            'price': float (orderbook['bid']),
-            'amount': None,
-            'cost': None,
-            'timestamp': None,
-        }
-        ask = {
-            'price': float (orderbook['ask']),
-            'amount': None,
-            'cost': None,
-            'timestamp': None,
-        }
+        bidPrice = float (orderbook['bid'])
+        askPrice = float (orderbook['ask'])
+        bid = [ bidPrice, None ]
+        ask = [ askPrice, None ]
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),
@@ -607,12 +599,9 @@ class cryptocapital (Market):
             for i in range (0, len (orders)):
                 order = orders[i]
                 timestamp = int (order['timestamp']) * 1000
-                result[key].append ({
-                    'price': float (order['price']),
-                    'amount': float (order['order_amount']),
-                    'value': float (order['order_value']),
-                    'timestamp': timestamp,
-                })
+                price = float (order['price'])
+                amount = float (order['order_amount'])
+                result[key].append ([ price, amount, timestamp ])
         return result
 
     def fetch_ticker (self, product):
@@ -802,12 +791,9 @@ class anxpro (Market):
             orders = orderbook[side]
             for i in range (0, len (orders)):
                 order = orders[i]
-                result[side].append ({
-                    'price': float (order['price']),
-                    'amount': float (order['amount']),
-                    'value': None,
-                    'timestamp': None,
-                })
+                price = float (order['price'])
+                amount = float (order['amount'])
+                result[side].append ([ price, amount ])
         return result
 
     def fetch_ticker (self, product):
@@ -946,13 +932,10 @@ class bit2c (Market):
             orders = orderbook[side]
             for i in range (0, len (orders)):
                 order = orders[i]
-                timestamp = int (order[2]) * 1000
-                result[side].append ({
-                    'price': float (order[0]),
-                    'amount': float (order[1]),
-                    'value': None,
-                    'timestamp': timestamp,
-                })
+                price = order[0]
+                amount = order[1]
+                timestamp = order[2] * 1000
+                result[side].append ([ price, amount, timestamp ])
         return result
 
     def fetch_ticker (self, product):
@@ -1086,9 +1069,17 @@ class bitbay (Market):
         return self.privatePostInfo ()
 
     def fetch_order_book (self, product):
-        return self.publicGetIdOrderbook ({
+        orderbook = self.publicGetIdOrderbook ({
             'id': self.product_id (product),
         })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        return result
 
     def fetch_ticker (self, product):
         ticker = self.publicGetIdTicker ({
@@ -1195,9 +1186,27 @@ class bitbays (Market):
         super (bitbays, self).__init__ (params)
 
     def fetch_order_book (self, product):
-        return self.publicGetDepth ({
+        response = self.publicGetDepth ({
             'market': self.product_id (product),
         })
+        orderbook = response['result']
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order[0])
+                amount = float (order[1])
+                result[side].append ([ price, amount ])
+        return result
 
     def fetch_ticker (self, product):
         response = self.publicGetTicker ({
@@ -1321,9 +1330,28 @@ class bitcoincoid (Market):
         return self.privatePostGetInfo ()
 
     def fetch_order_book (self, product):
-        return self.publicGetPairDepth ({
+        orderbook = self.publicGetPairDepth ({
             'pair': self.product_id (product),
         })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = { 'bids': 'buy', 'asks': 'sell' }
+        keys = list (sides.keys ())
+        for k in range (0, len (keys)):
+            key = keys[k]
+            side = sides[key]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order[0])
+                amount = float (order[1])
+                result[key].append ([ price, amount ])
+        return result
 
     def fetch_ticker (self, product):
         pair = self.product (product)
@@ -1485,9 +1513,27 @@ class bitfinex (Market):
         return self.privatePostBalances ()
 
     def fetch_order_book (self, product):
-        return self.publicGetBookSymbol ({ 
+        orderbook = self.publicGetBookSymbol ({ 
             'symbol': self.product_id (product),
         })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order['price'])
+                amount = float (order['amount'])
+                timestamp = int (float (order['timestamp']))
+                result[side].append ([ price, amount, timestamp ])
+        return result
 
     def fetch_ticker (self, product):
         ticker = self.publicGetPubtickerSymbol ({
@@ -1658,9 +1704,28 @@ class bitlish (Market):
         }
 
     def fetch_order_book (self, product):
-        return self.publicGetTradesDepth ({
+        orderbook = self.publicGetTradesDepth ({
             'pair_id': self.product_id (product),
         })
+        timestamp = int (int (orderbook['last']) / 1000)
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = { 'bids': 'bid', 'asks': 'ask' }
+        keys = list (sides.keys ())
+        for k in range (0, len (keys)):
+            key = keys[k]
+            side = sides[key]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order['price'])
+                amount = float (order['volume'])
+                result[key].append ([ price, amount ])
+        return result
 
     def fetch_trades (self, product):
         return self.publicGetTradesHistory ({

@@ -90,23 +90,24 @@ function test_market ($market) {
 
     foreach ($symbols as $symbol) {
         if (strpos ($symbol, '.d') === false) {
-            $ticker = $market->fetch_ticker ($symbol);
-            echo implode (' ', array ($market->id, $symbol, 'ticker',
-                $ticker['datetime'],
-                'high: '    . $ticker['high'],
-                'low: '     . $ticker['low'],
-                'bid: '     . $ticker['bid'],
-                'ask: '     . $ticker['ask'],
-                'volume: '  . $ticker['quoteVolume'])) . "\n";
-            usleep ($delay);
+            
+            // $ticker = $market->fetch_ticker ($symbol);
+            // echo implode (' ', array ($market->id, $symbol, 'ticker',
+            //     $ticker['datetime'],
+            //     'high: '    . $ticker['high'],
+            //     'low: '     . $ticker['low'],
+            //     'bid: '     . $ticker['bid'],
+            //     'ask: '     . $ticker['ask'],
+            //     'volume: '  . $ticker['quoteVolume'])) . "\n";
+            // usleep ($delay);
 
             $orderbook = $market->fetch_order_book ($symbol);
             echo implode (' ', array ($market->id, $symbol, 'order book',
                 $orderbook['datetime'],
-                'bid: '       . @$orderbook['bids'][0]['price'],
-                'bidVolume: ' . @$orderbook['bids'][0]['amount'],
-                'ask: '       . @$orderbook['asks'][0]['price'],
-                'askVolume: ' . @$orderbook['asks'][0]['amount'])) . "\n";
+                'bid: '       . @$orderbook['bids'][0][0],
+                'bidVolume: ' . @$orderbook['bids'][0][1],
+                'ask: '       . @$orderbook['asks'][0][0],
+                'askVolume: ' . @$orderbook['asks'][0][1])) . "\n";
             usleep ($delay);
         }
     }
@@ -147,7 +148,7 @@ function test_market ($market) {
 //     }
 // }
 
-$market = $markets['bit2c'];
+$market = $markets['bitlish'];
 test_market ($market);
 
 ?>

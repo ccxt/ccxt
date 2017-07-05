@@ -505,18 +505,10 @@ var _1broker = {
         });
         let orderbook = response['response'][0];
         let timestamp = this.parse8601 (orderbook['updated']);
-        let bid = {
-            'price': parseFloat (orderbook['bid']),
-            'amount': undefined,
-            'cost': undefined,
-            'timestamp': undefined,
-        };
-        let ask = {
-            'price': parseFloat (orderbook['ask']),
-            'amount': undefined,
-            'cost': undefined,
-            'timestamp': undefined,
-        };
+        let bidPrice = parseFloat (orderbook['bid']);
+        let askPrice = parseFloat (orderbook['ask']);
+        let bid = [ bidPrice, undefined ];
+        let ask = [ askPrice, undefined ];
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -634,12 +626,9 @@ var cryptocapital = {
             for (let i = 0; i < orders.length; i++) {
                 let order = orders[i];
                 let timestamp = parseInt (order['timestamp']) * 1000;
-                result[key].push ({
-                    'price': parseFloat (order['price']),
-                    'amount': parseFloat (order['order_amount']),
-                    'value': parseFloat (order['order_value']),
-                    'timestamp': timestamp,
-                });
+                let price = parseFloat (order['price']);
+                let amount = parseFloat (order['order_amount']);
+                result[key].push ([ price, amount, timestamp ]);
             }
         }
         return result;
@@ -830,12 +819,9 @@ var anxpro = {
             let orders = orderbook[side];
             for (let i = 0; i < orders.length; i++) {
                 let order = orders[i];
-                result[side].push ({
-                    'price': parseFloat (order['price']),
-                    'amount': parseFloat (order['amount']),
-                    'value': undefined,
-                    'timestamp': undefined,
-                });
+                let price = parseFloat (order['price']);
+                let amount = parseFloat (order['amount']);
+                result[side].push ([ price, amount ]);
             }
         }
         return result;
@@ -980,13 +966,10 @@ var bit2c = {
             let orders = orderbook[side];
             for (let i = 0; i < orders.length; i++) {
                 let order = orders[i];
-                let timestamp = parseInt (order[2]) * 1000;
-                result[side].push ({
-                    'price': parseFloat (order[0]),
-                    'amount': parseFloat (order[1]),
-                    'value': undefined,
-                    'timestamp': timestamp,
-                });
+                let price = order[0];
+                let amount = order[1];
+                let timestamp = order[2] * 1000;
+                result[side].push ([ price, amount, timestamp ]);
             }
         }
         return result;
@@ -1125,10 +1108,18 @@ var bitbay = {
         return this.privatePostInfo ();
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetIdOrderbook ({
+    async fetchOrderBook (product) {
+        let orderbook = await this.publicGetIdOrderbook ({
             'id': this.productId (product),
         });
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        return result;
     },
 
     async fetchTicker (product) {
@@ -1236,10 +1227,30 @@ var bitbays = {
         'LSK/CNY': { 'id': 'lsk_cny', 'symbol': 'LSK/CNY', 'base': 'LSK', 'quote': 'CNY' },
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetDepth ({
+    async fetchOrderBook (product) {
+        let response = await this.publicGetDepth ({
             'market': this.productId (product),
         });
+        let orderbook = response['result'];
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order[0]);
+                let amount = parseFloat (order[1]);
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
     },
     
     async fetchTicker (product) {
@@ -1366,10 +1377,31 @@ var bitcoincoid = {
         return this.privatePostGetInfo ();
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetPairDepth ({
+    async fetchOrderBook (product) {
+        let orderbook = await this.publicGetPairDepth ({
             'pair': this.productId (product),
         });
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = { 'bids': 'buy', 'asks': 'sell' };
+        let keys = Object.keys (sides);
+        for (let k = 0; k < keys.length; k++) {
+            let key = keys[k];
+            let side = sides[key];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order[0]);
+                let amount = parseFloat (order[1]);
+                result[key].push ([ price, amount ]);
+            }
+        }
+        return result;
     },
 
     async fetchTicker (product) {
@@ -1535,10 +1567,30 @@ var bitfinex = {
         return this.privatePostBalances ();
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetBookSymbol ({ 
+    async fetchOrderBook (product) {
+        let orderbook = await this.publicGetBookSymbol ({ 
             'symbol': this.productId (product),
         });
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order['price']);
+                let amount = parseFloat (order['amount']);
+                let timestamp = parseInt (parseFloat (order['timestamp']));
+                result[side].push ([ price, amount, timestamp ]);
+            }
+        }
+        return result;
     },
 
     async fetchTicker (product) {
@@ -1713,10 +1765,31 @@ var bitlish = {
         };
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetTradesDepth ({
+    async fetchOrderBook (product) {
+        let orderbook = await this.publicGetTradesDepth ({
             'pair_id': this.productId (product),
         });
+        let timestamp = parseInt (parseInt (orderbook['last']) / 1000);
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = { 'bids': 'bid', 'asks': 'ask' };
+        let keys = Object.keys (sides);
+        for (let k = 0; k < keys.length; k++) {
+            let key = keys[k];
+            let side = sides[key];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order['price']);
+                let amount = parseFloat (order['volume']);
+                result[key].push ([ price, amount ]);
+            }
+        }
+        return result;
     },
 
     fetchTrades (product) {

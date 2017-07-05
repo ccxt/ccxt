@@ -6,7 +6,7 @@ const asTable   = require ('as-table')
 const util      = require ('util')
 
 let markets
-let verbose = true
+let verbose = false
 
 try {
 
@@ -132,10 +132,10 @@ let testMarket = market => new Promise (async resolve => {
             let orderbook = await market.fetchOrderBook (symbol)
             console.log (market.id, symbol, 'order book',
                 orderbook['datetime'],
-                'bid: '       + orderbook.bids[0].price, 
-                'bidVolume: ' + orderbook.bids[0].amount,
-                'ask: '       + orderbook.asks[0].price,
-                'askVolume: ' + orderbook.asks[0].amount)
+                'bid: '       + orderbook.bids[0][0], 
+                'bidVolume: ' + orderbook.bids[0][1],
+                'ask: '       + orderbook.asks[0][0],
+                'askVolume: ' + orderbook.asks[0][1])
             await sleep (delay)
         }
     }
@@ -235,7 +235,7 @@ var test = async function () {
 
     // Object.keys (markets).forEach (async id => {
 
-        var market = markets.bit2c
+        var market = markets.bitlish
         // var market = markets[id]
 
         try {

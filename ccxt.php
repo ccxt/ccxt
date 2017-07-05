@@ -509,18 +509,10 @@ class _1broker extends Market {
         ));
         $orderbook = $response['response'][0];
         $timestamp = $this->parse8601 ($orderbook['updated']);
-        $bid = array (
-            'price' => floatval ($orderbook['bid']),
-            'amount' => null,
-            'cost' => null,
-            'timestamp' => null,
-        );
-        $ask = array (
-            'price' => floatval ($orderbook['ask']),
-            'amount' => null,
-            'cost' => null,
-            'timestamp' => null,
-        );
+        $bidPrice = floatval ($orderbook['bid']);
+        $askPrice = floatval ($orderbook['ask']);
+        $bid = array ($bidPrice, null);
+        $ask = array ($askPrice, null);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -642,12 +634,9 @@ class cryptocapital extends Market {
             for ($i = 0; $i < count ($orders); $i++) {
                 $order = $orders[$i];
                 $timestamp = intval ($order['timestamp']) * 1000;
-                $result[$key][] = array (
-                    'price' => floatval ($order['price']),
-                    'amount' => floatval ($order['order_amount']),
-                    'value' => floatval ($order['order_value']),
-                    'timestamp' => $timestamp,
-                );
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['order_amount']);
+                $result[$key][] = array ($price, $amount, $timestamp);
             }
         }
         return $result;
@@ -846,12 +835,9 @@ class anxpro extends Market {
             $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
                 $order = $orders[$i];
-                $result[$side][] = array (
-                    'price' => floatval ($order['price']),
-                    'amount' => floatval ($order['amount']),
-                    'value' => null,
-                    'timestamp' => null,
-                );
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['amount']);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -1000,13 +986,10 @@ class bit2c extends Market {
             $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
                 $order = $orders[$i];
-                $timestamp = intval ($order[2]) * 1000;
-                $result[$side][] = array (
-                    'price' => floatval ($order[0]),
-                    'amount' => floatval ($order[1]),
-                    'value' => null,
-                    'timestamp' => $timestamp,
-                );
+                $price = $order[0];
+                $amount = $order[1];
+                $timestamp = $order[2] * 1000;
+                $result[$side][] = array ($price, $amount, $timestamp);
             }
         }
         return $result;
@@ -1150,9 +1133,17 @@ class bitbay extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetIdOrderbook (array (
+        $orderbook = $this->publicGetIdOrderbook (array (
             'id' => $this->product_id ($product),
         ));
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => $orderbook['bids'],
+            'asks' => $orderbook['asks'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        return $result;
     }
 
     public function fetch_ticker ($product) {
@@ -1265,9 +1256,29 @@ class bitbays extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetDepth (array (
+        $response = $this->publicGetDepth (array (
             'market' => $this->product_id ($product),
         ));
+        $orderbook = $response['result'];
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {
@@ -1399,9 +1410,30 @@ class bitcoincoid extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetPairDepth (array (
+        $orderbook = $this->publicGetPairDepth (array (
             'pair' => $this->product_id ($product),
         ));
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ( 'bids' => 'buy', 'asks' => 'sell' );
+        $keys = array_keys ($sides);
+        for ($k = 0; $k < count ($keys); $k++) {
+            $key = $keys[$k];
+            $side = $sides[$key];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$key][] = array ($price, $amount);
+            }
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {
@@ -1572,9 +1604,29 @@ class bitfinex extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetBookSymbol (array ( 
+        $orderbook = $this->publicGetBookSymbol (array ( 
             'symbol' => $this->product_id ($product),
         ));
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['amount']);
+                $timestamp = intval (floatval ($order['timestamp']));
+                $result[$side][] = array ($price, $amount, $timestamp);
+            }
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {
@@ -1754,9 +1806,30 @@ class bitlish extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetTradesDepth (array (
+        $orderbook = $this->publicGetTradesDepth (array (
             'pair_id' => $this->product_id ($product),
         ));
+        $timestamp = intval (intval ($orderbook['last']) / 1000);
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ( 'bids' => 'bid', 'asks' => 'ask' );
+        $keys = array_keys ($sides);
+        for ($k = 0; $k < count ($keys); $k++) {
+            $key = $keys[$k];
+            $side = $sides[$key];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['volume']);
+                $result[$key][] = array ($price, $amount);
+            }
+        }
+        return $result;
     }
 
     public function fetch_trades ($product) {
