@@ -3712,9 +3712,17 @@ class cex extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetOrderBookPair (array (
+        $orderbook =  $this->publicGetOrderBookPair (array (
             'pair' => $this->product_id ($product),
         ));
+        $timestamp = $orderbook['timestamp'] * 1000;
+        $result = array (
+            'bids' => $orderbook['bids'],
+            'asks' => $orderbook['asks'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        return $result;
     }
 
     public function fetch_ticker ($product) {

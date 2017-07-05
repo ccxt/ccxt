@@ -3499,9 +3499,17 @@ class cex (Market):
         return self.privatePostBalance ()
 
     def fetch_order_book (self, product):
-        return self.publicGetOrderBookPair ({
+        orderbook =  self.publicGetOrderBookPair ({
             'pair': self.product_id (product),
         })
+        timestamp = orderbook['timestamp'] * 1000
+        result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        return result
 
     def fetch_ticker (self, product):
         ticker = self.publicGetTickerPair ({

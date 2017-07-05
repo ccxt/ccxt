@@ -3629,10 +3629,18 @@ var cex = {
         return this.privatePostBalance ();
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetOrderBookPair ({
+    async fetchOrderBook (product) {
+        let orderbook = await  this.publicGetOrderBookPair ({
             'pair': this.productId (product),
         });
+        let timestamp = orderbook['timestamp'] * 1000;
+        let result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        return result;
     },
 
     async fetchTicker (product) {
