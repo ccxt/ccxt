@@ -176,4 +176,4 @@ def test_market (market):
 # 		print (type (e).__name__, e.args)
 # 		sys.exit ()
 
-test_market (markets['_1btcxe'])
+test_market (markets['bit2c'])

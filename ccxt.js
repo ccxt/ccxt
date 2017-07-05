@@ -813,7 +813,7 @@ var anxpro = {
     },
 
     async fetchOrderBook (product) {
-        let response = this.publicGetCurrencyPairMoneyDepthFull ({
+        let response = await this.publicGetCurrencyPairMoneyDepthFull ({
             'currency_pair': this.productId (product),
         });
         let orderbook = response['data'];
@@ -963,10 +963,33 @@ var bit2c = {
         return this.privatePostAccountBalanceV2 ();
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetExchangesPairOrderbook ({
+    async fetchOrderBook (product) {
+        let orderbook = await this.publicGetExchangesPairOrderbook ({
             'pair': this.productId (product),
         });
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let timestamp = parseInt (order[2]) * 1000;
+                result[side].push ({
+                    'price': parseFloat (order[0]),
+                    'amount': parseFloat (order[1]),
+                    'value': undefined,
+                    'timestamp': timestamp,
+                });
+            }
+        }
+        return result;
     },
 
     async fetchTicker (product) {

@@ -984,9 +984,32 @@ class bit2c extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetExchangesPairOrderbook (array (
+        $orderbook = $this->publicGetExchangesPairOrderbook (array (
             'pair' => $this->product_id ($product),
         ));
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $timestamp = intval ($order[2]) * 1000;
+                $result[$side][] = array (
+                    'price' => floatval ($order[0]),
+                    'amount' => floatval ($order[1]),
+                    'value' => null,
+                    'timestamp' => $timestamp,
+                );
+            }
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {

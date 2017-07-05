@@ -147,7 +147,7 @@ function test_market ($market) {
 //     }
 // }
 
-$market = $markets['_1btcxe'];
+$market = $markets['bit2c'];
 test_market ($market);
 
 ?>

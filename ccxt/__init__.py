@@ -930,9 +930,30 @@ class bit2c (Market):
         return self.privatePostAccountBalanceV2 ()
 
     def fetch_order_book (self, product):
-        return self.publicGetExchangesPairOrderbook ({
+        orderbook = self.publicGetExchangesPairOrderbook ({
             'pair': self.product_id (product),
         })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                timestamp = int (order[2]) * 1000
+                result[side].append ({
+                    'price': float (order[0]),
+                    'amount': float (order[1]),
+                    'value': None,
+                    'timestamp': timestamp,
+                })
+        return result
 
     def fetch_ticker (self, product):
         ticker = self.publicGetExchangesPairTicker ({
