@@ -7224,7 +7224,29 @@ var vaultoro = {
 
     async fetchOrderBook (product) {
         let response = await this.publicGetOrderbook ();
-        return response;
+        let orderbook = {
+            'bids': response['data'][0]['b'],
+            'asks': response['data'][1]['s'],
+        };
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = order['Gold_Price'];
+                let amount = order['Gold_Amount'];
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
     },
 
     async fetchTicker (product) {

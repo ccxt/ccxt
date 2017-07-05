@@ -135,7 +135,7 @@ let testMarket = market => new Promise (async resolve => {
                 'bid: '       + ((orderbook.bids.length > 0) ? orderbook.bids[0][0] : 'N/A'), 
                 'bidVolume: ' + ((orderbook.bids.length > 0) ? orderbook.bids[0][1] : 'N/A'),
                 'ask: '       + ((orderbook.asks.length > 0) ? orderbook.asks[0][0] : 'N/A'),
-                'askVolume: ' + ((orderbook.asks.length < 0) ? orderbook.asks[0][1] : 'N/A'))
+                'askVolume: ' + ((orderbook.asks.length > 0) ? orderbook.asks[0][1] : 'N/A'))
             await sleep (delay)
         }
     }

@@ -6980,7 +6980,27 @@ class vaultoro (Market):
 
     def fetch_order_book (self, product):
         response = self.publicGetOrderbook ()
-        return response
+        orderbook = {
+            'bids': response['data'][0]['b'],
+            'asks': response['data'][1]['s'],
+        }
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = order['Gold_Price']
+                amount = order['Gold_Amount']
+                result[side].append ([ price, amount ])
+        return result
 
     def fetch_ticker (self, product):
         quote = self.publicGetBidandask ()

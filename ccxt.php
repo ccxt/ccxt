@@ -7402,7 +7402,29 @@ class vaultoro extends Market {
 
     public function fetch_order_book ($product) {
         $response = $this->publicGetOrderbook ();
-        return $response;
+        $orderbook = array (
+            'bids' => $response['data'][0]['b'],
+            'asks' => $response['data'][1]['s'],
+        );
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = $order['Gold_Price'];
+                $amount = $order['Gold_Amount'];
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {
