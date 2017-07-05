@@ -7582,10 +7582,19 @@ var yobit = {
     },
 
     async fetchOrderBook (product) {
+        let p = this.product (product);
         let response = await this.apiGetDepthPairs ({
-            'pairs': this.productId (product),
+            'pairs': p['id'],
         });
-        return response;
+        let orderbook = response[p['id']];
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        return result;
     },
 
     async fetchTicker (product) {

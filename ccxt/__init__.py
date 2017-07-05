@@ -7322,10 +7322,19 @@ class yobit (Market):
         return self.tapiPostGetInfo ()
 
     def fetch_order_book (self, product):
+        p = self.product (product)
         response = self.apiGetDepthPairs ({
-            'pairs': self.product_id (product),
+            'pairs': p['id'],
         })
-        return response
+        orderbook = response[p['id']]
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        return result
 
     def fetch_ticker (self, product):
         p = self.product (product)

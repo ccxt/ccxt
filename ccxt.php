@@ -7768,10 +7768,19 @@ class yobit extends Market {
     }
 
     public function fetch_order_book ($product) {
+        $p = $this->product ($product);
         $response = $this->apiGetDepthPairs (array (
-            'pairs' => $this->product_id ($product),
+            'pairs' => $p['id'],
         ));
-        return $response;
+        $orderbook = $response[$p['id']];
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => $orderbook['bids'],
+            'asks' => $orderbook['asks'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        return $result;
     }
 
     public function fetch_ticker ($product) {
