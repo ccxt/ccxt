@@ -5200,8 +5200,15 @@ var huobi = {
     async fetchOrderBook (product) {
         let p = this.product (product);
         let method = p['type'] + 'GetDepthId';
-        let response = await this[method] ({ 'id': p['id'] });
-        return response;
+        let orderbook = await this[method] ({ 'id': p['id'] });
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        return result;
     },
 
     async fetchTicker (product) {

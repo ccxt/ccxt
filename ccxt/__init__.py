@@ -5025,8 +5025,15 @@ class huobi (Market):
     def fetch_order_book (self, product):
         p = self.product (product)
         method = p['type'] + 'GetDepthId'
-        response = getattr (self, method) ({ 'id': p['id'] })
-        return response
+        orderbook = getattr (self, method) ({ 'id': p['id'] })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        return result
 
     def fetch_ticker (self, product):
         p = self.product (product)
