@@ -3176,9 +3176,26 @@ class bxinth (Market):
         return self.privatePostBalance ()
 
     def fetch_order_book (self, product):
-        return self.publicGetOrderbook ({
+        orderbook = self.publicGetOrderbook ({
             'pairing': self.product_id (product),
         })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order[0])
+                amount = float (order[1])
+                result[side].append ([ price, amount ])
+        return result
 
     def fetch_ticker (self, product):
         p = self.product (product)
