@@ -6726,7 +6726,6 @@ var quadrigacx = {
             }
         }
         return result;
-
     },
 
     async fetchTicker (product) {
@@ -7066,10 +7065,28 @@ var therock = {
     },
 
     async fetchOrderBook (product) {
-        let response = await this.publicGetFundsIdOrderbook ({
+        let orderbook = await this.publicGetFundsIdOrderbook ({
             'id': this.productId (product),
         });
-        return response;
+        let timestamp = this.parse8601 (orderbook['date']);
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order['price']);
+                let amount = parseFloat (order['amount']);
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
     },
 
     async fetchTicker (product) {

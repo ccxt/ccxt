@@ -6504,7 +6504,6 @@ class quadrigacx (Market):
                 result[side].append ([ price, amount ])
         return result
 
-
     def fetch_ticker (self, product):
         ticker = self.publicGetTicker ({
             'book': self.product_id (product),
@@ -6829,10 +6828,26 @@ class therock (Market):
         return self.privateGetBalances ()
 
     def fetch_order_book (self, product):
-        response = self.publicGetFundsIdOrderbook ({
+        orderbook = self.publicGetFundsIdOrderbook ({
             'id': self.product_id (product),
         })
-        return response
+        timestamp = self.parse8601 (orderbook['date'])
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order['price'])
+                amount = float (order['amount'])
+                result[side].append ([ price, amount ])
+        return result
 
     def fetch_ticker (self, product):
         ticker = self.publicGetFundsIdTicker ({
