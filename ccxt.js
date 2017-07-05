@@ -6375,10 +6375,29 @@ var paymium = {
     },
 
     async fetchOrderBook (product) {
-        let response = await this.publicGetDataIdDepth  ({
+        let orderbook = await this.publicGetDataIdDepth  ({
             'id': this.productId (product),
         });
-        return response;
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = order['price'];
+                let amount = order['amount'];
+                let timestamp = order['timestamp'] * 1000;
+                result[side].push ([ price, amount, timestamp ]);
+            }
+        }
+        return result;
     },
 
     async fetchTicker (product) {
