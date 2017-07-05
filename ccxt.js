@@ -4201,8 +4201,31 @@ var coinsecure = {
     },
 
     async fetchOrderBook (product) { 
-        let response = await this.publicGetExchangeAskOrders ();
-        return response;
+        let bids = await this.publicGetExchangeBidOrders ();
+        let asks = await this.publicGetExchangeAskOrders ();
+        let orderbook = {
+            'bids': bids['message'],
+            'asks': asks['message'],
+        };
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = order['rate'];
+                let amount = order['vol'];
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
     },
 
     async fetchTicker (product) {

@@ -4055,8 +4055,29 @@ class coinsecure (Market):
         return self.privateGetUserExchangeBankSummary ()
 
     def fetch_order_book (self, product):
-        response = self.publicGetExchangeAskOrders ()
-        return response
+        bids = self.publicGetExchangeBidOrders ()
+        asks = self.publicGetExchangeAskOrders ()
+        orderbook = {
+            'bids': bids['message'],
+            'asks': asks['message'],
+        }
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = order['rate']
+                amount = order['vol']
+                result[side].append ([ price, amount ])
+        return result
 
     def fetch_ticker (self, product):
         response = self.publicGetExchangeTicker ()

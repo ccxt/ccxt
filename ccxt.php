@@ -4295,8 +4295,31 @@ class coinsecure extends Market {
     }
 
     public function fetch_order_book ($product) {
-        $response = $this->publicGetExchangeAskOrders ();
-        return $response;
+        $bids = $this->publicGetExchangeBidOrders ();
+        $asks = $this->publicGetExchangeAskOrders ();
+        $orderbook = array (
+            'bids' => $bids['message'],
+            'asks' => $asks['message'],
+        );
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = $order['rate'];
+                $amount = $order['vol'];
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {
