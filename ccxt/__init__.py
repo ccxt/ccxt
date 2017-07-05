@@ -2870,8 +2870,7 @@ class btce (Market):
         super (btce, self).__init__ (params)
 
     def fetch_products (self):
-        # response = self.publicGetInfo ()
-        response = {"server_time":1499233043,"pairs":{"btc_usd":{"decimal_places":3,"min_price":0.1,"max_price":10000,"min_amount":0.001,"hidden":0,"fee":0.2},"btc_rur":{"decimal_places":5,"min_price":1,"max_price":1000000,"min_amount":0.001,"hidden":0,"fee":0.2},"btc_eur":{"decimal_places":5,"min_price":0.1,"max_price":10000,"min_amount":0.001,"hidden":0,"fee":0.2},"ltc_btc":{"decimal_places":5,"min_price":0.0001,"max_price":10,"min_amount":0.01,"hidden":0,"fee":0.2},"ltc_usd":{"decimal_places":6,"min_price":0.0001,"max_price":1000,"min_amount":0.1,"hidden":0,"fee":0.2},"ltc_rur":{"decimal_places":5,"min_price":0.01,"max_price":100000,"min_amount":0.01,"hidden":0,"fee":0.2},"ltc_eur":{"decimal_places":3,"min_price":0.0001,"max_price":1000,"min_amount":0.01,"hidden":0,"fee":0.2},"nmc_btc":{"decimal_places":5,"min_price":0.0001,"max_price":10,"min_amount":0.1,"hidden":0,"fee":0.2},"nmc_usd":{"decimal_places":3,"min_price":0.001,"max_price":100,"min_amount":0.1,"hidden":0,"fee":0.2},"nvc_btc":{"decimal_places":5,"min_price":0.0001,"max_price":10,"min_amount":0.1,"hidden":0,"fee":0.2},"nvc_usd":{"decimal_places":3,"min_price":0.001,"max_price":1000,"min_amount":0.1,"hidden":0,"fee":0.2},"usd_rur":{"decimal_places":5,"min_price":25,"max_price":150,"min_amount":0.1,"hidden":0,"fee":0.2},"eur_usd":{"decimal_places":5,"min_price":0.5,"max_price":2,"min_amount":0.1,"hidden":0,"fee":0.2},"eur_rur":{"decimal_places":5,"min_price":30,"max_price":200,"min_amount":0.1,"hidden":0,"fee":0.2},"ppc_btc":{"decimal_places":5,"min_price":0.0001,"max_price":10,"min_amount":0.1,"hidden":0,"fee":0.2},"ppc_usd":{"decimal_places":3,"min_price":0.001,"max_price":100,"min_amount":0.1,"hidden":0,"fee":0.2},"dsh_btc":{"decimal_places":5,"min_price":0.0001,"max_price":10,"min_amount":0.01,"hidden":0,"fee":0.2},"dsh_usd":{"decimal_places":5,"min_price":0.1,"max_price":1000,"min_amount":0.01,"hidden":0,"fee":0.2},"dsh_rur":{"decimal_places":3,"min_price":1,"max_price":100000,"min_amount":0.01,"hidden":0,"fee":0.2},"dsh_eur":{"decimal_places":3,"min_price":0.1,"max_price":1000,"min_amount":0.01,"hidden":0,"fee":0.2},"dsh_ltc":{"decimal_places":3,"min_price":0.1,"max_price":600,"min_amount":0.01,"hidden":0,"fee":0.2},"dsh_eth":{"decimal_places":3,"min_price":0.1,"max_price":600,"min_amount":0.01,"hidden":0,"fee":0.2},"eth_btc":{"decimal_places":5,"min_price":0.0001,"max_price":10,"min_amount":0.01,"hidden":0,"fee":0.2},"eth_usd":{"decimal_places":5,"min_price":0.0001,"max_price":1000,"min_amount":0.01,"hidden":0,"fee":0.2},"eth_eur":{"decimal_places":5,"min_price":0.0001,"max_price":1000,"min_amount":0.01,"hidden":0,"fee":0.2},"eth_ltc":{"decimal_places":5,"min_price":0.0001,"max_price":1000,"min_amount":0.01,"hidden":0,"fee":0.2},"eth_rur":{"decimal_places":5,"min_price":0.0001,"max_price":100000,"min_amount":0.01,"hidden":0,"fee":0.2}}}
+        response = self.publicGetInfo ()
         products = response['pairs']
         keys = list (products.keys ())
         result = []
@@ -3018,11 +3017,27 @@ class btcx (Market):
         return self.privatePostBalance ()
 
     def fetch_order_book (self, product):
-        p = self.product (product)
-        return self.publicGetDepthIdLimit ({ 
+        orderbook = self.publicGetDepthIdLimit ({ 
             'id': self.product_id (product),
             'limit': 1000,
         })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = order['price']
+                amount = order['amount']
+                result[side].append ([ price, amount ])
+        return result
 
     def fetch_ticker (self, product):
         ticker = self.publicGetTickerId ({

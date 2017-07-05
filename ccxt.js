@@ -2973,8 +2973,7 @@ var btce = {
     },
 
     async fetchProducts () {
-        // let response = await this.publicGetInfo ();
-        let response = {"server_time":1499233043,"pairs":{"btc_usd":{"decimal_places":3,"min_price":0.1,"max_price":10000,"min_amount":0.001,"hidden":0,"fee":0.2},"btc_rur":{"decimal_places":5,"min_price":1,"max_price":1000000,"min_amount":0.001,"hidden":0,"fee":0.2},"btc_eur":{"decimal_places":5,"min_price":0.1,"max_price":10000,"min_amount":0.001,"hidden":0,"fee":0.2},"ltc_btc":{"decimal_places":5,"min_price":0.0001,"max_price":10,"min_amount":0.01,"hidden":0,"fee":0.2},"ltc_usd":{"decimal_places":6,"min_price":0.0001,"max_price":1000,"min_amount":0.1,"hidden":0,"fee":0.2},"ltc_rur":{"decimal_places":5,"min_price":0.01,"max_price":100000,"min_amount":0.01,"hidden":0,"fee":0.2},"ltc_eur":{"decimal_places":3,"min_price":0.0001,"max_price":1000,"min_amount":0.01,"hidden":0,"fee":0.2},"nmc_btc":{"decimal_places":5,"min_price":0.0001,"max_price":10,"min_amount":0.1,"hidden":0,"fee":0.2},"nmc_usd":{"decimal_places":3,"min_price":0.001,"max_price":100,"min_amount":0.1,"hidden":0,"fee":0.2},"nvc_btc":{"decimal_places":5,"min_price":0.0001,"max_price":10,"min_amount":0.1,"hidden":0,"fee":0.2},"nvc_usd":{"decimal_places":3,"min_price":0.001,"max_price":1000,"min_amount":0.1,"hidden":0,"fee":0.2},"usd_rur":{"decimal_places":5,"min_price":25,"max_price":150,"min_amount":0.1,"hidden":0,"fee":0.2},"eur_usd":{"decimal_places":5,"min_price":0.5,"max_price":2,"min_amount":0.1,"hidden":0,"fee":0.2},"eur_rur":{"decimal_places":5,"min_price":30,"max_price":200,"min_amount":0.1,"hidden":0,"fee":0.2},"ppc_btc":{"decimal_places":5,"min_price":0.0001,"max_price":10,"min_amount":0.1,"hidden":0,"fee":0.2},"ppc_usd":{"decimal_places":3,"min_price":0.001,"max_price":100,"min_amount":0.1,"hidden":0,"fee":0.2},"dsh_btc":{"decimal_places":5,"min_price":0.0001,"max_price":10,"min_amount":0.01,"hidden":0,"fee":0.2},"dsh_usd":{"decimal_places":5,"min_price":0.1,"max_price":1000,"min_amount":0.01,"hidden":0,"fee":0.2},"dsh_rur":{"decimal_places":3,"min_price":1,"max_price":100000,"min_amount":0.01,"hidden":0,"fee":0.2},"dsh_eur":{"decimal_places":3,"min_price":0.1,"max_price":1000,"min_amount":0.01,"hidden":0,"fee":0.2},"dsh_ltc":{"decimal_places":3,"min_price":0.1,"max_price":600,"min_amount":0.01,"hidden":0,"fee":0.2},"dsh_eth":{"decimal_places":3,"min_price":0.1,"max_price":600,"min_amount":0.01,"hidden":0,"fee":0.2},"eth_btc":{"decimal_places":5,"min_price":0.0001,"max_price":10,"min_amount":0.01,"hidden":0,"fee":0.2},"eth_usd":{"decimal_places":5,"min_price":0.0001,"max_price":1000,"min_amount":0.01,"hidden":0,"fee":0.2},"eth_eur":{"decimal_places":5,"min_price":0.0001,"max_price":1000,"min_amount":0.01,"hidden":0,"fee":0.2},"eth_ltc":{"decimal_places":5,"min_price":0.0001,"max_price":1000,"min_amount":0.01,"hidden":0,"fee":0.2},"eth_rur":{"decimal_places":5,"min_price":0.0001,"max_price":100000,"min_amount":0.01,"hidden":0,"fee":0.2}}}
+        let response = await this.publicGetInfo ();
         let products = response['pairs'];
         let keys = Object.keys (products);
         let result = [];
@@ -3127,12 +3126,30 @@ var btcx = {
         return this.privatePostBalance ();
     },
 
-    fetchOrderBook (product) { 
-        let p = this.product (product);
-        return this.publicGetDepthIdLimit ({ 
+    async fetchOrderBook (product) {
+        let orderbook = await this.publicGetDepthIdLimit ({ 
             'id': this.productId (product),
             'limit': 1000,
         });
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = order['price'];
+                let amount = order['amount'];
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
     },
 
     async fetchTicker (product) { 
