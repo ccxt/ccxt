@@ -235,7 +235,7 @@ var test = async function () {
 
     // Object.keys (markets).forEach (async id => {
 
-        var market = markets.bitmarket
+        var market = markets.bitso
         // var market = markets[id]
 
         try {

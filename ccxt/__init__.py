@@ -2057,9 +2057,24 @@ class bitmex (Market):
         return self.privateGetUserMargin ({ 'currency': 'all' })
 
     def fetch_order_book (self, product):
-        return self.publicGetOrderBookL2 ({
+        orderbook = self.publicGetOrderBookL2 ({
             'symbol': self.product_id (product),
         })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        for o in range (0, len (orderbook)):
+            order = orderbook[o]
+            side = 'asks' if (order['side'] == 'Sell') else 'bids'
+            amount = order['size']
+            price = order['price']
+            result[side].append ([ price, amount ])
+        # TODO sort bidasks
+        return result
 
     def fetch_ticker (self, product):
         request = {
@@ -2220,9 +2235,27 @@ class bitso (Market):
         return self.privateGetBalance ()
 
     def fetch_order_book (self, product):
-        return self.publicGetOrderBook ({
+        response = self.publicGetOrderBook ({
             'book': self.product_id (product),
         })
+        orderbook = response['payload']
+        timestamp = self.parse8601 (orderbook['updated_at'])
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order['price'])
+                amount = float (order['amount'])
+                result[side].append ([ price, amount ])
+        return result
 
     def fetch_ticker (self, product):
         response = self.publicGetTicker ({

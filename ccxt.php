@@ -2178,9 +2178,25 @@ class bitmex extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetOrderBookL2 (array (
+        $orderbook = $this->publicGetOrderBookL2 (array (
             'symbol' => $this->product_id ($product),
         ));
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        for ($o = 0; $o < count ($orderbook); $o++) {
+            $order = $orderbook[$o];
+            $side = ($order['side'] == 'Sell') ? 'asks' : 'bids';
+            $amount = $order['size'];
+            $price = $order['price'];
+            $result[$side][] = array ($price, $amount);
+        }
+        // TODO sort bidasks
+        return $result;
     }
 
     public function fetch_ticker ($product) {
@@ -2350,9 +2366,29 @@ class bitso extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetOrderBook (array (
+        $response = $this->publicGetOrderBook (array (
             'book' => $this->product_id ($product),
         ));
+        $orderbook = $response['payload'];
+        $timestamp = $this->parse8601 ($orderbook['updated_at']);
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['amount']);
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {

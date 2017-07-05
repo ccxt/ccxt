@@ -2129,10 +2129,26 @@ var bitmex = {
         return this.privateGetUserMargin ({ 'currency': 'all' });
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetOrderBookL2 ({
+    async fetchOrderBook (product) {
+        let orderbook = await this.publicGetOrderBookL2 ({
             'symbol': this.productId (product),
         });
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        for (let o = 0; o < orderbook.length; o++) {
+            let order = orderbook[o];
+            let side = (order['side'] == 'Sell') ? 'asks' : 'bids';
+            let amount = order['size'];
+            let price = order['price'];
+            result[side].push ([ price, amount ]);
+        }
+        // TODO sort bidasks
+        return result;
     },
 
     async fetchTicker (product) {
@@ -2297,11 +2313,32 @@ var bitso = {
         return this.privateGetBalance ();
     },
 
-    fetchOrderBook (product) { 
-        return this.publicGetOrderBook ({
+    async fetchOrderBook (product) {
+        let response = await this.publicGetOrderBook ({
             'book': this.productId (product),
         });
+        let orderbook = response['payload'];
+        let timestamp = this.parse8601 (orderbook['updated_at']);
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order['price']);
+                let amount = parseFloat (order['amount']);
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
     },
+
 
     async fetchTicker (product) {
         let response = await this.publicGetTicker ({
