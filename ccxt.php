@@ -4460,10 +4460,32 @@ class exmo extends Market {
     }
 
     public function fetch_order_book ($product) {
+        $p = $this->product ($product);
         $response = $this->publicGetOrderBook (array (
-            'pair' => $this->product_id ($product),
+            'pair' => $p['id'],
         ));
-        return $response;
+        $orderbook = $response[$p['id']];
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ( 'bids' => 'bid', 'asks' => 'ask' );
+        $keys = array_keys ($sides);
+        for ($k = 0; $k < count ($keys); $k++) {
+            $key = $keys[$k];
+            $side = $sides[$key];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$key][] = array ($price, $amount);
+            }
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {

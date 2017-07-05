@@ -4207,10 +4207,30 @@ class exmo (Market):
         return self.privatePostUserInfo ()
 
     def fetch_order_book (self, product):
+        p = self.product (product)
         response = self.publicGetOrderBook ({
-            'pair': self.product_id (product),
+            'pair': p['id'],
         })
-        return response
+        orderbook = response[p['id']]
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = { 'bids': 'bid', 'asks': 'ask' }
+        keys = list (sides.keys ())
+        for k in range (0, len (keys)):
+            key = keys[k]
+            side = sides[key]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order[0])
+                amount = float (order[1])
+                result[key].append ([ price, amount ])
+        return result
 
     def fetch_ticker (self, product):
         response = self.publicGetTicker ()
