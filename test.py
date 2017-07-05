@@ -177,4 +177,4 @@ def test_market (market):
 # 		print (type (e).__name__, e.args)
 # 		sys.exit ()
 
-test_market (markets['bittrex'])
+test_market (markets['btcchina'])

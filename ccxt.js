@@ -2826,10 +2826,19 @@ var btcchina = {
         return this.privatePostGetAccountInfo ();
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetOrderbook ({
+    async fetchOrderBook (product) {
+        let orderbook = await this.publicGetOrderbook ({
             'market': this.productId (product),
         });
+        let timestamp = orderbook['date'] * 1000;;
+        let result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        // TODO sort bidasks
+        return result;
     },
 
     async fetchTicker (product) {

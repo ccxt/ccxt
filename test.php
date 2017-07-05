@@ -148,7 +148,7 @@ function test_market ($market) {
 //     }
 // }
 
-$market = $markets['bittrex'];
+$market = $markets['btcchina'];
 test_market ($market);
 
 ?>

@@ -2890,9 +2890,18 @@ class btcchina extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetOrderbook (array (
+        $orderbook = $this->publicGetOrderbook (array (
             'market' => $this->product_id ($product),
         ));
+        $timestamp = $orderbook['date'] * 1000;;
+        $result = array (
+            'bids' => $orderbook['bids'],
+            'asks' => $orderbook['asks'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        // TODO sort bidasks
+        return $result;
     }
 
     public function fetch_ticker ($product) {
