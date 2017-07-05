@@ -3803,10 +3803,28 @@ class coinmate (Market):
         return self.privatePostBalances ()
 
     def fetch_order_book (self, product):
-        return self.publicGetOrderBook ({
+        response = self.publicGetOrderBook ({
             'currencyPair': self.product_id (product),
             'groupByPriceLimit': 'False',
         })
+        orderbook = response['data']
+        timestamp = orderbook['timestamp'] * 1000
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = order['price']
+                amount = order['amount']
+                result[side].append ([ price, amount ])
+        return result
 
     def fetch_ticker (self, product):
         response = self.publicGetTicker ({
@@ -4037,7 +4055,8 @@ class coinsecure (Market):
         return self.privateGetUserExchangeBankSummary ()
 
     def fetch_order_book (self, product):
-        return self.publicGetExchangeAskOrders ()
+        response = self.publicGetExchangeAskOrders ()
+        return response
 
     def fetch_ticker (self, product):
         response = self.publicGetExchangeTicker ()
@@ -4167,9 +4186,10 @@ class exmo (Market):
         return self.privatePostUserInfo ()
 
     def fetch_order_book (self, product):
-        return self.publicGetOrderBook ({
+        response = self.publicGetOrderBook ({
             'pair': self.product_id (product),
         })
+        return response
 
     def fetch_ticker (self, product):
         response = self.publicGetTicker ()
@@ -4265,7 +4285,8 @@ class fyb (Market):
         return self.privatePostGetaccinfo ()
 
     def fetch_order_book (self, product):
-        return self.publicGetOrderbook ()
+        response = self.publicGetOrderbook ()
+        return response
 
     def fetch_ticker (self, product):
         ticker = self.publicGetTickerdetailed ()
@@ -4447,9 +4468,10 @@ class gdax (Market):
         return self.privateGetAccounts ()
 
     def fetch_order_book (self, product):
-        return self.publicGetProductsIdBook ({
+        response = self.publicGetProductsIdBook ({
             'id': self.product_id (product),
         })
+        return response
 
     def fetch_ticker (self, product):
         p = self.product (product)
@@ -4588,9 +4610,10 @@ class gemini (Market):
         return result
 
     def fetch_order_book (self, product):
-        return self.publicGetBookSymbol ({
+        response = self.publicGetBookSymbol ({
             'symbol': self.product_id (product),
         })
+        return response
 
     def fetch_ticker (self, product):
         p = self.product (product)
@@ -4754,9 +4777,10 @@ class hitbtc (Market):
         return self.tradingGetBalance ()
 
     def fetch_order_book (self, product):
-        return self.publicGetSymbolOrderbook ({
+        response = self.publicGetSymbolOrderbook ({
             'symbol': self.product_id (product),
         })
+        return response
 
     def fetch_ticker (self, product):
         ticker = self.publicGetSymbolTicker ({
@@ -4895,7 +4919,8 @@ class huobi (Market):
     def fetch_order_book (self, product):
         p = self.product (product)
         method = p['type'] + 'GetDepthId'
-        return getattr (self, method) ({ 'id': p['id'] })
+        response = getattr (self, method) ({ 'id': p['id'] })
+        return response
 
     def fetch_ticker (self, product):
         p = self.product (product)
@@ -5024,9 +5049,10 @@ class itbit (Market):
         super (itbit, self).__init__ (params)
 
     def fetch_order_book (self, product):
-        return self.publicGetMarketsSymbolOrderBook ({ 
+        response = self.publicGetMarketsSymbolOrderBook ({ 
             'symbol': self.product_id (product),
         })
+        return response
 
     def fetch_ticker (self, product):
         ticker = self.publicGetMarketsSymbolTicker ({
@@ -5194,9 +5220,10 @@ class jubi (Market):
         return self.privatePostBalance ()
 
     def fetch_order_book (self, product):
-        return self.publicGetDepth ({
+        response = self.publicGetDepth ({
             'coin': self.product_id (product),
         })
+        return response
 
     def fetch_ticker (self, product):
         ticker = self.publicGetTicker ({ 
@@ -5344,9 +5371,10 @@ class kraken (Market):
         return result
 
     def fetch_order_book (self, product):
-        return self.publicGetDepth  ({
+        response = self.publicGetDepth  ({
             'pair': self.product_id (product),
         })
+        return response
 
     def fetch_ticker (self, product):
         p = self.product (product)
@@ -5504,9 +5532,10 @@ class luno (Market):
         return self.privateGetBalance ()
 
     def fetch_order_book (self, product):
-        return self.publicGetOrderbook ({
+        response = self.publicGetOrderbook ({
             'pair': self.product_id (product),
         })
+        return response
 
     def fetch_ticker (self, product):
         ticker = self.publicGetTicker ({
@@ -5630,7 +5659,8 @@ class mercado (Market):
     def fetch_order_book (self, product):
         p = self.product (product)
         method = 'publicGetOrderbook' + self.capitalize (p['suffix'])
-        return getattr (self, method) ()
+        response = getattr (self, method) ()
+        return response
 
     def fetch_ticker (self, product):
         p = self.product (product)
@@ -5770,9 +5800,10 @@ class okcoin (Market):
         super (okcoin, self).__init__ (params)
 
     def fetch_order_book (self, product):
-        return self.publicGetDepth ({
+        response = self.publicGetDepth ({
             'symbol': self.product_id (product),
         })
+        return response
 
     def fetch_ticker (self, product):
         response = self.publicGetTicker ({
@@ -5951,9 +5982,10 @@ class paymium (Market):
         return self.privateGetUser ()
 
     def fetch_order_book (self, product):
-        return self.publicGetDataIdDepth  ({
+        response = self.publicGetDataIdDepth  ({
             'id': self.product_id (product),
         })
+        return response
 
     def fetch_ticker (self, product):
         ticker = self.publicGetDataIdTicker ({
@@ -6114,9 +6146,10 @@ class poloniex (Market):
         })
 
     def fetch_order_book (self, product):
-        return self.publicGetReturnOrderBook ({
+        response = self.publicGetReturnOrderBook ({
             'currencyPair': self.product_id (product),
         })
+        return response
 
     def fetch_ticker (self, product):
         p = self.product (product)
@@ -6231,9 +6264,10 @@ class quadrigacx (Market):
         return self.privatePostBalance ()
 
     def fetch_order_book (self, product):
-        return self.publicGetOrderBook ({
+        response = self.publicGetOrderBook ({
             'book': self.product_id (product),
         })
+        return response
 
     def fetch_ticker (self, product):
         ticker = self.publicGetTicker ({
@@ -6384,9 +6418,10 @@ class quoine (Market):
         return self.privateGetAccountsBalance ()
 
     def fetch_order_book (self, product):
-        return self.publicGetProductsIdPriceLevels ({
+        response = self.publicGetProductsIdPriceLevels ({
             'id': self.product_id (product),
         })
+        return response
 
     def fetch_ticker (self, product):
         ticker = self.publicGetProductsId ({
@@ -6540,9 +6575,10 @@ class therock (Market):
         return self.privateGetBalances ()
 
     def fetch_order_book (self, product):
-        return self.publicGetFundsIdOrderbook ({
+        response = self.publicGetFundsIdOrderbook ({
             'id': self.product_id (product),
         })
+        return response
 
     def fetch_ticker (self, product):
         ticker = self.publicGetFundsIdTicker ({
@@ -6674,7 +6710,8 @@ class vaultoro (Market):
         return self.privateGetBalance ()
 
     def fetch_order_book (self, product):
-        return self.publicGetOrderbook ()
+        response = self.publicGetOrderbook ()
+        return response
 
     def fetch_ticker (self, product):
         quote = self.publicGetBidandask ()
@@ -6832,11 +6869,12 @@ class virwox (Market):
         })
 
     def fetch_order_book (self, product):
-        return self.publicPostGetMarketDepth ({
+        response = self.publicPostGetMarketDepth ({
             'symbols': [ self.symbol (product) ],
             'buyDepth': 100,
             'sellDepth': 100,
         })
+        return response
 
     def fetch_ticker (self, product):
         end = self.milliseconds ()
@@ -6976,9 +7014,10 @@ class yobit (Market):
         return self.tapiPostGetInfo ()
 
     def fetch_order_book (self, product):
-        return self.apiGetDepthPairs ({
+        response = self.apiGetDepthPairs ({
             'pairs': self.product_id (product),
         })
+        return response
 
     def fetch_ticker (self, product):
         p = self.product (product)
@@ -7129,9 +7168,10 @@ class zaif (Market):
         return self.tapiPostGetInfo ()
 
     def fetch_order_book (self, product):
-        return self.apiGetDepthPair  ({
+        response = self.apiGetDepthPair  ({
             'pair': self.product_id (product),
         })
+        return response
 
     def fetch_ticker (self, product):
         ticker = self.apiGetTickerPair ({

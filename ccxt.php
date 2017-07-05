@@ -4033,10 +4033,30 @@ class coinmate extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetOrderBook (array (
+        $response = $this->publicGetOrderBook (array (
             'currencyPair' => $this->product_id ($product),
             'groupByPriceLimit' => 'False',
         ));
+        $orderbook = $response['data'];
+        $timestamp = $orderbook['timestamp'] * 1000;
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = $order['price'];
+                $amount = $order['amount'];
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {
@@ -4275,7 +4295,8 @@ class coinsecure extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetExchangeAskOrders ();
+        $response = $this->publicGetExchangeAskOrders ();
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -4416,9 +4437,10 @@ class exmo extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetOrderBook (array (
+        $response = $this->publicGetOrderBook (array (
             'pair' => $this->product_id ($product),
         ));
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -4521,7 +4543,8 @@ class fyb extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetOrderbook ();
+        $response = $this->publicGetOrderbook ();
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -4712,9 +4735,10 @@ class gdax extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetProductsIdBook (array (
+        $response = $this->publicGetProductsIdBook (array (
             'id' => $this->product_id ($product),
         ));
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -4861,9 +4885,10 @@ class gemini extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetBookSymbol (array (
+        $response = $this->publicGetBookSymbol (array (
             'symbol' => $this->product_id ($product),
         ));
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -5037,9 +5062,10 @@ class hitbtc extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetSymbolOrderbook (array (
+        $response = $this->publicGetSymbolOrderbook (array (
             'symbol' => $this->product_id ($product),
         ));
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -5185,7 +5211,8 @@ class huobi extends Market {
     public function fetch_order_book ($product) {
         $p = $this->product ($product);
         $method = $p['type'] . 'GetDepthId';
-        return $this->$method (array ( 'id' => $p['id'] ));
+        $response = $this->$method (array ( 'id' => $p['id'] ));
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -5320,9 +5347,10 @@ class itbit extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetMarketsSymbolOrderBook (array ( 
+        $response = $this->publicGetMarketsSymbolOrderBook (array ( 
             'symbol' => $this->product_id ($product),
         ));
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -5499,9 +5527,10 @@ class jubi extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetDepth (array (
+        $response = $this->publicGetDepth (array (
             'coin' => $this->product_id ($product),
         ));
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -5657,9 +5686,10 @@ class kraken extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetDepth  (array (
+        $response = $this->publicGetDepth  (array (
             'pair' => $this->product_id ($product),
         ));
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -5827,9 +5857,10 @@ class luno extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetOrderbook (array (
+        $response = $this->publicGetOrderbook (array (
             'pair' => $this->product_id ($product),
         ));
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -5960,7 +5991,8 @@ class mercado extends Market {
     public function fetch_order_book ($product) {
         $p = $this->product ($product);
         $method = 'publicGetOrderbook' . $this->capitalize ($p['suffix']);
-        return $this->$method ();
+        $response = $this->$method ();
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -6107,9 +6139,10 @@ class okcoin extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetDepth (array (
+        $response = $this->publicGetDepth (array (
             'symbol' => $this->product_id ($product),
         ));
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -6296,9 +6329,10 @@ class paymium extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetDataIdDepth  (array (
+        $response = $this->publicGetDataIdDepth  (array (
             'id' => $this->product_id ($product),
         ));
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -6469,9 +6503,10 @@ class poloniex extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetReturnOrderBook (array (
+        $response = $this->publicGetReturnOrderBook (array (
             'currencyPair' => $this->product_id ($product),
         ));
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -6594,9 +6629,10 @@ class quadrigacx extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetOrderBook (array (
+        $response = $this->publicGetOrderBook (array (
             'book' => $this->product_id ($product),
         ));
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -6757,9 +6793,10 @@ class quoine extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetProductsIdPriceLevels (array (
+        $response = $this->publicGetProductsIdPriceLevels (array (
             'id' => $this->product_id ($product),
         ));
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -6923,9 +6960,10 @@ class therock extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetFundsIdOrderbook (array (
+        $response = $this->publicGetFundsIdOrderbook (array (
             'id' => $this->product_id ($product),
         ));
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -7066,7 +7104,8 @@ class vaultoro extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetOrderbook ();
+        $response = $this->publicGetOrderbook ();
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -7234,11 +7273,12 @@ class virwox extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicPostGetMarketDepth (array (
+        $response = $this->publicPostGetMarketDepth (array (
             'symbols' => array ($this->symbol ($product)),
             'buyDepth' => 100,
             'sellDepth' => 100,
         ));
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -7388,9 +7428,10 @@ class yobit extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->apiGetDepthPairs (array (
+        $response = $this->apiGetDepthPairs (array (
             'pairs' => $this->product_id ($product),
         ));
+        return $response;
     }
 
     public function fetch_ticker ($product) {
@@ -7551,9 +7592,10 @@ class zaif extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->apiGetDepthPair  (array (
+        $response = $this->apiGetDepthPair  (array (
             'pair' => $this->product_id ($product),
         ));
+        return $response;
     }
 
     public function fetch_ticker ($product) {

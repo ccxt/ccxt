@@ -139,16 +139,33 @@ function test_market ($market) {
     usleep ($delay);
 }
 
-// foreach ($markets as $id => $market) {
-//     try {
-//         test_market ($market);  
-//     } catch (Exception $e) {
-//         var_dump ($e->getMessage ());
-//         break;
-//     }
-// }
+if (count ($argv) > 1) {
+    
+    if ($markets[$argv[1]]) {
+    
+        $market = $markets[$argv[1]];
+        test_market ($market);
+    
+    } else {
+    
+        echo $argv[1] + " not found.\n";
+    }
 
-$market = $markets['coincheck'];
-test_market ($market);
+} else {
+
+    foreach ($markets as $id => $market) {
+    
+        try {
+    
+            test_market ($market);  
+    
+        } catch (Exception $e) {
+    
+            var_dump ($e->getMessage ());
+            break;
+        }
+    }
+
+}
 
 ?>

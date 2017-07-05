@@ -2,6 +2,7 @@
 
 import ccxt
 import time
+import sys
 
 verbose = False
 
@@ -170,11 +171,14 @@ def test_market (market):
 	# print (limitSell)
 	# time.sleep (delay)
 
-# for (id, params) in tuples:
-# 	try:
-# 		test_market (markets[id])
-# 	except Exception as e:
-# 		print (type (e).__name__, e.args)
-# 		sys.exit ()
-
-test_market (markets['coincheck'])
+if (len (sys.argv) > 1):
+	id = sys.argv[1]
+	market = markets[id]
+	test_market (market)
+else:
+	for (id, params) in tuples:
+		try:
+			test_market (markets[id])
+		except Exception as e:
+			print (type (e).__name__, e.args)
+			sys.exit ()

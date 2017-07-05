@@ -233,23 +233,28 @@ var test = async function () {
         }        
     })))
 
-    // Object.keys (markets).forEach (async id => {
-
-        var market = markets.coincheck
-        // var market = markets[id]
-
-        try {
-
-            await testMarket (market)
-
-        } catch (e) {
-
-            console.log (market.id, e)
-            process.exit ()   
+    if (process.argv.length > 2) {
+        let id = process.argv[2]        
+        if (markets[id]) {
+            let market = markets[id]         
+            try {
+                await testMarket (market)
+            } catch (e) {
+                console.log (market.id, e)
+                process.exit ()   
+            }
         }
-
-        sleep (1000)
-
-    // })
+    } else {
+        Object.keys (markets).forEach (async id => {
+            var market = markets[id]
+            try {
+                await testMarket (market)
+            } catch (e) {
+                console.log (market.id, e)
+                process.exit ()   
+            }
+            sleep (1000)
+        })
+    }
 
 } ()

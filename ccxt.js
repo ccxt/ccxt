@@ -3942,11 +3942,31 @@ var coinmate = {
         return this.privatePostBalances ();
     },
     
-    fetchOrderBook (product) {
-        return this.publicGetOrderBook ({
+    async fetchOrderBook (product) {
+        let response = await this.publicGetOrderBook ({
             'currencyPair': this.productId (product),
             'groupByPriceLimit': 'False',
         });
+        let orderbook = response['data'];
+        let timestamp = orderbook['timestamp'] * 1000;
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = order['price'];
+                let amount = order['amount'];
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
     },
     
     async fetchTicker (product) {
@@ -4180,8 +4200,9 @@ var coinsecure = {
         return this.privateGetUserExchangeBankSummary ();
     },
 
-    fetchOrderBook (product) { 
-        return this.publicGetExchangeAskOrders ();
+    async fetchOrderBook (product) { 
+        let response = await this.publicGetExchangeAskOrders ();
+        return response;
     },
 
     async fetchTicker (product) {
@@ -4317,10 +4338,11 @@ var exmo = {
         return this.privatePostUserInfo ();
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetOrderBook ({
+    async fetchOrderBook (product) {
+        let response = await this.publicGetOrderBook ({
             'pair': this.productId (product),
         });
+        return response;
     },
 
     async fetchTicker (product) {
@@ -4418,8 +4440,9 @@ var fyb = {
         return this.privatePostGetaccinfo ();
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetOrderbook ();
+    async fetchOrderBook (product) {
+        let response = await this.publicGetOrderbook ();
+        return response;
     },
 
     async fetchTicker (product) {
@@ -4594,10 +4617,11 @@ var gdax = {
         return this.privateGetAccounts ();
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetProductsIdBook ({
+    async fetchOrderBook (product) {
+        let response = await this.publicGetProductsIdBook ({
             'id': this.productId (product),
         });
+        return response;
     },
 
     async fetchTicker (product) {
@@ -4740,10 +4764,11 @@ var gemini = {
     },
 
 
-    fetchOrderBook (product) {
-        return this.publicGetBookSymbol ({
+    async fetchOrderBook (product) {
+        let response = await this.publicGetBookSymbol ({
             'symbol': this.productId (product),
         });
+        return response;
     },
 
     async fetchTicker (product) {
@@ -4912,10 +4937,11 @@ var hitbtc = {
         return this.tradingGetBalance ();
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetSymbolOrderbook ({
+    async fetchOrderBook (product) {
+        let response = await this.publicGetSymbolOrderbook ({
             'symbol': this.productId (product),
         });
+        return response;
     },
 
     async fetchTicker (product) {
@@ -5054,10 +5080,11 @@ var huobi = {
         return this.tradePostGetAccountInfo ();
     },
 
-    fetchOrderBook (product) {
+    async fetchOrderBook (product) {
         let p = this.product (product);
         let method = p['type'] + 'GetDepthId';
-        return this[method] ({ 'id': p['id'] });
+        let response = await this[method] ({ 'id': p['id'] });
+        return response;
     },
 
     async fetchTicker (product) {
@@ -5187,10 +5214,11 @@ var itbit = {
         'BTC/EUR': { 'id': 'XBTEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetMarketsSymbolOrderBook ({ 
+    async fetchOrderBook (product) {
+        let response = await this.publicGetMarketsSymbolOrderBook ({ 
             'symbol': this.productId (product),
         });
+        return response;
     },
     
     async fetchTicker (product) {
@@ -5362,10 +5390,11 @@ var jubi = {
         return this.privatePostBalance ();
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetDepth ({
+    async fetchOrderBook (product) {
+        let response = await this.publicGetDepth ({
             'coin': this.productId (product),
         });
+        return response;
     },
 
     async fetchTicker (product) {
@@ -5517,10 +5546,11 @@ var kraken = {
         return result;
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetDepth  ({
+    async fetchOrderBook (product) {
+        let response = await this.publicGetDepth  ({
             'pair': this.productId (product),
         });
+        return response;
     },
 
     async fetchTicker (product) {
@@ -5683,10 +5713,11 @@ var luno = {
         return this.privateGetBalance ();
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetOrderbook ({
+    async fetchOrderBook (product) {
+        let response = await this.publicGetOrderbook ({
             'pair': this.productId (product),
         });
+        return response;
     },
 
     async fetchTicker (product) {
@@ -5810,10 +5841,11 @@ var mercado = {
         'LTC/BRL': { 'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin' },
     },
 
-    fetchOrderBook (product) {
+    async fetchOrderBook (product) {
         let p = this.product (product);
         let method = 'publicGetOrderbook' + this.capitalize (p['suffix']);
-        return this[method] ();
+        let response = await this[method] ();
+        return response;
     },
 
     async fetchTicker (product) {
@@ -5963,10 +5995,11 @@ var okcoin = {
         },
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetDepth ({
+    async fetchOrderBook (product) {
+        let response = await this.publicGetDepth ({
             'symbol': this.productId (product),
         });
+        return response;
     },
 
     async fetchTicker (product) {
@@ -6138,10 +6171,11 @@ var paymium = {
         return this.privateGetUser ();
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetDataIdDepth  ({
+    async fetchOrderBook (product) {
+        let response = await this.publicGetDataIdDepth  ({
             'id': this.productId (product),
         });
+        return response;
     },
 
     async fetchTicker (product) {
@@ -6307,10 +6341,11 @@ var poloniex = {
         });
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetReturnOrderBook ({
+    async fetchOrderBook (product) {
+        let response = await this.publicGetReturnOrderBook ({
             'currencyPair': this.productId (product),
         });
+        return response;
     },
 
     async fetchTicker (product) {
@@ -6428,10 +6463,11 @@ var quadrigacx = {
         return this.privatePostBalance ();
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetOrderBook ({
+    async fetchOrderBook (product) {
+        let response = await this.publicGetOrderBook ({
             'book': this.productId (product),
         });
+        return response;
     },
 
     async fetchTicker (product) {
@@ -6587,10 +6623,11 @@ var quoine = {
         return this.privateGetAccountsBalance ();
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetProductsIdPriceLevels ({
+    async fetchOrderBook (product) {
+        let response = await this.publicGetProductsIdPriceLevels ({
             'id': this.productId (product),
         });
+        return response;
     },
 
     async fetchTicker (product) {
@@ -6749,10 +6786,11 @@ var therock = {
         return this.privateGetBalances ();
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetFundsIdOrderbook ({
+    async fetchOrderBook (product) {
+        let response = await this.publicGetFundsIdOrderbook ({
             'id': this.productId (product),
         });
+        return response;
     },
 
     async fetchTicker (product) {
@@ -6888,8 +6926,9 @@ var vaultoro = {
         return this.privateGetBalance ();
     },
 
-    fetchOrderBook (product) {
-        return this.publicGetOrderbook ();
+    async fetchOrderBook (product) {
+        let response = await this.publicGetOrderbook ();
+        return response;
     },
 
     async fetchTicker (product) {
@@ -7052,12 +7091,13 @@ var virwox = {
         });
     }, 
 
-    fetchOrderBook (product) {
-        return this.publicPostGetMarketDepth ({
+    async fetchOrderBook (product) {
+        let response = await this.publicPostGetMarketDepth ({
             'symbols': [ this.symbol (product) ],
             'buyDepth': 100,
             'sellDepth': 100,
         });
+        return response;
     },
 
     async fetchTicker (product) {
@@ -7202,10 +7242,11 @@ var yobit = {
         return this.tapiPostGetInfo ();
     },
 
-    fetchOrderBook (product) {
-        return this.apiGetDepthPairs ({
+    async fetchOrderBook (product) {
+        let response = await this.apiGetDepthPairs ({
             'pairs': this.productId (product),
         });
+        return response;
     },
 
     async fetchTicker (product) {
@@ -7361,10 +7402,11 @@ var zaif = {
         return this.tapiPostGetInfo ();
     },
 
-    fetchOrderBook (product) {
-        return this.apiGetDepthPair  ({
+    async fetchOrderBook (product) {
+        let response = await this.apiGetDepthPair  ({
             'pair': this.productId (product),
         });
+        return response;
     },
 
     async fetchTicker (product) {
