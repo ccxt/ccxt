@@ -2195,7 +2195,7 @@ class bitmex extends Market {
             $price = $order['price'];
             $result[$side][] = array ($price, $amount);
         }
-        // TODO sort bidasks
+        // TODO sort bids and asks
         return $result;
     }
 

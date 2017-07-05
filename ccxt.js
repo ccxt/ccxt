@@ -43,6 +43,10 @@ var indexBy = function (array, key) {
     return result
 }
 
+var sortBy = function (array, key) {
+    return array.sort ((a, b) => ((a[key] < b[key]) ? -1 : ((a[key] > b[key]) ? 1 : 0)))
+}
+
 var flat = function (array) {
     return array.reduce ((acc, cur) => acc.concat (cur), [])
 }
@@ -2147,7 +2151,7 @@ var bitmex = {
             let price = order['price'];
             result[side].push ([ price, amount ]);
         }
-        // TODO sort bidasks
+        // TODO sort bids and asks
         return result;
     },
 

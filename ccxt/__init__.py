@@ -147,6 +147,14 @@ class Market (object):
         return Market.index_by (l, key)
 
     @staticmethod
+    def sort_by (l, key):
+        return sorted (l, key = lambda k: k[key])
+
+    @staticmethod
+    def sortBy (l, key):
+        return Market.sort_by (l, key)
+
+    @staticmethod
     def commonCurrencyCode (currency):
         return 'BTC' if currency == 'XBT' else currency
 
@@ -2073,7 +2081,7 @@ class bitmex (Market):
             amount = order['size']
             price = order['price']
             result[side].append ([ price, amount ])
-        # TODO sort bidasks
+        # TODO sort bids and asks
         return result
 
     def fetch_ticker (self, product):
