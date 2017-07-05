@@ -499,18 +499,51 @@ var _1broker = {
         return this.privateGetUserOverview ();
     },
 
-    fetchOrderBook (product) {
-        return this.privateGetMarketQuotes ({
+    async fetchOrderBook (product) {
+        let response = await this.privateGetMarketQuotes ({
             'symbols': this.productId (product),
         });
+        let book = response['response'][0];
+        let timestamp = this.parse8601 (book['updated']);
+        let bidPrice = parseFloat (book['bid']);
+        let askPrice = parseFloat (book['ask']); 
+        let bid = [ bidPrice ];
+        let ask = [ askPrice ];
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'bids': [ bid ],
+            'asks': [ ask ],
+        };
     },
 
-    fetchTicker (product) {
-        return this.privateGetMarketBars ({
+    async fetchTicker (product) {
+        let result = await this.privateGetMarketBars ({
             'symbol': this.productId (product),
             'resolution': 60,
             'limit': 1,
         });
+        let book = await this.fetchOrderBook (product);
+        let ticker = result['response'][0];
+        let timestamp = this.parse8601 (ticker['date']);
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['h']),
+            'low': parseFloat (ticker['l']),
+            'bid': book['bids'][0][0],
+            'ask': book['asks'][0][0],
+            'vwap': undefined,
+            'open': parseFloat (ticker['o']),
+            'close': parseFloat (ticker['c']),
+            'first': undefined,
+            'last': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+        }; 
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
@@ -530,7 +563,7 @@ var _1broker = {
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path + '.php';
-        let query = this.extend ({ 'token': (this.apiKey || this.token) }, params);
+        let query = this.extend ({ 'token': this.apiKey }, params);
         url += '?' + this.urlencode (query);
         return this.fetch (url, method);
     },

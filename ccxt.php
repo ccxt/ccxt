@@ -504,17 +504,50 @@ class _1broker extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->privateGetMarketQuotes (array (
+        $response = $this->privateGetMarketQuotes (array (
             'symbols' => $this->product_id ($product),
         ));
+        $book = $response['response'][0];
+        $timestamp = $this->parse8601 ($book['updated']);
+        $bidPrice = floatval ($book['bid']);
+        $askPrice = floatval ($book['ask']); 
+        $bid = array ($bidPrice);
+        $ask = array ($askPrice);
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'bids' => array ($bid),
+            'asks' => array ($ask),
+        );
     }
 
     public function fetch_ticker ($product) {
-        return $this->privateGetMarketBars (array (
+        $result = $this->privateGetMarketBars (array (
             'symbol' => $this->product_id ($product),
             'resolution' => 60,
             'limit' => 1,
         ));
+        $book = $this->fetchOrderBook ($product);
+        $ticker = $result['response'][0];
+        $timestamp = $this->parse8601 ($ticker['date']);
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['h']),
+            'low' => floatval ($ticker['l']),
+            'bid' => $book['bids'][0][0],
+            'ask' => $book['asks'][0][0],
+            'vwap' => null,
+            'open' => floatval ($ticker['o']),
+            'close' => floatval ($ticker['c']),
+            'first' => null,
+            'last' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => null,
+        ); 
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
@@ -534,7 +567,7 @@ class _1broker extends Market {
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path . '.php';
-        $query = array_merge (array ( 'token' => ($this->apiKey || $this->token) ), $params);
+        $query = array_merge (array ( 'token' => $this->apiKey ), $params);
         $url .= '?' . $this->urlencode ($query);
         return $this->fetch ($url, $method);
     }

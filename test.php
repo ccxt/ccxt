@@ -15,7 +15,7 @@ else
 
     $markets = array ( // defaults
 
-        '_1broker'    => array ('verbose' => $verbose, 'apiKey' => '', 'token' => '', ),
+        '_1broker'    => array ('verbose' => $verbose, 'apiKey' => '' ), // 1broker uses public apiKey only, does not use secret key
         '_1btcxe'     => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'anxpro'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'bit2c'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
@@ -99,6 +99,15 @@ function test_market ($market) {
                 'ask: '     . $ticker['ask'],
                 'volume: '  . $ticker['quoteVolume'])) . "\n";
             usleep ($delay);
+
+            $orderbook = $market->fetch_order_book ($symbol);
+            echo implode (' ', array ($market->id, $symbol, 'order book',
+                $orderbook['datetime'],
+                'bid: '       . @$orderbook['bids'][0][0],
+                'bidVolume: ' . @$orderbook['bids'][0][1],
+                'ask: '       . @$orderbook['asks'][0][0],
+                'askVolume: ' . @$orderbook['asks'][0][1])) . "\n";
+            usleep ($delay);
         }
     }
 
@@ -138,7 +147,7 @@ function test_market ($market) {
 //     }
 // }
 
-$market = $markets['btce'];
+$market = $markets['_1broker'];
 test_market ($market);
 
 ?>

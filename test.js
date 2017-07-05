@@ -6,7 +6,7 @@ const asTable   = require ('as-table')
 const util      = require ('util')
 
 let markets
-let verbose = true
+let verbose = false
 
 try {
 
@@ -16,7 +16,7 @@ try {
 
     markets = { // defaults
 
-        _1broker:    { 'verbose': verbose, apiKey: '', token: '', },
+        _1broker:    { 'verbose': verbose, apiKey: '' }, // 1broker uses public apiKey only, does not use secret key
         _1btcxe:     { 'verbose': verbose, apiKey: '', secret: '', },
         anxpro:      { 'verbose': verbose, apiKey: '', secret: '', },
         bit2c:       { 'verbose': verbose, apiKey: '', secret: '', },
@@ -128,6 +128,15 @@ let testMarket = market => new Promise (async resolve => {
                 'ask: '     + ticker['ask'],
                 'volume: '  + ticker['quoteVolume'])
             await sleep (delay)
+
+            let orderbook = await market.fetchOrderBook (symbol)
+            console.log (market.id, symbol, 'order book',
+                orderbook['datetime'],
+                'bid: '       + orderbook.bids[0][0], 
+                'bidVolume: ' + orderbook.bids[0][1],
+                'ask: '       + orderbook.asks[0][0],
+                'askVolume: ' + orderbook.asks[0][1])
+            await sleep (delay)
         }
     }
 
@@ -136,11 +145,9 @@ let testMarket = market => new Promise (async resolve => {
     // let ticker = await market.fetchTicker (symbol)
     // console.log (market.id, symbol, 'ticker')
     // console.log (ticker)
-    
-    // sleep (delay)
-    
-    let trades = await market.fetchTrades (Object.keys (market.products)[0])
-    console.log (market.id, trades)
+        
+    // let trades = await market.fetchTrades (Object.keys (market.products)[0])
+    // console.log (market.id, trades)
 
     if (!market.apiKey || (market.apiKey.length < 1))
         return true
@@ -228,7 +235,8 @@ var test = async function () {
 
     // Object.keys (markets).forEach (async id => {
 
-        var market = markets.btce //markets[id]
+        var market = markets._1btcxe
+        // var market = markets[id]
 
         try {
 

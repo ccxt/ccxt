@@ -67,6 +67,7 @@ while (markets = regex.exec (contents)) {
         let args = matches[3].trim ()
 
         method = method.replace ('fetchBalance', 'fetch_balance')
+                        // .replace ('fetchCategories', 'fetch_categories')
                         .replace ('fetchProducts', 'fetch_products')
                         .replace ('fetchOrderBook', 'fetch_order_book')
                         .replace ('fetchTicker', 'fetch_ticker')
@@ -122,7 +123,7 @@ while (markets = regex.exec (contents)) {
             [ /else\s*[\n]/g, "else:\n" ],
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\.length\s*\;[^\)]+\)\s*{/g, 'for $1 in range ($2, len ($3)):'],
             [ /([^\s]+)\.length/g, 'len ($1)' ],
-            [ /\.push\s*\(([\s\S]+)\)/g, '.append ($1)' ],
+            [ /\.push\s*\(([\s\S]+?)\);/g, '.append ($1);' ],
             [ /^\s*}\s*[\n]/gm, '' ],
             [ /;/g, '' ],
             [ /\.toUpperCase/g, '.upper' ],

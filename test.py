@@ -13,7 +13,7 @@ except ImportError:
 
 	markets = { # defaults
 
-		'_1broker':    { 'verbose': verbose, 'apiKey': '' },
+		'_1broker':    { 'verbose': verbose, 'apiKey': '' }, # 1broker uses public apiKey only, does not use secret key
 		'_1btcxe':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'anxpro':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
 		'bit2c':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
@@ -125,6 +125,20 @@ def test_market (market):
 			)
 			time.sleep (delay)
 
+			orderbook = market.fetch_order_book (symbol)
+			bid = orderbook['bids'][0][0]
+			ask = orderbook['asks'][0][0]
+			bidVolume = orderbook['bids'][0][1] if len (orderbook['bids'][0]) > 1 else 'N/A'
+			askVolume = orderbook['asks'][0][1] if len (orderbook['asks'][0]) > 1 else 'N/A'			
+			print (market.id, symbol, 'order book',
+				orderbook['datetime'],
+                'bid: ' +       str (bid), 
+                'bidVolume: ' + str (bidVolume),
+                'ask: '       + str (ask),
+                'askVolume: ' + str (askVolume),
+			)
+			time.sleep (delay)
+
 	#--------------------------------------------------------------------------
 	# private API
 
@@ -166,4 +180,4 @@ def test_market (market):
 # 		print (type (e).__name__, e.args)
 # 		sys.exit ()
 
-test_market (markets['btce'])
+test_market (markets['_1broker'])

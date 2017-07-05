@@ -461,7 +461,7 @@ class _1broker (Market):
                     symbol = product['symbol']
                     name = product['name']
                     type = product['type'].lower ()
-                    result.push ({
+                    result.append ({
                         'id': id,
                         'symbol': symbol,
                         'name': name,
@@ -474,16 +474,49 @@ class _1broker (Market):
         return self.privateGetUserOverview ()
 
     def fetch_order_book (self, product):
-        return self.privateGetMarketQuotes ({
+        response = self.privateGetMarketQuotes ({
             'symbols': self.product_id (product),
         })
+        book = response['response'][0]
+        timestamp = self.parse8601 (book['updated'])
+        bidPrice = float (book['bid'])
+        askPrice = float (book['ask']) 
+        bid = [ bidPrice ]
+        ask = [ askPrice ]
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'bids': [ bid ],
+            'asks': [ ask ],
+        }
 
     def fetch_ticker (self, product):
-        return self.privateGetMarketBars ({
+        result = self.privateGetMarketBars ({
             'symbol': self.product_id (product),
             'resolution': 60,
             'limit': 1,
         })
+        book = self.fetchOrderBook (product)
+        ticker = result['response'][0]
+        timestamp = self.parse8601 (ticker['date'])
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['h']),
+            'low': float (ticker['l']),
+            'bid': book['bids'][0][0],
+            'ask': book['asks'][0][0],
+            'vwap': None,
+            'open': float (ticker['o']),
+            'close': float (ticker['c']),
+            'first': None,
+            'last': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': None,
+        } 
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         order = {
@@ -501,7 +534,7 @@ class _1broker (Market):
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path + '.php'
-        query = self.extend ({ 'token': (self.apiKey or self.token) }, params)
+        query = self.extend ({ 'token': self.apiKey }, params)
         url += '?' + _urlencode.urlencode (query)
         return self.fetch (url, method)
 
