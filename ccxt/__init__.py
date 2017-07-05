@@ -1854,9 +1854,18 @@ class bitmarket (Market):
         return self.privatePostInfo ()
 
     def fetch_order_book (self, product):
-        return self.publicGetJsonMarketOrderbook ({
+        orderbook = self.publicGetJsonMarketOrderbook ({
             'market': self.product_id (product),
         })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        return result
+
 
     def fetch_ticker (self, product):
         ticker = self.publicGetJsonMarketTicker ({

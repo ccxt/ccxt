@@ -148,7 +148,7 @@ function test_market ($market) {
 //     }
 // }
 
-$market = $markets['bitlish'];
+$market = $markets['bitmarket'];
 test_market ($market);
 
 ?>

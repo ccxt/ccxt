@@ -1921,10 +1921,19 @@ var bitmarket = {
         return this.privatePostInfo ();
     },
 
-    fetchOrderBook (product) { 
-        return this.publicGetJsonMarketOrderbook ({
+    async fetchOrderBook (product) { 
+        let orderbook = await this.publicGetJsonMarketOrderbook ({
             'market': this.productId (product),
         });
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        return result;
+
     },
 
     async fetchTicker (product) {

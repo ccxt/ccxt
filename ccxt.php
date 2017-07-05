@@ -1966,9 +1966,18 @@ class bitmarket extends Market {
     }
 
     public function fetch_order_book ($product) {
-        return $this->publicGetJsonMarketOrderbook (array (
+        $orderbook = $this->publicGetJsonMarketOrderbook (array (
             'market' => $this->product_id ($product),
         ));
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => $orderbook['bids'],
+            'asks' => $orderbook['asks'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        return $result;
+
     }
 
     public function fetch_ticker ($product) {
