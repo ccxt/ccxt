@@ -6726,10 +6726,28 @@ class poloniex extends Market {
     }
 
     public function fetch_order_book ($product) {
-        $response = $this->publicGetReturnOrderBook (array (
+        $orderbook = $this->publicGetReturnOrderBook (array (
             'currencyPair' => $this->product_id ($product),
         ));
-        return $response;
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {
