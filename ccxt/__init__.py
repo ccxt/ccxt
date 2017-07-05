@@ -2549,11 +2549,31 @@ class bittrex (Market):
         return self.accountGetBalances ()
 
     def fetch_order_book (self, product):
-        return self.publicGetOrderbook ({
+        response = self.publicGetOrderbook ({
             'market': self.product_id (product),
             'type': 'both',
             'depth': 50,
         })
+        orderbook = response['result']
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = { 'bids': 'buy', 'asks': 'sell' }
+        keys = list (sides.keys ())
+        for k in range (0, len (keys)):
+            key = keys[k]
+            side = sides[key]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order['Rate'])
+                amount = float (order['Quantity'])
+                result[key].append ([ price, amount ])
+        return result
 
     def fetch_ticker (self, product):
         response = self.publicGetMarketsummary ({

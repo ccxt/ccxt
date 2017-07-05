@@ -6,7 +6,7 @@ const asTable   = require ('as-table')
 const util      = require ('util')
 
 let markets
-let verbose = false
+let verbose = true
 
 try {
 
@@ -235,7 +235,7 @@ var test = async function () {
 
     // Object.keys (markets).forEach (async id => {
 
-        var market = markets.bitstamp
+        var market = markets.bittrex
         // var market = markets[id]
 
         try {
