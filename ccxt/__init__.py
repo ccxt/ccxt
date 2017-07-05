@@ -4683,10 +4683,27 @@ class gemini (Market):
         return result
 
     def fetch_order_book (self, product):
-        response = self.publicGetBookSymbol ({
+        orderbook = self.publicGetBookSymbol ({
             'symbol': self.product_id (product),
         })
-        return response
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order['price'])
+                amount = float (order['amount'])
+                timestamp = int (order['timestamp']) * 1000
+                result[side].append ([ price, amount ])
+        return result
 
     def fetch_ticker (self, product):
         p = self.product (product)

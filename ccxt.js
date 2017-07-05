@@ -4844,12 +4844,30 @@ var gemini = {
         return result;
     },
 
-
     async fetchOrderBook (product) {
-        let response = await this.publicGetBookSymbol ({
+        let orderbook = await this.publicGetBookSymbol ({
             'symbol': this.productId (product),
         });
-        return response;
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order['price']);
+                let amount = parseFloat (order['amount']);
+                let timestamp = parseInt (order['timestamp']) * 1000;
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
     },
 
     async fetchTicker (product) {
