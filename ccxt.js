@@ -6883,10 +6883,30 @@ var quoine = {
     },
 
     async fetchOrderBook (product) {
-        let response = await this.publicGetProductsIdPriceLevels ({
+        let orderbook = await this.publicGetProductsIdPriceLevels ({
             'id': this.productId (product),
         });
-        return response;
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = { 'bids': 'buy_price_levels', 'asks': 'sell_price_levels' };
+        let keys = Object.keys (sides);
+        for (let k = 0; k < keys.length; k++) {
+            let key = keys[k];
+            let side = sides[key];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order[0]);
+                let amount = parseFloat (order[1]);
+                result[key].push ([ price, amount ]);
+            }
+        }
+        return result;
     },
 
     async fetchTicker (product) {

@@ -7053,10 +7053,30 @@ class quoine extends Market {
     }
 
     public function fetch_order_book ($product) {
-        $response = $this->publicGetProductsIdPriceLevels (array (
+        $orderbook = $this->publicGetProductsIdPriceLevels (array (
             'id' => $this->product_id ($product),
         ));
-        return $response;
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ( 'bids' => 'buy_price_levels', 'asks' => 'sell_price_levels' );
+        $keys = array_keys ($sides);
+        for ($k = 0; $k < count ($keys); $k++) {
+            $key = $keys[$k];
+            $side = $sides[$key];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$key][] = array ($price, $amount);
+            }
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {

@@ -132,10 +132,10 @@ let testMarket = market => new Promise (async resolve => {
             let orderbook = await market.fetchOrderBook (symbol)
             console.log (market.id, symbol, 'order book',
                 orderbook['datetime'],
-                'bid: '       + orderbook.bids[0][0], 
-                'bidVolume: ' + orderbook.bids[0][1],
-                'ask: '       + orderbook.asks[0][0],
-                'askVolume: ' + orderbook.asks[0][1])
+                'bid: '       + ((orderbook.bids.length > 0) ? orderbook.bids[0][0] : 'N/A'), 
+                'bidVolume: ' + ((orderbook.bids.length > 0) ? orderbook.bids[0][1] : 'N/A'),
+                'ask: '       + ((orderbook.asks.length > 0) ? orderbook.asks[0][0] : 'N/A'),
+                'askVolume: ' + ((orderbook.asks.length < 0) ? orderbook.asks[0][1] : 'N/A'))
             await sleep (delay)
         }
     }

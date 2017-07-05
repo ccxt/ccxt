@@ -130,10 +130,10 @@ def test_market (market):
 			orderbook = market.fetch_order_book (symbol)
 			print (market.id, symbol, 'order book',
 				orderbook['datetime'],
-                'bid: ' +       str (orderbook['bids'][0][0]), 
-                'bidVolume: ' + str (orderbook['bids'][0][1]),
-                'ask: '       + str (orderbook['asks'][0][0]),
-                'askVolume: ' + str (orderbook['asks'][0][1]),
+                'bid: ' +       str (orderbook['bids'][0][0] if len (orderbook['bids']) else 'N/A'), 
+                'bidVolume: ' + str (orderbook['bids'][0][1] if len (orderbook['bids']) else 'N/A'),
+                'ask: '       + str (orderbook['asks'][0][0] if len (orderbook['asks']) else 'N/A'),
+                'askVolume: ' + str (orderbook['asks'][0][1] if len (orderbook['asks']) else 'N/A'),
 			)
 			time.sleep (delay)
 

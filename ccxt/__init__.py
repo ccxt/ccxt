@@ -6654,10 +6654,28 @@ class quoine (Market):
         return self.privateGetAccountsBalance ()
 
     def fetch_order_book (self, product):
-        response = self.publicGetProductsIdPriceLevels ({
+        orderbook = self.publicGetProductsIdPriceLevels ({
             'id': self.product_id (product),
         })
-        return response
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = { 'bids': 'buy_price_levels', 'asks': 'sell_price_levels' }
+        keys = list (sides.keys ())
+        for k in range (0, len (keys)):
+            key = keys[k]
+            side = sides[key]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order[0])
+                amount = float (order[1])
+                result[key].append ([ price, amount ])
+        return result
 
     def fetch_ticker (self, product):
         ticker = self.publicGetProductsId ({
