@@ -29,6 +29,14 @@ class Market {
         return $result;
     }
 
+    public static function sort_by ($arrayOfArrays, $keys) {
+        usort ($inventory, function ($item1, $item2) {
+            if ($item1['price'] == $item2['price'])
+                return 0;
+            return $item1['price'] < $item2['price'] ? -1 : 1;
+        });
+    }
+
     public static function keysort ($array) {
         $result = $array;
         ksort ($result);
