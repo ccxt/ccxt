@@ -846,7 +846,7 @@ var anxpro = {
             'high': parseFloat (ticker['high']['value']),
             'low': parseFloat (ticker['low']['value']),
             'bid': parseFloat (ticker['buy']['value']),
-            'ask': parseFloat (ticker['sell'])['value'],
+            'ask': parseFloat (ticker['sell']['value']),
             'vwap': parseFloat (ticker['vwap']['value']),
             'open': undefined,
             'close': undefined,

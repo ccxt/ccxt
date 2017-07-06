@@ -816,7 +816,7 @@ class anxpro (Market):
             'high': float (ticker['high']['value']),
             'low': float (ticker['low']['value']),
             'bid': float (ticker['buy']['value']),
-            'ask': float (ticker['sell'])['value'],
+            'ask': float (ticker['sell']['value']),
             'vwap': float (ticker['vwap']['value']),
             'open': None,
             'close': None,

@@ -863,7 +863,7 @@ class anxpro extends Market {
             'high' => floatval ($ticker['high']['value']),
             'low' => floatval ($ticker['low']['value']),
             'bid' => floatval ($ticker['buy']['value']),
-            'ask' => floatval ($ticker['sell'])['value'],
+            'ask' => floatval ($ticker['sell']['value']),
             'vwap' => floatval ($ticker['vwap']['value']),
             'open' => null,
             'close' => null,
