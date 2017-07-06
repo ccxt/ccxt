@@ -1595,7 +1595,8 @@ class bitfinex extends Market {
             $id = strtoupper ($product['pair']);
             $base = mb_substr ($id, 0, 3);
             $quote = mb_substr ($id, 3, 6);
-            if ($base == 'DSH') // issue #4 Bitfinex names Dash as DSH, instead of DASH
+            // issue #4 Bitfinex names Dash as DSH, instead of DASH
+            if ($base == 'DSH') 
                 $base = 'DASH';
             $symbol = $base . '/' . $quote;
             $result[] = array (
@@ -5691,6 +5692,7 @@ class jubi extends Market {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
+        // TODO sort bidasks
         return $result;
     }
 

@@ -1507,7 +1507,8 @@ class bitfinex (Market):
             id = product['pair'].upper ()
             base = id[0:3]
             quote = id[3:6]
-            if (base == 'DSH') # issue #4 Bitfinex names Dash as DSH, instead of DASH
+            # issue #4 Bitfinex names Dash as DSH, instead of DASH
+            if base == 'DSH':
                 base = 'DASH'
             symbol = base + '/' + quote
             result.append ({
@@ -5370,6 +5371,7 @@ class jubi (Market):
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),
         }
+        # TODO sort bidasks
         return result
 
     def fetch_ticker (self, product):
