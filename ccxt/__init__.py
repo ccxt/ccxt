@@ -1507,6 +1507,8 @@ class bitfinex (Market):
             id = product['pair'].upper ()
             base = id[0:3]
             quote = id[3:6]
+            if (base == 'DSH') # issue #4 Bitfinex names Dash as DSH, instead of DASH
+                base = 'DASH'
             symbol = base + '/' + quote
             result.append ({
                 'id': id,
