@@ -221,30 +221,6 @@ var Market = function (config) {
             })
     }
 
-    // this.fetch = function (url, options) {
-
-    //     if (isNode)
-    //         options.headers = extend ({
-    //             'User-Agent': 'ccxt/0.1.0 (+https://github.com/kroitor/ccxt) Node.js/' + this.nodeVersion + ' (JavaScript)'
-    //         }, options.headers)
-
-    //     if (this.verbose)
-    //         console.log (this.id, url, options)
-
-    //     return (fetch ((this.cors ? this.cors : '') + url, options)
-    //         .then (response => (typeof response === 'string') ? response : response.text ())
-    //         .then (response => {
-    //             try {
-    //                 return JSON.parse (response)
-    //             } catch (e) {
-    //                 var cloudflareProtection = response.match (/cloudflare/i) ? 'DDoS protection by Cloudflare' : ''
-    //                 if (this.verbose)
-    //                     console.log (this.id, response, cloudflareProtection, e)
-    //                 throw e
-    //             }
-    //         }))
-    // }
-
     this.fetch = function (url, method = 'GET', headers = undefined, body = undefined) {
 
         if (isNode)
