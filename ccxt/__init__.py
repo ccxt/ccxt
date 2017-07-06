@@ -4535,7 +4535,9 @@ class gdax (Market):
     def fetch_order_book (self, product):
         orderbook = self.publicGetProductsIdBook ({
             'id': self.product_id (product),
+            'level': 2, # 1 best bidask, 2 aggregated, 3 full
         })
+        console.log (orderbook)
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
