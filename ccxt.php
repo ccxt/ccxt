@@ -2206,7 +2206,8 @@ class bitmex extends Market {
             $price = $order['price'];
             $result[$side][] = array ($price, $amount);
         }
-        // TODO sort bids and asks
+        $result['bids'] = $this->sort_by ($result['bids'], 0, true);
+        $result['asks'] = $this->sort_by ($result['asks'], 0);
         return $result;
     }
 
@@ -2911,7 +2912,7 @@ class btcchina extends Market {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        // TODO sort bidasks
+        $result['asks'] = $this->sort_by ($result['asks'], 0);
         return $result;
     }
 
@@ -5692,7 +5693,7 @@ class jubi extends Market {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        // TODO sort bidasks
+        $result['asks'] = $this->sort_by ($result['asks'], 0);
         return $result;
     }
 
@@ -6355,7 +6356,7 @@ class okcoin extends Market {
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => $orderbook['bids'],
-            'asks' => $orderbook['asks'],
+            'asks' => $this->sort_by ($orderbook['asks'], 0),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
@@ -6568,6 +6569,7 @@ class paymium extends Market {
                 $result[$side][] = array ($price, $amount, $timestamp);
             }
         }
+        $result['bids'] = $this->sort_by ($result['bids'], 0, true);
         return $result;
     }
 
@@ -7437,6 +7439,7 @@ class vaultoro extends Market {
                 $result[$side][] = array ($price, $amount);
             }
         }
+        $result['bids'] = $this->sort_by ($result['bids'], 0, true);
         return $result;
     }
 

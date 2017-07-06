@@ -43,8 +43,9 @@ var indexBy = function (array, key) {
     return result
 }
 
-var sortBy = function (array, key) {
-    return array.sort ((a, b) => ((a[key] < b[key]) ? -1 : ((a[key] > b[key]) ? 1 : 0)))
+var sortBy = function (array, key, descending = false) {
+    descending = descending ? -1 : 1
+    return array.sort ((a, b) => ((a[key] < b[key]) ? -descending : ((a[key] > b[key]) ? descending : 0)))
 }
 
 var flat = function (array) {
@@ -179,6 +180,7 @@ var Market = function (config) {
     this.extend = extend
     this.flatten = flat
     this.indexBy = indexBy
+    this.sortBy = sortBy
     this.keysort = keysort
     this.capitalize = capitalize
 
@@ -2157,7 +2159,8 @@ var bitmex = {
             let price = order['price'];
             result[side].push ([ price, amount ]);
         }
-        // TODO sort bids and asks
+        result['bids'] = this.sortBy (result['bids'], 0, true);
+        result['asks'] = this.sortBy (result['asks'], 0);
         return result;
     },
 
@@ -2847,7 +2850,7 @@ var btcchina = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        // TODO sort bidasks
+        result['asks'] = this.sortBy (result['asks'], 0);
         return result;
     },
 
@@ -5554,7 +5557,7 @@ var jubi = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        // TODO sort bidasks
+        result['asks'] = this.sortBy (result['asks'], 0);
         return result;
     },
 
@@ -6210,7 +6213,7 @@ var okcoin = {
         let timestamp = this.milliseconds ();
         let result = {
             'bids': orderbook['bids'],
-            'asks': orderbook['asks'],
+            'asks': this.sortBy (orderbook['asks'], 0),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
@@ -6409,6 +6412,7 @@ var paymium = {
                 result[side].push ([ price, amount, timestamp ]);
             }
         }
+        result['bids'] = this.sortBy (result['bids'], 0, true);
         return result;
     },
 
@@ -7258,6 +7262,7 @@ var vaultoro = {
                 result[side].push ([ price, amount ]);
             }
         }
+        result['bids'] = this.sortBy (result['bids'], 0, true);
         return result;
     },
 

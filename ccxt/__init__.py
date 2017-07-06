@@ -147,12 +147,12 @@ class Market (object):
         return Market.index_by (l, key)
 
     @staticmethod
-    def sort_by (l, key):
-        return sorted (l, key = lambda k: k[key])
+    def sort_by (l, key, descending = False):
+        return sorted (l, key = lambda k: k[key], reverse = descending)
 
     @staticmethod
-    def sortBy (l, key):
-        return Market.sort_by (l, key)
+    def sortBy (l, key, descending = False):
+        return Market.sort_by (l, key, descending)
 
     @staticmethod
     def commonCurrencyCode (currency):
@@ -2084,7 +2084,8 @@ class bitmex (Market):
             amount = order['size']
             price = order['price']
             result[side].append ([ price, amount ])
-        # TODO sort bids and asks
+        result['bids'] = self.sort_by (result['bids'], 0, True)
+        result['asks'] = self.sort_by (result['asks'], 0)
         return result
 
     def fetch_ticker (self, product):
@@ -2749,7 +2750,7 @@ class btcchina (Market):
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),
         }
-        # TODO sort bidasks
+        result['asks'] = self.sort_by (result['asks'], 0)
         return result
 
     def fetch_ticker (self, product):
@@ -5371,7 +5372,7 @@ class jubi (Market):
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),
         }
-        # TODO sort bidasks
+        result['asks'] = self.sort_by (result['asks'], 0)
         return result
 
     def fetch_ticker (self, product):
@@ -5998,7 +5999,7 @@ class okcoin (Market):
         timestamp = self.milliseconds ()
         result = {
             'bids': orderbook['bids'],
-            'asks': orderbook['asks'],
+            'asks': self.sort_by (orderbook['asks'], 0),
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),
         }
@@ -6201,6 +6202,7 @@ class paymium (Market):
                 amount = order['amount']
                 timestamp = order['timestamp'] * 1000
                 result[side].append ([ price, amount, timestamp ])
+        result['bids'] = self.sort_by (result['bids'], 0, True)
         return result
 
     def fetch_ticker (self, product):
@@ -7013,6 +7015,7 @@ class vaultoro (Market):
                 price = order['Gold_Price']
                 amount = order['Gold_Amount']
                 result[side].append ([ price, amount ])
+        result['bids'] = self.sort_by (result['bids'], 0, True)
         return result
 
     def fetch_ticker (self, product):

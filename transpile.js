@@ -104,6 +104,8 @@ while (markets = regex.exec (contents)) {
             [ /this.base64ToBinary/g, 'base64.b64decode' ],
             [ /\.implodeParams/g, '.implode_params'],
             [ /\.extractParams/g, '.extract_params'],
+            [ /\.indexBy/g, '.index_by'],
+            [ /\.sortBy/g, '.sort_by'],
             [ /\.productId/g, '.product_id'],
             [ /this\.urlencode\s/g, '_urlencode.urlencode ' ],
             [ /this\./g, 'self.' ],
@@ -145,6 +147,7 @@ while (markets = regex.exec (contents)) {
             [ /([^\s]+\s*\(\))\.toString \(\)/g, 'str ($1)' ],
             [ /([^\s]+)\.toString \(\)/g, 'str ($1)' ],                
             [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$2.join ($1)' ],
+            // sortby
         ]
 
         let phRegex = [
@@ -155,6 +158,8 @@ while (markets = regex.exec (contents)) {
             [ /this.base64ToBinary/g, 'base64_decode' ],
             [ /\.implodeParams/g, '.implode_params'],
             [ /\.extractParams/g, '.extract_params'],
+            [ /\.indexBy/g, '.index_by'],
+            [ /\.sortBy/g, '.sort_by'],
             [ /\.productId/g, '.product_id'],
             [ /this\./g, '$this->' ],
             [ /\{\}/g, 'array ()' ],
