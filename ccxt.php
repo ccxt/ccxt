@@ -1596,7 +1596,7 @@ class bitfinex extends Market {
             $base = mb_substr ($id, 0, 3);
             $quote = mb_substr ($id, 3, 6);
             if ($base == 'DSH') // issue #4 Bitfinex names Dash as DSH, instead of DASH
-                $base = 'DASH'
+                $base = 'DASH';
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,

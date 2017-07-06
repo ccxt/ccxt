@@ -1559,7 +1559,7 @@ var bitfinex = {
             let base = id.slice (0, 3);
             let quote = id.slice (3, 6);
             if (base == 'DSH') // issue #4 Bitfinex names Dash as DSH, instead of DASH
-                base = 'DASH'
+                base = 'DASH';
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
