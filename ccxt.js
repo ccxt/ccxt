@@ -5551,6 +5551,7 @@ var jubi = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
+        // TODO sort bidasks
         return result;
     },
 
