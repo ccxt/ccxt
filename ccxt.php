@@ -4810,7 +4810,6 @@ class gdax extends Market {
             'id' => $this->product_id ($product),
             'level' => 2, // 1 best bidask, 2 aggregated, 3 full
         ));
-        console.log ($orderbook)
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
