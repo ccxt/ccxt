@@ -2541,8 +2541,8 @@ class bittrex (Market):
         for p in range (0, len (products['result'])):
             product = products['result'][p]
             id = product['MarketName']
-            base = product['BaseCurrency']
-            quote = product['MarketCurrency']
+            base = product['MarketCurrency']
+            quote = product['BaseCurrency']
             symbol = base + '/' + quote
             result.append ({
                 'id': id,

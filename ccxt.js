@@ -2629,8 +2629,8 @@ var bittrex = {
         for (let p = 0; p < products['result'].length; p++) {
             let product = products['result'][p];
             let id = product['MarketName'];
-            let base = product['BaseCurrency'];
-            let quote = product['MarketCurrency'];
+            let base = product['MarketCurrency'];
+            let quote = product['BaseCurrency'];
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
