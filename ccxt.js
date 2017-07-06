@@ -4690,7 +4690,9 @@ var gdax = {
     async fetchOrderBook (product) {
         let orderbook = await this.publicGetProductsIdBook ({
             'id': this.productId (product),
+            'level': 2, // 1 best bidask, 2 aggregated, 3 full
         });
+        console.log (orderbook)
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
