@@ -134,7 +134,6 @@ def test_market (market):
                 'ask: '       + str (orderbook['asks'][0][0] if len (orderbook['asks']) else 'N/A'),
                 'askVolume: ' + str (orderbook['asks'][0][1] if len (orderbook['asks']) else 'N/A'),
 			)
-			time.sleep (delay)
 
 	#--------------------------------------------------------------------------
 	# private API
@@ -170,12 +169,19 @@ def test_market (market):
 	# print (limitSell)
 	# time.sleep (delay)
 
-if (len (sys.argv) > 1):
-	id = sys.argv[1]
+arg = None
+try:
+	arg = sys.argv[1]
+except:
+	arg = None
+
+if arg:
+	id = arg
 	market = markets[id]
 	test_market (market)
 else:
 	for (id, params) in tuples:
+		print (id)
 		try:
 			test_market (markets[id])
 		except Exception as e:

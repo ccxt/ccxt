@@ -541,6 +541,8 @@ class _1broker (Market):
         return self.privateGetOrderCreate (self.extend (order, params))
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        if not (self.apiKey) or len ((self.apyKey) < 1):
+            raise Exception (self.id + ' requires apiKey for all requests') 
         url = self.urls['api'] + '/' + self.version + '/' + path + '.php'
         query = self.extend ({ 'token': self.apiKey }, params)
         url += '?' + _urlencode.urlencode (query)
@@ -7037,7 +7039,7 @@ class vaultoro (Market):
             'open': None,
             'close': None,
             'first': None,
-            'last': float (ticker['lastPrice']),
+            'last': float (ticker['LastPrice']),
             'change': None,
             'percentage': None,
             'average': None,

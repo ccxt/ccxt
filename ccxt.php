@@ -29,12 +29,14 @@ class Market {
         return $result;
     }
 
-    public static function sort_by ($arrayOfArrays, $keys) {
-        usort ($inventory, function ($item1, $item2) {
-            if ($item1['price'] == $item2['price'])
+    public static function sort_by ($arrayOfArrays, $key, $descending = false) {
+        $descending = $descending ? -1 : 1;
+        usort ($arrayOfArrays, function ($a, $b) {
+            if ($a[$key] == $b[$key])
                 return 0;
-            return $item1['price'] < $item2['price'] ? -1 : 1;
+            return $a[$key] < $b[$key] ? -$descending : $descending;
         });
+        return $arrayOfArrays;
     }
 
     public static function keysort ($array) {
@@ -56,6 +58,10 @@ class Market {
 
     public static function indexBy ($arrayOfArrays, $key) {
         return Market::index_by ($arrayOfArrays, $key);
+    }
+
+    public static function sortBy ($arrayOfArrays, $key, $descending = false) {
+        return Market::sort_by ($arrayOfArrays, $key, $descending);
     }
     
     public static function extractParams ($string) {
@@ -574,6 +580,8 @@ class _1broker extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        if (!($this->apiKey) || strlen (($this->apyKey) < 1))
+            throw new \Exception ($this->id . ' requires apiKey for all requests'); 
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path . '.php';
         $query = array_merge (array ( 'token' => $this->apiKey ), $params);
         $url .= '?' . $this->urlencode ($query);
@@ -5045,7 +5053,7 @@ class gemini extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
-            throw new Exception ($this->id . ' allows limit orders only');
+            throw new \Exception ($this->id . ' allows limit orders only');
         $order = array (
             'client_order_id' => $this->nonce (),
             'symbol' => $this->product_id ($product),
@@ -5551,7 +5559,7 @@ class itbit extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
-            throw new Exception ($this->id . ' allows limit orders only');
+            throw new \Exception ($this->id . ' allows limit orders only');
         $amount = (string) $amount;
         $price = (string) $price;
         $p = $this->product ($product);
@@ -6245,7 +6253,7 @@ class mercado extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
-            throw new Exception ($this->id . ' allows limit orders only');
+            throw new \Exception ($this->id . ' allows limit orders only');
         $method = 'privatePostPlace' . $this->capitalize ($side) . 'Order';
         $order = array (
             'coin_pair' => $this->product_id ($product),
@@ -7312,7 +7320,7 @@ class therock extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
-            throw new Exception ($this->id . ' allows limit orders only');
+            throw new \Exception ($this->id . ' allows limit orders only');
         return $this->privatePostFundsFundIdOrders (array_merge (array (
             'fund_id' => $this->product_id ($product),
             'side' => $side,
@@ -7462,7 +7470,7 @@ class vaultoro extends Market {
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval ($ticker['lastPrice']),
+            'last' => floatval ($ticker['LastPrice']),
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -7835,7 +7843,7 @@ class yobit extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
-            throw new Exception ($this->id . ' allows limit orders only');
+            throw new \Exception ($this->id . ' allows limit orders only');
         return $this->tapiPostTrade (array_merge (array (
             'pair' => $this->product_id ($product),
             'type' => $side,
@@ -8004,7 +8012,7 @@ class zaif extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
-            throw new Exception ($this->id . ' allows limit orders only');
+            throw new \Exception ($this->id . ' allows limit orders only');
         return $this->tapiPostTrade (array_merge (array (
             'currency_pair' => $this->product_id ($product),
             'action' => ($side == 'buy') ? 'bid' : 'ask',

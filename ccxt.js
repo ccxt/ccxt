@@ -571,6 +571,8 @@ var _1broker = {
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        if (!(this.apiKey) || (this.apyKey.length < 1))
+            throw new Error (this.id + ' requires apiKey for all requests'); 
         let url = this.urls['api'] + '/' + this.version + '/' + path + '.php';
         let query = this.extend ({ 'token': this.apiKey }, params);
         url += '?' + this.urlencode (query);
@@ -7285,7 +7287,7 @@ var vaultoro = {
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': parseFloat (ticker['lastPrice']),
+            'last': parseFloat (ticker['LastPrice']),
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
