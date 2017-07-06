@@ -6718,7 +6718,7 @@ class poloniex extends Market {
             $id = $keys[$p];
             $product = $products[$id];
             $symbol = str_replace ('_', '/', $id);
-            list ($base, $quote) = explode ('/', $symbol);
+            list ($quote, $base) = explode ('/', $symbol);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,

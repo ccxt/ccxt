@@ -6344,7 +6344,7 @@ class poloniex (Market):
             id = keys[p]
             product = products[id]
             symbol = id.replace ('_', '/')
-            base, quote = symbol.split ('/')
+            quote, base = symbol.split ('/')
             result.append ({
                 'id': id,
                 'symbol': symbol,

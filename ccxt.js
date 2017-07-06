@@ -6555,7 +6555,7 @@ var poloniex = {
             let id = keys[p];
             let product = products[id];
             let symbol = id.replace ('_', '/');
-            let [ base, quote ] = symbol.split ('/');
+            let [ quote, base ] = symbol.split ('/');
             result.push ({
                 'id': id,
                 'symbol': symbol,
