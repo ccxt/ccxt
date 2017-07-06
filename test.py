@@ -114,18 +114,17 @@ def test_market (market):
 
 	for symbol in keys:
 		if symbol.find ('.d') < 0:
-			# print (market.id, symbol, market.product (symbol))
 
-			# ticker = market.fetch_ticker (symbol)
-			# print (market.id, symbol, 'ticker',
-			# 	ticker['datetime'],
-			# 	'high: '    + str (ticker['high']),
-			# 	'low: '     + str (ticker['low']),
-			# 	'bid: '     + str (ticker['bid']),
-			# 	'ask: '     + str (ticker['ask']),
-			# 	'volume: '  + str (ticker['quoteVolume']),
-			# )
-			# time.sleep (delay)
+			ticker = market.fetch_ticker (symbol)
+			print (market.id, symbol, 'ticker',
+				ticker['datetime'],
+				'high: '    + str (ticker['high']),
+				'low: '     + str (ticker['low']),
+				'bid: '     + str (ticker['bid']),
+				'ask: '     + str (ticker['ask']),
+				'volume: '  + str (ticker['quoteVolume']),
+			)
+			time.sleep (delay)
 
 			orderbook = market.fetch_order_book (symbol)
 			print (market.id, symbol, 'order book',

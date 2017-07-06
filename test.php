@@ -91,15 +91,15 @@ function test_market ($market) {
     foreach ($symbols as $symbol) {
         if (strpos ($symbol, '.d') === false) {
             
-            // $ticker = $market->fetch_ticker ($symbol);
-            // echo implode (' ', array ($market->id, $symbol, 'ticker',
-            //     $ticker['datetime'],
-            //     'high: '    . $ticker['high'],
-            //     'low: '     . $ticker['low'],
-            //     'bid: '     . $ticker['bid'],
-            //     'ask: '     . $ticker['ask'],
-            //     'volume: '  . $ticker['quoteVolume'])) . "\n";
-            // usleep ($delay);
+            $ticker = $market->fetch_ticker ($symbol);
+            echo implode (' ', array ($market->id, $symbol, 'ticker',
+                $ticker['datetime'],
+                'high: '    . $ticker['high'],
+                'low: '     . $ticker['low'],
+                'bid: '     . $ticker['bid'],
+                'ask: '     . $ticker['ask'],
+                'volume: '  . $ticker['quoteVolume'])) . "\n";
+            usleep ($delay);
 
             $orderbook = $market->fetch_order_book ($symbol);
             echo implode (' ', array ($market->id, $symbol, 'order book',

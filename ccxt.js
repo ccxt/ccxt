@@ -261,9 +261,12 @@ var Market = function (config) {
                 try {
                     return JSON.parse (response)
                 } catch (e) {
-                    var cloudflareProtection = response.match (/cloudflare/i) ? 'DDoS protection by Cloudflare' : ''
-                    if (this.verbose)
-                        console.log (this.id, response, cloudflareProtection, e)
+                    if (response.match (/cloudflare/i))
+                        throw {
+                            name: 'DDoS Protection By Cloudflare', 
+                            message: 'Access to ' + this.id + ' from this location currently requires JavaScript in a browser.',
+                            toString: function () { return this.name + ': ' + this.message },
+                        }
                     throw e
                 }
             }))

@@ -119,17 +119,18 @@ let testMarket = market => new Promise (async resolve => {
     for (let s in keys) {
         let symbol = keys[s]
         if (symbol.indexOf ('.d') < 0) {
-            // let ticker = await market.fetchTicker (symbol)
-            // console.log (market.id, symbol, 'ticker',
-            //     ticker['datetime'],
-            //     'high: '    + ticker['high'],
-            //     'low: '     + ticker['low'],
-            //     'bid: '     + ticker['bid'],
-            //     'ask: '     + ticker['ask'],
-            //     'volume: '  + ticker['quoteVolume'])
-            // await sleep (delay)
 
-            let orderbook = await market.fetchOrderBook (symbol)
+            let ticker = await market.fetchTicker (symbol)
+            console.log (market.id, symbol, 'ticker',
+                ticker['datetime'],
+                'high: '    + ticker['high'],
+                'low: '     + ticker['low'],
+                'bid: '     + ticker['bid'],
+                'ask: '     + ticker['ask'],
+                'volume: '  + ticker['quoteVolume'])
+            await sleep (delay)
+ 
+             let orderbook = await market.fetchOrderBook (symbol)
             console.log (market.id, symbol, 'order book',
                 orderbook['datetime'],
                 'bid: '       + ((orderbook.bids.length > 0) ? orderbook.bids[0][0] : 'N/A'), 
