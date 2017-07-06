@@ -813,7 +813,7 @@ var anxpro = {
             'currency_pair': this.productId (product),
         });
         let orderbook = response['data'];
-        let timestamp = parseInt (orderbook['dataUpdateTime']) / 1000;
+        let timestamp = parseInt (orderbook['dataUpdateTime'] / 1000);
         let result = {
             'bids': [],
             'asks': [],
