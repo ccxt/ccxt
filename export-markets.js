@@ -168,6 +168,13 @@ Object.keys (countries).forEach (code => {
     marketsByCountries = marketsByCountries.concat (result)
 });
 
+var sortBy = function (array, key, descending = false) {
+    descending = descending ? -1 : 1
+    return array.sort ((a, b) => ((a[key] < b[key]) ? -descending : ((a[key] > b[key]) ? descending : 0)))
+}
+
+marketsByCountries = sortBy (marketsByCountries, 'country / region')
+
 ;(() => {
     let exchanges = asTable.configure ({ delimiter: ' | ' }) (marketsByCountries)
     let lines = exchanges.split ("\n")
