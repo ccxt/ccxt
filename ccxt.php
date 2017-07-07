@@ -7181,6 +7181,167 @@ class quoine extends Market {
 
 //-----------------------------------------------------------------------------
 
+class southxchange extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'southxchange',
+            'name' => 'SouthXchange',
+            'countries' => 'AR', // Argentina
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
+                'api' => 'https://www.southxchange.com/api',
+                'www' => 'https://www.southxchange.com',
+                'doc' => 'https://www.southxchange.com/Home/Api',
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'markets',
+                        'price/{symbol}',
+                        'prices',
+                        'book/{symbol}',
+                        'trades/{symbol}',
+                    ),
+                ),
+                'private' => array (
+                    'post' => array (
+                        'cancelMarketOrders',
+                        'cancelOrder',
+                        'generatenewaddress',
+                        'listOrders',
+                        'listBalances',
+                        'placeOrder',
+                        'withdraw',
+                    ),
+                ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_products () {
+        $products = $this->publicGetMarkets ();
+        $result = array ();
+        for ($p = 0; $p < count ($products); $p++) {
+            $product = $products[$p];
+            $base = $product[0];
+            $quote = $product[1];
+            $symbol = $base . '/' . $quote;
+            $id = $symbol;
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_balance () {
+        return $this->privatePostListBalances ();
+    }
+
+    public function fetch_order_book ($product) {
+        $orderbook = $this->publicGetBookSymbol (array (
+            'symbol' => $this->product_id ($product),
+        ));
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ( 'bids' => 'BuyOrders', 'asks' => 'SellOrders' );
+        $keys = array_keys ($sides);
+        for ($k = 0; $k < count ($keys); $k++) {
+            $key = $keys[$k];
+            $side = $sides[$key];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order['Price']);
+                $amount = floatval ($order['Amount']);
+                $result[$key][] = array ($price, $amount);
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $ticker = $this->publicGetPriceSymbol (array (
+            'symbol' => $this->product_id ($product),
+        ));
+        $timestamp = $this->milliseconds ();
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => null,
+            'low' => null,
+            'bid' => floatval ($ticker['Bid']),
+            'ask' => floatval ($ticker['Ask']),
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['Last']),
+            'change' => floatval ($ticker['Variation24Hr']),
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['Volume24Hr']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetTradesSymbol (array (
+            'symbol' => $this->product_id ($product),
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        $p = $this->product ($product);
+        $order = array (
+            'listingCurrency' => $p['base'],
+            'referenceCurrency' => $p['quote'],
+            'type' => $side,
+            'amount' => $amount,
+        );
+        if ($type == 'limit')
+            $order['limitPrice'] = $price;
+        return $this->privatePostPlaceOrder (array_merge ($order, $params));
+    }
+
+    public function cancel_order ($id, $params = array ()) {
+        return $this->privatePostCancelOrder (array_merge (array (
+            'orderCode' => $id,
+        ), $params));
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
+        $query = $this->omit ($params, $this->extract_params ($path));
+        if ($type == 'private') {
+            $nonce = $this->nonce ();
+            $query = array_merge (array (
+                'key' => $this->apiKey,
+                'nonce' => $nonce,
+            ), $query);
+            $body = json_encode ($query);
+            $headers = array (
+                'Content-Type' => 'application/json',
+                'Hash' => $this->hmac ($body, $this->secret, 'sha512'),
+            );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 class therock extends Market {
 
     public function __construct ($options = array ()) {

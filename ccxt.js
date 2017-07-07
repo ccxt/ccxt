@@ -6982,6 +6982,163 @@ var quoine = {
 
 //-----------------------------------------------------------------------------
 
+var southxchange = {
+
+    'id': 'southxchange',
+    'name': 'SouthXchange',
+    'countries': 'AR', // Argentina
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
+        'api': 'https://www.southxchange.com/api',
+        'www': 'https://www.southxchange.com',
+        'doc': 'https://www.southxchange.com/Home/Api',
+    },
+    'api': {
+        'public': {
+            'get': [
+                'markets',
+                'price/{symbol}',
+                'prices',
+                'book/{symbol}',
+                'trades/{symbol}',
+            ],
+        },
+        'private': {
+            'post': [
+                'cancelMarketOrders',
+                'cancelOrder',
+                'generatenewaddress',
+                'listOrders',
+                'listBalances',
+                'placeOrder',
+                'withdraw',
+            ],
+        },
+    },
+
+    async fetchProducts () {
+        let products = await this.publicGetMarkets ();
+        let result = [];
+        for (let p = 0; p < products.length; p++) {
+            let product = products[p];
+            let base = product[0];
+            let quote = product[1];
+            let symbol = base + '/' + quote;
+            let id = symbol;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            });
+        }
+        return result;
+    },
+
+    fetchBalance () { 
+        return this.privatePostListBalances ();
+    },
+
+    async fetchOrderBook (product) {
+        let orderbook = await this.publicGetBookSymbol ({
+            'symbol': this.productId (product),
+        });
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = { 'bids': 'BuyOrders', 'asks': 'SellOrders' };
+        let keys = Object.keys (sides);
+        for (let k = 0; k < keys.length; k++) {
+            let key = keys[k];
+            let side = sides[key];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order['Price']);
+                let amount = parseFloat (order['Amount']);
+                result[key].push ([ price, amount ]);
+            }
+        }
+        return result;
+    },
+
+    async fetchTicker (product) {
+        let ticker = await this.publicGetPriceSymbol ({
+            'symbol': this.productId (product),
+        });
+        let timestamp = this.milliseconds ();
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': parseFloat (ticker['Bid']),
+            'ask': parseFloat (ticker['Ask']),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['Last']),
+            'change': parseFloat (ticker['Variation24Hr']),
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['Volume24Hr']),
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        return this.publicGetTradesSymbol ({
+            'symbol': this.productId (product),
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let p = this.product (product);
+        let order = {
+            'listingCurrency': p['base'],
+            'referenceCurrency': p['quote'],
+            'type': side,
+            'amount': amount,
+        };
+        if (type == 'limit')
+            order['limitPrice'] = price;
+        return this.privatePostPlaceOrder (this.extend (order, params));
+    },
+
+    cancelOrder (id, params = {}) {
+        return this.privatePostCancelOrder (this.extend ({
+            'orderCode': id,
+        }, params));
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (type == 'private') {
+            let nonce = this.nonce ();
+            query = this.extend ({
+                'key': this.apiKey,
+                'nonce': nonce,
+            }, query);
+            body = JSON.stringify (query);
+            headers = {
+                'Content-Type': 'application/json',
+                'Hash': this.hmac (body, this.secret, 'sha512'),
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var therock = {
 
     'id': 'therock',
@@ -7833,52 +7990,53 @@ var zaif = {
 
 var markets = {
 
-    '_1broker':    _1broker,
-    '_1btcxe':     _1btcxe,
-    'anxpro':      anxpro,
-    'bit2c':       bit2c,
-    'bitbay':      bitbay,
-    'bitbays':     bitbays,
-    'bitcoincoid': bitcoincoid,
-    'bitfinex':    bitfinex,
-    'bitlish':     bitlish,
-    'bitmarket':   bitmarket,
-    'bitmex':      bitmex,
-    'bitso':       bitso,
-    'bitstamp':    bitstamp,
-    'bittrex':     bittrex,
-    'btcchina':    btcchina,
-    'btce':        btce,
-    'btcx':        btcx,
-    'bxinth':      bxinth,
-    'ccex':        ccex,
-    'cex':         cex,
-    'coincheck':   coincheck,
-    'coinmate':    coinmate,
-    'coinsecure':  coinsecure,
-    'exmo':        exmo,
-    'fybse':       fybse,
-    'fybsg':       fybsg,
-    'gdax':        gdax,
-    'gemini':      gemini,
-    'hitbtc':      hitbtc,
-    'huobi':       huobi,
-    'itbit':       itbit,
-    'jubi':        jubi,
-    'kraken':      kraken,
-    'luno':        luno,
-    'mercado':     mercado,
-    'okcoincny':   okcoincny,
-    'okcoinusd':   okcoinusd,
-    'paymium':     paymium,
-    'poloniex':    poloniex,
-    'quadrigacx':  quadrigacx,
-    'quoine':      quoine,
-    'therock':     therock,
-    'vaultoro':    vaultoro,
-    'virwox':      virwox,
-    'yobit':       yobit,
-    'zaif':        zaif,
+    '_1broker':     _1broker,
+    '_1btcxe':      _1btcxe,
+    'anxpro':       anxpro,
+    'bit2c':        bit2c,
+    'bitbay':       bitbay,
+    'bitbays':      bitbays,
+    'bitcoincoid':  bitcoincoid,
+    'bitfinex':     bitfinex,
+    'bitlish':      bitlish,
+    'bitmarket':    bitmarket,
+    'bitmex':       bitmex,
+    'bitso':        bitso,
+    'bitstamp':     bitstamp,
+    'bittrex':      bittrex,
+    'btcchina':     btcchina,
+    'btce':         btce,
+    'btcx':         btcx,
+    'bxinth':       bxinth,
+    'ccex':         ccex,
+    'cex':          cex,
+    'coincheck':    coincheck,
+    'coinmate':     coinmate,
+    'coinsecure':   coinsecure,
+    'exmo':         exmo,
+    'fybse':        fybse,
+    'fybsg':        fybsg,
+    'gdax':         gdax,
+    'gemini':       gemini,
+    'hitbtc':       hitbtc,
+    'huobi':        huobi,
+    'itbit':        itbit,
+    'jubi':         jubi,
+    'kraken':       kraken,
+    'luno':         luno,
+    'mercado':      mercado,
+    'okcoincny':    okcoincny,
+    'okcoinusd':    okcoinusd,
+    'paymium':      paymium,
+    'poloniex':     poloniex,
+    'quadrigacx':   quadrigacx,
+    'quoine':       quoine,
+    'southxchange': southxchange,
+    'therock':      therock,
+    'vaultoro':     vaultoro,
+    'virwox':       virwox,
+    'yobit':        yobit,
+    'zaif':         zaif,
 }
 
 let defineAllMarkets = function (markets) {

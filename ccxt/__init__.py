@@ -6766,6 +6766,155 @@ class quoine (Market):
 
 #------------------------------------------------------------------------------
 
+class southxchange (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'southxchange',
+            'name': 'SouthXchange',
+            'countries': 'AR', # Argentina
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
+                'api': 'https://www.southxchange.com/api',
+                'www': 'https://www.southxchange.com',
+                'doc': 'https://www.southxchange.com/Home/Api',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'markets',
+                        'price/{symbol}',
+                        'prices',
+                        'book/{symbol}',
+                        'trades/{symbol}',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'cancelMarketOrders',
+                        'cancelOrder',
+                        'generatenewaddress',
+                        'listOrders',
+                        'listBalances',
+                        'placeOrder',
+                        'withdraw',
+                    ],
+                },
+            },
+        }
+        params.update (config)
+        super (southxchange, self).__init__ (params)
+
+    def fetch_products (self):
+        products = self.publicGetMarkets ()
+        result = []
+        for p in range (0, len (products)):
+            product = products[p]
+            base = product[0]
+            quote = product[1]
+            symbol = base + '/' + quote
+            id = symbol
+            result.append ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            })
+        return result
+
+    def fetch_balance (self):
+        return self.privatePostListBalances ()
+
+    def fetch_order_book (self, product):
+        orderbook = self.publicGetBookSymbol ({
+            'symbol': self.product_id (product),
+        })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = { 'bids': 'BuyOrders', 'asks': 'SellOrders' }
+        keys = list (sides.keys ())
+        for k in range (0, len (keys)):
+            key = keys[k]
+            side = sides[key]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order['Price'])
+                amount = float (order['Amount'])
+                result[key].append ([ price, amount ])
+        return result
+
+    def fetch_ticker (self, product):
+        ticker = self.publicGetPriceSymbol ({
+            'symbol': self.product_id (product),
+        })
+        timestamp = self.milliseconds ()
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': None,
+            'low': None,
+            'bid': float (ticker['Bid']),
+            'ask': float (ticker['Ask']),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['Last']),
+            'change': float (ticker['Variation24Hr']),
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['Volume24Hr']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetTradesSymbol ({
+            'symbol': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        p = self.product (product)
+        order = {
+            'listingCurrency': p['base'],
+            'referenceCurrency': p['quote'],
+            'type': side,
+            'amount': amount,
+        }
+        if type == 'limit':
+            order['limitPrice'] = price
+        return self.privatePostPlaceOrder (self.extend (order, params))
+
+    def cancel_order (self, id, params = {}):
+        return self.privatePostCancelOrder (self.extend ({
+            'orderCode': id,
+        }, params))
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'] + '/' + self.implode_params (path, params)
+        query = self.omit (params, self.extract_params (path))
+        if type == 'private':
+            nonce = self.nonce ()
+            query = self.extend ({
+                'key': self.apiKey,
+                'nonce': nonce,
+            }, query)
+            body = json.dumps (query)
+            headers = {
+                'Content-Type': 'application/json',
+                'Hash': self.hmac (body, self.secret, hashlib.sha512),
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class therock (Market):
 
     def __init__ (self, config = {}):
