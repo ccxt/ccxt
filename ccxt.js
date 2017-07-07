@@ -245,6 +245,8 @@ var Market = function (config) {
                             message: 'Access to ' + this.id + ' from this location currently requires JavaScript in a browser.',
                             toString: function () { return this.name + ': ' + this.message },
                         }
+                    if (this.verbose)
+                        console.log (this.id, 'error', e, response)
                     throw e
                 }
             }))
@@ -1797,7 +1799,7 @@ var bitlish = {
             'login': this.login,
             'passwd': this.password,
         });
-    },    
+    },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
         let order = {
@@ -3067,6 +3069,199 @@ var btce = {
                 'Content-Length': body.length,
                 'Key': this.apiKey,
                 'Sign': this.hmac (body, this.secret, 'sha512'),
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
+var btctradeua = {
+
+    'id': 'btctradeua',
+    'name': 'BTC Trade UA',
+    'countries': 'UA', // Ukraine,
+    'rateLimit': 2000,
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
+        'api': 'https://btc-trade.com.ua/api',
+        'www': 'https://btc-trade.com.ua',
+        'doc': 'https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit',
+    },
+    'api': {
+        'public': {
+            'get': [
+                'deals/{symbol}',
+                'trades/sell/{symbol}',
+                'trades/buy/{symbol}',
+                'japan_stat/high/{symbol}',
+            ],
+        },
+        'private': {
+            'post': [
+                'auth',
+                'ask/{symbol}',
+                'balance',
+                'bid/{symbol}',
+                'buy/{symbol}',
+                'my_orders/{symbol}',
+                'order/status/{orderId}',            
+                'remove/order/{orderId}',
+                'sell/{symbol}',
+            ],
+        },
+    },
+    'products': {
+        'BTC/UAH': { 'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH' },
+        'ETH/UAH': { 'id': 'eth_uah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH' },
+        'LTC/UAH': { 'id': 'ltc_uah', 'symbol': 'LTC/UAH', 'base': 'LTC', 'quote': 'UAH' },
+        'DOGE/UAH': { 'id': 'doge_uah', 'symbol': 'DOGE/UAH', 'base': 'DOGE', 'quote': 'UAH' },
+        'DASH/UAH': { 'id': 'dash_uah', 'symbol': 'DASH/UAH', 'base': 'DASH', 'quote': 'UAH' },
+        'SIB/UAH': { 'id': 'sib_uah', 'symbol': 'SIB/UAH', 'base': 'SIB', 'quote': 'UAH' },
+        'KRB/UAH': { 'id': 'krb_uah', 'symbol': 'KRB/UAH', 'base': 'KRB', 'quote': 'UAH' },
+        'NVC/UAH': { 'id': 'nvc_uah', 'symbol': 'NVC/UAH', 'base': 'NVC', 'quote': 'UAH' },
+        'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+        'NVC/BTC': { 'id': 'nvc_btc', 'symbol': 'NVC/BTC', 'base': 'NVC', 'quote': 'BTC' },
+        'ITI/UAH': { 'id': 'iti_uah', 'symbol': 'ITI/UAH', 'base': 'ITI', 'quote': 'UAH' },
+        'DOGE/BTC': { 'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC' },
+        'DASH/BTC': { 'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
+    },
+
+    signIn () {
+        return this.privatePostAuth ();
+    },
+
+    fetchBalance () {
+        return this.privatePostBalance ();
+    },
+
+    async fetchOrderBook (product) {
+        let p = this.product (product);
+        let bids = await this.publicGetTradesBuySymbol ({
+            'symbol': p['id'],
+        });
+        let asks = await this.publicGetTradesSellSymbol ({
+            'symbol': p['id'],
+        });
+        let orderbook = {
+            'bids': [],
+            'asks': [],
+        };
+        if (bids) {
+            if ('list' in bids)
+                orderbook['bids'] = bids['list'];
+        }
+        if (asks) {
+            if ('list' in asks)
+                orderbook['asks'] = asks['list'];
+        }
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order['price']);
+                let amount = parseFloat (order['currency_trade']);
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
+    },
+
+    async fetchTicker (product) { 
+        let response = await this.publicGetJapanStatHighSymbol ({
+            'symbol': this.productId (product),
+        });
+        let ticker = response['trades'];
+        let timestamp = this.milliseconds ();
+        let result = {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': undefined,
+            'ask': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': ticker,
+        };
+        let tickerLength = ticker.length;
+        if (tickerLength > 0) {
+            let start = Math.max (tickerLength - 48, 0);
+            for (let t = start; t < ticker.length; t++) {
+                let candle = ticker[t];
+                if (typeof result['open'] == 'undefined')
+                    result['open'] = candle[1];
+                if ((typeof result['high'] == 'undefined') || (result['high'] < candle[2]))
+                    result['high'] = candle[2];
+                if ((typeof result['low'] == 'undefined') || (result['low'] > candle[3]))
+                    result['low'] = candle[3];
+                if (typeof result['quoteVolume'] == 'undefined')
+                    result['quoteVolume'] = -candle[5];
+                else
+                    result['quoteVolume'] -= candle[5];
+            }
+            let last = tickerLength - 1;
+            result['close'] = ticker[last][4];
+            result['quoteVolume'] = -1 * result['quoteVolume'];
+        }
+        return result;
+    },
+
+    fetchTrades (product) {
+        return this.publicGetDealsSymbol ({
+            'symbol': this.productId (product),
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        if (type == 'market')
+            throw new Error (this.id + ' allows limit orders only');
+        let p = this.product (product);
+        let method = this.capitalize (side) + 'Id';
+        let order = {
+            'count': amount,
+            'currency1': p['quote'],
+            'currency': p['base'],
+            'price': price,
+        };
+        return this[method] (this.extend (order, params));
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (type == 'public') {
+            if (Object.keys (query).length)
+                url += this.implodeParams (path, query);
+        } else {
+            let nonce = this.nonce ();
+            body = this.urlencode (this.extend ({
+                'out_order_id': nonce,
+                'nonce': nonce,
+            }, query));
+            headers = {
+                'public-key': this.apiKey,
+                'api-sign': this.hash (body + this.secret, 'sha512'),
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': body.length,
             };
         }
         return this.fetch (url, method, headers, body);
@@ -8006,6 +8201,7 @@ var markets = {
     'bittrex':      bittrex,
     'btcchina':     btcchina,
     'btce':         btce,
+    'btctradeua':   btctradeua,
     'btcx':         btcx,
     'bxinth':       bxinth,
     'ccex':         ccex,

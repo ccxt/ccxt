@@ -98,6 +98,7 @@ while (markets = regex.exec (contents)) {
         let phVarsRegex = variables.map (x => [ "([^$$a-zA-Z0-9\\.\\>'_])" + x + "([^a-zA-Z0-9'_])", '$1$$' + x + '$2' ])
 
         let pyRegex = [
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\s+\'undefined\'/g, '$1[$2] is None' ],
             [ /undefined/g, 'None' ],
             [ /this.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this.stringToBase64/g, 'base64.b64encode' ],
@@ -148,10 +149,12 @@ while (markets = regex.exec (contents)) {
             [ /([^\s]+\s*\(\))\.toString \(\)/g, 'str ($1)' ],
             [ /([^\s]+)\.toString \(\)/g, 'str ($1)' ],                
             [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$2.join ($1)' ],
-            // sortby
+            [ /Math\.(max|min)/g, '$1' ],
+            // typeof xxx['yyy'] == 'undefined'
         ]
 
         let phRegex = [
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\s+\'undefined\'/g, '$1[$2] == null' ],
             [ /undefined/g, 'null' ],
             [ /this\.extend/g, 'array_merge' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
@@ -197,6 +200,7 @@ while (markets = regex.exec (contents)) {
             [ /([^\s]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0/g, 'mb_strpos ($1, $2) !== false' ],
             [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '(array_key_exists ($1, $2))' ],
             [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode ($2, $1)' ],
+            [ /Math\.(max|min)/g, '$1' ],
         ]
 
         let pyBody = regexAll (body, pyRegex)

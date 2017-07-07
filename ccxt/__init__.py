@@ -2984,6 +2984,189 @@ class btce (Market):
 
 #------------------------------------------------------------------------------
 
+class btctradeua (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'btctradeua',
+            'name': 'BTC Trade UA',
+            'countries': 'UA', # Ukraine,
+            'rateLimit': 2000,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
+                'api': 'https://btc-trade.com.ua/api',
+                'www': 'https://btc-trade.com.ua',
+                'doc': 'https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'deals/{symbol}',
+                        'trades/sell/{symbol}',
+                        'trades/buy/{symbol}',
+                        'japan_stat/high/{symbol}',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'auth',
+                        'ask/{symbol}',
+                        'balance',
+                        'bid/{symbol}',
+                        'buy/{symbol}',
+                        'my_orders/{symbol}',
+                        'order/status/{orderId}',            
+                        'remove/order/{orderId}',
+                        'sell/{symbol}',
+                    ],
+                },
+            },
+            'products': {
+                'BTC/UAH': { 'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH' },
+                'ETH/UAH': { 'id': 'eth_uah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH' },
+                'LTC/UAH': { 'id': 'ltc_uah', 'symbol': 'LTC/UAH', 'base': 'LTC', 'quote': 'UAH' },
+                'DOGE/UAH': { 'id': 'doge_uah', 'symbol': 'DOGE/UAH', 'base': 'DOGE', 'quote': 'UAH' },
+                'DASH/UAH': { 'id': 'dash_uah', 'symbol': 'DASH/UAH', 'base': 'DASH', 'quote': 'UAH' },
+                'SIB/UAH': { 'id': 'sib_uah', 'symbol': 'SIB/UAH', 'base': 'SIB', 'quote': 'UAH' },
+                'KRB/UAH': { 'id': 'krb_uah', 'symbol': 'KRB/UAH', 'base': 'KRB', 'quote': 'UAH' },
+                'NVC/UAH': { 'id': 'nvc_uah', 'symbol': 'NVC/UAH', 'base': 'NVC', 'quote': 'UAH' },
+                'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+                'NVC/BTC': { 'id': 'nvc_btc', 'symbol': 'NVC/BTC', 'base': 'NVC', 'quote': 'BTC' },
+                'ITI/UAH': { 'id': 'iti_uah', 'symbol': 'ITI/UAH', 'base': 'ITI', 'quote': 'UAH' },
+                'DOGE/BTC': { 'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC' },
+                'DASH/BTC': { 'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
+            },
+        }
+        params.update (config)
+        super (btctradeua, self).__init__ (params)
+
+    def sign_in (self):
+        return self.privatePostAuth ()
+
+    def fetch_balance (self):
+        return self.privatePostBalance ()
+
+    def fetch_order_book (self, product):
+        p = self.product (product)
+        bids = self.publicGetTradesBuySymbol ({
+            'symbol': p['id'],
+        })
+        asks = self.publicGetTradesSellSymbol ({
+            'symbol': p['id'],
+        })
+        orderbook = {
+            'bids': [],
+            'asks': [],
+        }
+        if bids:
+            if 'list' in bids:
+                orderbook['bids'] = bids['list']
+        if asks:
+            if 'list' in asks:
+                orderbook['asks'] = asks['list']
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order['price'])
+                amount = float (order['currency_trade'])
+                result[side].append ([ price, amount ])
+        return result
+
+    def fetch_ticker (self, product):
+        response = self.publicGetJapanStatHighSymbol ({
+            'symbol': self.product_id (product),
+        })
+        ticker = response['trades']
+        timestamp = self.milliseconds ()
+        result = {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': None,
+            'low': None,
+            'bid': None,
+            'ask': None,
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': None,
+            'info': ticker,
+        }
+        tickerLength = len (ticker)
+        if tickerLength > 0:
+            start = max (tickerLength - 48, 0)
+            for t in range (start, len (ticker)):
+                candle = ticker[t]
+                if result['open'] is None:
+                    result['open'] = candle[1]
+                if (result['high'] is None) or (result['high'] < candle[2]):
+                    result['high'] = candle[2]
+                if (result['low'] is None) or (result['low'] > candle[3]):
+                    result['low'] = candle[3]
+                if result['quoteVolume'] is None:
+                    result['quoteVolume'] = -candle[5]
+                else:
+                    result['quoteVolume'] -= candle[5]
+            last = tickerLength - 1
+            result['close'] = ticker[last][4]
+            result['quoteVolume'] = -1 * result['quoteVolume']
+        return result
+
+    def fetch_trades (self, product):
+        return self.publicGetDealsSymbol ({
+            'symbol': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        if type == 'market':
+            raise Exception (self.id + ' allows limit orders only')
+        p = self.product (product)
+        method = self.capitalize (side) + 'Id'
+        order = {
+            'count': amount,
+            'currency1': p['quote'],
+            'currency': p['base'],
+            'price': price,
+        }
+        return getattr (self, method) (self.extend (order, params))
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'] + '/' + self.implode_params (path, params)
+        query = self.omit (params, self.extract_params (path))
+        if type == 'public':
+            if query:
+                url += self.implode_params (path, query)
+        else:
+            nonce = self.nonce ()
+            body = _urlencode.urlencode (self.extend ({
+                'out_order_id': nonce,
+                'nonce': nonce,
+            }, query))
+            headers = {
+                'public-key': self.apiKey,
+                'api-sign': self.hash (body + self.secret, hashlib.sha512),
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': len (body),
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class btcx (Market):
 
     def __init__ (self, config = {}):

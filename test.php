@@ -31,6 +31,7 @@ else
         'bittrex'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'btcchina'     => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'btce'         => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
+        'btctradeua'   => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'btcx'         => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'bxinth'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'ccex'         => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),

@@ -3170,6 +3170,203 @@ class btce extends Market {
 
 //-----------------------------------------------------------------------------
 
+class btctradeua extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'btctradeua',
+            'name' => 'BTC Trade UA',
+            'countries' => 'UA', // Ukraine,
+            'rateLimit' => 2000,
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
+                'api' => 'https://btc-trade.com.ua/api',
+                'www' => 'https://btc-trade.com.ua',
+                'doc' => 'https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit',
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'deals/{symbol}',
+                        'trades/sell/{symbol}',
+                        'trades/buy/{symbol}',
+                        'japan_stat/high/{symbol}',
+                    ),
+                ),
+                'private' => array (
+                    'post' => array (
+                        'auth',
+                        'ask/{symbol}',
+                        'balance',
+                        'bid/{symbol}',
+                        'buy/{symbol}',
+                        'my_orders/{symbol}',
+                        'order/status/{orderId}',            
+                        'remove/order/{orderId}',
+                        'sell/{symbol}',
+                    ),
+                ),
+            ),
+            'products' => array (
+                'BTC/UAH' => array ( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH' ),
+                'ETH/UAH' => array ( 'id' => 'eth_uah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH' ),
+                'LTC/UAH' => array ( 'id' => 'ltc_uah', 'symbol' => 'LTC/UAH', 'base' => 'LTC', 'quote' => 'UAH' ),
+                'DOGE/UAH' => array ( 'id' => 'doge_uah', 'symbol' => 'DOGE/UAH', 'base' => 'DOGE', 'quote' => 'UAH' ),
+                'DASH/UAH' => array ( 'id' => 'dash_uah', 'symbol' => 'DASH/UAH', 'base' => 'DASH', 'quote' => 'UAH' ),
+                'SIB/UAH' => array ( 'id' => 'sib_uah', 'symbol' => 'SIB/UAH', 'base' => 'SIB', 'quote' => 'UAH' ),
+                'KRB/UAH' => array ( 'id' => 'krb_uah', 'symbol' => 'KRB/UAH', 'base' => 'KRB', 'quote' => 'UAH' ),
+                'NVC/UAH' => array ( 'id' => 'nvc_uah', 'symbol' => 'NVC/UAH', 'base' => 'NVC', 'quote' => 'UAH' ),
+                'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                'NVC/BTC' => array ( 'id' => 'nvc_btc', 'symbol' => 'NVC/BTC', 'base' => 'NVC', 'quote' => 'BTC' ),
+                'ITI/UAH' => array ( 'id' => 'iti_uah', 'symbol' => 'ITI/UAH', 'base' => 'ITI', 'quote' => 'UAH' ),
+                'DOGE/BTC' => array ( 'id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC' ),
+                'DASH/BTC' => array ( 'id' => 'dash_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC' ),
+            ),
+        ), $options));
+    }
+
+    public function sign_in () {
+        return $this->privatePostAuth ();
+    }
+
+    public function fetch_balance () {
+        return $this->privatePostBalance ();
+    }
+
+    public function fetch_order_book ($product) {
+        $p = $this->product ($product);
+        $bids = $this->publicGetTradesBuySymbol (array (
+            'symbol' => $p['id'],
+        ));
+        $asks = $this->publicGetTradesSellSymbol (array (
+            'symbol' => $p['id'],
+        ));
+        $orderbook = array (
+            'bids' => array (),
+            'asks' => array (),
+        );
+        if ($bids) {
+            if (array_key_exists ('list', $bids))
+                $orderbook['bids'] = $bids['list'];
+        }
+        if ($asks) {
+            if (array_key_exists ('list', $asks))
+                $orderbook['asks'] = $asks['list'];
+        }
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['currency_trade']);
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $response = $this->publicGetJapanStatHighSymbol (array (
+            'symbol' => $this->product_id ($product),
+        ));
+        $ticker = $response['trades'];
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => null,
+            'low' => null,
+            'bid' => null,
+            'ask' => null,
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => null,
+            'info' => $ticker,
+        );
+        $tickerLength = count ($ticker);
+        if ($tickerLength > 0) {
+            $start = max ($tickerLength - 48, 0);
+            for ($t = $start; $t < count ($ticker); $t++) {
+                $candle = $ticker[$t];
+                if ($result['open'] == null)
+                    $result['open'] = $candle[1];
+                if (($result['high'] == null) || ($result['high'] < $candle[2]))
+                    $result['high'] = $candle[2];
+                if (($result['low'] == null) || ($result['low'] > $candle[3]))
+                    $result['low'] = $candle[3];
+                if ($result['quoteVolume'] == null)
+                    $result['quoteVolume'] = -$candle[5];
+                else
+                    $result['quoteVolume'] -= $candle[5];
+            }
+            $last = $tickerLength - 1;
+            $result['close'] = $ticker[$last][4];
+            $result['quoteVolume'] = -1 * $result['quoteVolume'];
+        }
+        return $result;
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetDealsSymbol (array (
+            'symbol' => $this->product_id ($product),
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($type == 'market')
+            throw new \Exception ($this->id . ' allows limit orders only');
+        $p = $this->product ($product);
+        $method = $this->capitalize ($side) . 'Id';
+        $order = array (
+            'count' => $amount,
+            'currency1' => $p['quote'],
+            'currency' => $p['base'],
+            'price' => $price,
+        );
+        return $this->$method (array_merge ($order, $params));
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
+        $query = $this->omit ($params, $this->extract_params ($path));
+        if ($type == 'public') {
+            if ($query)
+                $url .= $this->implode_params ($path, $query);
+        } else {
+            $nonce = $this->nonce ();
+            $body = $this->urlencode (array_merge (array (
+                'out_order_id' => $nonce,
+                'nonce' => $nonce,
+            ), $query));
+            $headers = array (
+                'public-key' => $this->apiKey,
+                'api-sign' => $this->hash ($body . $this->secret, 'sha512'),
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body),
+            );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 class btcx extends Market {
 
     public function __construct ($options = array ()) {
