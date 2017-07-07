@@ -3235,7 +3235,7 @@ var btctradeua = {
         if (type == 'market')
             throw new Error (this.id + ' allows limit orders only');
         let p = this.product (product);
-        let method = this.capitalize (side) + 'Id';
+        let method = 'privatePost' + this.capitalize (side) + 'Id';
         let order = {
             'count': amount,
             'currency1': p['quote'],
@@ -3259,7 +3259,7 @@ var btctradeua = {
             }, query));
             headers = {
                 'public-key': this.apiKey,
-                'api-sign': this.hash (body + this.secret, 'sha512'),
+                'api-sign': this.hash (body + this.secret, 'sha256'),
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
             };

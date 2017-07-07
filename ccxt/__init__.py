@@ -3136,7 +3136,7 @@ class btctradeua (Market):
         if type == 'market':
             raise Exception (self.id + ' allows limit orders only')
         p = self.product (product)
-        method = self.capitalize (side) + 'Id'
+        method = 'privatePost' + self.capitalize (side) + 'Id'
         order = {
             'count': amount,
             'currency1': p['quote'],
@@ -3159,7 +3159,7 @@ class btctradeua (Market):
             }, query))
             headers = {
                 'public-key': self.apiKey,
-                'api-sign': self.hash (body + self.secret, hashlib.sha512),
+                'api-sign': self.hash (body + self.secret, hashlib.sha256),
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
             }

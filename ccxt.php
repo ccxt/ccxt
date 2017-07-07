@@ -3332,7 +3332,7 @@ class btctradeua extends Market {
         if ($type == 'market')
             throw new \Exception ($this->id . ' allows limit orders only');
         $p = $this->product ($product);
-        $method = $this->capitalize ($side) . 'Id';
+        $method = 'privatePost' . $this->capitalize ($side) . 'Id';
         $order = array (
             'count' => $amount,
             'currency1' => $p['quote'],
@@ -3356,7 +3356,7 @@ class btctradeua extends Market {
             ), $query));
             $headers = array (
                 'public-key' => $this->apiKey,
-                'api-sign' => $this->hash ($body . $this->secret, 'sha512'),
+                'api-sign' => $this->hash ($body . $this->secret, 'sha256'),
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
             );
