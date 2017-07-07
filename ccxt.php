@@ -3510,7 +3510,7 @@ class bter extends Market {
         parent::__construct (array_merge (array (
             'id' => 'bter',
             'name' => 'Bter',
-            'countries' => 'VG', // British Virgin Islands
+            'countries' => array ( 'VG', 'CN' ), // British Virgin Islands, China
             'version' => '2',
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
