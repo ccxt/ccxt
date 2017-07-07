@@ -32,8 +32,9 @@ try {
         bittrex:      { 'verbose': verbose, apiKey: '', secret: '', },
         btcchina:     { 'verbose': verbose, apiKey: '', secret: '', },
         btce:         { 'verbose': verbose, apiKey: '', secret: '', },
-        btcx:         { 'verbose': verbose, apiKey: '', secret: '', },
         btctradeua:   { 'verbose': verbose, apiKey: '', secret: '', },
+        btcx:         { 'verbose': verbose, apiKey: '', secret: '', },
+        bter:         { 'verbose': verbose, apiKey: '', secret: '', },        
         bxinth:       { 'verbose': verbose, apiKey: '', secret: '', },
         ccex:         { 'verbose': verbose, apiKey: '', secret: '', },
         cex:          { 'verbose': verbose, apiKey: '', secret: '', uid: '', }, 
@@ -140,6 +141,25 @@ let testMarket = market => new Promise (async resolve => {
                 'bidVolume: ' + ((orderbook.bids.length > 0) ? orderbook.bids[0][1] : 'N/A'),
                 'ask: '       + ((orderbook.asks.length > 0) ? orderbook.asks[0][0] : 'N/A'),
                 'askVolume: ' + ((orderbook.asks.length > 0) ? orderbook.asks[0][1] : 'N/A'))
+
+            let bids = orderbook.bids
+            if (bids.length > 1) {
+                let first = 0
+                let last = bids.length - 1
+                if (bids[first][0] < bids[last][0])
+                    console.log (market.id, symbol, 'bids reversed')
+                else if (bids[first][0] > bids[last][0])
+                    console.log (market.id, symbol, 'bids ok')
+            }
+            let asks = orderbook.asks
+            if (asks.length > 1) {
+                let first = 0
+                let last = asks.length - 1
+                if (asks[first][0] > asks[last][0])
+                    console.log (market.id, symbol, 'asks reversed', asks[first][0], asks[last][0])
+                else if (asks[first][0] < asks[last][0])
+                    console.log (market.id, symbol, 'asks ok')
+            }
         }
     }
 

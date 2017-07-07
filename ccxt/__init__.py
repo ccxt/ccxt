@@ -3295,6 +3295,163 @@ class btcx (Market):
 
 #------------------------------------------------------------------------------
 
+class bter (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'bter',
+            'name': 'Bter.com',
+            'countries': 'VG', # British Virgin Islands
+            'version': '2',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27980357-87b4a262-6386-11e7-8d8d-8a8acfeb4873.jpg',
+                'api': {
+                    'public': 'https://data.bter.com/api',
+                    'private': 'https://api.bter.com/api',
+                },
+                'www': 'https://bter.com',
+                'doc': 'https://bter.com/api2',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'pairs',
+                        'marketinfo',
+                        'marketlist',
+                        'tickers',
+                        'ticker/{id}',
+                        'orderBook/{id}',
+                        'trade/{id}',
+                        'tradeHistory/{id}/{tid}',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'balances',
+                        'depositAddress',
+                        'newAddress',
+                        'depositsWithdrawals',
+                        'buy',
+                        'sell',
+                        'cancelOrder',
+                        'cancelAllOrders',
+                        'getOrder',
+                        'openOrders',
+                        'tradeHistory',
+                        'withdraw',
+                    ],
+                },
+            },
+        }
+        params.update (config)
+        super (bter, self).__init__ (params)
+
+    def fetch_products (self):
+        response = self.publicGetMarketlist ()
+        products = response['data']
+        result = []
+        for p in range (0, len (products)):
+            product = products[p]
+            id = product['pair']
+            base = product['curr_a']
+            quote = product['curr_b']
+            symbol = base + '/' + quote
+            result.append ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            })
+        return result
+
+    def fetch_balance (self):
+        return self.privatePostBalances ()
+
+    def fetch_order_book (self, product):
+        orderbook = self.publicGetOrderBookId ({
+            'id': self.product_id (product),
+        })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = order[0]
+                amount = order[1]
+                result[side].append ([ price, amount ])
+        result['asks'] = self.sort_by (result['asks'], 0)
+        return result
+
+    def fetch_ticker (self, product):
+        ticker = self.publicGetTickerId ({
+            'id': self.product_id (product),
+        })
+        timestamp = self.milliseconds ()
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high24hr']),
+            'low': float (ticker['low24hr']),
+            'bid': float (ticker['highestBid']),
+            'ask': float (ticker['lowestAsk']),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': float (ticker['percentChange']),
+            'percentage': None,
+            'average': None,
+            'baseVolume': float (ticker['baseVolume']),
+            'quoteVolume': float (ticker['quoteVolume']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetTradeId ({
+            'id': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        method = 'privatePost' + self.capitalize (side)
+        order = {
+            'currencyPair': self.symbol (product),
+            'rate': price,
+            'amount': amount,
+        }
+        return getattr (self, method) (self.extend (order, params))
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        prefix = (type + '/') if (type == 'private') else ''
+        url = self.urls['api'][type] + self.version + '/1/' + prefix + self.implode_params (path, params)
+        query = self.omit (params, self.extract_params (path))
+        if type == 'public':
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
+            url += type + '/' + self.implode_params (path, params)
+            nonce = self.nonce ()
+            request = { 'nonce': nonce }
+            body = _urlencode.urlencode (self.extend (request, query))
+            headers = {
+                'Key': self.apiKey,
+                'Sign': self.hmac (body, self.secret, hashlib.sha512),
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': len (body),
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class bxinth (Market):
 
     def __init__ (self, config = {}):

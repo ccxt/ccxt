@@ -35,6 +35,7 @@ try {
         btce:         { 'verbose': verbose, apiKey: '', secret: '', },
         btctradeua:   { 'verbose': verbose, apiKey: '', secret: '', },
         btcx:         { 'verbose': verbose, apiKey: '', secret: '', },
+        bter:         { 'verbose': verbose, apiKey: '', secret: '', },
         bxinth:       { 'verbose': verbose, apiKey: '', secret: '', },
         ccex:         { 'verbose': verbose, apiKey: '', secret: '', },
         cex:          { 'verbose': verbose, apiKey: '', secret: '', uid: '', }, 

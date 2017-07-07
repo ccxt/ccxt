@@ -18,7 +18,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 48 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 49 cryptocurrency exchange markets and trading APIs:
 
 +----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id             | name                                                      | ver   | doc                                                                                              | countries                                  |
@@ -58,6 +58,8 @@ The ccxt library currently supports the following 48 cryptocurrency exchange mar
 | btctradeua     | `BTC Trade UA <https://btc-trade.com.ua>`__               | \*    | `API <https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit>`__   | Ukraine                                    |
 +----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | btcx           | `BTCX <https://btc-x.is>`__                               | 1     | `API <https://btc-x.is/custom/api-document.html>`__                                              | Iceland, US, EU                            |
++----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| bter           | `Bter.com <https://bter.com>`__                           | 2     | `API <https://bter.com/api2>`__                                                                  | British Virgin Islands                     |
 +----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bxinth         | `BX.in.th <https://bx.in.th>`__                           | \*    | `API <https://bx.in.th/info/api>`__                                                              | Thailand                                   |
 +----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+

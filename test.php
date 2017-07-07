@@ -33,6 +33,7 @@ else
         'btce'         => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'btctradeua'   => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'btcx'         => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
+        'bter'         => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'bxinth'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'ccex'         => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'cex'          => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', 'uid' => '', ),
