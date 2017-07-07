@@ -3509,7 +3509,7 @@ class bter extends Market {
     public function __construct ($options = array ()) {
         parent::__construct (array_merge (array (
             'id' => 'bter',
-            'name' => 'Bter.com',
+            'name' => 'Bter',
             'countries' => 'VG', // British Virgin Islands
             'version' => '2',
             'urls' => array (

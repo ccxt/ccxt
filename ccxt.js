@@ -3405,7 +3405,7 @@ var btcx = {
 
 var bter = {
     'id': 'bter',
-    'name': 'Bter.com',
+    'name': 'Bter',
     'countries': 'VG', // British Virgin Islands
     'version': '2',
     'urls': {

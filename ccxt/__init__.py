@@ -3300,7 +3300,7 @@ class bter (Market):
     def __init__ (self, config = {}):
         params = {
             'id': 'bter',
-            'name': 'Bter.com',
+            'name': 'Bter',
             'countries': 'VG', # British Virgin Islands
             'version': '2',
             'urls': {
