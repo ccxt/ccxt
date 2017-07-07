@@ -3549,7 +3549,6 @@ var bter = {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
-            url += type + '/' + this.implodeParams (path, params);
             let nonce = this.nonce ();
             let request = { 'nonce': nonce };
             body = this.urlencode (this.extend (request, query));

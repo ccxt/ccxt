@@ -3655,7 +3655,6 @@ class bter extends Market {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
-            $url .= $type . '/' . $this->implode_params ($path, $params);
             $nonce = $this->nonce ();
             $request = array ( 'nonce' => $nonce );
             $body = $this->urlencode (array_merge ($request, $query));

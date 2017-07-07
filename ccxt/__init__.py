@@ -3438,7 +3438,6 @@ class bter (Market):
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
-            url += type + '/' + self.implode_params (path, params)
             nonce = self.nonce ()
             request = { 'nonce': nonce }
             body = _urlencode.urlencode (self.extend (request, query))
