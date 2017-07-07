@@ -3513,7 +3513,7 @@ class bter extends Market {
             'countries' => 'VG', // British Virgin Islands
             'version' => '2',
             'urls' => array (
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27980357-87b4a262-6386-11e7-8d8d-8a8acfeb4873.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
                 'api' => array (
                     'public' => 'https://data.bter.com/api',
                     'private' => 'https://api.bter.com/api',
