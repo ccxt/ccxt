@@ -53,6 +53,7 @@ try {
         jubi:         { 'verbose': verbose, apiKey: '', secret: '', },    
         kraken:       { 'verbose': verbose, apiKey: '', secret: '', },
         livecoin:     { 'verbose': verbose, apiKey: '', secret: '', },
+        liqui:        { 'verbose': verbose, apiKey: '', secret: '', },
         luno:         { 'verbose': verbose, apiKey: '', secret: '', },
         mercado:      { 'verbose': verbose, apiKey: '', secret: '', },
         okcoinusd :   { 'verbose': verbose, apiKey: '', secret: '', },

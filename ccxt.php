@@ -3024,7 +3024,10 @@ class btce extends Market {
             'version' => '3',
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27843225-1b571514-611a-11e7-9208-2641a560b561.jpg',
-                'api' => 'https://btc-e.com/api',
+                'api' => array (
+                    'public' => 'https://btc-e.com/api',
+                    'private' => 'https://btc-e.com/tapi',
+                ),
                 'www' => 'https://btc-e.com',
                 'doc' => array (
                     'https://btc-e.com/api/3/docs',
@@ -3067,9 +3070,9 @@ class btce extends Market {
         for ($p = 0; $p < count ($keys); $p++) {
             $id = $keys[$p];
             $product = $products[$id];
-            list ($base, $quote) = explode ('_');
+            list ($base, $quote) = explode ('_', $id);
             $base = strtoupper ($base);
-            $quote = strtoupper ($quote, $id);
+            $quote = strtoupper ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -3147,7 +3150,7 @@ class btce extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'][$type] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($type == 'public') {
             if ($query)
@@ -6493,6 +6496,30 @@ class livecoin extends Market {
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+class liqui extends btce {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'liqui',
+            'name' => 'Liqui',
+            'countries' => array ( 'UA', ),
+            'rateLimit' => 1000,
+            'version' => '3',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
+                'api' => array (
+                    'public' => 'https://api.liqui.io/api',
+                    'private' => 'https://api.liqui.io/tapi',
+                ),
+                'www' => 'https://liqui.io',
+                'doc' => 'https://liqui.io/api',
+            ),
+        ), $options));
     }
 }
 

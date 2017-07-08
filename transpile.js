@@ -195,7 +195,7 @@ while (markets = regex.exec (contents)) {
             [ /this\[([^\]+]+)\]/g, '$$this->$$$1' ],
             [ /([^\s]+).slice \(([^\)\:]+)\)/g, 'mb_substr ($1, $2)' ],
             [ /([^\s]+).slice \(([^\,\)]+)\,\s*([^\)]+)\)/g, 'mb_substr ($1, $2, $3)' ],
-            [ /([^\s]+).split \(([^\,]+)\)/g, 'explode ($2, $1)' ],
+            [ /([^\s]+).split \(([^\,]+?)\)/g, 'explode ($2, $1)' ],
             [ /Math\.floor\s*\(([^\)]+)\)/g, '(int) floor ($1)' ],
             [ /([^\s]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0/g, 'mb_strpos ($1, $2) !== false' ],
             [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '(array_key_exists ($1, $2))' ],

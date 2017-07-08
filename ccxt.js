@@ -2932,7 +2932,10 @@ var btce = {
     'version': '3',
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27843225-1b571514-611a-11e7-9208-2641a560b561.jpg',
-        'api': 'https://btc-e.com/api',
+        'api': {
+            'public': 'https://btc-e.com/api',
+            'private': 'https://btc-e.com/tapi',
+        },
         'www': 'https://btc-e.com',
         'doc': [
             'https://btc-e.com/api/3/docs',
@@ -3054,7 +3057,7 @@ var btce = {
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][type] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (type == 'public') {
             if (Object.keys (query).length)
@@ -6318,6 +6321,25 @@ var livecoin = {
 
 //-----------------------------------------------------------------------------
 
+var liqui = extend (btce, {
+    'id': 'liqui',
+    'name': 'Liqui',
+    'countries': [ 'UA', ],
+    'rateLimit': 1000,
+    'version': '3',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
+        'api': {
+            'public': 'https://api.liqui.io/api',
+            'private': 'https://api.liqui.io/tapi',
+        },
+        'www': 'https://liqui.io',
+        'doc': 'https://liqui.io/api',
+    },
+})
+
+//-----------------------------------------------------------------------------
+
 var luno = {
 
     'id': 'luno',
@@ -8554,6 +8576,7 @@ var markets = {
     'jubi':         jubi,
     'kraken':       kraken,
     'livecoin':     livecoin,
+    'liqui':        liqui,
     'luno':         luno,
     'mercado':      mercado,
     'okcoincny':    okcoincny,

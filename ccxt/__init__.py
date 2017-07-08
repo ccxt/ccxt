@@ -2847,7 +2847,10 @@ class btce (Market):
             'version': '3',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27843225-1b571514-611a-11e7-9208-2641a560b561.jpg',
-                'api': 'https://btc-e.com/api',
+                'api': {
+                    'public': 'https://btc-e.com/api',
+                    'private': 'https://btc-e.com/tapi',
+                },
                 'www': 'https://btc-e.com',
                 'doc': [
                     'https://btc-e.com/api/3/docs',
@@ -2964,7 +2967,7 @@ class btce (Market):
         return self.privatePostTrade (self.extend (order, params))
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)
+        url = self.urls['api'][type] + '/' + self.version + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
         if type == 'public':
             if query:
@@ -6114,6 +6117,30 @@ class livecoin (Market):
                 'Content-Length': len (body),
             }
         return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
+class liqui (btce):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'liqui',
+            'name': 'Liqui',
+            'countries': [ 'UA', ],
+            'rateLimit': 1000,
+            'version': '3',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
+                'api': {
+                    'public': 'https://api.liqui.io/api',
+                    'private': 'https://api.liqui.io/tapi',
+                },
+                'www': 'https://liqui.io',
+                'doc': 'https://liqui.io/api',
+            },
+        }
+        params.update (config)
+        super (liqui, self).__init__ (params)
 
 #------------------------------------------------------------------------------
 
