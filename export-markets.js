@@ -15,60 +15,27 @@ try {
 
 } catch (e) {
 
-    markets = { // defaults
-
-        _1broker:     { 'verbose': verbose, apiKey: '', token: '', },
-        _1btcxe:      { 'verbose': verbose, apiKey: '', secret: '', },
-        anxpro:       { 'verbose': verbose, apiKey: '', secret: '', },
-        bit2c:        { 'verbose': verbose, apiKey: '', secret: '', },
-        bitbay:       { 'verbose': verbose, apiKey: '', secret: '', },
-        bitbays:      { 'verbose': verbose, apiKey: '', secret: '', },
-        bitcoincoid:  { 'verbose': verbose, apiKey: '', secret: '', },
-        bitfinex:     { 'verbose': verbose, apiKey: '', secret: '', },
-        bitlish:      { 'verbose': verbose, apiKey: '', login: '', password: '', },
-        bitmarket:    { 'verbose': verbose, apiKey: '', secret: '', },    
-        bitmex:       { 'verbose': verbose, apiKey: '', secret: '', },
-        bitso:        { 'verbose': verbose, apiKey: '', secret: '', },
-        bitstamp:     { 'verbose': verbose, apiKey: '', secret: '', uid: '', },
-        bittrex:      { 'verbose': verbose, apiKey: '', secret: '', },
-        btcchina:     { 'verbose': verbose, apiKey: '', secret: '', },
-        btce:         { 'verbose': verbose, apiKey: '', secret: '', },
-        btctradeua:   { 'verbose': verbose, apiKey: '', secret: '', },
-        btcx:         { 'verbose': verbose, apiKey: '', secret: '', },
-        bter:         { 'verbose': verbose, apiKey: '', secret: '', },
-        bxinth:       { 'verbose': verbose, apiKey: '', secret: '', },
-        ccex:         { 'verbose': verbose, apiKey: '', secret: '', },
-        cex:          { 'verbose': verbose, apiKey: '', secret: '', uid: '', }, 
-        coincheck:    { 'verbose': verbose, apiKey: '', secret: '', },
-        coinmate:     { 'verbose': verbose, apiKey: '', secret: '', },
-        coinsecure:   { 'verbose': verbose, apiKey: '', },
-        exmo:         { 'verbose': verbose, apiKey: '', secret: '', },
-        fybse:        { 'verbose': verbose, apiKey: '', secret: '', },
-        fybsg:        { 'verbose': verbose, apiKey: '', secret: '', },
-        gdax:         { 'verbose': verbose, apiKey: '', secret: '', password: '' }, 
-        gemini:       { 'verbose': verbose, apiKey: '', secret: '', },
-        hitbtc:       { 'verbose': verbose, apiKey: '', secret: '', },
-        huobi:        { 'verbose': verbose, apiKey: '', secret: '', },
-        itbit:        { 'verbose': verbose, apiKey: '', secret: '', },
-        jubi:         { 'verbose': verbose, apiKey: '', secret: '', },    
-        kraken:       { 'verbose': verbose, apiKey: '', secret: '', },
-        livecoin:     { 'verbose': verbose, apiKey: '', secret: '', },
-        liqui:        { 'verbose': verbose, apiKey: '', secret: '', },
-        luno:         { 'verbose': verbose, apiKey: '', secret: '', },
-        mercado:      { 'verbose': verbose, apiKey: '', secret: '', },
-        okcoinusd :   { 'verbose': verbose, apiKey: '', secret: '', },
-        okcoincny:    { 'verbose': verbose, apiKey: '', secret: '', },
-        paymium:      { 'verbose': verbose, apiKey: '', secret: '', },
-        poloniex:     { 'verbose': verbose, apiKey: '', secret: '', },
-        quadrigacx:   { 'verbose': verbose, apiKey: '', secret: '', uid: 123, },    
-        quoine:       { 'verbose': verbose, apiKey: '', secret: '', },
-        southxchange: { 'verbose': verbose, apiKey: '', secret: '', },
-        therock:      { 'verbose': verbose, apiKey: '', secret: '', },    
-        vaultoro:     { 'verbose': verbose, apiKey: '', secret: '', },
-        virwox:       { 'verbose': verbose, apiKey: '', login: '', password: '', },
-        yobit:        { 'verbose': verbose, apiKey: '', secret: '', },
-        zaif:         { 'verbose': verbose, apiKey: '', secret: '', },
+    let ccxtjs = fs.readFileSync ('./ccxt.js', 'utf8')
+    let marketsMatches = /var markets \= \{([^\}]+)\}/g.exec (ccxtjs)
+    let idRegex = /\'([^\'\n\s]+)\'/g
+    let ids = []
+    let idMatch 
+    while (idMatch = idRegex.exec (marketsMatches[1])) {
+        ids.push (idMatch[1])
     }
+    let idString = "    '" + ids.join ("',\n    '") + "',"
+    // console.log (idString)
+    let ccxtpyFilename = './ccxt/__init__.py'
+    let ccxtpy = fs.readFileSync (ccxtpyFilename, 'utf8')
+    let ccxtpyParts = ccxtpy.split (/markets \= \[[^\]]+\]/)
+    let ccxtpyNewContent = ccxtpyParts[0] + "markets = [\n" + idString + "\n]" + ccxtpyParts[1]
+    fs.truncateSync (ccxtpyFilename)
+    fs.writeFileSync (ccxtpyFilename, ccxtpyNewContent)
+
+    markets = {}
+    ids.forEach (id => {
+        markets[id] = { 'verbose': verbose, 'apiKey': '', 'secret': '' }
+    })
 }
 
 for (let id in markets) {
@@ -126,6 +93,7 @@ let changeInFile = (filename) => {
     let replacement = totalString + lines + "$1"
     let newContent = oldContent.replace (regex, replacement)
     // console.log (newContent)
+    fs.truncateSync (filename)
     fs.writeFileSync (filename, newContent)
 }
 
@@ -187,7 +155,9 @@ marketsByCountries = sortBy (marketsByCountries, 'country / region')
     lines[1] = headerLine.join ('|')
     lines = lines.map (line => '|' + line + '|').join ("\n")
     let result = "The ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + lines + "\n\n"
-    fs.writeFileSync ('../ccxt.wiki/Exchange-Markets-By-Country.md', result)
+    let filename = '../ccxt.wiki/Exchange-Markets-By-Country.md'
+    fs.truncateSync (filename)
+    fs.writeFileSync (filename, result)
     // console.log (result)
 }) ();
 

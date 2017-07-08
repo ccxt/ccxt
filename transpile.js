@@ -294,6 +294,7 @@ rstNew = rstNew.replace (/\.\.[^\n]+image\:\:[^\n]+[\n]/g, '')
 // console.log (match[1])
         // .replace (/^\+[^\+]+\+/, '')
         // .replace (/^\|[^\|]+\|/, '' logo            ', '')
+fs.truncateSync (readmeRst)
 fs.writeFileSync (readmeRst, rstNew)
 
 console.log ('Transpiled successfully.')
