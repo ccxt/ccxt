@@ -4,9 +4,6 @@ date_default_timezone_set ('UTC');
 
 include 'ccxt.php';
 
-var_dump (\ccxt\Market::$markets);
-exit;
-
 $markets = null;
 $verbose = false;
 
