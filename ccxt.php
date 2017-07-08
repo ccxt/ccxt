@@ -303,7 +303,6 @@ class Market {
         return $this->fetch_trades ($product);
     }
 
-
     public function create_limit_buy_order ($product, $amount, $price, $params = array ()) {
         return $this->create_order ($product, 'limit', 'buy',  $amount, $price, $params);
     }

@@ -308,11 +308,11 @@ JavaScript
 
         console.log (okcoinusd.id, await okcoinusd.fetchBalance ())
 
-        // sell 1 BTC/USD for market price (create market sell order)
-        console.log (okcoinusd.id, await okcoinusd.sell ('BTC/USD', 1))
+        // sell 1 BTC/USD for market price, sell a bitcoin for dollars immediately
+        console.log (okcoinusd.id, await okcoinusd.createMarketSellOrder ('BTC/USD', 1))
 
-        // buy 1 BTC/USD for $2500 (create limit buy order) 
-        console.log (okcoinusd.id, await okcoinusd.buy ('BTC/USD', 1, 2500.00))
+        // buy 1 BTC/USD for $2500, you pay $2500 and receive 1 BTC when the order is closed
+        console.log (okcoinusd.id, await okcoinusd.createLimitBuyOrder ('BTC/USD', 1, 2500.00))
 
     }) ()
 
@@ -345,11 +345,11 @@ Python
 
     print (exmo.fetch_balance ())
 
-    # sell 1 BTC/USD for market price (create market sell order)
-    print (exmo.id, exmo.sell ('BTC/USD', 1))
+    # sell one BTC/USD for market price and receive $ right now
+    print (exmo.id, exmo.create_market_sell_order ('BTC/USD', 1))
 
-    # buy 1 BTC/USD for $2500 (create limit buy order) 
-    print (exmo.id, exmo.buy ('BTC/USD', 1, 2500.00))
+    # limit buy BTC/EUR, you pay €2500 and receive 1 BTC when the order is closed
+    print (exmo.id, exmo.create_limit_buy_order ('BTC/EUR', 1, 2500.00))
 
 PHP
 ~~~
@@ -379,11 +379,11 @@ PHP
 
     var_dump ($zaif->fetch_balance ());
 
-    // sell 1 BTC/JPY for market price (create market sell order)
-    var_dump ($zaif->id, $zaif->sell ('BTC/JPY', 1));
+    // sell 1 BTC/JPY for market price, you pay ¥ and receive BTC immediately
+    var_dump ($zaif->id, $zaif->create_market_sell_order ('BTC/JPY', 1));
 
-    // buy 1 BTC/JPY for ¥285000 (create limit buy order) 
-    var_dump ($zaif->id, $zaif->buy ('BTC/JPY', 1, 285000));
+    // buy BTC/JPY, you receive 1 BTC for ¥285000 when the order closes
+    var_dump ($zaif->id, $zaif->create_limit_buy_order ('BTC/JPY', 1, 285000));
 
 Public Offer
 ------------
