@@ -303,60 +303,21 @@ class Market {
         return $this->fetch_trades ($product);
     }
 
-    public function buy ($product, $amount, $price = null, $params = array ()) {
-        return $this->order ($product, 'buy',  $amount, $price, $params);
-    }
-
-    public function sell ($product, $amount, $price = null, $params = array ()) {
-        return $this->order ($product, 'sell', $amount, $price, $params);
-    }
-
-    public function trade ($product, $side, $amount, $price = null, $params = array ()) {
-        return $this->order ($product, $side, $amount, $price, $params);
-    }
-
-    public function order ($product, $side, $amount, $price = null, $params = array ()) { 
-        return $this->createOrder ($product, $price ? 'market' : 'limit', $side, $amount, $price, $params);
-    }
-
-    public function create_buy_order ($product, $type, $amount, $price = null, $params = array ()) {
-        return $this->createOrder ($product, $type, 'buy', $amount, $price, $params);
-    }
-
-    public function create_sell_order ($product, $type, $amount, $price = null, $params = array ()) {
-        return $this->createOrder ($product, $type, 'sell', $amount, $price, $params);
-    }
 
     public function create_limit_buy_order ($product, $amount, $price, $params = array ()) {
-        return $this->createLimitOrder ($product, 'buy',  $amount, $price, $params);
+        return $this->create_order ($product, 'limit', 'buy',  $amount, $price, $params);
     }
 
     public function create_limit_sell_order ($product, $amount, $price, $params = array ()) {
-        return $this->createLimitOrder ($product, 'sell', $amount, $price, $params);
+        return $this->create_order ($product, 'limit', 'sell', $amount, $price, $params);
     }
 
     public function create_market_buy_order ($product, $amount, $params = array ()) {
-        return $this->create_market_order ($product, 'buy', $amount, $params);
+        return $this->create_order ($product, 'market', 'buy', $amount, $params);
     }
 
     public function create_market_sell_order ($product, $amount, $params = array ()) {
-        return $this->create_market_order ($product, 'sell', $amount, $params);
-    }
-
-    public function create_limit_order ($product, $side, $amount, $price, $params = array ()) {
-        return $this->createOrder ($product, 'limit', $side, $amount, $price, $params);
-    }
-
-    public function create_market_order ($product, $side, $amount, $params = array ()) {
-        return $this->createOrder ($product, 'market', $side, $amount, null, $params);
-    }
-
-    public function createBuyOrder ($product, $type, $amount, $price = null, $params = array ()) {
-        return $this->create_buy_order ($product, $type, $amount, $price, $params);
-    }
-
-    public function createSellOrder ($product, $type, $amount, $price = null, $params = array ()) {
-        return $this->create_sell_order ($product, $type, $amount, $price, $params);
+        return $this->create_order ($product, 'market', 'sell', $amount, $params);
     }
 
     public function createLimitBuyOrder ($product, $amount, $price, $params = array ()) {
@@ -373,14 +334,6 @@ class Market {
 
     public function createMarketSellOrder ($product, $amount, $params = array ()) {
         return $this->create_market_sell_order ($product, $amount, $params);
-    }
-
-    public function createLimitOrder ($product, $side, $amount, $price, $params = array ()) {
-        return $this->create_limit_order ($product, $side, $amount, $price, $params);
-    }
-
-    public function createMarketOrder ($product, $side, $amount, $params = array ()) {
-        return $this->create_market_order ($product, $side, $amount, $params);
     }
 
     public function commonCurrencyCode ($currency) { 

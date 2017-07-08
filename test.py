@@ -158,22 +158,22 @@ def test_market (market):
     price = 0.0161
 
     # print ('market buy')
-    # marketBuy = market.buy (symbol, amount)
+    # marketBuy = market.create_market_buy_order (symbol, amount)
     # print (marketBuy)
     # time.sleep (delay)
 
     # print ('market sell')
-    # marketSell = market.sell (symbol, amount)
+    # marketSell = market.create_market_sell_order (symbol, amount)
     # print (marketSell)
     # time.sleep (delay)
 
     # print ('limit buy')
-    # limitBuy = market.buy (symbol, amount, price)
+    # limitBuy = market.create_limit_buy_order (symbol, amount, price)
     # print (limitBuy)
     # time.sleep (delay)
 
     # print ('limit sell')
-    # limitSell = market.sell (symbol, amount, price)
+    # limitSell = market.create_limit_sell_order (symbol, amount, price)
     # print (limitSell)
     # time.sleep (delay)
 

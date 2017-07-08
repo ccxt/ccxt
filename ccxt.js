@@ -277,7 +277,7 @@ var Market = function (config) {
     }
 
     this.product_id = 
-    this.productId  = function (product) { 
+    this.productId = function (product) { 
         return this.product (product).id || product
     }
 
@@ -302,58 +302,24 @@ var Market = function (config) {
         return string
     }
 
-    this.buy = function (product, amount, price = undefined, params = {}) {
-        return this.order (product, 'buy', amount, price, params)
-    }
-
-    this.sell = function (product, amount, price = undefined, params = {}) {
-        return this.order (product, 'sell', amount, price, params)
-    }
-
-    this.trade =
-    this.order = function (product, side, amount, price = undefined, params = {}) {
-        let type = (typeof price == 'undefined') ? 'market' : 'limit'
-        return this.createOrder (product, type, side, amount, price, params)
-    }
-
-    this.create_buy_order =
-    this.createBuyOrder = function (product, type, amount, price = undefined, params = {}) { 
-        return this.createOrder (product, type, 'buy',  amount, price, params)
-    }
-
-    this.create_sell_order =
-    this.createSellOrder = function (product, type, amount, price = undefined, params = {}) {
-        return this.createOrder (product, type, 'sell', amount, price, params)
-    }
-
     this.create_limit_buy_order =
     this.createLimitBuyOrder = function (product, amount, price, params = {}) {
-        return this.createLimitOrder  (product, 'buy',  amount, price, params)
+        return this.createLOrder  (product, 'limit', 'buy', amount, price, params)
     }
 
     this.create_limit_sell_order = 
     this.createLimitSellOrder = function (product, amount, price, params = {}) {
-        return this.createLimitOrder (product, 'sell', amount, price, params)
+        return this.createOrder (product, 'limit', 'sell', amount, price, params)
     }
 
     this.create_market_buy_order =
     this.createMarketBuyOrder = function (product, amount, params = {}) {
-        return this.createMarketOrder (product, 'buy',  amount, params)
+        return this.createOrder (product, 'market', 'buy', amount, params)
     }
 
     this.create_market_sell_order =
     this.createMarketSellOrder = function (product, amount, params = {}) {
-        return this.createMarketOrder (product, 'sell', amount, params)
-    }
-
-    this.create_limit_order = 
-    this.createLimitOrder = function (product, side, amount, price, params = {}) {
-        return this.createOrder (product, 'limit',  side, amount, price, params)
-    }
-
-    this.create_market_order =
-    this.createMarketOrder = function (product, side, amount, params = {}) {
-        return this.createOrder (product, 'market', side, amount, undefined, params)
+        return this.createOrder (product, 'market', 'sell', amount, params)
     }
 
     this.iso8601        = timestamp => new Date (timestamp).toISOString ()

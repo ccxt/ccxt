@@ -94,6 +94,7 @@ let testMarket = market => new Promise (async resolve => {
 
     let keys = Object.keys (products)
     console.log (market.id , keys.length, 'symbols', keys.join (', '))
+    
     // Object.values (market.products).map (x => console.log (market.id, x.id))
     // console.log (market.id, 'products', market.products)
     // console.log (market.id, Object.keys (market.products).length, 'symbols', Object.keys (market.products).join (', '))
@@ -164,73 +165,53 @@ let testMarket = market => new Promise (async resolve => {
             }
         }
     }
-    
-    // let ticker = await market.fetchTicker ('BTC/SLL')
-    // let ticker = await market.fetchTicker (symbol)
-    // console.log (market.id, symbol, 'ticker')
-    // console.log (ticker)
-        
+            
     // let trades = await market.fetchTrades (Object.keys (market.products)[0])
     // console.log (market.id, trades)
 
     if (!market.apiKey || (market.apiKey.length < 1))
         return true
 
-    // sleep (delay)
+    sleep (delay)
 
     let balance = await market.fetchBalance ()
     console.log (market.id, 'balance', balance)
 
-    sleep (delay)
+    // sleep (delay)
 
     // try {
-
-    //     let marketSellOrder = await market.sell (Object.keys (market.products)[0], 1)
+    //     let marketSellOrder = await market.createMarketSellOrder (Object.keys (market.products)[0], 1)
     //     console.log (market.id, 'ok', marketSellOrder)
-
     // } catch (e) {
-
     //     console.log (market.id, 'error', 'market sell', e)
     // }
 
     // sleep (delay)
 
     // try {
-
-    //     let marketBuyOrder = await market.buy (Object.keys (market.products)[0], 1)
+    //     let marketBuyOrder = await market.createMarketBuyOrder (Object.keys (market.products)[0], 1)
     //     console.log (market.id, 'ok', marketBuyOrder)
-
     // } catch (e) {
-
     //     console.log (market.id, 'error', 'market buy', e)
     // }
 
     // sleep (delay)
 
     // try {
-
-    //     let limitSellOrder = await market.sell (Object.keys (market.products)[0], 1, 3000)
+    //     let limitSellOrder = await market.createLimitSellOrder (Object.keys (market.products)[0], 1, 3000)
     //     console.log (market.id, 'ok', limitSellOrder)
-
     // } catch (e) {
-
     //     console.log (market.id, 'error', 'limit sell', e)
     // }
 
     // sleep (delay)
 
     // try {
-
-    //     let limitBuyOrder = await market.buy (Object.keys (market.products)[0], 1, 3000)
+    //     let limitBuyOrder = await market.createLimitBuyOrder (Object.keys (market.products)[0], 1, 3000)
     //     console.log (market.id, 'ok', limitBuyOrder)
-
     // } catch (e) {
-
     //     console.log (market.id, 'error', 'limit buy', e)
     // }
-
-    // let order = await market.sell ('BTC/USD', 1, 3000)
-    // console.log (market.id, order)
 
 })
 
