@@ -24,13 +24,21 @@ try {
         ids.push (idMatch[1])
     }
     let idString = "    '" + ids.join ("',\n    '") + "',"
-    // console.log (idString)
+
     let ccxtpyFilename = './ccxt/__init__.py'
     let ccxtpy = fs.readFileSync (ccxtpyFilename, 'utf8')
     let ccxtpyParts = ccxtpy.split (/markets \= \[[^\]]+\]/)
     let ccxtpyNewContent = ccxtpyParts[0] + "markets = [\n" + idString + "\n]" + ccxtpyParts[1]
     fs.truncateSync (ccxtpyFilename)
     fs.writeFileSync (ccxtpyFilename, ccxtpyNewContent)
+
+    idString = "        '" + ids.join ("',\n        '") + "',"
+    let ccxtphpFilename = './ccxt.php'
+    let ccxtphp = fs.readFileSync (ccxtphpFilename, 'utf8')
+    let ccxtphpParts = ccxtphp.split (/public static \$markets \= array \([^\)]+\)/)
+    let ccxtphpNewContent = ccxtphpParts[0] + "public static $markets = array (\n" + idString + "\n    )" + ccxtphpParts[1]
+    fs.truncateSync (ccxtphpFilename)
+    fs.writeFileSync (ccxtphpFilename, ccxtphpNewContent)
 
     markets = {}
     ids.forEach (id => {

@@ -8565,6 +8565,7 @@ let defineAllMarkets = function (markets) {
         result[id] = function (params) {
             return new Market (extend (markets[id], params))
         }
+    result.markets = Object.keys (markets)
     return result
 }
 
