@@ -6,7 +6,7 @@ const asTable   = require ('as-table')
 const util      = require ('util')
 
 let markets
-let verbose = false
+let verbose = true
 
 try {
 
@@ -50,7 +50,8 @@ try {
         huobi:        { 'verbose': verbose, apiKey: '', secret: '', },
         itbit:        { 'verbose': verbose, apiKey: '', secret: '', },
         jubi:         { 'verbose': verbose, apiKey: '', secret: '', },    
-        kraken:       { 'verbose': verbose, apiKey: '', secret: '', },    
+        kraken:       { 'verbose': verbose, apiKey: '', secret: '', },
+        livecoin:     { 'verbose': verbose, apiKey: '', secret: '', },
         luno:         { 'verbose': verbose, apiKey: '', secret: '', },
         mercado:      { 'verbose': verbose, apiKey: '', secret: '', },
         okcoinusd:    { 'verbose': verbose, apiKey: '', secret: '', },
@@ -162,7 +163,6 @@ let testMarket = market => new Promise (async resolve => {
             }
         }
     }
-
     
     // let ticker = await market.fetchTicker ('BTC/SLL')
     // let ticker = await market.fetchTicker (symbol)

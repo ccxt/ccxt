@@ -6147,6 +6147,177 @@ var kraken = {
 
 //-----------------------------------------------------------------------------
 
+var livecoin = {
+
+    'id': 'livecoin',
+    'name': 'LiveCoin',
+    'countries': [ 'US', 'UK', 'RU' ],
+    'rateLimit': 1000,
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
+        'api': 'https://api.livecoin.net',
+        'www': 'https://www.livecoin.net',
+        'doc': 'https://www.livecoin.net/api?lang=en',
+    },
+    'api': {
+        'public': {
+            'get': [
+                'exchange/all/order_book',
+                'exchange/last_trades',
+                'exchange/maxbid_minask',
+                'exchange/order_book',
+                'exchange/restrictions',
+                'exchange/ticker', // omit params to get all tickers at once
+                'info/coinInfo',
+            ],
+        },
+        'private': {
+            'get': [
+                'exchange/client_orders',
+                'exchange/order',
+                'exchange/trades',
+                'exchange/commission',
+                'exchange/commissionCommonInfo',
+                'payment/balances',
+                'payment/balance',
+                'payment/get/address',
+                'payment/history/size',
+                'payment/history/transactions',
+            ],
+            'post': [
+                'exchange/buylimit',
+                'exchange/buymarket',
+                'exchange/cancellimit',
+                'exchange/selllimit',
+                'exchange/sellmarket',
+                'payment/out/capitalist',
+                'payment/out/card',
+                'payment/out/coin',
+                'payment/out/okpay',
+                'payment/out/payeer',
+                'payment/out/perfectmoney',
+                'payment/voucher/amount',
+                'payment/voucher/make',
+                'payment/voucher/redeem',
+            ],
+        },
+    },
+
+    async fetchProducts () {
+        let products = await this.publicGetExchangeTicker ();
+        let result = [];
+        for (let p = 0; p < products.length; p++) {
+            let product = products[p];
+            let id = product['symbol'];
+            let symbol = id;
+            let [ base, quote ] = symbol.split ('/');
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            });
+        }
+        return result;
+    },
+
+    fetchBalance () {
+        return this.privateGetPaymentBalances ();
+    },
+
+    async fetchOrderBook (product) {
+        let orderbook = await this.publicGetExchangeOrderBook ({
+            'currencyPair': this.productId (product),
+            'groupByPrice': 'false',
+            'depth': 100,
+        });
+        let timestamp = orderbook['timestamp'];
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order[0]);
+                let amount = parseFloat (order[1]);
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
+    },
+
+    async fetchTicker (product) {
+        let ticker = await this.publicGetExchangeTicker ({
+            'currencyPair': this.productId (product),
+        });
+        let timestamp = this.milliseconds ();
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['best_bid']),
+            'ask': parseFloat (ticker['best_ask']),
+            'vwap': parseFloat (ticker['vwap']),
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['volume']),
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        return this.publicGetExchangeLastTrades ({
+            'currencyPair': this.productId (product)
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let method = 'privatePost' + this.capitalize (side) + type;
+        let order = {
+            'currencyPair': this.productId (product),
+            'quantity': amount,
+        };
+        if (type == 'limit')
+            order['price'] = price;
+        return this[method] (this.extend (order, params));
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + path;
+        if (type == 'public') {
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
+        } else {
+            let query = this.keysort (params);
+            body = this.urlencode (query);
+            let signature = this.hmac (body, this.secret, 'sha256');
+            headers = {
+                'Api-Key': this.apiKey,
+                'Sign': signature.toUpperCase (),
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': body.length,
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var luno = {
 
     'id': 'luno',
@@ -8382,6 +8553,7 @@ var markets = {
     'itbit':        itbit,
     'jubi':         jubi,
     'kraken':       kraken,
+    'livecoin':     livecoin,
     'luno':         luno,
     'mercado':      mercado,
     'okcoincny':    okcoincny,

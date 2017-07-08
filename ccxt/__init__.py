@@ -5953,6 +5953,170 @@ class kraken (Market):
 
 #------------------------------------------------------------------------------
 
+class livecoin (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'livecoin',
+            'name': 'LiveCoin',
+            'countries': [ 'US', 'UK', 'RU' ],
+            'rateLimit': 1000,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
+                'api': 'https://api.livecoin.net',
+                'www': 'https://www.livecoin.net',
+                'doc': 'https://www.livecoin.net/api?lang=en',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'exchange/all/order_book',
+                        'exchange/last_trades',
+                        'exchange/maxbid_minask',
+                        'exchange/order_book',
+                        'exchange/restrictions',
+                        'exchange/ticker', # omit params to get all tickers at once
+                        'info/coinInfo',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'exchange/client_orders',
+                        'exchange/order',
+                        'exchange/trades',
+                        'exchange/commission',
+                        'exchange/commissionCommonInfo',
+                        'payment/balances',
+                        'payment/balance',
+                        'payment/get/address',
+                        'payment/history/size',
+                        'payment/history/transactions',
+                    ],
+                    'post': [
+                        'exchange/buylimit',
+                        'exchange/buymarket',
+                        'exchange/cancellimit',
+                        'exchange/selllimit',
+                        'exchange/sellmarket',
+                        'payment/out/capitalist',
+                        'payment/out/card',
+                        'payment/out/coin',
+                        'payment/out/okpay',
+                        'payment/out/payeer',
+                        'payment/out/perfectmoney',
+                        'payment/voucher/amount',
+                        'payment/voucher/make',
+                        'payment/voucher/redeem',
+                    ],
+                },
+            },
+        }
+        params.update (config)
+        super (livecoin, self).__init__ (params)
+
+    def fetch_products (self):
+        products = self.publicGetExchangeTicker ()
+        result = []
+        for p in range (0, len (products)):
+            product = products[p]
+            id = product['symbol']
+            symbol = id
+            base, quote = symbol.split ('/')
+            result.append ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            })
+        return result
+
+    def fetch_balance (self):
+        return self.privateGetPaymentBalances ()
+
+    def fetch_order_book (self, product):
+        orderbook = self.publicGetExchangeOrderBook ({
+            'currencyPair': self.product_id (product),
+            'groupByPrice': 'false',
+            'depth': 100,
+        })
+        timestamp = orderbook['timestamp']
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order[0])
+                amount = float (order[1])
+                result[side].append ([ price, amount ])
+        return result
+
+    def fetch_ticker (self, product):
+        ticker = self.publicGetExchangeTicker ({
+            'currencyPair': self.product_id (product),
+        })
+        timestamp = self.milliseconds ()
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['best_bid']),
+            'ask': float (ticker['best_ask']),
+            'vwap': float (ticker['vwap']),
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['volume']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetExchangeLastTrades ({
+            'currencyPair': self.product_id (product)
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        method = 'privatePost' + self.capitalize (side) + type
+        order = {
+            'currencyPair': self.product_id (product),
+            'quantity': amount,
+        }
+        if type == 'limit':
+            order['price'] = price
+        return getattr (self, method) (self.extend (order, params))
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'] + '/' + path
+        if type == 'public':
+            if params:
+                url += '?' + _urlencode.urlencode (params)
+        else:
+            query = self.keysort (params)
+            body = _urlencode.urlencode (query)
+            signature = self.hmac (body, self.secret, hashlib.sha256)
+            headers = {
+                'Api-Key': self.apiKey,
+                'Sign': signature.upper (),
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': len (body),
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class luno (Market):
 
     def __init__ (self, config = {}):

@@ -6323,6 +6323,181 @@ class kraken extends Market {
 
 //-----------------------------------------------------------------------------
 
+class livecoin extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'livecoin',
+            'name' => 'LiveCoin',
+            'countries' => array ( 'US', 'UK', 'RU' ),
+            'rateLimit' => 1000,
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
+                'api' => 'https://api.livecoin.net',
+                'www' => 'https://www.livecoin.net',
+                'doc' => 'https://www.livecoin.net/api?lang=en',
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'exchange/all/order_book',
+                        'exchange/last_trades',
+                        'exchange/maxbid_minask',
+                        'exchange/order_book',
+                        'exchange/restrictions',
+                        'exchange/ticker', // omit params to get all tickers at once
+                        'info/coinInfo',
+                    ),
+                ),
+                'private' => array (
+                    'get' => array (
+                        'exchange/client_orders',
+                        'exchange/order',
+                        'exchange/trades',
+                        'exchange/commission',
+                        'exchange/commissionCommonInfo',
+                        'payment/balances',
+                        'payment/balance',
+                        'payment/get/address',
+                        'payment/history/size',
+                        'payment/history/transactions',
+                    ),
+                    'post' => array (
+                        'exchange/buylimit',
+                        'exchange/buymarket',
+                        'exchange/cancellimit',
+                        'exchange/selllimit',
+                        'exchange/sellmarket',
+                        'payment/out/capitalist',
+                        'payment/out/card',
+                        'payment/out/coin',
+                        'payment/out/okpay',
+                        'payment/out/payeer',
+                        'payment/out/perfectmoney',
+                        'payment/voucher/amount',
+                        'payment/voucher/make',
+                        'payment/voucher/redeem',
+                    ),
+                ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_products () {
+        $products = $this->publicGetExchangeTicker ();
+        $result = array ();
+        for ($p = 0; $p < count ($products); $p++) {
+            $product = $products[$p];
+            $id = $product['symbol'];
+            $symbol = $id;
+            list ($base, $quote) = explode ('/', $symbol);
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_balance () {
+        return $this->privateGetPaymentBalances ();
+    }
+
+    public function fetch_order_book ($product) {
+        $orderbook = $this->publicGetExchangeOrderBook (array (
+            'currencyPair' => $this->product_id ($product),
+            'groupByPrice' => 'false',
+            'depth' => 100,
+        ));
+        $timestamp = $orderbook['timestamp'];
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $ticker = $this->publicGetExchangeTicker (array (
+            'currencyPair' => $this->product_id ($product),
+        ));
+        $timestamp = $this->milliseconds ();
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['best_bid']),
+            'ask' => floatval ($ticker['best_ask']),
+            'vwap' => floatval ($ticker['vwap']),
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['volume']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetExchangeLastTrades (array (
+            'currencyPair' => $this->product_id ($product)
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        $method = 'privatePost' . $this->capitalize ($side) . $type;
+        $order = array (
+            'currencyPair' => $this->product_id ($product),
+            'quantity' => $amount,
+        );
+        if ($type == 'limit')
+            $order['price'] = $price;
+        return $this->$method (array_merge ($order, $params));
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $path;
+        if ($type == 'public') {
+            if ($params)
+                $url .= '?' . $this->urlencode ($params);
+        } else {
+            $query = $this->keysort ($params);
+            $body = $this->urlencode ($query);
+            $signature = $this->hmac ($body, $this->secret, 'sha256');
+            $headers = array (
+                'Api-Key' => $this->apiKey,
+                'Sign' => strtoupper ($signature),
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body),
+            );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 class luno extends Market {
 
     public function __construct ($options = array ()) {

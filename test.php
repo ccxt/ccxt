@@ -50,6 +50,7 @@ else
         'itbit'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'jubi'         => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'kraken'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
+        'livecoin'     => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'luno'         => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'mercado'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'okcoinusd'    => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
