@@ -172,7 +172,7 @@ Object.keys (countries).forEach (code => {
 
 var sortBy = function (array, key, descending = false) {
     descending = descending ? -1 : 1
-    return array.sort ((a, b) => ((a[key] < b[key]) ? -descending : ((a[key] > b[key]) ? descending : 0)))
+    return array.sort ((a, b) => ((a[key].toLowerCase () < b[key].toLowerCase ()) ? -descending : ((a[key].toLowerCase () > b[key].toLowerCase ()) ? descending : 0)))
 }
 
 marketsByCountries = sortBy (marketsByCountries, 'country / region')
