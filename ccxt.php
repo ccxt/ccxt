@@ -28,6 +28,7 @@ class Market {
         'bxinth',
         'ccex',
         'cex',
+        'chilebit',
         'coincheck',
         'coinmate',
         'coinsecure',
@@ -4358,6 +4359,32 @@ class cex extends Market {
 
 //-----------------------------------------------------------------------------
 
+class chilebit extends blinktrade {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'chilebit',
+            'name' => 'ChileBit',
+            'countries' => 'CL',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg',
+                'api' => array (
+                    'public' => 'https://api.blinktrade.com/api',
+                    'private' => 'https://api.blinktrade.com/tapi',
+                ),
+                'www' => 'https://chilebit.net',
+                'doc' => 'https://blinktrade.com/docs',
+            ),
+            'comment' => 'Blinktrade API',
+            'products' => array (
+                'BTC/CLP' => array ( 'id' => 'BTCCLP', 'symbol' => 'BTC/CLP', 'base' => 'BTC', 'quote' => 'CLP', 'brokerId' => 9, 'broker' => 'ChileBit', ),
+            ),
+        ), $options));
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 class coincheck extends Market {
 
     public function __construct ($options = array ()) {
@@ -5312,7 +5339,7 @@ class foxbit extends blinktrade {
             'name' => 'FoxBit',
             'countries' => 'BR',
             'urls' => array (
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27991389-ad80ce38-647d-11e7-8fb2-1663d16e8065.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27991413-11b40d42-647f-11e7-91ee-78ced874dd09.jpg',
                 'api' => array (
                     'public' => 'https://api.blinktrade.com/api',
                     'private' => 'https://api.blinktrade.com/tapi',

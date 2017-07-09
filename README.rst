@@ -18,7 +18,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 54 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 55 cryptocurrency exchange markets and trading APIs:
 
 +---------------------------+-----+-------------+---+----------------------+------------+
 |                           | id  | name        | v | doc                  | countries  |
@@ -134,6 +134,11 @@ The ccxt library currently supports the following 54 cryptocurrency exchange mar
 | |cex|                     | cex | `CEX.IO <ht | \ | `API <https://cex.io | UK, EU,    |
 |                           |     | tps://cex.i | * | /cex-api>`__         | Cyprus,    |
 |                           |     | o>`__       |   |                      | Russia     |
++---------------------------+-----+-------------+---+----------------------+------------+
+| |chilebit|                | chi | `ChileBit < | 1 | `API <https://blinkt | Chile      |
+|                           | leb | https://chi |   | rade.com/docs>`__    |            |
+|                           | it  | lebit.net>` |   |                      |            |
+|                           |     | __          |   |                      |            |
 +---------------------------+-----+-------------+---+----------------------+------------+
 | |coincheck|               | coi | `coincheck  | \ | `API <https://coinch | Japan,     |
 |                           | nch | <https://co | * | eck.com/documents/ex | Indonesia  |
