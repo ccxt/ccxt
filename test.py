@@ -69,6 +69,8 @@ def test_market (market):
             time.sleep (delay)
 
             ticker = market.fetch_ticker (symbol)
+            print (ticker)
+            print ('--------------------------------------------------------')
             print (market.id, symbol, 'ticker',
                 ticker['datetime'],
                 'high: '    + str (ticker['high']),
