@@ -18,304 +18,310 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 61 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 62 cryptocurrency exchange markets and trading APIs:
 
-+---------------------------+-----+-------------+---+----------------------+------------+
-|                           | id  | name        | v | doc                  | countries  |
-|                           |     |             | e |                      |            |
-|                           |     |             | r |                      |            |
-+===========================+=====+=============+===+======================+============+
-| |\_1broker|               | \_1 | `1Broker <h | 2 | `API <https://1broke | US         |
-|                           | bro | ttps://1bro |   | r.com/?c=en/content/ |            |
-|                           | ker | ker.com>`__ |   | api-documentation>`_ |            |
-|                           |     |             |   | _                    |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |\_1btcxe|                | \_1 | `1BTCXE <ht | \ | `API <https://1btcxe | Panama     |
-|                           | btc | tps://1btcx | * | .com/api-docs.php>`_ |            |
-|                           | xe  | e.com>`__   |   | _                    |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |anxpro|                  | anx | `ANXPro <ht | 2 | `API <https://anxpro | Japan,     |
-|                           | pro | tps://anxpr |   | .com/pages/api>`__   | Singapore, |
-|                           |     | o.com>`__   |   |                      | Hong Kong, |
-|                           |     |             |   |                      | New        |
-|                           |     |             |   |                      | Zealand    |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |bit2c|                   | bit | `Bit2C <htt | \ | `API <https://www.bi | Israel     |
-|                           | 2c  | ps://www.bi | * | t2c.co.il/home/api>` |            |
-|                           |     | t2c.co.il>` |   | __                   |            |
-|                           |     | __          |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |bitbay|                  | bit | `BitBay <ht | \ | `API <https://bitbay | Poland, EU |
-|                           | bay | tps://bitba | * | .net/public-api>`__  |            |
-|                           |     | y.net>`__   |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |bitbays|                 | bit | `BitBays <h | 1 | `API <https://bitbay | China, UK, |
-|                           | bay | ttps://bitb |   | s.com/help/api/>`__  | Hong Kong, |
-|                           | s   | ays.com>`__ |   |                      | Australia, |
-|                           |     |             |   |                      | Canada     |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |bitcoincoid|             | bit | `Bitcoin.co | \ | `API <https://vip.bi | Indonesia  |
-|                           | coi | .id <https: | * | tcoin.co.id/trade_ap |            |
-|                           | nco | //www.bitco |   | i>`__                |            |
-|                           | id  | in.co.id>`_ |   |                      |            |
-|                           |     | _           |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |bitfinex|                | bit | `Bitfinex < | 1 | `API <https://bitfin | US         |
-|                           | fin | https://www |   | ex.readme.io/v1/docs |            |
-|                           | ex  | .bitfinex.c |   | >`__                 |            |
-|                           |     | om>`__      |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |bitlish|                 | bit | `bitlish <h | 1 | `API <https://bitlis | UK, EU,    |
-|                           | lis | ttps://bitl |   | h.com/api>`__        | Russia     |
-|                           | h   | ish.com>`__ |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |bitmarket|               | bit | `BitMarket  | \ | `API <https://www.bi | Poland, EU |
-|                           | mar | <https://ww | * | tmarket.net/docs.php |            |
-|                           | ket | w.bitmarket |   | ?file=api_public.htm |            |
-|                           |     | .pl>`__     |   | l>`__                |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |bitmex|                  | bit | `BitMEX <ht | 1 | `API <https://www.bi | Seychelles |
-|                           | mex | tps://www.b |   | tmex.com/app/apiOver |            |
-|                           |     | itmex.com>` |   | view>`__             |            |
-|                           |     | __          |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |bitso|                   | bit | `Bitso <htt | 3 | `API <https://bitso. | Mexico     |
-|                           | so  | ps://bitso. |   | com/api_info>`__     |            |
-|                           |     | com>`__     |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |bitstamp|                | bit | `Bitstamp < | 2 | `API <https://www.bi | UK         |
-|                           | sta | https://www |   | tstamp.net/api>`__   |            |
-|                           | mp  | .bitstamp.n |   |                      |            |
-|                           |     | et>`__      |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |bittrex|                 | bit | `Bittrex <h | 1 | `API <https://bittre | US         |
-|                           | tre | ttps://bitt | . | x.com/Home/Api>`__   |            |
-|                           | x   | rex.com>`__ | 1 |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |blinktrade|              | bli | `BlinkTrade | 1 | `API <https://blinkt | US,        |
-|                           | nkt |  <https://b |   | rade.com/docs>`__    | Venezuela, |
-|                           | rad | linktrade.c |   |                      | Vietnam,   |
-|                           | e   | om>`__      |   |                      | Brazil,    |
-|                           |     |             |   |                      | Pakistan,  |
-|                           |     |             |   |                      | Chile      |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |btcchina|                | btc | `BTCChina < | 1 | `API <https://www.bt | China      |
-|                           | chi | https://www |   | cchina.com/apidocs>` |            |
-|                           | na  | .btcchina.c |   | __                   |            |
-|                           |     | om>`__      |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |btce|                    | btc | `BTC-e <htt | 3 | `API <https://btc-e. | Bulgaria,  |
-|                           | e   | ps://btc-e. |   | com/api/3/docs>`__   | Russia     |
-|                           |     | com>`__     |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |btcexchange|             | btc | `BTCExchang | \ | `API <https://github | Philippine |
-|                           | exc | e <https:// | * | .com/BTCTrader/broke | s          |
-|                           | han | www.btcexch |   | r-api-docs>`__       |            |
-|                           | ge  | ange.ph>`__ |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |btctrader|               | btc | `BTCTrader  | \ | `API <https://github | Turkey,    |
-|                           | tra | <https://ww | * | .com/BTCTrader/broke | Greece,    |
-|                           | der | w.btctrader |   | r-api-docs>`__       | Philippine |
-|                           |     | .com>`__    |   |                      | s          |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |btctradeua|              | btc | `BTC Trade  | \ | `API <https://docs.g | Ukraine    |
-|                           | tra | UA <https:/ | * | oogle.com/document/d |            |
-|                           | deu | /btc-trade. |   | /1ocYA0yMy_RXd561sfG |            |
-|                           | a   | com.ua>`__  |   | 3qEPZ80kyll36HUxvCRe |            |
-|                           |     |             |   | 5GbhE/edit>`__       |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |btcturk|                 | btc | `BTCTurk <h | \ | `API <https://github | Turkey     |
-|                           | tur | ttps://www. | * | .com/BTCTrader/broke |            |
-|                           | k   | btcturk.com |   | r-api-docs>`__       |            |
-|                           |     | >`__        |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |btcx|                    | btc | `BTCX <http | 1 | `API <https://btc-x. | Iceland,   |
-|                           | x   | s://btc-x.i |   | is/custom/api-docume | US, EU     |
-|                           |     | s>`__       |   | nt.html>`__          |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |bter|                    | bte | `Bter <http | 2 | `API <https://bter.c | British    |
-|                           | r   | s://bter.co |   | om/api2>`__          | Virgin     |
-|                           |     | m>`__       |   |                      | Islands,   |
-|                           |     |             |   |                      | China      |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |bxinth|                  | bxi | `BX.in.th < | \ | `API <https://bx.in. | Thailand   |
-|                           | nth | https://bx. | * | th/info/api>`__      |            |
-|                           |     | in.th>`__   |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |ccex|                    | cce | `C-CEX <htt | \ | `API <https://c-cex. | Germany,   |
-|                           | x   | ps://c-cex. | * | com/?id=api>`__      | EU         |
-|                           |     | com>`__     |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |cex|                     | cex | `CEX.IO <ht | \ | `API <https://cex.io | UK, EU,    |
-|                           |     | tps://cex.i | * | /cex-api>`__         | Cyprus,    |
-|                           |     | o>`__       |   |                      | Russia     |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |chilebit|                | chi | `ChileBit < | 1 | `API <https://blinkt | Chile      |
-|                           | leb | https://chi |   | rade.com/docs>`__    |            |
-|                           | it  | lebit.net>` |   |                      |            |
-|                           |     | __          |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |coincheck|               | coi | `coincheck  | \ | `API <https://coinch | Japan,     |
-|                           | nch | <https://co | * | eck.com/documents/ex | Indonesia  |
-|                           | eck | incheck.com |   | change/api>`__       |            |
-|                           |     | >`__        |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |coinmate|                | coi | `CoinMate < | \ | `API <https://coinma | UK, Czech  |
-|                           | nma | https://coi | * | te.io/developers>`__ | Republic   |
-|                           | te  | nmate.io>`_ |   |                      |            |
-|                           |     | _           |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |coinsecure|              | coi | `Coinsecure | 1 | `API <https://api.co | India      |
-|                           | nse |  <https://c |   | insecure.in>`__      |            |
-|                           | cur | oinsecure.i |   |                      |            |
-|                           | e   | n>`__       |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |dsx|                     | dsx | `DSX <https | \ | `API <https://api.ds | UK         |
-|                           |     | ://dsx.uk>` | * | x.uk>`__             |            |
-|                           |     | __          |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |exmo|                    | exm | `EXMO <http | 1 | `API <https://exmo.m | Spain,     |
-|                           | o   | s://exmo.me |   | e/ru/api_doc>`__     | Russia     |
-|                           |     | >`__        |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |foxbit|                  | fox | `FoxBit <ht | 1 | `API <https://blinkt | Brazil     |
-|                           | bit | tps://foxbi |   | rade.com/docs>`__    |            |
-|                           |     | t.exchange> |   |                      |            |
-|                           |     | `__         |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |fybse|                   | fyb | `FYB-SE <ht | \ | `API <http://docs.fy | Sweden     |
-|                           | se  | tps://www.f | * | b.apiary.io>`__      |            |
-|                           |     | ybse.se>`__ |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |fybsg|                   | fyb | `FYB-SG <ht | \ | `API <http://docs.fy | Singapore  |
-|                           | sg  | tps://www.f | * | b.apiary.io>`__      |            |
-|                           |     | ybsg.com>`_ |   |                      |            |
-|                           |     | _           |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |gdax|                    | gda | `GDAX <http | \ | `API <https://docs.g | US         |
-|                           | x   | s://www.gda | * | dax.com>`__          |            |
-|                           |     | x.com>`__   |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |gemini|                  | gem | `Gemini <ht | 1 | `API <https://docs.g | US         |
-|                           | ini | tps://gemin |   | emini.com/rest-api>` |            |
-|                           |     | i.com>`__   |   | __                   |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |hitbtc|                  | hit | `HitBTC <ht | 1 | `API <https://hitbtc | Hong Kong  |
-|                           | btc | tps://hitbt |   | .com/api>`__         |            |
-|                           |     | c.com>`__   |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |huobi|                   | huo | `Huobi <htt | 3 | `API <https://github | China      |
-|                           | bi  | ps://www.hu |   | .com/huobiapi/API_Do |            |
-|                           |     | obi.com>`__ |   | cs_en/wiki>`__       |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |itbit|                   | itb | `itBit <htt | 1 | `API <https://www.it | US         |
-|                           | it  | ps://www.it |   | bit.com/api>`__      |            |
-|                           |     | bit.com>`__ |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |jubi|                    | jub | `jubi.com < | 1 | `API <https://www.ju | China      |
-|                           | i   | https://www |   | bi.com/help/api.html |            |
-|                           |     | .jubi.com>` |   | >`__                 |            |
-|                           |     | __          |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |kraken|                  | kra | `Kraken <ht | 0 | `API <https://www.kr | US         |
-|                           | ken | tps://www.k |   | aken.com/en-us/help/ |            |
-|                           |     | raken.com>` |   | api>`__              |            |
-|                           |     | __          |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |livecoin|                | liv | `LiveCoin < | \ | `API <https://www.li | US, UK,    |
-|                           | eco | https://www | * | vecoin.net/api?lang= | Russia     |
-|                           | in  | .livecoin.n |   | en>`__               |            |
-|                           |     | et>`__      |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |liqui|                   | liq | `Liqui <htt | 3 | `API <https://liqui. | Ukraine    |
-|                           | ui  | ps://liqui. |   | io/api>`__           |            |
-|                           |     | io>`__      |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |luno|                    | lun | `luno <http | 1 | `API <https://npmjs. | UK,        |
-|                           | o   | s://www.lun |   | org/package/bitx>`__ | Singapore, |
-|                           |     | o.com>`__   |   |                      | South      |
-|                           |     |             |   |                      | Africa     |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |mercado|                 | mer | `Mercado    | 3 | `API <https://www.me | Brazil     |
-|                           | cad | Bitcoin <ht |   | rcadobitcoin.com.br/ |            |
-|                           | o   | tps://www.m |   | api-doc>`__          |            |
-|                           |     | ercadobitco |   |                      |            |
-|                           |     | in.com.br>` |   |                      |            |
-|                           |     | __          |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |okcoincny|               | okc | `OKCoin     | 1 | `API <https://www.ok | China      |
-|                           | oin | CNY <https: |   | coin.cn/rest_getStar |            |
-|                           | cny | //www.okcoi |   | ted.html>`__         |            |
-|                           |     | n.cn>`__    |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |okcoinusd|               | okc | `OKCoin     | 1 | `API <https://www.ok | China, US  |
-|                           | oin | USD <https: |   | coin.com/rest_getSta |            |
-|                           | usd | //www.okcoi |   | rted.html>`__        |            |
-|                           |     | n.com>`__   |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |paymium|                 | pay | `Paymium <h | 1 | `API <https://www.pa | France, EU |
-|                           | miu | ttps://www. |   | ymium.com/page/devel |            |
-|                           | m   | paymium.com |   | opers>`__            |            |
-|                           |     | >`__        |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |poloniex|                | pol | `Poloniex < | \ | `API <https://poloni | US         |
-|                           | oni | https://pol | * | ex.com/support/api/> |            |
-|                           | ex  | oniex.com>` |   | `__                  |            |
-|                           |     | __          |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |quadrigacx|              | qua | `QuadrigaCX | 2 | `API <https://www.qu | Canada     |
-|                           | dri |  <https://w |   | adrigacx.com/api_inf |            |
-|                           | gac | ww.quadriga |   | o>`__                |            |
-|                           | x   | cx.com>`__  |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |quoine|                  | quo | `QUOINE <ht | 2 | `API <https://develo | Japan,     |
-|                           | ine | tps://www.q |   | pers.quoine.com>`__  | Singapore, |
-|                           |     | uoine.com>` |   |                      | Vietnam    |
-|                           |     | __          |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |southxchange|            | sou | `SouthXchan | \ | `API <https://www.so | Argentina  |
-|                           | thx | ge <https:/ | * | uthxchange.com/Home/ |            |
-|                           | cha | /www.southx |   | Api>`__              |            |
-|                           | nge | change.com> |   |                      |            |
-|                           |     | `__         |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |surbitcoin|              | sur | `SurBitcoin | 1 | `API <https://blinkt | Venezuela  |
-|                           | bit |  <https://s |   | rade.com/docs>`__    |            |
-|                           | coi | urbitcoin.c |   |                      |            |
-|                           | n   | om>`__      |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |therock|                 | the | `TheRockTra | 1 | `API <https://api.th | Malta      |
-|                           | roc | ding <https |   | erocktrading.com/doc |            |
-|                           | k   | ://therockt |   | />`__                |            |
-|                           |     | rading.com> |   |                      |            |
-|                           |     | `__         |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |urdubit|                 | urd | `UrduBit <h | 1 | `API <https://blinkt | Pakistan   |
-|                           | ubi | ttps://urdu |   | rade.com/docs>`__    |            |
-|                           | t   | bit.com>`__ |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |vaultoro|                | vau | `Vaultoro < | 1 | `API <https://api.va | Switzerlan |
-|                           | lto | https://www |   | ultoro.com>`__       | d          |
-|                           | ro  | .vaultoro.c |   |                      |            |
-|                           |     | om>`__      |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |vbtc|                    | vbt | `VBTC <http | 1 | `API <https://blinkt | Vietnam    |
-|                           | c   | s://vbtc.ex |   | rade.com/docs>`__    |            |
-|                           |     | change>`__  |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |virwox|                  | vir | `VirWoX <ht | \ | `API <https://www.vi | Austria    |
-|                           | wox | tps://www.v | * | rwox.com/developers. |            |
-|                           |     | irwox.com>` |   | php>`__              |            |
-|                           |     | __          |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |yobit|                   | yob | `YoBit <htt | 3 | `API <https://www.yo | Russia     |
-|                           | it  | ps://www.yo |   | bit.net/en/api/>`__  |            |
-|                           |     | bit.net>`__ |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
-| |zaif|                    | zai | `Zaif <http | 1 | `API <https://corp.z | Japan      |
-|                           | f   | s://zaif.jp |   | aif.jp/api-docs>`__  |            |
-|                           |     | >`__        |   |                      |            |
-+---------------------------+-----+-------------+---+----------------------+------------+
++---------------------------+-----+-------------+---+---------------------+------------+
+|                           | id  | name        | v | doc                 | countries  |
+|                           |     |             | e |                     |            |
+|                           |     |             | r |                     |            |
++===========================+=====+=============+===+=====================+============+
+| |\_1broker|               | \_1 | `1Broker <h | 2 | `API <https://1brok | US         |
+|                           | bro | ttps://1bro |   | er.com/?c=en/conten |            |
+|                           | ker | ker.com>`__ |   | t/api-documentation |            |
+|                           |     |             |   | >`__                |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |\_1btcxe|                | \_1 | `1BTCXE <ht | \ | `API <https://1btcx | Panama     |
+|                           | btc | tps://1btcx | * | e.com/api-docs.php> |            |
+|                           | xe  | e.com>`__   |   | `__                 |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |anxpro|                  | anx | `ANXPro <ht | 2 | `API <https://anxpr | Japan,     |
+|                           | pro | tps://anxpr |   | o.com/pages/api>`__ | Singapore, |
+|                           |     | o.com>`__   |   |                     | Hong Kong, |
+|                           |     |             |   |                     | New        |
+|                           |     |             |   |                     | Zealand    |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |bit2c|                   | bit | `Bit2C <htt | \ | `API <https://www.b | Israel     |
+|                           | 2c  | ps://www.bi | * | it2c.co.il/home/api |            |
+|                           |     | t2c.co.il>` |   | >`__                |            |
+|                           |     | __          |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |bitbay|                  | bit | `BitBay <ht | \ | `API <https://bitba | Poland, EU |
+|                           | bay | tps://bitba | * | y.net/public-api>`_ |            |
+|                           |     | y.net>`__   |   | _                   |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |bitbays|                 | bit | `BitBays <h | 1 | `API <https://bitba | China, UK, |
+|                           | bay | ttps://bitb |   | ys.com/help/api/>`_ | Hong Kong, |
+|                           | s   | ays.com>`__ |   | _                   | Australia, |
+|                           |     |             |   |                     | Canada     |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |bitcoincoid|             | bit | `Bitcoin.co | \ | `API <https://vip.b | Indonesia  |
+|                           | coi | .id <https: | * | itcoin.co.id/trade_ |            |
+|                           | nco | //www.bitco |   | api>`__             |            |
+|                           | id  | in.co.id>`_ |   |                     |            |
+|                           |     | _           |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |bitfinex|                | bit | `Bitfinex < | 1 | `API <https://bitfi | US         |
+|                           | fin | https://www |   | nex.readme.io/v1/do |            |
+|                           | ex  | .bitfinex.c |   | cs>`__              |            |
+|                           |     | om>`__      |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |bitlish|                 | bit | `bitlish <h | 1 | `API <https://bitli | UK, EU,    |
+|                           | lis | ttps://bitl |   | sh.com/api>`__      | Russia     |
+|                           | h   | ish.com>`__ |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |bitmarket|               | bit | `BitMarket  | \ | `API <https://www.b | Poland, EU |
+|                           | mar | <https://ww | * | itmarket.net/docs.p |            |
+|                           | ket | w.bitmarket |   | hp?file=api_public. |            |
+|                           |     | .pl>`__     |   | html>`__            |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |bitmex|                  | bit | `BitMEX <ht | 1 | `API <https://www.b | Seychelles |
+|                           | mex | tps://www.b |   | itmex.com/app/apiOv |            |
+|                           |     | itmex.com>` |   | erview>`__          |            |
+|                           |     | __          |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |bitso|                   | bit | `Bitso <htt | 3 | `API <https://bitso | Mexico     |
+|                           | so  | ps://bitso. |   | .com/api_info>`__   |            |
+|                           |     | com>`__     |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |bitstamp|                | bit | `Bitstamp < | 2 | `API <https://www.b | UK         |
+|                           | sta | https://www |   | itstamp.net/api>`__ |            |
+|                           | mp  | .bitstamp.n |   |                     |            |
+|                           |     | et>`__      |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |bittrex|                 | bit | `Bittrex <h | 1 | `API <https://bittr | US         |
+|                           | tre | ttps://bitt | . | ex.com/Home/Api>`__ |            |
+|                           | x   | rex.com>`__ | 1 |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |blinktrade|              | bli | `BlinkTrade | 1 | `API <https://blink | US,        |
+|                           | nkt |  <https://b |   | trade.com/docs>`__  | Venezuela, |
+|                           | rad | linktrade.c |   |                     | Vietnam,   |
+|                           | e   | om>`__      |   |                     | Brazil,    |
+|                           |     |             |   |                     | Pakistan,  |
+|                           |     |             |   |                     | Chile      |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |btcchina|                | btc | `BTCChina < | 1 | `API <https://www.b | China      |
+|                           | chi | https://www |   | tcchina.com/apidocs |            |
+|                           | na  | .btcchina.c |   | >`__                |            |
+|                           |     | om>`__      |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |btce|                    | btc | `BTC-e <htt | 3 | `API <https://btc-e | Bulgaria,  |
+|                           | e   | ps://btc-e. |   | .com/api/3/docs>`__ | Russia     |
+|                           |     | com>`__     |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |btcexchange|             | btc | `BTCExchang | \ | `API <https://githu | Philippine |
+|                           | exc | e <https:// | * | b.com/BTCTrader/bro | s          |
+|                           | han | www.btcexch |   | ker-api-docs>`__    |            |
+|                           | ge  | ange.ph>`__ |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |btctrader|               | btc | `BTCTrader  | \ | `API <https://githu | Turkey,    |
+|                           | tra | <https://ww | * | b.com/BTCTrader/bro | Greece,    |
+|                           | der | w.btctrader |   | ker-api-docs>`__    | Philippine |
+|                           |     | .com>`__    |   |                     | s          |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |btctradeua|              | btc | `BTC Trade  | \ | `API <https://docs. | Ukraine    |
+|                           | tra | UA <https:/ | * | google.com/document |            |
+|                           | deu | /btc-trade. |   | /d/1ocYA0yMy_RXd561 |            |
+|                           | a   | com.ua>`__  |   | sfG3qEPZ80kyll36HUx |            |
+|                           |     |             |   | vCRe5GbhE/edit>`__  |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |btcturk|                 | btc | `BTCTurk <h | \ | `API <https://githu | Turkey     |
+|                           | tur | ttps://www. | * | b.com/BTCTrader/bro |            |
+|                           | k   | btcturk.com |   | ker-api-docs>`__    |            |
+|                           |     | >`__        |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |btcx|                    | btc | `BTCX <http | 1 | `API <https://btc-x | Iceland,   |
+|                           | x   | s://btc-x.i |   | .is/custom/api-docu | US, EU     |
+|                           |     | s>`__       |   | ment.html>`__       |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |bter|                    | bte | `Bter <http | 2 | `API <https://bter. | British    |
+|                           | r   | s://bter.co |   | com/api2>`__        | Virgin     |
+|                           |     | m>`__       |   |                     | Islands,   |
+|                           |     |             |   |                     | China      |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |bxinth|                  | bxi | `BX.in.th < | \ | `API <https://bx.in | Thailand   |
+|                           | nth | https://bx. | * | .th/info/api>`__    |            |
+|                           |     | in.th>`__   |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |ccex|                    | cce | `C-CEX <htt | \ | `API <https://c-cex | Germany,   |
+|                           | x   | ps://c-cex. | * | .com/?id=api>`__    | EU         |
+|                           |     | com>`__     |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |cex|                     | cex | `CEX.IO <ht | \ | `API <https://cex.i | UK, EU,    |
+|                           |     | tps://cex.i | * | o/cex-api>`__       | Cyprus,    |
+|                           |     | o>`__       |   |                     | Russia     |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |chilebit|                | chi | `ChileBit < | 1 | `API <https://blink | Chile      |
+|                           | leb | https://chi |   | trade.com/docs>`__  |            |
+|                           | it  | lebit.net>` |   |                     |            |
+|                           |     | __          |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |coincheck|               | coi | `coincheck  | \ | `API <https://coinc | Japan,     |
+|                           | nch | <https://co | * | heck.com/documents/ | Indonesia  |
+|                           | eck | incheck.com |   | exchange/api>`__    |            |
+|                           |     | >`__        |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |coinmate|                | coi | `CoinMate < | \ | `API <https://coinm | UK, Czech  |
+|                           | nma | https://coi | * | ate.io/developers>` | Republic   |
+|                           | te  | nmate.io>`_ |   | __                  |            |
+|                           |     | _           |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |coinsecure|              | coi | `Coinsecure | 1 | `API <https://api.c | India      |
+|                           | nse |  <https://c |   | oinsecure.in>`__    |            |
+|                           | cur | oinsecure.i |   |                     |            |
+|                           | e   | n>`__       |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |cryptocapital|           | cry | `Crypto     | \ | `API <https://githu | Panama     |
+|                           | pto | Capital <ht | * | b.com/cryptocap>`__ |            |
+|                           | cap | tps://crypt |   |                     |            |
+|                           | ita | ocapital.co |   |                     |            |
+|                           | l   | >`__        |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |dsx|                     | dsx | `DSX <https | \ | `API <https://api.d | UK         |
+|                           |     | ://dsx.uk>` | * | sx.uk>`__           |            |
+|                           |     | __          |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |exmo|                    | exm | `EXMO <http | 1 | `API <https://exmo. | Spain,     |
+|                           | o   | s://exmo.me |   | me/ru/api_doc>`__   | Russia     |
+|                           |     | >`__        |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |foxbit|                  | fox | `FoxBit <ht | 1 | `API <https://blink | Brazil     |
+|                           | bit | tps://foxbi |   | trade.com/docs>`__  |            |
+|                           |     | t.exchange> |   |                     |            |
+|                           |     | `__         |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |fybse|                   | fyb | `FYB-SE <ht | \ | `API <http://docs.f | Sweden     |
+|                           | se  | tps://www.f | * | yb.apiary.io>`__    |            |
+|                           |     | ybse.se>`__ |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |fybsg|                   | fyb | `FYB-SG <ht | \ | `API <http://docs.f | Singapore  |
+|                           | sg  | tps://www.f | * | yb.apiary.io>`__    |            |
+|                           |     | ybsg.com>`_ |   |                     |            |
+|                           |     | _           |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |gdax|                    | gda | `GDAX <http | \ | `API <https://docs. | US         |
+|                           | x   | s://www.gda | * | gdax.com>`__        |            |
+|                           |     | x.com>`__   |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |gemini|                  | gem | `Gemini <ht | 1 | `API <https://docs. | US         |
+|                           | ini | tps://gemin |   | gemini.com/rest-api |            |
+|                           |     | i.com>`__   |   | >`__                |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |hitbtc|                  | hit | `HitBTC <ht | 1 | `API <https://hitbt | Hong Kong  |
+|                           | btc | tps://hitbt |   | c.com/api>`__       |            |
+|                           |     | c.com>`__   |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |huobi|                   | huo | `Huobi <htt | 3 | `API <https://githu | China      |
+|                           | bi  | ps://www.hu |   | b.com/huobiapi/API_ |            |
+|                           |     | obi.com>`__ |   | Docs_en/wiki>`__    |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |itbit|                   | itb | `itBit <htt | 1 | `API <https://www.i | US         |
+|                           | it  | ps://www.it |   | tbit.com/api>`__    |            |
+|                           |     | bit.com>`__ |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |jubi|                    | jub | `jubi.com < | 1 | `API <https://www.j | China      |
+|                           | i   | https://www |   | ubi.com/help/api.ht |            |
+|                           |     | .jubi.com>` |   | ml>`__              |            |
+|                           |     | __          |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |kraken|                  | kra | `Kraken <ht | 0 | `API <https://www.k | US         |
+|                           | ken | tps://www.k |   | raken.com/en-us/hel |            |
+|                           |     | raken.com>` |   | p/api>`__           |            |
+|                           |     | __          |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |livecoin|                | liv | `LiveCoin < | \ | `API <https://www.l | US, UK,    |
+|                           | eco | https://www | * | ivecoin.net/api?lan | Russia     |
+|                           | in  | .livecoin.n |   | g=en>`__            |            |
+|                           |     | et>`__      |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |liqui|                   | liq | `Liqui <htt | 3 | `API <https://liqui | Ukraine    |
+|                           | ui  | ps://liqui. |   | .io/api>`__         |            |
+|                           |     | io>`__      |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |luno|                    | lun | `luno <http | 1 | `API <https://npmjs | UK,        |
+|                           | o   | s://www.lun |   | .org/package/bitx>` | Singapore, |
+|                           |     | o.com>`__   |   | __                  | South      |
+|                           |     |             |   |                     | Africa     |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |mercado|                 | mer | `Mercado    | 3 | `API <https://www.m | Brazil     |
+|                           | cad | Bitcoin <ht |   | ercadobitcoin.com.b |            |
+|                           | o   | tps://www.m |   | r/api-doc>`__       |            |
+|                           |     | ercadobitco |   |                     |            |
+|                           |     | in.com.br>` |   |                     |            |
+|                           |     | __          |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |okcoincny|               | okc | `OKCoin     | 1 | `API <https://www.o | China      |
+|                           | oin | CNY <https: |   | kcoin.cn/rest_getSt |            |
+|                           | cny | //www.okcoi |   | arted.html>`__      |            |
+|                           |     | n.cn>`__    |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |okcoinusd|               | okc | `OKCoin     | 1 | `API <https://www.o | China, US  |
+|                           | oin | USD <https: |   | kcoin.com/rest_getS |            |
+|                           | usd | //www.okcoi |   | tarted.html>`__     |            |
+|                           |     | n.com>`__   |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |paymium|                 | pay | `Paymium <h | 1 | `API <https://www.p | France, EU |
+|                           | miu | ttps://www. |   | aymium.com/page/dev |            |
+|                           | m   | paymium.com |   | elopers>`__         |            |
+|                           |     | >`__        |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |poloniex|                | pol | `Poloniex < | \ | `API <https://polon | US         |
+|                           | oni | https://pol | * | iex.com/support/api |            |
+|                           | ex  | oniex.com>` |   | />`__               |            |
+|                           |     | __          |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |quadrigacx|              | qua | `QuadrigaCX | 2 | `API <https://www.q | Canada     |
+|                           | dri |  <https://w |   | uadrigacx.com/api_i |            |
+|                           | gac | ww.quadriga |   | nfo>`__             |            |
+|                           | x   | cx.com>`__  |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |quoine|                  | quo | `QUOINE <ht | 2 | `API <https://devel | Japan,     |
+|                           | ine | tps://www.q |   | opers.quoine.com>`_ | Singapore, |
+|                           |     | uoine.com>` |   | _                   | Vietnam    |
+|                           |     | __          |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |southxchange|            | sou | `SouthXchan | \ | `API <https://www.s | Argentina  |
+|                           | thx | ge <https:/ | * | outhxchange.com/Hom |            |
+|                           | cha | /www.southx |   | e/Api>`__           |            |
+|                           | nge | change.com> |   |                     |            |
+|                           |     | `__         |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |surbitcoin|              | sur | `SurBitcoin | 1 | `API <https://blink | Venezuela  |
+|                           | bit |  <https://s |   | trade.com/docs>`__  |            |
+|                           | coi | urbitcoin.c |   |                     |            |
+|                           | n   | om>`__      |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |therock|                 | the | `TheRockTra | 1 | `API <https://api.t | Malta      |
+|                           | roc | ding <https |   | herocktrading.com/d |            |
+|                           | k   | ://therockt |   | oc/>`__             |            |
+|                           |     | rading.com> |   |                     |            |
+|                           |     | `__         |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |urdubit|                 | urd | `UrduBit <h | 1 | `API <https://blink | Pakistan   |
+|                           | ubi | ttps://urdu |   | trade.com/docs>`__  |            |
+|                           | t   | bit.com>`__ |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |vaultoro|                | vau | `Vaultoro < | 1 | `API <https://api.v | Switzerlan |
+|                           | lto | https://www |   | aultoro.com>`__     | d          |
+|                           | ro  | .vaultoro.c |   |                     |            |
+|                           |     | om>`__      |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |vbtc|                    | vbt | `VBTC <http | 1 | `API <https://blink | Vietnam    |
+|                           | c   | s://vbtc.ex |   | trade.com/docs>`__  |            |
+|                           |     | change>`__  |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |virwox|                  | vir | `VirWoX <ht | \ | `API <https://www.v | Austria    |
+|                           | wox | tps://www.v | * | irwox.com/developer |            |
+|                           |     | irwox.com>` |   | s.php>`__           |            |
+|                           |     | __          |   |                     |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |yobit|                   | yob | `YoBit <htt | 3 | `API <https://www.y | Russia     |
+|                           | it  | ps://www.yo |   | obit.net/en/api/>`_ |            |
+|                           |     | bit.net>`__ |   | _                   |            |
++---------------------------+-----+-------------+---+---------------------+------------+
+| |zaif|                    | zai | `Zaif <http | 1 | `API <https://corp. | Japan      |
+|                           | f   | s://zaif.jp |   | zaif.jp/api-docs>`_ |            |
+|                           |     | >`__        |   | _                   |            |
++---------------------------+-----+-------------+---+---------------------+------------+
 
 The list above is updated frequently, new crypto markets, altcoin exchanges, bug fixes, API endpoints are introduced and added on regular basis. See the `Manual <https://github.com/kroitor/ccxt/wiki>`__ for details. If you don't find a cryptocurrency exchange market in the list above and/or want another market to be added, post or send us a link to it by opening an issue here on GitHub or via email.
 

@@ -35,6 +35,7 @@ class Market {
         'coincheck',
         'coinmate',
         'coinsecure',
+        'cryptocapital',
         'dsx',
         'exmo',
         'foxbit',
@@ -611,7 +612,15 @@ class cryptocapital extends Market {
 
     public function __construct ($options = array ()) {
         parent::__construct (array_merge (array (
+            'id' => 'cryptocapital',
+            'name' => 'Crypto Capital',
             'comment' => 'Crypto Capital API',
+            'countries' => 'PA', // Panama
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27993158-7a13f140-64ac-11e7-89cc-a3b441f0b0f8.jpg',
+                'www' => 'https://cryptocapital.co',
+                'doc' => 'https://github.com/cryptocap',
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
