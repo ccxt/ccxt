@@ -3119,6 +3119,8 @@ class btce (Market):
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),
         }
+        result['bids'] = self.sort_by (result['bids'], 0, True)
+        result['asks'] = self.sort_by (result['asks'], 0)
         return result
 
     def fetch_ticker (self, product):

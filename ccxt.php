@@ -3295,6 +3295,8 @@ class btce extends Market {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
+        $result['bids'] = $this->sort_by ($result['bids'], 0, true);
+        $result['asks'] = $this->sort_by ($result['asks'], 0);
         return $result;
     }
 
