@@ -3247,28 +3247,8 @@ var btctrader = {
         },
     },
 
-    async fetchProducts () {
-        let products = await this.publicGetPairSettings ();
-        let keys = Object.keys (products);
-        let result = [];
-        for (let p = 0; p < keys.length; p++) {
-            let id = keys[p];
-            let product = products[id];
-            let symbol = id.replace ('_', '/');
-            let [ base, quote ] = symbol.split ('/');
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': product,
-            });
-        }
-        return result;
-    },
-
     fetchBalance () {
-        return this.privatePostBalance ();
+        return this.privateGetBalance ();
     },
 
     async fetchOrderBook (product) {

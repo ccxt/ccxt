@@ -3398,28 +3398,8 @@ class btctrader extends Market {
         ), $options));
     }
 
-    public function fetch_products () {
-        $products = $this->publicGetPairSettings ();
-        $keys = array_keys ($products);
-        $result = array ();
-        for ($p = 0; $p < count ($keys); $p++) {
-            $id = $keys[$p];
-            $product = $products[$id];
-            $symbol = str_replace ('_', '/', $id);
-            list ($base, $quote) = explode ('/', $symbol);
-            $result[] = array (
-                'id' => $id,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'info' => $product,
-            );
-        }
-        return $result;
-    }
-
     public function fetch_balance () {
-        return $this->privatePostBalance ();
+        return $this->privateGetBalance ();
     }
 
     public function fetch_order_book ($product) {

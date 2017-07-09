@@ -3216,26 +3216,8 @@ class btctrader (Market):
         params.update (config)
         super (btctrader, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetPairSettings ()
-        keys = list (products.keys ())
-        result = []
-        for p in range (0, len (keys)):
-            id = keys[p]
-            product = products[id]
-            symbol = id.replace ('_', '/')
-            base, quote = symbol.split ('/')
-            result.append ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': product,
-            })
-        return result
-
     def fetch_balance (self):
-        return self.privatePostBalance ()
+        return self.privateGetBalance ()
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetOrderbook ()
