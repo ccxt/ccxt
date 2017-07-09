@@ -18,7 +18,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 55 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 56 cryptocurrency exchange markets and trading APIs:
 
 +---------------------------+-----+-------------+---+----------------------+------------+
 |                           | id  | name        | v | doc                  | countries  |
@@ -269,6 +269,11 @@ The ccxt library currently supports the following 55 cryptocurrency exchange mar
 |                           | k   | ://therockt |   | />`__                |            |
 |                           |     | rading.com> |   |                      |            |
 |                           |     | `__         |   |                      |            |
++---------------------------+-----+-------------+---+----------------------+------------+
+| |urdubit|                 | urd | `UrduBit <h | 1 | `API <https://blinkt | Pakistan   |
+|                           | ubi | ttps://urdu |   | rade.com/docs>`__    |            |
+|                           | t   | bit.com/>`_ |   |                      |            |
+|                           |     | _           |   |                      |            |
 +---------------------------+-----+-------------+---+----------------------+------------+
 | |vaultoro|                | vau | `Vaultoro < | 1 | `API <https://api.va | Switzerlan |
 |                           | lto | https://www |   | ultoro.com>`__       | d          |

@@ -56,6 +56,7 @@ class Market {
         'quoine',
         'southxchange',
         'therock',
+        'urdubit',
         'vaultoro',
         'virwox',
         'yobit',
@@ -8488,6 +8489,32 @@ class therock extends Market {
             }
         }
         return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+class urdubit extends blinktrade {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'urdubit',
+            'name' => 'UrduBit',
+            'countries' => 'PK',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27991453-156bf3ae-6480-11e7-82eb-7295fe1b5bb4.jpg',
+                'api' => array (
+                    'public' => 'https://api.blinktrade.com/api',
+                    'private' => 'https://api.blinktrade.com/tapi',
+                ),
+                'www' => 'https://urdubit.com/',
+                'doc' => 'https://blinktrade.com/docs',
+            ),
+            'comment' => 'Blinktrade API',
+            'products' => array (
+                'BTC/PKR' => array ( 'id' => 'BTCPKR', 'symbol' => 'BTC/PKR', 'base' => 'BTC', 'quote' => 'PKR', 'brokerId' => 8, 'broker' => 'UrduBit', ),
+            ),
+        ), $options));
     }
 }
 
