@@ -92,7 +92,7 @@ def test_market (market):
     #--------------------------------------------------------------------------
     # private API
 
-    if (not market.apiKey) or (len (market.apiKey) < 1):
+    if (not hasattr (market, 'apiKey') or (len (market.apiKey) < 1)):
         return 
 
     print ('balance')

@@ -151,13 +151,11 @@ marketsByCountries = marketsByCountries.sort ((a, b) => {
     let countryB = b['country / region'].toLowerCase ()
     let idA = a['id']
     let idB = b['id']
-    
     if (countryA > countryB) {
         return 1
     } else if (countryA < countryB) {
         return -1;
     } else {
-
         if (a['id'] > b['id'])
             return 1;
         else if (a['id'] < b['id'])
@@ -165,16 +163,8 @@ marketsByCountries = marketsByCountries.sort ((a, b) => {
         else
             return 0;
     }
-
     return 0;
 })
-
-// var sortBy = function (array, key, descending = false) {
-//     descending = descending ? -1 : 1
-//     return array.sort ((a, b) => ((a[key].toLowerCase () < b[key].toLowerCase ()) ? -descending : ((a[key].toLowerCase () > b[key].toLowerCase ()) ? descending : 0)))
-// }
-
-// marketsByCountries = sortBy (marketsByCountries, 'country / region')
 
 ;(() => {
     let exchanges = asTable.configure ({ delimiter: ' | ' }) (marketsByCountries)
