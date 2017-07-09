@@ -413,12 +413,7 @@ Please, contact us on GitHub or via email if you're interested in integrating th
 Contact Us
 ----------
 
-Igor Kroitor
-igor.kroitor@gmail.com
-https://github.com/kroitor
-
-Vitaly Gordon
-rocket.mind@gmail.com
-https://github.com/xpl
+Igor Kroitor | igor.kroitor@gmail.com | https://github.com/kroitor
+Vitaly Gordon | rocket.mind@gmail.com | https://github.com/xpl
 
 
