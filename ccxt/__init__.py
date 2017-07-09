@@ -29,6 +29,7 @@ markets = [
     'coinsecure',
     'dsx',
     'exmo',
+    'foxbit',
     'fybse',
     'fybsg',
     'gdax',
@@ -2817,8 +2818,8 @@ class blinktrade (Market):
                 url += '?' + _urlencode.urlencode (query)
         else:
             nonce = str (self.nonce ())
-            body = _urlencode.urlencode (self.extend ({ 'nonce': nonce }, params))
-            body = json.dumps ()
+            request = self.extend ({ 'MsgType': path }, query)
+            body = json.dumps (request)
             headers = {
                 'APIKey': self.apiKey,
                 'Nonce': nonce,
@@ -4999,6 +5000,32 @@ class exmo (Market):
                 'Sign': self.hmac (body, self.secret, hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
+class foxbit (blinktrade):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'foxbit',
+            'name': 'FoxBit',
+            'countries': 'BR',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27991389-ad80ce38-647d-11e7-8fb2-1663d16e8065.jpg',
+                'api': {
+                    'public': 'https://api.blinktrade.com/api',
+                    'private': 'https://api.blinktrade.com/tapi',
+                },
+                'www': 'https://foxbit.exchange',
+                'doc': 'https://blinktrade.com/docs',
+            },
+            'comment': 'Blinktrade API',
+            'products': {
+                'BTC/BRL': { 'id': 'BTCBRL', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'brokerId': 4, 'broker': 'FoxBit', },
+            },
+        }
+        params.update (config)
+        super (foxbit, self).__init__ (params)
 
 #------------------------------------------------------------------------------
 

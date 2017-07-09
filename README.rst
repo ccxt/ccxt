@@ -18,7 +18,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 53 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 54 cryptocurrency exchange markets and trading APIs:
 
 +---------------------------+-----+-------------+---+----------------------+------------+
 |                           | id  | name        | v | doc                  | countries  |
@@ -157,6 +157,11 @@ The ccxt library currently supports the following 53 cryptocurrency exchange mar
 | |exmo|                    | exm | `EXMO <http | 1 | `API <https://exmo.m | Spain,     |
 |                           | o   | s://exmo.me |   | e/ru/api_doc>`__     | Russia     |
 |                           |     | >`__        |   |                      |            |
++---------------------------+-----+-------------+---+----------------------+------------+
+| |foxbit|                  | fox | `FoxBit <ht | 1 | `API <https://blinkt | Brazil     |
+|                           | bit | tps://foxbi |   | rade.com/docs>`__    |            |
+|                           |     | t.exchange> |   |                      |            |
+|                           |     | `__         |   |                      |            |
 +---------------------------+-----+-------------+---+----------------------+------------+
 | |fybse|                   | fyb | `FYB-SE <ht | \ | `API <http://docs.fy | Sweden     |
 |                           | se  | tps://www.f | * | b.apiary.io>`__      |            |

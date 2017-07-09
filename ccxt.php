@@ -33,6 +33,7 @@ class Market {
         'coinsecure',
         'dsx',
         'exmo',
+        'foxbit',
         'fybse',
         'fybsg',
         'gdax',
@@ -2977,8 +2978,8 @@ class blinktrade extends Market {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = (string) $this->nonce ();
-            $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $params));
-            $body = json_encode ();
+            $request = array_merge (array ( 'MsgType' => $path ), $query);
+            $body = json_encode ($request);
             $headers = array (
                 'APIKey' => $this->apiKey,
                 'Nonce' => $nonce,
@@ -5298,6 +5299,32 @@ class exmo extends Market {
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+class foxbit extends blinktrade {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'foxbit',
+            'name' => 'FoxBit',
+            'countries' => 'BR',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27991389-ad80ce38-647d-11e7-8fb2-1663d16e8065.jpg',
+                'api' => array (
+                    'public' => 'https://api.blinktrade.com/api',
+                    'private' => 'https://api.blinktrade.com/tapi',
+                ),
+                'www' => 'https://foxbit.exchange',
+                'doc' => 'https://blinktrade.com/docs',
+            ),
+            'comment' => 'Blinktrade API',
+            'products' => array (
+                'BTC/BRL' => array ( 'id' => 'BTCBRL', 'symbol' => 'BTC/BRL', 'base' => 'BTC', 'quote' => 'BRL', 'brokerId' => 4, 'broker' => 'FoxBit', ),
+            ),
+        ), $options));
     }
 }
 

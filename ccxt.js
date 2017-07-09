@@ -2845,8 +2845,8 @@ var blinktrade = {
                 url += '?' + this.urlencode (query);
         } else {
             let nonce = this.nonce ().toString ();
-            body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
-            body = JSON.stringify ();
+            let request = this.extend ({ 'MsgType': path }, query);
+            body = JSON.stringify (request);
             headers = {
                 'APIKey': this.apiKey,
                 'Nonce': nonce,
@@ -5116,6 +5116,27 @@ var exmo = {
         return this.fetch (url, method, headers, body);
     },
 }
+
+//-----------------------------------------------------------------------------
+
+var foxbit = extend (blinktrade, {
+    'id': 'foxbit',
+    'name': 'FoxBit',
+    'countries': 'BR',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27991389-ad80ce38-647d-11e7-8fb2-1663d16e8065.jpg',
+        'api': {
+            'public': 'https://api.blinktrade.com/api',
+            'private': 'https://api.blinktrade.com/tapi',
+        },
+        'www': 'https://foxbit.exchange',
+        'doc': 'https://blinktrade.com/docs',
+    },
+    'comment': 'Blinktrade API',
+    'products': {
+        'BTC/BRL': { 'id': 'BTCBRL', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'brokerId': 4, 'broker': 'FoxBit', },
+    },
+})
 
 //-----------------------------------------------------------------------------
 
@@ -8880,6 +8901,7 @@ var markets = {
     'coinsecure':   coinsecure,
     'dsx':          dsx,
     'exmo':         exmo,
+    'foxbit':       foxbit,
     'fybse':        fybse,
     'fybsg':        fybsg,
     'gdax':         gdax,
