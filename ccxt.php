@@ -8340,7 +8340,7 @@ class surbitcoin extends blinktrade {
                     'public' => 'https://api.blinktrade.com/api',
                     'private' => 'https://api.blinktrade.com/tapi',
                 ),
-                'www' => 'https://surbitcoin.com/',
+                'www' => 'https://surbitcoin.com',
                 'doc' => 'https://blinktrade.com/docs',
             ),
             'comment' => 'Blinktrade API',

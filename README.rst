@@ -267,7 +267,7 @@ The ccxt library currently supports the following 58 cryptocurrency exchange mar
 | |surbitcoin|              | sur | `SurBitcoin | 1 | `API <https://blinkt | Venezuela  |
 |                           | bit |  <https://s |   | rade.com/docs>`__    |            |
 |                           | coi | urbitcoin.c |   |                      |            |
-|                           | n   | om/>`__     |   |                      |            |
+|                           | n   | om>`__      |   |                      |            |
 +---------------------------+-----+-------------+---+----------------------+------------+
 | |therock|                 | the | `TheRockTra | 1 | `API <https://api.th | Malta      |
 |                           | roc | ding <https |   | erocktrading.com/doc |            |
