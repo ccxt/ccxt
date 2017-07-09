@@ -18,7 +18,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 60 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 61 cryptocurrency exchange markets and trading APIs:
 
 +---------------------------+-----+-------------+---+----------------------+------------+
 |                           | id  | name        | v | doc                  | countries  |
@@ -107,6 +107,11 @@ The ccxt library currently supports the following 60 cryptocurrency exchange mar
 | |btce|                    | btc | `BTC-e <htt | 3 | `API <https://btc-e. | Bulgaria,  |
 |                           | e   | ps://btc-e. |   | com/api/3/docs>`__   | Russia     |
 |                           |     | com>`__     |   |                      |            |
++---------------------------+-----+-------------+---+----------------------+------------+
+| |btcexchange|             | btc | `BTCExchang | \ | `API <https://github | Philippine |
+|                           | exc | e <https:// | * | .com/BTCTrader/broke | s          |
+|                           | han | www.btcexch |   | r-api-docs>`__       |            |
+|                           | ge  | ange.ph>`__ |   |                      |            |
 +---------------------------+-----+-------------+---+----------------------+------------+
 | |btctrader|               | btc | `BTCTrader  | \ | `API <https://github | Turkey,    |
 |                           | tra | <https://ww | * | .com/BTCTrader/broke | Greece,    |

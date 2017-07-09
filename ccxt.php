@@ -22,6 +22,7 @@ class Market {
         'blinktrade',
         'btcchina',
         'btce',
+        'btcexchange',
         'btctrader',
         'btctradeua',
         'btcturk',
@@ -3512,6 +3513,29 @@ class btctrader extends Market {
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+class btcexchange extends btctrader {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'btcexchange',
+            'name' => 'BTCExchange',
+            'countries' => 'PH', // Philippines
+            'rateLimit' => 1000,
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27993052-4c92911a-64aa-11e7-96d8-ec6ac3435757.jpg',
+                'api' => 'https://www.btcexchange.ph/api',
+                'www' => 'https://www.btcexchange.ph',
+                'doc' => 'https://github.com/BTCTrader/broker-api-docs',
+            ),
+            'products' => array (
+                'BTC/PHP' => array ( 'id' => 'BTC/PHP', 'symbol' => 'BTC/PHP', 'base' => 'BTC', 'quote' => 'PHP' ),
+            ),
+        ), $options));
     }
 }
 
