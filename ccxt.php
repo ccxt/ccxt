@@ -58,6 +58,7 @@ class Market {
         'therock',
         'urdubit',
         'vaultoro',
+        'vbtc',
         'virwox',
         'yobit',
         'zaif',
@@ -8507,7 +8508,7 @@ class urdubit extends blinktrade {
                     'public' => 'https://api.blinktrade.com/api',
                     'private' => 'https://api.blinktrade.com/tapi',
                 ),
-                'www' => 'https://urdubit.com/',
+                'www' => 'https://urdubit.com',
                 'doc' => 'https://blinktrade.com/docs',
             ),
             'comment' => 'Blinktrade API',
@@ -8683,6 +8684,32 @@ class vaultoro extends Market {
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+class vbtc extends blinktrade {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'vbtc',
+            'name' => 'VBTC',
+            'countries' => 'VN',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27991481-1f53d1d8-6481-11e7-884e-21d17e7939db.jpg',
+                'api' => array (
+                    'public' => 'https://api.blinktrade.com/api',
+                    'private' => 'https://api.blinktrade.com/tapi',
+                ),
+                'www' => 'https://vbtc.exchange',
+                'doc' => 'https://blinktrade.com/docs',
+            ),
+            'comment' => 'Blinktrade API',
+            'products' => array (
+                'BTC/VND' => array ( 'id' => 'BTCVND', 'symbol' => 'BTC/VND', 'base' => 'BTC', 'quote' => 'VND', 'brokerId' => 3, 'broker' => 'VBTC', ),
+            ),
+        ), $options));
     }
 }
 

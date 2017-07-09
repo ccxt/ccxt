@@ -18,7 +18,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 56 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 57 cryptocurrency exchange markets and trading APIs:
 
 +---------------------------+-----+-------------+---+----------------------+------------+
 |                           | id  | name        | v | doc                  | countries  |
@@ -272,13 +272,16 @@ The ccxt library currently supports the following 56 cryptocurrency exchange mar
 +---------------------------+-----+-------------+---+----------------------+------------+
 | |urdubit|                 | urd | `UrduBit <h | 1 | `API <https://blinkt | Pakistan   |
 |                           | ubi | ttps://urdu |   | rade.com/docs>`__    |            |
-|                           | t   | bit.com/>`_ |   |                      |            |
-|                           |     | _           |   |                      |            |
+|                           | t   | bit.com>`__ |   |                      |            |
 +---------------------------+-----+-------------+---+----------------------+------------+
 | |vaultoro|                | vau | `Vaultoro < | 1 | `API <https://api.va | Switzerlan |
 |                           | lto | https://www |   | ultoro.com>`__       | d          |
 |                           | ro  | .vaultoro.c |   |                      |            |
 |                           |     | om>`__      |   |                      |            |
++---------------------------+-----+-------------+---+----------------------+------------+
+| |vbtc|                    | vbt | `VBTC <http | 1 | `API <https://blinkt | Vietnam    |
+|                           | c   | s://vbtc.ex |   | rade.com/docs>`__    |            |
+|                           |     | change>`__  |   |                      |            |
 +---------------------------+-----+-------------+---+----------------------+------------+
 | |virwox|                  | vir | `VirWoX <ht | \ | `API <https://www.vi | Austria    |
 |                           | wox | tps://www.v | * | rwox.com/developers. |            |

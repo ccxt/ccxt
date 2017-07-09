@@ -8218,7 +8218,7 @@ var urdubit = extend (blinktrade, {
             'public': 'https://api.blinktrade.com/api',
             'private': 'https://api.blinktrade.com/tapi',
         },
-        'www': 'https://urdubit.com/',
+        'www': 'https://urdubit.com',
         'doc': 'https://blinktrade.com/docs',
     },
     'comment': 'Blinktrade API',
@@ -8390,6 +8390,28 @@ var vaultoro = {
         return this.fetch (url, method, headers, body);
     },
 }
+
+//-----------------------------------------------------------------------------
+
+var vbtc = extend (blinktrade, {
+    'id': 'vbtc',
+    'name': 'VBTC',
+    'countries': 'VN',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27991481-1f53d1d8-6481-11e7-884e-21d17e7939db.jpg',
+        'api': {
+            'public': 'https://api.blinktrade.com/api',
+            'private': 'https://api.blinktrade.com/tapi',
+        },
+        'www': 'https://vbtc.exchange',
+        'doc': 'https://blinktrade.com/docs',
+    },
+    'comment': 'Blinktrade API',
+    'products': {
+        'BTC/VND': { 'id': 'BTCVND', 'symbol': 'BTC/VND', 'base': 'BTC', 'quote': 'VND', 'brokerId': 3, 'broker': 'VBTC', },
+    },
+})
+
 
 //-----------------------------------------------------------------------------
 
@@ -8968,6 +8990,7 @@ var markets = {
     'therock':      therock,
     'urdubit':      urdubit,
     'vaultoro':     vaultoro,
+    'vbtc':         vbtc,
     'virwox':       virwox,
     'yobit':        yobit,
     'zaif':         zaif,
