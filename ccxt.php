@@ -55,6 +55,7 @@ class Market {
         'quadrigacx',
         'quoine',
         'southxchange',
+        'surbitcoin',
         'therock',
         'urdubit',
         'vaultoro',
@@ -8321,6 +8322,32 @@ class southxchange extends Market {
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+class surbitcoin extends blinktrade {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'surbitcoin',
+            'name' => 'SurBitcoin',
+            'countries' => 'VE',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27991511-f0a50194-6481-11e7-99b5-8f02932424cc.jpg',
+                'api' => array (
+                    'public' => 'https://api.blinktrade.com/api',
+                    'private' => 'https://api.blinktrade.com/tapi',
+                ),
+                'www' => 'https://surbitcoin.com/',
+                'doc' => 'https://blinktrade.com/docs',
+            ),
+            'comment' => 'Blinktrade API',
+            'products' => array (
+                'BTC/VEF' => array ( 'id' => 'BTCVEF', 'symbol' => 'BTC/VEF', 'base' => 'BTC', 'quote' => 'VEF', 'brokerId' => 1, 'broker' => 'SurBitcoin', ),
+            ),
+        ), $options));
     }
 }
 
