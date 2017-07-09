@@ -12,72 +12,17 @@ try:
 
 except ImportError:
 
-    markets = { # defaults
-
-        '_1broker':     { 'verbose': verbose, 'apiKey': '' }, # 1broker uses public apiKey only, does not use secret key
-        '_1btcxe':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'anxpro':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'bit2c':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'bitbay':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'bitbays':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'bitcoincoid':  { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'bitfinex':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'bitlish':      { 'verbose': verbose, 'apiKey': '', 'login': '', 'password': '' },
-        'bitmarket':    { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'bitmex':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'bitso':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'bitstamp':     { 'verbose': verbose, 'apiKey': '', 'secret': '', 'uid': '' },
-        'bittrex':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'btcchina':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'btce':         { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'btctradeua':   { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'btcx':         { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'bter':         { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'bxinth':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'ccex':         { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'cex':          { 'verbose': verbose, 'apiKey': '', 'secret': '', 'uid': '' },
-        'coincheck':    { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'coinmate':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'coinsecure':   { 'verbose': verbose, 'apiKey': '' },
-        'dsx':          { 'verbose': verbose, 'apiKey': '' },
-        'exmo':         { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'fybse':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'fybsg':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'gdax':         { 'verbose': verbose, 'apiKey': '', 'secret': '', 'password': '' },
-        'gemini':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'hitbtc':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'huobi':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'itbit':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'jubi':         { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'kraken':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'livecoin':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'liqui':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'luno':         { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'mercado':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'okcoinusd':    { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'okcoincny':    { 'verbose': verbose, 'apiKey': '', 'secret' : '' },
-        'paymium':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'poloniex':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'quadrigacx':   { 'verbose': verbose, 'apiKey': '', 'secret': '', 'uid': '' },
-        'quoine':       { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'southxchange': { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'therock':      { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'vaultoro':     { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'virwox':       { 'verbose': verbose, 'apiKey': '', 'login': '', 'password': '' },
-        'yobit':        { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-        'zaif':         { 'verbose': verbose, 'apiKey': '', 'secret': '' },
-    }
+    markets = {}
 
 #------------------------------------------------------------------------------
 
-tuples = list (ccxt.Market.keysort (markets).items ())
+# tuples = list (ccxt.Market.keysort (markets).items ())
 
 # print (tuples)
 
-for (id, params) in tuples:
-    # id, params = tuples[t]
+for id in ccxt.markets:
     market = getattr (ccxt, id)
-    markets[id] = market (dict (params, **({ 'id': id, 'verbose': verbose })))
+    markets[id] = market ({ 'verbose': verbose })
 
 def test_market (market):
 

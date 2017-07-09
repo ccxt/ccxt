@@ -13,70 +13,13 @@ if (file_exists ('config.php'))
 
 else
 
-    $markets = array ( // defaults
-
-        '_1broker'     => array ('verbose' => $verbose, 'apiKey' => '' ), // 1broker uses public apiKey only, does not use secret key
-        '_1btcxe'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'anxpro'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'bit2c'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'bitbay'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'bitbays'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'bitcoincoid'  => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'bitfinex'     => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'bitlish'      => array ('verbose' => $verbose, 'apiKey' => '', 'login' => '', 'password' => '', ),
-        'bitmarket'    => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'bitmex'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'bitso'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'bitstamp'     => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', 'uid' => '', ),
-        'bittrex'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'btcchina'     => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'btce'         => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'btctradeua'   => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'btcx'         => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'bter'         => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'bxinth'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'ccex'         => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'cex'          => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', 'uid' => '', ),
-        'coincheck'    => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'coinmate'     => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'coinsecure'   => array ('verbose' => $verbose, 'apiKey' => '', ),
-        'dsx'          => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'exmo'         => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'fybse'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'fybsg'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'gdax'         => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', 'password' => ''),
-        'gemini'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'hitbtc'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'huobi'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'itbit'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'jubi'         => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'kraken'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'livecoin'     => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'liqui'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'luno'         => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'mercado'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'okcoinusd'    => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'okcoincny'    => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'paymium'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'poloniex'     => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'quadrigacx'   => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', 'uid' => '', ),
-        'quoine'       => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'southxchange' => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'therock'      => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'vaultoro'     => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'virwox'       => array ('verbose' => $verbose, 'apiKey' => '', 'login' => '', 'password' => '', ),
-        'yobit'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-        'zaif'         => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
-    );
+    $markets = array ();
 
 //-----------------------------------------------------------------------------
 
-foreach ($markets as $id => $params) {
+foreach (\ccxt\Market::$markets as $id) {
     $market = '\\ccxt\\' . $id;
-    $markets[$id] = new $market (array_merge (array (
-        'id'      => $id,
-        'verbose' => $verbose,
-    ), $params));
+    $markets[$id] = new $market (array ('verbose' => $verbose));
 }
 
 function test_market ($market) {
