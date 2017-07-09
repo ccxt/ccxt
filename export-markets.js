@@ -135,11 +135,11 @@ Object.keys (countries).forEach (code => {
         if (shouldInclude) {
             result.push ({
                 'country / region': country, 
-                'logo': '![' + market.id + '](' + logo + ')',
+                'logo': ' ![' + market.id + '](' + logo + ') ',
                 'id': market.id,
                 'name': '[' + market.name + '](' + website + ')',
                 'ver': version,
-                'doc': '[API](' + doc + ')',
+                'doc': ' [API](' + doc + ') ',
             })
         }
     })

@@ -278,17 +278,19 @@ let rstNew =
     rst.replace (/\`([^\`]+)\s\<\#[^\`]+\>\`\_\_/g, '$1')
         .replace (/\\\|/g, '|')
 
-let rstMarketTableRegex = /([\s\S]+)[\n][\n](\+\-\-[\s\S]+\-\-\+)[\n][\n]([\s\S]+)/
+let rstMarketTableRegex = /([\s\S]+?)APIs:[\n][\n](\+\-\-[\s\S]+\-\-\+)[\n][\n]([\s\S]+)/
 let match = rstMarketTableRegex.exec (rstNew)
 // console.log (match[2])
 // let match = rstNew.match (/[\n][\n]\+\-\-.+\-\-\+[\n][\n]/g)
 let rstMarketTableLines = match[2].split ("\n")
+
+console.log (rstMarketTableLines[0])
 let newRstMarketTable = rstMarketTableLines.map (line => {
     return line.replace (/(\||\+)(.).+?(\s|\=|\-)(\||\+)/, '$1')
 }).join ("\n")
 
 // console.log (match[3])
-rstNew = match[1] + "\n\n" + newRstMarketTable + "\n\n" + match[3]
+rstNew = match[1] + "APIs:\n\n" + newRstMarketTable + "\n\n" + match[3]
 rstNew = rstNew.replace (/\.\.[^\n]+image\:\:[^\n]+[\n]/g, '')
 // console.log (rstNew)
 // console.log (match[1])
