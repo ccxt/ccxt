@@ -30,6 +30,7 @@ class Market {
         'coincheck',
         'coinmate',
         'coinsecure',
+        'dsx',
         'exmo',
         'fybse',
         'fybsg',
@@ -4778,6 +4779,192 @@ class coinsecure extends Market {
 
 //-----------------------------------------------------------------------------
 
+class dsx extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'dsx',
+            'name' => 'DSX',
+            'countries' => 'UK',
+            'rateLimit' => 2000,
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
+                'api' => array (
+                    'mapi' => 'https://dsx.uk/mapi',  // market data
+                    'tapi' => 'https://dsx.uk/tapi',  // trading
+                    'dwapi' => 'https://dsx.uk/dwapi', // deposit/withdraw
+                ),
+                'www' => 'https://dsx.uk',
+                'doc' => array (
+                    'https://api.dsx.uk',
+                    'https://dsx.uk/api_docs/public',
+                    'https://dsx.uk/api_docs/private',
+                    '',
+                ),
+            ),
+            'api' => array (
+                'mapi' => array ( // market data (public)
+                    'get' => array (
+                        'barsFromMoment/{id}/{period}/{start}', // empty reply :\
+                        'depth/{id}',
+                        'info',
+                        'lastBars/{id}/{period}/{amount}', // period is (m, h or d)
+                        'periodBars/{id}/{period}/{start}/{end}',
+                        'ticker/{id}',
+                        'trades/{id}',
+                    ),
+                ),
+                'tapi' => array ( // trading (private)
+                    'post' => array (
+                        'getInfo',
+                        'TransHistory',
+                        'TradeHistory',
+                        'OrderHistory',
+                        'ActiveOrders',
+                        'Trade',
+                        'CancelOrder',
+                    ),
+                ),
+                'dwapi' => array ( // deposit / withdraw (private)
+                    'post' => array (
+                        'getCryptoDepositAddress',
+                        'cryptoWithdraw',
+                        'fiatWithdraw',
+                        'getTransactionStatus',
+                        'getTransactions',
+                    ),
+                ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_products () {
+        $response = $this->mapiGetInfo ();
+        $keys = array_keys ($response['pairs']);
+        $result = array ();
+        for ($p = 0; $p < count ($keys); $p++) {
+            $id = $keys[$p];
+            $product = $response['pairs'][$id];
+            $base = mb_substr ($id, 0, 3);
+            $quote = mb_substr ($id, 3, 6);
+            $base = strtoupper ($base);
+            $quote = strtoupper ($quote);
+            $symbol = $base . '/' . $quote;
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_balance () {
+        return $this->tapiPostGetInfo ();
+    }
+
+    public function fetch_order_book ($product) {
+        $p = $this->product ($product);
+        $response = $this->mapiGetDepthId (array (
+            'id' => $p['id'],
+        ));
+        $orderbook = $response[$p['id']];
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = $order[0];
+                $amount = $order[1];
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $p = $this->product ($product);
+        $response = $this->mapiGetTickerId (array (
+            'id' => $p['id'],
+        ));
+        $ticker = $response[$p['id']];
+        $timestamp = $ticker['updated'] * 1000;
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => floatval ($ticker['avg']),
+            'baseVolume' => floatval ($ticker['vol']),
+            'quoteVolume' => floatval ($ticker['vol_cur']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->mapiGetTradesId (array (
+            'id' => $this->product_id ($product),
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($type == 'market')
+            throw new \Exception ($this->id . ' allows limit orders only');
+        $order = array (
+            'pair' => $this->product_id ($product),
+            'type' => $side,
+            'rate' => $price,
+            'amount' => $amount,            
+        );
+        return $this->tapiPostTrade (array_merge ($order, $params));
+    }
+
+    public function request ($path, $type = 'mapi', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$type];
+        if (($type == 'mapi') || ($type == 'dwapi'))
+            $url .= '/' . $this->implode_params ($path, $params);
+        $query = $this->omit ($params, $this->extract_params ($path));
+        if ($type == 'mapi') {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
+        } else {
+            $nonce = $this->nonce ();
+            $method = $path;
+            $body = $this->urlencode (array_merge (array (
+                'method' => $path,
+            ), $query));
+            $headers = array (
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body),
+                'Key' => $this->apiKey,
+                'Sign' => $this->hmac ($body, $this->secret, 'sha512', 'base64'),
+            );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 class exmo extends Market {
 
     public function __construct ($options = array ()) {
@@ -8698,7 +8885,7 @@ class zaif extends Market {
     }
 
     public function fetch_order_book ($product) {
-        $orderbook = $this->apiGetDepthPair  (array (
+        $orderbook = $this->apiGetDepth  (array (
             'pair' => $this->product_id ($product),
         ));
         $timestamp = $this->milliseconds ();

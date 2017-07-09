@@ -40,6 +40,7 @@ else
         'coincheck'    => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'coinmate'     => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'coinsecure'   => array ('verbose' => $verbose, 'apiKey' => '', ),
+        'dsx'          => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'exmo'         => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'fybse'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),
         'fybsg'        => array ('verbose' => $verbose, 'apiKey' => '', 'secret' => '', ),

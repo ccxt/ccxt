@@ -4608,6 +4608,188 @@ var coinsecure = {
 
 //-----------------------------------------------------------------------------
 
+var dsx = {
+
+    'id': 'dsx',
+    'name': 'DSX',
+    'countries': 'UK',
+    'rateLimit': 2000,
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
+        'api': {
+            'mapi': 'https://dsx.uk/mapi',  // market data
+            'tapi': 'https://dsx.uk/tapi',  // trading
+            'dwapi': 'https://dsx.uk/dwapi', // deposit/withdraw
+        },
+        'www': 'https://dsx.uk',
+        'doc': [
+            'https://api.dsx.uk',
+            'https://dsx.uk/api_docs/public',
+            'https://dsx.uk/api_docs/private',
+            '',
+        ],
+    },
+    'api': {
+        'mapi': { // market data (public)
+            'get': [
+                'barsFromMoment/{id}/{period}/{start}', // empty reply :\
+                'depth/{id}',
+                'info',
+                'lastBars/{id}/{period}/{amount}', // period is (m, h or d)
+                'periodBars/{id}/{period}/{start}/{end}',
+                'ticker/{id}',
+                'trades/{id}',
+            ],
+        },
+        'tapi': { // trading (private)
+            'post': [
+                'getInfo',
+                'TransHistory',
+                'TradeHistory',
+                'OrderHistory',
+                'ActiveOrders',
+                'Trade',
+                'CancelOrder',
+            ],
+        },
+        'dwapi': { // deposit / withdraw (private)
+            'post': [
+                'getCryptoDepositAddress',
+                'cryptoWithdraw',
+                'fiatWithdraw',
+                'getTransactionStatus',
+                'getTransactions',
+            ],
+        },
+    },
+
+    async fetchProducts () {
+        let response = await this.mapiGetInfo ();
+        let keys = Object.keys (response['pairs']);
+        let result = [];
+        for (let p = 0; p < keys.length; p++) {
+            let id = keys[p];
+            let product = response['pairs'][id];
+            let base = id.slice (0, 3);
+            let quote = id.slice (3, 6);
+            base = base.toUpperCase ();
+            quote = quote.toUpperCase ();
+            let symbol = base + '/' + quote;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            });
+        }
+        return result;
+    },
+
+    fetchBalance () {
+        return this.tapiPostGetInfo ();
+    },
+
+    async fetchOrderBook (product) {
+        let p = this.product (product);
+        let response = await this.mapiGetDepthId ({
+            'id': p['id'],
+        });
+        let orderbook = response[p['id']];
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = order[0];
+                let amount = order[1];
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
+    },
+    
+    async fetchTicker (product) {
+        let p = this.product (product);
+        let response = await this.mapiGetTickerId ({
+            'id': p['id'],
+        });
+        let ticker = response[p['id']];
+        let timestamp = ticker['updated'] * 1000;
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['buy']),
+            'ask': parseFloat (ticker['sell']),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': parseFloat (ticker['avg']),
+            'baseVolume': parseFloat (ticker['vol']),
+            'quoteVolume': parseFloat (ticker['vol_cur']),
+            'info': ticker,
+        };
+    },
+            
+    fetchTrades (product) {
+        return this.mapiGetTradesId ({
+            'id': this.productId (product),
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        if (type == 'market')
+            throw new Error (this.id + ' allows limit orders only');
+        let order = {
+            'pair': this.productId (product),
+            'type': side,
+            'rate': price,
+            'amount': amount,            
+        };
+        return this.tapiPostTrade (this.extend (order, params));
+    },
+
+    request (path, type = 'mapi', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][type];
+        if ((type == 'mapi') || (type == 'dwapi'))
+            url += '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (type == 'mapi') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            let nonce = this.nonce ();
+            let method = path;
+            body = this.urlencode (this.extend ({
+                'method': path,
+            }, query));
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': body.length,
+                'Key': this.apiKey,
+                'Sign': this.hmac (body, this.secret, 'sha512', 'base64'),
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var exmo = {
 
     'id': 'exmo',
@@ -8419,7 +8601,7 @@ var zaif = {
     },
 
     async fetchOrderBook (product) {
-        let orderbook = await this.apiGetDepthPair  ({
+        let orderbook = await this.apiGetDepth  ({
             'pair': this.productId (product),
         });
         let timestamp = this.milliseconds ();
@@ -8531,6 +8713,7 @@ var markets = {
     'coincheck':    coincheck,
     'coinmate':     coinmate,
     'coinsecure':   coinsecure,
+    'dsx':          dsx,
     'exmo':         exmo,
     'fybse':        fybse,
     'fybsg':        fybsg,

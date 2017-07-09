@@ -16,7 +16,7 @@ Current featurelist:
 
 ## Supported Cryptocurrency Exchange Markets
 
-The ccxt library currently supports the following 51 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 52 cryptocurrency exchange markets and trading APIs:
 
 |                                                                                                                     | id           | name                                                 | ver | doc                                                                                         | countries                               |
 |---------------------------------------------------------------------------------------------------------------------|--------------|------------------------------------------------------|:---:|:-------------------------------------------------------------------------------------------:|-----------------------------------------|
@@ -45,6 +45,7 @@ The ccxt library currently supports the following 51 cryptocurrency exchange mar
 |![coincheck](https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg)    | coincheck    | [coincheck](https://coincheck.com)                   | *   | [API](https://coincheck.com/documents/exchange/api)                                         | Japan, Indonesia                        |
 |![coinmate](https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg)     | coinmate     | [CoinMate](https://coinmate.io)                      | *   | [API](https://coinmate.io/developers)                                                       | UK, Czech Republic                      |
 |![coinsecure](https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg)   | coinsecure   | [Coinsecure](https://coinsecure.in)                  | 1   | [API](https://api.coinsecure.in)                                                            | India                                   |
+|![dsx](https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg)          | dsx          | [DSX](https://dsx.uk)                                | *   | [API](https://api.dsx.uk)                                                                   | UK                                      |
 |![exmo](https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg)         | exmo         | [EXMO](https://exmo.me)                              | 1   | [API](https://exmo.me/ru/api_doc)                                                           | Spain, Russia                           |
 |![fybse](https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg)        | fybse        | [FYB-SE](https://www.fybse.se)                       | *   | [API](http://docs.fyb.apiary.io)                                                            | Sweden                                  |
 |![fybsg](https://user-images.githubusercontent.com/1294454/27766513-3364d56a-5edb-11e7-9e6b-d5898bb89c81.jpg)        | fybsg        | [FYB-SG](https://www.fybsg.com)                      | *   | [API](http://docs.fyb.apiary.io)                                                            | Singapore                               |

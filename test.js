@@ -41,6 +41,7 @@ try {
         coincheck:    { 'verbose': verbose, apiKey: '', secret: '', },
         coinmate:     { 'verbose': verbose, apiKey: '', secret: '', },
         coinsecure:   { 'verbose': verbose, apiKey: '', },
+        dsx:          { 'verbose': verbose, apiKey: '', },
         exmo:         { 'verbose': verbose, apiKey: '', secret: '', },
         fybse:        { 'verbose': verbose, apiKey: '', secret: '', },
         fybsg:        { 'verbose': verbose, apiKey: '', secret: '', },
@@ -94,7 +95,7 @@ let testMarket = market => new Promise (async resolve => {
 
     let keys = Object.keys (products)
     console.log (market.id , keys.length, 'symbols', keys.join (', '))
-    
+
     // Object.values (market.products).map (x => console.log (market.id, x.id))
     // console.log (market.id, 'products', market.products)
     // console.log (market.id, Object.keys (market.products).length, 'symbols', Object.keys (market.products).join (', '))

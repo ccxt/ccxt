@@ -26,6 +26,7 @@ markets = [
     'coincheck',
     'coinmate',
     'coinsecure',
+    'dsx',
     'exmo',
     'fybse',
     'fybsg',
@@ -4509,6 +4510,181 @@ class coinsecure (Market):
 
 #------------------------------------------------------------------------------
 
+class dsx (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'dsx',
+            'name': 'DSX',
+            'countries': 'UK',
+            'rateLimit': 2000,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
+                'api': {
+                    'mapi': 'https://dsx.uk/mapi',  # market data
+                    'tapi': 'https://dsx.uk/tapi',  # trading
+                    'dwapi': 'https://dsx.uk/dwapi', # deposit/withdraw
+                },
+                'www': 'https://dsx.uk',
+                'doc': [
+                    'https://api.dsx.uk',
+                    'https://dsx.uk/api_docs/public',
+                    'https://dsx.uk/api_docs/private',
+                    '',
+                ],
+            },
+            'api': {
+                'mapi': { # market data (public)
+                    'get': [
+                        'barsFromMoment/{id}/{period}/{start}', # empty reply :\
+                        'depth/{id}',
+                        'info',
+                        'lastBars/{id}/{period}/{amount}', # period is (m, h or d)
+                        'periodBars/{id}/{period}/{start}/{end}',
+                        'ticker/{id}',
+                        'trades/{id}',
+                    ],
+                },
+                'tapi': { # trading (private)
+                    'post': [
+                        'getInfo',
+                        'TransHistory',
+                        'TradeHistory',
+                        'OrderHistory',
+                        'ActiveOrders',
+                        'Trade',
+                        'CancelOrder',
+                    ],
+                },
+                'dwapi': { # deposit / withdraw (private)
+                    'post': [
+                        'getCryptoDepositAddress',
+                        'cryptoWithdraw',
+                        'fiatWithdraw',
+                        'getTransactionStatus',
+                        'getTransactions',
+                    ],
+                },
+            },
+        }
+        params.update (config)
+        super (dsx, self).__init__ (params)
+
+    def fetch_products (self):
+        response = self.mapiGetInfo ()
+        keys = list (response['pairs'].keys ())
+        result = []
+        for p in range (0, len (keys)):
+            id = keys[p]
+            product = response['pairs'][id]
+            base = id[0:3]
+            quote = id[3:6]
+            base = base.upper ()
+            quote = quote.upper ()
+            symbol = base + '/' + quote
+            result.append ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            })
+        return result
+
+    def fetch_balance (self):
+        return self.tapiPostGetInfo ()
+
+    def fetch_order_book (self, product):
+        p = self.product (product)
+        response = self.mapiGetDepthId ({
+            'id': p['id'],
+        })
+        orderbook = response[p['id']]
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = order[0]
+                amount = order[1]
+                result[side].append ([ price, amount ])
+        return result
+
+    def fetch_ticker (self, product):
+        p = self.product (product)
+        response = self.mapiGetTickerId ({
+            'id': p['id'],
+        })
+        ticker = response[p['id']]
+        timestamp = ticker['updated'] * 1000
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['buy']),
+            'ask': float (ticker['sell']),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': float (ticker['avg']),
+            'baseVolume': float (ticker['vol']),
+            'quoteVolume': float (ticker['vol_cur']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.mapiGetTradesId ({
+            'id': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        if type == 'market':
+            raise Exception (self.id + ' allows limit orders only')
+        order = {
+            'pair': self.product_id (product),
+            'type': side,
+            'rate': price,
+            'amount': amount,            
+        }
+        return self.tapiPostTrade (self.extend (order, params))
+
+    def request (self, path, type = 'mapi', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][type]
+        if (type == 'mapi') or (type == 'dwapi'):
+            url += '/' + self.implode_params (path, params)
+        query = self.omit (params, self.extract_params (path))
+        if type == 'mapi':
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
+            nonce = self.nonce ()
+            method = path
+            body = _urlencode.urlencode (self.extend ({
+                'method': path,
+            }, query))
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': len (body),
+                'Key': self.apiKey,
+                'Sign': self.hmac (body, self.secret, hashlib.sha512, 'base64'),
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class exmo (Market):
 
     def __init__ (self, config = {}):
@@ -8201,7 +8377,7 @@ class zaif (Market):
         return self.tapiPostGetInfo ()
 
     def fetch_order_book (self, product):
-        orderbook = self.apiGetDepthPair  ({
+        orderbook = self.apiGetDepth  ({
             'pair': self.product_id (product),
         })
         timestamp = self.milliseconds ()
