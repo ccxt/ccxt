@@ -2824,6 +2824,174 @@ class bittrex extends Market {
 
 //-----------------------------------------------------------------------------
 
+class blinktrade extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'blinktrade',
+            'name' => 'BlinkTrade',
+            'countries' => array ( 'US', 'VE', 'VN', 'BR', 'PK', 'CL' ),
+            'rateLimit' => 1000, 
+            'version' => 'v1',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27990968-75d9c884-6470-11e7-9073-46756c8e7e8c.jpg',
+                'api' => array (
+                    'public' => 'https://api.blinktrade.com/api',
+                    'private' => 'https://api.blinktrade.com/tapi',
+                ),
+                'www' => 'https://blinktrade.com',
+                'doc' => 'https://blinktrade.com/docs',
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        '{currency}/ticker',    // ?crypto_currency=BTC
+                        '{currency}/orderbook', // ?crypto_currency=BTC
+                        '{currency}/trades',    // ?crypto_currency=BTC&since=<TIMESTAMP>&limit=<NUMBER>
+                    ),
+                ),
+                'private' => array (
+                    'post' => array (
+                        'D',   // order
+                        'F',   // cancel order
+                        'U2',  // balance
+                        'U4',  // my orders
+                        'U6',  // withdraw
+                        'U18', // deposit
+                        'U24', // confirm withdrawal
+                        'U26', // list withdrawals
+                        'U30', // list deposits
+                        'U34', // ledger
+                        'U70', // cancel withdrawal
+                    ),
+                ),
+            ),
+            'products' => array (
+                'BTC/VEF' => array ( 'id' => 'BTCVEF', 'symbol' => 'BTC/VEF', 'base' => 'BTC', 'quote' => 'VEF', 'brokerId' => 1, 'broker' => 'SurBitcoin', ),
+                'BTC/VND' => array ( 'id' => 'BTCVND', 'symbol' => 'BTC/VND', 'base' => 'BTC', 'quote' => 'VND', 'brokerId' => 3, 'broker' => 'VBTC', ),
+                'BTC/BRL' => array ( 'id' => 'BTCBRL', 'symbol' => 'BTC/BRL', 'base' => 'BTC', 'quote' => 'BRL', 'brokerId' => 4, 'broker' => 'FoxBit', ),
+                'BTC/PKR' => array ( 'id' => 'BTCPKR', 'symbol' => 'BTC/PKR', 'base' => 'BTC', 'quote' => 'PKR', 'brokerId' => 8, 'broker' => 'UrduBit', ),
+                'BTC/CLP' => array ( 'id' => 'BTCCLP', 'symbol' => 'BTC/CLP', 'base' => 'BTC', 'quote' => 'CLP', 'brokerId' => 9, 'broker' => 'ChileBit', ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_balance () {
+        return $this->privatePostU2 (array (
+            'BalanceReqID' => $this->nonce (),
+        ));
+    }
+
+    public function fetch_order_book ($product) {
+        $p = $this->product ($product);
+        $orderbook = $this->publicGetCurrencyOrderbook (array (
+            'currency' => $p['quote'],
+            'crypto_currency' => $p['base'],
+        ));
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $p = $this->product ($product);
+        $ticker = $this->publicGetCurrencyTicker (array (
+            'currency' => $p['quote'],
+            'crypto_currency' => $p['base'],
+        ));
+        $timestamp = $this->milliseconds ();
+        $lowercaseQuote = strtolower ($p['quote']);
+        $quoteVolume = 'vol_' . $lowercaseQuote;
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => floatval ($ticker['vol']),
+            'quoteVolume' => floatval ($ticker[$quoteVolume]),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        $p = $this->product ($product);
+        return $this->publicGetCurrencyTrades (array (
+            'currency' => $p['quote'],
+            'crypto_currency' => $p['base'],
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($type == 'market')
+            throw new \Exception ($this->id . ' allows limit orders only');
+        $p = $this->product ($product);
+        $order = array (
+            'ClOrdID' => $this->nonce (),
+            'Symbol' => $p['id'],
+            'Side' => $this->capitalize ($side),
+            'OrdType' => 2,
+            'Price' => $price,
+            'OrderQty' => $amount,
+            'BrokerID' => $p['brokerId'],
+        );
+        return $this->privatePostD (array_merge ($order, $params));
+    }
+
+    public function cancel_order ($id, $params = array ()) {
+        return $this->privatePostF (array_merge (array (
+            'ClOrdID' => $id,
+        ), $params));
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$type] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $query = $this->omit ($params, $this->extract_params ($path));
+        if ($type == 'public') {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
+        } else {
+            $nonce = (string) $this->nonce ();
+            $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $params));
+            $body = json_encode ();
+            $headers = array (
+                'APIKey' => $this->apiKey,
+                'Nonce' => $nonce,
+                'Signature' => $this->hmac ($nonce, $this->secret),
+                'Content-Type' => 'application/json',
+            );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 class btcchina extends Market {
 
     public function __construct ($options = array ()) {
@@ -5127,174 +5295,6 @@ class exmo extends Market {
                 'Content-Length' => strlen ($body),
                 'Key' => $this->apiKey,
                 'Sign' => $this->hmac ($body, $this->secret, 'sha512'),
-            );
-        }
-        return $this->fetch ($url, $method, $headers, $body);
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-class blinktrade extends Market {
-
-    public function __construct ($options = array ()) {
-        parent::__construct (array_merge (array (
-            'id' => 'blinktrade',
-            'name' => 'BlinkTrade',
-            'countries' => array ( 'US', 'VE', 'VN', 'BR', 'PK', 'CL' ),
-            'rateLimit' => 1000, 
-            'version' => 'v1',
-            'urls' => array (
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27990968-75d9c884-6470-11e7-9073-46756c8e7e8c.jpg',
-                'api' => array (
-                    'public' => 'https://api.blinktrade.com/api',
-                    'private' => 'https://api.blinktrade.com/tapi',
-                ),
-                'www' => 'https://blinktrade.com',
-                'doc' => 'https://blinktrade.com/docs',
-            ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
-                        '{currency}/ticker',    // ?crypto_currency=BTC
-                        '{currency}/orderbook', // ?crypto_currency=BTC
-                        '{currency}/trades',    // ?crypto_currency=BTC&since=<TIMESTAMP>&limit=<NUMBER>
-                    ),
-                ),
-                'private' => array (
-                    'post' => array (
-                        'D',   // order
-                        'F',   // cancel order
-                        'U2',  // balance
-                        'U4',  // my orders
-                        'U6',  // withdraw
-                        'U18', // deposit
-                        'U24', // confirm withdrawal
-                        'U26', // list withdrawals
-                        'U30', // list deposits
-                        'U34', // ledger
-                        'U70', // cancel withdrawal
-                    ),
-                ),
-            ),
-            'products' => array (
-                'BTC/VEF' => array ( 'id' => 'BTCVEF', 'symbol' => 'BTC/VEF', 'base' => 'BTC', 'quote' => 'VEF', 'brokerId' => 1, 'broker' => 'SurBitcoin', ),
-                'BTC/VND' => array ( 'id' => 'BTCVND', 'symbol' => 'BTC/VND', 'base' => 'BTC', 'quote' => 'VND', 'brokerId' => 3, 'broker' => 'VBTC', ),
-                'BTC/BRL' => array ( 'id' => 'BTCBRL', 'symbol' => 'BTC/BRL', 'base' => 'BTC', 'quote' => 'BRL', 'brokerId' => 4, 'broker' => 'FoxBit', ),
-                'BTC/PKR' => array ( 'id' => 'BTCPKR', 'symbol' => 'BTC/PKR', 'base' => 'BTC', 'quote' => 'PKR', 'brokerId' => 8, 'broker' => 'UrduBit', ),
-                'BTC/CLP' => array ( 'id' => 'BTCCLP', 'symbol' => 'BTC/CLP', 'base' => 'BTC', 'quote' => 'CLP', 'brokerId' => 9, 'broker' => 'ChileBit', ),
-            ),
-        ), $options));
-    }
-
-    public function fetch_balance () {
-        return $this->privatePostU2 (array (
-            'BalanceReqID' => $this->nonce (),
-        ));
-    }
-
-    public function fetch_order_book ($product) {
-        $p = $this->product ($product);
-        $orderbook = $this->publicGetCurrencyOrderbook (array (
-            'currency' => $p['quote'],
-            'crypto_currency' => $p['base'],
-        ));
-        $timestamp = $this->milliseconds ();
-        $result = array (
-            'bids' => array (),
-            'asks' => array (),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
-        $sides = array ('bids', 'asks');
-        for ($s = 0; $s < count ($sides); $s++) {
-            $side = $sides[$s];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = floatval ($order[0]);
-                $amount = floatval ($order[1]);
-                $result[$side][] = array ($price, $amount);
-            }
-        }
-        return $result;
-    }
-
-    public function fetch_ticker ($product) {
-        $p = $this->product ($product);
-        $ticker = $this->publicGetCurrencyTicker (array (
-            'currency' => $p['quote'],
-            'crypto_currency' => $p['base'],
-        ));
-        $timestamp = $this->milliseconds ();
-        $lowercaseQuote = strtolower ($p['quote']);
-        $quoteVolume = 'vol_' . $lowercaseQuote;
-        return array (
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['buy']),
-            'ask' => floatval ($ticker['sell']),
-            'vwap' => null,
-            'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
-            'change' => null,
-            'percentage' => null,
-            'average' => null,
-            'baseVolume' => floatval ($ticker['vol']),
-            'quoteVolume' => floatval ($ticker[$quoteVolume]),
-            'info' => $ticker,
-        );
-    }
-
-    public function fetch_trades ($product) {
-        $p = $this->product ($product);
-        return $this->publicGetCurrencyTrades (array (
-            'currency' => $p['quote'],
-            'crypto_currency' => $p['base'],
-        ));
-    }
-
-    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type == 'market')
-            throw new \Exception ($this->id . ' allows limit orders only');
-        $p = $this->product ($product);
-        $order = array (
-            'ClOrdID' => $this->nonce (),
-            'Symbol' => $p['id'],
-            'Side' => $this->capitalize ($side),
-            'OrdType' => 2,
-            'Price' => $price,
-            'OrderQty' => $amount,
-            'BrokerID' => $p['brokerId'],
-        );
-        return $this->privatePostD (array_merge ($order, $params));
-    }
-
-    public function cancel_order ($id, $params = array ()) {
-        return $this->privatePostF (array_merge (array (
-            'ClOrdID' => $id,
-        ), $params));
-    }
-
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$type] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
-        $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'public') {
-            if ($query)
-                $url .= '?' . $this->urlencode ($query);
-        } else {
-            $nonce = (string) $this->nonce ();
-            $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $params));
-            $body = json_encode ();
-            $headers = array (
-                'APIKey' => $this->apiKey,
-                'Nonce' => $nonce,
-                'Signature' => $this->hmac ($nonce, $this->secret),
-                'Content-Type' => 'application/json',
             );
         }
         return $this->fetch ($url, $method, $headers, $body);

@@ -2696,6 +2696,170 @@ var bittrex = {
 
 //-----------------------------------------------------------------------------
 
+var blinktrade = {
+
+    'id': 'blinktrade',
+    'name': 'BlinkTrade',
+    'countries': [ 'US', 'VE', 'VN', 'BR', 'PK', 'CL' ],
+    'rateLimit': 1000, 
+    'version': 'v1',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27990968-75d9c884-6470-11e7-9073-46756c8e7e8c.jpg',
+        'api': {
+            'public': 'https://api.blinktrade.com/api',
+            'private': 'https://api.blinktrade.com/tapi',
+        },
+        'www': 'https://blinktrade.com',
+        'doc': 'https://blinktrade.com/docs',
+    },
+    'api': {
+        'public': {
+            'get': [
+                '{currency}/ticker',    // ?crypto_currency=BTC
+                '{currency}/orderbook', // ?crypto_currency=BTC
+                '{currency}/trades',    // ?crypto_currency=BTC&since=<TIMESTAMP>&limit=<NUMBER>
+            ],
+        },
+        'private': {
+            'post': [
+                'D',   // order
+                'F',   // cancel order
+                'U2',  // balance
+                'U4',  // my orders
+                'U6',  // withdraw
+                'U18', // deposit
+                'U24', // confirm withdrawal
+                'U26', // list withdrawals
+                'U30', // list deposits
+                'U34', // ledger
+                'U70', // cancel withdrawal
+            ],
+        },
+    },
+    'products': {
+        'BTC/VEF': { 'id': 'BTCVEF', 'symbol': 'BTC/VEF', 'base': 'BTC', 'quote': 'VEF', 'brokerId': 1, 'broker': 'SurBitcoin', },
+        'BTC/VND': { 'id': 'BTCVND', 'symbol': 'BTC/VND', 'base': 'BTC', 'quote': 'VND', 'brokerId': 3, 'broker': 'VBTC', },
+        'BTC/BRL': { 'id': 'BTCBRL', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'brokerId': 4, 'broker': 'FoxBit', },
+        'BTC/PKR': { 'id': 'BTCPKR', 'symbol': 'BTC/PKR', 'base': 'BTC', 'quote': 'PKR', 'brokerId': 8, 'broker': 'UrduBit', },
+        'BTC/CLP': { 'id': 'BTCCLP', 'symbol': 'BTC/CLP', 'base': 'BTC', 'quote': 'CLP', 'brokerId': 9, 'broker': 'ChileBit', },
+    },
+
+    fetchBalance () {
+        return this.privatePostU2 ({
+            'BalanceReqID': this.nonce (),
+        });
+    },
+
+    async fetchOrderBook (product) {
+        let p = this.product (product);
+        let orderbook = await this.publicGetCurrencyOrderbook ({
+            'currency': p['quote'],
+            'crypto_currency': p['base'],
+        });
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order[0]);
+                let amount = parseFloat (order[1]);
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
+    },
+
+    async fetchTicker (product) {
+        let p = this.product (product);
+        let ticker = await this.publicGetCurrencyTicker ({
+            'currency': p['quote'],
+            'crypto_currency': p['base'],
+        });
+        let timestamp = this.milliseconds ();
+        let lowercaseQuote = p['quote'].toLowerCase ();
+        let quoteVolume = 'vol_' + lowercaseQuote;
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['buy']),
+            'ask': parseFloat (ticker['sell']),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': parseFloat (ticker['vol']),
+            'quoteVolume': parseFloat (ticker[quoteVolume]),
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        let p = this.product (product);
+        return this.publicGetCurrencyTrades ({
+            'currency': p['quote'],
+            'crypto_currency': p['base'],
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        if (type == 'market')
+            throw new Error (this.id + ' allows limit orders only');
+        let p = this.product (product);
+        let order = {
+            'ClOrdID': this.nonce (),
+            'Symbol': p['id'],
+            'Side': this.capitalize (side),
+            'OrdType': 2,
+            'Price': price,
+            'OrderQty': amount,
+            'BrokerID': p['brokerId'],
+        };
+        return this.privatePostD (this.extend (order, params));
+    },
+
+    cancelOrder (id, params = {}) {
+        return this.privatePostF (this.extend ({
+            'ClOrdID': id,
+        }, params));
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][type] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (type == 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            let nonce = this.nonce ().toString ();
+            body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
+            body = JSON.stringify ();
+            headers = {
+                'APIKey': this.apiKey,
+                'Nonce': nonce,
+                'Signature': this.hmac (nonce, this.secret),
+                'Content-Type': 'application/json',
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var btcchina = {
 
     'id': 'btcchina',
@@ -4947,170 +5111,6 @@ var exmo = {
                 'Content-Length': body.length,
                 'Key': this.apiKey,
                 'Sign': this.hmac (body, this.secret, 'sha512'),
-            };
-        }
-        return this.fetch (url, method, headers, body);
-    },
-}
-
-//-----------------------------------------------------------------------------
-
-var blinktrade = {
-
-    'id': 'blinktrade',
-    'name': 'BlinkTrade',
-    'countries': [ 'US', 'VE', 'VN', 'BR', 'PK', 'CL' ],
-    'rateLimit': 1000, 
-    'version': 'v1',
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27990968-75d9c884-6470-11e7-9073-46756c8e7e8c.jpg',
-        'api': {
-            'public': 'https://api.blinktrade.com/api',
-            'private': 'https://api.blinktrade.com/tapi',
-        },
-        'www': 'https://blinktrade.com',
-        'doc': 'https://blinktrade.com/docs',
-    },
-    'api': {
-        'public': {
-            'get': [
-                '{currency}/ticker',    // ?crypto_currency=BTC
-                '{currency}/orderbook', // ?crypto_currency=BTC
-                '{currency}/trades',    // ?crypto_currency=BTC&since=<TIMESTAMP>&limit=<NUMBER>
-            ],
-        },
-        'private': {
-            'post': [
-                'D',   // order
-                'F',   // cancel order
-                'U2',  // balance
-                'U4',  // my orders
-                'U6',  // withdraw
-                'U18', // deposit
-                'U24', // confirm withdrawal
-                'U26', // list withdrawals
-                'U30', // list deposits
-                'U34', // ledger
-                'U70', // cancel withdrawal
-            ],
-        },
-    },
-    'products': {
-        'BTC/VEF': { 'id': 'BTCVEF', 'symbol': 'BTC/VEF', 'base': 'BTC', 'quote': 'VEF', 'brokerId': 1, 'broker': 'SurBitcoin', },
-        'BTC/VND': { 'id': 'BTCVND', 'symbol': 'BTC/VND', 'base': 'BTC', 'quote': 'VND', 'brokerId': 3, 'broker': 'VBTC', },
-        'BTC/BRL': { 'id': 'BTCBRL', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'brokerId': 4, 'broker': 'FoxBit', },
-        'BTC/PKR': { 'id': 'BTCPKR', 'symbol': 'BTC/PKR', 'base': 'BTC', 'quote': 'PKR', 'brokerId': 8, 'broker': 'UrduBit', },
-        'BTC/CLP': { 'id': 'BTCCLP', 'symbol': 'BTC/CLP', 'base': 'BTC', 'quote': 'CLP', 'brokerId': 9, 'broker': 'ChileBit', },
-    },
-
-    fetchBalance () {
-        return this.privatePostU2 ({
-            'BalanceReqID': this.nonce (),
-        });
-    },
-
-    async fetchOrderBook (product) {
-        let p = this.product (product);
-        let orderbook = await this.publicGetCurrencyOrderbook ({
-            'currency': p['quote'],
-            'crypto_currency': p['base'],
-        });
-        let timestamp = this.milliseconds ();
-        let result = {
-            'bids': [],
-            'asks': [],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
-        let sides = [ 'bids', 'asks' ];
-        for (let s = 0; s < sides.length; s++) {
-            let side = sides[s];
-            let orders = orderbook[side];
-            for (let i = 0; i < orders.length; i++) {
-                let order = orders[i];
-                let price = parseFloat (order[0]);
-                let amount = parseFloat (order[1]);
-                result[side].push ([ price, amount ]);
-            }
-        }
-        return result;
-    },
-
-    async fetchTicker (product) {
-        let p = this.product (product);
-        let ticker = await this.publicGetCurrencyTicker ({
-            'currency': p['quote'],
-            'crypto_currency': p['base'],
-        });
-        let timestamp = this.milliseconds ();
-        let lowercaseQuote = p['quote'].toLowerCase ();
-        let quoteVolume = 'vol_' + lowercaseQuote;
-        return {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy']),
-            'ask': parseFloat (ticker['sell']),
-            'vwap': undefined,
-            'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': parseFloat (ticker['vol']),
-            'quoteVolume': parseFloat (ticker[quoteVolume]),
-            'info': ticker,
-        };
-    },
-
-    fetchTrades (product) {
-        let p = this.product (product);
-        return this.publicGetCurrencyTrades ({
-            'currency': p['quote'],
-            'crypto_currency': p['base'],
-        });
-    },
-
-    createOrder (product, type, side, amount, price = undefined, params = {}) {
-        if (type == 'market')
-            throw new Error (this.id + ' allows limit orders only');
-        let p = this.product (product);
-        let order = {
-            'ClOrdID': this.nonce (),
-            'Symbol': p['id'],
-            'Side': this.capitalize (side),
-            'OrdType': 2,
-            'Price': price,
-            'OrderQty': amount,
-            'BrokerID': p['brokerId'],
-        };
-        return this.privatePostD (this.extend (order, params));
-    },
-
-    cancelOrder (id, params = {}) {
-        return this.privatePostF (this.extend ({
-            'ClOrdID': id,
-        }, params));
-    },
-
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][type] + '/' + this.version + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
-        if (type == 'public') {
-            if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
-        } else {
-            let nonce = this.nonce ().toString ();
-            body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
-            body = JSON.stringify ();
-            headers = {
-                'APIKey': this.apiKey,
-                'Nonce': nonce,
-                'Signature': this.hmac (nonce, this.secret),
-                'Content-Type': 'application/json',
             };
         }
         return this.fetch (url, method, headers, body);

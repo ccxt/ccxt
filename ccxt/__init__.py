@@ -2671,6 +2671,164 @@ class bittrex (Market):
 
 #------------------------------------------------------------------------------
 
+class blinktrade (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'blinktrade',
+            'name': 'BlinkTrade',
+            'countries': [ 'US', 'VE', 'VN', 'BR', 'PK', 'CL' ],
+            'rateLimit': 1000, 
+            'version': 'v1',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27990968-75d9c884-6470-11e7-9073-46756c8e7e8c.jpg',
+                'api': {
+                    'public': 'https://api.blinktrade.com/api',
+                    'private': 'https://api.blinktrade.com/tapi',
+                },
+                'www': 'https://blinktrade.com',
+                'doc': 'https://blinktrade.com/docs',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        '{currency}/ticker',    # ?crypto_currency=BTC
+                        '{currency}/orderbook', # ?crypto_currency=BTC
+                        '{currency}/trades',    # ?crypto_currency=BTC&since=<TIMESTAMP>&limit=<NUMBER>
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'D',   # order
+                        'F',   # cancel order
+                        'U2',  # balance
+                        'U4',  # my orders
+                        'U6',  # withdraw
+                        'U18', # deposit
+                        'U24', # confirm withdrawal
+                        'U26', # list withdrawals
+                        'U30', # list deposits
+                        'U34', # ledger
+                        'U70', # cancel withdrawal
+                    ],
+                },
+            },
+            'products': {
+                'BTC/VEF': { 'id': 'BTCVEF', 'symbol': 'BTC/VEF', 'base': 'BTC', 'quote': 'VEF', 'brokerId': 1, 'broker': 'SurBitcoin', },
+                'BTC/VND': { 'id': 'BTCVND', 'symbol': 'BTC/VND', 'base': 'BTC', 'quote': 'VND', 'brokerId': 3, 'broker': 'VBTC', },
+                'BTC/BRL': { 'id': 'BTCBRL', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'brokerId': 4, 'broker': 'FoxBit', },
+                'BTC/PKR': { 'id': 'BTCPKR', 'symbol': 'BTC/PKR', 'base': 'BTC', 'quote': 'PKR', 'brokerId': 8, 'broker': 'UrduBit', },
+                'BTC/CLP': { 'id': 'BTCCLP', 'symbol': 'BTC/CLP', 'base': 'BTC', 'quote': 'CLP', 'brokerId': 9, 'broker': 'ChileBit', },
+            },
+        }
+        params.update (config)
+        super (blinktrade, self).__init__ (params)
+
+    def fetch_balance (self):
+        return self.privatePostU2 ({
+            'BalanceReqID': self.nonce (),
+        })
+
+    def fetch_order_book (self, product):
+        p = self.product (product)
+        orderbook = self.publicGetCurrencyOrderbook ({
+            'currency': p['quote'],
+            'crypto_currency': p['base'],
+        })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order[0])
+                amount = float (order[1])
+                result[side].append ([ price, amount ])
+        return result
+
+    def fetch_ticker (self, product):
+        p = self.product (product)
+        ticker = self.publicGetCurrencyTicker ({
+            'currency': p['quote'],
+            'crypto_currency': p['base'],
+        })
+        timestamp = self.milliseconds ()
+        lowercaseQuote = p['quote'].lower ()
+        quoteVolume = 'vol_' + lowercaseQuote
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['buy']),
+            'ask': float (ticker['sell']),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': float (ticker['vol']),
+            'quoteVolume': float (ticker[quoteVolume]),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        p = self.product (product)
+        return self.publicGetCurrencyTrades ({
+            'currency': p['quote'],
+            'crypto_currency': p['base'],
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        if type == 'market':
+            raise Exception (self.id + ' allows limit orders only')
+        p = self.product (product)
+        order = {
+            'ClOrdID': self.nonce (),
+            'Symbol': p['id'],
+            'Side': self.capitalize (side),
+            'OrdType': 2,
+            'Price': price,
+            'OrderQty': amount,
+            'BrokerID': p['brokerId'],
+        }
+        return self.privatePostD (self.extend (order, params))
+
+    def cancel_order (self, id, params = {}):
+        return self.privatePostF (self.extend ({
+            'ClOrdID': id,
+        }, params))
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][type] + '/' + self.version + '/' + self.implode_params (path, params)
+        query = self.omit (params, self.extract_params (path))
+        if type == 'public':
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
+            nonce = str (self.nonce ())
+            body = _urlencode.urlencode (self.extend ({ 'nonce': nonce }, params))
+            body = json.dumps ()
+            headers = {
+                'APIKey': self.apiKey,
+                'Nonce': nonce,
+                'Signature': self.hmac (nonce, self.secret),
+                'Content-Type': 'application/json',
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class btcchina (Market):
 
     def __init__ (self, config = {}):
@@ -4839,164 +4997,6 @@ class exmo (Market):
                 'Content-Length': len (body),
                 'Key': self.apiKey,
                 'Sign': self.hmac (body, self.secret, hashlib.sha512),
-            }
-        return self.fetch (url, method, headers, body)
-
-#------------------------------------------------------------------------------
-
-class blinktrade (Market):
-
-    def __init__ (self, config = {}):
-        params = {
-            'id': 'blinktrade',
-            'name': 'BlinkTrade',
-            'countries': [ 'US', 'VE', 'VN', 'BR', 'PK', 'CL' ],
-            'rateLimit': 1000, 
-            'version': 'v1',
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27990968-75d9c884-6470-11e7-9073-46756c8e7e8c.jpg',
-                'api': {
-                    'public': 'https://api.blinktrade.com/api',
-                    'private': 'https://api.blinktrade.com/tapi',
-                },
-                'www': 'https://blinktrade.com',
-                'doc': 'https://blinktrade.com/docs',
-            },
-            'api': {
-                'public': {
-                    'get': [
-                        '{currency}/ticker',    # ?crypto_currency=BTC
-                        '{currency}/orderbook', # ?crypto_currency=BTC
-                        '{currency}/trades',    # ?crypto_currency=BTC&since=<TIMESTAMP>&limit=<NUMBER>
-                    ],
-                },
-                'private': {
-                    'post': [
-                        'D',   # order
-                        'F',   # cancel order
-                        'U2',  # balance
-                        'U4',  # my orders
-                        'U6',  # withdraw
-                        'U18', # deposit
-                        'U24', # confirm withdrawal
-                        'U26', # list withdrawals
-                        'U30', # list deposits
-                        'U34', # ledger
-                        'U70', # cancel withdrawal
-                    ],
-                },
-            },
-            'products': {
-                'BTC/VEF': { 'id': 'BTCVEF', 'symbol': 'BTC/VEF', 'base': 'BTC', 'quote': 'VEF', 'brokerId': 1, 'broker': 'SurBitcoin', },
-                'BTC/VND': { 'id': 'BTCVND', 'symbol': 'BTC/VND', 'base': 'BTC', 'quote': 'VND', 'brokerId': 3, 'broker': 'VBTC', },
-                'BTC/BRL': { 'id': 'BTCBRL', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'brokerId': 4, 'broker': 'FoxBit', },
-                'BTC/PKR': { 'id': 'BTCPKR', 'symbol': 'BTC/PKR', 'base': 'BTC', 'quote': 'PKR', 'brokerId': 8, 'broker': 'UrduBit', },
-                'BTC/CLP': { 'id': 'BTCCLP', 'symbol': 'BTC/CLP', 'base': 'BTC', 'quote': 'CLP', 'brokerId': 9, 'broker': 'ChileBit', },
-            },
-        }
-        params.update (config)
-        super (blinktrade, self).__init__ (params)
-
-    def fetch_balance (self):
-        return self.privatePostU2 ({
-            'BalanceReqID': self.nonce (),
-        })
-
-    def fetch_order_book (self, product):
-        p = self.product (product)
-        orderbook = self.publicGetCurrencyOrderbook ({
-            'currency': p['quote'],
-            'crypto_currency': p['base'],
-        })
-        timestamp = self.milliseconds ()
-        result = {
-            'bids': [],
-            'asks': [],
-            'timestamp': timestamp,
-            'datetime': self.iso8601 (timestamp),
-        }
-        sides = [ 'bids', 'asks' ]
-        for s in range (0, len (sides)):
-            side = sides[s]
-            orders = orderbook[side]
-            for i in range (0, len (orders)):
-                order = orders[i]
-                price = float (order[0])
-                amount = float (order[1])
-                result[side].append ([ price, amount ])
-        return result
-
-    def fetch_ticker (self, product):
-        p = self.product (product)
-        ticker = self.publicGetCurrencyTicker ({
-            'currency': p['quote'],
-            'crypto_currency': p['base'],
-        })
-        timestamp = self.milliseconds ()
-        lowercaseQuote = p['quote'].lower ()
-        quoteVolume = 'vol_' + lowercaseQuote
-        return {
-            'timestamp': timestamp,
-            'datetime': self.iso8601 (timestamp),
-            'high': float (ticker['high']),
-            'low': float (ticker['low']),
-            'bid': float (ticker['buy']),
-            'ask': float (ticker['sell']),
-            'vwap': None,
-            'open': None,
-            'close': None,
-            'first': None,
-            'last': float (ticker['last']),
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': float (ticker['vol']),
-            'quoteVolume': float (ticker[quoteVolume]),
-            'info': ticker,
-        }
-
-    def fetch_trades (self, product):
-        p = self.product (product)
-        return self.publicGetCurrencyTrades ({
-            'currency': p['quote'],
-            'crypto_currency': p['base'],
-        })
-
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        if type == 'market':
-            raise Exception (self.id + ' allows limit orders only')
-        p = self.product (product)
-        order = {
-            'ClOrdID': self.nonce (),
-            'Symbol': p['id'],
-            'Side': self.capitalize (side),
-            'OrdType': 2,
-            'Price': price,
-            'OrderQty': amount,
-            'BrokerID': p['brokerId'],
-        }
-        return self.privatePostD (self.extend (order, params))
-
-    def cancel_order (self, id, params = {}):
-        return self.privatePostF (self.extend ({
-            'ClOrdID': id,
-        }, params))
-
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        url = self.urls['api'][type] + '/' + self.version + '/' + self.implode_params (path, params)
-        query = self.omit (params, self.extract_params (path))
-        if type == 'public':
-            if query:
-                url += '?' + _urlencode.urlencode (query)
-        else:
-            nonce = str (self.nonce ())
-            body = _urlencode.urlencode (self.extend ({ 'nonce': nonce }, params))
-            body = json.dumps ()
-            headers = {
-                'APIKey': self.apiKey,
-                'Nonce': nonce,
-                'Signature': self.hmac (nonce, self.secret),
-                'Content-Type': 'application/json',
             }
         return self.fetch (url, method, headers, body)
 
