@@ -3210,6 +3210,237 @@ var btce = {
 
 //-----------------------------------------------------------------------------
 
+var btctrader = {
+
+    'id': 'btctrader',
+    'name': 'BTCTrader',
+    'countries': [ 'TR', 'GR', 'PH' ], // Turkey, Greece, Philippines
+    'rateLimit': 1000,
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27992404-cda1e386-649c-11e7-8dc1-40bbd2897768.jpg',
+        'api': 'https://www.btctrader.com/api',
+        'www': 'https://www.btctrader.com',
+        'doc': 'https://github.com/BTCTrader/broker-api-docs',
+    },
+    'api': {
+        'public': {
+            'get': [
+                'ohlcdata', // ?last=COUNT
+                'orderbook',
+                'ticker',                
+                'trades',   // ?last=COUNT (max 50)
+                
+            ],
+        },
+        'private': {
+            'get': [
+                'balance',
+                'openOrders',
+                'userTransactions', // ?offset=0&limit=25&sort=asc
+                
+            ],
+            'post': [
+                'buy',
+                'cancelOrder',                
+                'sell',
+            ],
+        },
+    },
+
+    async fetchProducts () {
+        let products = await this.publicGetPairSettings ();
+        let keys = Object.keys (products);
+        let result = [];
+        for (let p = 0; p < keys.length; p++) {
+            let id = keys[p];
+            let product = products[id];
+            let symbol = id.replace ('_', '/');
+            let [ base, quote ] = symbol.split ('/');
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            });
+        }
+        return result;
+    },
+
+    fetchBalance () {
+        return this.privatePostBalance ();
+    },
+
+    async fetchOrderBook (product) {
+        let orderbook = await this.publicGetOrderbook ();
+        let timestamp = parseInt (orderbook['timestamp'] * 1000);
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order[0]);
+                let amount = parseFloat (order[1]);
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
+    },
+
+    async fetchTicker (product) {
+        let ticker = await this.publicGetTicker ();
+        let timestamp = parseInt (ticker['timestamp'] * 1000);
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['bid']),
+            'ask': parseFloat (ticker['ask']),
+            'vwap': undefined,
+            'open': parseFloat (ticker['open']),
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': parseFloat (ticker['average']),
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['volume']),
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        let maxCount = 50;
+        return this.publicGetTrades ({
+            // 'last': maxCount,
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let method = 'privatePost' + this.capitalize (side);
+        let order = {
+            'Type': (side == 'buy') ? 'BuyBtc' : 'SelBtc',
+            'IsMarketOrder': (type == 'market') ? 1 : 0,
+        };
+        if (type == 'market') {
+            if (side == 'buy')
+                order['Total'] = amount;
+            else
+                order['Amount'] = amount;
+        } else {
+            order['Price'] = price;
+            order['Amount'] = amount;
+        }
+        return this[method] (this.extend (order, params));
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + path;
+        if (type == 'public') {
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
+        } else {
+            let nonce = this.nonce ().toString;
+            body = this.urlencode (params);
+            let secret = this.base64ToString (this.secret);
+            let auth = this.apiKey + nonce;
+            headers = {
+                'X-PCK': this.apiKey,
+                'X-Stamp': nonce.toString (),
+                'X-Signature': this.hmac (auth, secret, 'sha256', 'base64'),
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': body.length,
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+/*
+
+
+You need to provide 3 parameters to authenticate a request:
+
+"X-PCK": API key
+"X-Stamp": Nonce
+"X-Signature": Signature
+API key
+
+You can create the API key from the Account > API Access page in your exchange account.
+
+Nonce
+
+Nonce is a regular integer number. It must be increasing with every request you make.
+
+A common practice is to use unix time for that parameter.
+
+Signature
+
+Signature is a HMAC-SHA256 encoded message. The HMAC-SHA256 code must be generated using a private key that contains a timestamp and your API key
+
+Example (C#):
+
+string message = yourAPIKey + unixTimeStamp;
+using (HMACSHA256 hmac = new HMACSHA256(Convert.FromBase64String( yourPrivateKey )))
+{
+   byte[] signatureBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
+   string X-Signature = Convert.ToBase64String(signatureBytes));
+}
+After creating the parameters, you have to send them in the HTML Header of your request with their name
+
+Example (C#):
+
+client.DefaultRequestHeaders.Add("X-PCK", yourAPIKey);
+client.DefaultRequestHeaders.Add("X-Stamp", stamp.ToString());
+client.DefaultRequestHeaders.Add("X-Signature", signature);
+Warning: Your IP address can be blocked if you make too many unauthorized requests. Make sure you implement the authentication method properly.
+
+Account Balance (Requires Authentication)
+
+
+POST .../api/cancelOrder
+id: order ID
+
+POST .../api/buy
+IsMarketOrder: 1 for market order, 0 for limit order
+Type: must be set as "BuyBtc"
+For market orders:
+Price: Price field will be ignored for market orders. Market orders get filled with different prices until your order is completely filled. There is a 5% limit on the difference between the first price and the last price. İ.e. you can't buy at a price more than 5% higher than the best sell at the time of order submission
+Amount: Amount field will be ignored for buy market orders. The amount will be calculated according to the total value that you send.
+Total: The total amount you will spend with this order. You will buy from different prices until your order is filled as described above
+
+For limit orders:
+Price: Order price
+Amount": Order amount
+Total: Will be ignored for limit orders.
+
+POST .../api/sell
+
+Params:
+
+IsMarketOrder: 1 for market order, 0 for limit order
+Type: must be set as "SelBtc"
+
+Price: Price field will be ignored. Market orders get filled with different prices until your order is completely filled. There is a 5% limit on the difference between the first price and the last price. İ.e. you can't sell at a price less than 5% lower than the best buy at the time of order submission
+Amount: The total amount you will sell with this order. You will sell at different prices until your order is filled as described above
+Total: Total field will be ignored. The total amount will depent on the amount value you send.
+
+Price: Order price
+Amount": Order amount
+Total: Will be ignored for limit orders.
+
+*/
+
+//-----------------------------------------------------------------------------
+
 var btctradeua = {
 
     'id': 'btctradeua',
@@ -3400,6 +3631,25 @@ var btctradeua = {
         return this.fetch (url, method, headers, body);
     },
 }
+
+//-----------------------------------------------------------------------------
+
+var btcturk = extend (btctrader, {
+
+    'id': 'btcturk',
+    'name': 'BTCTurk',
+    'countries': 'TR', // Turkey
+    'rateLimit': 1000,
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg',
+        'api': 'https://www.btcturk.com/api',
+        'www': 'https://www.btcturk.com',
+        'doc': 'https://github.com/BTCTrader/broker-api-docs',
+    },
+    'products': {
+        'BTC/TRY': { 'id': 'BTC/TRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY' },
+    },
+})
 
 //-----------------------------------------------------------------------------
 
@@ -8975,7 +9225,9 @@ var markets = {
     'blinktrade':   blinktrade,
     'btcchina':     btcchina,
     'btce':         btce,
+    'btctrader':    btctrader,
     'btctradeua':   btctradeua,
+    'btcturk':      btcturk,
     'btcx':         btcx,
     'bter':         bter,
     'bxinth':       bxinth,

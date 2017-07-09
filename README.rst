@@ -18,7 +18,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 58 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 60 cryptocurrency exchange markets and trading APIs:
 
 +---------------------------+-----+-------------+---+----------------------+------------+
 |                           | id  | name        | v | doc                  | countries  |
@@ -108,11 +108,21 @@ The ccxt library currently supports the following 58 cryptocurrency exchange mar
 |                           | e   | ps://btc-e. |   | com/api/3/docs>`__   | Russia     |
 |                           |     | com>`__     |   |                      |            |
 +---------------------------+-----+-------------+---+----------------------+------------+
+| |btctrader|               | btc | `BTCTrader  | \ | `API <https://github | Turkey,    |
+|                           | tra | <https://ww | * | .com/BTCTrader/broke | Greece,    |
+|                           | der | w.btctrader |   | r-api-docs>`__       | Philippine |
+|                           |     | .com>`__    |   |                      | s          |
++---------------------------+-----+-------------+---+----------------------+------------+
 | |btctradeua|              | btc | `BTC Trade  | \ | `API <https://docs.g | Ukraine    |
 |                           | tra | UA <https:/ | * | oogle.com/document/d |            |
 |                           | deu | /btc-trade. |   | /1ocYA0yMy_RXd561sfG |            |
 |                           | a   | com.ua>`__  |   | 3qEPZ80kyll36HUxvCRe |            |
 |                           |     |             |   | 5GbhE/edit>`__       |            |
++---------------------------+-----+-------------+---+----------------------+------------+
+| |btcturk|                 | btc | `BTCTurk <h | \ | `API <https://github | Turkey     |
+|                           | tur | ttps://www. | * | .com/BTCTrader/broke |            |
+|                           | k   | btcturk.com |   | r-api-docs>`__       |            |
+|                           |     | >`__        |   |                      |            |
 +---------------------------+-----+-------------+---+----------------------+------------+
 | |btcx|                    | btc | `BTCX <http | 1 | `API <https://btc-x. | Iceland,   |
 |                           | x   | s://btc-x.i |   | is/custom/api-docume | US, EU     |

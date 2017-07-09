@@ -22,7 +22,9 @@ class Market {
         'blinktrade',
         'btcchina',
         'btce',
+        'btctrader',
         'btctradeua',
+        'btcturk',
         'btcx',
         'bter',
         'bxinth',
@@ -3354,6 +3356,167 @@ class btce extends Market {
 
 //-----------------------------------------------------------------------------
 
+class btctrader extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'btctrader',
+            'name' => 'BTCTrader',
+            'countries' => array ( 'TR', 'GR', 'PH' ), // Turkey, Greece, Philippines
+            'rateLimit' => 1000,
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27992404-cda1e386-649c-11e7-8dc1-40bbd2897768.jpg',
+                'api' => 'https://www.btctrader.com/api',
+                'www' => 'https://www.btctrader.com',
+                'doc' => 'https://github.com/BTCTrader/broker-api-docs',
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'ohlcdata', // ?last=COUNT
+                        'orderbook',
+                        'ticker',                
+                        'trades',   // ?last=COUNT (max 50)
+                        
+                    ),
+                ),
+                'private' => array (
+                    'get' => array (
+                        'balance',
+                        'openOrders',
+                        'userTransactions', // ?offset=0&limit=25&sort=asc
+                        
+                    ),
+                    'post' => array (
+                        'buy',
+                        'cancelOrder',                
+                        'sell',
+                    ),
+                ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_products () {
+        $products = $this->publicGetPairSettings ();
+        $keys = array_keys ($products);
+        $result = array ();
+        for ($p = 0; $p < count ($keys); $p++) {
+            $id = $keys[$p];
+            $product = $products[$id];
+            $symbol = str_replace ('_', '/', $id);
+            list ($base, $quote) = explode ('/', $symbol);
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_balance () {
+        return $this->privatePostBalance ();
+    }
+
+    public function fetch_order_book ($product) {
+        $orderbook = $this->publicGetOrderbook ();
+        $timestamp = intval ($orderbook['timestamp'] * 1000);
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $ticker = $this->publicGetTicker ();
+        $timestamp = intval ($ticker['timestamp'] * 1000);
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => null,
+            'open' => floatval ($ticker['open']),
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => floatval ($ticker['average']),
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['volume']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        $maxCount = 50;
+        return $this->publicGetTrades (array (
+            // 'last' => $maxCount,
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        $method = 'privatePost' . $this->capitalize ($side);
+        $order = array (
+            'Type' => ($side == 'buy') ? 'BuyBtc' : 'SelBtc',
+            'IsMarketOrder' => ($type == 'market') ? 1 : 0,
+        );
+        if ($type == 'market') {
+            if ($side == 'buy')
+                $order['Total'] = $amount;
+            else
+                $order['Amount'] = $amount;
+        } else {
+            $order['Price'] = $price;
+            $order['Amount'] = $amount;
+        }
+        return $this->$method (array_merge ($order, $params));
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $path;
+        if ($type == 'public') {
+            if ($params)
+                $url .= '?' . $this->urlencode ($params);
+        } else {
+            $nonce = $this->nonce ().toString;
+            $body = $this->urlencode ($params);
+            $secret = $this->base64ToString ($this->secret);
+            $auth = $this->apiKey . $nonce;
+            $headers = array (
+                'X-PCK' => $this->apiKey,
+                'X-Stamp' => (string) $nonce,
+                'X-Signature' => $this->hmac ($auth, $secret, 'sha256', 'base64'),
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body),
+            );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 class btctradeua extends Market {
 
     public function __construct ($options = array ()) {
@@ -3546,6 +3709,29 @@ class btctradeua extends Market {
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+class btcturk extends btctrader {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'btcturk',
+            'name' => 'BTCTurk',
+            'countries' => 'TR', // Turkey
+            'rateLimit' => 1000,
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg',
+                'api' => 'https://www.btcturk.com/api',
+                'www' => 'https://www.btcturk.com',
+                'doc' => 'https://github.com/BTCTrader/broker-api-docs',
+            ),
+            'products' => array (
+                'BTC/TRY' => array ( 'id' => 'BTC/TRY', 'symbol' => 'BTC/TRY', 'base' => 'BTC', 'quote' => 'TRY' ),
+            ),
+        ), $options));
     }
 }
 

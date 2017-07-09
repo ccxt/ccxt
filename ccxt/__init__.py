@@ -18,7 +18,9 @@ markets = [
     'blinktrade',
     'btcchina',
     'btce',
+    'btctrader',
     'btctradeua',
+    'btcturk',
     'btcx',
     'bter',
     'bxinth',
@@ -3171,6 +3173,155 @@ class btce (Market):
 
 #------------------------------------------------------------------------------
 
+class btctrader (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'btctrader',
+            'name': 'BTCTrader',
+            'countries': [ 'TR', 'GR', 'PH' ], # Turkey, Greece, Philippines
+            'rateLimit': 1000,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27992404-cda1e386-649c-11e7-8dc1-40bbd2897768.jpg',
+                'api': 'https://www.btctrader.com/api',
+                'www': 'https://www.btctrader.com',
+                'doc': 'https://github.com/BTCTrader/broker-api-docs',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'ohlcdata', # ?last=COUNT
+                        'orderbook',
+                        'ticker',                
+                        'trades',   # ?last=COUNT (max 50)
+                        
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'balance',
+                        'openOrders',
+                        'userTransactions', # ?offset=0&limit=25&sort=asc
+                        
+                    ],
+                    'post': [
+                        'buy',
+                        'cancelOrder',                
+                        'sell',
+                    ],
+                },
+            },
+        }
+        params.update (config)
+        super (btctrader, self).__init__ (params)
+
+    def fetch_products (self):
+        products = self.publicGetPairSettings ()
+        keys = list (products.keys ())
+        result = []
+        for p in range (0, len (keys)):
+            id = keys[p]
+            product = products[id]
+            symbol = id.replace ('_', '/')
+            base, quote = symbol.split ('/')
+            result.append ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            })
+        return result
+
+    def fetch_balance (self):
+        return self.privatePostBalance ()
+
+    def fetch_order_book (self, product):
+        orderbook = self.publicGetOrderbook ()
+        timestamp = int (orderbook['timestamp'] * 1000)
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order[0])
+                amount = float (order[1])
+                result[side].append ([ price, amount ])
+        return result
+
+    def fetch_ticker (self, product):
+        ticker = self.publicGetTicker ()
+        timestamp = int (ticker['timestamp'] * 1000)
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['bid']),
+            'ask': float (ticker['ask']),
+            'vwap': None,
+            'open': float (ticker['open']),
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': float (ticker['average']),
+            'baseVolume': None,
+            'quoteVolume': float (ticker['volume']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        maxCount = 50
+        return self.publicGetTrades ({
+            # 'last': maxCount,
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        method = 'privatePost' + self.capitalize (side)
+        order = {
+            'Type': 'BuyBtc' if (side == 'buy') else 'SelBtc',
+            'IsMarketOrder': 1 if (type == 'market') else 0,
+        }
+        if type == 'market':
+            if side == 'buy':
+                order['Total'] = amount
+            else:
+                order['Amount'] = amount
+        else:
+            order['Price'] = price
+            order['Amount'] = amount
+        return getattr (self, method) (self.extend (order, params))
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'] + '/' + path
+        if type == 'public':
+            if params:
+                url += '?' + _urlencode.urlencode (params)
+        else:
+            nonce = self.nonce ().toString
+            body = _urlencode.urlencode (params)
+            secret = self.base64ToString (self.secret)
+            auth = self.apiKey + nonce
+            headers = {
+                'X-PCK': self.apiKey,
+                'X-Stamp': str (nonce),
+                'X-Signature': self.hmac (auth, secret, hashlib.sha256, 'base64'),
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': len (body),
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class btctradeua (Market):
 
     def __init__ (self, config = {}):
@@ -3351,6 +3502,29 @@ class btctradeua (Market):
                 'Content-Length': len (body),
             }
         return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
+class btcturk (btctrader):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'btcturk',
+            'name': 'BTCTurk',
+            'countries': 'TR', # Turkey
+            'rateLimit': 1000,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg',
+                'api': 'https://www.btcturk.com/api',
+                'www': 'https://www.btcturk.com',
+                'doc': 'https://github.com/BTCTrader/broker-api-docs',
+            },
+            'products': {
+                'BTC/TRY': { 'id': 'BTC/TRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY' },
+            },
+        }
+        params.update (config)
+        super (btcturk, self).__init__ (params)
 
 #------------------------------------------------------------------------------
 
