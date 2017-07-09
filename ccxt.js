@@ -3146,9 +3146,10 @@ var btce = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
+        result['bids'] = this.sortBy (result['bids'], 0, true);
+        result['asks'] = this.sortBy (result['asks'], 0);
         return result;
     },
-
 
     async fetchTicker (product) {
         let p = this.product (product);
