@@ -82,6 +82,9 @@ let testMarket = market => new Promise (async resolve => {
                 'ask: '     + ticker['ask'],
                 'volume: '  + ticker['quoteVolume'])
 
+            if (ticker['bid'] > ticker['ask'])
+                console.log ('Bid is greater than ask!')
+
             await sleep (delay) 
             let orderbook = await market.fetchOrderBook (symbol)
             console.log (market.id, symbol, 'order book',
