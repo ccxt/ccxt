@@ -16,6 +16,8 @@ with open (path.join (here, 'README.rst'), encoding='utf-8') as f:
 with open (path.join (here, 'package.json'), encoding = 'utf-8') as f:
     package = json.load (f)
 
+keywords = ' '.join ([item for item in package['keywords'] if (' ' not in item)])
+
 setup (
 
     name = package['name'],
@@ -51,7 +53,6 @@ setup (
         'Environment :: Console'
     ],
 
-    keywords = 'algotrading altcoin altcoins api arbitrage backtesting bitcoin bot btc crypto cryptocurrency currency market darkcoin dash digital doge dogecoin e-commerce eth ether ethereum exchange exchanges framework invest investing investor library light litecoin ltc marketdata merchandise merchant minimal order orderbook book price pricedata pricefeed private public ripple strategy toolkit trade trader trading volume xbt xrp zec zerocoin 1Broker 1BTCXE ANX ANXPro bit2c.co.il Bit2C BitBay BitBays Bitcoin.co.id Bitfinex bitlish BitMarket BitMEX Bitso Bitstamp Bittrex BlinkTrade BTCC BTCChina BTC-e BTCe BTCExchange btcexchange.ph BTCTrader btctrader.com btc-trade.com.ua BTCTradeUA BTCTurk btcturk.com BTCX btc-x bter Bter.com BX.in.th ccex C-CEX cex CEX.IO ChileBit chilebit.net coincheck CoinMate Coinsecure CryptoCapital cryptocapital.co DSX dsx.uk EXMO FoxBit foxbit.exchange FYB-SE FYB-SG GDAX Gemini HitBTC Huobi itBit jubi.com Kraken LiveCoin Liqui liqui.io luno mercado MercadoBitcoin mercadobitcoin.br OKCoin OKCoin.com OKCoin.cn Paymium Poloniex QuadrigaCX QUOINE SouthXchange SurBitcoin surbitcoin.com TheRockTrading UrduBit urdubit.com Vaultoro VBTC vbtc.exchange vbtc.vn VirWoX YoBit Zaif',
-
+    keywords = keywords,
     packages = find_packages ()
 )

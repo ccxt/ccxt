@@ -6,7 +6,7 @@ const asTable   = require ('as-table')
 const util      = require ('util')
 
 let markets = {}
-let verbose = true
+let verbose = false
 
 try {
 
