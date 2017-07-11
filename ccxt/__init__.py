@@ -62,6 +62,7 @@ markets = [
     'vaultoro',
     'vbtc',
     'virwox',
+    'xbtce',
     'yobit',
     'zaif',
 ]
@@ -74,13 +75,16 @@ import calendar
 import collections
 import datetime
 import functools
+import gzip
 import hashlib
 import hmac
+import io
 import json
 import math
 import re
 import sys
 import time
+import zlib
 
 try: 
     import urllib.parse   as _urlencode  # Python 3
@@ -168,8 +172,20 @@ class Market (object):
         try:
             handler = _urllib.HTTPHandler if url.startswith ('http://') else _urllib.HTTPSHandler
             opener = _urllib.build_opener (handler)
-            response = opener.open (request, timeout = self.timeout).read ().decode('utf-8')
-            return json.loads (response)
+            response = opener.open (request, timeout = self.timeout)
+            text = response.read ()
+            encoding = response.info ().get ('Content-Encoding')
+
+
+
+            if encoding in ('gzip', 'x-gzip', 'deflate'):
+                if encoding == 'deflate':
+                    text = zlib.decompress (text, -zlib.MAX_WBITS)
+                else:
+                    data = gzip.GzipFile ('', 'rb', 9, io.BytesIO (text))
+                    text = data.read ().decode ('utf-8')
+
+            return json.loads (text.decode ('utf-8'))
         except _urllib.HTTPError as e:
             try: 
                 text = e.fp.read ()
@@ -8812,6 +8828,229 @@ class virwox (Market):
                 'params': self.extend (auth, params),
                 'id': nonce,
             })
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
+class xbtce (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'xbtce',
+            'name': 'xBTCe',
+            'countries': 'RU',
+            'rateLimit': 2000, # responses are cached every 2 seconds
+            'version': 'v1',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
+                'api': 'https://cryptottlivewebapi.xbtce.net:8443/api',
+                'www': 'https://www.xbtce.com',
+                'doc': [
+                    'https://www.xbtce.com/tradeapi',
+                    'https://support.xbtce.info/Knowledgebase/Article/View/52/25/xbtce-exchange-api',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'currency',
+                        'currency/{filter}',
+                        'level2',
+                        'level2/{filter}',
+                        'quotehistory/{symbol}/{periodicity}/bars/ask',
+                        'quotehistory/{symbol}/{periodicity}/bars/bid',
+                        'quotehistory/{symbol}/level2',
+                        'quotehistory/{symbol}/ticks',
+                        'symbol',
+                        'symbol/{filter}',
+                        'tick',
+                        'tick/{filter}',
+                        'ticker',
+                        'ticker/{filter}',
+                        'tradesession',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'tradeserverinfo',
+                        'tradesession',
+                        'currency',
+                        'currency/{filter}',
+                        'level2',
+                        'level2/{filter}',
+                        'symbol',
+                        'symbol/{filter}',
+                        'tick',
+                        'tick/{filter}',
+                        'account',
+                        'asset',
+                        'asset/{id}',
+                        'position',
+                        'position/{id}',
+                        'trade',
+                        'trade/{id}',
+                        'quotehistory/{symbol}/{periodicity}/bars/ask',
+                        'quotehistory/{symbol}/{periodicity}/bars/ask/info',
+                        'quotehistory/{symbol}/{periodicity}/bars/bid',
+                        'quotehistory/{symbol}/{periodicity}/bars/bid/info',
+                        'quotehistory/{symbol}/level2',
+                        'quotehistory/{symbol}/level2/info',
+                        'quotehistory/{symbol}/periodicities',
+                        'quotehistory/{symbol}/ticks',
+                        'quotehistory/{symbol}/ticks/info',
+                        'quotehistory/cache/{symbol}/{periodicity}/bars/ask',
+                        'quotehistory/cache/{symbol}/{periodicity}/bars/bid',
+                        'quotehistory/cache/{symbol}/level2',
+                        'quotehistory/cache/{symbol}/ticks',
+                        'quotehistory/symbols',
+                        'quotehistory/version',
+                    ],
+                    'post': [
+                        'trade',
+                        'tradehistory',
+                    ],
+                    'put': [
+                        'trade',
+                    ],
+                    'delete': [
+                        'trade',
+                    ],
+                },
+            },
+        }
+        params.update (config)
+        super (xbtce, self).__init__ (params)
+
+    def fetch_products (self):
+        products = self.privateGetSymbol ()
+        result = []
+        for p in range (0, len (products)):
+            product = products[p]
+            id = product['Symbol']
+            base = product['MarginCurrency']
+            quote = product['ProfitCurrency']
+            if base == 'DSH':
+                base = 'DASH'
+            symbol = base + '/' + quote
+            symbol = symbol if product['IsTradeAllowed'] else id
+            result.append ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            })
+        return result
+
+    def fetch_balance (self):
+        return self.privateGetAsset ()
+
+    def fetch_order_book (self, product):
+        p = self.product (product)
+        orderbook = self.privateGetLevel2Filter ({
+            'filter': p['id'],
+        })
+        orderbook = orderbook[0]
+        timestamp = orderbook['Timestamp']
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            Side = self.capitalize (side)
+            orders = orderbook[Side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order['Price'])
+                amount = float (order['Volume'])
+                result[side].append ([ price, amount ])
+        return result
+
+    def fetch_ticker (self, product):
+        p = self.product (product)
+        tickers = self.privateGetTickFilter ({
+            'filter': p['id'],
+        })
+        tickers = self.index_by (tickers, 'Symbol')
+        ticker = tickers[p['id']]
+        timestamp = ticker['Timestamp']
+        bid = None
+        ask = None
+        if 'BestBid' in ticker:
+            bid = ticker['BestBid']['Price']
+        if 'BestAsk' in ticker:
+            ask = ticker['BestAsk']['Price']
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': None,
+            'low': None,
+            'bid': bid,
+            'ask': ask,
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': None,
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.apiGetTradesPairs ({
+            'pairs': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        if type == 'market':
+            raise Exception (self.id + ' allows limit orders only')
+        return self.tapiPostTrade (self.extend ({
+            'pair': self.product_id (product),
+            'type': side,
+            'amount': amount,
+            'rate': price,
+        }, params))
+
+    def cancel_order (self, id, params = {}):
+        return self.tapiPostCancelOrder (self.extend ({
+            'order_id': id,
+        }, params))
+
+    def nonce (self):
+        return self.milliseconds ()
+
+    def request (self, path, type = 'api', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'] + '/' + self.version
+        if type == 'public':
+            url += '/' + type
+        url += '/' + self.implode_params (path, params)
+        query = self.omit (params, self.extract_params (path))
+        if type == 'public':
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
+            nonce = str (self.nonce ())
+            if query:
+                body = json.dumps (query)
+            else:
+                body = ''
+            auth = nonce + self.uid + self.apiKey + method + url + body
+            signature = self.hmac (auth, self.secret, hashlib.sha256, 'base64')
+            credentials = ':'.join ([ self.uid, self.apiKey, nonce, signature ])
+            headers = {
+                'Accept-Encoding': 'gzip, deflate',
+                'Authorization': 'HMAC ' + credentials,
+                'Content-Type': 'application/json',
+                'Content-Length': len (body),
+            }
         return self.fetch (url, method, headers, body)
 
 #------------------------------------------------------------------------------

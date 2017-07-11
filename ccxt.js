@@ -9118,7 +9118,6 @@ var xbtce = {
                 'quote': quote,
                 'info': product,
             });
-            console.log (id, base, quote, symbol);
         }
         return result;
     },
@@ -9162,7 +9161,6 @@ var xbtce = {
         });
         tickers = this.indexBy (tickers, 'Symbol');
         let ticker = tickers[p['id']];
-        console.log (ticker);
         let timestamp = ticker['Timestamp'];
         let bid = undefined;
         let ask = undefined;
@@ -9237,8 +9235,10 @@ var xbtce = {
             let signature = this.hmac (auth, this.secret, 'sha256', 'base64');
             let credentials = [ this.uid, this.apiKey, nonce, signature ].join (':');
             headers = {
+                'Accept-Encoding': 'gzip, deflate',
                 'Authorization': 'HMAC ' + credentials,
                 'Content-Type': 'application/json',
+                'Content-Length': body.length,
             };
         }
         return this.fetch (url, method, headers, body);

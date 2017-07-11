@@ -16,7 +16,7 @@ Current featurelist:
 
 ## Supported Cryptocurrency Exchange Markets
 
-The ccxt library currently supports the following 63 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 64 cryptocurrency exchange markets and trading APIs:
 
 |                                                                                                                      | id            | name                                                 | ver | doc                                                                                         | countries                                      |
 |----------------------------------------------------------------------------------------------------------------------|---------------|------------------------------------------------------|:---:|:-------------------------------------------------------------------------------------------:|------------------------------------------------|
@@ -81,6 +81,7 @@ The ccxt library currently supports the following 63 cryptocurrency exchange mar
 |![vaultoro](https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg)      | vaultoro      | [Vaultoro](https://www.vaultoro.com)                 | 1   | [API](https://api.vaultoro.com)                                                             | Switzerland                                    |
 |![vbtc](https://user-images.githubusercontent.com/1294454/27991481-1f53d1d8-6481-11e7-884e-21d17e7939db.jpg)          | vbtc          | [VBTC](https://vbtc.exchange)                        | 1   | [API](https://blinktrade.com/docs)                                                          | Vietnam                                        |
 |![virwox](https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg)        | virwox        | [VirWoX](https://www.virwox.com)                     | *   | [API](https://www.virwox.com/developers.php)                                                | Austria                                        |
+|![xbtce](https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg)         | xbtce         | [xBTCe](https://www.xbtce.com)                       | 1   | [API](https://www.xbtce.com/tradeapi)                                                       | Russia                                         |
 |![yobit](https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg)         | yobit         | [YoBit](https://www.yobit.net)                       | 3   | [API](https://www.yobit.net/en/api/)                                                        | Russia                                         |
 |![zaif](https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg)          | zaif          | [Zaif](https://zaif.jp)                              | 1   | [API](https://corp.zaif.jp/api-docs)                                                        | Japan                                          |
 

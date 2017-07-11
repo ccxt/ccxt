@@ -66,6 +66,7 @@ class Market {
         'vaultoro',
         'vbtc',
         'virwox',
+        'xbtce',
         'yobit',
         'zaif',
     );
@@ -311,6 +312,8 @@ class Market {
 
         $userAgent = 'ccxt/0.1.0 (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
         curl_setopt ($this->curl, CURLOPT_USERAGENT, $userAgent);
+
+        curl_setopt ($this->curl, CURLOPT_ENCODING, '');
 
         if ($method == 'GET') {
 
@@ -9339,6 +9342,242 @@ class virwox extends Market {
                 'params' => array_merge ($auth, $params),
                 'id' => $nonce,
             ));
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+class xbtce extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'xbtce',
+            'name' => 'xBTCe',
+            'countries' => 'RU',
+            'rateLimit' => 2000, // responses are cached every 2 seconds
+            'version' => 'v1',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
+                'api' => 'https://cryptottlivewebapi.xbtce.net:8443/api',
+                'www' => 'https://www.xbtce.com',
+                'doc' => array (
+                    'https://www.xbtce.com/tradeapi',
+                    'https://support.xbtce.info/Knowledgebase/Article/View/52/25/xbtce-exchange-api',
+                ),
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'currency',
+                        'currency/{filter}',
+                        'level2',
+                        'level2/{filter}',
+                        'quotehistory/{symbol}/{periodicity}/bars/ask',
+                        'quotehistory/{symbol}/{periodicity}/bars/bid',
+                        'quotehistory/{symbol}/level2',
+                        'quotehistory/{symbol}/ticks',
+                        'symbol',
+                        'symbol/{filter}',
+                        'tick',
+                        'tick/{filter}',
+                        'ticker',
+                        'ticker/{filter}',
+                        'tradesession',
+                    ),
+                ),
+                'private' => array (
+                    'get' => array (
+                        'tradeserverinfo',
+                        'tradesession',
+                        'currency',
+                        'currency/{filter}',
+                        'level2',
+                        'level2/{filter}',
+                        'symbol',
+                        'symbol/{filter}',
+                        'tick',
+                        'tick/{filter}',
+                        'account',
+                        'asset',
+                        'asset/{id}',
+                        'position',
+                        'position/{id}',
+                        'trade',
+                        'trade/{id}',
+                        'quotehistory/{symbol}/{periodicity}/bars/ask',
+                        'quotehistory/{symbol}/{periodicity}/bars/ask/info',
+                        'quotehistory/{symbol}/{periodicity}/bars/bid',
+                        'quotehistory/{symbol}/{periodicity}/bars/bid/info',
+                        'quotehistory/{symbol}/level2',
+                        'quotehistory/{symbol}/level2/info',
+                        'quotehistory/{symbol}/periodicities',
+                        'quotehistory/{symbol}/ticks',
+                        'quotehistory/{symbol}/ticks/info',
+                        'quotehistory/cache/{symbol}/{periodicity}/bars/ask',
+                        'quotehistory/cache/{symbol}/{periodicity}/bars/bid',
+                        'quotehistory/cache/{symbol}/level2',
+                        'quotehistory/cache/{symbol}/ticks',
+                        'quotehistory/symbols',
+                        'quotehistory/version',
+                    ),
+                    'post' => array (
+                        'trade',
+                        'tradehistory',
+                    ),
+                    'put' => array (
+                        'trade',
+                    ),
+                    'delete' => array (
+                        'trade',
+                    ),
+                ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_products () {
+        $products = $this->privateGetSymbol ();
+        $result = array ();
+        for ($p = 0; $p < count ($products); $p++) {
+            $product = $products[$p];
+            $id = $product['Symbol'];
+            $base = $product['MarginCurrency'];
+            $quote = $product['ProfitCurrency'];
+            if ($base == 'DSH')
+                $base = 'DASH';
+            $symbol = $base . '/' . $quote;
+            $symbol = $product['IsTradeAllowed'] ? $symbol : $id;
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_balance () {
+        return $this->privateGetAsset ();
+    }
+
+    public function fetch_order_book ($product) {
+        $p = $this->product ($product);
+        $orderbook = $this->privateGetLevel2Filter (array (
+            'filter' => $p['id'],
+        ));
+        $orderbook = $orderbook[0];
+        $timestamp = $orderbook['Timestamp'];
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $Side = $this->capitalize ($side);
+            $orders = $orderbook[$Side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order['Price']);
+                $amount = floatval ($order['Volume']);
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $p = $this->product ($product);
+        $tickers = $this->privateGetTickFilter (array (
+            'filter' => $p['id'],
+        ));
+        $tickers = $this->index_by ($tickers, 'Symbol');
+        $ticker = $tickers[$p['id']];
+        $timestamp = $ticker['Timestamp'];
+        $bid = null;
+        $ask = null;
+        if (array_key_exists ('BestBid', $ticker))
+            $bid = $ticker['BestBid']['Price'];
+        if (array_key_exists ('BestAsk', $ticker))
+            $ask = $ticker['BestAsk']['Price'];
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => null,
+            'low' => null,
+            'bid' => $bid,
+            'ask' => $ask,
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => null,
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->apiGetTradesPairs (array (
+            'pairs' => $this->product_id ($product),
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($type == 'market')
+            throw new \Exception ($this->id . ' allows limit orders only');
+        return $this->tapiPostTrade (array_merge (array (
+            'pair' => $this->product_id ($product),
+            'type' => $side,
+            'amount' => $amount,
+            'rate' => $price,
+        ), $params));
+    }
+
+    public function cancel_order ($id, $params = array ()) {
+        return $this->tapiPostCancelOrder (array_merge (array (
+            'order_id' => $id,
+        ), $params));
+    }
+
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+
+    public function request ($path, $type = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $this->version;
+        if ($type == 'public')
+            $url .= '/' . $type;
+        $url .= '/' . $this->implode_params ($path, $params);
+        $query = $this->omit ($params, $this->extract_params ($path));
+        if ($type == 'public') {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
+        } else {
+            $nonce = (string) $this->nonce ();
+            if ($query)
+                $body = json_encode ($query);
+            else 
+                $body = '';
+            $auth = $nonce . $this->uid . $this->apiKey . $method . $url . $body;
+            $signature = $this->hmac ($auth, $this->secret, 'sha256', 'base64');
+            $credentials = implode (':', array ($this->uid, $this->apiKey, $nonce, $signature));
+            $headers = array (
+                'Accept-Encoding' => 'gzip, deflate',
+                'Authorization' => 'HMAC ' . $credentials,
+                'Content-Type' => 'application/json',
+                'Content-Length' => strlen ($body),
+            );
         }
         return $this->fetch ($url, $method, $headers, $body);
     }

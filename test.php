@@ -20,6 +20,10 @@ foreach (\ccxt\Market::$markets as $id) {
     $market = '\\ccxt\\' . $id;
     $markets[$id] = new $market (array (
         'verbose' => false,
+        'uid' => '68ef0552-3c37-4896-ba56-76173d9cd573',
+        'apiKey' => 'dK2jBXMTppAM57ZJ',
+        'secret' => 'qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwKqH7ywsxcR78WT',
+
         // 'proxy' => 'https://crossorigin.me/',
     ));
 }
