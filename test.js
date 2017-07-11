@@ -119,7 +119,7 @@ let testMarket = market => new Promise (async resolve => {
     //     }
     // }
 
-    await testMarketSymbol (market, 'DSH/BTC');
+    await testMarketSymbol (market, 'DASH/BTC');
 
     for (let s in keys) {
         let symbol = keys[s]
