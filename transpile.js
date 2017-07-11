@@ -145,7 +145,7 @@ while (markets = regex.exec (contents)) {
             [/ \/\//g, ' #' ],
             [ /\.indexOf/g, '.find'],
             [ /\strue/g, ' True'],
-            [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '($1 in $2.keys ())' ],
+            [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '($1 in list ($2.keys ()))' ],
             [ /([^\s]+\s*\(\))\.toString \(\)/g, 'str ($1)' ],
             [ /([^\s]+)\.toString \(\)/g, 'str ($1)' ],                
             [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$2.join ($1)' ],

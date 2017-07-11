@@ -167,6 +167,8 @@ class Market (object):
         url = self.proxy + url
         if self.verbose:
             print (url, method, headers, data)
+        if data:
+            data = data.encode ()
         request = _urllib.Request (url, data, headers)
         request.get_method = lambda: method
         response = None
@@ -176,9 +178,6 @@ class Market (object):
             response = opener.open (request, timeout = self.timeout)
             text = response.read ()
             encoding = response.info ().get ('Content-Encoding')
-
-
-
             if encoding in ('gzip', 'x-gzip', 'deflate'):
                 if encoding == 'deflate':
                     text = zlib.decompress (text, -zlib.MAX_WBITS)
@@ -354,7 +353,7 @@ class Market (object):
 
     @staticmethod
     def hmac (request, secret, hash = hashlib.sha256, digest = 'hex'):
-        h = hmac.new (secret, request, hash)
+        h = hmac.new (secret.encode (), request.encode (), hash)
         if digest == 'hex':
             return h.hexdigest ()
         elif digest == 'base64':
@@ -6048,6 +6047,8 @@ class hitbtc (Market):
         ticker = self.publicGetSymbolTicker ({
             'symbol': self.product_id (product),
         })
+        if 'message' in ticker:
+            raise Exception (self.id + ' ' + message)
         timestamp = ticker['timestamp']
         return {
             'timestamp': timestamp,

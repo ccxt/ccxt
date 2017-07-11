@@ -6145,6 +6145,8 @@ var hitbtc = {
         let ticker = await this.publicGetSymbolTicker ({
             'symbol': this.productId (product),
         });
+        if ('message' in ticker)
+            throw new Error (this.id + ' ' + message);
         let timestamp = ticker['timestamp'];
         return {
             'timestamp': timestamp,

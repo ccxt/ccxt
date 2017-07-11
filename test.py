@@ -21,9 +21,38 @@ except ImportError:
 for id in ccxt.markets:
     market = getattr (ccxt, id)
     markets[id] = market ({
-        'verbose': True,
+        'verbose': False,
         # 'proxy': 'https://crossorigin.me/',
     })
+
+def test_market_symbol_orderbook (market, symbol):
+    delay = int (market.rateLimit / 1000)
+    time.sleep (delay)
+    orderbook = market.fetch_order_book (symbol)
+    print (market.id, symbol, 'order book',
+        orderbook['datetime'],
+        'bid: ' +       str (orderbook['bids'][0][0] if len (orderbook['bids']) else 'N/A'), 
+        'bidVolume: ' + str (orderbook['bids'][0][1] if len (orderbook['bids']) else 'N/A'),
+        'ask: '       + str (orderbook['asks'][0][0] if len (orderbook['asks']) else 'N/A'),
+        'askVolume: ' + str (orderbook['asks'][0][1] if len (orderbook['asks']) else 'N/A'),
+    )
+
+def test_market_symbol_ticker (market, symbol):
+    delay = int (market.rateLimit / 1000)
+    time.sleep (delay)
+    ticker = market.fetch_ticker (symbol)
+    print (market.id, symbol, 'ticker',
+        ticker['datetime'],
+        'high: '    + str (ticker['high']),
+        'low: '     + str (ticker['low']),
+        'bid: '     + str (ticker['bid']),
+        'ask: '     + str (ticker['ask']),
+        'volume: '  + str (ticker['quoteVolume']),
+    )
+
+def test_market_symbol (market, symbol):
+    test_market_symbol_ticker (market, symbol)
+    # test_market_symbol_orderbook (market, symbol)
 
 def test_market (market):
 
@@ -64,31 +93,12 @@ def test_market (market):
     # print (trades)
     # time.sleep (delay)
 
-    for symbol in keys:
-        if symbol.find ('.d') < 0:
+    # for symbol in keys:
+    #     if symbol.find ('.d') < 0:
+    #         test_market_symbol (market, symbol)
 
-            time.sleep (delay)
-
-            ticker = market.fetch_ticker (symbol)
-            print (market.id, symbol, 'ticker',
-                ticker['datetime'],
-                'high: '    + str (ticker['high']),
-                'low: '     + str (ticker['low']),
-                'bid: '     + str (ticker['bid']),
-                'ask: '     + str (ticker['ask']),
-                'volume: '  + str (ticker['quoteVolume']),
-            )
-
-            time.sleep (delay)
-
-            orderbook = market.fetch_order_book (symbol)
-            print (market.id, symbol, 'order book',
-                orderbook['datetime'],
-                'bid: ' +       str (orderbook['bids'][0][0] if len (orderbook['bids']) else 'N/A'), 
-                'bidVolume: ' + str (orderbook['bids'][0][1] if len (orderbook['bids']) else 'N/A'),
-                'ask: '       + str (orderbook['asks'][0][0] if len (orderbook['asks']) else 'N/A'),
-                'askVolume: ' + str (orderbook['asks'][0][1] if len (orderbook['asks']) else 'N/A'),
-            )
+    # for i in range (0, 100):
+    #     test_market_symbol (market, 'DASH/BTC')
 
     #--------------------------------------------------------------------------
     # private API

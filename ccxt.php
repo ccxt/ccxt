@@ -6396,6 +6396,8 @@ class hitbtc extends Market {
         $ticker = $this->publicGetSymbolTicker (array (
             'symbol' => $this->product_id ($product),
         ));
+        if (array_key_exists ('message', $ticker))
+            throw new \Exception ($this->id . ' ' . message);
         $timestamp = $ticker['timestamp'];
         return array (
             'timestamp' => $timestamp,

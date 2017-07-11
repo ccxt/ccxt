@@ -34,8 +34,7 @@ var countryName = function (code) {
 
 let sleep = async ms => await new Promise (resolve => setTimeout (resolve, ms))
 
-let testMarketSymbol = async (market, symbol) => {
-
+let testMarketSymbolTicker = async (market, symbol) => {
     await sleep (market.rateLimit)
     let ticker = await market.fetchTicker (symbol)
     console.log (market.id, symbol, 'ticker',
@@ -48,7 +47,9 @@ let testMarketSymbol = async (market, symbol) => {
 
     if (ticker['bid'] > ticker['ask'])
         console.log ('Bid is greater than ask!')
+}
 
+let testMarketSymbolOrderbook = async (market, symbol) => {
     await sleep (market.rateLimit) 
     let orderbook = await market.fetchOrderBook (symbol)
     console.log (market.id, symbol, 'order book',
@@ -76,6 +77,11 @@ let testMarketSymbol = async (market, symbol) => {
         else if (asks[first][0] < asks[last][0])
             console.log (market.id, symbol, 'asks ok')
     }
+}
+
+let testMarketSymbol = async (market, symbol) => {
+    await testMarketSymbolTicker (market, symbol)
+    // await testMarketSymbolOrderbook (market, symbol)
 }
 
 let testMarket = market => new Promise (async resolve => {
@@ -117,7 +123,8 @@ let testMarket = market => new Promise (async resolve => {
     // }
 
     // to test a particular market/pair
-    // await testMarketSymbol (market, 'DASH/BTC'); 
+    for (let i = 0; i < 100; i++)
+        await testMarketSymbol (market, 'DASH/BTC'); 
 
     // for (let s in keys) {
     //     let symbol = keys[s]
