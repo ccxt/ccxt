@@ -6,7 +6,6 @@ const asTable   = require ('as-table')
 const util      = require ('util')
 
 let markets = {}
-let verbose = false
 
 try {
 
@@ -21,7 +20,7 @@ try {
 
 ccxt.markets.forEach (id => {
     markets[id] = new (ccxt)[id] ({
-        verbose: verbose,
+        verbose: true,
         apiKey: '',
         secret: '',
         // proxy: 'https://crossorigin.me/',

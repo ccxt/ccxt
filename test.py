@@ -4,8 +4,6 @@ import ccxt
 import time
 import sys
 
-verbose = False
-
 try:
 
     from config import markets as markets
@@ -23,7 +21,7 @@ except ImportError:
 for id in ccxt.markets:
     market = getattr (ccxt, id)
     markets[id] = market ({
-        'verbose': verbose,
+        'verbose': False,
         # 'proxy': 'https://crossorigin.me/',
     })
 

@@ -5,7 +5,6 @@ date_default_timezone_set ('UTC');
 include 'ccxt.php';
 
 $markets = null;
-$verbose = false;
 
 if (file_exists ('config.php'))
 
@@ -20,7 +19,7 @@ else
 foreach (\ccxt\Market::$markets as $id) {
     $market = '\\ccxt\\' . $id;
     $markets[$id] = new $market (array (
-        'verbose' => $verbose,
+        'verbose' => false,
         // 'proxy' => 'https://crossorigin.me/',
     ));
 }
