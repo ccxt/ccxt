@@ -37,6 +37,50 @@ var countryName = function (code) {
 
 let sleep = async ms => await new Promise (resolve => setTimeout (resolve, ms))
 
+let testMarketSymbol = (market, symbol) => new Promise (async resolve => {
+
+    await sleep (market.rateLimit)
+    let ticker = await market.fetchTicker (symbol)
+    console.log (market.id, symbol, 'ticker',
+        ticker['datetime'],
+        'high: '    + ticker['high'],
+        'low: '     + ticker['low'],
+        'bid: '     + ticker['bid'],
+        'ask: '     + ticker['ask'],
+        'volume: '  + ticker['quoteVolume'])
+
+    if (ticker['bid'] > ticker['ask'])
+        console.log ('Bid is greater than ask!')
+
+    await sleep (market.rateLimit) 
+    let orderbook = await market.fetchOrderBook (symbol)
+    console.log (market.id, symbol, 'order book',
+        orderbook['datetime'],
+        'bid: '       + ((orderbook.bids.length > 0) ? orderbook.bids[0][0] : 'N/A'), 
+        'bidVolume: ' + ((orderbook.bids.length > 0) ? orderbook.bids[0][1] : 'N/A'),
+        'ask: '       + ((orderbook.asks.length > 0) ? orderbook.asks[0][0] : 'N/A'),
+        'askVolume: ' + ((orderbook.asks.length > 0) ? orderbook.asks[0][1] : 'N/A'))
+
+    let bids = orderbook.bids
+    if (bids.length > 1) {
+        let first = 0
+        let last = bids.length - 1
+        if (bids[first][0] < bids[last][0])
+            console.log (market.id, symbol, 'bids reversed')
+        else if (bids[first][0] > bids[last][0])
+            console.log (market.id, symbol, 'bids ok')
+    }
+    let asks = orderbook.asks
+    if (asks.length > 1) {
+        let first = 0
+        let last = asks.length - 1
+        if (asks[first][0] > asks[last][0])
+            console.log (market.id, symbol, 'asks reversed', asks[first][0], asks[last][0])
+        else if (asks[first][0] < asks[last][0])
+            console.log (market.id, symbol, 'asks ok')
+    }
+})
+
 let testMarket = market => new Promise (async resolve => {
 
     let delay = market.rateLimit
@@ -75,50 +119,12 @@ let testMarket = market => new Promise (async resolve => {
     //     }
     // }
 
+    await testMarketSymbol (market, 'DSH/BTC');
+
     for (let s in keys) {
         let symbol = keys[s]
         if (symbol.indexOf ('.d') < 0) {
-
-            await sleep (delay)
-            let ticker = await market.fetchTicker (symbol)
-            console.log (market.id, symbol, 'ticker',
-                ticker['datetime'],
-                'high: '    + ticker['high'],
-                'low: '     + ticker['low'],
-                'bid: '     + ticker['bid'],
-                'ask: '     + ticker['ask'],
-                'volume: '  + ticker['quoteVolume'])
-
-            if (ticker['bid'] > ticker['ask'])
-                console.log ('Bid is greater than ask!')
-
-            await sleep (delay) 
-            let orderbook = await market.fetchOrderBook (symbol)
-            console.log (market.id, symbol, 'order book',
-                orderbook['datetime'],
-                'bid: '       + ((orderbook.bids.length > 0) ? orderbook.bids[0][0] : 'N/A'), 
-                'bidVolume: ' + ((orderbook.bids.length > 0) ? orderbook.bids[0][1] : 'N/A'),
-                'ask: '       + ((orderbook.asks.length > 0) ? orderbook.asks[0][0] : 'N/A'),
-                'askVolume: ' + ((orderbook.asks.length > 0) ? orderbook.asks[0][1] : 'N/A'))
-
-            let bids = orderbook.bids
-            if (bids.length > 1) {
-                let first = 0
-                let last = bids.length - 1
-                if (bids[first][0] < bids[last][0])
-                    console.log (market.id, symbol, 'bids reversed')
-                else if (bids[first][0] > bids[last][0])
-                    console.log (market.id, symbol, 'bids ok')
-            }
-            let asks = orderbook.asks
-            if (asks.length > 1) {
-                let first = 0
-                let last = asks.length - 1
-                if (asks[first][0] > asks[last][0])
-                    console.log (market.id, symbol, 'asks reversed', asks[first][0], asks[last][0])
-                else if (asks[first][0] < asks[last][0])
-                    console.log (market.id, symbol, 'asks ok')
-            }
+            await testMarketSymbol (market, symbol);
         }
     }
             

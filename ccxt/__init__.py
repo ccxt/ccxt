@@ -5988,6 +5988,8 @@ class hitbtc (Market):
             id = product['symbol']
             base = product['commodity']
             quote = product['currency']
+            if base == 'DSH':
+                base = 'DASH'
             symbol = base + '/' + quote
             result.append ({
                 'id': id,
