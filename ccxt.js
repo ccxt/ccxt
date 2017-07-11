@@ -9015,6 +9015,238 @@ var virwox = {
 
 //-----------------------------------------------------------------------------
 
+var xbtce = {
+
+    'id': 'xbtce',
+    'name': 'xBTCe',
+    'countries': 'RU',
+    'rateLimit': 2000, // responses are cached every 2 seconds
+    'version': 'v1',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
+        'api': 'https://cryptottlivewebapi.xbtce.net:8443/api',
+        'www': 'https://www.xbtce.com',
+        'doc': [
+            'https://www.xbtce.com/tradeapi',
+            'https://support.xbtce.info/Knowledgebase/Article/View/52/25/xbtce-exchange-api',
+        ],
+    },
+    'api': {
+        'public': {
+            'get': [
+                'currency',
+                'currency/{filter}',
+                'level2',
+                'level2/{filter}',
+                'quotehistory/{symbol}/{periodicity}/bars/ask',
+                'quotehistory/{symbol}/{periodicity}/bars/bid',
+                'quotehistory/{symbol}/level2',
+                'quotehistory/{symbol}/ticks',
+                'symbol',
+                'symbol/{filter}',
+                'tick',
+                'tick/{filter}',
+                'ticker',
+                'ticker/{filter}',
+                'tradesession',
+            ],
+        },
+        'private': {
+            'get': [
+                'tradeserverinfo',
+                'tradesession',
+                'currency',
+                'currency/{filter}',
+                'level2',
+                'level2/{filter}',
+                'symbol',
+                'symbol/{filter}',
+                'tick',
+                'tick/{filter}',
+                'account',
+                'asset',
+                'asset/{id}',
+                'position',
+                'position/{id}',
+                'trade',
+                'trade/{id}',
+                'quotehistory/{symbol}/{periodicity}/bars/ask',
+                'quotehistory/{symbol}/{periodicity}/bars/ask/info',
+                'quotehistory/{symbol}/{periodicity}/bars/bid',
+                'quotehistory/{symbol}/{periodicity}/bars/bid/info',
+                'quotehistory/{symbol}/level2',
+                'quotehistory/{symbol}/level2/info',
+                'quotehistory/{symbol}/periodicities',
+                'quotehistory/{symbol}/ticks',
+                'quotehistory/{symbol}/ticks/info',
+                'quotehistory/cache/{symbol}/{periodicity}/bars/ask',
+                'quotehistory/cache/{symbol}/{periodicity}/bars/bid',
+                'quotehistory/cache/{symbol}/level2',
+                'quotehistory/cache/{symbol}/ticks',
+                'quotehistory/symbols',
+                'quotehistory/version',
+            ],
+            'post': [
+                'trade',
+                'tradehistory',
+            ],
+            'put': [
+                'trade',
+            ],
+            'delete': [
+                'trade',
+            ],
+        },
+    },
+
+    async fetchProducts () {
+        let products = await this.privateGetSymbol ();
+        let result = [];
+        for (let p = 0; p < products.length; p++) {
+            let product = products[p];
+            let id = product['Symbol'];
+            let base = product['MarginCurrency'];
+            let quote = product['ProfitCurrency'];
+            if (base == 'DSH')
+                base = 'DASH';
+            let symbol = base + '/' + quote;
+            symbol = product['IsTradeAllowed'] ? symbol : id;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            });
+            console.log (id, base, quote, symbol);
+        }
+        return result;
+    },
+
+    fetchBalance () {
+        return this.privateGetAsset ();
+    },
+
+    async fetchOrderBook (product) {
+        let p = this.product (product);
+        let orderbook = await this.privateGetLevel2Filter ({
+            'filter': p['id'],
+        });
+        orderbook = orderbook[0];
+        let timestamp = orderbook['Timestamp'];
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let Side = this.capitalize (side);
+            let orders = orderbook[Side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order['Price']);
+                let amount = parseFloat (order['Volume']);
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
+    },
+
+    async fetchTicker (product) {
+        let p = this.product (product);
+        let tickers = await this.privateGetTickFilter ({
+            'filter': p['id'],
+        });
+        tickers = this.indexBy (tickers, 'Symbol');
+        let ticker = tickers[p['id']];
+        console.log (ticker);
+        let timestamp = ticker['Timestamp'];
+        let bid = undefined;
+        let ask = undefined;
+        if ('BestBid' in ticker)
+            bid = ticker['BestBid']['Price'];
+        if ('BestAsk' in ticker)
+            ask = ticker['BestAsk']['Price'];
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': bid,
+            'ask': ask,
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        return this.apiGetTradesPairs ({
+            'pairs': this.productId (product),
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        if (type == 'market')
+            throw new Error (this.id + ' allows limit orders only');
+        return this.tapiPostTrade (this.extend ({
+            'pair': this.productId (product),
+            'type': side,
+            'amount': amount,
+            'rate': price,
+        }, params));
+    },
+
+    cancelOrder (id, params = {}) {
+        return this.tapiPostCancelOrder (this.extend ({
+            'order_id': id,
+        }, params));
+    },
+
+    nonce () {
+        return this.milliseconds ();
+    },
+
+    request (path, type = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + this.version;
+        if (type == 'public')
+            url += '/' + type;
+        url += '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (type == 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            let nonce = this.nonce ().toString ();
+            if (Object.keys (query).length)
+                body = JSON.stringify (query);
+            else 
+                body = '';
+            let auth = nonce + this.uid + this.apiKey + method + url + body;
+            let signature = this.hmac (auth, this.secret, 'sha256', 'base64');
+            let credentials = [ this.uid, this.apiKey, nonce, signature ].join (':');
+            headers = {
+                'Authorization': 'HMAC ' + credentials,
+                'Content-Type': 'application/json',
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var yobit = {
 
     'id': 'yobit',
@@ -9393,6 +9625,7 @@ var markets = {
     'vaultoro':      vaultoro,
     'vbtc':          vbtc,
     'virwox':        virwox,
+    'xbtce':         xbtce,
     'yobit':         yobit,
     'zaif':          zaif,
 }

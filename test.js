@@ -21,6 +21,7 @@ try {
 ccxt.markets.forEach (id => {
     markets[id] = new (ccxt)[id] ({
         verbose: true,
+        uid: '',
         apiKey: '',
         secret: '',
         // proxy: 'https://crossorigin.me/',
@@ -36,7 +37,7 @@ var countryName = function (code) {
 
 let sleep = async ms => await new Promise (resolve => setTimeout (resolve, ms))
 
-let testMarketSymbol = (market, symbol) => new Promise (async resolve => {
+let testMarketSymbol = async (market, symbol) => {
 
     await sleep (market.rateLimit)
     let ticker = await market.fetchTicker (symbol)
@@ -78,7 +79,7 @@ let testMarketSymbol = (market, symbol) => new Promise (async resolve => {
         else if (asks[first][0] < asks[last][0])
             console.log (market.id, symbol, 'asks ok')
     }
-})
+}
 
 let testMarket = market => new Promise (async resolve => {
 
@@ -123,7 +124,7 @@ let testMarket = market => new Promise (async resolve => {
 
     for (let s in keys) {
         let symbol = keys[s]
-        if (symbol.indexOf ('.d') < 0) {
+        if ((symbol.indexOf ('.d') < 0)) {
             await testMarketSymbol (market, symbol);
         }
     }
