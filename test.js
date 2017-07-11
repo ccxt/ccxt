@@ -20,7 +20,7 @@ try {
 
 ccxt.markets.forEach (id => {
     markets[id] = new (ccxt)[id] ({
-        verbose: true,
+        verbose: false,
         // proxy: 'https://crossorigin.me/',
     })
 })
