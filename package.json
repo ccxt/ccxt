@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "0.1.141",
+  "version": "0.1.142",
   "description": "A library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs",
   "main": "ccxt.es5.js",
   "repository": {
@@ -177,6 +177,8 @@
     "vbtc.exchange",
     "vbtc.vn",
     "VirWoX",
+    "xBTCe",
+    "xbtce.com",
     "YoBit",
     "Zaif"
   ]
