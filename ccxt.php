@@ -49,6 +49,7 @@ class Market {
         'itbit',
         'jubi',
         'kraken',
+        'lakebtc',
         'livecoin',
         'liqui',
         'luno',
@@ -7137,6 +7138,183 @@ class kraken extends Market {
             );
         }
         $url = $this->urls['api'] . $url;
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+class lakebtc extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'lakebtc',
+            'name' => 'LakeBTC',
+            'countries' => 'US',
+            'version' => 'api_v2',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
+                'api' => 'https://api.lakebtc.com',
+                'www' => 'https://www.lakebtc.com',
+                'doc' => array (
+                    'https://www.lakebtc.com/s/api',
+                    'https://www.lakebtc.com/s/api_v2',
+                ),
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'bcorderbook',
+                        'bctrades',
+                        'ticker',
+                    ),
+                ),
+                'private' => array (
+                    'post' => array (
+                        'buyOrder',
+                        'cancelOrders',
+                        'getAccountInfo',
+                        'getExternalAccounts',
+                        'getOrders',
+                        'getTrades',
+                        'openOrders',
+                        'sellOrder',
+                    ),
+                ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_products () {
+        $products = $this->publicGetTicker ();
+        $result = array ();
+        $keys = array_keys ($products);
+        for ($k = 0; $k < count ($keys); $k++) {
+            $id = $keys[$k];
+            $product = $products[$id];
+            $base = mb_substr ($id, 0, 3);
+            $quote = mb_substr ($id, 3, 6);
+            $base = strtoupper ($base);
+            $quote = strtoupper ($quote);
+            $symbol = $base . '/' . $quote;
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_balance () {
+        return $this->privatePostGetAccountInfo ();
+    }
+
+    public function fetch_order_book ($product) {
+        $orderbook = $this->publicGetBcorderbook (array (
+            'symbol' => $this->product_id ($product),
+        ));
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $p = $this->product ($product);
+        $tickers = $this->publicGetTicker (array (
+            'symbol' => $p['id'],
+        ));
+        $ticker = $tickers[$p['id']];
+        $timestamp = $this->milliseconds ();
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['volume']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetBctrades (array (
+            'symbol' => $this->product_id ($product)
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($type == 'market')
+            throw new \Exception ($this->id . ' allows limit orders only');
+        $method = 'privatePost' . $this->capitalize ($side) . 'Order';
+        $productId = $this->product_id ($product);
+        $order = array (
+            'params' => array ($price, $amount, $productId),
+        );
+        return $this->$method (array_merge ($order, $params));
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $this->version;
+        if ($type == 'public') {
+             $url .= '/' . $path
+            if ($params)
+                $url .= '?' . $this->urlencode ($params);
+        } else {
+            $nonce = $this->nonce ();
+            if ($params)
+                $params = implode (',', $params);
+            else
+                $params = '';
+            $query = $this->urlencode (array (
+                'tonce' => $nonce,
+                'accesskey' => $this->apiKey,
+                'requestmethod' => strtolower ($method),
+                'id' => $nonce,
+                'method' => $path,
+                'params' => $params,
+            ));
+            $body = json_encode (array (
+                'method' => $path,
+                'params' => $params,
+                'id' => $nonce,
+            ));
+            $signature = $this->apiKey . ':' . $this->hmac ($query, $this->secret, 'sha1', 'base64');
+            $headers = array (
+                'Json-Rpc-Tonce' => $nonce,
+                'Authorization' => "Basic " . $signature,
+                'Content-Length' => strlen ($body),
+                'Content-Type' => 'application/json',
+            );
+        }
         return $this->fetch ($url, $method, $headers, $body);
     }
 }

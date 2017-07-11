@@ -45,6 +45,7 @@ markets = [
     'itbit',
     'jubi',
     'kraken',
+    'lakebtc',
     'livecoin',
     'liqui',
     'luno',
@@ -6750,6 +6751,172 @@ class kraken (Market):
                 'Content-type': 'application/x-www-form-urlencoded',
             }
         url = self.urls['api'] + url
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
+class lakebtc (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'lakebtc',
+            'name': 'LakeBTC',
+            'countries': 'US',
+            'version': 'api_v2',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
+                'api': 'https://api.lakebtc.com',
+                'www': 'https://www.lakebtc.com',
+                'doc': [
+                    'https://www.lakebtc.com/s/api',
+                    'https://www.lakebtc.com/s/api_v2',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'bcorderbook',
+                        'bctrades',
+                        'ticker',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'buyOrder',
+                        'cancelOrders',
+                        'getAccountInfo',
+                        'getExternalAccounts',
+                        'getOrders',
+                        'getTrades',
+                        'openOrders',
+                        'sellOrder',
+                    ],
+                },
+            },
+        }
+        params.update (config)
+        super (lakebtc, self).__init__ (params)
+
+    def fetch_products (self):
+        products = self.publicGetTicker ()
+        result = []
+        keys = list (products.keys ())
+        for k in range (0, len (keys)):
+            id = keys[k]
+            product = products[id]
+            base = id[0:3]
+            quote = id[3:6]
+            base = base.upper ()
+            quote = quote.upper ()
+            symbol = base + '/' + quote
+            result.append ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            })
+        return result
+
+    def fetch_balance (self):
+        return self.privatePostGetAccountInfo ()
+
+    def fetch_order_book (self, product):
+        orderbook = self.publicGetBcorderbook ({
+            'symbol': self.product_id (product),
+        })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order[0])
+                amount = float (order[1])
+                result[side].append ([ price, amount ])
+        return result
+
+    def fetch_ticker (self, product):
+        p = self.product (product)
+        tickers = self.publicGetTicker ({
+            'symbol': p['id'],
+        })
+        ticker = tickers[p['id']]
+        timestamp = self.milliseconds ()
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['bid']),
+            'ask': float (ticker['ask']),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['volume']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetBctrades ({
+            'symbol': self.product_id (product)
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        if type == 'market':
+            raise Exception (self.id + ' allows limit orders only')
+        method = 'privatePost' + self.capitalize (side) + 'Order'
+        productId = self.product_id (product)
+        order = {
+            'params': [ price, amount, productId ],
+        }
+        return getattr (self, method) (self.extend (order, params))
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'] + '/' + self.version
+        if type == 'public':
+             url += '/' + path
+            if params:
+                url += '?' + _urlencode.urlencode (params)
+        else:
+            nonce = self.nonce ()
+            if params:
+                params = ','.join (params)
+            else:
+                params = ''
+            query = _urlencode.urlencode ({
+                'tonce': nonce,
+                'accesskey': self.apiKey,
+                'requestmethod': method.lower (),
+                'id': nonce,
+                'method': path,
+                'params': params,
+            })
+            body = json.dumps ({
+                'method': path,
+                'params': params,
+                'id': nonce,
+            })
+            signature = self.apiKey + ':' + self.hmac (query, self.secret, hashlib.sha1, 'base64')
+            headers = {
+                'Json-Rpc-Tonce': nonce,
+                'Authorization': "Basic " + signature,
+                'Content-Length': len (body),
+                'Content-Type': 'application/json',
+            }
         return self.fetch (url, method, headers, body)
 
 #------------------------------------------------------------------------------

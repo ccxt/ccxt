@@ -6885,6 +6885,7 @@ var lakebtc = {
     'countries': 'US',
     'version': 'api_v2',
     'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
         'api': 'https://api.lakebtc.com',
         'www': 'https://www.lakebtc.com',
         'doc': [
@@ -6938,25 +6939,14 @@ var lakebtc = {
     },
 
     fetchBalance () {
-        return this.privateGetPaymentBalances ();
+        return this.privatePostGetAccountInfo ();
     },
 
     async fetchOrderBook (product) {
-        
-        /*
-            fetchOrderBook (product) {
-                return this.publicGetBcorderbook ({
-                    'symbol': this.productId (product),
-                });
-            },
-        */
-
-        let orderbook = await this.publicGetExchangeOrderBook ({
-            'currencyPair': this.productId (product),
-            'groupByPrice': 'false',
-            'depth': 100,
+        let orderbook = await this.publicGetBcorderbook ({
+            'symbol': this.productId (product),
         });
-        let timestamp = orderbook['timestamp'];
+        let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
             'asks': [],
@@ -6978,25 +6968,20 @@ var lakebtc = {
     },
 
     async fetchTicker (product) {
-
-        /*
-            fetchTicker (product) {
-                return this.publicGetTicker ();
-            },
-        */
-
-        let ticker = await this.publicGetExchangeTicker ({
-            'currencyPair': this.productId (product),
+        let p = this.product (product);
+        let tickers = await this.publicGetTicker ({
+            'symbol': p['id'],
         });
+        let ticker = tickers[p['id']];
         let timestamp = this.milliseconds ();
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['best_bid']),
-            'ask': parseFloat (ticker['best_ask']),
-            'vwap': parseFloat (ticker['vwap']),
+            'bid': parseFloat (ticker['bid']),
+            'ask': parseFloat (ticker['ask']),
+            'vwap': undefined,
             'open': undefined,
             'close': undefined,
             'first': undefined,
@@ -7011,75 +6996,53 @@ var lakebtc = {
     },
 
     fetchTrades (product) {
-        
-        /*
-            fetchTrades (product) {
-                return this.publicGetBctrades ({
-                    'symbol': this.productId (product),
-                });
-            },
-        */
-
-        return this.publicGetExchangeLastTrades ({
-            'currencyPair': this.productId (product)
+        return this.publicGetBctrades ({
+            'symbol': this.productId (product)
         });
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-        let method = 'privatePost' + this.capitalize (side) + type;
+        if (type == 'market')
+            throw new Error (this.id + ' allows limit orders only');
+        let method = 'privatePost' + this.capitalize (side) + 'Order';
+        let productId = this.productId (product);
         let order = {
-            'currencyPair': this.productId (product),
-            'quantity': amount,
+            'params': [ price, amount, productId ],
         };
-        if (type == 'limit')
-            order['price'] = price;
         return this[method] (this.extend (order, params));
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        /*
-            var url = this.urls.api + '/' + this.version + '/' + path
-            if (type === 'public') {
-                if (Object.keys (params).length)
-                    url += '?' + querystring (params)
-            } else {
-                var tonce = this.nonce ()
-                var query = querystring.unescape (querystring ({
-                    tonce,
-                    accesskey: this.apiKey,
-                    requestmethod: method.lowercase,
-                    id: 1,
-                    method: path,
-                    params: params.join (','),
-                }))
-                var signature = this.apiKey + ':' + this.hmac (query, this.secret, 'sha1')
-                options.headers = {
-                    'Json-Rpc-Tonce': tonce,
-                    'Authorization': "Basic " + stringToBase64 (signature),
-                    'Content-Length': data.length,
-                    'Content-Type': 'application/json',
-                }
-                options.body = JSON.stringify ({
-                    method: path,
-                    params,
-                    id: 1,
-                })
-            }
-        */
-
-        let url = this.urls['api'] + '/' + path;
+        let url = this.urls['api'] + '/' + this.version;
         if (type == 'public') {
+             url += '/' + path
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
-            let query = this.keysort (params);
-            body = this.urlencode (query);
-            let signature = this.hmac (body, this.secret, 'sha256');
+            let nonce = this.nonce ();
+            if (Object.keys (params).length)
+                params = params.join (',');
+            else
+                params = '';
+            let query = this.urlencode ({
+                'tonce': nonce,
+                'accesskey': this.apiKey,
+                'requestmethod': method.toLowerCase (),
+                'id': nonce,
+                'method': path,
+                'params': params,
+            });
+            body = JSON.stringify ({
+                'method': path,
+                'params': params,
+                'id': nonce,
+            });
+            let signature = this.apiKey + ':' + this.hmac (query, this.secret, 'sha1', 'base64');
             headers = {
-                'Api-Key': this.apiKey,
-                'Sign': signature.toUpperCase (),
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'Json-Rpc-Tonce': nonce,
+                'Authorization': "Basic " + signature,
                 'Content-Length': body.length,
+                'Content-Type': 'application/json',
             };
         }
         return this.fetch (url, method, headers, body);

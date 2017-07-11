@@ -21,9 +21,6 @@ try {
 ccxt.markets.forEach (id => {
     markets[id] = new (ccxt)[id] ({
         verbose: true,
-        uid: '68ef0552-3c37-4896-ba56-76173d9cd573',
-        apiKey: 'dK2jBXMTppAM57ZJ',
-        secret: 'qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwKqH7ywsxcR78WT',
         // proxy: 'https://crossorigin.me/',
     })
 })
@@ -122,12 +119,12 @@ let testMarket = market => new Promise (async resolve => {
     // to test a particular market/pair
     // await testMarketSymbol (market, 'DASH/BTC'); 
 
-    for (let s in keys) {
-        let symbol = keys[s]
-        if ((symbol.indexOf ('.d') < 0)) {
-            await testMarketSymbol (market, symbol);
-        }
-    }
+    // for (let s in keys) {
+    //     let symbol = keys[s]
+    //     if ((symbol.indexOf ('.d') < 0)) {
+    //         await testMarketSymbol (market, symbol);
+    //     }
+    // }
             
     // let trades = await market.fetchTrades (Object.keys (market.products)[0])
     // console.log (market.id, trades)
