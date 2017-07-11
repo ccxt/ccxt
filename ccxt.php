@@ -7285,7 +7285,7 @@ class lakebtc extends Market {
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version;
         if ($type == 'public') {
-             $url .= '/' . $path
+            $url .= '/' . $path
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {

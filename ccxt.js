@@ -7015,7 +7015,7 @@ var lakebtc = {
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version;
         if (type == 'public') {
-             url += '/' + path
+            url += '/' + path
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
