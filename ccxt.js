@@ -6878,6 +6878,216 @@ var kraken = {
 
 //-----------------------------------------------------------------------------
 
+var lakebtc = {
+
+    'id': 'lakebtc',
+    'name': 'LakeBTC',
+    'countries': 'US',
+    'version': 'api_v2',
+    'urls': {
+        'api': 'https://api.lakebtc.com',
+        'www': 'https://www.lakebtc.com',
+        'doc': [
+            'https://www.lakebtc.com/s/api',
+            'https://www.lakebtc.com/s/api_v2',
+        ],
+    },
+    'api': {
+        'public': {
+            'get': [
+                'bcorderbook',
+                'bctrades',
+                'ticker',
+            ],
+        },
+        'private': {
+            'post': [
+                'buyOrder',
+                'cancelOrders',
+                'getAccountInfo',
+                'getExternalAccounts',
+                'getOrders',
+                'getTrades',
+                'openOrders',
+                'sellOrder',
+            ],
+        },
+    },
+
+    async fetchProducts () {
+        let products = await this.publicGetTicker ();
+        let result = [];
+        let keys = Object.keys (products);
+        for (let k = 0; k < keys.length; k++) {
+            let id = keys[k];
+            let product = products[id];
+            let base = id.slice (0, 3);
+            let quote = id.slice (3, 6);
+            base = base.toUpperCase ();
+            quote = quote.toUpperCase ();
+            let symbol = base + '/' + quote;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            });
+        }
+        return result;
+    },
+
+    fetchBalance () {
+        return this.privateGetPaymentBalances ();
+    },
+
+    async fetchOrderBook (product) {
+        
+        /*
+            fetchOrderBook (product) {
+                return this.publicGetBcorderbook ({
+                    'symbol': this.productId (product),
+                });
+            },
+        */
+
+        let orderbook = await this.publicGetExchangeOrderBook ({
+            'currencyPair': this.productId (product),
+            'groupByPrice': 'false',
+            'depth': 100,
+        });
+        let timestamp = orderbook['timestamp'];
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order[0]);
+                let amount = parseFloat (order[1]);
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
+    },
+
+    async fetchTicker (product) {
+
+        /*
+            fetchTicker (product) {
+                return this.publicGetTicker ();
+            },
+        */
+
+        let ticker = await this.publicGetExchangeTicker ({
+            'currencyPair': this.productId (product),
+        });
+        let timestamp = this.milliseconds ();
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['best_bid']),
+            'ask': parseFloat (ticker['best_ask']),
+            'vwap': parseFloat (ticker['vwap']),
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['volume']),
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        
+        /*
+            fetchTrades (product) {
+                return this.publicGetBctrades ({
+                    'symbol': this.productId (product),
+                });
+            },
+        */
+
+        return this.publicGetExchangeLastTrades ({
+            'currencyPair': this.productId (product)
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let method = 'privatePost' + this.capitalize (side) + type;
+        let order = {
+            'currencyPair': this.productId (product),
+            'quantity': amount,
+        };
+        if (type == 'limit')
+            order['price'] = price;
+        return this[method] (this.extend (order, params));
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        /*
+            var url = this.urls.api + '/' + this.version + '/' + path
+            if (type === 'public') {
+                if (Object.keys (params).length)
+                    url += '?' + querystring (params)
+            } else {
+                var tonce = this.nonce ()
+                var query = querystring.unescape (querystring ({
+                    tonce,
+                    accesskey: this.apiKey,
+                    requestmethod: method.lowercase,
+                    id: 1,
+                    method: path,
+                    params: params.join (','),
+                }))
+                var signature = this.apiKey + ':' + this.hmac (query, this.secret, 'sha1')
+                options.headers = {
+                    'Json-Rpc-Tonce': tonce,
+                    'Authorization': "Basic " + stringToBase64 (signature),
+                    'Content-Length': data.length,
+                    'Content-Type': 'application/json',
+                }
+                options.body = JSON.stringify ({
+                    method: path,
+                    params,
+                    id: 1,
+                })
+            }
+        */
+
+        let url = this.urls['api'] + '/' + path;
+        if (type == 'public') {
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
+        } else {
+            let query = this.keysort (params);
+            body = this.urlencode (query);
+            let signature = this.hmac (body, this.secret, 'sha256');
+            headers = {
+                'Api-Key': this.apiKey,
+                'Sign': signature.toUpperCase (),
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': body.length,
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var livecoin = {
 
     'id': 'livecoin',
@@ -9608,6 +9818,7 @@ var markets = {
     'itbit':         itbit,
     'jubi':          jubi,
     'kraken':        kraken,
+    'lakebtc':       lakebtc,
     'livecoin':      livecoin,
     'liqui':         liqui,
     'luno':          luno,
