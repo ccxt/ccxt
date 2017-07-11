@@ -46,7 +46,7 @@ let testMarket = market => new Promise (async resolve => {
     let keys = Object.keys (products)
     console.log (market.id , keys.length, 'symbols', keys.join (', '))
 
-    console.log (market)
+    // console.log (market)
 
     // Object.values (market.products).map (x => console.log (market.id, x.id))
     // console.log (market.id, 'products', market.products)
