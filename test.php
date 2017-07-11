@@ -19,7 +19,10 @@ else
 
 foreach (\ccxt\Market::$markets as $id) {
     $market = '\\ccxt\\' . $id;
-    $markets[$id] = new $market (array ('verbose' => $verbose, 'proxy' => 'https://crossorigin.me/'));
+    $markets[$id] = new $market (array (
+        'verbose' => $verbose,
+        // 'proxy' => 'https://crossorigin.me/',
+    ));
 }
 
 function test_market ($market) {

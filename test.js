@@ -20,7 +20,12 @@ try {
 // console.log (ccxt)
 
 ccxt.markets.forEach (id => {
-    markets[id] = new (ccxt)[id] ({ 'verbose': verbose, apiKey: 'abc', secret: 'def', proxy: 'https://crossorigin.me/' })
+    markets[id] = new (ccxt)[id] ({
+        verbose: verbose,
+        apiKey: 'abc',
+        secret: 'def',
+        // proxy: 'https://crossorigin.me/',
+    })
 })
 
 console.log (Object.values (ccxt).length)

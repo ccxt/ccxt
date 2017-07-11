@@ -22,7 +22,10 @@ except ImportError:
 
 for id in ccxt.markets:
     market = getattr (ccxt, id)
-    markets[id] = market ({ 'verbose': verbose, 'proxy': 'https://crossorigin.me/' })
+    markets[id] = market ({
+        'verbose': verbose,
+        # 'proxy': 'https://crossorigin.me/',
+    })
 
 def test_market (market):
 
