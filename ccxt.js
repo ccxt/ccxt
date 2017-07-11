@@ -228,12 +228,17 @@ var Market = function (config) {
                 'User-Agent': 'ccxt/0.1.0 (+https://github.com/kroitor/ccxt) Node.js/' + this.nodeVersion + ' (JavaScript)'
             }, headers)
 
+        if (this.proxy.length)
+            headers = extend ({ 'Origin': '*' }, headers)
+
         let options = { 'method': method, 'headers': headers, 'body': body }
+
+        url = this.proxy + url
 
         if (this.verbose)
             console.log (this.id, url, options)
 
-        return (fetch ((this.cors ? this.cors : '') + url, options)
+        return (fetch (url, options)
             .then (response => (typeof response === 'string') ? response : response.text ())
             .then (response => {
                 try {
@@ -346,6 +351,8 @@ var Market = function (config) {
         ss = ss < 10 ? ('0' + ss) : ss
         return yyyy + '-' + MM + '-' + dd + ' ' + hh + ':' + mm + ':' + ss
     }
+
+    this.proxy = ''
 
     for (var property in config)
         this[property] = config[property]
@@ -1622,6 +1629,184 @@ var bitfinex = {
                 'X-BFX-APIKEY': this.apiKey,
                 'X-BFX-PAYLOAD': payload,
                 'X-BFX-SIGNATURE': this.hmac (payload, this.secret, 'sha384'),
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
+var bitflyer = {
+
+    'id': 'bitflyer',
+    'name': 'bitFlyer',
+    'countries': 'JP',
+    'version': 'v1',
+    'rateLimit': 500,
+    'urls': {
+        'api': 'https://api.bitflyer.jp',
+        'www': 'https://bitflyer.jp',
+        'doc': 'https://bitflyer.jp/API',
+    },
+    'api': {
+        'public': {
+            'get': [
+                'getmarkets',    // or 'markets'
+                'getboard',      // or 'board'
+                'getticker',     // or 'ticker'
+                'getexecutions', // or 'executions'
+                'gethealth',
+                'getchats',
+            ],
+        },
+        'private': {
+            'get': [
+                'getpermissions',
+                'getbalance',
+                'getcollateral',
+                'getcollateralaccounts',
+                'getaddresses',
+                'getcoinins',
+                'getcoinouts',
+                'getbankaccounts',
+                'getdeposits',
+                'getwithdrawals',
+                'getchildorders',
+                'getparentorders',
+                'getparentorder',
+                'getexecutions',
+                'getpositions',
+                'gettradingcommission',
+            ],
+            'post': [
+                'sendcoin',
+                'withdraw',
+                'sendchildorder',
+                'cancelchildorder',
+                'sendparentorder',
+                'cancelparentorder',
+                'cancelallchildorders',
+            ],
+        },
+    },
+
+    async fetchProducts () {
+        let products = await this.publicGetMarkets ();
+        let result = [];
+        for (let p = 0; p < products.length; p++) {
+            let product = products[p];
+            let id = product['product_code'];
+            let currencies = id.split ('_');
+            let base = undefined;
+            let quote = undefined;
+            let symbol = id;
+            let numCurrencies = currencies.length;
+            if (numCurrencies == 2) {
+                base = currencies[0];
+                quote = currencies[1];
+                symbol = base + '/' + quote;
+            }
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            });
+        }
+        return result;
+    },
+
+    fetchBalance () {
+        return this.privateGetBalance ();
+    },
+
+    async fetchOrderBook (product) {
+        let orderbook = await this.publicGetBoard ({ 
+            'product_code': this.productId (product),
+        });
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order['price']);
+                let amount = parseFloat (order['size']);
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
+    },
+
+    async fetchTicker (product) {
+        let ticker = await this.publicGetTicker ({
+            'product_code': this.productId (product),
+        });
+        let timestamp = this.parse8601 (ticker['timestamp']);
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': parseFloat (ticker['best_bid']),
+            'ask': parseFloat (ticker['best_ask']),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['ltp']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': parseFloat (ticker['volume_by_product']),
+            'quoteVolume': parseFloat (ticker['volume']),
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        return this.publicGetExecutions ({
+            'product_code': this.productId (product),
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let order = {
+            'product_code': this.productId (product),
+            'child_order_type': type.toUpperCase (),
+            'side': side.toUpperCase (),
+            'price': price,
+            'size': amount,
+        };
+        return this.privatePostSendparentorder (this.extend (order, params));
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let request = '/' + this.version + '/' + path;
+        if (type == 'private')
+            request = '/me' + request;
+        let url = this.urls['api'] + request;
+        if (type == 'public') {            
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
+        } else {
+            let nonce = this.nonce ().toString ();
+            body = JSON.stringify (params);
+            let auth = [ nonce, method, request, body ].join ('');
+            headers = {
+                'ACCESS-KEY': this.apiKey,
+                'ACCESS-TIMESTAMP': nonce,
+                'ACCESS-SIGN': this.hmac (auth, this.secret),
+                'Content-Type': 'application/json',
             };
         }
         return this.fetch (url, method, headers, body);
@@ -9150,6 +9335,7 @@ var markets = {
     'bitbays':       bitbays,
     'bitcoincoid':   bitcoincoid,
     'bitfinex':      bitfinex,
+    'bitflyer':      bitflyer,
     'bitlish':       bitlish,
     'bitmarket':     bitmarket,
     'bitmex':        bitmex,

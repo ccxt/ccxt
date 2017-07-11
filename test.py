@@ -22,7 +22,7 @@ except ImportError:
 
 for id in ccxt.markets:
     market = getattr (ccxt, id)
-    markets[id] = market ({ 'verbose': verbose })
+    markets[id] = market ({ 'verbose': verbose, 'proxy': 'https://crossorigin.me/' })
 
 def test_market (market):
 
@@ -69,8 +69,6 @@ def test_market (market):
             time.sleep (delay)
 
             ticker = market.fetch_ticker (symbol)
-            print (ticker)
-            print ('--------------------------------------------------------')
             print (market.id, symbol, 'ticker',
                 ticker['datetime'],
                 'high: '    + str (ticker['high']),

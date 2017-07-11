@@ -9,6 +9,7 @@ markets = [
     'bitbays',
     'bitcoincoid',
     'bitfinex',
+    'bitflyer',
     'bitlish',
     'bitmarket',
     'bitmex',
@@ -101,6 +102,7 @@ class Market (object):
     verbose   = False
     products  = None
     tickers   = None
+    proxy     = ''
 
     def __init__ (self, config = {}):
 
@@ -155,6 +157,9 @@ class Market (object):
         userAgent = 'ccxt/0.1.0 (+https://github.com/kroitor/ccxt) Python/' + version
         headers = headers or {}
         headers.update ({ 'User-Agent': userAgent })
+        if len (self.proxy):
+            headers.update ({ 'Origin': '*' })
+        url = self.proxy + url
         if self.verbose:
             print (url, method, headers, data)
         request = _urllib.Request (url, data, headers)
@@ -1646,6 +1651,176 @@ class bitfinex (Market):
                 'X-BFX-APIKEY': self.apiKey,
                 'X-BFX-PAYLOAD': payload,
                 'X-BFX-SIGNATURE': self.hmac (payload, self.secret, hashlib.sha384),
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
+class bitflyer (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'bitflyer',
+            'name': 'bitFlyer',
+            'countries': 'JP',
+            'version': 'v1',
+            'rateLimit': 500,
+            'urls': {
+                'api': 'https://api.bitflyer.jp',
+                'www': 'https://bitflyer.jp',
+                'doc': 'https://bitflyer.jp/API',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'getmarkets',    # or 'markets'
+                        'getboard',      # or 'board'
+                        'getticker',     # or 'ticker'
+                        'getexecutions', # or 'executions'
+                        'gethealth',
+                        'getchats',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'getpermissions',
+                        'getbalance',
+                        'getcollateral',
+                        'getcollateralaccounts',
+                        'getaddresses',
+                        'getcoinins',
+                        'getcoinouts',
+                        'getbankaccounts',
+                        'getdeposits',
+                        'getwithdrawals',
+                        'getchildorders',
+                        'getparentorders',
+                        'getparentorder',
+                        'getexecutions',
+                        'getpositions',
+                        'gettradingcommission',
+                    ],
+                    'post': [
+                        'sendcoin',
+                        'withdraw',
+                        'sendchildorder',
+                        'cancelchildorder',
+                        'sendparentorder',
+                        'cancelparentorder',
+                        'cancelallchildorders',
+                    ],
+                },
+            },
+        }
+        params.update (config)
+        super (bitflyer, self).__init__ (params)
+
+    def fetch_products (self):
+        products = self.publicGetMarkets ()
+        result = []
+        for p in range (0, len (products)):
+            product = products[p]
+            id = product['product_code']
+            currencies = id.split ('_')
+            base = None
+            quote = None
+            symbol = id
+            numCurrencies = len (currencies)
+            if numCurrencies == 2:
+                base = currencies[0]
+                quote = currencies[1]
+                symbol = base + '/' + quote
+            result.append ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            })
+        return result
+
+    def fetch_balance (self):
+        return self.privateGetBalance ()
+
+    def fetch_order_book (self, product):
+        orderbook = self.publicGetBoard ({ 
+            'product_code': self.product_id (product),
+        })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order['price'])
+                amount = float (order['size'])
+                result[side].append ([ price, amount ])
+        return result
+
+    def fetch_ticker (self, product):
+        ticker = self.publicGetTicker ({
+            'product_code': self.product_id (product),
+        })
+        timestamp = self.parse8601 (ticker['timestamp'])
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': None,
+            'low': None,
+            'bid': float (ticker['best_bid']),
+            'ask': float (ticker['best_ask']),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['ltp']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': float (ticker['volume_by_product']),
+            'quoteVolume': float (ticker['volume']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetExecutions ({
+            'product_code': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        order = {
+            'product_code': self.product_id (product),
+            'child_order_type': type.upper (),
+            'side': side.upper (),
+            'price': price,
+            'size': amount,
+        }
+        return self.privatePostSendparentorder (self.extend (order, params))
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        request = '/' + self.version + '/' + path
+        if type == 'private':
+            request = '/me' + request
+        url = self.urls['api'] + request
+        if type == 'public':            
+            if params:
+                url += '?' + _urlencode.urlencode (params)
+        else:
+            nonce = str (self.nonce ())
+            body = json.dumps (params)
+            auth = ''.join ([ nonce, method, request, body ])
+            headers = {
+                'ACCESS-KEY': self.apiKey,
+                'ACCESS-TIMESTAMP': nonce,
+                'ACCESS-SIGN': self.hmac (auth, self.secret),
+                'Content-Type': 'application/json',
             }
         return self.fetch (url, method, headers, body)
 
