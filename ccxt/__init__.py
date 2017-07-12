@@ -186,7 +186,6 @@ class Market (object):
                 else:
                     data = gzip.GzipFile ('', 'rb', 9, io.BytesIO (text))
                     text = data.read ().decode ('utf-8')
-
             return json.loads (text.decode ('utf-8'))
         except _urllib.HTTPError as e:
             try: 
@@ -199,13 +198,6 @@ class Market (object):
             except Exception as unused:
                 print (self.id, method, url, e.code, e.msg, text)
             raise
-
-    # import httplib
-    # connection =  httplib.HTTPConnection('1.2.3.4:1234')
-    # body_content = 'BODY CONTENT GOES HERE'
-    # connection.request('PUT', '/url/path/to/put/to', body_content)
-    # result = connection.getresponse()
-    # # Now result.status and result.reason contains interesting stuff
 
     @staticmethod
     def capitalize (string): # first character only, rest characters unchanged
@@ -916,6 +908,9 @@ class anxpro (Market):
         if type == 'limit':
             order['price_int'] = price
         return self.privatePostCurrencyPairOrderAdd (self.extend (order, params))
+
+    def cancel_order (self, id):
+        return self.privatePostCurrencyPairOrderCancel ({ 'oid': id })
 
     def nonce (self):
         return self.milliseconds ()

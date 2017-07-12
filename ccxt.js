@@ -658,7 +658,6 @@ var cryptocapital = {
         return this.privatePostOrdersCancel ({ 'id': id });
     },
 
-
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (this.id == 'cryptocapital')
             throw new Error (this.id + ' is an abstract base API for _1BTCXE');
@@ -851,6 +850,10 @@ var anxpro = {
         if (type == 'limit')
             order['price_int'] = price;
         return this.privatePostCurrencyPairOrderAdd (this.extend (order, params));
+    },
+
+    cancelOrder (id) {
+        return this.privatePostCurrencyPairOrderCancel ({ 'oid': id });
     },
 
     nonce () {

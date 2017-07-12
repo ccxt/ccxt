@@ -950,6 +950,10 @@ class anxpro extends Market {
         return $this->privatePostCurrencyPairOrderAdd (array_merge ($order, $params));
     }
 
+    public function cancel_order ($id) {
+        return $this->privatePostCurrencyPairOrderCancel (array ( 'oid' => $id ));
+    }
+
     public function nonce () {
         return $this->milliseconds ();
     }

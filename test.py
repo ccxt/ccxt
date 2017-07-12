@@ -75,22 +75,18 @@ def test_market (market):
     amount = 1
     price = 0.0161
 
-    # print ('market buy')
     # marketBuy = market.create_market_buy_order (symbol, amount)
     # print (marketBuy)
     # time.sleep (delay)
 
-    # print ('market sell')
     # marketSell = market.create_market_sell_order (symbol, amount)
     # print (marketSell)
     # time.sleep (delay)
 
-    # print ('limit buy')
     # limitBuy = market.create_limit_buy_order (symbol, amount, price)
     # print (limitBuy)
     # time.sleep (delay)
 
-    # print ('limit sell')
     # limitSell = market.create_limit_sell_order (symbol, amount, price)
     # print (limitSell)
     # time.sleep (delay)
@@ -126,7 +122,7 @@ if id:
         test_market_symbol (market, symbol)
     else:
         test_market (market)
-        
+
 else:
     tuples = list (ccxt.Market.keysort (markets).items ())
     for (id, params) in tuples:
