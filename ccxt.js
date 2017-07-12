@@ -4491,6 +4491,10 @@ var ccex = {
         }, params));
     },
 
+    cancelOrder (id) {
+        return this.privateGetCancel ({ 'uuid': id });
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][type];
         if (type == 'private') {
