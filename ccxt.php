@@ -3615,6 +3615,10 @@ class btce extends Market {
         return $this->privatePostTrade (array_merge ($order, $params));
     }
 
+    public function cancel_order ($id) {
+        return $this->privatePostCancelOrder (array ( 'order_id' => $id ));
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$type] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));

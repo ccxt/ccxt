@@ -3411,6 +3411,9 @@ class btce (Market):
         }
         return self.privatePostTrade (self.extend (order, params))
 
+    def cancel_order (self, id):
+        return self.privatePostCancelOrder ({ 'order_id': id })
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][type] + '/' + self.version + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
