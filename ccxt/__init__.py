@@ -1334,6 +1334,9 @@ class bitbays (Market):
             order['order_type'] = 0
         return self.privatePostTrade (self.extend (order, params))
 
+    def cancel_order (self, id):
+        return self.privatePostCancel ({ 'id': id })
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if type == 'public':
