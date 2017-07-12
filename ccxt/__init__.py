@@ -5500,6 +5500,9 @@ class exmo (Market):
         }
         return self.privatePostOrderCreate (self.extend (order, params))
 
+    def cancel_order (self, id):
+        return self.privatePostOrderCancel ({ 'order_id': id })
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if type == 'public':

@@ -5844,6 +5844,10 @@ class exmo extends Market {
         return $this->privatePostOrderCreate (array_merge ($order, $params));
     }
 
+    public function cancel_order ($id) {
+        return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($type == 'public') {
