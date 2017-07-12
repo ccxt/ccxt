@@ -25,6 +25,8 @@ ccxt.markets.forEach (id => {
     })
 })
 
+markets['_1broker'].apiKey = 'A0f79063a5e91e6d62fbcbbbbdd63258';
+
 console.log (Object.values (ccxt).length)
 
 var countryName = function (code) {

@@ -5450,6 +5450,10 @@ var dsx = {
         return this.tapiPostTrade (this.extend (order, params));
     },
 
+    cancelOrder (id) {
+        return this.tapiPostCancelOrder ({ 'orderId': id });
+    },
+
     request (path, type = 'mapi', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][type];
         if ((type == 'mapi') || (type == 'dwapi'))

@@ -5665,6 +5665,10 @@ class dsx extends Market {
         return $this->tapiPostTrade (array_merge ($order, $params));
     }
 
+    public function cancel_order ($id) {
+        return $this->tapiPostCancelOrder (array ( 'orderId' => $id ));
+    }
+
     public function request ($path, $type = 'mapi', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$type];
         if (($type == 'mapi') || ($type == 'dwapi'))

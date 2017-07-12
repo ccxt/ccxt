@@ -5333,6 +5333,9 @@ class dsx (Market):
         }
         return self.tapiPostTrade (self.extend (order, params))
 
+    def cancel_order (self, id):
+        return self.tapiPostCancelOrder ({ 'orderId': id })
+
     def request (self, path, type = 'mapi', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][type]
         if (type == 'mapi') or (type == 'dwapi'):
