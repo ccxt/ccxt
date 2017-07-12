@@ -20,7 +20,7 @@ try {
 
 ccxt.markets.forEach (id => {
     markets[id] = new (ccxt)[id] ({
-        verbose: false,
+        verbose: true,
         // proxy: 'https://crossorigin.me/',
     })
 })
@@ -84,14 +84,17 @@ let testMarketSymbol = async (market, symbol) => {
     // await testMarketSymbolOrderbook (market, symbol)
 }
 
+let loadMarket = async market => {
+    let products  = await market.loadProducts ()
+    let keys = Object.keys (products)
+    console.log (market.id , keys.length, 'symbols', keys.join (', '))
+}
+
 let testMarket = market => new Promise (async resolve => {
 
     let delay = market.rateLimit
 
-    let products  = await market.loadProducts ()
-
-    let keys = Object.keys (products)
-    console.log (market.id , keys.length, 'symbols', keys.join (', '))
+    let keys = Object.keys (market.products)
 
     // console.log (market)
 
@@ -106,32 +109,12 @@ let testMarket = market => new Promise (async resolve => {
 
     // sleep (delay)
 
-    // let symbol = keys[0]
-    // let symbols = [
-    //     'BTC/USD',
-    //     'BTC/CNY',
-    //     'BTC/ETH',
-    //     'ETH/BTC',
-    //     'BTC/JPY',
-    //     'LTC/BTC',
-    // ]
-    // for (let s in symbols) {
-    //     if (symbols[s] in keys) {
-    //         symbol = symbols[s]
-    //         break
-    //     }
-    // }
-
-    // to test a particular market/pair
-    for (let i = 0; i < 100; i++)
-        await testMarketSymbol (market, 'DASH/BTC'); 
-
-    // for (let s in keys) {
-    //     let symbol = keys[s]
-    //     if ((symbol.indexOf ('.d') < 0)) {
-    //         await testMarketSymbol (market, symbol);
-    //     }
-    // }
+    for (let s in keys) {
+        let symbol = keys[s]
+        if ((symbol.indexOf ('.d') < 0)) {
+            await testMarketSymbol (market, symbol);
+        }
+    }
             
     // let trades = await market.fetchTrades (Object.keys (market.products)[0])
     // console.log (market.id, trades)
@@ -205,28 +188,47 @@ var test = async function () {
         }        
     })))
 
-    if (process.argv.length > 2) {
-        let id = process.argv[2]        
-        if (markets[id]) {
-            let market = markets[id]         
-            try {
-                await testMarket (market)
-            } catch (e) {
-                console.log (market.id, e)
-                process.exit ()   
+    let market = undefined
+
+    try {
+        if (process.argv.length > 2) {
+            let id = process.argv[2]
+            if (!markets[id])
+                throw new Error ('Market `' + id + '` not found')
+            let market = markets[id]
+            await loadMarket (market)
+            if (process.argv.length > 3) {
+                let symbol = process.argv[3]
+                try {
+                    await testMarketSymbol (market, symbol)
+                } catch (e) {
+                    console.log (market.id, e)
+                    process.exit ()                    
+                }
+            } else {
+                try {
+                    await testMarket (market)
+                } catch (e) {
+                    console.log (market.id, e)
+                    process.exit ()   
+                }                
             }
+        } else {
+            Object.keys (markets).forEach (async id => {
+                var market = markets[id]
+                try {
+                    await loadMarket (market)
+                    await testMarket (market)
+                } catch (e) {
+                    console.log (market.id, e)
+                    process.exit ()   
+                }
+                sleep (1000)
+            })
         }
-    } else {
-        Object.keys (markets).forEach (async id => {
-            var market = markets[id]
-            try {
-                await testMarket (market)
-            } catch (e) {
-                console.log (market.id, e)
-                process.exit ()   
-            }
-            sleep (1000)
-        })
+    } catch (e) {
+        console.log (e)
+        process.exit ()   
     }
 
 } ()
