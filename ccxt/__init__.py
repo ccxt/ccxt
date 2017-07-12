@@ -1670,6 +1670,9 @@ class bitfinex (Market):
             'sell_price_oco': 0,
         }, params))
 
+    def cancel_order (self, id):
+        return self.privatePostOrderCancel ({ 'order_id': id })
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         request = '/' + self.version + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))

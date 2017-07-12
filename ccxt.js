@@ -1645,6 +1645,10 @@ var bitfinex = {
         }, params));
     },
 
+    cancelOrder (id) {
+        return this.privatePostOrderCancel ({ 'order_id': id });
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
