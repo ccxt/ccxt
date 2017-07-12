@@ -4625,7 +4625,7 @@ var cex = {
             'close': undefined,
             'first': undefined,
             'last': parseFloat (ticker['last']),
-            'change': parseFloat (ticker['change']),
+            'change': undefined,
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
@@ -4651,6 +4651,10 @@ var cex = {
         else
             order['order_type'] = type;
         return this.privatePostPlaceOrderPair (this.extend (order, params));
+    },
+
+    cancelOrder (id) {
+        return this.privatePostCancelOrder ({ 'id': id });
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

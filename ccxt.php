@@ -4819,7 +4819,7 @@ class cex extends Market {
             'close' => null,
             'first' => null,
             'last' => floatval ($ticker['last']),
-            'change' => floatval ($ticker['change']),
+            'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
@@ -4845,6 +4845,10 @@ class cex extends Market {
         else
             $order['order_type'] = $type;
         return $this->privatePostPlaceOrderPair (array_merge ($order, $params));
+    }
+
+    public function cancel_order ($id) {
+        return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -4536,7 +4536,7 @@ class cex (Market):
             'close': None,
             'first': None,
             'last': float (ticker['last']),
-            'change': float (ticker['change']),
+            'change': None,
             'percentage': None,
             'average': None,
             'baseVolume': None,
@@ -4560,6 +4560,9 @@ class cex (Market):
         else:
             order['order_type'] = type
         return self.privatePostPlaceOrderPair (self.extend (order, params))
+
+    def cancel_order (self, id):
+        return self.privatePostCancelOrder ({ 'id': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.implode_params (path, params)
