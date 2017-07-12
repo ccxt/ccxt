@@ -4857,6 +4857,10 @@ var coincheck = {
         return this.privatePostExchangeOrders (this.extend (order, params));
     },
 
+    cancelOrder (id) {
+        return this.privateDeleteExchangeOrdersId ({ 'id': id });
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
