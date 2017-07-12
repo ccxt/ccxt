@@ -232,8 +232,6 @@ var test = async function () {
         }
     } else {
 
-        const ignoreConnectionErrors = ['bitstamp', 'btce']
-
         for (const id of Object.keys (markets)) {
 
             log.bright.green ('MARKET: ', id)
@@ -243,14 +241,10 @@ var test = async function () {
                 await loadMarket (market)
                 await testMarket (market)
             } catch (e) {
-                if (e instanceof ccxt.DDoSProtectionError ||
-                    (e.message.includes ('ECONNRESET') && ignoreConnectionErrors.includes (id))) {
-
+                if (e instanceof ccxt.DDoSProtectionError || e.message.includes ('ECONNRESET')) {
                     log.bright.yellow ('DDoS Protection error (ignoring)')
-
                 } else if (e instanceof ccxt.TimeoutError) {
                     log.bright.yellow ('request timeout (ignoring)')
-
                 } else {
                     throw e;
                 }
