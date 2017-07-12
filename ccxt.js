@@ -6147,6 +6147,10 @@ var gemini = {
         return this.privatePostOrderNew (this.extend (order, params));
     },
 
+    cancelOrder (id) {
+        return this.privatePostCancelOrder ({ 'order_id': id });
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
