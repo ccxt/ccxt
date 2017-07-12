@@ -2543,6 +2543,10 @@ class bitmex extends Market {
         return $this->privatePostOrder (array_merge ($order, $params));
     }
 
+    public function cancel_order ($id) {
+        return $this->privateDeleteOrder (array ( 'orderID' => $id ));
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = '/api/' . $this->version . '/' . $path;
         if ($params)

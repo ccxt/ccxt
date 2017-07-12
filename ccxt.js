@@ -2409,6 +2409,10 @@ var bitmex = {
         return this.privatePostOrder (this.extend (order, params));
     },
 
+    cancelOrder (id) {
+        return this.privateDeleteOrder ({ 'orderID': id });
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = '/api/' + this.version + '/' + path;
         if (Object.keys (params).length)

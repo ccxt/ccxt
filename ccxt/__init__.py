@@ -2405,6 +2405,9 @@ class bitmex (Market):
             order['rate'] = price
         return self.privatePostOrder (self.extend (order, params))
 
+    def cancel_order (self, id):
+        return self.privateDeleteOrder ({ 'orderID': id })
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         query = '/api/' + self.version + '/' + path
         if params:
