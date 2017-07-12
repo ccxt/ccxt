@@ -3762,6 +3762,10 @@ class btctrader extends Market {
         return $this->$method (array_merge ($order, $params));
     }
 
+    public function cancel_order ($id) {
+        return $this->privatePostCancelOrder (array ( 'id' => $id ));
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if ($this->id == 'btctrader')
             throw new \Exception ($this->id . ' is an abstract base API for BTCExchange, BTCTurk');

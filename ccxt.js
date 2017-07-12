@@ -3601,6 +3601,10 @@ var btctrader = {
         return this[method] (this.extend (order, params));
     },
 
+    cancelOrder (id) {
+        return this.privatePostCancelOrder ({ 'id': id });
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (this.id == 'btctrader')
             throw new Error (this.id + ' is an abstract base API for BTCExchange, BTCTurk');

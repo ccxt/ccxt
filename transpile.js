@@ -284,7 +284,7 @@ let match = rstMarketTableRegex.exec (rstNew)
 // let match = rstNew.match (/[\n][\n]\+\-\-.+\-\-\+[\n][\n]/g)
 let rstMarketTableLines = match[2].split ("\n")
 
-console.log (rstMarketTableLines[0])
+// console.log (rstMarketTableLines[0])
 let newRstMarketTable = rstMarketTableLines.map (line => {
     return line.replace (/(\||\+)(.).+?(\s|\=|\-)(\||\+)/, '$1')
 }).join ("\n")
