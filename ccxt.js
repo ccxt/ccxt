@@ -651,6 +651,8 @@ var cryptocapital = {
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        if (this.id == 'cryptocapital')
+            throw new Error (this.id + ' is an abstract base API for _1BTCXE');
         let url = this.urls['api'] + '/' + path;
         if (type == 'public') {
             if (Object.keys (params).length)
@@ -3526,7 +3528,7 @@ var btctrader = {
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (this.id == 'btctrader')
-            throw new Error (this.id + ' is an abstract API for BTCExchange, BTCTurk')
+            throw new Error (this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         let url = this.urls['api'] + '/' + path;
         if (type == 'public') {
             if (Object.keys (params).length)
@@ -7023,7 +7025,7 @@ var lakebtc = {
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version;
         if (type == 'public') {
-            url += '/' + path
+            url += '/' + path;
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -9399,7 +9401,7 @@ var xbtce = {
 
     request (path, type = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (!(this.apiKey) || (this.apiKey.length < 1))
-            throw new Error (this.id + ' requires apiKey for all requests, public API busy'); 
+            throw new Error (this.id + ' requires apiKey for all requests, their public API is always busy'); 
         let url = this.urls['api'] + '/' + this.version;
         if (type == 'public')
             url += '/' + type;

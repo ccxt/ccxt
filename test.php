@@ -24,44 +24,43 @@ foreach (\ccxt\Market::$markets as $id) {
     ));
 }
 
+function test_market_symbol ($market, $symbol) {
+    $delay = $market->rateLimit * 1000;
+    usleep ($delay);
+    $ticker = $market->fetch_ticker ($symbol);
+    echo implode (' ', array ($market->id, $symbol, 'ticker',
+        $ticker['datetime'],
+        'high: '    . $ticker['high'],
+        'low: '     . $ticker['low'],
+        'bid: '     . $ticker['bid'],
+        'ask: '     . $ticker['ask'],
+        'volume: '  . $ticker['quoteVolume'])) . "\n";
+    
+    usleep ($delay);
+    $orderbook = $market->fetch_order_book ($symbol);
+    echo implode (' ', array ($market->id, $symbol, 'order book',
+        $orderbook['datetime'],
+        'bid: '       . @$orderbook['bids'][0][0],
+        'bidVolume: ' . @$orderbook['bids'][0][1],
+        'ask: '       . @$orderbook['asks'][0][0],
+        'askVolume: ' . @$orderbook['asks'][0][1])) . "\n";
+
+}
+
+function load_market ($market) {
+
+    $products = $market->load_products ();
+    $symbols = array_keys ($products);    
+    echo $market->id . ' ' . count ($symbols) . " symbols: " . implode (", ", $symbols) . "\n";
+}
+
 function test_market ($market) {
 
-    $delay = 3 * 1000000;
+    $delay = $market->rateLimit * 1000;
 
-    echo "-----------------------------------------------------------------\n";
-    // echo $market->id . "\n";
-    $products = $market->load_products ();
-    
-    // echo $market->id . " products:\n";
-    // var_dump ($products);
-
-    $symbols = array_keys ($products);
-    
-    echo $market->id . ' ' . count ($symbols) . " symbols: " . implode (", ", $symbols) . "\n";
-
-    foreach ($symbols as $symbol) {
-        if (strpos ($symbol, '.d') === false) {
-            
-            usleep ($delay);
-            $ticker = $market->fetch_ticker ($symbol);
-            echo implode (' ', array ($market->id, $symbol, 'ticker',
-                $ticker['datetime'],
-                'high: '    . $ticker['high'],
-                'low: '     . $ticker['low'],
-                'bid: '     . $ticker['bid'],
-                'ask: '     . $ticker['ask'],
-                'volume: '  . $ticker['quoteVolume'])) . "\n";
-            
-            usleep ($delay);
-            $orderbook = $market->fetch_order_book ($symbol);
-            echo implode (' ', array ($market->id, $symbol, 'order book',
-                $orderbook['datetime'],
-                'bid: '       . @$orderbook['bids'][0][0],
-                'bidVolume: ' . @$orderbook['bids'][0][1],
-                'ask: '       . @$orderbook['asks'][0][0],
-                'askVolume: ' . @$orderbook['asks'][0][1])) . "\n";
-        }
-    }
+    foreach ($symbols as $symbol)
+        if (strpos ($symbol, '.d') === false)
+            test_market_symbol ($market, $symbol);
 
     // usleep ($delay);
 
@@ -94,9 +93,16 @@ if (count ($argv) > 1) {
     
     if ($markets[$argv[1]]) {
     
-        $market = $markets[$argv[1]];
-        test_market ($market);
-    
+        $id = $argv[1];
+        $market = $markets[$id];
+        load_market ($market);
+
+        if (count ($argv) > 2) {
+            test_market_symbol ($market, $argv[2]);
+        }
+        else 
+            test_market ($market);    
+
     } else {
     
         echo $argv[1] + " not found.\n";
@@ -108,6 +114,7 @@ if (count ($argv) > 1) {
     
         try {
     
+            load_market ($market);
             test_market ($market);  
     
         } catch (Exception $e) {

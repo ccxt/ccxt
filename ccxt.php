@@ -741,6 +741,8 @@ class cryptocapital extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        if ($this->id == 'cryptocapital')
+            throw new \Exception ($this->id . ' is an abstract base API for _1BTCXE');
         $url = $this->urls['api'] . '/' . $path;
         if ($type == 'public') {
             if ($params)
@@ -3687,7 +3689,7 @@ class btctrader extends Market {
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if ($this->id == 'btctrader')
-            throw new \Exception ($this->id . ' is an abstract API for BTCExchange, BTCTurk')
+            throw new \Exception ($this->id . ' is an abstract base API for BTCExchange, BTCTurk');
         $url = $this->urls['api'] . '/' . $path;
         if ($type == 'public') {
             if ($params)
@@ -7293,7 +7295,7 @@ class lakebtc extends Market {
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version;
         if ($type == 'public') {
-            $url .= '/' . $path
+            $url .= '/' . $path;
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -9742,7 +9744,7 @@ class xbtce extends Market {
 
     public function request ($path, $type = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!($this->apiKey) || strlen (($this->apiKey) < 1))
-            throw new \Exception ($this->id . ' requires apiKey for all requests, public API busy'); 
+            throw new \Exception ($this->id . ' requires apiKey for all requests, their public API is always busy'); 
         $url = $this->urls['api'] . '/' . $this->version;
         if ($type == 'public')
             $url .= '/' . $type;

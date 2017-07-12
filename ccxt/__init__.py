@@ -717,6 +717,8 @@ class cryptocapital (Market):
         return self.privatePostOrdersNew (self.extend (order, params))
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        if self.id == 'cryptocapital':
+            raise Exception (self.id + ' is an abstract base API for _1BTCXE')
         url = self.urls['api'] + '/' + path
         if type == 'public':
             if params:
@@ -3495,7 +3497,7 @@ class btctrader (Market):
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         if self.id == 'btctrader':
-            raise Exception (self.id + ' is an abstract API for BTCExchange, BTCTurk')
+            raise Exception (self.id + ' is an abstract base API for BTCExchange, BTCTurk')
         url = self.urls['api'] + '/' + path
         if type == 'public':
             if params:
@@ -9203,7 +9205,7 @@ class xbtce (Market):
 
     def request (self, path, type = 'api', method = 'GET', params = {}, headers = None, body = None):
         if not (self.apiKey) or len ((self.apiKey) < 1):
-            raise Exception (self.id + ' requires apiKey for all requests, public API busy') 
+            raise Exception (self.id + ' requires apiKey for all requests, their public API is always busy') 
         url = self.urls['api'] + '/' + self.version
         if type == 'public':
             url += '/' + type
