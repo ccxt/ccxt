@@ -186,6 +186,9 @@ var Market = function (config) {
 
     this.init = function () {
 
+        if (isNode)
+            this.nodeVersion = process.version.match (/\d+\.\d+.\d+/) [0]
+
         if (this.api)
             Object.keys (this.api).forEach (type => {
                 Object.keys (this.api[type]).forEach (method => {
@@ -220,12 +223,10 @@ var Market = function (config) {
 
     this.fetch = function (url, method = 'GET', headers = undefined, body = undefined) {
 
-        if (isNode) {
-            this.nodeVersion = process.version.match (/\d+\.\d+.\d+/) [0]
+        if (isNode)
             headers = extend ({
                 'User-Agent': 'ccxt/0.1.0 (+https://github.com/kroitor/ccxt) Node.js/' + this.nodeVersion + ' (JavaScript)'
             }, headers)
-        }
 
         if (this.proxy.length)
             headers = extend ({ 'Origin': '*' }, headers)
