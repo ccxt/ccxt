@@ -12,19 +12,6 @@ except ImportError:
 
     markets = {}
 
-#------------------------------------------------------------------------------
-
-# tuples = list (ccxt.Market.keysort (markets).items ())
-
-# print (tuples)
-
-for id in ccxt.markets:
-    market = getattr (ccxt, id)
-    markets[id] = market ({
-        'verbose': False,
-        # 'proxy': 'https://crossorigin.me/',
-    })
-
 def test_market_symbol_orderbook (market, symbol):
     delay = int (market.rateLimit / 1000)
     time.sleep (delay)
@@ -52,53 +39,27 @@ def test_market_symbol_ticker (market, symbol):
 
 def test_market_symbol (market, symbol):
     test_market_symbol_ticker (market, symbol)
-    # test_market_symbol_orderbook (market, symbol)
+    test_market_symbol_orderbook (market, symbol)
+
+def load_market (market):
+    # print (dir (market))
+    # print (market.id)
+    products = market.load_products ()
+    # print (market.id, 'products', products)
+    keys = list (market.products.keys ())
+    print (market.id , len (keys), 'symbols', keys)
 
 def test_market (market):
 
     delay = 2
-    
-    print ('-----------------------------------------------------------------')
-    # print (dir (market))
-    # print (market.id)
-
-    products = market.load_products ()
-    # print (market.id, 'products', products)
-
-    keys = list(products.keys ())
-    print (market.id , len (keys), 'symbols', keys)
-    # time.sleep (delay)
-
-    symbol = keys[0]
-    for s in ['BTC/USD', 'BTC/CNY', 'BTC/ETH', 'ETH/BTC', 'BTC/JPY']:
-        if s in keys:
-            symbol = s
-            break
-
-    # symbol = products.keys ()[0]
-    # symbol = 'BTC/IDR'
-    # symbol = 'BTC/JPY'
-    # symbol = 'BTC/CNY'
+    keys = list (market.products.keys ())
 
     #--------------------------------------------------------------------------
     # public API
 
-    # print (market.id, symbol, 'orderbook')
-    # orderbook = market.fetch_order_book (symbol)
-    # print (orderbook)
-    # time.sleep (delay)
-
-    # print (market.id, symbol, 'trades')
-    # trades = market.fetch_trades (symbol)
-    # print (trades)
-    # time.sleep (delay)
-
-    # for symbol in keys:
-    #     if symbol.find ('.d') < 0:
-    #         test_market_symbol (market, symbol)
-
-    # for i in range (0, 100):
-    #     test_market_symbol (market, 'DASH/BTC')
+    for symbol in keys:
+        if symbol.find ('.d') < 0:
+            test_market_symbol (market, symbol)
 
     #--------------------------------------------------------------------------
     # private API
@@ -134,21 +95,46 @@ def test_market (market):
     # print (limitSell)
     # time.sleep (delay)
 
-arg = None
-try:
-    arg = sys.argv[1]
-except:
-    arg = None
+#------------------------------------------------------------------------------
 
-if arg:
-    id = arg
+for id in ccxt.markets:
+    market = getattr (ccxt, id)
+    markets[id] = market ({
+        'verbose': False,
+        # 'proxy': 'https://crossorigin.me/',
+    })
+
+id = None
+
+try:
+    id = sys.argv[1]
+except:
+    id = None
+
+if id:
+    
     market = markets[id]
-    test_market (market)
+    load_market (market)
+    symbol = None
+    
+    try:
+        symbol = sys.argv[2]
+    except:
+        symbol = None
+    
+    if symbol:
+        test_market_symbol (market, symbol)
+    else:
+        test_market (market)
+        
 else:
+    tuples = list (ccxt.Market.keysort (markets).items ())
     for (id, params) in tuples:
         print (id)
         try:
-            test_market (markets[id])
+            market = markets[id]
+            load_market (market)
+            test_market (market)
         except Exception as e:
             print (type (e).__name__, e.args)
             sys.exit ()
