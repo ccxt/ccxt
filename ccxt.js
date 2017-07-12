@@ -2594,6 +2594,10 @@ var bitso = {
         return this.privatePostOrders (this.extend (order, params));
     },
 
+    cancelOrder (id) {
+        return this.privateDeleteOrders ({ 'oid': id });
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'] + query;

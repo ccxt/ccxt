@@ -2731,6 +2731,10 @@ class bitso extends Market {
         return $this->privatePostOrders (array_merge ($order, $params));
     }
 
+    public function cancel_order ($id) {
+        return $this->privateDeleteOrders (array ( 'oid' => $id ));
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $url = $this->urls['api'] . $query;
