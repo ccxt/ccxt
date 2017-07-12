@@ -3679,8 +3679,8 @@ var btctradeua = {
                 'bid/{symbol}',
                 'buy/{symbol}',
                 'my_orders/{symbol}',
-                'order/status/{orderId}',
-                'remove/order/{orderId}',
+                'order/status/{id}',
+                'remove/order/{id}',
                 'sell/{symbol}',
             ],
         },
@@ -3816,6 +3816,10 @@ var btctradeua = {
             'price': price,
         };
         return this[method] (this.extend (order, params));
+    },
+
+    cancelOrder (id) {
+        return this.privatePostRemoveOrderId ({ 'id': id });
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
