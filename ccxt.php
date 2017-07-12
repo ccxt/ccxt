@@ -4323,6 +4323,10 @@ class bter extends Market {
         return $this->$method (array_merge ($order, $params));
     }
 
+    public function cancel_order ($id) {
+        return $this->privatePostCancelOrder (array ( 'orderNumber' => $id ));
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $prefix = ($type == 'private') ? ($type . '/') : '';
         $url = $this->urls['api'][$type] . $this->version . '/1/' . $prefix . $this->implode_params ($path, $params);

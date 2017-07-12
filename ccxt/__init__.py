@@ -4071,6 +4071,9 @@ class bter (Market):
         }
         return getattr (self, method) (self.extend (order, params))
 
+    def cancel_order (self, id):
+        return self.privatePostCancelOrder ({ 'orderNumber': id })
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         prefix = (type + '/') if (type == 'private') else ''
         url = self.urls['api'][type] + self.version + '/1/' + prefix + self.implode_params (path, params)

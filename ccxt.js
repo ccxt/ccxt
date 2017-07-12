@@ -4141,6 +4141,10 @@ var bter = {
         return this[method] (this.extend (order, params));
     },
 
+    cancelOrder (id) {
+        return this.privatePostCancelOrder ({ 'orderNumber': id });
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let prefix = (type == 'private') ? (type + '/') : '';
         let url = this.urls['api'][type] + this.version + '/1/' + prefix + this.implodeParams (path, params);
