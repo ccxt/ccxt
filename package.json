@@ -8,7 +8,7 @@
     "url": "https://github.com/kroitor/ccxt.git"
   },
   "scripts": {
-    "test": "mocha --reporter spec --watch",
+    "test": "node test",
     "export-markets": "node export-markets",
     "mdrst": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=README.rst README.md",
     "transpile": "node transpile",
@@ -21,7 +21,8 @@
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-plugin-async-to-promises": "^1.0.5",
-    "babel-preset-es2015": "^6.24.1"
+    "babel-preset-es2015": "^6.24.1",
+    "ololog": "0.0.32"
   },
   "author": {
     "name": "Igor Kroitor",

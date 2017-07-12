@@ -16,11 +16,9 @@ markets = [
     'bitso',
     'bitstamp',
     'bittrex',
-    'blinktrade',
     'btcchina',
     'btce',
     'btcexchange',
-    'btctrader',
     'btctradeua',
     'btcturk',
     'btcx',
@@ -32,7 +30,6 @@ markets = [
     'coincheck',
     'coinmate',
     'coinsecure',
-    'cryptocapital',
     'dsx',
     'exmo',
     'foxbit',
@@ -6160,7 +6157,7 @@ class hitbtc (Market):
             'symbol': self.product_id (product),
         })
         if 'message' in ticker:
-            raise Exception (self.id + ' ' + message)
+            raise Exception (self.id + ' ' + ticker['message'])
         timestamp = ticker['timestamp']
         return {
             'timestamp': timestamp,

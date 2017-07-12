@@ -20,11 +20,9 @@ class Market {
         'bitso',
         'bitstamp',
         'bittrex',
-        'blinktrade',
         'btcchina',
         'btce',
         'btcexchange',
-        'btctrader',
         'btctradeua',
         'btcturk',
         'btcx',
@@ -36,7 +34,6 @@ class Market {
         'coincheck',
         'coinmate',
         'coinsecure',
-        'cryptocapital',
         'dsx',
         'exmo',
         'foxbit',
@@ -6547,7 +6544,7 @@ class hitbtc extends Market {
             'symbol' => $this->product_id ($product),
         ));
         if (array_key_exists ('message', $ticker))
-            throw new \Exception ($this->id . ' ' . message);
+            throw new \Exception ($this->id . ' ' . $ticker['message']);
         $timestamp = $ticker['timestamp'];
         return array (
             'timestamp' => $timestamp,

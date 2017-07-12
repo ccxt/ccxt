@@ -6,6 +6,17 @@ var isNode = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
 
+class DDoSProtectionError extends Error {}
+class TimeoutError extends Error {}
+
+let sleep = ms => new Promise (resolve => setTimeout (resolve, ms));
+
+var timeout = (ms, promise) =>
+        Promise.race ([
+            promise,
+            sleep (ms).then (() => { throw new TimeoutError ('timeout') })
+        ])
+
 var capitalize = function (string) {
     return string.length ? (string.charAt (0).toUpperCase () + string.slice (1)) : string
 }
@@ -238,18 +249,14 @@ var Market = function (config) {
         if (this.verbose)
             console.log (this.id, url, options)
 
-        return (fetch (url, options)
+        return timeout (this.timeout, fetch (url, options)
             .then (response => (typeof response === 'string') ? response : response.text ())
             .then (response => {
                 try {
                     return JSON.parse (response)
                 } catch (e) {
-                    if (response.match (/cloudflare/i))
-                        throw {
-                            name: 'DDoS Protection By Cloudflare',
-                            message: 'Access to ' + this.id + ' from this location currently requires JavaScript in a browser.',
-                            toString: function () { return this.name + ': ' + this.message },
-                        }
+                    if (response.match (/cloudflare/i) || response.match (/incapsula/i))
+                        throw new DDoSProtectionError ('[DDoS Protection] ' + this.id + ' from this location currently not accessible.')
                     if (this.verbose)
                         console.log (this.id, 'error', e, response)
                     throw e
@@ -335,7 +342,7 @@ var Market = function (config) {
     this.nonce          = this.seconds
     this.id             = undefined
     this.rateLimit      = 2000
-    this.timeout        = undefined
+    this.timeout        = 10000
     this.yyyymmddhhmmss = timestamp => {
         let date = new Date (timestamp)
         let yyyy = date.getUTCFullYear ()
@@ -6296,7 +6303,7 @@ var hitbtc = {
             'symbol': this.productId (product),
         });
         if ('message' in ticker)
-            throw new Error (this.id + ' ' + message);
+            throw new Error (this.id + ' ' + ticker['message']);
         let timestamp = ticker['timestamp'];
         return {
             'timestamp': timestamp,
@@ -9906,11 +9913,9 @@ var markets = {
     'bitso':         bitso,
     'bitstamp':      bitstamp,
     'bittrex':       bittrex,
-    'blinktrade':    blinktrade,
     'btcchina':      btcchina,
     'btce':          btce,
     'btcexchange':   btcexchange,
-    'btctrader':     btctrader,
     'btctradeua':    btctradeua,
     'btcturk':       btcturk,
     'btcx':          btcx,
@@ -9922,7 +9927,6 @@ var markets = {
     'coincheck':     coincheck,
     'coinmate':      coinmate,
     'coinsecure':    coinsecure,
-    'cryptocapital': cryptocapital,
     'dsx':           dsx,
     'exmo':          exmo,
     'foxbit':        foxbit,
@@ -9968,9 +9972,13 @@ let defineAllMarkets = function (markets) {
     return result
 }
 
-if (isNode)
-    module.exports = defineAllMarkets (markets)
-else
+if (isNode) {
+    Object.assign (module.exports = defineAllMarkets (markets), {
+
+        DDoSProtectionError,
+        TimeoutError
+    })
+} else
     window.ccxt = defineAllMarkets (markets)
 
 }) ()

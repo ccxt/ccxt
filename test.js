@@ -4,6 +4,7 @@ const ccxt      = require ('./ccxt')
 const countries = require ('./countries')
 const asTable   = require ('as-table')
 const util      = require ('util')
+const log       = require ('ololog')
 
 let markets = {}
 
@@ -25,7 +26,10 @@ ccxt.markets.forEach (id => {
     })
 })
 
-markets['_1broker'].apiKey = 'A0f79063a5e91e6d62fbcbbbbdd63258';
+markets['_1broker'].apiKey = 'A0f79063a5e91e6d62fbcbbbbdd63258'
+markets['xbtce'].uid = '68ef0552-3c37-4896-ba56-76173d9cd573'
+markets['xbtce'].apiKey = 'dK2jBXMTppAM57ZJ'
+markets['xbtce'].secret = 'qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwKqH7ywsxcR78WT'
 
 console.log (Object.values (ccxt).length)
 
@@ -34,7 +38,7 @@ var countryName = function (code) {
 }
 
 
-let sleep = async ms => await new Promise (resolve => setTimeout (resolve, ms))
+let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
 
 let testMarketSymbolTicker = async (market, symbol) => {
     await sleep (market.rateLimit)
@@ -92,7 +96,7 @@ let loadMarket = async market => {
     console.log (market.id, keys.length, 'symbols', keys.join (', '))
 }
 
-let testMarket = market => new Promise (async resolve => {
+let testMarket = async market => {
 
     let delay = market.rateLimit
 
@@ -111,12 +115,33 @@ let testMarket = market => new Promise (async resolve => {
 
     // sleep (delay)
 
-    for (let s in keys) {
-        let symbol = keys[s]
-        if ((symbol.indexOf ('.d') < 0)) {
-            await testMarketSymbol (market, symbol);
+    let symbol = keys[0]
+    let symbols = [
+        'BTC/USD',
+        'BTC/CNY',
+        'BTC/ETH',
+        'ETH/BTC',
+        'BTC/JPY',
+        'LTC/BTC',
+    ]
+    for (let s in symbols) {
+        if (keys.includes (symbols[s])) {
+            symbol = symbols[s]
+            break
         }
     }
+
+    log.green (symbol)
+    if ((symbol.indexOf ('.d') < 0)) {
+        await testMarketSymbol (market, symbol)
+    }
+
+    // for (let s in keys) {
+    //     let symbol = keys[s]
+    //     if ((symbol.indexOf ('.d') < 0)) {
+    //         await testMarketSymbol (market, symbol);
+    //     }
+    // }
             
     // let trades = await market.fetchTrades (Object.keys (market.products)[0])
     // console.log (market.id, trades)
@@ -124,7 +149,7 @@ let testMarket = market => new Promise (async resolve => {
     if (!market.apiKey || (market.apiKey.length < 1))
         return true
 
-    sleep (delay)
+    await sleep (delay)
 
     let balance = await market.fetchBalance ()
     console.log (market.id, 'balance', balance)
@@ -165,11 +190,14 @@ let testMarket = market => new Promise (async resolve => {
     //     console.log (market.id, 'error', 'limit buy', e)
     // }
 
-})
+}
 
 //-----------------------------------------------------------------------------
 
 var test = async function () {
+
+    process.on ('uncaughtException',  e => { log.bright.red.error (e); process.exit (1) })
+    process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit (1) })
 
     //-------------------------------------------------------------------------
     // list all supported exchanges
@@ -190,32 +218,44 @@ var test = async function () {
         }        
     })))
 
-    let market = undefined
-
-    try {
-        if (process.argv.length > 2) {
-            let id = process.argv[2]
-            if (!markets[id])
-                throw new Error ('Market `' + id + '` not found')
-            let market = markets[id]
-            await loadMarket (market)
-            if (process.argv.length > 3) {
-                let symbol = process.argv[3]
-                await testMarketSymbol (market, symbol)
-            } else {
-                await testMarket (market)
-            }
+    if (process.argv.length > 2) {
+        let id = process.argv[2]
+        if (!markets[id])
+            throw new Error ('Market `' + id + '` not found')
+        const market = markets[id]
+        await loadMarket (market)
+        if (process.argv.length > 3) {
+            let symbol = process.argv[3]
+            await testMarketSymbol (market, symbol)
         } else {
-            Object.keys (markets).forEach (async id => {
-                var market = markets[id]
+            await testMarket (market)
+        }
+    } else {
+
+        const ignoreConnectionErrors = ['bitstamp', 'btce']
+
+        for (const id of Object.keys (markets)) {
+
+            log.bright.green ('MARKET: ', id)
+
+            try {
+                const market = markets[id]
                 await loadMarket (market)
                 await testMarket (market)
-                sleep (1000)
-            })
+            } catch (e) {
+                if (e instanceof ccxt.DDoSProtectionError ||
+                    (e.message.includes ('ECONNRESET') && ignoreConnectionErrors.includes (id))) {
+
+                    log.bright.yellow ('DDoS Protection error (ignoring)')
+
+                } else if (e instanceof ccxt.TimeoutError) {
+                    log.bright.yellow ('request timeout (ignoring)')
+
+                } else {
+                    throw e;
+                }
+            }
         }
-    } catch (e) {
-        console.log (e)
-        process.exit ()   
     }
 
 } ()
