@@ -2931,6 +2931,10 @@ var bittrex = {
         return this[method] (this.extend (order, params));
     },
 
+    cancelOrder (id) {
+        return this.marketGetCancel ({ 'uuid': id });
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/';
         if (type == 'public') {

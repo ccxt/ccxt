@@ -2904,6 +2904,9 @@ class bittrex (Market):
             order['rate'] = price
         return getattr (self, method) (self.extend (order, params))
 
+    def cancel_order (self, id):
+        return self.marketGetCancel ({ 'uuid': id })
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/'
         if type == 'public':

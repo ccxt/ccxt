@@ -3076,6 +3076,10 @@ class bittrex extends Market {
         return $this->$method (array_merge ($order, $params));
     }
 
+    public function cancel_order ($id) {
+        return $this->marketGetCancel (array ( 'uuid' => $id ));
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/';
         if ($type == 'public') {
