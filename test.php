@@ -56,6 +56,7 @@ function load_market ($market) {
 
 function test_market ($market) {
 
+    $symbols = array_keys ($market->products);
     $delay = $market->rateLimit * 1000;
 
     foreach ($symbols as $symbol)

@@ -654,6 +654,11 @@ var cryptocapital = {
         return this.privatePostOrdersNew (this.extend (order, params));
     },
 
+    cancelOrder (id) {
+        return this.privatePostOrdersCancel ({ 'id': id });
+    },
+
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (this.id == 'cryptocapital')
             throw new Error (this.id + ' is an abstract base API for _1BTCXE');

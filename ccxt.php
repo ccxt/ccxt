@@ -744,6 +744,10 @@ class cryptocapital extends Market {
         return $this->privatePostOrdersNew (array_merge ($order, $params));
     }
 
+    public function cancel_order ($id) {
+        return $this->privatePostOrdersCancel (array ( 'id' => $id ));
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if ($this->id == 'cryptocapital')
             throw new \Exception ($this->id . ' is an abstract base API for _1BTCXE');

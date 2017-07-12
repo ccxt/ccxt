@@ -721,6 +721,9 @@ class cryptocapital (Market):
             order['limit_price'] = price
         return self.privatePostOrdersNew (self.extend (order, params))
 
+    def cancel_order (self, id):
+        return self.privatePostOrdersCancel ({ 'id': id })
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         if self.id == 'cryptocapital':
             raise Exception (self.id + ' is an abstract base API for _1BTCXE')
