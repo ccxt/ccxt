@@ -108,6 +108,8 @@ class Market (object):
     products  = None
     tickers   = None
     proxy     = ''
+    apiKey    = ''
+    secret    = ''
 
     def __init__ (self, config = {}):
 
