@@ -3233,6 +3233,12 @@ class btcchina (Market):
             order['params'] = [ price, amount, id ]
         return getattr (self, method) (self.extend (order, params))
 
+    def cancel_order (self, id, params = {}):
+        market = params['market'] # TODO fixme
+        return self.privatePostCancelOrder (self.extend ({
+            'params': [ id, market ], 
+        }, params))
+
     def nonce (self):
         return self.microseconds ()
 

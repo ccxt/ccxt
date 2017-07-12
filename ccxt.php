@@ -3426,6 +3426,13 @@ class btcchina extends Market {
         return $this->$method (array_merge ($order, $params));
     }
 
+    public function cancel_order ($id, $params = array ()) {
+        $market = $params['market']; // TODO fixme
+        return $this->privatePostCancelOrder (array_merge (array (
+            'params' => array ($id, $market), 
+        ), $params));
+    }
+
     public function nonce () {
         return $this->microseconds ();
     }

@@ -3273,6 +3273,13 @@ var btcchina = {
         return this[method] (this.extend (order, params));
     },
 
+    cancelOrder (id, params = {}) {
+        let market = params['market']; // TODO fixme
+        return this.privatePostCancelOrder (this.extend ({
+            'params': [ id, market ], 
+        }, params));
+    },
+
     nonce () {
         return this.microseconds ();
     },
