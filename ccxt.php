@@ -5484,6 +5484,12 @@ class coinsecure extends Market {
         return $this->$method (self.extend ($order, $params));
     }
 
+    public function cancel_order ($id) {
+        throw new \Exception ($this->id . ' cancelOrder () is not fully implemented yet');
+        $method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
+        return $this->$method (array ( 'orderID' => $id ));
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));

@@ -5273,6 +5273,12 @@ var coinsecure = {
         return this[method] (self.extend (order, params));
     },
 
+    cancelOrder (id) {
+        throw new Error (this.id + ' cancelOrder () is not fully implemented yet');
+        let method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
+        return this[method] ({ 'orderID': id });
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));

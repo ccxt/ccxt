@@ -5165,6 +5165,11 @@ class coinsecure (Market):
             order['vol'] = amount
         return getattr (self, method) (self.extend (order, params))
 
+    def cancel_order (self, id):
+        raise Exception (self.id + ' cancelOrder () is not fully implemented yet')
+        method = 'privateDeleteUserExchangeAskCancelOrderId' # TODO fixme, have to specify order side here
+        return getattr (self, method) ({ 'orderID': id })
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
