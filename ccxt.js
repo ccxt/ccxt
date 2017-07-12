@@ -3976,6 +3976,10 @@ var btcx = {
         }, params));
     },
 
+    cancelOrder (id) {
+        return this.privatePostCancel ({ 'order': id });
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/';
         if (type == 'public') {

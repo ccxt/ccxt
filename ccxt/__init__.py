@@ -3627,8 +3627,8 @@ class btctradeua (Market):
                         'bid/{symbol}',
                         'buy/{symbol}',
                         'my_orders/{symbol}',
-                        'order/status/{orderId}',
-                        'remove/order/{orderId}',
+                        'order/status/{id}',
+                        'remove/order/{id}',
                         'sell/{symbol}',
                     ],
                 },
@@ -3756,6 +3756,9 @@ class btctradeua (Market):
             'price': price,
         }
         return getattr (self, method) (self.extend (order, params))
+
+    def cancel_order (self, id):
+        return self.privatePostRemoveOrderId ({ 'id': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.implode_params (path, params)
@@ -3909,6 +3912,9 @@ class btcx (Market):
             'amount': amount,
             'price': price,
         }, params))
+
+    def cancel_order (self, id):
+        return self.privatePostCancel ({ 'order': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/'

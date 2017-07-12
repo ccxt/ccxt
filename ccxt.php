@@ -3846,8 +3846,8 @@ class btctradeua extends Market {
                         'bid/{symbol}',
                         'buy/{symbol}',
                         'my_orders/{symbol}',
-                        'order/status/{orderId}',
-                        'remove/order/{orderId}',
+                        'order/status/{id}',
+                        'remove/order/{id}',
                         'sell/{symbol}',
                     ),
                 ),
@@ -3985,6 +3985,10 @@ class btctradeua extends Market {
             'price' => $price,
         );
         return $this->$method (array_merge ($order, $params));
+    }
+
+    public function cancel_order ($id) {
+        return $this->privatePostRemoveOrderId (array ( 'id' => $id ));
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -4147,6 +4151,10 @@ class btcx extends Market {
             'amount' => $amount,
             'price' => $price,
         ), $params));
+    }
+
+    public function cancel_order ($id) {
+        return $this->privatePostCancel (array ( 'order' => $id ));
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
