@@ -462,7 +462,7 @@ class _1broker extends Market {
             'version' => 'v2',
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg',
-                'api' => 'https://1broker.com/api',        
+                'api' => 'https://1broker.com/api',
                 'www' => 'https://1broker.com',
                 'doc' => 'https://1broker.com/?c=en/content/api-documentation',
             ),
@@ -507,7 +507,7 @@ class _1broker extends Market {
         $result = array ();
         for ($c = 0; $c < count ($categories); $c++) {
             $category = $categories[$c];
-            $products = $this->privateGetMarketList (array ( 
+            $products = $this->privateGetMarketList (array (
                 'category' => strtolower ($category),
             ));
             for ($p = 0; $p < count ($products['response']); $p++) {
@@ -589,7 +589,7 @@ class _1broker extends Market {
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => null,
-        ); 
+        );
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
@@ -609,7 +609,7 @@ class _1broker extends Market {
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!($this->apiKey) || strlen (($this->apiKey) < 1))
-            throw new \Exception ($this->id . ' requires apiKey for all requests'); 
+            throw new \Exception ($this->id . ' requires apiKey for all requests');
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path . '.php';
         $query = array_merge (array ( 'token' => $this->apiKey ), $params);
         $url .= '?' . $this->urlencode ($query);
@@ -641,7 +641,7 @@ class cryptocapital extends Market {
                         'transactions',
                     ),
                 ),
-                'private' => array (            
+                'private' => array (
                     'post' => array (
                         'balances-and-info',
                         'open-orders',
@@ -770,12 +770,12 @@ class _1btcxe extends cryptocapital {
             'name' => '1BTCXE',
             'countries' => 'PA', // Panama
             'comment' => 'Crypto Capital API',
-            'urls' => array ( 
+            'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg',
                 'api' => 'https://1btcxe.com/api',
                 'www' => 'https://1btcxe.com',
                 'doc' => 'https://1btcxe.com/api-docs.php',
-            ),    
+            ),
             'products' => array (
                 'BTC/USD' => array ( 'id' => 'USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', ),
                 'BTC/EUR' => array ( 'id' => 'EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', ),
@@ -834,7 +834,7 @@ class anxpro extends Market {
                         '{currency_pair}/money/ticker',
                         '{currency_pair}/money/depth/full',
                         '{currency_pair}/money/trade/fetch', // disabled by ANXPro
-                    ),    
+                    ),
                 ),
                 'private' => array (
                     'post' => array (
@@ -848,7 +848,7 @@ class anxpro extends Market {
                         'money/info',
                         'money/trade/list',
                         'money/wallet/history',
-                    ),    
+                    ),
                 ),
             ),
             'products' => array (
@@ -1138,7 +1138,7 @@ class bitbay extends Market {
                     'https://bitbay.net/public-api',
                     'https://bitbay.net/account/tab-api',
                     'https://github.com/BitBayNet/API',
-                ), 
+                ),
             ),
             'api' => array (
                 'public' => array (
@@ -1164,7 +1164,7 @@ class bitbay extends Market {
                     ),
                 ),
             ),
-            'products' => array (  
+            'products' => array (
                 'BTC/USD' => array ( 'id' => 'BTCUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
                 'BTC/EUR' => array ( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
                 'BTC/PLN' => array ( 'id' => 'BTCPLN', 'symbol' => 'BTC/PLN', 'base' => 'BTC', 'quote' => 'PLN' ),
@@ -1593,7 +1593,7 @@ class bitfinex extends Market {
                         'symbols',
                         'symbols_details',
                         'today',
-                        'trades/{symbol}',                
+                        'trades/{symbol}',
                     ),
                 ),
                 'private' => array (
@@ -1644,7 +1644,7 @@ class bitfinex extends Market {
             $base = mb_substr ($id, 0, 3);
             $quote = mb_substr ($id, 3, 6);
             // issue #4 Bitfinex names Dash as DSH, instead of DASH
-            if ($base == 'DSH') 
+            if ($base == 'DSH')
                 $base = 'DASH';
             $symbol = $base . '/' . $quote;
             $result[] = array (
@@ -1663,7 +1663,7 @@ class bitfinex extends Market {
     }
 
     public function fetch_order_book ($product) {
-        $orderbook = $this->publicGetBookSymbol (array ( 
+        $orderbook = $this->publicGetBookSymbol (array (
             'symbol' => $this->product_id ($product),
         ));
         $timestamp = $this->milliseconds ();
@@ -1737,7 +1737,7 @@ class bitfinex extends Market {
         $request = '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         $url = $this->urls['api'] . $request;
-        if ($type == 'public') {            
+        if ($type == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -1850,7 +1850,7 @@ class bitflyer extends Market {
     }
 
     public function fetch_order_book ($product) {
-        $orderbook = $this->publicGetBoard (array ( 
+        $orderbook = $this->publicGetBoard (array (
             'product_code' => $this->product_id ($product),
         ));
         $timestamp = $this->milliseconds ();
@@ -1922,7 +1922,7 @@ class bitflyer extends Market {
         if ($type == 'private')
             $request = '/me' . $request;
         $url = $this->urls['api'] . $request;
-        if ($type == 'public') {            
+        if ($type == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -1949,7 +1949,7 @@ class bitlish extends Market {
             'id' => 'bitlish',
             'name' => 'bitlish',
             'countries' => array ( 'GB', 'EU', 'RU', ),
-            'rateLimit' => 2000,    
+            'rateLimit' => 2000,
             'version' => 'v1',
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
@@ -2448,7 +2448,7 @@ class bitmex extends Market {
             'binSize' => '1d',
             'partial' => true,
             'count' => 1,
-            'reverse' => true,            
+            'reverse' => true,
         );
         $quotes = $this->publicGetQuoteBucketed ($request);
         $quotesLength = count ($quotes);
@@ -2812,7 +2812,7 @@ class bitstamp extends Market {
     }
 
     public function fetch_trades ($product) {
-        return $this->publicGetTransactionsId (array ( 
+        return $this->publicGetTransactionsId (array (
             'id' => $this->product_id ($product),
         ));
     }
@@ -2875,7 +2875,7 @@ class bittrex extends Market {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
                 'api' => 'https://bittrex.com/api',
                 'www' => 'https://bittrex.com',
-                'doc' => array ( 
+                'doc' => array (
                     'https://bittrex.com/Home/Api',
                     'https://www.npmjs.org/package/node.bittrex.api',
                 ),
@@ -2889,7 +2889,7 @@ class bittrex extends Market {
                         'marketsummaries',
                         'marketsummary',
                         'orderbook',
-                        'ticker',            
+                        'ticker',
                     ),
                 ),
                 'account' => array (
@@ -3000,7 +3000,7 @@ class bittrex extends Market {
     }
 
     public function fetch_trades ($product) {
-        return $this->publicGetMarkethistory (array ( 
+        return $this->publicGetMarkethistory (array (
             'market' => $this->product_id ($product),
         ));
     }
@@ -3046,7 +3046,7 @@ class blinktrade extends Market {
             'id' => 'blinktrade',
             'name' => 'BlinkTrade',
             'countries' => array ( 'US', 'VE', 'VN', 'BR', 'PK', 'CL' ),
-            'rateLimit' => 1000, 
+            'rateLimit' => 1000,
             'version' => 'v1',
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27990968-75d9c884-6470-11e7-9073-46756c8e7e8c.jpg',
@@ -3392,7 +3392,7 @@ class btcchina extends Market {
                 '&$params=' . $p
             );
             $signature = $this->hmac ($query, $this->secret, 'sha1');
-            $auth = $this->apiKey . ':' . $signature; 
+            $auth = $this->apiKey . ':' . $signature;
             $headers = array (
                 'Content-Length' => strlen ($body),
                 'Authorization' => 'Basic ' . base64_encode ($query),
@@ -3487,7 +3487,7 @@ class btce extends Market {
         $response = $this->publicGetDepthPair (array (
             'pair' => $p['id'],
         ));
-        $orderbook = $response[$p['id']]; 
+        $orderbook = $response[$p['id']];
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => $orderbook['bids'],
@@ -3587,9 +3587,9 @@ class btctrader extends Market {
                     'get' => array (
                         'ohlcdata', // ?last=COUNT
                         'orderbook',
-                        'ticker',                
+                        'ticker',
                         'trades',   // ?last=COUNT (max 50)
-                        
+        
                     ),
                 ),
                 'private' => array (
@@ -3597,11 +3597,11 @@ class btctrader extends Market {
                         'balance',
                         'openOrders',
                         'userTransactions', // ?offset=0&limit=25&sort=asc
-                        
+        
                     ),
                     'post' => array (
                         'buy',
-                        'cancelOrder',                
+                        'cancelOrder',
                         'sell',
                     ),
                 ),
@@ -3767,7 +3767,7 @@ class btctradeua extends Market {
                         'bid/{symbol}',
                         'buy/{symbol}',
                         'my_orders/{symbol}',
-                        'order/status/{orderId}',            
+                        'order/status/{orderId}',
                         'remove/order/{orderId}',
                         'sell/{symbol}',
                     ),
@@ -3975,7 +3975,7 @@ class btcx extends Market {
                 'public' => array (
                     'get' => array (
                         'depth/{id}/{limit}',
-                        'ticker/{id}',         
+                        'ticker/{id}',
                         'trade/{id}/{limit}',
                     ),
                 ),
@@ -4003,7 +4003,7 @@ class btcx extends Market {
     }
 
     public function fetch_order_book ($product) {
-        $orderbook = $this->publicGetDepthIdLimit (array ( 
+        $orderbook = $this->publicGetDepthIdLimit (array (
             'id' => $this->product_id ($product),
             'limit' => 1000,
         ));
@@ -4458,7 +4458,7 @@ class ccex extends Market {
                     ),
                 ),
                 'public' => array (
-                    'get' => array (                
+                    'get' => array (
                         'balancedistribution',
                         'markethistory',
                         'markets',
@@ -4466,12 +4466,12 @@ class ccex extends Market {
                         'orderbook',
                     ),
                 ),
-                'private' => array (            
+                'private' => array (
                     'get' => array (
                         'buylimit',
                         'cancel',
                         'getbalance',
-                        'getbalances',                
+                        'getbalances',
                         'getopenorders',
                         'getorder',
                         'getorderhistory',
@@ -4734,7 +4734,7 @@ class cex extends Market {
         $order = array (
             'pair' => $this->product_id ($product),
             'type' => $side,
-            'amount' => $amount,            
+            'amount' => $amount,
         );
         if ($type == 'limit')
             $order['price'] = $price;
@@ -4746,7 +4746,7 @@ class cex extends Market {
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'public') {   
+        if ($type == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -4831,7 +4831,7 @@ class coincheck extends Market {
                         'lending/borrows/matches',
                         'send_money',
                         'withdraws',
-                    ),            
+                    ),
                     'post' => array (
                         'bank_accounts',
                         'deposit_money/{id}/fast',
@@ -5173,7 +5173,7 @@ class coinsecure extends Market {
                 'private' => array (
                     'get' => array (
                         'mfa/authy/call',
-                        'mfa/authy/sms',            
+                        'mfa/authy/sms',
                         'netki/search/{netkiName}',
                         'user/bank/otp/{number}',
                         'user/kyc/otp/{number}',
@@ -5353,7 +5353,7 @@ class coinsecure extends Market {
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePutUserExchange';
         $order = array ();
-        if ($type == 'market') {       
+        if ($type == 'market') {
             $method .= 'Instant' . $this->capitalize ($side);
             if ($side == 'buy')
                 $order['maxFiat'] = $amount;
@@ -5538,7 +5538,7 @@ class dsx extends Market {
             'pair' => $this->product_id ($product),
             'type' => $side,
             'rate' => $price,
-            'amount' => $amount,            
+            'amount' => $amount,
         );
         return $this->tapiPostTrade (array_merge ($order, $params));
     }
@@ -5859,7 +5859,7 @@ class fyb extends Market {
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
-        if ($type == 'public') {           
+        if ($type == 'public') {
             $url .= '.json';
         } else {
             $nonce = $this->nonce ();
@@ -5992,7 +5992,7 @@ class gdax extends Market {
             $id = $product['id'];
             $base = $product['base_currency'];
             $quote = $product['quote_currency'];
-            $symbol = $base . '/' . $quote;            
+            $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -6076,7 +6076,7 @@ class gdax extends Market {
             'product_id' => $this->product_id ($product),
             'side' => $side,
             'size' => $amount,
-            'type' => $type,            
+            'type' => $type,
         );
         if ($type == 'limit')
             $order['price'] = $price;
@@ -6440,7 +6440,7 @@ class hitbtc extends Market {
             'symbol' => $this->product_id ($product),
             'side' => $side,
             'quantity' => $amount,
-            'type' => $type,            
+            'type' => $type,
         );
         if ($type == 'limit')
             $order['price'] = $price;
@@ -6527,7 +6527,7 @@ class huobi extends Market {
                         'repayment',
                         'get_loan_available',
                         'get_loans',
-                    ),            
+                    ),
                 ),
             ),
             'products' => array (
@@ -6635,7 +6635,7 @@ class itbit extends Market {
 
     public function __construct ($options = array ()) {
         parent::__construct (array_merge (array (
-            'id' => 'itbit',    
+            'id' => 'itbit',
             'name' => 'itBit',
             'countries' => 'US',
             'rateLimit' => 3000,
@@ -6688,7 +6688,7 @@ class itbit extends Market {
     }
 
     public function fetch_order_book ($product) {
-        $orderbook = $this->publicGetMarketsSymbolOrderBook (array ( 
+        $orderbook = $this->publicGetMarketsSymbolOrderBook (array (
             'symbol' => $this->product_id ($product),
         ));
         $timestamp = $this->milliseconds ();
@@ -6855,7 +6855,7 @@ class jubi extends Market {
                 'LTC/CNY' =>  array ( 'id' => 'ltc',  'symbol' => 'LTC/CNY',  'base' => 'LTC',  'quote' => 'CNY' ),
                 'MAX/CNY' =>  array ( 'id' => 'max',  'symbol' => 'MAX/CNY',  'base' => 'MAX',  'quote' => 'CNY' ),
                 'MET/CNY' =>  array ( 'id' => 'met',  'symbol' => 'MET/CNY',  'base' => 'MET',  'quote' => 'CNY' ),
-                'MRYC/CNY' => array ( 'id' => 'mryc', 'symbol' => 'MRYC/CNY', 'base' => 'MRYC', 'quote' => 'CNY' ),        
+                'MRYC/CNY' => array ( 'id' => 'mryc', 'symbol' => 'MRYC/CNY', 'base' => 'MRYC', 'quote' => 'CNY' ),
                 'MTC/CNY' =>  array ( 'id' => 'mtc',  'symbol' => 'MTC/CNY',  'base' => 'MTC',  'quote' => 'CNY' ),
                 'NXT/CNY' =>  array ( 'id' => 'nxt',  'symbol' => 'NXT/CNY',  'base' => 'NXT',  'quote' => 'CNY' ),
                 'PEB/CNY' =>  array ( 'id' => 'peb',  'symbol' => 'PEB/CNY',  'base' => 'PEB',  'quote' => 'CNY' ),
@@ -6876,7 +6876,7 @@ class jubi extends Market {
                 'XSGS/CNY' => array ( 'id' => 'xsgs', 'symbol' => 'XSGS/CNY', 'base' => 'XSGS', 'quote' => 'CNY' ),
                 'YTC/CNY' =>  array ( 'id' => 'ytc',  'symbol' => 'YTC/CNY',  'base' => 'YTC',  'quote' => 'CNY' ),
                 'ZET/CNY' =>  array ( 'id' => 'zet',  'symbol' => 'ZET/CNY',  'base' => 'ZET',  'quote' => 'CNY' ),
-                'ZCC/CNY' =>  array ( 'id' => 'zcc',  'symbol' => 'ZCC/CNY',  'base' => 'ZCC',  'quote' => 'CNY' ),        
+                'ZCC/CNY' =>  array ( 'id' => 'zcc',  'symbol' => 'ZCC/CNY',  'base' => 'ZCC',  'quote' => 'CNY' ),
             ),
         ), $options));
     }
@@ -6901,7 +6901,7 @@ class jubi extends Market {
     }
 
     public function fetch_ticker ($product) {
-        $ticker = $this->publicGetTicker (array ( 
+        $ticker = $this->publicGetTicker (array (
             'coin' => $this->product_id ($product),
         ));
         $timestamp = $this->milliseconds ();
@@ -6943,7 +6943,7 @@ class jubi extends Market {
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-        if ($type == 'public') {  
+        if ($type == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -7007,16 +7007,16 @@ class kraken extends Market {
                         'DepositStatus',
                         'Ledgers',
                         'OpenOrders',
-                        'OpenPositions', 
-                        'QueryLedgers', 
-                        'QueryOrders', 
+                        'OpenPositions',
+                        'QueryLedgers',
+                        'QueryOrders',
                         'QueryTrades',
                         'TradeBalance',
                         'TradesHistory',
                         'TradeVolume',
                         'Withdraw',
-                        'WithdrawCancel', 
-                        'WithdrawInfo',                 
+                        'WithdrawCancel',
+                        'WithdrawInfo',
                         'WithdrawStatus',
                     ),
                 ),
@@ -7687,7 +7687,7 @@ class luno extends Market {
             if ($side == 'buy')
                 $order['counter_volume'] = $amount;
             else
-                $order['base_volume'] = $amount;            
+                $order['base_volume'] = $amount;
         } else {
             $method .= 'Order';
             $order['volume'] = $amount;
@@ -7831,7 +7831,7 @@ class mercado extends Market {
             'quantity' => $amount,
             'limit_price' => $price,
         );
-        return $this->$method (array_merge ($order, $params));        
+        return $this->$method (array_merge ($order, $params));
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -7880,7 +7880,7 @@ class okcoin extends Market {
                         'kline',
                         'otcs',
                         'ticker',
-                        'trades',    
+                        'trades',
                     ),
                 ),
                 'private' => array (
@@ -7993,7 +7993,7 @@ class okcoin extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = '/api/' . $this->version . '/' . $path . '.do';   
+        $url = '/api/' . $this->version . '/' . $path . '.do';
         if ($type == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
@@ -8045,7 +8045,7 @@ class okcoinusd extends okcoin {
             'name' => 'OKCoin USD',
             'countries' => array ( 'CN', 'US' ),
             'urls' => array (
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',        
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api' => 'https://www.okcoin.com',
                 'www' => 'https://www.okcoin.com',
                 'doc' => array (
@@ -8210,12 +8210,12 @@ class paymium extends Market {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $body = json_encode ($params);
-            $nonce = (string) $this->nonce ();            
+            $nonce = (string) $this->nonce ();
             $auth = $nonce . $url . $body;
             $headers = array (
                 'Api-Key' => $this->apiKey,
                 'Api-Signature' => $this->hmac ($auth, $this->secret),
-                'Api-Nonce' => $nonce,                
+                'Api-Nonce' => $nonce,
                 'Content-Type' => 'application/json',
             );
         }
@@ -8430,7 +8430,7 @@ class quadrigacx extends Market {
                 'public' => array (
                     'get' => array (
                         'order_book',
-                        'ticker',                
+                        'ticker',
                         'transactions',
                     ),
                 ),
@@ -8521,7 +8521,7 @@ class quadrigacx extends Market {
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
-        $method = 'privatePost' . $this->capitalize ($side); 
+        $method = 'privatePost' . $this->capitalize ($side);
         $order = array (
             'amount' => $amount,
             'book' => $this->product_id ($product),
@@ -8543,7 +8543,7 @@ class quadrigacx extends Market {
             $nonce = $this->nonce ();
             $request = implode ('', array ($nonce, $this->uid, $this->apiKey));
             $signature = $this->hmac ($request, $this->secret);
-            $query = array_merge (array ( 
+            $query = array_merge (array (
                 'key' => $this->apiKey,
                 'nonce' => $nonce,
                 'signature' => $signature,
@@ -8737,8 +8737,8 @@ class quoine extends Market {
         } else {
             $nonce = $this->nonce ();
             $request = array (
-                'path' => $url, 
-                'nonce' => $nonce, 
+                'path' => $url,
+                'nonce' => $nonce,
                 'token_id' => $this->apiKey,
                 'iat' => (int) floor ($nonce / 1000), // issued at
             );
@@ -8973,7 +8973,7 @@ class therock extends Market {
                         'funds/{id}',
                         'funds/{id}/trades',
                         'funds/{fund_id}/orders',
-                        'funds/{fund_id}/orders/{id}',                
+                        'funds/{fund_id}/orders/{id}',
                         'funds/{fund_id}/position_balances',
                         'funds/{fund_id}/positions',
                         'funds/{fund_id}/positions/{id}',
@@ -9519,14 +9519,14 @@ class virwox extends Market {
         }
         $nonce = $this->nonce ();
         if ($method == 'GET') {
-            $url .= '?' . $this->urlencode (array_merge (array ( 
-                'method' => $path, 
+            $url .= '?' . $this->urlencode (array_merge (array (
+                'method' => $path,
                 'id' => $nonce,
             ), $auth, $params));
         } else {
             $headers = array ( 'Content-type' => 'application/json' );
-            $body = json_encode (array ( 
-                'method' => $path, 
+            $body = json_encode (array (
+                'method' => $path,
                 'params' => array_merge ($auth, $params),
                 'id' => $nonce,
             ));
@@ -9744,7 +9744,7 @@ class xbtce extends Market {
 
     public function request ($path, $type = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!($this->apiKey) || strlen (($this->apiKey) < 1))
-            throw new \Exception ($this->id . ' requires apiKey for all requests, their public API is always busy'); 
+            throw new \Exception ($this->id . ' requires apiKey for all requests, their public API is always busy');
         $url = $this->urls['api'] . '/' . $this->version;
         if ($type == 'public')
             $url .= '/' . $type;
@@ -9757,7 +9757,7 @@ class xbtce extends Market {
             $nonce = (string) $this->nonce ();
             if ($query)
                 $body = json_encode ($query);
-            else 
+            else
                 $body = '';
             $auth = $nonce . $this->uid . $this->apiKey . $method . $url . $body;
             $signature = $this->hmac ($auth, $this->secret, 'sha256', 'base64');
@@ -9806,7 +9806,7 @@ class yobit extends Market {
                         'GetDepositAddress',
                         'getInfo',
                         'OrderInfo',
-                        'Trade',                
+                        'Trade',
                         'TradeHistory',
                         'WithdrawCoinsToAddress',
                     ),
