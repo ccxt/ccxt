@@ -1057,6 +1057,9 @@ class bit2c (Market):
             order['IsBid'] = (side == 'buy')
         return getattr (self, method) (self.extend (order, params))
 
+    def cancel_order (self, id):
+        return self.privatePostOrderCancelOrder ({ 'id': id })
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.implode_params (path, params)
         if type == 'public':
