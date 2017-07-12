@@ -1372,8 +1372,8 @@ class bitcoincoid (Market):
                 },
                 'www': 'https://www.bitcoin.co.id',
                 'doc': [
-                    'https://vip.bitcoin.co.id/trade_api',
                     'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
+                    'https://vip.bitcoin.co.id/trade_api',            
                 ],
             },
             'api': {
@@ -1454,14 +1454,14 @@ class bitcoincoid (Market):
             'low': float (ticker['low']),
             'bid': float (ticker['buy']),
             'ask': float (ticker['sell']),
-            'vwap': float (ticker['vwap']),
+            'vwap': None,
             'open': None,
             'close': None,
             'first': None,
             'last': float (ticker['last']),
             'change': None,
             'percentage': None,
-            'average': float (ticker['average']),
+            'average': None,
             'baseVolume': float (ticker[baseVolume]),
             'quoteVolume': float (ticker[quoteVolume]),
             'info': ticker,
@@ -1482,6 +1482,11 @@ class bitcoincoid (Market):
         base = p['base'].lower ()
         order[base] = amount
         return self.privatePostTrade (self.extend (order, params))
+
+    def cancel_order (self, id, params = {}):
+        return self.privatePostCancelOrder (self.extend ({
+            'id': id,
+        }, params))
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][type]

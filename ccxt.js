@@ -1335,8 +1335,8 @@ var bitcoincoid = {
         },
         'www': 'https://www.bitcoin.co.id',
         'doc': [
-            'https://vip.bitcoin.co.id/trade_api',
             'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
+            'https://vip.bitcoin.co.id/trade_api',            
         ],
     },
     'api': {
@@ -1418,14 +1418,14 @@ var bitcoincoid = {
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['buy']),
             'ask': parseFloat (ticker['sell']),
-            'vwap': parseFloat (ticker['vwap']),
+            'vwap': undefined,
             'open': undefined,
             'close': undefined,
             'first': undefined,
             'last': parseFloat (ticker['last']),
             'change': undefined,
             'percentage': undefined,
-            'average': parseFloat (ticker['average']),
+            'average': undefined,
             'baseVolume': parseFloat (ticker[baseVolume]),
             'quoteVolume': parseFloat (ticker[quoteVolume]),
             'info': ticker,
@@ -1448,6 +1448,12 @@ var bitcoincoid = {
         let base = p['base'].toLowerCase ();
         order[base] = amount;
         return this.privatePostTrade (this.extend (order, params));
+    },
+
+    cancelOrder (id, params = {}) {
+        return this.privatePostCancelOrder (this.extend ({
+            'id': id,
+        }, params));
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

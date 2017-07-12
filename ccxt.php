@@ -1447,8 +1447,8 @@ class bitcoincoid extends Market {
                 ),
                 'www' => 'https://www.bitcoin.co.id',
                 'doc' => array (
-                    'https://vip.bitcoin.co.id/trade_api',
                     'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
+                    'https://vip.bitcoin.co.id/trade_api',            
                 ),
             ),
             'api' => array (
@@ -1532,14 +1532,14 @@ class bitcoincoid extends Market {
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['buy']),
             'ask' => floatval ($ticker['sell']),
-            'vwap' => floatval ($ticker['vwap']),
+            'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
             'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
-            'average' => floatval ($ticker['average']),
+            'average' => null,
             'baseVolume' => floatval ($ticker[$baseVolume]),
             'quoteVolume' => floatval ($ticker[$quoteVolume]),
             'info' => $ticker,
@@ -1562,6 +1562,12 @@ class bitcoincoid extends Market {
         $base = strtolower ($p['base']);
         $order[$base] = $amount;
         return $this->privatePostTrade (array_merge ($order, $params));
+    }
+
+    public function cancel_order ($id, $params = array ()) {
+        return $this->privatePostCancelOrder (array_merge (array (
+            'id' => $id,
+        ), $params));
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
