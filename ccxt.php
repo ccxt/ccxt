@@ -607,6 +607,10 @@ class _1broker extends Market {
         return $this->privateGetOrderCreate (array_merge ($order, $params));
     }
 
+    public function cancel_order ($id) {
+        return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!($this->apiKey) || strlen (($this->apiKey) < 1))
             throw new \Exception ($this->id . ' requires apiKey for all requests');

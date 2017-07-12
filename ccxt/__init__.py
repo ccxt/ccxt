@@ -593,6 +593,9 @@ class _1broker (Market):
             order['type'] += '_market'
         return self.privateGetOrderCreate (self.extend (order, params))
 
+    def cancel_order (self, id):
+        return self.privatePostOrderCancel ({ 'order_id': id })
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         if not (self.apiKey) or len ((self.apiKey) < 1):
             raise Exception (self.id + ' requires apiKey for all requests')

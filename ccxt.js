@@ -521,6 +521,10 @@ var _1broker = {
         return this.privateGetOrderCreate (this.extend (order, params));
     },
 
+    cancelOrder (id) {
+        return this.privatePostOrderCancel ({ 'order_id': id });
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (!(this.apiKey) || (this.apiKey.length < 1))
             throw new Error (this.id + ' requires apiKey for all requests');
