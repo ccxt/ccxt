@@ -4195,9 +4195,10 @@ class bxinth (Market):
         return result
 
     def fetch_ticker (self, product):
-        p = self.product (product)
-        tickers = self.publicGet ({ 'pairing': p['id'] })
-        ticker = tickers[p['id']]
+        id = self.product_id (product)
+        tickers = self.publicGet ({ 'pairing': id })
+        key = str (id)
+        ticker = tickers[key]
         timestamp = self.milliseconds ()
         return {
             'timestamp': timestamp,
@@ -4231,6 +4232,13 @@ class bxinth (Market):
             'amount': amount,
             'rate': price,
         }, params))
+
+    def cancel_order (self, id):
+        pairing = None # TODO fixme
+        return self.privatePostCancel ({
+            'order_id': id,
+            'pairing': pairing,
+        })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + path + '/'

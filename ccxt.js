@@ -4270,9 +4270,10 @@ var bxinth = {
     },
 
     async fetchTicker (product) {
-        let p = this.product (product);
-        let tickers = await this.publicGet ({ 'pairing': p['id'] });
-        let ticker = tickers[p['id']];
+        let id = this.productId (product);
+        let tickers = await this.publicGet ({ 'pairing': id });
+        let key = id.toString ();
+        let ticker = tickers[key];
         let timestamp = this.milliseconds ();
         return {
             'timestamp': timestamp,
@@ -4308,6 +4309,14 @@ var bxinth = {
             'amount': amount,
             'rate': price,
         }, params));
+    },
+
+    cancelOrder (id) {
+        let pairing = undefined; // TODO fixme
+        return this.privatePostCancel ({
+            'order_id': id,
+            'pairing': pairing,
+        });
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -4456,9 +4456,10 @@ class bxinth extends Market {
     }
 
     public function fetch_ticker ($product) {
-        $p = $this->product ($product);
-        $tickers = $this->publicGet (array ( 'pairing' => $p['id'] ));
-        $ticker = $tickers[$p['id']];
+        $id = $this->product_id ($product);
+        $tickers = $this->publicGet (array ( 'pairing' => $id ));
+        $key = (string) $id;
+        $ticker = $tickers[$key];
         $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
@@ -4494,6 +4495,14 @@ class bxinth extends Market {
             'amount' => $amount,
             'rate' => $price,
         ), $params));
+    }
+
+    public function cancel_order ($id) {
+        $pairing = null; // TODO fixme
+        return $this->privatePostCancel (array (
+            'order_id' => $id,
+            'pairing' => $pairing,
+        ));
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
