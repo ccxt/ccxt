@@ -2731,6 +2731,9 @@ class bitstamp (Market):
         method += 'Id'
         return getattr (self, method) (self.extend (order, params))
 
+    def cancel_order (self, id):
+        return self.privatePostCancelOrder ({ 'id': id })
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
