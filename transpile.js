@@ -292,6 +292,7 @@ let newRstMarketTable = rstMarketTableLines.map (line => {
 // console.log (match[3])
 rstNew = match[1] + "APIs:\n\n" + newRstMarketTable + "\n\n" + match[3]
 rstNew = rstNew.replace (/\.\.[^\n]+image\:\:[^\n]+[\n]/g, '')
+rstNew = rstNew.replace ("|Build Status| |npm| |PyPI|\n\n", '')
 // console.log (rstNew)
 // console.log (match[1])
         // .replace (/^\+[^\+]+\+/, '')
