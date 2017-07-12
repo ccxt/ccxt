@@ -608,7 +608,7 @@ class _1broker extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        if (!($this->apiKey) || strlen (($this->apyKey) < 1))
+        if (!($this->apiKey) || strlen (($this->apiKey) < 1))
             throw new \Exception ($this->id . ' requires apiKey for all requests'); 
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path . '.php';
         $query = array_merge (array ( 'token' => $this->apiKey ), $params);
