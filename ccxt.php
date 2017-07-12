@@ -1261,6 +1261,10 @@ class bitbay extends Market {
         ), $params));
     }
 
+    public function cancel_order ($id) {
+        return $this->privatePostCancel (array ( 'id' => $id ));
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$type];
         if ($type == 'public') {

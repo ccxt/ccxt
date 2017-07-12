@@ -1155,6 +1155,10 @@ var bitbay = {
         }, params));
     },
 
+    cancelOrder (id) {
+        return this.privatePostCancel ({ 'id': id });
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][type];
         if (type == 'public') {

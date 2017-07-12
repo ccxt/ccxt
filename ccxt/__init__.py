@@ -1200,6 +1200,9 @@ class bitbay (Market):
             'rate': price,
         }, params))
 
+    def cancel_order (self, id):
+        return self.privatePostCancel ({ 'id': id })
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][type]
         if type == 'public':
