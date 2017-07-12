@@ -5629,7 +5629,6 @@ var exmo = {
         return this.privatePostOrderCancel ({ 'order_id': id });
     },
 
-
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (type == 'public') {
@@ -5758,6 +5757,10 @@ var fyb = {
             'price': price,
             'type': side[0].toUpperCase ()
         }, params));
+    },
+
+    cancelOrder (id) {
+        return this.privatePostCancelpendingorder ({ 'orderNo': id });
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

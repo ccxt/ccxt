@@ -5987,6 +5987,10 @@ class fyb extends Market {
         ), $params));
     }
 
+    public function cancel_order ($id) {
+        return $this->privatePostCancelpendingorder (array ( 'orderNo' => $id ));
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
         if ($type == 'public') {

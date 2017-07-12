@@ -5633,6 +5633,9 @@ class fyb (Market):
             'type': side[0].upper ()
         }, params))
 
+    def cancel_order (self, id):
+        return self.privatePostCancelpendingorder ({ 'orderNo': id })
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + path
         if type == 'public':
