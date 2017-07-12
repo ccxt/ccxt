@@ -1829,6 +1829,12 @@ var bitflyer = {
         return this.privatePostSendparentorder (this.extend (order, params));
     },
 
+    cancelOrder (id, params = {}) {
+        return this.privatePostCancelparentorder (this.extend ({
+            'parent_order_id': id,
+        }, params));
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.version + '/' + path;
         if (type == 'private')

@@ -1845,6 +1845,11 @@ class bitflyer (Market):
         }
         return self.privatePostSendparentorder (self.extend (order, params))
 
+    def cancel_order (self, id, params = {}):
+        return self.privatePostCancelparentorder (self.extend ({
+            'parent_order_id': id,
+        }, params))
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         request = '/' + self.version + '/' + path
         if type == 'private':

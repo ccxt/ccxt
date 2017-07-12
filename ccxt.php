@@ -1951,6 +1951,12 @@ class bitflyer extends Market {
         return $this->privatePostSendparentorder (array_merge ($order, $params));
     }
 
+    public function cancel_order ($id, $params = array ()) {
+        return $this->privatePostCancelparentorder (array_merge (array (
+            'parent_order_id' => $id,
+        ), $params));
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->version . '/' . $path;
         if ($type == 'private')
