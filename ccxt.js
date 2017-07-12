@@ -4896,8 +4896,8 @@ var coinmate = {
         'api': 'https://coinmate.io/api',
         'www': 'https://coinmate.io',
         'doc': [
-            'https://coinmate.io/developers',
             'http://docs.coinmate.apiary.io/#reference',
+            'https://coinmate.io/developers',
         ],
     },
     'api': {
@@ -5014,6 +5014,10 @@ var coinmate = {
             method += this.capitalize (type);
         }
         return this[method] (self.extend (order, params));
+    },
+
+    cancelOrder (id) {
+        return this.privatePostCancelOrder ({ 'orderId': id });
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -5101,8 +5101,8 @@ class coinmate extends Market {
                 'api' => 'https://coinmate.io/api',
                 'www' => 'https://coinmate.io',
                 'doc' => array (
-                    'https://coinmate.io/developers',
                     'http://docs.coinmate.apiary.io/#reference',
+                    'https://coinmate.io/developers',
                 ),
             ),
             'api' => array (
@@ -5221,6 +5221,10 @@ class coinmate extends Market {
             $method .= $this->capitalize ($type);
         }
         return $this->$method (self.extend ($order, $params));
+    }
+
+    public function cancel_order ($id) {
+        return $this->privatePostCancelOrder (array ( 'orderId' => $id ));
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
