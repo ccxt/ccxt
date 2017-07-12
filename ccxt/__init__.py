@@ -2023,6 +2023,9 @@ class bitlish (Market):
             order['price'] = price
         return self.privatePostCreateTrade (self.extend (order, params))
 
+    def cancel_order (self, id):
+        return self.privatePostCancelTrade ({ 'id': id })
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if type == 'public':

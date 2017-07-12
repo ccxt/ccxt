@@ -2016,6 +2016,10 @@ var bitlish = {
         return this.privatePostCreateTrade (this.extend (order, params));
     },
 
+    cancelOrder (id) {
+        return this.privatePostCancelTrade ({ 'id': id });
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (type == 'public') {

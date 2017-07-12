@@ -2142,6 +2142,10 @@ class bitlish extends Market {
         return $this->privatePostCreateTrade (array_merge ($order, $params));
     }
 
+    public function cancel_order ($id) {
+        return $this->privatePostCancelTrade (array ( 'id' => $id ));
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($type == 'public') {
