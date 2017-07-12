@@ -6217,6 +6217,10 @@ class gdax extends Market {
         return $this->privatePostOrder (array_merge ($order, $params));
     }
 
+    public function cancel_order ($id) {
+        return $this->privateDeleteOrdersId (array ( 'id' => $id ));
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->implode_params ($path, $params);
         $url = $this->urls['api'] . $request;

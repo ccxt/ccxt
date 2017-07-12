@@ -5974,6 +5974,10 @@ var gdax = {
         return this.privatePostOrder (this.extend (order, params));
     },
 
+    cancelOrder (id) {
+        return this.privateDeleteOrdersId ({ 'id': id });
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         let url = this.urls['api'] + request;

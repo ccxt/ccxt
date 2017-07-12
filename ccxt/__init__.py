@@ -5851,6 +5851,9 @@ class gdax (Market):
             order['price'] = price
         return self.privatePostOrder (self.extend (order, params))
 
+    def cancel_order (self, id):
+        return self.privateDeleteOrdersId ({ 'id': id })
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         request = '/' + self.implode_params (path, params)
         url = self.urls['api'] + request
