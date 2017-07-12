@@ -640,6 +640,8 @@ class cryptocapital (Market):
                     ],
                 },
             },
+            'products': {
+            },
         }
         params.update (config)
         super (cryptocapital, self).__init__ (params)
@@ -3417,6 +3419,8 @@ class btctrader (Market):
                     ],
                 },
             },
+            'products': {
+            },
         }
         params.update (config)
         super (btctrader, self).__init__ (params)
@@ -3490,6 +3494,8 @@ class btctrader (Market):
         return getattr (self, method) (self.extend (order, params))
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        if self.id == 'btctrader':
+            raise Exception (self.id + ' is an abstract API for BTCExchange, BTCTurk')
         url = self.urls['api'] + '/' + path
         if type == 'public':
             if params:
@@ -9196,6 +9202,8 @@ class xbtce (Market):
         return self.milliseconds ()
 
     def request (self, path, type = 'api', method = 'GET', params = {}, headers = None, body = None):
+        if not (self.apiKey) or len ((self.apiKey) < 1):
+            raise Exception (self.id + ' requires apiKey for all requests, public API busy') 
         url = self.urls['api'] + '/' + self.version
         if type == 'public':
             url += '/' + type

@@ -658,6 +658,8 @@ class cryptocapital extends Market {
                     ),
                 ),
             ),
+            'products' => array (
+            ),
         ), $options));
     }
 
@@ -3602,6 +3604,8 @@ class btctrader extends Market {
                     ),
                 ),
             ),
+            'products' => array (
+            ),
         ), $options));
     }
 
@@ -3682,6 +3686,8 @@ class btctrader extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        if ($this->id == 'btctrader')
+            throw new \Exception ($this->id . ' is an abstract API for BTCExchange, BTCTurk')
         $url = $this->urls['api'] . '/' . $path;
         if ($type == 'public') {
             if ($params)
@@ -9735,6 +9741,8 @@ class xbtce extends Market {
     }
 
     public function request ($path, $type = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        if (!($this->apiKey) || strlen (($this->apiKey) < 1))
+            throw new \Exception ($this->id . ' requires apiKey for all requests, public API busy'); 
         $url = $this->urls['api'] . '/' . $this->version;
         if ($type == 'public')
             $url .= '/' . $type;

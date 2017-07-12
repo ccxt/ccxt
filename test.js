@@ -20,7 +20,7 @@ try {
 
 ccxt.markets.forEach (id => {
     markets[id] = new (ccxt)[id] ({
-        verbose: true,
+        verbose: false,
         // proxy: 'https://crossorigin.me/',
     })
 })
@@ -87,7 +87,7 @@ let testMarketSymbol = async (market, symbol) => {
 let loadMarket = async market => {
     let products  = await market.loadProducts ()
     let keys = Object.keys (products)
-    console.log (market.id , keys.length, 'symbols', keys.join (', '))
+    console.log (market.id, keys.length, 'symbols', keys.join (', '))
 }
 
 let testMarket = market => new Promise (async resolve => {
@@ -199,30 +199,15 @@ var test = async function () {
             await loadMarket (market)
             if (process.argv.length > 3) {
                 let symbol = process.argv[3]
-                try {
-                    await testMarketSymbol (market, symbol)
-                } catch (e) {
-                    console.log (market.id, e)
-                    process.exit ()                    
-                }
+                await testMarketSymbol (market, symbol)
             } else {
-                try {
-                    await testMarket (market)
-                } catch (e) {
-                    console.log (market.id, e)
-                    process.exit ()   
-                }                
+                await testMarket (market)
             }
         } else {
             Object.keys (markets).forEach (async id => {
                 var market = markets[id]
-                try {
-                    await loadMarket (market)
-                    await testMarket (market)
-                } catch (e) {
-                    console.log (market.id, e)
-                    process.exit ()   
-                }
+                await loadMarket (market)
+                await testMarket (market)
                 sleep (1000)
             })
         }
