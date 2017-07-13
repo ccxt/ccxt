@@ -501,11 +501,12 @@ class _1broker extends Market {
     }
 
     public function fetch_products () {
+        $this_ = $this; // workaround for Babel bug (not passing `$this` to _recursive() call)
         $categories = $this->fetchCategories ();
         $result = array ();
         for ($c = 0; $c < count ($categories); $c++) {
             $category = $categories[$c];
-            $products = $this->privateGetMarketList (array (
+            $products = $this_->privateGetMarketList (array (
                 'category' => strtolower ($category),
             ));
             for ($p = 0; $p < count ($products['response']); $p++) {
@@ -1106,7 +1107,7 @@ class bit2c extends Market {
             $order['Total'] = $amount * $price;
             $order['IsBid'] = ($side == 'buy');
         }
-        return $this->$method (array_merge ($order, $params));
+        return $$this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id) {
@@ -2887,7 +2888,7 @@ class bitstamp extends Market {
         else
             $order['price'] = $price;
         $method .= 'Id';
-        return $this->$method (array_merge ($order, $params));
+        return $$this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id) {
@@ -3072,7 +3073,7 @@ class bittrex extends Market {
         );
         if ($type == 'limit')
             $order['rate'] = $price;
-        return $this->$method (array_merge ($order, $params));
+        return $$this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id) {
@@ -3422,7 +3423,7 @@ class btcchina extends Market {
         } else {
             $order['params'] = array ($price, $amount, $id);
         }
-        return $this->$method (array_merge ($order, $params));
+        return $$this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -3758,7 +3759,7 @@ class btctrader extends Market {
             $order['Price'] = $price;
             $order['Amount'] = $amount;
         }
-        return $this->$method (array_merge ($order, $params));
+        return $$this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id) {
@@ -3983,7 +3984,7 @@ class btctradeua extends Market {
             'currency' => $p['base'],
             'price' => $price,
         );
-        return $this->$method (array_merge ($order, $params));
+        return $$this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id) {
@@ -4319,7 +4320,7 @@ class bter extends Market {
             'rate' => $price,
             'amount' => $amount,
         );
-        return $this->$method (array_merge ($order, $params));
+        return $$this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id) {
@@ -4673,7 +4674,7 @@ class ccex extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privateGet' . $this->capitalize ($side) . $type;
-        return $this->$method (array_merge (array (
+        return $$this->$method (array_merge (array (
             'market' => $this->product_id ($product),
             'quantity' => $amount,
             'rate' => $price,
@@ -5219,7 +5220,7 @@ class coinmate extends Market {
             $order['price'] = $price;
             $method .= $this->capitalize ($type);
         }
-        return $this->$method (self.extend ($order, $params));
+        return $$this->$method (self.extend ($order, $params));
     }
 
     public function cancel_order ($id) {
@@ -5480,13 +5481,13 @@ class coinsecure extends Market {
             $order['rate'] = $price;
             $order['vol'] = $amount;
         }
-        return $this->$method (self.extend ($order, $params));
+        return $$this->$method (self.extend ($order, $params));
     }
 
     public function cancel_order ($id) {
         throw new \Exception ($this->id . ' cancelOrder () is not fully implemented yet');
         $method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
-        return $this->$method (array ( 'orderID' => $id ));
+        return $$this->$method (array ( 'orderID' => $id ));
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -6865,7 +6866,7 @@ class huobi extends Market {
     public function fetch_order_book ($product) {
         $p = $this->product ($product);
         $method = $p['type'] . 'GetDepthId';
-        $orderbook = $this->$method (array ( 'id' => $p['id'] ));
+        $orderbook = $$this->$method (array ( 'id' => $p['id'] ));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => $orderbook['bids'],
@@ -6879,7 +6880,7 @@ class huobi extends Market {
     public function fetch_ticker ($product) {
         $p = $this->product ($product);
         $method = $p['type'] . 'GetTickerId';
-        $response = $this->$method (array ( 'id' => $p['id'] ));
+        $response = $$this->$method (array ( 'id' => $p['id'] ));
         $ticker = $response['ticker'];
         $timestamp = intval ($response['time']) * 1000;
         return array (
@@ -6906,7 +6907,7 @@ class huobi extends Market {
     public function fetch_trades ($product) {
         $p = $this->product ($product);
         $method = $p['type'] . 'GetDetailId';
-        return $this->$method (array ( 'id' => $p['id'] ));
+        return $$this->$method (array ( 'id' => $p['id'] ));
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
@@ -6921,7 +6922,7 @@ class huobi extends Market {
             $order['price'] = $price;
         else
             $method .= $this->capitalize ($type);
-        return $this->$method (array_merge ($order, $params));
+        return $$this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id) {
@@ -7629,7 +7630,7 @@ class lakebtc extends Market {
         $order = array (
             'params' => array ($price, $amount, $productId),
         );
-        return $this->$method (array_merge ($order, $params));
+        return $$this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id) {
@@ -7825,7 +7826,7 @@ class livecoin extends Market {
         );
         if ($type == 'limit')
             $order['price'] = $price;
-        return $this->$method (array_merge ($order, $params));
+        return $$this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -8048,7 +8049,7 @@ class luno extends Market {
             else
                 $order['type'] = 'ASK';
         }
-        return $this->$method (array_merge ($order, $params));
+        return $$this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id) {
@@ -8129,7 +8130,7 @@ class mercado extends Market {
     public function fetch_order_book ($product) {
         $p = $this->product ($product);
         $method = 'publicGetOrderbook' . $this->capitalize ($p['suffix']);
-        $orderbook = $this->$method ();
+        $orderbook = $$this->$method ();
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => $orderbook['bids'],
@@ -8143,7 +8144,7 @@ class mercado extends Market {
     public function fetch_ticker ($product) {
         $p = $this->product ($product);
         $method = 'publicGetV2Ticker' . $this->capitalize ($p['suffix']);
-        $response = $this->$method ();
+        $response = $$this->$method ();
         $ticker = $response['ticker'];
         $timestamp = intval ($ticker['date']) * 1000;
         return array (
@@ -8170,7 +8171,7 @@ class mercado extends Market {
     public function fetch_trades ($product) {
         $p = $this->product ($product);
         $method = 'publicGetTrades' . $this->capitalize ($p['suffix']);
-        return $this->$method ();
+        return $$this->$method ();
     }
 
     public function fetch_balance () {
@@ -8186,7 +8187,7 @@ class mercado extends Market {
             'quantity' => $amount,
             'limit_price' => $price,
         );
-        return $this->$method (array_merge ($order, $params));
+        return $$this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -8745,7 +8746,7 @@ class poloniex extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePost' . $this->capitalize ($side);
-        return $this->$method (array_merge (array (
+        return $$this->$method (array_merge (array (
             'currencyPair' => $this->product_id ($product),
             'rate' => $price,
             'amount' => $amount,
@@ -8895,7 +8896,7 @@ class quadrigacx extends Market {
         );
         if ($type == 'limit')
             $order['price'] = $price;
-        return $this->$method (array_merge ($order, $params));
+        return $$this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -9649,7 +9650,7 @@ class vaultoro extends Market {
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         $p = $this->product ($product);
         $method = 'privatePost' . $this->capitalize ($side) . 'SymbolType';
-        return $this->$method (array_merge (array (
+        return $$this->$method (array_merge (array (
             'symbol' => strtolower ($p['quoteId']),
             'type' => $type,
             'gld' => $amount,
