@@ -109,7 +109,7 @@ def test_market (market):
 for id in ccxt.markets:
     market = getattr (ccxt, id)
     markets[id] = market ({
-        'verbose': True,
+        'verbose': False,
         # 'proxy': 'https://crossorigin.me/',
         'proxy': 'https://cors-anywhere.herokuapp.com/',
         # 'proxy': 'http://cors-proxy.htmldriven.com/?url=',
