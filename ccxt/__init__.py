@@ -9142,6 +9142,11 @@ class virwox (Market):
             order['price'] = price
         return self.privatePostPlaceOrder (self.extend (order, params))
 
+    def cancel_order (self, id, params = {}):
+        return self.privatePostCancelOrder (self.extend ({
+            'orderID': id,
+        }, params))
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][type]
         auth = {}
