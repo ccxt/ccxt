@@ -290,7 +290,7 @@ let travisBadgeRST = travisBadgeImage + travisBadgeTarget
 let npmBadgeRST    = npmBadgeImage + npmBadgeTarget
 let pypiBadgeRST   = pypiBadgeImage + pypiBadgeTarget
 
-let badges = [ travisBadgeRST, npmBadgeRST, pypiBadgeRST ].join (' ')
+let badges = [ travisBadgeRST, npmBadgeRST, pypiBadgeRST ].join ("\n")
 
 rstNew = match[1] + "APIs:\n\n" + newRstMarketTable + "\n\n" + match[3]
 rstNew = rstNew.replace (/\.\.[^\n]+image\:\:[^\n]+[\n]/g, '')
