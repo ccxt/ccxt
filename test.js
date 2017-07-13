@@ -1,6 +1,10 @@
 "use strict";
 
+<<<<<<< HEAD
 const ccxt      = require ('./ccxt.es5')
+=======
+const ccxt      = require ('./ccxt.es5.js')
+>>>>>>> e17d774a5af56602e50612add33c1d260421e5a4
 const countries = require ('./countries')
 const asTable   = require ('as-table')
 const util      = require ('util')

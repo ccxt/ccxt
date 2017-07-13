@@ -487,8 +487,8 @@ class _1broker (Market):
         return categories['response']
 
     def fetch_products (self):
-        self_ = self
-        categories = self_.fetchCategories ()
+        self_ = self # workaround for Babel bug (not passing `self` to _recursive() call)
+        categories = self.fetchCategories ()
         result = []
         for c in range (0, len (categories)):
             category = categories[c]

@@ -424,8 +424,8 @@ var _1broker = {
     },
 
     async fetchProducts () {
-        let this_ = this;
-        let categories = await this_.fetchCategories ();
+        let this_ = this; // workaround for Babel bug (not passing `this` to _recursive() call)
+        let categories = await this.fetchCategories ();
         let result = [];
         for (let c = 0; c < categories.length; c++) {
             let category = categories[c];

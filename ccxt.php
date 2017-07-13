@@ -501,8 +501,8 @@ class _1broker extends Market {
     }
 
     public function fetch_products () {
-        $this_ = $this;
-        $categories = $this_->fetchCategories ();
+        $this_ = $this; // workaround for Babel bug (not passing `$this` to _recursive() call)
+        $categories = $this->fetchCategories ();
         $result = array ();
         for ($c = 0; $c < count ($categories); $c++) {
             $category = $categories[$c];
