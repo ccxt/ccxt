@@ -6346,6 +6346,10 @@ var hitbtc = {
         return this.tradingPostNewOrder (this.extend (order, params));
     },
 
+    cancelOrder (id) {
+        return this.tradingPostCancelOrder ({ 'clientOrderId': id });
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/api/' + this.version + '/' + type + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));

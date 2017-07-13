@@ -6587,6 +6587,10 @@ class hitbtc extends Market {
         return $this->tradingPostNewOrder (array_merge ($order, $params));
     }
 
+    public function cancel_order ($id) {
+        return $this->tradingPostCancelOrder (array ( 'clientOrderId' => $id ));
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/api/' . $this->version . '/' . $type . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));

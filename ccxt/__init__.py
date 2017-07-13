@@ -6197,6 +6197,9 @@ class hitbtc (Market):
             order['price'] = price
         return self.tradingPostNewOrder (self.extend (order, params))
 
+    def cancel_order (self, id):
+        return self.tradingPostCancelOrder ({ 'clientOrderId': id })
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = '/api/' + self.version + '/' + type + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
