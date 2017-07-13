@@ -270,7 +270,7 @@ var Market = function (config) {
                 } catch (e) {
                     if (response.match (/cloudflare/i) || response.match (/incapsula/i))
                         throw new DDoSProtectionError ('[DDoS Protection] ' + this.id + ' from this location currently not accessible.')
-                    // if (this.verbose)
+                    if (this.verbose)
                         console.log (this.id, 'error', e, response)
                     // if (e.message.match (/JSON\.parse/))
                     //     throw new SyntaxError ([])
