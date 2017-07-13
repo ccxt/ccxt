@@ -7095,6 +7095,12 @@ class jubi extends Market {
         ), $params));
     }
 
+    public function cancel_order ($id, $params = array ()) {
+        return $this->privateDeleteWalletsWalletIdOrdersId (array_merge (array (
+            'id' => $id,
+        ), $params));
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($type == 'public') {

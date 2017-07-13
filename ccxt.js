@@ -6842,6 +6842,12 @@ var jubi = {
         }, params));
     },
 
+    cancelOrder (id, params = {}) {
+        return this.privateDeleteWalletsWalletIdOrdersId (this.extend ({
+            'id': id,
+        }, params));
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (type == 'public') {

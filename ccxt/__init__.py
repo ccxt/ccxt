@@ -6678,6 +6678,11 @@ class jubi (Market):
             'coin': self.product_id (product),
         }, params))
 
+    def cancel_order (self, id, params = {}):
+        return self.privateDeleteWalletsWalletIdOrdersId (self.extend ({
+            'id': id,
+        }, params))
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if type == 'public':
