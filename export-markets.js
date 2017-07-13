@@ -49,7 +49,6 @@ try {
 for (let id in markets) {
     markets[id] = new (ccxt)[id] (markets[id])
     markets[id].verbose = verbose
-    console.log (id)
 }
 
 // console.log (Object.values (ccxt).length)

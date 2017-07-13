@@ -1,6 +1,6 @@
 "use strict";
 
-const fs        = require ('fs')
+const fs = require ('fs')
 
 function regexAll (text, array) {
     for (let i in array) {
@@ -12,7 +12,6 @@ function regexAll (text, array) {
 }
 
 let ccxtjs = fs.readFileSync ('ccxt.js', 'utf8')
-
 let contents = ccxtjs.match (/\/\/====(?:[\s\S]+?)\/\/====/) [0]
 let markets
 let regex = /^var ([\S]+) =\s*(?:extend\s*\(([^\,]+)\,\s*)?{([\s\S]+?)^}/gm // market class
@@ -22,9 +21,6 @@ let php = []
 while (markets = regex.exec (contents)) {
 
     let id = markets[1]
-
-    // if (id != 'bitlish')
-    //     continue;
 
     let parent = markets[2]
 
@@ -262,9 +258,6 @@ ccxtphp +=
     php.join ("\n//-----------------------------------------------------------------------------\n") + 
     "\n?>"
 
-// console.log (ccxtpy)
-// console.log (ccxtphp)
-
 fs.createReadStream (oldNamePy).pipe (fs.createWriteStream (newNamePy))
 fs.createReadStream (oldNamePHP).pipe (fs.createWriteStream (newNamePHP))
 fs.truncateSync (oldNamePy)
@@ -280,23 +273,32 @@ let rstNew =
 
 let rstMarketTableRegex = /([\s\S]+?)APIs:[\n][\n](\+\-\-[\s\S]+\-\-\+)[\n][\n]([\s\S]+)/
 let match = rstMarketTableRegex.exec (rstNew)
-// console.log (match[2])
-// let match = rstNew.match (/[\n][\n]\+\-\-.+\-\-\+[\n][\n]/g)
 let rstMarketTableLines = match[2].split ("\n")
 
-// console.log (rstMarketTableLines[0])
 let newRstMarketTable = rstMarketTableLines.map (line => {
     return line.replace (/(\||\+)(.).+?(\s|\=|\-)(\||\+)/, '$1')
 }).join ("\n")
 
-// console.log (match[3])
+let travisBadgeImage  = '.. image:: https://travis-ci.org/kroitor/ccxt.svg?branch=master'
+let travisBadgeTarget = ' :target: https://travis-ci.org/kroitor/ccxt'
+let npmBadgeImage     = '.. image:: https://img.shields.io/npm/v/ccxt.svg'
+let npmBadgeTarget    = ' :target: https://npmjs.com/package/ccxt'
+let pypiBadgeImage    = '.. image:: https://img.shields.io/pypi/v/ccxt.svg'
+let pypiBadgeTarget   = ' :target: https://pypi.python.org/pypi?name=ccxt&:action=display'
+
+let travisBadgeRST = travisBadgeImage + travisBadgeTarget
+let npmBadgeRST    = npmBadgeImage + npmBadgeTarget
+let pypiBadgeRST   = pypiBadgeImage + pypiBadgeTarget
+
+let badges = [ travisBadgeRST, npmBadgeRST, pypiBadgeRST ].join (' ')
+
 rstNew = match[1] + "APIs:\n\n" + newRstMarketTable + "\n\n" + match[3]
 rstNew = rstNew.replace (/\.\.[^\n]+image\:\:[^\n]+[\n]/g, '')
-rstNew = rstNew.replace ("|Build Status| |npm| |PyPI|\n\n", '')
-// console.log (rstNew)
-// console.log (match[1])
-        // .replace (/^\+[^\+]+\+/, '')
-        // .replace (/^\|[^\|]+\|/, '' logo            ', '')
+rstNew = rstNew.replace ('|Build Status| |npm| |PyPI|', badges)
+
+for (let target of [travisBadgeTarget, npmBadgeTarget, pypiBadgeTarget ]) {
+    rstNew = rstNew.replace ('  ' + target + "\n", '')
+}
 fs.truncateSync (readmeRst)
 fs.writeFileSync (readmeRst, rstNew)
 
