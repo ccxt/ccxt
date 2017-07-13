@@ -1,6 +1,6 @@
 "use strict";
 
-const ccxt      = require ('./ccxt')
+const ccxt      = require ('./ccxt.es5.js')
 const countries = require ('./countries')
 const asTable   = require ('as-table')
 const util      = require ('util')
