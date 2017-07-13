@@ -254,7 +254,7 @@ var test = async function () {
                     log.bright.yellow ('DDoS Protection error (ignoring)')
                 } else if (e instanceof ccxt.TimeoutError) {
                     log.bright.yellow ('request timeout (ignoring)')
-                } else if (e instanceof ccxt.MarketNotAvailabileError) {
+                } else if (e instanceof ccxt.MarketNotAvailaibleError) {
                     log.bright.yellow ('Market is offline, on maintenance or unreachable from this location at the moment (ignoring)')
                 } else {
                     throw e;
