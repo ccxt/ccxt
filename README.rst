@@ -448,7 +448,3 @@ Contact Us
 | rocket.mind@gmail.com    | https://github.com/xpl       |
 +--------------------------+------------------------------+
 
-   :target: https://travis-ci.org/kroitor/ccxt
-   :target: https://npmjs.com/package/ccxt
-   :target: https://pypi.python.org/pypi?name=ccxt&:action=display
-

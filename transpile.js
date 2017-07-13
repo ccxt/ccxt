@@ -295,10 +295,7 @@ let badges = [ travisBadgeRST, npmBadgeRST, pypiBadgeRST ].join ("\n")
 rstNew = match[1] + "APIs:\n\n" + newRstMarketTable + "\n\n" + match[3]
 rstNew = rstNew.replace (/\.\.[^\n]+image\:\:[^\n]+[\n]/g, '')
 rstNew = rstNew.replace ('|Build Status| |npm| |PyPI|', badges)
-
-// for (let target of [travisBadgeTarget, npmBadgeTarget, pypiBadgeTarget ]) {
-    // rstNew = rstNew.replace ('  ' + target + "\n", '')
-// }
+rstNew = rstNew.replace (/   :target[^#]+$/g, '')
 fs.truncateSync (readmeRst)
 fs.writeFileSync (readmeRst, rstNew)
 
