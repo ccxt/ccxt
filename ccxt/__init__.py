@@ -6391,8 +6391,8 @@ class itbit (Market):
                 'api': 'https://api.itbit.com',
                 'www': 'https://www.itbit.com',
                 'doc': [
-                    'https://www.itbit.com/api',
                     'https://api.itbit.com/docs',
+                    'https://www.itbit.com/api',
                 ],
             },
             'api': {
@@ -6410,7 +6410,7 @@ class itbit (Market):
                         'wallets/{walletId}/balances/{currencyCode}',
                         'wallets/{walletId}/funding_history',
                         'wallets/{walletId}/trades',
-                        'wallets/{walletId}/orders/{orderId}',
+                        'wallets/{walletId}/orders/{id}',
                     ],
                     'post': [
                         'wallet_transfers',
@@ -6421,7 +6421,7 @@ class itbit (Market):
                         'wire_withdrawal',
                     ],
                     'delete': [
-                        'wallets/{walletId}/orders/{orderId}',
+                        'wallets/{walletId}/orders/{id}',
                     ],
                 },
             },
@@ -6508,6 +6508,11 @@ class itbit (Market):
             'instrument': p['id'],
         }
         return self.privatePostTradeAdd (self.extend (order, params))
+
+    def cancel_order (self, id, params = {}):
+        return self.privateDeleteWalletsWalletIdOrdersId (self.extend ({
+            'id': id,
+        }, params))
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)

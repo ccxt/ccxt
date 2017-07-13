@@ -6546,8 +6546,8 @@ var itbit = {
         'api': 'https://api.itbit.com',
         'www': 'https://www.itbit.com',
         'doc': [
-            'https://www.itbit.com/api',
             'https://api.itbit.com/docs',
+            'https://www.itbit.com/api',
         ],
     },
     'api': {
@@ -6565,7 +6565,7 @@ var itbit = {
                 'wallets/{walletId}/balances/{currencyCode}',
                 'wallets/{walletId}/funding_history',
                 'wallets/{walletId}/trades',
-                'wallets/{walletId}/orders/{orderId}',
+                'wallets/{walletId}/orders/{id}',
             ],
             'post': [
                 'wallet_transfers',
@@ -6576,7 +6576,7 @@ var itbit = {
                 'wire_withdrawal',
             ],
             'delete': [
-                'wallets/{walletId}/orders/{orderId}',
+                'wallets/{walletId}/orders/{id}',
             ],
         },
     },
@@ -6667,6 +6667,12 @@ var itbit = {
             'instrument': p['id'],
         };
         return this.privatePostTradeAdd (this.extend (order, params));
+    },
+
+    cancelOrder (id, params = {}) {
+        return this.privateDeleteWalletsWalletIdOrdersId (this.extend ({
+            'id': id,
+        }, params));
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

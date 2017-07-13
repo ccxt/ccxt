@@ -6793,8 +6793,8 @@ class itbit extends Market {
                 'api' => 'https://api.itbit.com',
                 'www' => 'https://www.itbit.com',
                 'doc' => array (
-                    'https://www.itbit.com/api',
                     'https://api.itbit.com/docs',
+                    'https://www.itbit.com/api',
                 ),
             ),
             'api' => array (
@@ -6812,7 +6812,7 @@ class itbit extends Market {
                         'wallets/{walletId}/balances/{currencyCode}',
                         'wallets/{walletId}/funding_history',
                         'wallets/{walletId}/trades',
-                        'wallets/{walletId}/orders/{orderId}',
+                        'wallets/{walletId}/orders/{id}',
                     ),
                     'post' => array (
                         'wallet_transfers',
@@ -6823,7 +6823,7 @@ class itbit extends Market {
                         'wire_withdrawal',
                     ),
                     'delete' => array (
-                        'wallets/{walletId}/orders/{orderId}',
+                        'wallets/{walletId}/orders/{id}',
                     ),
                 ),
             ),
@@ -6916,6 +6916,12 @@ class itbit extends Market {
             'instrument' => $p['id'],
         );
         return $this->privatePostTradeAdd (array_merge ($order, $params));
+    }
+
+    public function cancel_order ($id, $params = array ()) {
+        return $this->privateDeleteWalletsWalletIdOrdersId (array_merge (array (
+            'id' => $id,
+        ), $params));
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
