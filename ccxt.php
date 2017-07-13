@@ -886,7 +886,8 @@ class anxpro extends Market {
             'currency_pair' => $this->product_id ($product),
         ));
         $orderbook = $response['data'];
-        $timestamp = intval ($orderbook['dataUpdateTime'] / 1000);
+        $t = intval ($orderbook['dataUpdateTime']);
+        $timestamp = intval ($t / 1000);
         $result = array (
             'bids' => array (),
             'asks' => array (),
@@ -912,7 +913,8 @@ class anxpro extends Market {
             'currency_pair' => $this->product_id ($product),
         ));
         $ticker = $response['data'];
-        $timestamp = intval ($ticker['dataUpdateTime'] / 1000);
+        $t = intval ($ticker['dataUpdateTime']);
+        $timestamp = intval ($t / 1000);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),

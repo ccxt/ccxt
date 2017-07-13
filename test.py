@@ -57,9 +57,23 @@ def test_market (market):
     #--------------------------------------------------------------------------
     # public API
 
-    for symbol in keys:
-        if symbol.find ('.d') < 0:
-            test_market_symbol (market, symbol)
+    symbol = keys[0]
+    symbols = [
+        'BTC/USD',
+        'BTC/CNY',
+        'BTC/ETH',
+        'ETH/BTC',
+        'BTC/JPY',
+        'LTC/BTC',
+    ]
+
+    for s in symbols:
+        if s in keys:
+            symbol = s
+
+    # for symbol in keys:
+    if symbol.find ('.d') < 0:
+        test_market_symbol (market, symbol)
 
     #--------------------------------------------------------------------------
     # private API
@@ -67,7 +81,6 @@ def test_market (market):
     if (not hasattr (market, 'apiKey') or (len (market.apiKey) < 1)):
         return 
 
-    print ('balance')
     balance = market.fetch_balance ()
     print (balance)
     time.sleep (delay)
@@ -98,6 +111,8 @@ for id in ccxt.markets:
     markets[id] = market ({
         'verbose': False,
         # 'proxy': 'https://crossorigin.me/',
+        'proxy': 'https://cors-anywhere.herokuapp.com/',
+        # 'proxy': 'http://cors-proxy.htmldriven.com/?url=',
     })
 
 markets['_1broker'].apiKey = 'A0f79063a5e91e6d62fbcbbbbdd63258'

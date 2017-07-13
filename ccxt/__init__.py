@@ -851,7 +851,8 @@ class anxpro (Market):
             'currency_pair': self.product_id (product),
         })
         orderbook = response['data']
-        timestamp = int (orderbook['dataUpdateTime'] / 1000)
+        t = int (orderbook['dataUpdateTime'])
+        timestamp = int (t / 1000)
         result = {
             'bids': [],
             'asks': [],
@@ -874,7 +875,8 @@ class anxpro (Market):
             'currency_pair': self.product_id (product),
         })
         ticker = response['data']
-        timestamp = int (ticker['dataUpdateTime'] / 1000)
+        t = int (ticker['dataUpdateTime'])
+        timestamp = int (t / 1000)
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),

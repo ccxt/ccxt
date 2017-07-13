@@ -810,7 +810,8 @@ var anxpro = {
             'currency_pair': this.productId (product),
         });
         let orderbook = response['data'];
-        let timestamp = parseInt (orderbook['dataUpdateTime'] / 1000);
+        let t = parseInt (orderbook['dataUpdateTime']);
+        let timestamp = parseInt (t / 1000);
         let result = {
             'bids': [],
             'asks': [],
@@ -836,7 +837,8 @@ var anxpro = {
             'currency_pair': this.productId (product),
         });
         let ticker = response['data'];
-        let timestamp = parseInt (ticker['dataUpdateTime'] / 1000);
+        let t = parseInt (ticker['dataUpdateTime']);
+        let timestamp = parseInt (t / 1000);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
