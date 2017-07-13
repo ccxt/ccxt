@@ -7782,8 +7782,8 @@ class paymium (Market):
                 'api': 'https://paymium.com/api',
                 'www': 'https://www.paymium.com',
                 'doc': [
-                    'https://www.paymium.com/page/developers',
                     'https://github.com/Paymium/api-documentation',
+                    'https://www.paymium.com/page/developers',
                 ],
             },
             'api': {
@@ -8209,7 +8209,9 @@ class quadrigacx (Market):
         return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id, params = {}):
-        return self.privatePostCancelOrder (self.extend ({ id }, params))
+        return self.privatePostCancelOrder (self.extend ({
+            'id': id,
+        }, params))
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
@@ -8601,7 +8603,10 @@ class therock (Market):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
                 'api': 'https://api.therocktrading.com',
                 'www': 'https://therocktrading.com',
-                'doc': 'https://api.therocktrading.com/doc/',
+                'doc': [
+                    'https://api.therocktrading.com/doc/v1/index.html',
+                    'https://api.therocktrading.com/doc/',
+                ],
             },
             'api': {
                 'public': {
@@ -8728,6 +8733,11 @@ class therock (Market):
             'price': price,
         }, params))
 
+    def cancel_order (self, id, params = {}):
+        return self.privateDeleteFundsFundIdOrdersId (self.extend ({
+            'id': id,
+        }, params))
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
@@ -8809,7 +8819,7 @@ class vaultoro (Market):
                     ],
                     'post': [
                         'buy/{symbol}/{type}',
-                        'cancel/{orderid',
+                        'cancel/{id}',
                         'sell/{symbol}/{type}',
                         'withdraw',
                     ],
@@ -8907,6 +8917,11 @@ class vaultoro (Market):
             'type': type,
             'gld': amount,
             'price': price or 1,
+        }, params))
+
+    def cancel_order (self, id, params = {}):
+        return self.privatePostCancelId (self.extend ({
+            'id': id,
         }, params))
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):

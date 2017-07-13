@@ -8268,8 +8268,8 @@ class paymium extends Market {
                 'api' => 'https://paymium.com/api',
                 'www' => 'https://www.paymium.com',
                 'doc' => array (
-                    'https://www.paymium.com/page/developers',
                     'https://github.com/Paymium/api-documentation',
+                    'https://www.paymium.com/page/developers',
                 ),
             ),
             'api' => array (
@@ -8723,7 +8723,9 @@ class quadrigacx extends Market {
     }
 
     public function cancel_order ($id, $params = array ()) {
-        return $this->privatePostCancelOrder (array_merge (array ( $id ), $params));
+        return $this->privatePostCancelOrder (array_merge (array (
+            'id' => $id,
+        ), $params));
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -9143,7 +9145,10 @@ class therock extends Market {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
                 'api' => 'https://api.therocktrading.com',
                 'www' => 'https://therocktrading.com',
-                'doc' => 'https://api.therocktrading.com/doc/',
+                'doc' => array (
+                    'https://api.therocktrading.com/doc/v1/index.html',
+                    'https://api.therocktrading.com/doc/',
+                ),
             ),
             'api' => array (
                 'public' => array (
@@ -9278,6 +9283,12 @@ class therock extends Market {
         ), $params));
     }
 
+    public function cancel_order ($id, $params = array ()) {
+        return $this->privateDeleteFundsFundIdOrdersId (array_merge (array (
+            'id' => $id,
+        ), $params));
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
@@ -9363,7 +9374,7 @@ class vaultoro extends Market {
                     ),
                     'post' => array (
                         'buy/{symbol}/{type}',
-                        'cancel/{orderid',
+                        'cancel/{id}',
                         'sell/{symbol}/{type}',
                         'withdraw',
                     ),
@@ -9467,6 +9478,12 @@ class vaultoro extends Market {
             'type' => $type,
             'gld' => $amount,
             'price' => $price || 1,
+        ), $params));
+    }
+
+    public function cancel_order ($id, $params = array ()) {
+        return $this->privatePostCancelId (array_merge (array (
+            'id' => $id,
         ), $params));
     }
 

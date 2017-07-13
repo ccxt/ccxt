@@ -9055,7 +9055,7 @@ var vaultoro = {
             ],
             'post': [
                 'buy/{symbol}/{type}',
-                'cancel/{orderid',
+                'cancel/{id}',
                 'sell/{symbol}/{type}',
                 'withdraw',
             ],
@@ -9157,6 +9157,12 @@ var vaultoro = {
             'type': type,
             'gld': amount,
             'price': price || 1,
+        }, params));
+    },
+
+    cancelOrder (id, params = {}) {
+        return this.privatePostCancelId (this.extend ({
+            'id': id,
         }, params));
     },
 
