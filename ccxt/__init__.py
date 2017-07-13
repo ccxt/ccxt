@@ -7199,6 +7199,11 @@ class livecoin (Market):
             order['price'] = price
         return getattr (self, method) (self.extend (order, params))
 
+    def cancel_order (self, id, params = {}):
+        return self.privatePostExchangeCancellimit (self.extend ({
+            'orderId': id,
+        }, params))
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + path
         if type == 'public':

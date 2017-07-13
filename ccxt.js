@@ -7388,6 +7388,12 @@ var livecoin = {
         return this[method] (this.extend (order, params));
     },
 
+    cancelOrder (id, params = {}) {
+        return this.privatePostExchangeCancellimit (this.extend ({
+            'orderId': id,
+        }, params));
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
         if (type == 'public') {
