@@ -10230,7 +10230,7 @@ class zaif extends Market {
     }
 
     public function fetch_order_book ($product) {
-        $orderbook = $this->apiGetDepth  (array (
+        $orderbook = $this->apiGetDepthPair  (array (
             'pair' => $this->product_id ($product),
         ));
         $timestamp = $this->milliseconds ();

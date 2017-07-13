@@ -9625,7 +9625,7 @@ class zaif (Market):
         return self.tapiPostGetInfo ()
 
     def fetch_order_book (self, product):
-        orderbook = self.apiGetDepth  ({
+        orderbook = self.apiGetDepthPair  ({
             'pair': self.product_id (product),
         })
         timestamp = self.milliseconds ()
