@@ -66,7 +66,7 @@ markets = [
     'zaif',
 ]
 
-__all__ = markets + [ 'markets', 'Market' ]
+__all__ = markets + [ 'markets', 'Market', 'DDoSProtectionError' ]
 
 # Python 2 & 3
 import base64
