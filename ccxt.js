@@ -7447,6 +7447,7 @@ var luno = {
         'api': 'https://api.mybitx.com/api',
         'www': 'https://www.luno.com',
         'doc': [
+            'https://www.luno.com/en/api',
             'https://npmjs.org/package/bitx',
             'https://github.com/bausmeier/node-bitx',
         ],
@@ -7599,6 +7600,10 @@ var luno = {
                 order['type'] = 'ASK';
         }
         return this[method] (this.extend (order, params));
+    },
+
+    cancelOrder (id) {
+        return this.privatePostStoporder ({ 'order_id': id });
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

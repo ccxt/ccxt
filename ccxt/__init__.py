@@ -7261,6 +7261,7 @@ class luno (Market):
                 'api': 'https://api.mybitx.com/api',
                 'www': 'https://www.luno.com',
                 'doc': [
+                    'https://www.luno.com/en/api',
                     'https://npmjs.org/package/bitx',
                     'https://github.com/bausmeier/node-bitx',
                 ],
@@ -7407,6 +7408,9 @@ class luno (Market):
             else:
                 order['type'] = 'ASK'
         return getattr (self, method) (self.extend (order, params))
+
+    def cancel_order (self, id):
+        return self.privatePostStoporder ({ 'order_id': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)

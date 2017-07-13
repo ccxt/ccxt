@@ -7718,6 +7718,7 @@ class luno extends Market {
                 'api' => 'https://api.mybitx.com/api',
                 'www' => 'https://www.luno.com',
                 'doc' => array (
+                    'https://www.luno.com/en/api',
                     'https://npmjs.org/package/bitx',
                     'https://github.com/bausmeier/node-bitx',
                 ),
@@ -7872,6 +7873,10 @@ class luno extends Market {
                 $order['type'] = 'ASK';
         }
         return $this->$method (array_merge ($order, $params));
+    }
+
+    public function cancel_order ($id) {
+        return $this->privatePostStoporder (array ( 'order_id' => $id ));
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
