@@ -9359,15 +9359,17 @@ class xbtce (Market):
         }, params))
 
     def cancel_order (self, id, params = {}):
-        return self.tapiPostCancelOrder (self.extend ({
-            'order_id': id,
+        return self.privateDeleteTrade (self.extend ({
+            'Type': 'Cancel',
+            'Id': id,
         }, params))
 
     def nonce (self):
         return self.milliseconds ()
 
     def request (self, path, type = 'api', method = 'GET', params = {}, headers = None, body = None):
-        if not (self.apiKey) or len ((self.apiKey) < 1):
+        apiKeyLength = len (self.apiKey)
+        if not apiKeyLength:
             raise Exception (self.id + ' requires apiKey for all requests, their public API is always busy')
         url = self.urls['api'] + '/' + self.version
         if type == 'public':

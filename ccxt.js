@@ -9614,8 +9614,9 @@ var xbtce = {
     },
 
     cancelOrder (id, params = {}) {
-        return this.tapiPostCancelOrder (this.extend ({
-            'order_id': id,
+        return this.privateDeleteTrade (this.extend ({
+            'Type': 'Cancel',
+            'Id': id,
         }, params));
     },
 
@@ -9624,7 +9625,8 @@ var xbtce = {
     },
 
     request (path, type = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (!(this.apiKey) || (this.apiKey.length < 1))
+        let apiKeyLength = this.apiKey.length;
+        if (!apiKeyLength)
             throw new Error (this.id + ' requires apiKey for all requests, their public API is always busy');
         let url = this.urls['api'] + '/' + this.version;
         if (type == 'public')

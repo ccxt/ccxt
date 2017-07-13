@@ -101,9 +101,10 @@ for id in ccxt.markets:
     })
 
 markets['_1broker'].apiKey = 'A0f79063a5e91e6d62fbcbbbbdd63258'
-# markets['xbtce']['uid'] = '68ef0552-3c37-4896-ba56-76173d9cd573'
-# markets['xbtce']['apiKey'] = 'dK2jBXMTppAM57ZJ'
-# markets['xbtce']['secret'] = 'qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwKqH7ywsxcR78WT'
+
+markets['xbtce'].uid    = '68ef0552-3c37-4896-ba56-76173d9cd573'
+markets['xbtce'].apiKey = 'dK2jBXMTppAM57ZJ'
+markets['xbtce'].secret = 'qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwKqH7ywsxcR78WT'
 
 id = None
 

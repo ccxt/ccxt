@@ -9947,8 +9947,9 @@ class xbtce extends Market {
     }
 
     public function cancel_order ($id, $params = array ()) {
-        return $this->tapiPostCancelOrder (array_merge (array (
-            'order_id' => $id,
+        return $this->privateDeleteTrade (array_merge (array (
+            'Type' => 'Cancel',
+            'Id' => $id,
         ), $params));
     }
 
@@ -9957,7 +9958,8 @@ class xbtce extends Market {
     }
 
     public function request ($path, $type = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        if (!($this->apiKey) || strlen (($this->apiKey) < 1))
+        $apiKeyLength = count ($this->apiKey);
+        if (!$apiKeyLength)
             throw new \Exception ($this->id . ' requires apiKey for all requests, their public API is always busy');
         $url = $this->urls['api'] . '/' . $this->version;
         if ($type == 'public')
