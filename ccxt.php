@@ -7290,7 +7290,7 @@ class kraken extends Market {
         return $this->privatePostAddOrder (array_merge ($order, $params));
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id) {
         return $this->privatePostCancelOrder (array ( 'txid' => $id ));
     }
 
@@ -7454,6 +7454,10 @@ class lakebtc extends Market {
             'params' => array ($price, $amount, $productId),
         );
         return $this->$method (array_merge ($order, $params));
+    }
+
+    public function cancel_order ($id) {
+        return $this->privatePostCancelOrder (array ( 'params' => $id ));
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -7034,7 +7034,7 @@ var kraken = {
         return this.privatePostAddOrder (this.extend (order, params));
     },
 
-    cancelOrder (id, params = {}) {
+    cancelOrder (id) {
         return this.privatePostCancelOrder ({ 'txid': id });
     },
 
@@ -7194,6 +7194,10 @@ var lakebtc = {
             'params': [ price, amount, productId ],
         };
         return this[method] (this.extend (order, params));
+    },
+
+    cancelOrder (id) {
+        return this.privatePostCancelOrder ({ 'params': id });
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
