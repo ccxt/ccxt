@@ -5541,7 +5541,6 @@ class exmo (Market):
             if not result['result']:
                 raise MarketNotAvailaibleError ('[Market Not Available] ' + self.id + ' ' + result['error'])
         return result
-        # return self.fetch (url, method, headers, body)
 
 #------------------------------------------------------------------------------
 

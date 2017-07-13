@@ -5877,7 +5877,6 @@ class exmo extends Market {
             }
         }
         return $result;
-        // return $this->fetch ($url, $method, $headers, $body);
     }
 }
 
