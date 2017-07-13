@@ -554,8 +554,8 @@ class _1broker (Market):
             'datetime': self.iso8601 (timestamp),
             'high': float (ticker['h']),
             'low': float (ticker['l']),
-            'bid': orderbook['bids'][0]['price'],
-            'ask': orderbook['asks'][0]['price'],
+            'bid': orderbook['bids'][0][0],
+            'ask': orderbook['asks'][0][0],
             'vwap': None,
             'open': float (ticker['o']),
             'close': float (ticker['c']),
@@ -586,12 +586,13 @@ class _1broker (Market):
         return self.privatePostOrderCancel ({ 'order_id': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        if not (self.apiKey) or len ((self.apiKey) < 1):
+        apiKeyLength = len (self.apiKey)
+        if not apiKeyLength:
             raise Exception (self.id + ' requires apiKey for all requests')
         url = self.urls['api'] + '/' + self.version + '/' + path + '.php'
         query = self.extend ({ 'token': self.apiKey }, params)
         url += '?' + _urlencode.urlencode (query)
-        return self.fetch (url, method)
+        return self.fetch (url, method)        
 
 #------------------------------------------------------------------------------
 

@@ -574,8 +574,8 @@ class _1broker extends Market {
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['h']),
             'low' => floatval ($ticker['l']),
-            'bid' => $orderbook['bids'][0]['price'],
-            'ask' => $orderbook['asks'][0]['price'],
+            'bid' => $orderbook['bids'][0][0],
+            'ask' => $orderbook['asks'][0][0],
             'vwap' => null,
             'open' => floatval ($ticker['o']),
             'close' => floatval ($ticker['c']),
@@ -609,12 +609,13 @@ class _1broker extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        if (!($this->apiKey) || strlen (($this->apiKey) < 1))
+        $apiKeyLength = count ($this->apiKey);
+        if (!$apiKeyLength)
             throw new \Exception ($this->id . ' requires apiKey for all requests');
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path . '.php';
         $query = array_merge (array ( 'token' => $this->apiKey ), $params);
         $url .= '?' . $this->urlencode ($query);
-        return $this->fetch ($url, $method);
+        return $this->fetch ($url, $method);        
     }
 }
 

@@ -498,8 +498,8 @@ var _1broker = {
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['h']),
             'low': parseFloat (ticker['l']),
-            'bid': orderbook['bids'][0]['price'],
-            'ask': orderbook['asks'][0]['price'],
+            'bid': orderbook['bids'][0][0],
+            'ask': orderbook['asks'][0][0],
             'vwap': undefined,
             'open': parseFloat (ticker['o']),
             'close': parseFloat (ticker['c']),
@@ -533,12 +533,13 @@ var _1broker = {
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (!(this.apiKey) || (this.apiKey.length < 1))
+        let apiKeyLength = this.apiKey.length;
+        if (!apiKeyLength)
             throw new Error (this.id + ' requires apiKey for all requests');
         let url = this.urls['api'] + '/' + this.version + '/' + path + '.php';
         let query = this.extend ({ 'token': this.apiKey }, params);
         url += '?' + this.urlencode (query);
-        return this.fetch (url, method);
+        return this.fetch (url, method);        
     },
 }
 
