@@ -97,6 +97,10 @@ try:
 except NameError:
   basestring = str # Python 2
 
+class DDoSProtectionError (_urllib.HTTPError):
+    def __init__ (self, *args, **kwargs):
+        _urllib.HTTPError.__init__ (self, *args, **kwargs)
+
 class Market (object):
 
     id        = None
@@ -188,11 +192,15 @@ class Market (object):
         except _urllib.HTTPError as e:
             try: 
                 text = e.fp.read ()
-                if re.search ('(cloudflare)', text, flags = re.IGNORECASE):
-                    error = 'DDoS protection by Cloudflare'
+                cloudflare = re.search ('(cloudflare)', text, flags = re.IGNORECASE)
+                incapsula = re.search ('(incapsula)', text, flags = re.IGNORECASE)
+                if cloudflare or incapsula:
+                    error = 'DDoS Protection Error'
                     print (self.id, method, url, e.code, e.msg, error)
+                    raise DDoSProtectionError (self.id + ' ' + error)
                 else:
-                    print (self.id, method, url, e.code, e.msg, json.loads (text))
+                    print (self.id, method, url, e.code, e.msg, text)
+                    pass
             except Exception as unused:
                 print (self.id, method, url, e.code, e.msg, text)
             raise

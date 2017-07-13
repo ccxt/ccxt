@@ -153,4 +153,3 @@ else:
             test_market (market)
         except Exception as e:
             print (type (e).__name__, e.args)
-            sys.exit ()
