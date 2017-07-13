@@ -22,6 +22,14 @@ class TimeoutError extends Error {
     }
 }
 
+class MarketOfflineError extends Error {
+    constructor () {
+        super ()
+        this.constructor = TimeoutError // a workaround to make `instanceof TimeoutError` work in ES5-transpiled version
+        this.__proto__   = MarketOfflineError.prototype
+    }    
+}
+
 let sleep = ms => new Promise (resolve => setTimeout (resolve, ms));
 
 var timeout = (ms, promise) =>
@@ -268,12 +276,12 @@ var Market = function (config) {
                 try {
                     return JSON.parse (response)
                 } catch (e) {
-                    if (response.match (/cloudflare/i) || response.match (/incapsula/i))
-                        throw new DDoSProtectionError ('[DDoS Protection] ' + this.id + ' from this location currently not accessible.')
+                    if (response.match (/cloudflare|incapsula/i))
+                        throw new DDoSProtectionError ('[DDoS Protection] ' + this.id + ' is not accessible now from this location.')
                     if (this.verbose)
                         console.log (this.id, 'error', e, response)
-                    // if (e.message.match (/JSON\.parse/))
-                    //     throw new SyntaxError ([])
+                    if (response.match (/offline|unavailable|busy|maintenance/i))
+                        throw new MarketOfflineError ('[Market Offline] ' + this.id + ' is offline now.')
                     throw e
                 }
             }))

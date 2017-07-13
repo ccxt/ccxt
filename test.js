@@ -21,7 +21,7 @@ try {
 
 ccxt.markets.forEach (id => {
     markets[id] = new (ccxt)[id] ({
-        verbose: true,
+        verbose: false,
         // proxy: 'https://crossorigin.me/',
         // proxy: 'https://cors-anywhere.herokuapp.com/',
         // proxy: 'http://cors-proxy.htmldriven.com/?url=',
@@ -254,6 +254,8 @@ var test = async function () {
                     log.bright.yellow ('DDoS Protection error (ignoring)')
                 } else if (e instanceof ccxt.TimeoutError) {
                     log.bright.yellow ('request timeout (ignoring)')
+                } else if (e instanceof ccxt.MarketOfflineError) {
+                    log.bright.yellow ('Market is offline or suspended for maintenance (ignoring')
                 } else {
                     throw e;
                 }
