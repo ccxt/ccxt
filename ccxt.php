@@ -10159,6 +10159,7 @@ class zaif extends Market {
                 'api' => 'https://api.zaif.jp',
                 'www' => 'https://zaif.jp',
                 'doc' => array (
+                    'http://techbureau-api-document.readthedocs.io/ja/latest/index.html',
                     'https://corp.zaif.jp/api-docs',
                     'https://corp.zaif.jp/api-docs/api_links',
                     'https://www.npmjs.com/package/zaif.jp',
