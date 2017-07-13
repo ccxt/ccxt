@@ -43,7 +43,7 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
 let testMarketSymbolTicker = async (market, symbol) => {
     await sleep (market.rateLimit)
     let ticker = await market.fetchTicker (symbol)
-    console.log (market.id, symbol, 'ticker',
+    log (market.id, symbol, 'ticker', ticker,
         ticker['datetime'],
         'high: '    + ticker['high'],
         'low: '     + ticker['low'],
@@ -58,7 +58,7 @@ let testMarketSymbolTicker = async (market, symbol) => {
 let testMarketSymbolOrderbook = async (market, symbol) => {
     await sleep (market.rateLimit) 
     let orderbook = await market.fetchOrderBook (symbol)
-    console.log (market.id, symbol, 'order book',
+    log (market.id, symbol, 'order book',
         orderbook['datetime'],
         'bid: '       + ((orderbook.bids.length > 0) ? orderbook.bids[0][0] : 'N/A'), 
         'bidVolume: ' + ((orderbook.bids.length > 0) ? orderbook.bids[0][1] : 'N/A'),
@@ -131,7 +131,7 @@ let testMarket = async market => {
         }
     }
 
-    log.green (symbol)
+    log.green ('SYMBOL:', symbol)
     if ((symbol.indexOf ('.d') < 0)) {
         await testMarketSymbol (market, symbol)
     }
@@ -209,10 +209,9 @@ var test = async function () {
         return {
             ' ': '',
             'id':        market.id,
-            'name':      '[' + market.name + '](' + website + ')', 
-            'docs':      '[API](' + doc + ')',
+            'name':      market.name,
+            // 'docs':      '[API](' + doc + ')',
             'countries': countries,
-            
             // 'notes':     'Full support',
             '  ': '',
         }        
@@ -234,7 +233,7 @@ var test = async function () {
 
         for (const id of Object.keys (markets)) {
 
-            log.bright.green ('MARKET: ', id)
+            log.bright.green ('MARKET:', id)
 
             try {
                 const market = markets[id]
