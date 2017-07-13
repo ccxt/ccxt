@@ -66,7 +66,7 @@ markets = [
     'zaif',
 ]
 
-__all__ = markets + [ 'markets', 'Market', 'DDoSProtectionError' ]
+__all__ = markets + [ 'markets', 'Market', 'DDoSProtectionError', 'MarketNotAvailabileError' ]
 
 # Python 2 & 3
 import base64
@@ -98,6 +98,10 @@ except NameError:
   basestring = str # Python 2
 
 class DDoSProtectionError (_urllib.HTTPError):
+    def __init__ (self, *args, **kwargs):
+        _urllib.HTTPError.__init__ (self, *args, **kwargs)
+
+class MarketNotAvailaibleError (_urllib.HTTPError):
     def __init__ (self, *args, **kwargs):
         _urllib.HTTPError.__init__ (self, *args, **kwargs)
 
@@ -192,12 +196,16 @@ class Market (object):
         except _urllib.HTTPError as e:
             try: 
                 text = e.fp.read ()
-                cloudflare = re.search ('(cloudflare)', text, flags = re.IGNORECASE)
-                incapsula = re.search ('(incapsula)', text, flags = re.IGNORECASE)
-                if cloudflare or incapsula:
+                ddos_protection = re.search ('(cloudflare|incapsula)', text, flags = re.IGNORECASE)
+                market_not_available = re.search ('(offline|unavailable|busy|maintenance)', text, flags = re.IGNORECASE)
+                if ddos_protection:
                     error = 'DDoS Protection Error'
                     print (self.id, method, url, e.code, e.msg, error)
                     raise DDoSProtectionError (self.id + ' ' + error)
+                if market_not_available:
+                    error = 'Market Not Available'
+                    print (self.id, method, url, e.code, e.msg, error)
+                    raise MarketNotAvailaibleError (self.id + ' ' + error)
                 else:
                     print (self.id, method, url, e.code, e.msg, text)
                     pass

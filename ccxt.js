@@ -22,11 +22,11 @@ class TimeoutError extends Error {
     }
 }
 
-class MarketOfflineError extends Error {
+class MarketNotAvailaibleError extends Error {
     constructor () {
         super ()
-        this.constructor = TimeoutError // a workaround to make `instanceof TimeoutError` work in ES5-transpiled version
-        this.__proto__   = MarketOfflineError.prototype
+        this.constructor = MarketNotAvailaibleError // a workaround to make `instanceof MarketNotAvailaibleError` work in ES5-transpiled version
+        this.__proto__   = MarketNotAvailaibleError.prototype
     }    
 }
 
@@ -281,7 +281,7 @@ var Market = function (config) {
                     if (this.verbose)
                         console.log (this.id, 'error', e, response)
                     if (response.match (/offline|unavailable|busy|maintenance/i))
-                        throw new MarketOfflineError ('[Market Offline] ' + this.id + ' is offline now.')
+                        throw new MarketNotAvailaibleError ('[Market Not Available] ' + this.id + ' is not available now.')
                     throw e
                 }
             }))
@@ -10252,7 +10252,8 @@ if (isNode) {
     Object.assign (module.exports = defineAllMarkets (markets), {
 
         DDoSProtectionError,
-        TimeoutError
+        TimeoutError,
+        MarketNotAvailaibleError,
     })
 } else
     window.ccxt = defineAllMarkets (markets)

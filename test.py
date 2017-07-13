@@ -151,5 +151,9 @@ else:
             market = markets[id]
             load_market (market)
             test_market (market)
+        except ccxt.DDoSProtectionError as e:
+            print (type (e).__name__, e.args, 'DDoS Protection Error (ignoring')
+        except ccxt.MarketNotAvailaibleError as e:
+            print (type (e).__name__, e.args, 'Market is offline, on maintenance or unreachable from this location at the moment (ignoring)')
         except Exception as e:
             print (type (e).__name__, e.args)
