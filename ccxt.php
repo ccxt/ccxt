@@ -36,6 +36,7 @@ class Market {
         'coinsecure',
         'dsx',
         'exmo',
+        'flowbtc',
         'foxbit',
         'fybse',
         'fybsg',
@@ -5859,6 +5860,181 @@ class exmo extends Market {
                 'Content-Length' => strlen ($body),
                 'Key' => $this->apiKey,
                 'Sign' => $this->hmac ($body, $this->secret, 'sha512'),
+            );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+class flowbtc extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'flowbtc',
+            'name' => 'flowBTC',
+            'countries' => 'BR', // Brazil
+            'version' => 'v1',
+            'rateLimit' => 1000,
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
+                'api' => 'https://api.flowbtc.com:8400/ajax',
+                'www' => 'https://trader.flowbtc.com',
+                'doc' => 'http://www.flowbtc.com.br/api/',
+            ),
+            'api' => array (
+                'public' => array (
+                    'post' => array (
+                        'GetTicker',
+                        'GetTrades',
+                        'GetTradesByDate',
+                        'GetOrderBook',
+                        'GetProductPairs',
+                        'GetProducts',
+                    ),
+                ),
+                'private' => array (
+                    'post' => array (
+                        'CreateAccount',
+                        'GetUserInfo',
+                        'SetUserInfo',
+                        'GetAccountInfo',
+                        'GetAccountTrades',
+                        'GetDepositAddresses',
+                        'Withdraw',
+                        'CreateOrder',
+                        'ModifyOrder',
+                        'CancelOrder',
+                        'CancelAllOrders',
+                        'GetAccountOpenOrders',
+                        'GetOrderFee',
+                    ),
+                ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_products () {
+        $response = $this->publicPostGetProductPairs ();
+        $products = $response['productPairs'];
+        $result = array ();
+        for ($p = 0; $p < count ($products); $p++) {
+            $product = $products[$p];
+            $id = $product['name'];
+            $base = $product['product1Label'];
+            $quote = $product['product2Label'];
+            $symbol = $base . '/' . $quote;
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_balance () {
+        return $this->privatePostUserInfo ();
+    }
+
+    public function fetch_order_book ($product) {
+        $p = $this->product ($product);
+        $orderbook = $this->publicPostGetOrderBook (array (
+            'productPair' => $p['id'],
+        ));
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order['px']);
+                $amount = floatval ($order['qty']);
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $p = $this->product ($product);
+        $ticker = $this->publicPostGetTicker (array (
+            'productPair' => $p['id'],
+        ));
+        $timestamp = $this->milliseconds ();
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => floatval ($ticker['volume24hr']),
+            'quoteVolume' => floatval ($ticker['volume24hrProduct2']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetTrades (array (
+            'pair' => $this->product_id ($product),
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        $orderType = ($type == 'market') ? 1 : 0;
+        $order = array (
+            'ins' => $this->product_id ($product),
+            'side' => $side,
+            'orderType' => $orderType,
+            'qty' => $amount,
+            'px' => $price,
+        );
+        return $this->privatePostCreateOrder (array_merge ($order, $params));
+    }
+
+    public function cancel_order ($id, $params = array ()) {
+        return $this->privatePostCancelOrder (array_merge (array (
+            'serverOrderId' => $id,
+        ), $params));
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
+        if ($type == 'public') {
+            if ($params) {
+                $body = json_encode ($params);
+            }
+        } else {
+            $nonce = $this->nonce ();
+            $auth = $nonce . $this->uid . $this->apiKey;
+            $signature = $this->hmac ($auth, $this->secret);
+            $body = $this->urlencode (array_merge (array (
+                'apiKey' => $this->apiKey,
+                'apiNonce' => $nonce,
+                'apiSig' => strtoupper ($signature),
+            ), $params));
+            $headers = array (
+                'Content-Type' => 'application/json',
+                'Content-Length' => strlen ($body),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);

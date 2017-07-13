@@ -5658,6 +5658,177 @@ var exmo = {
 
 //-----------------------------------------------------------------------------
 
+var flowbtc = {
+
+    'id': 'flowbtc',
+    'name': 'flowBTC',
+    'countries': 'BR', // Brazil
+    'version': 'v1',
+    'rateLimit': 1000,
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
+        'api': 'https://api.flowbtc.com:8400/ajax',
+        'www': 'https://trader.flowbtc.com',
+        'doc': 'http://www.flowbtc.com.br/api/',
+    },
+    'api': {
+        'public': {
+            'post': [
+                'GetTicker',
+                'GetTrades',
+                'GetTradesByDate',
+                'GetOrderBook',
+                'GetProductPairs',
+                'GetProducts',
+            ],
+        },
+        'private': {
+            'post': [
+                'CreateAccount',
+                'GetUserInfo',
+                'SetUserInfo',
+                'GetAccountInfo',
+                'GetAccountTrades',
+                'GetDepositAddresses',
+                'Withdraw',
+                'CreateOrder',
+                'ModifyOrder',
+                'CancelOrder',
+                'CancelAllOrders',
+                'GetAccountOpenOrders',
+                'GetOrderFee',
+            ],
+        },
+    },
+
+    async fetchProducts () {
+        let response = await this.publicPostGetProductPairs ();
+        let products = response['productPairs'];
+        let result = [];
+        for (let p = 0; p < products.length; p++) {
+            let product = products[p];
+            let id = product['name'];
+            let base = product['product1Label'];
+            let quote = product['product2Label'];
+            let symbol = base + '/' + quote;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            });
+        }
+        return result;
+    },
+
+    fetchBalance () {
+        return this.privatePostUserInfo ();
+    },
+
+    async fetchOrderBook (product) {
+        let p = this.product (product);
+        let orderbook = await this.publicPostGetOrderBook ({
+            'productPair': p['id'],
+        });
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order['px']);
+                let amount = parseFloat (order['qty']);
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
+    },
+
+    async fetchTicker (product) {
+        let p = this.product (product);
+        let ticker = await this.publicPostGetTicker ({
+            'productPair': p['id'],
+        });
+        let timestamp = this.milliseconds ();
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['bid']),
+            'ask': parseFloat (ticker['ask']),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': parseFloat (ticker['volume24hr']),
+            'quoteVolume': parseFloat (ticker['volume24hrProduct2']),
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        return this.publicGetTrades ({
+            'pair': this.productId (product),
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let orderType = (type == 'market') ? 1 : 0;
+        let order = {
+            'ins': this.productId (product),
+            'side': side,
+            'orderType': orderType,
+            'qty': amount,
+            'px': price,
+        };
+        return this.privatePostCreateOrder (this.extend (order, params));
+    },
+
+    cancelOrder (id, params = {}) {
+        return this.privatePostCancelOrder (this.extend ({
+            'serverOrderId': id,
+        }, params));
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + this.version + '/' + path;
+        if (type == 'public') {
+            if (Object.keys (params).length) {
+                body = JSON.stringify (params);
+            }
+        } else {
+            let nonce = this.nonce ();
+            let auth = nonce + this.uid + this.apiKey;
+            let signature = this.hmac (auth, this.secret);
+            body = this.urlencode (this.extend ({
+                'apiKey': this.apiKey,
+                'apiNonce': nonce,
+                'apiSig': signature.toUpperCase (),
+            }, params));
+            headers = {
+                'Content-Type': 'application/json',
+                'Content-Length': body.length,
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var foxbit = extend (blinktrade, {
     'id': 'foxbit',
     'name': 'FoxBit',
@@ -10007,6 +10178,7 @@ var markets = {
     'coinsecure':    coinsecure,
     'dsx':           dsx,
     'exmo':          exmo,
+    'flowbtc':       flowbtc,
     'foxbit':        foxbit,
     'fybse':         fybse,
     'fybsg':         fybsg,

@@ -32,6 +32,7 @@ markets = [
     'coinsecure',
     'dsx',
     'exmo',
+    'flowbtc',
     'foxbit',
     'fybse',
     'fybsg',
@@ -5514,6 +5515,168 @@ class exmo (Market):
                 'Content-Length': len (body),
                 'Key': self.apiKey,
                 'Sign': self.hmac (body, self.secret, hashlib.sha512),
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
+class flowbtc (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'flowbtc',
+            'name': 'flowBTC',
+            'countries': 'BR', # Brazil
+            'version': 'v1',
+            'rateLimit': 1000,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
+                'api': 'https://api.flowbtc.com:8400/ajax',
+                'www': 'https://trader.flowbtc.com',
+                'doc': 'http://www.flowbtc.com.br/api/',
+            },
+            'api': {
+                'public': {
+                    'post': [
+                        'GetTicker',
+                        'GetTrades',
+                        'GetTradesByDate',
+                        'GetOrderBook',
+                        'GetProductPairs',
+                        'GetProducts',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'CreateAccount',
+                        'GetUserInfo',
+                        'SetUserInfo',
+                        'GetAccountInfo',
+                        'GetAccountTrades',
+                        'GetDepositAddresses',
+                        'Withdraw',
+                        'CreateOrder',
+                        'ModifyOrder',
+                        'CancelOrder',
+                        'CancelAllOrders',
+                        'GetAccountOpenOrders',
+                        'GetOrderFee',
+                    ],
+                },
+            },
+        }
+        params.update (config)
+        super (flowbtc, self).__init__ (params)
+
+    def fetch_products (self):
+        response = self.publicPostGetProductPairs ()
+        products = response['productPairs']
+        result = []
+        for p in range (0, len (products)):
+            product = products[p]
+            id = product['name']
+            base = product['product1Label']
+            quote = product['product2Label']
+            symbol = base + '/' + quote
+            result.append ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            })
+        return result
+
+    def fetch_balance (self):
+        return self.privatePostUserInfo ()
+
+    def fetch_order_book (self, product):
+        p = self.product (product)
+        orderbook = self.publicPostGetOrderBook ({
+            'productPair': p['id'],
+        })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order['px'])
+                amount = float (order['qty'])
+                result[side].append ([ price, amount ])
+        return result
+
+    def fetch_ticker (self, product):
+        p = self.product (product)
+        ticker = self.publicPostGetTicker ({
+            'productPair': p['id'],
+        })
+        timestamp = self.milliseconds ()
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['bid']),
+            'ask': float (ticker['ask']),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': float (ticker['volume24hr']),
+            'quoteVolume': float (ticker['volume24hrProduct2']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetTrades ({
+            'pair': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        orderType = 1 if (type == 'market') else 0
+        order = {
+            'ins': self.product_id (product),
+            'side': side,
+            'orderType': orderType,
+            'qty': amount,
+            'px': price,
+        }
+        return self.privatePostCreateOrder (self.extend (order, params))
+
+    def cancel_order (self, id, params = {}):
+        return self.privatePostCancelOrder (self.extend ({
+            'serverOrderId': id,
+        }, params))
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'] + '/' + self.version + '/' + path
+        if type == 'public':
+            if params:
+                body = json.dumps (params)
+        else:
+            nonce = self.nonce ()
+            auth = nonce + self.uid + self.apiKey
+            signature = self.hmac (auth, self.secret)
+            body = _urlencode.urlencode (self.extend ({
+                'apiKey': self.apiKey,
+                'apiNonce': nonce,
+                'apiSig': signature.upper (),
+            }, params))
+            headers = {
+                'Content-Type': 'application/json',
+                'Content-Length': len (body),
             }
         return self.fetch (url, method, headers, body)
 

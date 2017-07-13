@@ -233,7 +233,6 @@ var test = async function () {
             throw new Error ('Market `' + id + '` not found')
         const market = markets[id]
         await loadMarket (market)
-        console.log (process.argv)
         if (process.argv.length > 3) {
             let symbol = process.argv[3]
             await testMarketSymbol (market, symbol)
