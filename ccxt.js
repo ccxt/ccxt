@@ -7904,6 +7904,12 @@ var okcoin = {
         return this.privatePostTrade (this.extend (order, params));
     },
 
+    cancelOrder (id, params = {}) {
+        return this.privatePostCancelOrder (this.extend ({
+            'order_id': id,
+        }, params));
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/api/' + this.version + '/' + path + '.do';
         if (type == 'public') {

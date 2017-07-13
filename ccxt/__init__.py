@@ -7695,6 +7695,11 @@ class okcoin (Market):
             order['type'] += '_market'
         return self.privatePostTrade (self.extend (order, params))
 
+    def cancel_order (self, id, params = {}):
+        return self.privatePostCancelOrder (self.extend ({
+            'order_id': id,
+        }, params))
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = '/api/' + self.version + '/' + path + '.do'
         if type == 'public':
