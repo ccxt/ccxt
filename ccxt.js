@@ -7983,8 +7983,8 @@ var paymium = {
         'api': 'https://paymium.com/api',
         'www': 'https://www.paymium.com',
         'doc': [
-            'https://www.paymium.com/page/developers',
             'https://github.com/Paymium/api-documentation',
+            'https://www.paymium.com/page/developers',
         ],
     },
     'api': {
@@ -8428,7 +8428,9 @@ var quadrigacx = {
     },
 
     cancelOrder (id, params = {}) {
-        return this.privatePostCancelOrder (this.extend ({ id }, params));
+        return this.privatePostCancelOrder (this.extend ({
+            'id': id,
+        }, params));
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -8833,7 +8835,10 @@ var therock = {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
         'api': 'https://api.therocktrading.com',
         'www': 'https://therocktrading.com',
-        'doc': 'https://api.therocktrading.com/doc/',
+        'doc': [
+            'https://api.therocktrading.com/doc/v1/index.html',
+            'https://api.therocktrading.com/doc/',
+        ],
     },
     'api': {
         'public': {
@@ -8963,6 +8968,12 @@ var therock = {
             'side': side,
             'amount': amount,
             'price': price,
+        }, params));
+    },
+
+    cancelOrder (id, params = {}) {
+        return this.privateDeleteFundsFundIdOrdersId (this.extend ({
+            'id': id,
         }, params));
     },
 
