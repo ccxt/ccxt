@@ -6503,6 +6503,10 @@ var huobi = {
         return this[method] (this.extend (order, params));
     },
 
+    cancelOrder (id) {
+        return this.tradePostCancelOrder ({ 'id': id });
+    },
+
     request (path, type = 'trade', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'];
         if (type == 'trade') {

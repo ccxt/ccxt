@@ -6350,6 +6350,9 @@ class huobi (Market):
             method += self.capitalize (type)
         return getattr (self, method) (self.extend (order, params))
 
+    def cancel_order (self, id):
+        return self.tradePostCancelOrder ({ 'id': id })
+
     def request (self, path, type = 'trade', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api']
         if type == 'trade':
