@@ -251,11 +251,11 @@ var test = async function () {
                 await testMarket (market)
             } catch (e) {
                 if (e instanceof ccxt.DDoSProtectionError || e.message.includes ('ECONNRESET')) {
-                    log.bright.yellow ('DDoS Protection error (ignoring)')
+                    log.bright.yellow ('DDoS protection error (ignoring)')
                 } else if (e instanceof ccxt.TimeoutError) {
-                    log.bright.yellow ('request timeout (ignoring)')
+                    log.bright.yellow ('Request timeout (ignoring)')
                 } else if (e instanceof ccxt.MarketNotAvailaibleError) {
-                    log.bright.yellow (e.message + ' (ignoring)')
+                    log.bright.yellow ('Market not available (ignoring)')
                 } else {
                     throw e;
                 }
