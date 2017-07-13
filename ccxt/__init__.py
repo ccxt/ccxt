@@ -1073,7 +1073,7 @@ class bit2c (Market):
             order['Price'] = price
             order['Total'] = amount * price
             order['IsBid'] = (side == 'buy')
-        return self[method] (self.extend (order, params))
+        return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id):
         return self.privatePostOrderCancelOrder ({ 'id': id })
@@ -2747,7 +2747,7 @@ class bitstamp (Market):
         else:
             order['price'] = price
         method += 'Id'
-        return self[method] (self.extend (order, params))
+        return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id):
         return self.privatePostCancelOrder ({ 'id': id })
@@ -2920,7 +2920,7 @@ class bittrex (Market):
         }
         if type == 'limit':
             order['rate'] = price
-        return self[method] (self.extend (order, params))
+        return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id):
         return self.marketGetCancel ({ 'uuid': id })
@@ -3249,7 +3249,7 @@ class btcchina (Market):
             order['params'] = [ None, amount, id ]
         else:
             order['params'] = [ price, amount, id ]
-        return self[method] (self.extend (order, params))
+        return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id, params = {}):
         market = params['market'] # TODO fixme
@@ -3563,7 +3563,7 @@ class btctrader (Market):
         else:
             order['Price'] = price
             order['Amount'] = amount
-        return self[method] (self.extend (order, params))
+        return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id):
         return self.privatePostCancelOrder ({ 'id': id })
@@ -3773,7 +3773,7 @@ class btctradeua (Market):
             'currency': p['base'],
             'price': price,
         }
-        return self[method] (self.extend (order, params))
+        return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id):
         return self.privatePostRemoveOrderId ({ 'id': id })
@@ -4087,7 +4087,7 @@ class bter (Market):
             'rate': price,
             'amount': amount,
         }
-        return self[method] (self.extend (order, params))
+        return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id):
         return self.privatePostCancelOrder ({ 'orderNumber': id })
@@ -4417,7 +4417,7 @@ class ccex (Market):
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         method = 'privateGet' + self.capitalize (side) + type
-        return self[method] (self.extend ({
+        return getattr (self, method) (self.extend ({
             'market': self.product_id (product),
             'quantity': amount,
             'rate': price,
@@ -4931,7 +4931,7 @@ class coinmate (Market):
             order['amount'] = amount # amount in crypto
             order['price'] = price
             method += self.capitalize (type)
-        return self[method] (self.extend (order, params))
+        return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id):
         return self.privatePostCancelOrder ({ 'orderId': id })
@@ -5181,12 +5181,12 @@ class coinsecure (Market):
             method += direction + 'New'
             order['rate'] = price
             order['vol'] = amount
-        return self[method] (self.extend (order, params))
+        return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id):
         raise Error (self.id + ' cancelOrder () is not fully implemented yet')
         method = 'privateDeleteUserExchangeAskCancelOrderId' # TODO fixme, have to specify order side here
-        return self[method] ({ 'orderID': id })
+        return getattr (self, method) ({ 'orderID': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)
@@ -6482,7 +6482,7 @@ class huobi (Market):
     def fetch_order_book (self, product):
         p = self.product (product)
         method = p['type'] + 'GetDepthId'
-        orderbook = self[method] ({ 'id': p['id'] })
+        orderbook = getattr (self, method) ({ 'id': p['id'] })
         timestamp = self.milliseconds ()
         result = {
             'bids': orderbook['bids'],
@@ -6495,7 +6495,7 @@ class huobi (Market):
     def fetch_ticker (self, product):
         p = self.product (product)
         method = p['type'] + 'GetTickerId'
-        response = self[method] ({ 'id': p['id'] })
+        response = getattr (self, method) ({ 'id': p['id'] })
         ticker = response['ticker']
         timestamp = int (response['time']) * 1000
         return {
@@ -6521,7 +6521,7 @@ class huobi (Market):
     def fetch_trades (self, product):
         p = self.product (product)
         method = p['type'] + 'GetDetailId'
-        return self[method] ({ 'id': p['id'] })
+        return getattr (self, method) ({ 'id': p['id'] })
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         p = self.product (product)
@@ -6535,7 +6535,7 @@ class huobi (Market):
             order['price'] = price
         else:
             method += self.capitalize (type)
-        return self[method] (self.extend (order, params))
+        return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id):
         return self.tradePostCancelOrder ({ 'id': id })
@@ -7200,7 +7200,7 @@ class lakebtc (Market):
         order = {
             'params': [ price, amount, productId ],
         }
-        return self[method] (self.extend (order, params))
+        return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id):
         return self.privatePostCancelOrder ({ 'params': id })
@@ -7384,7 +7384,7 @@ class livecoin (Market):
         }
         if type == 'limit':
             order['price'] = price
-        return self[method] (self.extend (order, params))
+        return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id, params = {}):
         return self.privatePostExchangeCancellimit (self.extend ({
@@ -7594,7 +7594,7 @@ class luno (Market):
                 order['type'] = 'BID'
             else:
                 order['type'] = 'ASK'
-        return self[method] (self.extend (order, params))
+        return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id):
         return self.privatePostStoporder ({ 'order_id': id })
@@ -7671,7 +7671,7 @@ class mercado (Market):
     def fetch_order_book (self, product):
         p = self.product (product)
         method = 'publicGetOrderbook' + self.capitalize (p['suffix'])
-        orderbook = self[method] ()
+        orderbook = getattr (self, method) ()
         timestamp = self.milliseconds ()
         result = {
             'bids': orderbook['bids'],
@@ -7684,7 +7684,7 @@ class mercado (Market):
     def fetch_ticker (self, product):
         p = self.product (product)
         method = 'publicGetV2Ticker' + self.capitalize (p['suffix'])
-        response = self[method] ()
+        response = getattr (self, method) ()
         ticker = response['ticker']
         timestamp = int (ticker['date']) * 1000
         return {
@@ -7710,7 +7710,7 @@ class mercado (Market):
     def fetch_trades (self, product):
         p = self.product (product)
         method = 'publicGetTrades' + self.capitalize (p['suffix'])
-        return self[method] ()
+        return getattr (self, method) ()
 
     def fetch_balance (self):
         return self.privatePostGetAccountInfo ()
@@ -7724,7 +7724,7 @@ class mercado (Market):
             'quantity': amount,
             'limit_price': price,
         }
-        return self[method] (self.extend (order, params))
+        return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id, params = {}):
         return self.privatePostCancelOrder (self.extend ({
@@ -8253,7 +8253,7 @@ class poloniex (Market):
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         method = 'privatePost' + self.capitalize (side)
-        return self[method] (self.extend ({
+        return getattr (self, method) (self.extend ({
             'currencyPair': self.product_id (product),
             'rate': price,
             'amount': amount,
@@ -8393,7 +8393,7 @@ class quadrigacx (Market):
         }
         if type == 'limit':
             order['price'] = price
-        return self[method] (self.extend (order, params))
+        return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id, params = {}):
         return self.privatePostCancelOrder (self.extend ({
@@ -9099,7 +9099,7 @@ class vaultoro (Market):
     def create_order (self, product, type, side, amount, price = None, params = {}):
         p = self.product (product)
         method = 'privatePost' + self.capitalize (side) + 'SymbolType'
-        return self[method] (self.extend ({
+        return getattr (self, method) (self.extend ({
             'symbol': p['quoteId'].lower (),
             'type': type,
             'gld': amount,

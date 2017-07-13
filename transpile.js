@@ -134,7 +134,7 @@ while (markets = regex.exec (contents)) {
             [ /JSON\.stringify/g, 'json.dumps' ],
             [ /parseFloat\s/g, 'float '],
             [ /parseInt\s/g, 'int '],
-            [ /this\[([^\]+]+)\]/g, 'getattr (self, $1)' ],
+            [ /self\[([^\]+]+)\]/g, 'getattr (self, $1)' ],
             [ /([^\s]+).slice \(([^\,\)]+)\,\s?([^\)]+)\)/g, '$1[$2:$3]' ],
             [ /([^\s]+).slice \(([^\)\:]+)\)/g, '$1[$2:]' ],
             [ /Math\.floor\s*\(([^\)]+)\)/g, 'int (math.floor ($1))' ],
