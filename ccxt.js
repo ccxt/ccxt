@@ -9889,7 +9889,7 @@ var zaif = {
     },
 
     async fetchOrderBook (product) {
-        let orderbook = await this.apiGetDepth  ({
+        let orderbook = await this.apiGetDepthPair  ({
             'pair': this.productId (product),
         });
         let timestamp = this.milliseconds ();

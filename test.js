@@ -23,7 +23,7 @@ ccxt.markets.forEach (id => {
     markets[id] = new (ccxt)[id] ({
         verbose: true,
         // proxy: 'https://crossorigin.me/',
-        // proxy: 'https://cors-anywhere.herokuapp.com/',
+        proxy: 'https://cors-anywhere.herokuapp.com/',
         // proxy: 'http://cors-proxy.htmldriven.com/?url=',
     })
 })
@@ -91,7 +91,7 @@ let testMarketSymbolOrderbook = async (market, symbol) => {
     if (bids.length && asks.length)
         if (bids[0][0] > asks[0][0])
             console.log (this.id, symbol, 'order book', 'bid is greater than ask!')
-        
+
     return orderbook
 }
 
@@ -233,6 +233,7 @@ var test = async function () {
             throw new Error ('Market `' + id + '` not found')
         const market = markets[id]
         await loadMarket (market)
+        console.log (process.argv)
         if (process.argv.length > 3) {
             let symbol = process.argv[3]
             await testMarketSymbol (market, symbol)
