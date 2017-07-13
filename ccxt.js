@@ -424,11 +424,12 @@ var _1broker = {
     },
 
     async fetchProducts () {
-        let categories = await this.fetchCategories ();
+        let this_ = this;
+        let categories = await this_.fetchCategories ();
         let result = [];
         for (let c = 0; c < categories.length; c++) {
             let category = categories[c];
-            let products = await this.privateGetMarketList ({
+            let products = await this_.privateGetMarketList ({
                 'category': category.toLowerCase (),
             });
             for (let p = 0; p < products['response'].length; p++) {
