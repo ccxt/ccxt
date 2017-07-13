@@ -6,8 +6,21 @@ var isNode = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
 
-class DDoSProtectionError extends Error {}
-class TimeoutError extends Error {}
+class DDoSProtectionError extends Error {
+    constructor () {
+        super ()
+        this.constructor = DDoSProtectionError // a workaround to make `instanceof DDoSProtectionError` work in ES5-transpiled version
+        this.__proto__   = DDoSProtectionError.prototype
+    }
+}
+
+class TimeoutError extends Error {
+    constructor () {
+        super ()
+        this.constructor = TimeoutError // a workaround to make `instanceof TimeoutError` work in ES5-transpiled version
+        this.__proto__   = TimeoutError.prototype
+    }
+}
 
 let sleep = ms => new Promise (resolve => setTimeout (resolve, ms));
 
