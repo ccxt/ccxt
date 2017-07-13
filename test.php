@@ -61,12 +61,27 @@ function load_market ($market) {
 
 function test_market ($market) {
 
-    $symbols = array_keys ($market->products);
+    $keys = array_keys ($market->products);
     $delay = $market->rateLimit * 1000;
 
-    foreach ($symbols as $symbol)
-        if (strpos ($symbol, '.d') === false)
-            test_market_symbol ($market, $symbol);
+    $symbol = $keys[0];
+    $symbols = array (
+        'BTC/USD',
+        'BTC/CNY',
+        'BTC/ETH',
+        'ETH/BTC',
+        'BTC/JPY',
+        'LTC/BTC',
+    );
+
+    foreach ($symbols as $s) {
+        if (in_array ($s, $keys))
+            $symbol = $s;
+    }
+
+    // foreach ($symbols as $symbol)
+    if (strpos ($symbol, '.d') === false)
+        test_market_symbol ($market, $symbol);
 
     // usleep ($delay);
 

@@ -277,11 +277,11 @@ var Market = function (config) {
                     return JSON.parse (response)
                 } catch (e) {
                     if (response.match (/cloudflare|incapsula/i))
-                        throw new DDoSProtectionError ('[DDoS Protection] ' + this.id + ' is not accessible now from this location.')
+                        throw new DDoSProtectionError ('[DDoS Protection] ' + this.id + ' is not accessible from this location at the moment')
                     if (this.verbose)
                         console.log (this.id, 'error', e, response)
                     if (response.match (/offline|unavailable|busy|maintenance/i))
-                        throw new MarketNotAvailaibleError ('[Market Not Available] ' + this.id + ' is not available now.')
+                        throw new MarketNotAvailaibleError ('[Market Not Available] ' + this.id + ' is offline, on maintenance or unreachable from this location at the moment')
                     throw e
                 }
             }))
@@ -5618,6 +5618,7 @@ var exmo = {
         let response = await this.publicGetTicker ();
         let p = this.product (product);
         let ticker = response[p['id']];
+        console.log (ticker);
         let timestamp = ticker['updated'] * 1000;
         return {
             'timestamp': timestamp,
@@ -5663,7 +5664,7 @@ var exmo = {
         return this.privatePostOrderCancel ({ 'order_id': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (type == 'public') {
             if (Object.keys (params).length)
@@ -5678,7 +5679,13 @@ var exmo = {
                 'Sign': this.hmac (body, this.secret, 'sha512'),
             };
         }
-        return this.fetch (url, method, headers, body);
+        let result = await this.fetch (url, method, headers, body);
+        if ('result' in result) {
+            if (!result['result']) {
+                throw new MarketNotAvailaibleError ('[Market Not Available] ' + this.id + ' ' + result['error']);
+            }
+        }
+        return result;
     },
 }
 

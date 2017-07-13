@@ -2,6 +2,10 @@
 
 namespace ccxt;
 
+class DDoSProtectionError extends \Exception {}
+class TimeoutError extends \Exception {}
+class MarketNotAvailableError extends \Exception {}
+
 class Market {
 
     public static $markets = array (
@@ -5805,6 +5809,7 @@ class exmo extends Market {
         $response = $this->publicGetTicker ();
         $p = $this->product ($product);
         $ticker = $response[$p['id']];
+        console.log ($ticker);
         $timestamp = $ticker['updated'] * 1000;
         return array (
             'timestamp' => $timestamp,
@@ -5865,7 +5870,14 @@ class exmo extends Market {
                 'Sign' => $this->hmac ($body, $this->secret, 'sha512'),
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $result = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('result', $result)) {
+            if (!$result['result']) {
+                throw new MarketNotAvailaibleError ('[Market Not Available] ' . $this->id . ' ' . $result['error']);
+            }
+        }
+        return $result;
+        // return $this->fetch ($url, $method, $headers, $body);
     }
 }
 

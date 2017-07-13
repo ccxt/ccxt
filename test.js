@@ -255,7 +255,7 @@ var test = async function () {
                 } else if (e instanceof ccxt.TimeoutError) {
                     log.bright.yellow ('request timeout (ignoring)')
                 } else if (e instanceof ccxt.MarketNotAvailaibleError) {
-                    log.bright.yellow ('Market is offline, on maintenance or unreachable from this location at the moment (ignoring)')
+                    log.bright.yellow (e.message + ' (ignoring)')
                 } else {
                     throw e;
                 }
