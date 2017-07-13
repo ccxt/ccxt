@@ -7290,6 +7290,10 @@ class kraken extends Market {
         return $this->privatePostAddOrder (array_merge ($order, $params));
     }
 
+    public function cancel_order ($id, $params = array ()) {
+        return $this->privatePostCancelOrder (array ( 'txid' => $id ));
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . $this->version . '/' . $type . '/' . $path;
         if ($type == 'public') {

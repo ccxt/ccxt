@@ -6861,6 +6861,9 @@ class kraken (Market):
             order['price'] = price
         return self.privatePostAddOrder (self.extend (order, params))
 
+    def cancel_order (self, id, params = {}):
+        return self.privatePostCancelOrder ({ 'txid': id })
+
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = '/' + self.version + '/' + type + '/' + path
         if type == 'public':

@@ -7034,6 +7034,10 @@ var kraken = {
         return this.privatePostAddOrder (this.extend (order, params));
     },
 
+    cancelOrder (id, params = {}) {
+        return this.privatePostCancelOrder ({ 'txid': id });
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.version + '/' + type + '/' + path;
         if (type == 'public') {
