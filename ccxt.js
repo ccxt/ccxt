@@ -7736,6 +7736,12 @@ var mercado = {
         return this[method] (this.extend (order, params));
     },
 
+    cancelOrder (id, params = {}) {
+        return this.privatePostCancelOrder (this.extend ({
+            'order_id': id,
+        }, params));
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][type] + '/';
         if (type == 'public') {

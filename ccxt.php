@@ -8013,6 +8013,12 @@ class mercado extends Market {
         return $this->$method (array_merge ($order, $params));
     }
 
+    public function cancel_order ($id, $params = array ()) {
+        return $this->privatePostCancelOrder (array_merge (array (
+            'order_id' => $id,
+        ), $params));
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$type] . '/';
         if ($type == 'public') {

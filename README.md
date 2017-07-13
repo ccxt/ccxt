@@ -89,7 +89,7 @@ The list above is updated frequently, new crypto markets, altcoin exchanges, bug
 
 The library is under MIT license, that means its absolutely free for any developer to build commercial and opensource software on top of it, but use it as is at your own risk with no warranties.
 
-Developer team is open for collaboration and available for hiring and outsourcing. If you're interested in integrating this software into an existing project or in developing new opensource and commercial projects we welcome you to read our [Public Offer](#public-offer).
+Developer team is open to collaboration and available for hiring and outsourcing. If you're interested in integrating this software into an existing project or in developing new opensource and commercial projects we welcome you to read our [Public Offer](#public-offer).
 
 ## Install
 
@@ -338,7 +338,7 @@ var_dump ($zaif->id, $zaif->create_limit_buy_order ('BTC/JPY', 1, 285000));
 
 ## Public Offer
 
-Developer team is open for collaboration and available for hiring and outsourcing. 
+Developer team is open to collaboration and available for hiring and outsourcing. 
 
 We can:
 
@@ -348,7 +348,7 @@ We can:
 - perform backtesting and data crunching
 - implement any kind of protocol including REST, WebSockets, FIX, proprietary and legacy standards...
 - actually directly integrate btc/altcoin blockchain or transaction graph into your system
-- program a matching engine for you
+- program a matching engine for your own bitcoin/altcoin exchange
 - create a trading terminal for desktops, phones and pads (for web and native OSes)
 - do all of the above in any of the following languages/environments: Javascript, Node.js, PHP, C, C++, C#, Python, Java, ObjectiveC, Linux, FreeBSD, MacOS, iOS, Windows
 
@@ -356,7 +356,7 @@ We implement bots, algorithmic trading software and strategies by your design. C
 
 We are coders, not investors, so we ABSOLUTELY DO NOT do any kind of financial or trading advisory neither we invent profitable strategies to make you a fortune out of thin air.  We guarantee the stability of the bot or trading software, but we cannot guarantee the profitability of your strategy nor can we protect you from natural financial risks and economic losses. Exact rules for the trading strategy is up to the trader/investor himself. We charge a fix flat price in cryptocurrency for our programming services and for implementing your requirements in software.
 
-Please, contact us on GitHub or via email if you're interested in integrating this software into an existing project or in developing new opensource and commercial projects.
+Please, contact us on GitHub or via email if you're interested in integrating this software into an existing project or in developing new opensource and commercial projects. Questions are welcome.
 
 ## Contact Us
 
