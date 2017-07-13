@@ -5098,7 +5098,7 @@ class coinmate extends Market {
                 'api' => 'https://coinmate.io/api',
                 'www' => 'https://coinmate.io',
                 'doc' => array (
-                    'http://docs.coinmate.apiary.io/#reference',
+                    'http://docs.coinmate.apiary.io',
                     'https://coinmate.io/developers',
                 ),
             ),

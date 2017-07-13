@@ -85,10 +85,6 @@ let values = Object.values (markets).map (market => {
 let numMarkets = Object.keys (markets).length
 let exchanges = asTable.configure ({ delimiter: ' | ' }) (values)
 
-
-console.log (exchanges);
-process.exit ();
-
 let lines = exchanges.split ("\n")
 lines[1] = lines[0].replace (/[^\|]/g, '-')
 let headerLine = lines[1].split ('|')
@@ -103,12 +99,10 @@ let changeInFile = (filename) => {
     let oldContent = fs.readFileSync (filename, 'utf8')
     let beginning = "The ccxt library currently supports the following "
     let ending = " cryptocurrency exchange markets and trading APIs:\n\n"
-    let regex = new RegExp ("[^\n]+[\n][\n]\\|[^#\n]+\\|([\n][\n]|[\n]$|$)", 'm')
+    let regex = new RegExp ("[^\n]+[\n][\n]\\|[^#]+\\|([\n][\n]|[\n]$|$)", 'm')    
     let totalString = beginning + numMarkets + ending
     let replacement = totalString + lines + "$1"
     let newContent = oldContent.replace (regex, replacement)
-    // console.log (newContent)
-    // process.exit ()
     fs.truncateSync (filename)
     fs.writeFileSync (filename, newContent)
 }
