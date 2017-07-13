@@ -1,9 +1,12 @@
 CCXT – CryptoCurrency eXchange Trading Library
 ==============================================
 
-.. image:: https://travis-ci.org/kroitor/ccxt.svg?branch=master :target: https://travis-ci.org/kroitor/ccxt
-.. image:: https://img.shields.io/npm/v/ccxt.svg :target: https://npmjs.com/package/ccxt
-.. image:: https://img.shields.io/pypi/v/ccxt.svg :target: https://pypi.python.org/pypi?name=ccxt&:action=display
+.. image:: https://travis-ci.org/kroitor/ccxt.svg?branch=master
+    :target: https://travis-ci.org/kroitor/ccxt
+.. image:: https://img.shields.io/npm/v/ccxt.svg
+    :target: https://npmjs.com/package/ccxt
+.. image:: https://img.shields.io/pypi/v/ccxt.svg
+    :target: https://pypi.python.org/pypi?name=ccxt&:action=display
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
@@ -445,4 +448,7 @@ Contact Us
 | rocket.mind@gmail.com    | https://github.com/xpl       |
 +--------------------------+------------------------------+
 
+   :target: https://travis-ci.org/kroitor/ccxt
+   :target: https://npmjs.com/package/ccxt
+   :target: https://pypi.python.org/pypi?name=ccxt&:action=display
 

@@ -279,16 +279,16 @@ let newRstMarketTable = rstMarketTableLines.map (line => {
     return line.replace (/(\||\+)(.).+?(\s|\=|\-)(\||\+)/, '$1')
 }).join ("\n")
 
-let travisBadgeImage  = '.. image:: https://travis-ci.org/kroitor/ccxt.svg?branch=master'
-let travisBadgeTarget = ' :target: https://travis-ci.org/kroitor/ccxt'
-let npmBadgeImage     = '.. image:: https://img.shields.io/npm/v/ccxt.svg'
-let npmBadgeTarget    = ' :target: https://npmjs.com/package/ccxt'
-let pypiBadgeImage    = '.. image:: https://img.shields.io/pypi/v/ccxt.svg'
-let pypiBadgeTarget   = ' :target: https://pypi.python.org/pypi?name=ccxt&:action=display'
+let travisBadgeImage  = ".. image:: https://travis-ci.org/kroitor/ccxt.svg?branch=master\n"
+let travisBadgeTarget = "   :target: https://travis-ci.org/kroitor/ccxt"
+let npmBadgeImage     = ".. image:: https://img.shields.io/npm/v/ccxt.svg\n"
+let npmBadgeTarget    = "   :target: https://npmjs.com/package/ccxt"
+let pypiBadgeImage    = ".. image:: https://img.shields.io/pypi/v/ccxt.svg\n"
+let pypiBadgeTarget   = "   :target: https://pypi.python.org/pypi?name=ccxt&:action=display"
 
-let travisBadgeRST = travisBadgeImage + travisBadgeTarget
-let npmBadgeRST    = npmBadgeImage + npmBadgeTarget
-let pypiBadgeRST   = pypiBadgeImage + pypiBadgeTarget
+let travisBadgeRST = travisBadgeImage + ' ' + travisBadgeTarget
+let npmBadgeRST    = npmBadgeImage + ' ' + npmBadgeTarget
+let pypiBadgeRST   = pypiBadgeImage + ' ' + pypiBadgeTarget
 
 let badges = [ travisBadgeRST, npmBadgeRST, pypiBadgeRST ].join ("\n")
 
@@ -296,9 +296,9 @@ rstNew = match[1] + "APIs:\n\n" + newRstMarketTable + "\n\n" + match[3]
 rstNew = rstNew.replace (/\.\.[^\n]+image\:\:[^\n]+[\n]/g, '')
 rstNew = rstNew.replace ('|Build Status| |npm| |PyPI|', badges)
 
-for (let target of [travisBadgeTarget, npmBadgeTarget, pypiBadgeTarget ]) {
-    rstNew = rstNew.replace ('  ' + target + "\n", '')
-}
+// for (let target of [travisBadgeTarget, npmBadgeTarget, pypiBadgeTarget ]) {
+    // rstNew = rstNew.replace ('  ' + target + "\n", '')
+// }
 fs.truncateSync (readmeRst)
 fs.writeFileSync (readmeRst, rstNew)
 
