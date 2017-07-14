@@ -273,15 +273,15 @@ var Market = function (config) {
         return timeout (this.timeout, fetch (url, options)
             .then (response => (typeof response === 'string') ? response : response.text ())
             .then (response => {
+                if (response.match (/offline|unavailable|busy|maintenance/i))
+                    throw new MarketNotAvailaibleError ('[Market Not Available] ' + this.id + ' is offline, on maintenance or unreachable from this location at the moment')
+                if (response.match (/cloudflare|incapsula/i))
+                    throw new DDoSProtectionError ('[DDoS Protection] ' + this.id + ' is not accessible from this location at the moment')
                 try {
                     return JSON.parse (response)
                 } catch (e) {
-                    if (response.match (/cloudflare|incapsula/i))
-                        throw new DDoSProtectionError ('[DDoS Protection] ' + this.id + ' is not accessible from this location at the moment')
                     if (this.verbose)
                         console.log (this.id, 'error', e, response)
-                    if (response.match (/offline|unavailable|busy|maintenance/i))
-                        throw new MarketNotAvailaibleError ('[Market Not Available] ' + this.id + ' is offline, on maintenance or unreachable from this location at the moment')
                     throw e
                 }
             }))
