@@ -7,11 +7,8 @@ include 'ccxt.php';
 $markets = null;
 
 if (file_exists ('config.php'))
-
     include 'config.php';
-
 else
-
     $markets = array ();
 
 //-----------------------------------------------------------------------------
