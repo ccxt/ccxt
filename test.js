@@ -19,7 +19,7 @@ try {
 
 ccxt.markets.forEach (id => {
     markets[id] = new (ccxt)[id] ({
-        verbose: true,
+        verbose: false,
         // proxy: 'https://crossorigin.me/',
         proxy: 'https://cors-anywhere.herokuapp.com/',
         // proxy: 'http://cors-proxy.htmldriven.com/?url=',
@@ -36,6 +36,7 @@ markets['coinspot'].apiKey = '36b5803f892fe97ccd0b22da79ce6b21'
 markets['coinspot'].secret = 'QGWL9ADB3JEQ7W48E8A3KTQQ42V2P821LQRJW3UU424ATYPXF893RR4THKE9DT0RBNHKX8L54F35KBVFH'
 
 markets['bitmex'].proxy = '' // bitmex doesn't like proxies
+markets['btcx'].proxy   = '' // btcx doesn't like Origin: * any more
 
 // console.log (Object.values (ccxt).length)
 
