@@ -5480,7 +5480,6 @@ class exmo (Market):
         response = self.publicGetTicker ()
         p = self.product (product)
         ticker = response[p['id']]
-        console.log (ticker)
         timestamp = ticker['updated'] * 1000
         return {
             'timestamp': timestamp,

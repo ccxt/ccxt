@@ -5618,7 +5618,6 @@ var exmo = {
         let response = await this.publicGetTicker ();
         let p = this.product (product);
         let ticker = response[p['id']];
-        console.log (ticker);
         let timestamp = ticker['updated'] * 1000;
         return {
             'timestamp': timestamp,

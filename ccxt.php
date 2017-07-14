@@ -5809,7 +5809,6 @@ class exmo extends Market {
         $response = $this->publicGetTicker ();
         $p = $this->product ($product);
         $ticker = $response[$p['id']];
-        console.log ($ticker);
         $timestamp = $ticker['updated'] * 1000;
         return array (
             'timestamp' => $timestamp,
