@@ -183,7 +183,6 @@ class Market {
         $regex = '/' . $yyyy . $mm . $dd . $h . $m . $s . $ms . $tz.'/';
         preg_match ($regex, $timestamp, $matches);
         array_shift ($matches);
-        var_dump ($matches);
         list ($yyyy, $mm, $dd, $h, $m, $s) = $matches;
         $ms = @$matches[6] ? $matches[6] : '.000';
         $sign = @$matches[7] ? $matches[7] : '';
