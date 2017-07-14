@@ -208,12 +208,12 @@ class Market {
         $this->rateLimit = 2000;
         $this->timeout   = 10; // in seconds
         $this->proxy     = '';
+        $this->products  = null;
+        $this->verbose   = false;
 
         if ($options)
             foreach ($options as $key => $value)
                 $this->$key = $value;
-
-        $this->verbose = $this->log || $this->debug || ($this->verbosity == 1) || $this->verbose;
 
         if ($this->api)
             foreach ($this->api as $type => $methods)

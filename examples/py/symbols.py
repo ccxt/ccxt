@@ -1,23 +1,13 @@
 # coding=utf-8
 
-class styles:
-    pink      = '\033[95m'
-    blue      = '\033[94m'
-    green     = '\033[92m'
-    yellow    = '\033[93m'
-    red       = '\033[91m'
-    end       = '\033[0m'
-    bold      = '\033[1m'
-    underline = '\033[4m'
-
-def style     (s, style): return style + s + styles.end
-def green     (s): return style (s, styles.green)
-def blue      (s): return style (s, styles.blue)
-def yellow    (s): return style (s, styles.yellow)
-def red       (s): return style (s, styles.red)
-def pink      (s): return style (s, styles.pink)
-def bold      (s): return style (s, styles.bold)
-def underline (s): return style (s, styles.bold)
+def style     (s, style): return style + s + '\033[0m'
+def green     (s): return style (s, '\033[92m')
+def blue      (s): return style (s, '\033[94m')
+def yellow    (s): return style (s, '\033[93m')
+def red       (s): return style (s, '\033[91m')
+def pink      (s): return style (s, '\033[95m')
+def bold      (s): return style (s, '\033[1m')
+def underline (s): return style (s, '\033[4m')
 
 import sys
 sys.path.append ('../ccxt')
@@ -26,9 +16,12 @@ import ccxt
 def log (*args):
     print (' '.join ([str (arg) for arg in args]))
 
+def print_supported_markets ():
+    log ('Supported markets:', green (', '.join (ccxt.markets)))
+
 try:
 
-    id = sys.argv[1]
+    id = sys.argv[1] # get exchange id from command line arguments
 
     # check if the exchange is supported by ccxt
     market_found = id in ccxt.markets
@@ -55,8 +48,9 @@ try:
     else:
 
         log ('Market ' + red (id) + ' not found')
-        log ('Supported markets:', green (', '.join (ccxt.markets)))
+        print_supported_markets ()
 
 except:
     
     log ("Usage: python " + sys.argv[0], green ('id'))
+    print_supported_markets ()
