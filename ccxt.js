@@ -30,6 +30,16 @@ class MarketNotAvailaibleError extends Error {
     }    
 }
 
+class AuthenticationError extends Error {
+    constructor () {
+        super ()
+        this.constructor = AuthenticationError // a workaround to make `instanceof AuthenticationError` work in ES5-transpiled version
+        this.__proto__   = AuthenticationError.prototype
+    }    
+}
+
+//-----------------------------------------------------------------------------
+
 let sleep = ms => new Promise (resolve => setTimeout (resolve, ms));
 
 var timeout = (ms, promise) =>
@@ -558,9 +568,8 @@ var _1broker = {
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let apiKeyLength = this.apiKey.length;
-        if (!apiKeyLength)
-            throw new Error (this.id + ' requires apiKey for all requests');
+        if (!this.apiKey)
+            throw new AuthenticationError (this.id + ' requires apiKey for all requests');
         let url = this.urls['api'] + '/' + this.version + '/' + path + '.php';
         let query = this.extend ({ 'token': this.apiKey }, params);
         url += '?' + this.urlencode (query);
@@ -5460,9 +5469,8 @@ var coinspot = {
     },
 
     async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let apiKeyLength = this.apiKey.length;
-        if (!apiKeyLength)
-            throw new Error (this.id + ' requires apiKey for all requests');
+        if (!this.apiKey)
+            throw new AuthenticationError (this.id + ' requires apiKey for all requests');
         let url = this.urls['api'][type] + '/' + path;
         if (type == 'private') {
             let nonce = this.nonce ();
@@ -9979,9 +9987,8 @@ var xbtce = {
     },
 
     request (path, type = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let apiKeyLength = this.apiKey.length;
-        if (!apiKeyLength)
-            throw new Error (this.id + ' requires apiKey for all requests, their public API is always busy');
+        if (!this.apiKey)
+            throw new AuthenticationError (this.id + ' requires apiKey for all requests, their public API is always busy');
         let url = this.urls['api'] + '/' + this.version;
         if (type == 'public')
             url += '/' + type;
@@ -10412,6 +10419,7 @@ if (isNode) {
         DDoSProtectionError,
         TimeoutError,
         MarketNotAvailaibleError,
+        AuthenticationError,
     })
 } else
     window.ccxt = defineAllMarkets (markets)

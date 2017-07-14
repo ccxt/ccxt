@@ -5,6 +5,7 @@ namespace ccxt;
 class DDoSProtectionError extends \Exception {}
 class TimeoutError extends \Exception {}
 class MarketNotAvailableError extends \Exception {}
+class AuthenticationError extends \Exception {}
 
 class Market {
 
@@ -627,9 +628,8 @@ class _1broker extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $apiKeyLength = count ($this->apiKey);
-        if (!$apiKeyLength)
-            throw new \Exception ($this->id . ' requires apiKey for all requests');
+        if (!$this->apiKey)
+            throw new AuthenticationError ($this->id . ' requires apiKey for all requests');
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path . '.php';
         $query = array_merge (array ( 'token' => $this->apiKey ), $params);
         $url .= '?' . $this->urlencode ($query);
@@ -5658,9 +5658,8 @@ class coinspot extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $apiKeyLength = count ($this->apiKey);
-        if (!$apiKeyLength)
-            throw new \Exception ($this->id . ' requires apiKey for all requests');
+        if (!$this->apiKey)
+            throw new AuthenticationError ($this->id . ' requires apiKey for all requests');
         $url = $this->urls['api'][$type] . '/' . $path;
         if ($type == 'private') {
             $nonce = $this->nonce ();
@@ -10313,9 +10312,8 @@ class xbtce extends Market {
     }
 
     public function request ($path, $type = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $apiKeyLength = count ($this->apiKey);
-        if (!$apiKeyLength)
-            throw new \Exception ($this->id . ' requires apiKey for all requests, their public API is always busy');
+        if (!$this->apiKey)
+            throw new AuthenticationError ($this->id . ' requires apiKey for all requests, their public API is always busy');
         $url = $this->urls['api'] . '/' . $this->version;
         if ($type == 'public')
             $url .= '/' . $type;

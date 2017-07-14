@@ -98,13 +98,14 @@ try:
 except NameError:
   basestring = str # Python 2
 
-class DDoSProtectionError (_urllib.HTTPError):
-    def __init__ (self, *args, **kwargs):
-        _urllib.HTTPError.__init__ (self, *args, **kwargs)
+class DDoSProtectionError (Exception):
+    pass
 
-class MarketNotAvailaibleError (_urllib.HTTPError):
-    def __init__ (self, *args, **kwargs):
-        _urllib.HTTPError.__init__ (self, *args, **kwargs)
+class MarketNotAvailaibleError (Exception):
+    pass
+
+class AuthenticationError (Exception):
+    pass
 
 class Market (object):
 
@@ -594,9 +595,8 @@ class _1broker (Market):
         return self.privatePostOrderCancel ({ 'order_id': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        apiKeyLength = len (self.apiKey)
-        if not apiKeyLength:
-            raise Error (self.id + ' requires apiKey for all requests')
+        if not self.apiKey:
+            raise AuthenticationError (self.id + ' requires apiKey for all requests')
         url = self.urls['api'] + '/' + self.version + '/' + path + '.php'
         query = self.extend ({ 'token': self.apiKey }, params)
         url += '?' + _urlencode.urlencode (query)
@@ -5317,9 +5317,8 @@ class coinspot (Market):
         return getattr (self, method) ({ 'id': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        apiKeyLength = len (self.apiKey)
-        if not apiKeyLength:
-            raise Error (self.id + ' requires apiKey for all requests')
+        if not self.apiKey:
+            raise AuthenticationError (self.id + ' requires apiKey for all requests')
         url = self.urls['api'][type] + '/' + path
         if type == 'private':
             nonce = self.nonce ()
@@ -9688,9 +9687,8 @@ class xbtce (Market):
         return self.milliseconds ()
 
     def request (self, path, type = 'api', method = 'GET', params = {}, headers = None, body = None):
-        apiKeyLength = len (self.apiKey)
-        if not apiKeyLength:
-            raise Error (self.id + ' requires apiKey for all requests, their public API is always busy')
+        if not self.apiKey:
+            raise AuthenticationError (self.id + ' requires apiKey for all requests, their public API is always busy')
         url = self.urls['api'] + '/' + self.version
         if type == 'public':
             url += '/' + type

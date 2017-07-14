@@ -3,6 +3,19 @@
 date_default_timezone_set ('UTC');
 
 include 'ccxt.php';
+include 'Console/Table.php';
+
+date_default_timezone_set ('UTC');
+
+function style ($s, $style) { return $style . $s . "\033[0m"; }
+function green     ($s) { return style ($s, "\033[92m"); }
+function blue      ($s) { return style ($s, "\033[94m"); }
+function yellow    ($s) { return style ($s, "\033[93m"); }
+function red       ($s) { return style ($s, "\033[91m"); }
+function pink      ($s) { return style ($s, "\033[95m"); }
+function bold      ($s) { return style ($s, "\033[1m"); }
+function underline ($s) { return style ($s, "\033[4m"); }
+function dump ($s) { echo implode (' ', func_get_args ()) . "\n"; }
 
 $markets = null;
 
@@ -32,11 +45,11 @@ $markets['xbtce']->secret = 'qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwK
 $markets['coinspot']->apiKey = '36b5803f892fe97ccd0b22da79ce6b21';
 $markets['coinspot']->secret = 'QGWL9ADB3JEQ7W48E8A3KTQQ42V2P821LQRJW3UU424ATYPXF893RR4THKE9DT0RBNHKX8L54F35KBVFH';
 
-$markets['bitmex']->proxy   = ''; // bitmex doesn't like proxies
-$markets['btcx']->proxy     = ''; // btcx doesn't like Origin: * any more
-$markets['_1broker']->proxy = ''; // _1broker doesn't like it either
-$markets['_1btcxe']->proxy  = ''; // _1btcxe doesn't like it either
-$markets['huobi']->proxy    = ''; // huobi doesn't like it either
+// $markets['bitmex']->proxy   = ''; // bitmex doesn't like proxies
+// $markets['btcx']->proxy     = ''; // btcx doesn't like Origin: * any more
+// $markets['_1broker']->proxy = ''; // _1broker doesn't like it either
+// $markets['_1btcxe']->proxy  = ''; // _1btcxe doesn't like it either
+// $markets['huobi']->proxy    = ''; // huobi doesn't like it either
 
 function test_market_symbol_ticker ($market, $symbol) { 
     $ticker = $market->fetch_ticker ($symbol);
@@ -122,7 +135,7 @@ if (count ($argv) > 1) {
             test_market_symbol ($market, $argv[2]);
         }
         else 
-            test_market ($market);    
+            test_market ($market);
 
     } else {
     
@@ -138,10 +151,9 @@ if (count ($argv) > 1) {
             load_market ($market);
             test_market ($market);  
     
-        } catch (Exception $e) {
+        } catch (\ccxt\DDoSProtectionError $e) {
     
-            var_dump ($e->getMessage ());
-            break;
+            dump (yellow ($e->getMesage ())); 
         }
     }
 

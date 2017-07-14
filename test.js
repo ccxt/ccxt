@@ -35,11 +35,11 @@ markets['xbtce'].secret = 'qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwKqH
 markets['coinspot'].apiKey = '36b5803f892fe97ccd0b22da79ce6b21'
 markets['coinspot'].secret = 'QGWL9ADB3JEQ7W48E8A3KTQQ42V2P821LQRJW3UU424ATYPXF893RR4THKE9DT0RBNHKX8L54F35KBVFH'
 
-markets['bitmex'].proxy   = '' // bitmex doesn't like proxies
-markets['btcx'].proxy     = '' // btcx doesn't like Origin: * any more
-markets['_1broker'].proxy = '' // _1broker doesn't like it either
-markets['_1btcxe'].proxy  = '' // _1btcxe doesn't like it either
-markets['huobi'].proxy    = '' // huobi doesn't like it either
+// markets['bitmex'].proxy   = '' // bitmex doesn't like proxies
+// markets['btcx'].proxy     = '' // btcx doesn't like Origin: * any more
+// markets['_1broker'].proxy = '' // _1broker doesn't like it either
+// markets['_1btcxe'].proxy  = '' // _1btcxe doesn't like it either
+// markets['huobi'].proxy    = '' // huobi doesn't like it either
 
 var countryName = function (code) {
     return ((typeof countries[code] !== 'undefined') ? countries[code] : code)
@@ -235,6 +235,8 @@ var test = async function () {
                     log.bright.yellow ('DDoS Protection Error (ignoring)')
                 } else if (e instanceof ccxt.TimeoutError) {
                     log.bright.yellow ('Timeout Error (ignoring)')
+                } else if (e instanceof ccxt.AuthenticationError) {
+                    log.bright.yellow ('Authentication Error (missing API keys, ignoring)')
                 } else if (e instanceof ccxt.MarketNotAvailaibleError) {
                     log.bright.yellow ('Market Not Available Error due to downtime or maintenance (ignoring)')
                 } else {

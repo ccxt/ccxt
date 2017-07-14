@@ -1,5 +1,14 @@
 # coding=utf-8
 
+def style     (s, style): return style + s + '\033[0m'
+def green     (s): return style (s, '\033[92m')
+def blue      (s): return style (s, '\033[94m')
+def yellow    (s): return style (s, '\033[93m')
+def red       (s): return style (s, '\033[91m')
+def pink      (s): return style (s, '\033[95m')
+def bold      (s): return style (s, '\033[1m')
+def underline (s): return style (s, '\033[4m')
+
 import ccxt
 import time
 import sys
@@ -107,7 +116,7 @@ for id in ccxt.markets:
     markets[id] = market ({
         'verbose': False,
         # 'proxy': 'https://crossorigin.me/',
-        'proxy': 'https://cors-anywhere.herokuapp.com/',
+        # 'proxy': 'https://cors-anywhere.herokuapp.com/',
         # 'proxy': 'http://cors-proxy.htmldriven.com/?url=',
     })
 
@@ -120,11 +129,11 @@ markets['xbtce'].secret = 'qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwKqH
 markets['coinspot'].apiKey = '36b5803f892fe97ccd0b22da79ce6b21'
 markets['coinspot'].secret = 'QGWL9ADB3JEQ7W48E8A3KTQQ42V2P821LQRJW3UU424ATYPXF893RR4THKE9DT0RBNHKX8L54F35KBVFH'
 
-markets['bitmex'].proxy   = '' # bitmex doesn't like proxies
-markets['btcx'].proxy     = '' # btcx doesn't like Origin: * any more
-markets['_1broker'].proxy = '' # _1broker doesn't like it either
-markets['_1btcxe'].proxy  = '' # _1btcxe doesn't like it either
-markets['huobi'].proxy    = '' # huobi doesn't like it either
+# markets['bitmex'].proxy   = '' # bitmex doesn't like proxies
+# markets['btcx'].proxy     = '' # btcx doesn't like Origin: * any more
+# markets['_1broker'].proxy = '' # _1broker doesn't like it either
+# markets['_1btcxe'].proxy  = '' # _1btcxe doesn't like it either
+# markets['huobi'].proxy    = '' # huobi doesn't like it either
 
 id = None
 
@@ -160,5 +169,7 @@ else:
             print (type (e).__name__, e.args, 'DDoS Protection Error (ignoring')
         except ccxt.MarketNotAvailaibleError as e:
             print (type (e).__name__, e.args, 'Market Not Available Error due to downtime or maintenance (ignoring)')
+        except ccxt.AuthenticationError as e:
+            print (type (e).__name__, e.args, 'Authentication Error (missing API keys, ignoring)')
         except Exception as e:
             print (type (e).__name__, e.args)
