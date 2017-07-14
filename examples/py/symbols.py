@@ -9,8 +9,11 @@ def pink      (s): return style (s, '\033[95m')
 def bold      (s): return style (s, '\033[1m')
 def underline (s): return style (s, '\033[4m')
 
+import os
 import sys
-sys.path.append ('../ccxt')
+root = os.path.dirname (os.path.dirname (os.path.dirname (os.path.abspath (__file__))))
+sys.path.append (root)
+
 import ccxt
 
 def log (*args):

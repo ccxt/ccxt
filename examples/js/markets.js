@@ -34,5 +34,6 @@ log (asTable.configure ({ delimiter: ' | ' }) (Object.values (markets).map (mark
         name: market.name,
         url: website,
         countries: countries,
-    }        
+    }
+            
 })))

@@ -148,21 +148,6 @@ class Market (object):
                         f = functools.partial (self.request, url, apiType, uppercaseMethod)
                         setattr (self, camelcase,  f)
                         setattr (self, underscore, f)
-
-
-    # return (fetch ((self.cors ? self.cors : '') + url, options)
-    #     .then (response => (typeof response === 'string') ? response : response.text ())
-    #     .then (response => {
-    #         try {
-    #             return JSON.parse (response)
-    #         } catch (e) {
-    #             cloudflareProtection = response.match (/cloudflare/i) ? 'DDoS protection by Cloudflare' : ''
-    #             if (self.verbose)
-    #                 console.log (self.id, response, cloudflareProtection, e)
-    #             throw e
-    #         }
-    #     }))
-
     
     def fetch (self, url, method = 'GET', headers = None, data = None):
         """Perform a HTTP request and return decoded JSON data"""

@@ -1,6 +1,8 @@
 <?php
 
-include 'ccxt.php';
+$root = dirname (dirname (dirname (__FILE__)));
+
+include $root . '/ccxt.php';
 include 'Console/Table.php';
 
 date_default_timezone_set ('UTC');
