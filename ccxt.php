@@ -183,12 +183,18 @@ class Market {
         $regex = '/' . $yyyy . $mm . $dd . $h . $m . $s . $ms . $tz.'/';
         preg_match ($regex, $timestamp, $matches);
         array_shift ($matches);
-        list ($yyyy, $mm, $dd, $h, $m, $s, $ms, $sign, $hours, $minutes) = $matches;
-        $ms = $ms or '.000';
-        $sign = $sign or '';
+        var_dump ($matches);
+        list ($yyyy, $mm, $dd, $h, $m, $s) = $matches;
+        $ms = @$matches[6] ? $matches[6] : '.000';
+        $sign = @$matches[7] ? $matches[7] : '';
         $sign = intval ($sign . '1');
-        $hours = (intval ($hours) or 0) * $sign;
-        $minutes = (intval ($minutes) or 0) * $sign;
+        $hours = @$matches[8] ? intval ($matches[8]) * $sign : '';
+        $minutes = @$matches[9] ? intval ($matches[9]) * $sign : '';
+        // $ms = $ms or '.000';
+        // $sign = $sign or '';
+        // $sign = intval ($sign . '1');
+        // $hours = (intval ($hours) or 0) * $sign;
+        // $minutes = (intval ($minutes) or 0) * $sign;
         $t = mktime ($h, $m, $s, $mm, $dd, $yyyy, 0);
         $t += $hours * 3600 + $minutes * 60;
         $t *= 1000;
@@ -215,6 +221,8 @@ class Market {
         $this->proxy     = '';
         $this->products  = null;
         $this->verbose   = false;
+        $this->apiKey    = '';
+        $this->secret    = '';
 
         if ($options)
             foreach ($options as $key => $value)
