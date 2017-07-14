@@ -39,8 +39,6 @@ markets['bitmex'].proxy   = '' // bitmex doesn't like proxies
 markets['btcx'].proxy     = '' // btcx doesn't like Origin: * any more
 markets['_1broker'].proxy = '' // _1broker doesn't like it either
 
-// console.log (Object.values (ccxt).length)
-
 var countryName = function (code) {
     return ((typeof countries[code] !== 'undefined') ? countries[code] : code)
 }
