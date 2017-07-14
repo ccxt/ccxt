@@ -16,7 +16,7 @@ else
 foreach (\ccxt\Market::$markets as $id) {
     $market = '\\ccxt\\' . $id;
     $markets[$id] = new $market (array (
-        'verbose' => true,
+        'verbose' => false,
         // 'proxy' => 'https://crossorigin.me/',
         // 'proxy' => 'https://cors-anywhere.herokuapp.com/',
         // 'proxy' => 'http://cors-proxy.htmldriven.com/?url=',
