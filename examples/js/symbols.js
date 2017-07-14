@@ -2,7 +2,6 @@
 
 const ccxt      = require ('../../ccxt.es5.js')
 const asTable   = require ('as-table')
-const util      = require ('util')
 const log       = require ('ololog')
 
 require ('ansicolor').nice;
