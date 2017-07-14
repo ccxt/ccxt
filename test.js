@@ -17,28 +17,29 @@ try {
     markets = {}
 }
 
-// console.log (ccxt)
-
 ccxt.markets.forEach (id => {
     markets[id] = new (ccxt)[id] ({
         verbose: false,
         // proxy: 'https://crossorigin.me/',
-        // proxy: 'https://cors-anywhere.herokuapp.com/',
+        proxy: 'https://cors-anywhere.herokuapp.com/',
         // proxy: 'http://cors-proxy.htmldriven.com/?url=',
     })
 })
 
 markets['_1broker'].apiKey = 'A0f79063a5e91e6d62fbcbbbbdd63258'
-markets['xbtce'].uid = '68ef0552-3c37-4896-ba56-76173d9cd573'
+
+markets['xbtce'].uid    = '68ef0552-3c37-4896-ba56-76173d9cd573'
 markets['xbtce'].apiKey = 'dK2jBXMTppAM57ZJ'
 markets['xbtce'].secret = 'qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwKqH7ywsxcR78WT'
 
-console.log (Object.values (ccxt).length)
+markets['coinspot'].apiKey = '36b5803f892fe97ccd0b22da79ce6b21'
+markets['coinspot'].secret = 'QGWL9ADB3JEQ7W48E8A3KTQQ42V2P821LQRJW3UU424ATYPXF893RR4THKE9DT0RBNHKX8L54F35KBVFH'
+
+// console.log (Object.values (ccxt).length)
 
 var countryName = function (code) {
     return ((typeof countries[code] !== 'undefined') ? countries[code] : code)
 }
-
 
 let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
 
@@ -112,19 +113,6 @@ let testMarket = async market => {
 
     let keys = Object.keys (market.products)
 
-    // console.log (market)
-
-    // Object.values (market.products).map (x => console.log (market.id, x.id))
-    // console.log (market.id, 'products', market.products)
-    // console.log (market.id, Object.keys (market.products).length, 'symbols', Object.keys (market.products).join (', '))
-
-    // sleep (delay)
-
-    // let orderbook = await market.fetchOrderBook (Object.keys (market.products)[0])
-    // console.log (market.id, orderbook)
-
-    // sleep (delay)
-
     let symbol = keys[0]
     let symbols = [
         'BTC/USD',
@@ -145,13 +133,6 @@ let testMarket = async market => {
     if ((symbol.indexOf ('.d') < 0)) {
         await testMarketSymbol (market, symbol)
     }
-
-    // for (let s in keys) {
-    //     let symbol = keys[s]
-    //     if ((symbol.indexOf ('.d') < 0)) {
-    //         await testMarketSymbol (market, symbol);
-    //     }
-    // }
             
     // let trades = await market.fetchTrades (Object.keys (market.products)[0])
     // console.log (market.id, trades)
@@ -217,13 +198,9 @@ var test = async function () {
         let countries = Array.isArray (market.countries) ? market.countries.map (countryName).join (', ') : countryName (market.countries)
         let doc = Array.isArray (market.urls.doc) ? market.urls.doc[0] : market.urls.doc
         return {
-            ' ': '',
             'id':        market.id,
             'name':      market.name,
-            // 'docs':      '[API](' + doc + ')',
             'countries': countries,
-            // 'notes':     'Full support',
-            '  ': '',
         }        
     })))
 

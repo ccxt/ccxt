@@ -42,10 +42,7 @@ def test_market_symbol (market, symbol):
     test_market_symbol_orderbook (market, symbol)
 
 def load_market (market):
-    # print (dir (market))
-    # print (market.id)
     products = market.load_products ()
-    # print (market.id, 'products', products)
     keys = list (market.products.keys ())
     print (market.id , len (keys), 'symbols', keys)
 
@@ -71,7 +68,6 @@ def test_market (market):
         if s in keys:
             symbol = s
 
-    # for symbol in keys:
     if symbol.find ('.d') < 0:
         test_market_symbol (market, symbol)
 
@@ -120,6 +116,9 @@ markets['_1broker'].apiKey = 'A0f79063a5e91e6d62fbcbbbbdd63258'
 markets['xbtce'].uid    = '68ef0552-3c37-4896-ba56-76173d9cd573'
 markets['xbtce'].apiKey = 'dK2jBXMTppAM57ZJ'
 markets['xbtce'].secret = 'qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwKqH7ywsxcR78WT'
+
+markets['coinspot'].apiKey = '36b5803f892fe97ccd0b22da79ce6b21'
+markets['coinspot'].secret = 'QGWL9ADB3JEQ7W48E8A3KTQQ42V2P821LQRJW3UU424ATYPXF893RR4THKE9DT0RBNHKX8L54F35KBVFH'
 
 id = None
 

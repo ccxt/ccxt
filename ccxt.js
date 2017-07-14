@@ -215,6 +215,7 @@ var Market = function (config) {
     this.sortBy = sortBy
     this.keysort = keysort
     this.capitalize = capitalize
+    this.json = JSON.stringify
 
     this.init = function () {
 
@@ -702,8 +703,8 @@ var cryptocapital = {
                 'api_key': this.apiKey,
                 'nonce': this.nonce (),
             }, params);
-            query['signature'] = this.hmac (JSON.stringify (query), this.secret);
-            body = JSON.stringify (query);
+            query['signature'] = this.hmac (this.json (query), this.secret);
+            body = this.json (query);
             headers = { 'Content-Type': 'application/json' };
         }
         return this.fetch (url, method, headers, body);
@@ -1696,7 +1697,7 @@ var bitfinex = {
                 'nonce': nonce.toString (),
                 'request': request,
             }, query);
-            let payload = this.stringToBase64 (JSON.stringify (query));
+            let payload = this.stringToBase64 (this.json (query));
             headers = {
                 'X-BFX-APIKEY': this.apiKey,
                 'X-BFX-PAYLOAD': payload,
@@ -1879,7 +1880,7 @@ var bitflyer = {
                 url += '?' + this.urlencode (params);
         } else {
             let nonce = this.nonce ().toString ();
-            body = JSON.stringify (params);
+            body = this.json (params);
             let auth = [ nonce, method, request, body ].join ('');
             headers = {
                 'ACCESS-KEY': this.apiKey,
@@ -2060,7 +2061,7 @@ var bitlish = {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
-            body = JSON.stringify (this.extend ({ 'token': this.apiKey }, params));
+            body = this.json (this.extend ({ 'token': this.apiKey }, params));
             headers = { 'Content-Type': 'application/json' };
         }
         return this.fetch (url, method, headers, body);
@@ -2456,7 +2457,7 @@ var bitmex = {
             let nonce = this.nonce ().toString ();
             if (method == 'POST')
                 if (Object.keys (params).length)
-                    body = JSON.stringify (params);
+                    body = this.json (params);
             let request = [ method, query, nonce, body || ''].join ('');
             headers = {
                 'Content-Type': 'application/json',
@@ -2640,7 +2641,7 @@ var bitso = {
                 url += '?' + this.urlencode (params);
         } else {
             if (Object.keys (params).length)
-                body = JSON.stringify (params);
+                body = this.json (params);
             let nonce = this.nonce ().toString ();
             let request = [ nonce, method, query, body || '' ].join ('');
             let signature = this.hmac (request, this.secret);
@@ -3142,7 +3143,7 @@ var blinktrade = {
         } else {
             let nonce = this.nonce ().toString ();
             let request = this.extend ({ 'MsgType': path }, query);
-            body = JSON.stringify (request);
+            body = this.json (request);
             headers = {
                 'APIKey': this.apiKey,
                 'Nonce': nonce,
@@ -3334,7 +3335,7 @@ var btcchina = {
                 'params': p,
             };
             p = p.join (',');
-            body = JSON.stringify (request);
+            body = this.json (request);
             let query = (
                 'tonce=' + nonce +
                 '&accesskey=' + this.apiKey +
@@ -5319,9 +5320,159 @@ var coinsecure = {
         if (type == 'private') {
             headers = { 'Authorization': this.apiKey };
             if (Object.keys (query).length) {
-                body = JSON.stringify (query);
+                body = this.json (query);
                 headers['Content-Type'] = 'application/json';
             }
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
+var coinspot = {
+
+    'id': 'coinspot',
+    'name': 'CoinSpot',
+    'countries': 'AU', // Australia
+    'rateLimit': 1000,
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
+        'api': {
+            'public': 'https://www.coinspot.com.au/pubapi',
+            'private': 'https://www.coinspot.com.au/api',
+        },
+        'www': 'https://www.coinspot.com.au',
+        'doc': 'https://www.coinspot.com.au/api',
+    },
+    'api': {
+        'public': {
+            'get': [
+                'latest',
+            ],
+        },
+        'private': {
+            'post': [
+                'orders',
+                'orders/history',
+                'my/coin/deposit',
+                'my/coin/send',
+                'quote/buy',
+                'quote/sell',
+                'my/balances',
+                'my/orders',
+                'my/buy',
+                'my/sell',
+                'my/buy/cancel',
+                'my/sell/cancel',
+            ],
+        },
+    },
+    'products': {
+        'BTC/AUD': { 'id': 'BTC', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', },
+        'LTC/AUD': { 'id': 'LTC', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', },
+        'DOGE/AUD': { 'id': 'DOGE', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD', },
+    },
+
+    fetchBalance () {
+        return this.privatePostMyBalances ();
+    },
+
+    async fetchOrderBook (product) {
+        let p = this.product (product);
+        let orderbook = await this.privatePostOrders ({
+            'cointype': p['id'],
+        });
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = { 'bids': 'buyorders', 'asks': 'sellorders' };
+        let keys = Object.keys (sides);
+        for (let k = 0; k < keys.length; k++) {
+            let key = keys[k];
+            let side = sides[key];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order['rate']);
+                let amount = parseFloat (order['amount']);
+                result[key].push ([ price, amount ]);
+            }
+        }
+        result['bids'] = this.sortBy (result['bids'], 0, true);
+        result['asks'] = this.sortBy (result['asks'], 0);
+        return result;
+    },
+
+    async fetchTicker (product) {
+        let response = await this.publicGetLatest ();
+        let id = this.productId (product);
+        id = id.toLowerCase ();
+        let ticker = response['prices'][id];
+        let timestamp = this.milliseconds ();
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': parseFloat (ticker['bid']),
+            'ask': parseFloat (ticker['ask']),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        return this.privatePostOrdersHistory ({
+            'cointype': this.productId (product),
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let method = 'privatePostMy' + this.capitalize (side);
+        if (type =='market')
+            throw new Error (this.id + ' allows limit orders only');
+        let order = {
+            'cointype': this.productId (product),
+            'amount': amount,
+            'rate': price,
+        };
+        return this[method] (this.extend (order, params));
+    },
+
+    cancelOrder (id, params = {}) {
+        throw new Error (this.id + ' cancelOrder () is not fully implemented yet');
+        let method = 'privatePostMyBuy';
+        return this[method] ({ 'id': id });
+    },
+
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let apiKeyLength = this.apiKey.length;
+        if (!apiKeyLength)
+            throw new Error (this.id + ' requires apiKey for all requests');
+        let url = this.urls['api'][type] + '/' + path;
+        if (type == 'private') {
+            let nonce = this.nonce ();
+            body = this.json (this.extend ({ 'nonce': nonce }, params));
+            headers = {
+                'Content-Type': 'application/json',
+                'Content-Length': body.length,
+                'key': this.apiKey,
+                'sign': this.hmac (body, this.secret, 'sha512'),
+            };
         }
         return this.fetch (url, method, headers, body);
     },
@@ -5839,7 +5990,7 @@ var flowbtc = {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (type == 'public') {
             if (Object.keys (params).length) {
-                body = JSON.stringify (params);
+                body = this.json (params);
             }
         } else {
             let nonce = this.nonce ();
@@ -6199,7 +6350,7 @@ var gdax = {
         } else {
             let nonce = this.nonce ().toString ();
             if (Object.keys (query).length)
-                body = JSON.stringify (query);
+                body = this.json (query);
             let what = nonce + method + request + (body || '');
             let secret = this.base64ToBinary (this.secret);
             let signature = this.hash (what, secret, 'sha256', 'binary');
@@ -6374,7 +6525,7 @@ var gemini = {
                 'request': url,
                 'nonce': nonce,
             }, query);
-            let payload = this.stringToBase64 (JSON.stringify (request));
+            let payload = this.stringToBase64 (this.json (request));
             let signature = this.hmac (payload, this.secret, 'sha384');
             headers = {
                 'Content-Type': 'text/plain',
@@ -6886,13 +7037,13 @@ var itbit = {
                 url += '?' + this.urlencode (query);
         } else {
             if (Object.keys (query).length)
-                body = JSON.stringify (query);
+                body = this.json (query);
             else
                 body = '';
             let nonce = this.nonce ().toString ();
             let timestamp = nonce;
             let auth = [ method, url, body, nonce, timestamp ];
-            let message = nonce + JSON.stringify (auth);
+            let message = nonce + this.json (auth);
             let hashedMessage = this.hash (message, 'sha256', 'binary');
             let signature = this.hmac (url + hashedMessage, this.secret, 'sha512', 'base64');
             headers = {
@@ -7423,7 +7574,7 @@ var lakebtc = {
                 'method': path,
                 'params': params,
             });
-            body = JSON.stringify ({
+            body = this.json ({
                 'method': path,
                 'params': params,
                 'id': nonce,
@@ -8316,7 +8467,7 @@ var paymium = {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
-            body = JSON.stringify (params);
+            body = this.json (params);
             let nonce = this.nonce ().toString ();
             let auth = nonce + url + body;
             headers = {
@@ -8649,7 +8800,7 @@ var quadrigacx = {
                 'nonce': nonce,
                 'signature': signature,
             }, params);
-            body = JSON.stringify (query);
+            body = this.json (query);
             headers = {
                 'Content-Type': 'application/json',
                 'Content-Length': body.length,
@@ -8840,7 +8991,7 @@ var quoine = {
                 'iat': Math.floor (nonce / 1000), // issued at
             };
             if (Object.keys (query).length)
-                body = JSON.stringify (query);
+                body = this.json (query);
             headers['X-Quoine-Auth'] = this.jwt (request, this.secret);
         }
         return this.fetch (this.urls['api'] + url, method, headers, body);
@@ -8994,7 +9145,7 @@ var southxchange = {
                 'key': this.apiKey,
                 'nonce': nonce,
             }, query);
-            body = JSON.stringify (query);
+            body = this.json (query);
             headers = {
                 'Content-Type': 'application/json',
                 'Hash': this.hmac (body, this.secret, 'sha512'),
@@ -9191,7 +9342,7 @@ var therock = {
                 'X-TRT-SIGN': this.hmac (nonce + url, this.secret, 'sha512'),
             };
             if (Object.keys (query).length) {
-                body = JSON.stringify (query);
+                body = this.json (query);
                 headers['Content-Type'] = 'application/json';
             }
         }
@@ -9613,7 +9764,7 @@ var virwox = {
             }, auth, params));
         } else {
             headers = { 'Content-type': 'application/json' };
-            body = JSON.stringify ({
+            body = this.json ({
                 'method': path,
                 'params': this.extend (auth, params),
                 'id': nonce,
@@ -9842,7 +9993,7 @@ var xbtce = {
         } else {
             let nonce = this.nonce ().toString ();
             if (Object.keys (query).length)
-                body = JSON.stringify (query);
+                body = this.json (query);
             else
                 body = '';
             let auth = nonce + this.uid + this.apiKey + method + url + body;
@@ -10208,6 +10359,7 @@ var markets = {
     'coincheck':     coincheck,
     'coinmate':      coinmate,
     'coinsecure':    coinsecure,
+    'coinspot':      coinspot,
     'dsx':           dsx,
     'exmo':          exmo,
     'flowbtc':       flowbtc,

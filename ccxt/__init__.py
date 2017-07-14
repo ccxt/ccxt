@@ -30,6 +30,7 @@ markets = [
     'coincheck',
     'coinmate',
     'coinsecure',
+    'coinspot',
     'dsx',
     'exmo',
     'flowbtc',
@@ -359,11 +360,15 @@ class Market (object):
 
     @staticmethod
     def jwt (request, secret, hash = hashlib.sha256, alg = 'HS256'):
-        encodedHeader = Market.base64urlencode (json.dumps ({ 'alg': alg, 'typ': 'JWT' }, separators = (',', ':')))
-        encodedData = Market.base64urlencode (json.dumps (request, separators = (',', ':')))
+        encodedHeader = Market.base64urlencode (Market.json ({ 'alg': alg, 'typ': 'JWT' }))
+        encodedData = Market.base64urlencode (Market.json (request))
         token = encodedHeader + '.' + encodedData
         signature = Market.base64urlencode (Market.hmac (token, secret, hash, 'binary'))
         return token + '.' + signature
+
+    @staticmethod
+    def json (input):
+        return json.dumps (input, separators = (',', ':'))
 
     def nonce (self):
         return Market.seconds ()
@@ -729,8 +734,8 @@ class cryptocapital (Market):
                 'api_key': self.apiKey,
                 'nonce': self.nonce (),
             }, params)
-            query['signature'] = self.hmac (json.dumps (query), self.secret)
-            body = json.dumps (query)
+            query['signature'] = self.hmac (self.json (query), self.secret)
+            body = self.json (query)
             headers = { 'Content-Type': 'application/json' }
         return self.fetch (url, method, headers, body)
 
@@ -1689,7 +1694,7 @@ class bitfinex (Market):
                 'nonce': str (nonce),
                 'request': request,
             }, query)
-            payload = base64.b64encode (json.dumps (query))
+            payload = base64.b64encode (self.json (query))
             headers = {
                 'X-BFX-APIKEY': self.apiKey,
                 'X-BFX-PAYLOAD': payload,
@@ -1863,7 +1868,7 @@ class bitflyer (Market):
                 url += '?' + _urlencode.urlencode (params)
         else:
             nonce = str (self.nonce ())
-            body = json.dumps (params)
+            body = self.json (params)
             auth = ''.join ([ nonce, method, request, body ])
             headers = {
                 'ACCESS-KEY': self.apiKey,
@@ -2035,7 +2040,7 @@ class bitlish (Market):
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
-            body = json.dumps (self.extend ({ 'token': self.apiKey }, params))
+            body = self.json (self.extend ({ 'token': self.apiKey }, params))
             headers = { 'Content-Type': 'application/json' }
         return self.fetch (url, method, headers, body)
 
@@ -2420,7 +2425,7 @@ class bitmex (Market):
             nonce = str (self.nonce ())
             if method == 'POST':
                 if params:
-                    body = json.dumps (params)
+                    body = self.json (params)
             request = ''.join ([ method, query, nonce, body or ''])
             headers = {
                 'Content-Type': 'application/json',
@@ -2595,7 +2600,7 @@ class bitso (Market):
                 url += '?' + _urlencode.urlencode (params)
         else:
             if params:
-                body = json.dumps (params)
+                body = self.json (params)
             nonce = str (self.nonce ())
             request = ''.join ([ nonce, method, query, body or '' ])
             signature = self.hmac (request, self.secret)
@@ -3077,7 +3082,7 @@ class blinktrade (Market):
         else:
             nonce = str (self.nonce ())
             request = self.extend ({ 'MsgType': path }, query)
-            body = json.dumps (request)
+            body = self.json (request)
             headers = {
                 'APIKey': self.apiKey,
                 'Nonce': nonce,
@@ -3261,7 +3266,7 @@ class btcchina (Market):
                 'params': p,
             }
             p = ','.join (p)
-            body = json.dumps (request)
+            body = self.json (request)
             query = (
                 'tonce=' + nonce +
                 '&accesskey=' + self.apiKey +
@@ -5179,8 +5184,152 @@ class coinsecure (Market):
         if type == 'private':
             headers = { 'Authorization': self.apiKey }
             if query:
-                body = json.dumps (query)
+                body = self.json (query)
                 headers['Content-Type'] = 'application/json'
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
+class coinspot (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'coinspot',
+            'name': 'CoinSpot',
+            'countries': 'AU', # Australia
+            'rateLimit': 1000,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
+                'api': {
+                    'public': 'https://www.coinspot.com.au/pubapi',
+                    'private': 'https://www.coinspot.com.au/api',
+                },
+                'www': 'https://www.coinspot.com.au',
+                'doc': 'https://www.coinspot.com.au/api',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'latest',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'orders',
+                        'orders/history',
+                        'my/coin/deposit',
+                        'my/coin/send',
+                        'quote/buy',
+                        'quote/sell',
+                        'my/balances',
+                        'my/orders',
+                        'my/buy',
+                        'my/sell',
+                        'my/buy/cancel',
+                        'my/sell/cancel',
+                    ],
+                },
+            },
+            'products': {
+                'BTC/AUD': { 'id': 'BTC', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', },
+                'LTC/AUD': { 'id': 'LTC', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', },
+                'DOGE/AUD': { 'id': 'DOGE', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD', },
+            },
+        }
+        params.update (config)
+        super (coinspot, self).__init__ (params)
+
+    def fetch_balance (self):
+        return self.privatePostMyBalances ()
+
+    def fetch_order_book (self, product):
+        p = self.product (product)
+        orderbook = self.privatePostOrders ({
+            'cointype': p['id'],
+        })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = { 'bids': 'buyorders', 'asks': 'sellorders' }
+        keys = list (sides.keys ())
+        for k in range (0, len (keys)):
+            key = keys[k]
+            side = sides[key]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order['rate'])
+                amount = float (order['amount'])
+                result[key].append ([ price, amount ])
+        result['bids'] = self.sort_by (result['bids'], 0, True)
+        result['asks'] = self.sort_by (result['asks'], 0)
+        return result
+
+    def fetch_ticker (self, product):
+        response = self.publicGetLatest ()
+        id = self.product_id (product)
+        id = id.lower ()
+        ticker = response['prices'][id]
+        timestamp = self.milliseconds ()
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': None,
+            'low': None,
+            'bid': float (ticker['bid']),
+            'ask': float (ticker['ask']),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': None,
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.privatePostOrdersHistory ({
+            'cointype': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        method = 'privatePostMy' + self.capitalize (side)
+        if type =='market':
+            raise Error (self.id + ' allows limit orders only')
+        order = {
+            'cointype': self.product_id (product),
+            'amount': amount,
+            'rate': price,
+        }
+        return getattr (self, method) (self.extend (order, params))
+
+    def cancel_order (self, id, params = {}):
+        raise Error (self.id + ' cancelOrder () is not fully implemented yet')
+        method = 'privatePostMyBuy'
+        return getattr (self, method) ({ 'id': id })
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        apiKeyLength = len (self.apiKey)
+        if not apiKeyLength:
+            raise Error (self.id + ' requires apiKey for all requests')
+        url = self.urls['api'][type] + '/' + path
+        if type == 'private':
+            nonce = self.nonce ()
+            body = self.json (self.extend ({ 'nonce': nonce }, params))
+            headers = {
+                'Content-Type': 'application/json',
+                'Content-Length': len (body),
+                'key': self.apiKey,
+                'sign': self.hmac (body, self.secret, hashlib.sha512),
+            }
         return self.fetch (url, method, headers, body)
 
 #------------------------------------------------------------------------------
@@ -5672,7 +5821,7 @@ class flowbtc (Market):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if type == 'public':
             if params:
-                body = json.dumps (params)
+                body = self.json (params)
         else:
             nonce = self.nonce ()
             auth = nonce + self.uid + self.apiKey
@@ -6033,7 +6182,7 @@ class gdax (Market):
         else:
             nonce = str (self.nonce ())
             if query:
-                body = json.dumps (query)
+                body = self.json (query)
             what = nonce + method + request + (body or '')
             secret = base64.b64decode (self.secret)
             signature = self.hash (what, secret, hashlib.sha256, 'binary')
@@ -6200,7 +6349,7 @@ class gemini (Market):
                 'request': url,
                 'nonce': nonce,
             }, query)
-            payload = base64.b64encode (json.dumps (request))
+            payload = base64.b64encode (self.json (request))
             signature = self.hmac (payload, self.secret, hashlib.sha384)
             headers = {
                 'Content-Type': 'text/plain',
@@ -6693,13 +6842,13 @@ class itbit (Market):
                 url += '?' + _urlencode.urlencode (query)
         else:
             if query:
-                body = json.dumps (query)
+                body = self.json (query)
             else:
                 body = ''
             nonce = str (self.nonce ())
             timestamp = nonce
             auth = [ method, url, body, nonce, timestamp ]
-            message = nonce + json.dumps (auth)
+            message = nonce + self.json (auth)
             hashedMessage = self.hash (message, hashlib.sha256, 'binary')
             signature = self.hmac (url + hashedMessage, self.secret, hashlib.sha512, 'base64')
             headers = {
@@ -7209,7 +7358,7 @@ class lakebtc (Market):
                 'method': path,
                 'params': params,
             })
-            body = json.dumps ({
+            body = self.json ({
                 'method': path,
                 'params': params,
                 'id': nonce,
@@ -8078,7 +8227,7 @@ class paymium (Market):
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
-            body = json.dumps (params)
+            body = self.json (params)
             nonce = str (self.nonce ())
             auth = nonce + url + body
             headers = {
@@ -8397,7 +8546,7 @@ class quadrigacx (Market):
                 'nonce': nonce,
                 'signature': signature,
             }, params)
-            body = json.dumps (query)
+            body = self.json (query)
             headers = {
                 'Content-Type': 'application/json',
                 'Content-Length': len (body),
@@ -8580,7 +8729,7 @@ class quoine (Market):
                 'iat': int (math.floor (nonce / 1000)), # issued at
             }
             if query:
-                body = json.dumps (query)
+                body = self.json (query)
             headers['X-Quoine-Auth'] = self.jwt (request, self.secret)
         return self.fetch (self.urls['api'] + url, method, headers, body)
 
@@ -8726,7 +8875,7 @@ class southxchange (Market):
                 'key': self.apiKey,
                 'nonce': nonce,
             }, query)
-            body = json.dumps (query)
+            body = self.json (query)
             headers = {
                 'Content-Type': 'application/json',
                 'Hash': self.hmac (body, self.secret, hashlib.sha512),
@@ -8920,7 +9069,7 @@ class therock (Market):
                 'X-TRT-SIGN': self.hmac (nonce + url, self.secret, hashlib.sha512),
             }
             if query:
-                body = json.dumps (query)
+                body = self.json (query)
                 headers['Content-Type'] = 'application/json'
         return self.fetch (url, method, headers, body)
 
@@ -9333,7 +9482,7 @@ class virwox (Market):
             }, auth, params))
         else:
             headers = { 'Content-type': 'application/json' }
-            body = json.dumps ({
+            body = self.json ({
                 'method': path,
                 'params': self.extend (auth, params),
                 'id': nonce,
@@ -9553,7 +9702,7 @@ class xbtce (Market):
         else:
             nonce = str (self.nonce ())
             if query:
-                body = json.dumps (query)
+                body = self.json (query)
             else:
                 body = ''
             auth = nonce + self.uid + self.apiKey + method + url + body

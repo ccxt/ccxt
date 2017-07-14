@@ -27,13 +27,16 @@ foreach (\ccxt\Market::$markets as $id) {
 }
 
 $markets['_1broker']->apiKey = 'A0f79063a5e91e6d62fbcbbbbdd63258';
-$markets['xbtce']->uid = '68ef0552-3c37-4896-ba56-76173d9cd573';
+
+$markets['xbtce']->uid    = '68ef0552-3c37-4896-ba56-76173d9cd573';
 $markets['xbtce']->apiKey = 'dK2jBXMTppAM57ZJ';
 $markets['xbtce']->secret = 'qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwKqH7ywsxcR78WT';
 
-function test_market_symbol ($market, $symbol) {
-    $delay = $market->rateLimit * 1000;
-    usleep ($delay);
+$markets['coinspot']->apiKey = '36b5803f892fe97ccd0b22da79ce6b21';
+$markets['coinspot']->secret = 'QGWL9ADB3JEQ7W48E8A3KTQQ42V2P821LQRJW3UU424ATYPXF893RR4THKE9DT0RBNHKX8L54F35KBVFH';
+
+
+function test_market_symbol_ticker ($market, $symbol) { 
     $ticker = $market->fetch_ticker ($symbol);
     echo implode (' ', array ($market->id, $symbol, 'ticker',
         $ticker['datetime'],
@@ -42,8 +45,9 @@ function test_market_symbol ($market, $symbol) {
         'bid: '     . $ticker['bid'],
         'ask: '     . $ticker['ask'],
         'volume: '  . $ticker['quoteVolume'])) . "\n";
-    
-    usleep ($delay);
+}
+
+function test_market_symbol_orderbook ($market, $symbol) {
     $orderbook = $market->fetch_order_book ($symbol);
     echo implode (' ', array ($market->id, $symbol, 'order book',
         $orderbook['datetime'],
@@ -51,7 +55,14 @@ function test_market_symbol ($market, $symbol) {
         'bidVolume: ' . @$orderbook['bids'][0][1],
         'ask: '       . @$orderbook['asks'][0][0],
         'askVolume: ' . @$orderbook['asks'][0][1])) . "\n";
+}
 
+function test_market_symbol ($market, $symbol) {
+    $delay = $market->rateLimit * 1000;
+    usleep ($delay);
+    test_market_symbol_ticker ($market, $symbol);
+    usleep ($delay);
+    test_market_symbol_orderbook ($market, $symbol);
 }
 
 function load_market ($market) {
@@ -81,27 +92,12 @@ function test_market ($market) {
             $symbol = $s;
     }
 
-    // foreach ($symbols as $symbol)
     if (strpos ($symbol, '.d') === false)
         test_market_symbol ($market, $symbol);
 
     // usleep ($delay);
-
-    // $orderbook = $market->fetch_order_book (array_keys ($products)[0]);
-    // var_dump ($orderbook);
-
-    // usleep ($delay);
-
     // $trades = $market->fetch_trades (array_keys ($products)[0]);
     // var_dump ($trades);
-
-    // usleep ($delay);
-
-    // $ticker = $market->fetch_ticker (array_keys ($products)[0]);
-    // $ticker = $market->fetch_ticker ('BTC/USD');
-    // var_dump ($ticker);
-
-    // usleep ($delay);
 
     if ((!$market->apiKey) or (strlen ($market->apiKey) < 1))
         return;

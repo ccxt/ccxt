@@ -38,6 +38,7 @@ class Market {
         'coincheck',
         'coinmate',
         'coinsecure',
+        'coinspot',
         'dsx',
         'exmo',
         'flowbtc',
@@ -101,7 +102,7 @@ class Market {
 
     public static function sort_by ($arrayOfArrays, $key, $descending = false) {
         $descending = $descending ? -1 : 1;
-        usort ($arrayOfArrays, function ($a, $b) {
+        usort ($arrayOfArrays, function ($a, $b) use ($key, $descending) {
             if ($a[$key] == $b[$key])
                 return 0;
             return $a[$key] < $b[$key] ? -$descending : $descending;
@@ -196,6 +197,10 @@ class Market {
 
     public static function yyyymmddhhmmss ($timestamp) {
         return gmdate ('YmdHis', (int) round ($timestamp / 1000));
+    }
+
+    public static function json ($input) {
+        return json_encode ($input);
     }
 
     public function nonce () {
@@ -764,8 +769,8 @@ class cryptocapital extends Market {
                 'api_key' => $this->apiKey,
                 'nonce' => $this->nonce (),
             ), $params);
-            $query['signature'] = $this->hmac (json_encode ($query), $this->secret);
-            $body = json_encode ($query);
+            $query['signature'] = $this->hmac ($this->json ($query), $this->secret);
+            $body = $this->json ($query);
             $headers = array ( 'Content-Type' => 'application/json' );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -1786,7 +1791,7 @@ class bitfinex extends Market {
                 'nonce' => (string) $nonce,
                 'request' => $request,
             ), $query);
-            $payload = base64_encode (json_encode ($query));
+            $payload = base64_encode ($this->json ($query));
             $headers = array (
                 'X-BFX-APIKEY' => $this->apiKey,
                 'X-BFX-PAYLOAD' => $payload,
@@ -1973,7 +1978,7 @@ class bitflyer extends Market {
                 $url .= '?' . $this->urlencode ($params);
         } else {
             $nonce = (string) $this->nonce ();
-            $body = json_encode ($params);
+            $body = $this->json ($params);
             $auth = implode ('', array ($nonce, $method, $request, $body));
             $headers = array (
                 'ACCESS-KEY' => $this->apiKey,
@@ -2158,7 +2163,7 @@ class bitlish extends Market {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
-            $body = json_encode (array_merge (array ( 'token' => $this->apiKey ), $params));
+            $body = $this->json (array_merge (array ( 'token' => $this->apiKey ), $params));
             $headers = array ( 'Content-Type' => 'application/json' );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -2562,7 +2567,7 @@ class bitmex extends Market {
             $nonce = (string) $this->nonce ();
             if ($method == 'POST')
                 if ($params)
-                    $body = json_encode ($params);
+                    $body = $this->json ($params);
             $request = implode ('', array ($method, $query, $nonce, $body || ''));
             $headers = array (
                 'Content-Type' => 'application/json',
@@ -2749,7 +2754,7 @@ class bitso extends Market {
                 $url .= '?' . $this->urlencode ($params);
         } else {
             if ($params)
-                $body = json_encode ($params);
+                $body = $this->json ($params);
             $nonce = (string) $this->nonce ();
             $request = implode ('', array ($nonce, $method, $query, $body || ''));
             $signature = $this->hmac ($request, $this->secret);
@@ -3263,7 +3268,7 @@ class blinktrade extends Market {
         } else {
             $nonce = (string) $this->nonce ();
             $request = array_merge (array ( 'MsgType' => $path ), $query);
-            $body = json_encode ($request);
+            $body = $this->json ($request);
             $headers = array (
                 'APIKey' => $this->apiKey,
                 'Nonce' => $nonce,
@@ -3459,7 +3464,7 @@ class btcchina extends Market {
                 'params' => $p,
             );
             $p = implode (',', $p);
-            $body = json_encode ($request);
+            $body = $this->json ($request);
             $query = (
                 'tonce=' . $nonce .
                 '&accesskey=' . $this->apiKey .
@@ -5502,9 +5507,163 @@ class coinsecure extends Market {
         if ($type == 'private') {
             $headers = array ( 'Authorization' => $this->apiKey );
             if ($query) {
-                $body = json_encode ($query);
+                $body = $this->json ($query);
                 $headers['Content-Type'] = 'application/json';
             }
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+class coinspot extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'coinspot',
+            'name' => 'CoinSpot',
+            'countries' => 'AU', // Australia
+            'rateLimit' => 1000,
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
+                'api' => array (
+                    'public' => 'https://www.coinspot.com.au/pubapi',
+                    'private' => 'https://www.coinspot.com.au/api',
+                ),
+                'www' => 'https://www.coinspot.com.au',
+                'doc' => 'https://www.coinspot.com.au/api',
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'latest',
+                    ),
+                ),
+                'private' => array (
+                    'post' => array (
+                        'orders',
+                        'orders/history',
+                        'my/coin/deposit',
+                        'my/coin/send',
+                        'quote/buy',
+                        'quote/sell',
+                        'my/balances',
+                        'my/orders',
+                        'my/buy',
+                        'my/sell',
+                        'my/buy/cancel',
+                        'my/sell/cancel',
+                    ),
+                ),
+            ),
+            'products' => array (
+                'BTC/AUD' => array ( 'id' => 'BTC', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD', ),
+                'LTC/AUD' => array ( 'id' => 'LTC', 'symbol' => 'LTC/AUD', 'base' => 'LTC', 'quote' => 'AUD', ),
+                'DOGE/AUD' => array ( 'id' => 'DOGE', 'symbol' => 'DOGE/AUD', 'base' => 'DOGE', 'quote' => 'AUD', ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_balance () {
+        return $this->privatePostMyBalances ();
+    }
+
+    public function fetch_order_book ($product) {
+        $p = $this->product ($product);
+        $orderbook = $this->privatePostOrders (array (
+            'cointype' => $p['id'],
+        ));
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ( 'bids' => 'buyorders', 'asks' => 'sellorders' );
+        $keys = array_keys ($sides);
+        for ($k = 0; $k < count ($keys); $k++) {
+            $key = $keys[$k];
+            $side = $sides[$key];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order['rate']);
+                $amount = floatval ($order['amount']);
+                $result[$key][] = array ($price, $amount);
+            }
+        }
+        $result['bids'] = $this->sort_by ($result['bids'], 0, true);
+        $result['asks'] = $this->sort_by ($result['asks'], 0);
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $response = $this->publicGetLatest ();
+        $id = $this->product_id ($product);
+        $id = strtolower ($id);
+        $ticker = $response['prices'][$id];
+        $timestamp = $this->milliseconds ();
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => null,
+            'low' => null,
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => null,
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->privatePostOrdersHistory (array (
+            'cointype' => $this->product_id ($product),
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        $method = 'privatePostMy' . $this->capitalize ($side);
+        if ($type =='market')
+            throw new \Exception ($this->id . ' allows limit orders only');
+        $order = array (
+            'cointype' => $this->product_id ($product),
+            'amount' => $amount,
+            'rate' => $price,
+        );
+        return $this->$method (array_merge ($order, $params));
+    }
+
+    public function cancel_order ($id, $params = array ()) {
+        throw new \Exception ($this->id . ' cancelOrder () is not fully implemented yet');
+        $method = 'privatePostMyBuy';
+        return $this->$method (array ( 'id' => $id ));
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $apiKeyLength = count ($this->apiKey);
+        if (!$apiKeyLength)
+            throw new \Exception ($this->id . ' requires apiKey for all requests');
+        $url = $this->urls['api'][$type] . '/' . $path;
+        if ($type == 'private') {
+            $nonce = $this->nonce ();
+            $body = $this->json (array_merge (array ( 'nonce' => $nonce ), $params));
+            $headers = array (
+                'Content-Type' => 'application/json',
+                'Content-Length' => strlen ($body),
+                'key' => $this->apiKey,
+                'sign' => $this->hmac ($body, $this->secret, 'sha512'),
+            );
         }
         return $this->fetch ($url, $method, $headers, $body);
     }
@@ -6034,7 +6193,7 @@ class flowbtc extends Market {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($type == 'public') {
             if ($params) {
-                $body = json_encode ($params);
+                $body = $this->json ($params);
             }
         } else {
             $nonce = $this->nonce ();
@@ -6418,7 +6577,7 @@ class gdax extends Market {
         } else {
             $nonce = (string) $this->nonce ();
             if ($query)
-                $body = json_encode ($query);
+                $body = $this->json ($query);
             $what = $nonce . $method . $request . ($body || '');
             $secret = base64_decode ($this->secret);
             $signature = $this->hash ($what, $secret, 'sha256', 'binary');
@@ -6597,7 +6756,7 @@ class gemini extends Market {
                 'request' => $url,
                 'nonce' => $nonce,
             ), $query);
-            $payload = base64_encode (json_encode ($request));
+            $payload = base64_encode ($this->json ($request));
             $signature = $this->hmac ($payload, $this->secret, 'sha384');
             $headers = array (
                 'Content-Type' => 'text/plain',
@@ -7121,13 +7280,13 @@ class itbit extends Market {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             if ($query)
-                $body = json_encode ($query);
+                $body = $this->json ($query);
             else
                 $body = '';
             $nonce = (string) $this->nonce ();
             $timestamp = $nonce;
             $auth = array ($method, $url, $body, $nonce, $timestamp);
-            $message = $nonce . json_encode ($auth);
+            $message = $nonce . $this->json ($auth);
             $hashedMessage = $this->hash ($message, 'sha256', 'binary');
             $signature = $this->hmac ($url . $hashedMessage, $this->secret, 'sha512', 'base64');
             $headers = array (
@@ -7669,7 +7828,7 @@ class lakebtc extends Market {
                 'method' => $path,
                 'params' => $params,
             ));
-            $body = json_encode (array (
+            $body = $this->json (array (
                 'method' => $path,
                 'params' => $params,
                 'id' => $nonce,
@@ -8589,7 +8748,7 @@ class paymium extends Market {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
-            $body = json_encode ($params);
+            $body = $this->json ($params);
             $nonce = (string) $this->nonce ();
             $auth = $nonce . $url . $body;
             $headers = array (
@@ -8930,7 +9089,7 @@ class quadrigacx extends Market {
                 'nonce' => $nonce,
                 'signature' => $signature,
             ), $params);
-            $body = json_encode ($query);
+            $body = $this->json ($query);
             $headers = array (
                 'Content-Type' => 'application/json',
                 'Content-Length' => strlen ($body),
@@ -9125,7 +9284,7 @@ class quoine extends Market {
                 'iat' => (int) floor ($nonce / 1000), // issued at
             );
             if ($query)
-                $body = json_encode ($query);
+                $body = $this->json ($query);
             $headers['X-Quoine-Auth'] = $this->jwt ($request, $this->secret);
         }
         return $this->fetch ($this->urls['api'] . $url, $method, $headers, $body);
@@ -9283,7 +9442,7 @@ class southxchange extends Market {
                 'key' => $this->apiKey,
                 'nonce' => $nonce,
             ), $query);
-            $body = json_encode ($query);
+            $body = $this->json ($query);
             $headers = array (
                 'Content-Type' => 'application/json',
                 'Hash' => $this->hmac ($body, $this->secret, 'sha512'),
@@ -9489,7 +9648,7 @@ class therock extends Market {
                 'X-TRT-SIGN' => $this->hmac ($nonce . $url, $this->secret, 'sha512'),
             );
             if ($query) {
-                $body = json_encode ($query);
+                $body = $this->json ($query);
                 $headers['Content-Type'] = 'application/json';
             }
         }
@@ -9928,7 +10087,7 @@ class virwox extends Market {
             ), $auth, $params));
         } else {
             $headers = array ( 'Content-type' => 'application/json' );
-            $body = json_encode (array (
+            $body = $this->json (array (
                 'method' => $path,
                 'params' => array_merge ($auth, $params),
                 'id' => $nonce,
@@ -10161,7 +10320,7 @@ class xbtce extends Market {
         } else {
             $nonce = (string) $this->nonce ();
             if ($query)
-                $body = json_encode ($query);
+                $body = $this->json ($query);
             else
                 $body = '';
             $auth = $nonce . $this->uid . $this->apiKey . $method . $url . $body;
