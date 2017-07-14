@@ -154,6 +154,6 @@ else:
         except ccxt.DDoSProtectionError as e:
             print (type (e).__name__, e.args, 'DDoS Protection Error (ignoring')
         except ccxt.MarketNotAvailaibleError as e:
-            print (type (e).__name__, e.args, 'Market is offline, on maintenance or unreachable from this location at the moment (ignoring)')
+            print (type (e).__name__, e.args, 'Market Not Available Error due to downtime or maintenance (ignoring)')
         except Exception as e:
             print (type (e).__name__, e.args)
