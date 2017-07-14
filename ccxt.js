@@ -282,7 +282,7 @@ var Market = function (config) {
                     return JSON.parse (response)
                 } catch (e) {
                     if (this.verbose)
-                        console.log (this.id, 'error', e, response)
+                        console.log (this.id, 'error', e, 'response:' + response)
                     throw e
                 }
             }))
