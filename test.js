@@ -21,9 +21,9 @@ try {
 
 ccxt.markets.forEach (id => {
     markets[id] = new (ccxt)[id] ({
-        verbose: true,
+        verbose: false,
         // proxy: 'https://crossorigin.me/',
-        proxy: 'https://cors-anywhere.herokuapp.com/',
+        // proxy: 'https://cors-anywhere.herokuapp.com/',
         // proxy: 'http://cors-proxy.htmldriven.com/?url=',
     })
 })
