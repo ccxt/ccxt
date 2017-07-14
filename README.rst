@@ -178,7 +178,7 @@ The main file is:
 
 The easiest way to install the ccxt library is to use builtin package managers.
 
-You can also clone it directly into your project directory from `ccxt GitHub repository <https://github.com/kroitor/ccxt>`__:
+You can also clone it into your project directory from `ccxt GitHub repository <https://github.com/kroitor/ccxt>`__:
 
 .. code:: shell
 
