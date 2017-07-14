@@ -5623,7 +5623,7 @@ class exmo (Market):
             'bid': float (ticker['buy_price']),
             'ask': float (ticker['sell_price']),
             'vwap': None,
-            'open': float (ticker['open']),
+            'open': None,
             'close': None,
             'first': None,
             'last': float (ticker['last_trade']),

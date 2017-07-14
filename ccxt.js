@@ -5778,7 +5778,7 @@ var exmo = {
             'bid': parseFloat (ticker['buy_price']),
             'ask': parseFloat (ticker['sell_price']),
             'vwap': undefined,
-            'open': parseFloat (ticker['open']),
+            'open': undefined,
             'close': undefined,
             'first': undefined,
             'last': parseFloat (ticker['last_trade']),

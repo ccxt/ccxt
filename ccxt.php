@@ -5984,7 +5984,7 @@ class exmo extends Market {
             'bid' => floatval ($ticker['buy_price']),
             'ask' => floatval ($ticker['sell_price']),
             'vwap' => null,
-            'open' => floatval ($ticker['open']),
+            'open' => null,
             'close' => null,
             'first' => null,
             'last' => floatval ($ticker['last_trade']),
