@@ -1,27 +1,28 @@
-# CCXT Examples
+# CCXT Cryptocurrency Trading Library Examples
 
 To run the ccxt examples from any folder type one of the following commands in console.
 
 ## JavaScript
 
+[JavaScript Examples](https://github.com/kroitor/ccxt/tree/master/examples/js) (work in progress)
+
 ```shell
 node path/to/example.js # substitute for actual filename here
 ```
 
-[CCXT JavaScript Examples](https://github.com/kroitor/ccxt/tree/master/examples/js) (work in progress)
-
 ## Python
+
+[Python Examples](https://github.com/kroitor/ccxt/tree/master/examples/py) (work in progress)
 
 ```shell
 python path/to/example.py # substitute for actual filename here
 ```
 
-[CCXT Python Examples](https://github.com/kroitor/ccxt/tree/master/examples/py) (work in progress)
-
 ## PHP
+
+[PHP Examples](https://github.com/kroitor/ccxt/tree/master/examples/php) (work in progress)
 
 ```shell
 php -f path/to/example.php # substitute for actual filename here
 ```
 
-[CCXT PHP Examples](https://github.com/kroitor/ccxt/tree/master/examples/php) (work in progress)
