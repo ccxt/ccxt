@@ -35,6 +35,7 @@ $markets['coinspot']->secret = 'QGWL9ADB3JEQ7W48E8A3KTQQ42V2P821LQRJW3UU424ATYPX
 $markets['bitmex']->proxy   = ''; // bitmex doesn't like proxies
 $markets['btcx']->proxy     = ''; // btcx doesn't like Origin: * any more
 $markets['_1broker']->proxy = ''; // _1broker doesn't like it either
+$markets['huobi']->proxy    = ''; // huobi doesn't like it either
 
 function test_market_symbol_ticker ($market, $symbol) { 
     $ticker = $market->fetch_ticker ($symbol);
