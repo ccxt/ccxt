@@ -19,6 +19,7 @@
     "node-fetch": "*"
   },
   "devDependencies": {
+    "ansicolor": "*",
     "as-table": "^1.0.12",
     "babel-cli": "^6.24.1",
     "babel-plugin-async-to-promises": "^1.0.5",
