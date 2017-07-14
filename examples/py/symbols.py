@@ -45,7 +45,8 @@ try:
 
         # output a table of all products
         log (pink ('{:<15} {:<15} {:<15} {:<15}'.format ('id', 'symbol', 'base', 'quote')))
-        for k, v in products.iteritems ():
+        tuples = list (ccxt.Market.keysort (products).items ())
+        for (k, v) in tuples:
             log ('{:<15} {:<15} {:<15} {:<15}'.format (v['id'], v['symbol'], v['base'], v['quote']))
 
     else:
