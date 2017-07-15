@@ -6397,7 +6397,7 @@ var gdax = {
                 body = this.json (query);
             let what = nonce + method + request + (body || '');
             let secret = this.base64ToBinary (this.secret);
-            let signature = this.hash (what, secret, 'sha256', 'binary');
+            let signature = this.hmac (what, secret, 'sha256', 'binary');
             headers = {
                 'CB-ACCESS-KEY': this.apiKey,
                 'CB-ACCESS-SIGN': this.stringToBase64 (signature),

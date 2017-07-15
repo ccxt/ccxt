@@ -6619,7 +6619,7 @@ class gdax extends Market {
                 $body = $this->json ($query);
             $what = $nonce . $method . $request . ($body || '');
             $secret = base64_decode ($this->secret);
-            $signature = $this->hash ($what, $secret, 'sha256', 'binary');
+            $signature = $this->hmac ($what, $secret, 'sha256', 'binary');
             $headers = array (
                 'CB-ACCESS-KEY' => $this->apiKey,
                 'CB-ACCESS-SIGN' => base64_encode ($signature),

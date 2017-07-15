@@ -6202,7 +6202,7 @@ class gdax (Market):
                 body = self.json (query)
             what = nonce + method + request + (body or '')
             secret = base64.b64decode (self.secret)
-            signature = self.hash (what, secret, hashlib.sha256, 'binary')
+            signature = self.hmac (what, secret, hashlib.sha256, 'binary')
             headers = {
                 'CB-ACCESS-KEY': self.apiKey,
                 'CB-ACCESS-SIGN': base64.b64encode (signature),
