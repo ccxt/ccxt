@@ -35,11 +35,7 @@ markets['xbtce'].secret = 'qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwKqH
 markets['coinspot'].apiKey = '36b5803f892fe97ccd0b22da79ce6b21'
 markets['coinspot'].secret = 'QGWL9ADB3JEQ7W48E8A3KTQQ42V2P821LQRJW3UU424ATYPXF893RR4THKE9DT0RBNHKX8L54F35KBVFH'
 
-// markets['bitmex'].proxy   = '' // bitmex doesn't like proxies
-// markets['btcx'].proxy     = '' // btcx doesn't like Origin: * any more
-// markets['_1broker'].proxy = '' // _1broker doesn't like it either
-// markets['_1btcxe'].proxy  = '' // _1btcxe doesn't like it either
-// markets['huobi'].proxy    = '' // huobi doesn't like it either
+markets['lakebtc'].proxy = 'https://crossorigin.me/'
 
 var countryName = function (code) {
     return ((typeof countries[code] !== 'undefined') ? countries[code] : code)
@@ -224,23 +220,29 @@ var test = async function () {
 
         for (const id of Object.keys (markets)) {
 
-            log.bright.green ('MARKET:', id)
+            if (id == 'lakebtc') {
 
-            try {
-                const market = markets[id]
-                await loadMarket (market)
-                await testMarket (market)
-            } catch (e) {
-                if (e instanceof ccxt.DDoSProtectionError || e.message.includes ('ECONNRESET')) {
-                    log.bright.yellow ('[DDoS Protection Error] ' + e.message + ' (ignoring)')
-                } else if (e instanceof ccxt.TimeoutError) {
-                    log.bright.yellow ('[Timeout Error] ' + e.message + ' (ignoring)')
-                } else if (e instanceof ccxt.AuthenticationError) {
-                    log.bright.yellow ('[Authentication Error] ' + e.message + ' (ignoring)')
-                } else if (e instanceof ccxt.MarketNotAvailaibleError) {
-                    log.bright.yellow ('[Market Not Available Error] ' + e.message + ' (ignoring)')
-                } else {
-                    throw e;
+
+            } else {
+
+                log.bright.green ('MARKET:', id)
+
+                try {
+                    const market = markets[id]
+                    await loadMarket (market)
+                    await testMarket (market)
+                } catch (e) {
+                    if (e instanceof ccxt.DDoSProtectionError || e.message.includes ('ECONNRESET')) {
+                        log.bright.yellow ('[DDoS Protection Error] ' + e.message + ' (ignoring)')
+                    } else if (e instanceof ccxt.TimeoutError) {
+                        log.bright.yellow ('[Timeout Error] ' + e.message + ' (ignoring)')
+                    } else if (e instanceof ccxt.AuthenticationError) {
+                        log.bright.yellow ('[Authentication Error] ' + e.message + ' (ignoring)')
+                    } else if (e instanceof ccxt.MarketNotAvailaibleError) {
+                        log.bright.yellow ('[Market Not Available Error] ' + e.message + ' (ignoring)')
+                    } else {
+                        throw e;
+                    }
                 }
             }
         }
