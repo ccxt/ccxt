@@ -209,6 +209,14 @@ class Market {
         return json_encode ($input);
     }
 
+    public static function encode ($input) {
+        return $input;
+    }
+
+    public static function decode ($input) {
+        return $input;
+    }
+
     public function nonce () {
         return $this->seconds ();
     }
@@ -1821,11 +1829,13 @@ class bitfinex extends Market {
                 'nonce' => (string) $nonce,
                 'request' => $request,
             ), $query);
-            $payload = base64_encode ($this->json ($query));
+            $query = $this->json ($query);
+            $query = $this->encode ($query);
+            $payload = base64_encode ($query);
             $headers = array (
                 'X-BFX-APIKEY' => $this->apiKey,
                 'X-BFX-PAYLOAD' => $payload,
-                'X-BFX-SIGNATURE' => $this->hmac ($payload, $this->secret, 'sha384'),
+                'X-BFX-SIGNATURE' => $this->hmac ($this->decode ($payload), $this->secret, 'sha384'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);

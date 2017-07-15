@@ -248,6 +248,9 @@ var Market = function (config) {
     this.capitalize = capitalize
     this.json = JSON.stringify
 
+    this.encode = string => string
+    this.decode = string => string
+
     this.init = function () {
 
         if (isNode)
@@ -1737,11 +1740,13 @@ var bitfinex = {
                 'nonce': nonce.toString (),
                 'request': request,
             }, query);
-            let payload = this.stringToBase64 (this.json (query));
+            query = this.json (query);
+            query = this.encode (query);
+            let payload = this.stringToBase64 (query);
             headers = {
                 'X-BFX-APIKEY': this.apiKey,
                 'X-BFX-PAYLOAD': payload,
-                'X-BFX-SIGNATURE': this.hmac (payload, this.secret, 'sha384'),
+                'X-BFX-SIGNATURE': this.hmac (this.decode (payload), this.secret, 'sha384'),
             };
         }
         return this.fetch (url, method, headers, body);

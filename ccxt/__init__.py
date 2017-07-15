@@ -355,7 +355,7 @@ class Market (object):
             return h.hexdigest ()
         elif digest == 'base64':
             return base64.b64encode (h.digest ())
-        return h.digest ()
+        return h.digest ().decode ()
 
     @staticmethod
     def base64urlencode (s):
@@ -372,6 +372,14 @@ class Market (object):
     @staticmethod
     def json (input):
         return json.dumps (input, separators = (',', ':'))
+
+    @staticmethod
+    def encode (input):
+        return input.encode ()
+
+    @staticmethod
+    def decode (input):
+        return input.decode ()
 
     def nonce (self):
         return Market.seconds ()
@@ -1702,11 +1710,13 @@ class bitfinex (Market):
                 'nonce': str (nonce),
                 'request': request,
             }, query)
-            payload = base64.b64encode (self.json (query))
+            query = self.json (query)
+            query = self.encode (query)
+            payload = base64.b64encode (query)
             headers = {
                 'X-BFX-APIKEY': self.apiKey,
                 'X-BFX-PAYLOAD': payload,
-                'X-BFX-SIGNATURE': self.hmac (payload, self.secret, hashlib.sha384),
+                'X-BFX-SIGNATURE': self.hmac (self.decode (payload), self.secret, hashlib.sha384),
             }
         return self.fetch (url, method, headers, body)
 

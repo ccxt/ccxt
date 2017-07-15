@@ -77,8 +77,8 @@ def test_market (market):
         if s in keys:
             symbol = s
 
-    if symbol.find ('.d') < 0:
-        test_market_symbol (market, symbol)
+    # if symbol.find ('.d') < 0:
+    #     test_market_symbol (market, symbol)
 
     #--------------------------------------------------------------------------
     # private API
@@ -116,7 +116,7 @@ for id in ccxt.markets:
     markets[id] = market ({
         'verbose': False,
         # 'proxy': 'https://crossorigin.me/',
-        'proxy': 'https://cors-anywhere.herokuapp.com/',
+        # 'proxy': 'https://cors-anywhere.herokuapp.com/',
         # 'proxy': 'http://cors-proxy.htmldriven.com/?url=',
     })
 
