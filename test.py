@@ -116,7 +116,7 @@ for id in ccxt.markets:
     markets[id] = market ({
         'verbose': False,
         # 'proxy': 'https://crossorigin.me/',
-        # 'proxy': 'https://cors-anywhere.herokuapp.com/',
+        'proxy': 'https://cors-anywhere.herokuapp.com/',
         # 'proxy': 'http://cors-proxy.htmldriven.com/?url=',
     })
 
@@ -128,12 +128,6 @@ markets['xbtce'].secret = 'qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwKqH
 
 markets['coinspot'].apiKey = '36b5803f892fe97ccd0b22da79ce6b21'
 markets['coinspot'].secret = 'QGWL9ADB3JEQ7W48E8A3KTQQ42V2P821LQRJW3UU424ATYPXF893RR4THKE9DT0RBNHKX8L54F35KBVFH'
-
-# markets['bitmex'].proxy   = '' # bitmex doesn't like proxies
-# markets['btcx'].proxy     = '' # btcx doesn't like Origin: * any more
-# markets['_1broker'].proxy = '' # _1broker doesn't like it either
-# markets['_1btcxe'].proxy  = '' # _1btcxe doesn't like it either
-# markets['huobi'].proxy    = '' # huobi doesn't like it either
 
 id = None
 

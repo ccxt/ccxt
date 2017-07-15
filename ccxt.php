@@ -223,6 +223,8 @@ class Market {
         $this->verbose   = false;
         $this->apiKey    = '';
         $this->secret    = '';
+        $this->productsById = null;
+        $this->products_by_id = null;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -378,8 +380,18 @@ class Market {
     }
 
     public function load_products ($reload = false) {
-        if (!$reload && $this->products) return $this->products;
-        return $this->products = $this->indexBy ($this->fetch_products (), 'symbol');
+        if (!$reload && $this->products) {
+            if (!$this->products_by_id) {
+                $this->products_by_id = $this->indexBy (array_values ($this->products), 'id');
+                $this->productsById = $this->products_by_id;
+            }
+            return $this->products;
+        }
+        $products = $this->fetch_products ();
+        $this->products = $this->indexBy ($products, 'symbol');
+        $this->products_by_id = $this->indexBy ($products, 'id');
+        $this->productsById = $this->products_by_id;
+        return $this->products;
     }
 
     public function fetch_products () {

@@ -118,6 +118,8 @@ class Market (object):
     proxy     = ''
     apiKey    = ''
     secret    = ''
+    productsById = None
+    products_by_id = None
 
     def __init__ (self, config = {}):
 
@@ -377,8 +379,14 @@ class Market (object):
     def load_products (self, reload = False):
         if not reload:
             if self.products:
+                if not self.products_by_id:
+                    self.products_by_id = Market.indexBy (self.products, 'id')
+                    self.productsById = self.products_by_id
                 return self.products
-        self.products = Market.indexBy (self.fetchProducts (), 'symbol')
+        products = self.fetchProducts ()
+        self.products = Market.indexBy (products, 'symbol')
+        self.products_by_id = Market.indexBy (products, 'id')
+        self.productsById = self.products_by_id
         return self.products
 
     def loadProducts  (self, reload = False):

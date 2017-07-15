@@ -31,7 +31,7 @@ foreach (\ccxt\Market::$markets as $id) {
     $markets[$id] = new $market (array (
         'verbose' => false,
         // 'proxy' => 'https://crossorigin.me/',
-        // 'proxy' => 'https://cors-anywhere.herokuapp.com/',
+        'proxy' => 'https://cors-anywhere.herokuapp.com/',
         // 'proxy' => 'http://cors-proxy.htmldriven.com/?url=',
     ));
 }

@@ -321,10 +321,18 @@ var Market = function (config) {
 
     this.load_products =
     this.loadProducts = function (reload = false) {
-        if (!reload && this.products)
+        if (!reload && this.products) {
+            if (!this.productsById) {
+                this.productsById = indexBy (Object.values (this.products), 'id')
+                this.products_by_id = this.productsById
+            }
             return new Promise ((resolve, reject) => resolve (this.products))
+        }
         return this.fetchProducts ().then (products => {
-            return this.products = indexBy (products, 'symbol')
+            this.products = indexBy (products, 'symbol')
+            this.productsById = indexBy (products, 'id')
+            this.products_by_id = this.productsById
+            return this.products
         })
     }
 
@@ -340,7 +348,9 @@ var Market = function (config) {
     this.product = function (product) {
         return (((typeof product === 'string') &&
             (typeof this.products != 'undefined') &&
-            (typeof this.products[product] != 'undefined')) ? this.products[product] : product)
+            (typeof this.products[product] != 'undefined')) ? 
+                this.products[product] :
+                product)
     }
 
     this.product_id =
