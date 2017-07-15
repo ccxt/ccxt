@@ -1,5 +1,9 @@
 # CCXT Cryptocurrency Trading Library Examples
 
+```diff
+- this is a work in progress, more examples coming soon!
+```
+
 To run the ccxt examples from any folder type one of the following commands in console.
 
 ## JavaScript
@@ -24,8 +28,4 @@ python path/to/example.py # substitute for actual filename here
 
 ```shell
 php -f path/to/example.php # substitute for actual filename here
-```
-
-```diff
-- this is a work in progress, more examples coming soon!
 ```
