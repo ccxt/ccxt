@@ -16,9 +16,8 @@ class DDoSProtectionError extends Error {
 }
 
 class TimeoutError extends Error {
-    constructor (m) {
-        super (m)
-        this.message = m
+    constructor () {
+        super ()
         this.constructor = TimeoutError 
         this.__proto__   = TimeoutError.prototype
     }
