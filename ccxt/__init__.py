@@ -340,8 +340,8 @@ class Market (object):
         return calendar.timegm (dt.utctimetuple ()) * 1000
 
     @staticmethod
-    def hash (request, hash = 'md5', digest = 'hex'):
-        h = hashlib.new (hash, request)
+    def hash (request, algorithm = 'md5', digest = 'hex'):
+        h = hashlib.new (algorithm, request)
         if digest == 'hex':
             return h.hexdigest ()
         elif digest == 'base64':
@@ -349,8 +349,8 @@ class Market (object):
         return h.digest ()
 
     @staticmethod
-    def hmac (request, secret, hash = hashlib.sha256, digest = 'hex'):
-        h = hmac.new (secret.encode (), request.encode (), hash)
+    def hmac (request, secret, algorithm = hashlib.sha256, digest = 'hex'):
+        h = hmac.new (secret.encode (), request.encode (), algorithm)
         if digest == 'hex':
             return h.hexdigest ()
         elif digest == 'base64':
@@ -362,11 +362,11 @@ class Market (object):
         return base64.urlsafe_b64encode (s).replace ('=', '')
 
     @staticmethod
-    def jwt (request, secret, hash = hashlib.sha256, alg = 'HS256'):
+    def jwt (request, secret, algorithm = hashlib.sha256, alg = 'HS256'):
         encodedHeader = Market.base64urlencode (Market.json ({ 'alg': alg, 'typ': 'JWT' }))
         encodedData = Market.base64urlencode (Market.json (request))
         token = encodedHeader + '.' + encodedData
-        signature = Market.base64urlencode (Market.hmac (token, secret, hash, 'binary'))
+        signature = Market.base64urlencode (Market.hmac (token, secret, algorithm, 'binary'))
         return token + '.' + signature
 
     @staticmethod

@@ -308,7 +308,8 @@ var Market = function (config) {
         return timeout (this.timeout, fetch (url, options)
             .then (response => (typeof response === 'string') ? response : response.text ())
             .then (response => {
-                if (response.match (/offline|unavailable|busy|maintenance/i))
+                console.log (response)
+                if (response.match (/offline|unavailable|busy|maintain|maintenanc(?:e|ing)/i))
                     throw new MarketNotAvailaibleError (this.id + ' is offline, on maintenance or unreachable from this location at the moment')
                 if (response.match (/cloudflare|incapsula/i))
                     throw new DDoSProtectionError (this.id + ' is not accessible from this location at the moment')

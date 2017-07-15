@@ -77,8 +77,8 @@ def test_market (market):
         if s in keys:
             symbol = s
 
-    # if symbol.find ('.d') < 0:
-    #     test_market_symbol (market, symbol)
+    if symbol.find ('.d') < 0:
+        test_market_symbol (market, symbol)
 
     #--------------------------------------------------------------------------
     # private API
