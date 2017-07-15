@@ -26,3 +26,6 @@ python path/to/example.py # substitute for actual filename here
 php -f path/to/example.php # substitute for actual filename here
 ```
 
+```diff
+- this is a work in progress, more examples coming soon!
+```
