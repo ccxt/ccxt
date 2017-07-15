@@ -217,7 +217,7 @@ class Market {
         $this->curl      = curl_init ();
         $this->id        = null;
         $this->rateLimit = 2000;
-        $this->timeout   = 10; // in seconds
+        $this->timeout   = 10000; // in milliseconds
         $this->proxy     = '';
         $this->products  = null;
         $this->verbose   = false;
@@ -320,7 +320,7 @@ class Market {
 
         if ($this->timeout) {
             // curl_setopt ($this->curl, CURLOPT_CONNECTTIMEOUT, 0); 
-            curl_setopt ($this->curl, CURLOPT_TIMEOUT, $this->timeout); // seconds
+            curl_setopt ($this->curl, CURLOPT_TIMEOUT, intval ($this->timeout / 1000)); // seconds
         }
 
         curl_setopt ($this->curl, CURLOPT_RETURNTRANSFER, true);
@@ -356,10 +356,21 @@ class Market {
             curl_setopt ($this->curl, CURLOPT_HTTPHEADER, $headers);
 
         $result = curl_exec ($this->curl);
-        if (!$result && trigger_error ($method . ' `' . $url . '`: ' . curl_error ($this->curl)))
-            return false;
+        if (!$result) {
             
-        return json_decode ($result, $jsonDecodeAsAssociativeArray = true);
+            $curl_errno = curl_errno ($this->curl);
+            if ($curl_errno == 28)
+                throw new TimeoutError ($this->id . ' is not accessible from this location at the moment');
+        }
+            
+        $decoded = json_decode ($result, $asAssociativeArray = true);
+        if (!$decoded) {
+            if (preg_match ('#offline|unavailable|busy|maintenance#i', $result))
+                throw new MarketNotAvailableError ($this->id . ' is not accessible from this location at the moment');
+            if (preg_match ('#cloudflare|incapsula#i', $result))
+                throw new DDoSProtectionError ($this->id . ' is not accessible from this location at the moment');
+        }
+        return $decoded;
     }
 
     public function loadProducts ($reload = false) {

@@ -232,13 +232,13 @@ var test = async function () {
                 await testMarket (market)
             } catch (e) {
                 if (e instanceof ccxt.DDoSProtectionError || e.message.includes ('ECONNRESET')) {
-                    log.bright.yellow ('DDoS Protection Error (ignoring)')
+                    log.bright.yellow ('[DDoS Protection Error] ' + e.message + ' (ignoring)')
                 } else if (e instanceof ccxt.TimeoutError) {
-                    log.bright.yellow ('Timeout Error (ignoring)')
+                    log.bright.yellow ('[Timeout Error] ' + e.message + ' (ignoring)')
                 } else if (e instanceof ccxt.AuthenticationError) {
-                    log.bright.yellow ('Authentication Error (missing API keys, ignoring)')
+                    log.bright.yellow ('[Authentication Error] ' + e.message + ' (ignoring)')
                 } else if (e instanceof ccxt.MarketNotAvailaibleError) {
-                    log.bright.yellow ('Market Not Available Error due to downtime or maintenance (ignoring)')
+                    log.bright.yellow ('[Market Not Available Error] ' + e.message + ' (ignoring)')
                 } else {
                     throw e;
                 }

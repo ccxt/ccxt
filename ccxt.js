@@ -9,15 +9,17 @@ var isNode = (typeof window === 'undefined')
 class DDoSProtectionError extends Error {
     constructor () {
         super ()
-        this.constructor = DDoSProtectionError // a workaround to make `instanceof DDoSProtectionError` work in ES5-transpiled version
+        // a workaround to make `instanceof DDoSProtectionError` work in ES5
+        this.constructor = DDoSProtectionError 
         this.__proto__   = DDoSProtectionError.prototype
     }
 }
 
 class TimeoutError extends Error {
-    constructor () {
-        super ()
-        this.constructor = TimeoutError // a workaround to make `instanceof TimeoutError` work in ES5-transpiled version
+    constructor (m) {
+        super (m)
+        this.message = m
+        this.constructor = TimeoutError 
         this.__proto__   = TimeoutError.prototype
     }
 }
@@ -25,7 +27,7 @@ class TimeoutError extends Error {
 class MarketNotAvailaibleError extends Error {
     constructor () {
         super ()
-        this.constructor = MarketNotAvailaibleError // a workaround to make `instanceof MarketNotAvailaibleError` work in ES5-transpiled version
+        this.constructor = MarketNotAvailaibleError
         this.__proto__   = MarketNotAvailaibleError.prototype
     }    
 }
@@ -33,19 +35,20 @@ class MarketNotAvailaibleError extends Error {
 class AuthenticationError extends Error {
     constructor () {
         super ()
-        this.constructor = AuthenticationError // a workaround to make `instanceof AuthenticationError` work in ES5-transpiled version
+        this.constructor = AuthenticationError
         this.__proto__   = AuthenticationError.prototype
     }    
 }
 
 //-----------------------------------------------------------------------------
+// utility helpers
 
 let sleep = ms => new Promise (resolve => setTimeout (resolve, ms));
 
 var timeout = (ms, promise) =>
         Promise.race ([
             promise,
-            sleep (ms).then (() => { throw new TimeoutError ('timeout') })
+            sleep (ms).then (() => { throw new TimeoutError ('request timed out') })
         ])
 
 var capitalize = function (string) {
@@ -100,11 +103,15 @@ var urlencode = function (object) {
 }
 
 //-----------------------------------------------------------------------------
+// platform-specific code (Node.js / Web Browsers)
 
 if (isNode) {
 
     const crypto = require ('crypto')
     var   fetch  = require ('node-fetch')
+
+    //-------------------------------------------------------------------------
+    // node-specific string / binary / base64 conversion routines
 
     var stringToBinary = function (string) {
         return Buffer.from (string, 'binary')
@@ -126,6 +133,9 @@ if (isNode) {
         return Buffer.from (string, 'base64').toString ()
     }
 
+    //-------------------------------------------------------------------------
+    // node-specific cryptography
+
     var hash = function (request, hash = 'md5', digest = 'hex') {
         return crypto.createHash (hash).update (request).digest (digest)
     }
@@ -135,6 +145,9 @@ if (isNode) {
     }
 
 } else {
+
+    //-------------------------------------------------------------------------
+    // a quick fetch polyfill
 
     var fetch = function (url, options, verbose = false) {
 
@@ -164,6 +177,9 @@ if (isNode) {
         })
     }
 
+    //-------------------------------------------------------------------------
+    // browser-specific string / binary / base64 conversion routines
+
     var stringToBinary = function (string) {
         return CryptoJS.enc.Latin1.parse (string)
     }
@@ -184,6 +200,9 @@ if (isNode) {
         return CryptoJS.enc.Base64.parse (string).toString (CryptoJS.enc.Utf8)
     }
 
+    //-------------------------------------------------------------------------
+    // browser-specific cryptography
+
     var hash = function (request, hash = 'md5', digest = 'hex') {
         var encoding = (digest === 'binary') ? 'Latin1' : capitalize (digest)
         return CryptoJS[hash.toUpperCase ()] (request).toString (CryptoJS.enc[encoding])
@@ -195,10 +214,12 @@ if (isNode) {
     }
 }
 
+// url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
 var urlencodeBase64 = function (base64string) {
     return base64string.replace (/[=]+$/, '').replace (/\+/g, '-').replace (/\//g, '_')
 }
 
+// a JSON Web Token Authentication method
 var jwt = function (request, secret, alg = 'HS256', hash = 'sha256') {
     var encodedHeader = urlencodeBase64 (stringToBase64 (JSON.stringify ({ 'alg': alg, 'typ': 'JWT' })))
     var encodedData = urlencodeBase64 (stringToBase64 (JSON.stringify (request)))
@@ -208,6 +229,7 @@ var jwt = function (request, secret, alg = 'HS256', hash = 'sha256') {
 }
 
 //-----------------------------------------------------------------------------
+// the base class
 
 var Market = function (config) {
 
@@ -285,9 +307,9 @@ var Market = function (config) {
             .then (response => (typeof response === 'string') ? response : response.text ())
             .then (response => {
                 if (response.match (/offline|unavailable|busy|maintenance/i))
-                    throw new MarketNotAvailaibleError ('[Market Not Available] ' + this.id + ' is offline, on maintenance or unreachable from this location at the moment')
+                    throw new MarketNotAvailaibleError (this.id + ' is offline, on maintenance or unreachable from this location at the moment')
                 if (response.match (/cloudflare|incapsula/i))
-                    throw new DDoSProtectionError ('[DDoS Protection] ' + this.id + ' is not accessible from this location at the moment')
+                    throw new DDoSProtectionError (this.id + ' is not accessible from this location at the moment')
                 try {
                     return JSON.parse (response)
                 } catch (e) {
@@ -375,8 +397,9 @@ var Market = function (config) {
     this.milliseconds   = Date.now
     this.nonce          = this.seconds
     this.id             = undefined
-    this.rateLimit      = 2000
-    this.timeout        = 10000
+    this.rateLimit      = 2000  // milliseconds = seconds * 1000
+    this.timeout        = 10000 // milliseconds = seconds * 1000
+    this.verbose        = false
     this.yyyymmddhhmmss = timestamp => {
         let date = new Date (timestamp)
         let yyyy = date.getUTCFullYear ()
@@ -393,7 +416,8 @@ var Market = function (config) {
         return yyyy + '-' + MM + '-' + dd + ' ' + hh + ':' + mm + ':' + ss
     }
 
-    this.proxy = ''
+    // prepended to URL, like https://proxy.com/https://exchange.com/api...
+    this.proxy = '' 
 
     for (var property in config)
         this[property] = config[property]
@@ -402,8 +426,6 @@ var Market = function (config) {
     this.fetch_order_book = this.fetchOrderBook
     this.fetch_ticker     = this.fetchTicker
     this.fetch_trades     = this.fetchTrades
-
-    this.verbose = this.log || this.debug || (this.verbosity == 1) || this.verbose
 
     this.init ()
 }

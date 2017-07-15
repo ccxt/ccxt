@@ -110,8 +110,8 @@ class AuthenticationError (Exception):
 class Market (object):
 
     id        = None
-    rateLimit = 2000
-    timeout   = 10
+    rateLimit = 2000  # milliseconds = seconds * 1000
+    timeout   = 10000 # milliseconds = seconds * 1000
     verbose   = False
     products  = None
     tickers   = None
@@ -170,7 +170,7 @@ class Market (object):
         try:
             handler = _urllib.HTTPHandler if url.startswith ('http://') else _urllib.HTTPSHandler
             opener = _urllib.build_opener (handler)
-            response = opener.open (request, timeout = self.timeout)
+            response = opener.open (request, timeout = int (self.timeout / 1000))
             text = response.read ()
             encoding = response.info ().get ('Content-Encoding')
             if encoding in ('gzip', 'x-gzip', 'deflate'):

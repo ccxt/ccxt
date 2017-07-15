@@ -149,11 +149,27 @@ if (count ($argv) > 1) {
         try {
     
             load_market ($market);
-            test_market ($market);  
-    
+            test_market ($market);
+
+        } catch (\ccxt\TimeoutError $e) {
+
+            dump (yellow ('[Timeout Error] ' . $e->getMessage () . ' (ignoring)'));
+
         } catch (\ccxt\DDoSProtectionError $e) {
-    
-            dump (yellow ($e->getMesage ())); 
+
+            dump (yellow ('[DDoS Protection Error] ' . $e->getMessage () . ' (ignoring)'));
+
+        } catch (\ccxt\AuthenticationError $e) {
+
+            dump (yellow ('[Authentication Error] ' . $e->getMessage () . ' (ignoring)'));
+
+        } catch (\ccxt\MarketNotAvailableError $e) {
+
+            dump (yellow ('[Market Not Available Error] ' . $e->getMessage () . ' (ignoring)'));
+
+        } catch (Exception $e) {
+
+            dump (red ('[Error] ' . $e->getMessage () . ' (ignoring)'));            
         }
     }
 
