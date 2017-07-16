@@ -3423,17 +3423,19 @@ class btce (Market):
         response = self.publicGetDepthPair ({
             'pair': p['id'],
         })
-        orderbook = response[p['id']]
-        timestamp = self.milliseconds ()
-        result = {
-            'bids': orderbook['bids'],
-            'asks': orderbook['asks'],
-            'timestamp': timestamp,
-            'datetime': self.iso8601 (timestamp),
-        }
-        result['bids'] = self.sort_by (result['bids'], 0, True)
-        result['asks'] = self.sort_by (result['asks'], 0)
-        return result
+        if p['id'] in response:
+            orderbook = response[p['id']]
+            timestamp = self.milliseconds ()
+            result = {
+                'bids': orderbook['bids'],
+                'asks': orderbook['asks'],
+                'timestamp': timestamp,
+                'datetime': self.iso8601 (timestamp),
+            }
+            result['bids'] = self.sort_by (result['bids'], 0, True)
+            result['asks'] = self.sort_by (result['asks'], 0)
+            return result
+        raise OrderBookNotAvailableError (self.id + ' ' + p['symbol'] + ' order book not available')
 
     def fetch_ticker (self, product):
         p = self.product (product)

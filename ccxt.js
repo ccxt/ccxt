@@ -3515,17 +3515,20 @@ var btce = {
         let response = await this.publicGetDepthPair ({
             'pair': p['id'],
         });
-        let orderbook = response[p['id']];
-        let timestamp = this.milliseconds ();
-        let result = {
-            'bids': orderbook['bids'],
-            'asks': orderbook['asks'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        result['asks'] = this.sortBy (result['asks'], 0);
-        return result;
+        if (p['id'] in response) {
+            let orderbook = response[p['id']];
+            let timestamp = this.milliseconds ();
+            let result = {
+                'bids': orderbook['bids'],
+                'asks': orderbook['asks'],
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            };
+            result['bids'] = this.sortBy (result['bids'], 0, true);
+            result['asks'] = this.sortBy (result['asks'], 0);
+            return result;
+        }
+        throw new OrderBookNotAvailableError (this.id + ' ' + p['symbol'] + ' order book not available');
     },
 
     async fetchTicker (product) {

@@ -3619,17 +3619,20 @@ class btce extends Market {
         $response = $this->publicGetDepthPair (array (
             'pair' => $p['id'],
         ));
-        $orderbook = $response[$p['id']];
-        $timestamp = $this->milliseconds ();
-        $result = array (
-            'bids' => $orderbook['bids'],
-            'asks' => $orderbook['asks'],
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
-        $result['bids'] = $this->sort_by ($result['bids'], 0, true);
-        $result['asks'] = $this->sort_by ($result['asks'], 0);
-        return $result;
+        if (array_key_exists ($p['id'], $response)) {
+            $orderbook = $response[$p['id']];
+            $timestamp = $this->milliseconds ();
+            $result = array (
+                'bids' => $orderbook['bids'],
+                'asks' => $orderbook['asks'],
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601 ($timestamp),
+            );
+            $result['bids'] = $this->sort_by ($result['bids'], 0, true);
+            $result['asks'] = $this->sort_by ($result['asks'], 0);
+            return $result;
+        }
+        throw new OrderBookNotAvailableError ($this->id . ' ' . $p['symbol'] . ' order book not available');
     }
 
     public function fetch_ticker ($product) {
