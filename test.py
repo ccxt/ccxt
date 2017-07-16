@@ -143,6 +143,9 @@ markets['gdax'].apiKey = '92560ffae9b8a01d012726c698bcb2f1'
 markets['gdax'].secret = '9aHjPmW+EtRRKN/OiZGjXh8OxyThnDL4mMDre4Ghvn8wjMniAr5jdEZJLN/knW6FHeQyiz3dPIL5ytnF0Y6Xwg=='
 markets['gdax'].password = '6kszf4aci8r'
 
+markets['poloniex'].apiKey = '6ORNNIXJ-EGXMM5BT-EEGJ5NRV-H78QHS3D'
+markets['poloniex'].secret = '065aad42b2656f374974f4e42558b2d5071f31187aa973210186932acb2f2f3d86e2c481ddf5436e56596a50d4833f00e002d467d1d0597022a9a81ff4e66506'
+
 id = None
 
 try:

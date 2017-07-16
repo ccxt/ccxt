@@ -8599,7 +8599,7 @@ class poloniex (Market):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': self.apiKey,
-                'Sign': self.hmac (self.encode (body), self.secret, hashlib.sha512),
+                'Sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)
 

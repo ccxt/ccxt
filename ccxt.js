@@ -8859,7 +8859,7 @@ var poloniex = {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.secret, 'sha512'),
+                'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
         return this.fetch (url, method, headers, body);
