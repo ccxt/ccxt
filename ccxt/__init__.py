@@ -4923,8 +4923,15 @@ class coinmarketcap (Market):
 
     def parseTicker (self, ticker, product):
         timestamp = int (ticker['last_updated']) * 1000
-        volume = '24h_volume_' + product['quoteId']
+        volume = None
+        volumeKey = '24h_volume_' + product['quoteId']
+        if ticker[volumeKey]:
+            volume = float (ticker[volumeKey])
         price = 'price_' + product['quoteId']
+        change = None
+        changeKey = 'percent_change_24h'
+        if ticker[changeKey]:
+            change = float (ticker[changeKey])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),
@@ -4937,11 +4944,11 @@ class coinmarketcap (Market):
             'close': None,
             'first': None,
             'last': float (ticker[price]),
-            'change': float (ticker['percent_change_24h']),
+            'change': change,
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': float (ticker[volume]),
+            'quoteVolume': volume,
             'info': ticker,
         }
 

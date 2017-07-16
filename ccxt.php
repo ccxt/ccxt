@@ -5234,8 +5234,15 @@ class coinmarketcap extends Market {
 
     public function parseTicker ($ticker, $product) {
         $timestamp = intval ($ticker['last_updated']) * 1000;
-        $volume = '24h_volume_' . $product['quoteId'];
+        $volume = null
+        $volumeKey = '24h_volume_' . $product['quoteId'];
+        if ($ticker[$volumeKey])
+            $volume = floatval ($ticker[$volumeKey]);
         $price = 'price_' . $product['quoteId'];
+        $change = null;
+        $changeKey = 'percent_change_24h';
+        if ($ticker[$changeKey])
+            $change = floatval ($ticker[$changeKey]);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -5248,11 +5255,11 @@ class coinmarketcap extends Market {
             'close' => null,
             'first' => null,
             'last' => floatval ($ticker[$price]),
-            'change' => floatval ($ticker['percent_change_24h']),
+            'change' => $change,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker[$volume]),
+            'quoteVolume' => $volume,
             'info' => $ticker,
         );
     }

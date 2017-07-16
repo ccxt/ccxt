@@ -5053,8 +5053,15 @@ var coinmarketcap = {
 
     parseTicker (ticker, product) {
         let timestamp = parseInt (ticker['last_updated']) * 1000;
-        let volume = '24h_volume_' + product['quoteId'];
+        let volume = undefined
+        let volumeKey = '24h_volume_' + product['quoteId'];
+        if (ticker[volumeKey])
+            volume = parseFloat (ticker[volumeKey]);
         let price = 'price_' + product['quoteId'];
+        let change = undefined;
+        let changeKey = 'percent_change_24h';
+        if (ticker[changeKey])
+            change = parseFloat (ticker[changeKey]);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -5067,11 +5074,11 @@ var coinmarketcap = {
             'close': undefined,
             'first': undefined,
             'last': parseFloat (ticker[price]),
-            'change': parseFloat (ticker['percent_change_24h']),
+            'change': change,
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker[volume]),
+            'quoteVolume': volume,
             'info': ticker,
         };
     },
