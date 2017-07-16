@@ -101,13 +101,25 @@ try:
 except NameError:
   basestring = str # Python 2
 
-class DDoSProtectionError (Exception):
+class CCXTError (Exception):
     pass
 
-class MarketNotAvailaibleError (Exception):
+class DDoSProtectionError (CCXTError):
     pass
 
-class AuthenticationError (Exception):
+class AuthenticationError (CCXTError):
+    pass
+
+class NotAvailableError (CCXTError):
+    pass
+
+class MarketNotAvailaibleError (NotAvailableError):
+    pass
+
+class OrderBookNotAvailableError (NotAvailableError):
+    pass
+
+class TickerNotAvailableError (NotAvailableError):
     pass
 
 class Market (object):
@@ -7305,6 +7317,9 @@ class kraken (Market):
         return result
 
     def fetch_order_book (self, product):
+        darkpool = product.find ('.d') >= 0
+        if darkpool:
+            raise OrderBookNotAvailableError (self.id + ' does not provide an order book for darkpool symbol ' + product)
         p = self.product (product)
         response = self.publicGetDepth  ({
             'pair': p['id'],
@@ -7330,6 +7345,9 @@ class kraken (Market):
         return result
 
     def fetch_ticker (self, product):
+        darkpool = product.find ('.d') >= 0
+        if darkpool:
+            raise TickerNotAvailableError (self.id + ' does not provide a ticker for darkpool symbol ' + product)
         p = self.product (product)
         response = self.publicGetTicker ({
             'pair': p['id'],

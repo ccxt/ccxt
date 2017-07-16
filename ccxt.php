@@ -2,10 +2,15 @@
 
 namespace ccxt;
 
-class DDoSProtectionError extends \Exception {}
-class TimeoutError extends \Exception {}
-class MarketNotAvailableError extends \Exception {}
-class AuthenticationError extends \Exception {}
+class CCXTError           extends \Exception {}
+
+class DDoSProtectionError        extends CCXTError {}
+class TimeoutError               extends CCXTError {}
+class AuthenticationError        extends CCXTError {}
+class NotAvailableError          extends CCXTError {}
+class MarketNotAvailableError    extends NotAvailableError {}
+class OrderBookNotAvailableError extends NotAvailableError {}
+class TickerNotAvailableError    extends NotAvailableError {}
 
 class Market {
 
@@ -5234,7 +5239,7 @@ class coinmarketcap extends Market {
 
     public function parseTicker ($ticker, $product) {
         $timestamp = intval ($ticker['last_updated']) * 1000;
-        $volume = null
+        $volume = null;
         $volumeKey = '24h_volume_' . $product['quoteId'];
         if ($ticker[$volumeKey])
             $volume = floatval ($ticker[$volumeKey]);
@@ -7766,6 +7771,9 @@ class kraken extends Market {
     }
 
     public function fetch_order_book ($product) {
+        $darkpool = mb_strpos ($product, '.d') !== false;
+        if ($darkpool)
+            throw new OrderBookNotAvailableError ($this->id . ' does not provide an $order book for $darkpool symbol ' . $product);
         $p = $this->product ($product);
         $response = $this->publicGetDepth  (array (
             'pair' => $p['id'],
@@ -7794,6 +7802,9 @@ class kraken extends Market {
     }
 
     public function fetch_ticker ($product) {
+        $darkpool = mb_strpos ($product, '.d') !== false;
+        if ($darkpool)
+            throw new TickerNotAvailableError ($this->id . ' does not provide a $ticker for $darkpool symbol ' . $product);
         $p = $this->product ($product);
         $response = $this->publicGetTicker (array (
             'pair' => $p['id'],

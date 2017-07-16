@@ -6,16 +6,24 @@ var isNode = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
 
-class DDoSProtectionError extends Error {
+class CCXTError extends Error {
     constructor () {
         super ()
-        // a workaround to make `instanceof DDoSProtectionError` work in ES5
+        // a workaround to make `instanceof CCXTError` work in ES5
+        this.constructor = CCXTError 
+        this.__proto__   = CCXTError.prototype
+    }
+}
+
+class DDoSProtectionError extends CCXTError {
+    constructor () {
+        super ()
         this.constructor = DDoSProtectionError 
         this.__proto__   = DDoSProtectionError.prototype
     }
 }
 
-class TimeoutError extends Error {
+class TimeoutError extends CCXTError {
     constructor () {
         super ()
         this.constructor = TimeoutError 
@@ -23,7 +31,23 @@ class TimeoutError extends Error {
     }
 }
 
-class MarketNotAvailaibleError extends Error {
+class AuthenticationError extends CCXTError {
+    constructor () {
+        super ()
+        this.constructor = AuthenticationError
+        this.__proto__   = AuthenticationError.prototype
+    }    
+}
+
+class NotAvailaibleError extends CCXTError {
+    constructor () {
+        super ()
+        this.constructor = NotAvailaibleError
+        this.__proto__   = NotAvailaibleError.prototype
+    }    
+}
+
+class MarketNotAvailaibleError extends NotAvailaibleError {
     constructor () {
         super ()
         this.constructor = MarketNotAvailaibleError
@@ -31,11 +55,19 @@ class MarketNotAvailaibleError extends Error {
     }    
 }
 
-class AuthenticationError extends Error {
+class OrderBookNotAvailableError extends NotAvailaibleError {
     constructor () {
         super ()
-        this.constructor = AuthenticationError
-        this.__proto__   = AuthenticationError.prototype
+        this.constructor = OrderBookNotAvailableError
+        this.__proto__   = OrderBookNotAvailableError.prototype
+    }    
+}
+
+class TickerNotAvailableError extends NotAvailaibleError {
+    constructor () {
+        super ()
+        this.constructor = TickerNotAvailableError
+        this.__proto__   = TickerNotAvailableError.prototype
     }    
 }
 
@@ -5053,7 +5085,7 @@ var coinmarketcap = {
 
     parseTicker (ticker, product) {
         let timestamp = parseInt (ticker['last_updated']) * 1000;
-        let volume = undefined
+        let volume = undefined;
         let volumeKey = '24h_volume_' + product['quoteId'];
         if (ticker[volumeKey])
             volume = parseFloat (ticker[volumeKey]);
@@ -7514,6 +7546,9 @@ var kraken = {
     },
 
     async fetchOrderBook (product) {
+        let darkpool = product.indexOf ('.d') >= 0;
+        if (darkpool)
+            throw new OrderBookNotAvailableError (this.id + ' does not provide an order book for darkpool symbol ' + product);
         let p = this.product (product);
         let response = await this.publicGetDepth  ({
             'pair': p['id'],
@@ -7542,6 +7577,9 @@ var kraken = {
     },
 
     async fetchTicker (product) {
+        let darkpool = product.indexOf ('.d') >= 0;
+        if (darkpool)
+            throw new TickerNotAvailableError (this.id + ' does not provide a ticker for darkpool symbol ' + product);
         let p = this.product (product);
         let response = await this.publicGetTicker ({
             'pair': p['id'],
@@ -10622,8 +10660,11 @@ if (isNode) {
 
         DDoSProtectionError,
         TimeoutError,
-        MarketNotAvailaibleError,
         AuthenticationError,
+        NotAvailaibleError,
+        MarketNotAvailaibleError,
+        OrderBookNotAvailableError,
+        TickerNotAvailableError,
     })
 } else
     window.ccxt = defineAllMarkets (markets)
