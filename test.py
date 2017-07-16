@@ -137,6 +137,7 @@ markets['xbtce'].secret = 'qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwKqH
 
 markets['coinspot'].apiKey = '36b5803f892fe97ccd0b22da79ce6b21'
 markets['coinspot'].secret = 'QGWL9ADB3JEQ7W48E8A3KTQQ42V2P821LQRJW3UU424ATYPXF893RR4THKE9DT0RBNHKX8L54F35KBVFH'
+markets['coinspot'].proxy = 'https://cors-anywhere.herokuapp.com/'
 
 markets['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
 markets['gdax'].apiKey = '92560ffae9b8a01d012726c698bcb2f1'

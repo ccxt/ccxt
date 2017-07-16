@@ -5517,7 +5517,7 @@ class coinspot (Market):
                 'Content-Type': 'application/json',
                 'Content-Length': len (body),
                 'key': self.apiKey,
-                'sign': self.hmac (self.encode (body), self.secret, hashlib.sha512),
+                'sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)
 

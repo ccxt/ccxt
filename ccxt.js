@@ -5671,7 +5671,7 @@ var coinspot = {
                 'Content-Type': 'application/json',
                 'Content-Length': body.length,
                 'key': this.apiKey,
-                'sign': this.hmac (this.encode (body), this.secret, 'sha512'),
+                'sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
         return this.fetch (url, method, headers, body);
