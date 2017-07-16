@@ -119,9 +119,9 @@ def test_market (market):
 for id in ccxt.markets:
     market = getattr (ccxt, id)
     markets[id] = market ({
-        'verbose': False,
+        'verbose': True,
         # 'proxy': 'https://crossorigin.me/',
-        'proxy': 'https://cors-anywhere.herokuapp.com/',
+        # 'proxy': 'https://cors-anywhere.herokuapp.com/',
         # 'proxy': 'http://cors-proxy.htmldriven.com/?url=',
     })
 
@@ -134,11 +134,10 @@ markets['xbtce'].secret = 'qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwKqH
 markets['coinspot'].apiKey = '36b5803f892fe97ccd0b22da79ce6b21'
 markets['coinspot'].secret = 'QGWL9ADB3JEQ7W48E8A3KTQQ42V2P821LQRJW3UU424ATYPXF893RR4THKE9DT0RBNHKX8L54F35KBVFH'
 
-tuples = list (ccxt.Market.keysort (api_keys).items ())
-for (id, params) in tuples:
-    keys = list (params.keys ())
-    for key in keys:
-        setattr (markets[id], key, params[key])
+markets['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
+markets['gdax'].apiKey = '92560ffae9b8a01d012726c698bcb2f1'
+markets['gdax'].secret = '9aHjPmW+EtRRKN/OiZGjXh8OxyThnDL4mMDre4Ghvn8wjMniAr5jdEZJLN/knW6FHeQyiz3dPIL5ytnF0Y6Xwg=='
+markets['gdax'].password = '6kszf4aci8r'
 
 id = None
 
