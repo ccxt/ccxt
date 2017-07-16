@@ -10,7 +10,6 @@ console.log ('Single-sourcing version: package.json → ./ccxt/__init__.py')
 
 let packageJSON = fs.readFileSync ('./package.json', 'utf8')
 let config = JSON.parse (packageJSON);
-console.log (config)
 let ccxtpyFilename = './ccxt/__init__.py'
 let ccxtpy = fs.readFileSync (ccxtpyFilename, 'utf8')
 let ccxtpyParts = ccxtpy.split (/\_\_version\_\_ \= \'[^\']+\'/)
