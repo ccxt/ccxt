@@ -746,7 +746,8 @@ var cryptocapital = {
                 'api_key': this.apiKey,
                 'nonce': this.nonce (),
             }, params);
-            query['signature'] = this.hmac (this.json (query), this.secret);
+            let request = this.json (query);
+            query['signature'] = this.hmac (this.encode (request), this.secret);
             body = this.json (query);
             headers = { 'Content-Type': 'application/json' };
         }
@@ -953,7 +954,7 @@ var anxpro = {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Rest-Key': this.apiKey,
-                'Rest-Sign': this.hmac (auth, secret, 'sha512', 'base64'),
+                'Rest-Sign': this.hmac (this.encode (auth), secret, 'sha512', 'base64'),
             };
         }
         return this.fetch (url, method, headers, body);
@@ -1102,7 +1103,7 @@ var bit2c = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
                 'key': this.apiKey,
-                'sign': this.hmac (body, this.secret, 'sha512', 'base64'),
+                'sign': this.hmac (this.encode (body), this.secret, 'sha512', 'base64'),
             };
         }
         return this.fetch (url, method, headers, body);
@@ -1250,7 +1251,7 @@ var bitbay = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
                 'API-Key': this.apiKey,
-                'API-Hash': this.hmac (body, this.secret, 'sha512'),
+                'API-Hash': this.hmac (this.encode (body), this.secret, 'sha512'),
             };
         }
         return this.fetch (url, method, headers, body);
@@ -1391,7 +1392,7 @@ var bitbays = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
                 'Key': this.apiKey,
-                'Sign': this.hmac (body, this.secret, 'sha512'),
+                'Sign': this.hmac (this.encode (body), this.secret, 'sha512'),
             };
         }
         return this.fetch (url, method, headers, body);
@@ -1547,7 +1548,7 @@ var bitcoincoid = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
                 'Key': this.apiKey,
-                'Sign': this.hmac (body, this.secret, 'sha512'),
+                'Sign': this.hmac (this.encode (body), this.secret, 'sha512'),
             };
         }
         return this.fetch (url, method, headers, body);
@@ -1743,10 +1744,11 @@ var bitfinex = {
             query = this.json (query);
             query = this.encode (query);
             let payload = this.stringToBase64 (query);
+            let secret = this.encode (this.secret);
             headers = {
                 'X-BFX-APIKEY': this.apiKey,
                 'X-BFX-PAYLOAD': payload,
-                'X-BFX-SIGNATURE': this.hmac (this.decode (payload), this.secret, 'sha384'),
+                'X-BFX-SIGNATURE': this.hmac (payload, secret, 'sha384'),
             };
         }
         return this.fetch (url, method, headers, body);
@@ -1930,7 +1932,7 @@ var bitflyer = {
             headers = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
-                'ACCESS-SIGN': this.hmac (auth, this.secret),
+                'ACCESS-SIGN': this.hmac (this.encode (auth), this.secret),
                 'Content-Type': 'application/json',
             };
         }
@@ -2274,7 +2276,7 @@ var bitmarket = {
             body = this.urlencode (query);
             headers = {
                 'API-Key': this.apiKey,
-                'API-Hash': this.hmac (body, this.secret, 'sha512'),
+                'API-Hash': this.hmac (this.encode (body), this.secret, 'sha512'),
             };
         }
         return this.fetch (url, method, headers, body);
@@ -2508,7 +2510,7 @@ var bitmex = {
                 'Content-Type': 'application/json',
                 'api-nonce': nonce,
                 'api-key': this.apiKey,
-                'api-signature': this.hmac (request, this.secret),
+                'api-signature': this.hmac (this.encode (request), this.secret),
             };
         }
         return this.fetch (url, method, headers, body);
@@ -2689,7 +2691,7 @@ var bitso = {
                 body = this.json (params);
             let nonce = this.nonce ().toString ();
             let request = [ nonce, method, query, body || '' ].join ('');
-            let signature = this.hmac (request, this.secret);
+            let signature = this.hmac (this.encode (request), this.secret);
             let auth = this.apiKey + ':' + nonce + ':' + signature;
             headers = { 'Authorization': "Bitso " + auth };
         }
@@ -2843,7 +2845,7 @@ var bitstamp = {
         } else {
             let nonce = this.nonce ().toString ();
             let auth = nonce + this.uid + this.apiKey;
-            let signature = this.hmac (auth, this.secret);
+            let signature = this.hmac (this.encode (auth), this.secret);
             query = this.extend ({
                 'key': this.apiKey,
                 'signature': signature.toUpperCase (),
@@ -3030,7 +3032,7 @@ var bittrex = {
                 'nonce': nonce,
                 'apikey': this.apiKey,
             }, params));
-            headers = { 'apisign': this.hmac (url, this.secret, 'sha512') };
+            headers = { 'apisign': this.hmac (this.encode (url), this.secret, 'sha512') };
         }
         return this.fetch (url, method, headers, body);
     },
@@ -3192,7 +3194,7 @@ var blinktrade = {
             headers = {
                 'APIKey': this.apiKey,
                 'Nonce': nonce,
-                'Signature': this.hmac (nonce, this.secret),
+                'Signature': this.hmac (this.encode (nonce), this.secret),
                 'Content-Type': 'application/json',
             };
         }
@@ -3389,7 +3391,7 @@ var btcchina = {
                 '&method=' + path +
                 '&params=' + p
             );
-            let signature = this.hmac (query, this.secret, 'sha1');
+            let signature = this.hmac (this.encode (query), this.secret, 'sha1');
             let auth = this.apiKey + ':' + signature;
             headers = {
                 'Content-Length': body.length,
@@ -3557,7 +3559,7 @@ var btce = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
                 'Key': this.apiKey,
-                'Sign': this.hmac (body, this.secret, 'sha512'),
+                'Sign': this.hmac (this.encode (body), this.secret, 'sha512'),
             };
         }
         return this.fetch (url, method, headers, body);
@@ -3700,7 +3702,7 @@ var btctrader = {
             headers = {
                 'X-PCK': this.apiKey,
                 'X-Stamp': nonce.toString (),
-                'X-Signature': this.hmac (auth, secret, 'sha256', 'base64'),
+                'X-Signature': this.hmac (this.encode (auth), secret, 'sha256', 'base64'),
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
             };
@@ -3914,9 +3916,10 @@ var btctradeua = {
                 'out_order_id': nonce,
                 'nonce': nonce,
             }, query));
+            let auth = body + this.secret;
             headers = {
                 'public-key': this.apiKey,
-                'api-sign': this.hash (body + this.secret, 'sha256'),
+                'api-sign': this.hash (this.encde (auth), 'sha256'),
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
             };
@@ -4074,7 +4077,7 @@ var btcx = {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Signature': this.hmac (body, this.secret, 'sha512'),
+                'Signature': this.hmac (this.encode (body), this.secret, 'sha512'),
             };
         }
         return this.fetch (url, method, headers, body);
@@ -4238,7 +4241,7 @@ var bter = {
             body = this.urlencode (this.extend (request, query));
             headers = {
                 'Key': this.apiKey,
-                'Sign': this.hmac (body, this.secret, 'sha512'),
+                'Sign': this.hmac (this.encode (body), this.secret, 'sha512'),
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
             };
@@ -4405,7 +4408,8 @@ var bxinth = {
             url += '?' + this.urlencode (params);
         if (type == 'private') {
             let nonce = this.nonce ();
-            let signature = this.hash (this.apiKey + nonce + this.secret, 'sha256');
+            let auth = this.apiKey + nonce.toString () + this.secret;
+            let signature = this.hash (this.encode (auth), 'sha256');
             body = this.urlencode (this.extend ({
                 'key': this.apiKey,
                 'nonce': nonce,
@@ -4585,7 +4589,7 @@ var ccex = {
                 'nonce': nonce,
             }, params));
             url += '?' + this.urlencode (query);
-            headers = { 'apisign': this.hmac (url, this.secret, 'sha512') };
+            headers = { 'apisign': this.hmac (this.encode (url), this.secret, 'sha512') };
         } else if (type == 'public') {
             url += '?' + this.urlencode (this.extend ({
                 'a': 'get' + path,
@@ -4745,9 +4749,10 @@ var cex = {
                 url += '?' + this.urlencode (query);
         } else {
             let nonce = this.nonce ().toString ();
+            let auth = nonce + this.uid + this.apiKey;
             body = this.urlencode (this.extend ({
                 'key': this.apiKey,
-                'signature': this.hmac (nonce + this.uid + this.apiKey, this.secret).toUpperCase (),
+                'signature': this.hmac (this.encode (auth), this.secret).toUpperCase (),
                 'nonce': nonce,
             }, query));
             headers = {
@@ -4949,14 +4954,18 @@ var coincheck = {
                 url += '?' + this.urlencode (query);
         } else {
             let nonce = this.nonce ().toString ();
-            if (Object.keys (query).length)
+            let length = 0;
+            if (Object.keys (query).length) {
                 body = this.urlencode (this.keysort (query));
+                length = body.length;
+            }
+            let auth = nonce + url + (body || '');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
+                'Content-Length': length,
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-NONCE': nonce,
-                'ACCESS-SIGNATURE': this.hmac (nonce + url + (body || ''), this.secret)
+                'ACCESS-SIGNATURE': this.hmac (this.encode (auth), this.secret)
             };
         }
         return this.fetch (url, method, headers, body);
@@ -5108,7 +5117,7 @@ var coinmate = {
         } else {
             let nonce = this.nonce ().toString ();
             let auth = [ nonce, this.uid, this.apiKey ].join (' ');
-            let signature = this.hmac (auth, this.secret);
+            let signature = this.hmac (this.encode (auth), this.secret);
             body = this.urlencode (this.extend ({
                 'clientId': this.uid,
                 'nonce': nonce,
@@ -5515,7 +5524,7 @@ var coinspot = {
                 'Content-Type': 'application/json',
                 'Content-Length': body.length,
                 'key': this.apiKey,
-                'sign': this.hmac (body, this.secret, 'sha512'),
+                'sign': this.hmac (this.encode (body), this.secret, 'sha512'),
             };
         }
         return this.fetch (url, method, headers, body);
@@ -5701,7 +5710,7 @@ var dsx = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
                 'Key': this.apiKey,
-                'Sign': this.hmac (body, this.secret, 'sha512', 'base64'),
+                'Sign': this.hmac (this.encode (body), this.secret, 'sha512', 'base64'),
             };
         }
         return this.fetch (url, method, headers, body);
@@ -5870,7 +5879,7 @@ var exmo = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
                 'Key': this.apiKey,
-                'Sign': this.hmac (body, this.secret, 'sha512'),
+                'Sign': this.hmac (this.encode (body), this.secret, 'sha512'),
             };
         }
         let result = await this.fetch (url, method, headers, body);
@@ -6039,7 +6048,7 @@ var flowbtc = {
         } else {
             let nonce = this.nonce ();
             let auth = nonce + this.uid + this.apiKey;
-            let signature = this.hmac (auth, this.secret);
+            let signature = this.hmac (this.encode (auth), this.secret);
             body = this.urlencode (this.extend ({
                 'apiKey': this.apiKey,
                 'apiNonce': nonce,
@@ -6179,7 +6188,7 @@ var fyb = {
             headers = {
                 'Content-type': 'application/x-www-form-urlencoded',
                 'key': this.apiKey,
-                'sig': this.hmac (body, this.secret, 'sha1')
+                'sig': this.hmac (this.encode (body), this.secret, 'sha1')
             };
         }
         return this.fetch (url, method, headers, body);
@@ -6397,7 +6406,7 @@ var gdax = {
                 body = this.json (query);
             let what = nonce + method + request + (body || '');
             let secret = this.base64ToBinary (this.secret);
-            let signature = this.hmac (what, secret, 'sha256', 'binary');
+            let signature = this.hmac (this.encode (what), secret, 'sha256', 'binary');
             headers = {
                 'CB-ACCESS-KEY': this.apiKey,
                 'CB-ACCESS-SIGN': this.stringToBase64 (signature),
@@ -6570,7 +6579,7 @@ var gemini = {
                 'nonce': nonce,
             }, query);
             let payload = this.stringToBase64 (this.json (request));
-            let signature = this.hmac (payload, this.secret, 'sha384');
+            let signature = this.hmac (this.encode (payload), this.secret, 'sha384');
             headers = {
                 'Content-Type': 'text/plain',
                 'Content-Length': 0,
@@ -6762,9 +6771,10 @@ var hitbtc = {
                     body = this.urlencode (query);
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
+            let auth = url + (body || '');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Signature': this.hmac (url + (body || ''), this.secret, 'sha512').toLowerCase (),
+                'X-Signature': this.hmac (this.encode (auth), this.secret, 'sha512').toLowerCase (),
             };
         }
         url = this.urls['api'] + url;
@@ -6917,7 +6927,7 @@ var huobi = {
             let queryString = this.urlencode (this.omit (query, 'market'));
             // secret key must be at the end of query to be signed
             queryString += '&secret_key=' + this.secret;
-            query['sign'] = this.hash (queryString);
+            query['sign'] = this.hash (this.encode (queryString));
             body = this.urlencode (query);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -7089,7 +7099,7 @@ var itbit = {
             let auth = [ method, url, body, nonce, timestamp ];
             let message = nonce + this.json (auth);
             let hashedMessage = this.hash (message, 'sha256', 'binary');
-            let signature = this.hmac (url + hashedMessage, this.secret, 'sha512', 'base64');
+            let signature = this.hmac (this.encode (url + hashedMessage), this.secret, 'sha512', 'base64');
             headers = {
                 'Authorization': self.apiKey + ':' + signature,
                 'Content-Type': 'application/json',
@@ -7257,7 +7267,9 @@ var jubi = {
                 'key': this.apiKey,
                 'nonce': nonce,
             }, params);
-            query['signature'] = this.hmac (this.urlencode (query), this.hash (this.secret));
+            let request = this.urlencode (query);
+            let secret = this.hash (this.encode (this.secret));
+            query['signature'] = this.hmac (this.encode (request), secret);
             body = this.urlencode (query);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -7445,7 +7457,8 @@ var kraken = {
             let nonce = this.nonce ().toString ();
             let query = this.extend ({ 'nonce': nonce }, params);
             body = this.urlencode (query);
-            query = this.stringToBinary (url + this.hash (nonce + body, 'sha256', 'binary'));
+            let auth = this.encode (nonce + body);
+            query = this.encode (url) + this.hash (auth, 'sha256', 'binary');
             let secret = this.base64ToBinary (this.secret);
             headers = {
                 'API-Key': this.apiKey,
@@ -7623,10 +7636,10 @@ var lakebtc = {
                 'params': params,
                 'id': nonce,
             });
-            let signature = this.apiKey + ':' + this.hmac (query, this.secret, 'sha1', 'base64');
+            let signature = this.hmac (this.encode (query), this.secret, 'sha1', 'base64');
             headers = {
                 'Json-Rpc-Tonce': nonce,
-                'Authorization': "Basic " + signature,
+                'Authorization': "Basic " + this.apiKey + ':' + signature,
                 'Content-Length': body.length,
                 'Content-Type': 'application/json',
             };
@@ -7798,14 +7811,19 @@ var livecoin = {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
-            let query = this.keysort (params);
-            body = this.urlencode (query);
+            let length = 0;
+            if (Object.keys (params).length) {
+                let query = this.keysort (params);
+                body = this.urlencode (query);
+                length = body.length;
+            }
+            body = self.encode (body || '');
             let signature = this.hmac (body, this.secret, 'sha256');
             headers = {
                 'Api-Key': this.apiKey,
                 'Sign': signature.toUpperCase (),
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
+                'Content-Length': length,
             };
         }
         return this.fetch (url, method, headers, body);
@@ -8010,8 +8028,9 @@ var luno = {
         if (Object.keys (query).length)
             url += '?' + this.urlencode (query);
         if (type == 'private') {
-            let auth = this.stringToBase64 (this.apiKey + ':' + this.secret);
-            headers = { 'Authorization': 'Basic ' + auth };
+            let auth = this.encode (this.apiKey + ':' + this.secret);
+            auth = this.stringToBase64 (auth);
+            headers = { 'Authorization': 'Basic ' + this.decode (auth) };
         }
         return this.fetch (url, method, headers, body);
     },
@@ -8155,7 +8174,7 @@ var mercado = {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'TAPI-ID': this.apiKey,
-                'TAPI-MAC': this.hmac (auth, this.secret, 'sha512'),
+                'TAPI-MAC': this.hmac (this.encode (auth), this.secret, 'sha512'),
             };
         }
         return this.fetch (url, method, headers, body);
@@ -8319,7 +8338,7 @@ var okcoin = {
             }, params));
             // secret key must be at the end of query
             let queryString = this.urlencode (query) + '&secret_key=' + this.secret;
-            query['sign'] = this.hash (queryString).toUpperCase ();
+            query['sign'] = this.hash (this.encode (queryString)).toUpperCase ();
             body = this.urlencode (query);
             headers = { 'Content-type': 'application/x-www-form-urlencoded' };
         }
@@ -8516,7 +8535,7 @@ var paymium = {
             let auth = nonce + url + body;
             headers = {
                 'Api-Key': this.apiKey,
-                'Api-Signature': this.hmac (auth, this.secret),
+                'Api-Signature': this.hmac (this.encode (auth), this.secret),
                 'Api-Nonce': nonce,
                 'Content-Type': 'application/json',
             };
@@ -8700,7 +8719,7 @@ var poloniex = {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac (body, this.secret, 'sha512'),
+                'Sign': this.hmac (this.encode (body), this.secret, 'sha512'),
             };
         }
         return this.fetch (url, method, headers, body);
@@ -8837,8 +8856,8 @@ var quadrigacx = {
             url += '?' + this.urlencode (params);
         } else {
             let nonce = this.nonce ();
-            let request = [ nonce, this.uid, this.apiKey ].join ('');
-            let signature = this.hmac (request, this.secret);
+            let request = [ nonce.toString (), this.uid, this.apiKey ].join ('');
+            let signature = this.hmac (this.encode (request), this.secret);
             let query = this.extend ({
                 'key': this.apiKey,
                 'nonce': nonce,
@@ -9192,7 +9211,7 @@ var southxchange = {
             body = this.json (query);
             headers = {
                 'Content-Type': 'application/json',
-                'Hash': this.hmac (body, this.secret, 'sha512'),
+                'Hash': this.hmac (this.encode (body), this.secret, 'sha512'),
             };
         }
         return this.fetch (url, method, headers, body);
@@ -9380,10 +9399,11 @@ var therock = {
         let query = this.omit (params, this.extractParams (path));
         if (type == 'private') {
             let nonce = this.nonce ().toString ();
+            let auth = nonce + url;
             headers = {
                 'X-TRT-KEY': this.apiKey,
                 'X-TRT-NONCE': nonce,
-                'X-TRT-SIGN': this.hmac (nonce + url, this.secret, 'sha512'),
+                'X-TRT-SIGN': this.hmac (this.encode (auth), this.secret, 'sha512'),
             };
             if (Object.keys (query).length) {
                 body = this.json (query);
@@ -9578,7 +9598,7 @@ var vaultoro = {
             url += '?' + this.urlencode (query);
             headers = {
                 'Content-Type': 'application/json',
-                'X-Signature': this.hmac (url, this.secret)
+                'X-Signature': this.hmac (this.encode (url), this.secret)
             };
         }
         return this.fetch (url, method, headers, body);
@@ -10040,7 +10060,7 @@ var xbtce = {
             else
                 body = '';
             let auth = nonce + this.uid + this.apiKey + method + url + body;
-            let signature = this.hmac (auth, this.secret, 'sha256', 'base64');
+            let signature = this.hmac (this.encode (auth), this.secret, 'sha256', 'base64');
             let credentials = [ this.uid, this.apiKey, nonce, signature ].join (':');
             headers = {
                 'Accept-Encoding': 'gzip, deflate',
@@ -10196,7 +10216,7 @@ var yobit = {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': this.apiKey,
-                'sign': this.hmac (body, this.secret, 'sha512'),
+                'sign': this.hmac (this.encode (body), this.secret, 'sha512'),
             };
         }
         return this.fetch (url, method, headers, body);
@@ -10362,7 +10382,7 @@ var zaif = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
                 'Key': this.apiKey,
-                'Sign': this.hmac (body, this.secret, 'sha512'),
+                'Sign': this.hmac (this.encode (body), this.secret, 'sha512'),
             };
         }
         return this.fetch (url, method, headers, body);

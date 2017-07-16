@@ -807,7 +807,8 @@ class cryptocapital extends Market {
                 'api_key' => $this->apiKey,
                 'nonce' => $this->nonce (),
             ), $params);
-            $query['signature'] = $this->hmac ($this->json ($query), $this->secret);
+            $request = $this->json ($query);
+            $query['signature'] = $this->hmac ($this->encode ($request), $this->secret);
             $body = $this->json ($query);
             $headers = array ( 'Content-Type' => 'application/json' );
         }
@@ -1022,7 +1023,7 @@ class anxpro extends Market {
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Rest-Key' => $this->apiKey,
-                'Rest-Sign' => $this->hmac ($auth, $secret, 'sha512', 'base64'),
+                'Rest-Sign' => $this->hmac ($this->encode ($auth), $secret, 'sha512', 'base64'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -1175,7 +1176,7 @@ class bit2c extends Market {
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
                 'key' => $this->apiKey,
-                'sign' => $this->hmac ($body, $this->secret, 'sha512', 'base64'),
+                'sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512', 'base64'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -1327,7 +1328,7 @@ class bitbay extends Market {
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
                 'API-Key' => $this->apiKey,
-                'API-Hash' => $this->hmac ($body, $this->secret, 'sha512'),
+                'API-Hash' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -1472,7 +1473,7 @@ class bitbays extends Market {
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($body, $this->secret, 'sha512'),
+                'Sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -1632,7 +1633,7 @@ class bitcoincoid extends Market {
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($body, $this->secret, 'sha512'),
+                'Sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -1832,10 +1833,11 @@ class bitfinex extends Market {
             $query = $this->json ($query);
             $query = $this->encode ($query);
             $payload = base64_encode ($query);
+            $secret = $this->encode ($this->secret);
             $headers = array (
                 'X-BFX-APIKEY' => $this->apiKey,
                 'X-BFX-PAYLOAD' => $payload,
-                'X-BFX-SIGNATURE' => $this->hmac ($this->decode ($payload), $this->secret, 'sha384'),
+                'X-BFX-SIGNATURE' => $this->hmac ($payload, $secret, 'sha384'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -2023,7 +2025,7 @@ class bitflyer extends Market {
             $headers = array (
                 'ACCESS-KEY' => $this->apiKey,
                 'ACCESS-TIMESTAMP' => $nonce,
-                'ACCESS-SIGN' => $this->hmac ($auth, $this->secret),
+                'ACCESS-SIGN' => $this->hmac ($this->encode ($auth), $this->secret),
                 'Content-Type' => 'application/json',
             );
         }
@@ -2375,7 +2377,7 @@ class bitmarket extends Market {
             $body = $this->urlencode ($query);
             $headers = array (
                 'API-Key' => $this->apiKey,
-                'API-Hash' => $this->hmac ($body, $this->secret, 'sha512'),
+                'API-Hash' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -2613,7 +2615,7 @@ class bitmex extends Market {
                 'Content-Type' => 'application/json',
                 'api-nonce' => $nonce,
                 'api-key' => $this->apiKey,
-                'api-signature' => $this->hmac ($request, $this->secret),
+                'api-signature' => $this->hmac ($this->encode ($request), $this->secret),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -2797,7 +2799,7 @@ class bitso extends Market {
                 $body = $this->json ($params);
             $nonce = (string) $this->nonce ();
             $request = implode ('', array ($nonce, $method, $query, $body || ''));
-            $signature = $this->hmac ($request, $this->secret);
+            $signature = $this->hmac ($this->encode ($request), $this->secret);
             $auth = $this->apiKey . ':' . $nonce . ':' . $signature;
             $headers = array ( 'Authorization' => "Bitso " . $auth );
         }
@@ -2955,7 +2957,7 @@ class bitstamp extends Market {
         } else {
             $nonce = (string) $this->nonce ();
             $auth = $nonce . $this->uid . $this->apiKey;
-            $signature = $this->hmac ($auth, $this->secret);
+            $signature = $this->hmac ($this->encode ($auth), $this->secret);
             $query = array_merge (array (
                 'key' => $this->apiKey,
                 'signature' => strtoupper ($signature),
@@ -3146,7 +3148,7 @@ class bittrex extends Market {
                 'nonce' => $nonce,
                 'apikey' => $this->apiKey,
             ), $params));
-            $headers = array ( 'apisign' => $this->hmac ($url, $this->secret, 'sha512') );
+            $headers = array ( 'apisign' => $this->hmac ($this->encode ($url), $this->secret, 'sha512') );
         }
         return $this->fetch ($url, $method, $headers, $body);
     }
@@ -3312,7 +3314,7 @@ class blinktrade extends Market {
             $headers = array (
                 'APIKey' => $this->apiKey,
                 'Nonce' => $nonce,
-                'Signature' => $this->hmac ($nonce, $this->secret),
+                'Signature' => $this->hmac ($this->encode ($nonce), $this->secret),
                 'Content-Type' => 'application/json',
             );
         }
@@ -3513,7 +3515,7 @@ class btcchina extends Market {
                 '&$method=' . $path .
                 '&$params=' . $p
             );
-            $signature = $this->hmac ($query, $this->secret, 'sha1');
+            $signature = $this->hmac ($this->encode ($query), $this->secret, 'sha1');
             $auth = $this->apiKey . ':' . $signature;
             $headers = array (
                 'Content-Length' => strlen ($body),
@@ -3685,7 +3687,7 @@ class btce extends Market {
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($body, $this->secret, 'sha512'),
+                'Sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -3832,7 +3834,7 @@ class btctrader extends Market {
             $headers = array (
                 'X-PCK' => $this->apiKey,
                 'X-Stamp' => (string) $nonce,
-                'X-Signature' => $this->hmac ($auth, $secret, 'sha256', 'base64'),
+                'X-Signature' => $this->hmac ($this->encode ($auth), $secret, 'sha256', 'base64'),
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
             );
@@ -4054,9 +4056,10 @@ class btctradeua extends Market {
                 'out_order_id' => $nonce,
                 'nonce' => $nonce,
             ), $query));
+            $auth = $body . $this->secret;
             $headers = array (
                 'public-key' => $this->apiKey,
-                'api-sign' => $this->hash ($body . $this->secret, 'sha256'),
+                'api-sign' => $this->hash ($this->encde ($auth), 'sha256'),
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
             );
@@ -4222,7 +4225,7 @@ class btcx extends Market {
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
-                'Signature' => $this->hmac ($body, $this->secret, 'sha512'),
+                'Signature' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -4391,7 +4394,7 @@ class bter extends Market {
             $body = $this->urlencode (array_merge ($request, $query));
             $headers = array (
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($body, $this->secret, 'sha512'),
+                'Sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
             );
@@ -4562,7 +4565,8 @@ class bxinth extends Market {
             $url .= '?' . $this->urlencode ($params);
         if ($type == 'private') {
             $nonce = $this->nonce ();
-            $signature = $this->hash ($this->apiKey . $nonce . $this->secret, 'sha256');
+            $auth = $this->apiKey . (string) $nonce . $this->secret;
+            $signature = $this->hash ($this->encode ($auth), 'sha256');
             $body = $this->urlencode (array_merge (array (
                 'key' => $this->apiKey,
                 'nonce' => $nonce,
@@ -4746,7 +4750,7 @@ class ccex extends Market {
                 'nonce' => $nonce,
             ), $params));
             $url .= '?' . $this->urlencode ($query);
-            $headers = array ( 'apisign' => $this->hmac ($url, $this->secret, 'sha512') );
+            $headers = array ( 'apisign' => $this->hmac ($this->encode ($url), $this->secret, 'sha512') );
         } else if ($type == 'public') {
             $url .= '?' . $this->urlencode (array_merge (array (
                 'a' => 'get' . $path,
@@ -4910,9 +4914,10 @@ class cex extends Market {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = (string) $this->nonce ();
+            $auth = $nonce . $this->uid . $this->apiKey;
             $body = $this->urlencode (array_merge (array (
                 'key' => $this->apiKey,
-                'signature' => strtoupper ($this->hmac ($nonce . $this->uid . $this->apiKey, $this->secret)),
+                'signature' => strtoupper ($this->hmac ($this->encode ($auth), $this->secret)),
                 'nonce' => $nonce,
             ), $query));
             $headers = array (
@@ -5123,14 +5128,18 @@ class coincheck extends Market {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = (string) $this->nonce ();
-            if ($query)
+            $length = 0;
+            if ($query) {
                 $body = $this->urlencode ($this->keysort ($query));
+                $length = count ($body);
+            }
+            $auth = $nonce . $url . ($body || '');
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'Content-Length' => strlen ($body),
+                'Content-Length' => $length,
                 'ACCESS-KEY' => $this->apiKey,
                 'ACCESS-NONCE' => $nonce,
-                'ACCESS-SIGNATURE' => $this->hmac ($nonce . $url . ($body || ''), $this->secret)
+                'ACCESS-SIGNATURE' => $this->hmac ($this->encode ($auth), $this->secret)
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -5286,7 +5295,7 @@ class coinmate extends Market {
         } else {
             $nonce = (string) $this->nonce ();
             $auth = implode (' ', array ($nonce, $this->uid, $this->apiKey));
-            $signature = $this->hmac ($auth, $this->secret);
+            $signature = $this->hmac ($this->encode ($auth), $this->secret);
             $body = $this->urlencode (array_merge (array (
                 'clientId' => $this->uid,
                 'nonce' => $nonce,
@@ -5701,7 +5710,7 @@ class coinspot extends Market {
                 'Content-Type' => 'application/json',
                 'Content-Length' => strlen ($body),
                 'key' => $this->apiKey,
-                'sign' => $this->hmac ($body, $this->secret, 'sha512'),
+                'sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -5891,7 +5900,7 @@ class dsx extends Market {
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($body, $this->secret, 'sha512', 'base64'),
+                'Sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512', 'base64'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -6064,7 +6073,7 @@ class exmo extends Market {
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($body, $this->secret, 'sha512'),
+                'Sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
             );
         }
         $result = $this->fetch ($url, $method, $headers, $body);
@@ -6237,7 +6246,7 @@ class flowbtc extends Market {
         } else {
             $nonce = $this->nonce ();
             $auth = $nonce . $this->uid . $this->apiKey;
-            $signature = $this->hmac ($auth, $this->secret);
+            $signature = $this->hmac ($this->encode ($auth), $this->secret);
             $body = $this->urlencode (array_merge (array (
                 'apiKey' => $this->apiKey,
                 'apiNonce' => $nonce,
@@ -6386,7 +6395,7 @@ class fyb extends Market {
             $headers = array (
                 'Content-type' => 'application/x-www-form-urlencoded',
                 'key' => $this->apiKey,
-                'sig' => $this->hmac ($body, $this->secret, 'sha1')
+                'sig' => $this->hmac ($this->encode ($body), $this->secret, 'sha1')
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -6619,7 +6628,7 @@ class gdax extends Market {
                 $body = $this->json ($query);
             $what = $nonce . $method . $request . ($body || '');
             $secret = base64_decode ($this->secret);
-            $signature = $this->hmac ($what, $secret, 'sha256', 'binary');
+            $signature = $this->hmac ($this->encode ($what), $secret, 'sha256', 'binary');
             $headers = array (
                 'CB-ACCESS-KEY' => $this->apiKey,
                 'CB-ACCESS-SIGN' => base64_encode ($signature),
@@ -6796,7 +6805,7 @@ class gemini extends Market {
                 'nonce' => $nonce,
             ), $query);
             $payload = base64_encode ($this->json ($request));
-            $signature = $this->hmac ($payload, $this->secret, 'sha384');
+            $signature = $this->hmac ($this->encode ($payload), $this->secret, 'sha384');
             $headers = array (
                 'Content-Type' => 'text/plain',
                 'Content-Length' => 0,
@@ -6992,9 +7001,10 @@ class hitbtc extends Market {
                     $body = $this->urlencode ($query);
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
+            $auth = $url . ($body || '');
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'X-Signature' => strtolower ($this->hmac ($url . ($body || ''), $this->secret, 'sha512')),
+                'X-Signature' => strtolower ($this->hmac ($this->encode ($auth), $this->secret, 'sha512')),
             );
         }
         $url = $this->urls['api'] . $url;
@@ -7151,7 +7161,7 @@ class huobi extends Market {
             $queryString = $this->urlencode ($this->omit ($query, 'market'));
             // secret key must be at the end of $query to be signed
             $queryString .= '&secret_key=' . $this->secret;
-            $query['sign'] = $this->hash ($queryString);
+            $query['sign'] = $this->hash ($this->encode ($queryString));
             $body = $this->urlencode ($query);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
@@ -7327,7 +7337,7 @@ class itbit extends Market {
             $auth = array ($method, $url, $body, $nonce, $timestamp);
             $message = $nonce . $this->json ($auth);
             $hashedMessage = $this->hash ($message, 'sha256', 'binary');
-            $signature = $this->hmac ($url . $hashedMessage, $this->secret, 'sha512', 'base64');
+            $signature = $this->hmac ($this->encode ($url . $hashedMessage), $this->secret, 'sha512', 'base64');
             $headers = array (
                 'Authorization' => self.apiKey . ':' . $signature,
                 'Content-Type' => 'application/json',
@@ -7499,7 +7509,9 @@ class jubi extends Market {
                 'key' => $this->apiKey,
                 'nonce' => $nonce,
             ), $params);
-            $query['signature'] = $this->hmac ($this->urlencode ($query), $this->hash ($this->secret));
+            $request = $this->urlencode ($query);
+            $secret = $this->hash ($this->encode ($this->secret));
+            $query['signature'] = $this->hmac ($this->encode ($request), $secret);
             $body = $this->urlencode ($query);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
@@ -7690,7 +7702,8 @@ class kraken extends Market {
             $nonce = (string) $this->nonce ();
             $query = array_merge (array ( 'nonce' => $nonce ), $params);
             $body = $this->urlencode ($query);
-            $query = $url . $this->hash ($nonce . $body, 'sha256', 'binary');
+            $auth = $this->encode ($nonce . $body);
+            $query = $this->encode ($url) . $this->hash ($auth, 'sha256', 'binary');
             $secret = base64_decode ($this->secret);
             $headers = array (
                 'API-Key' => $this->apiKey,
@@ -7872,10 +7885,10 @@ class lakebtc extends Market {
                 'params' => $params,
                 'id' => $nonce,
             ));
-            $signature = $this->apiKey . ':' . $this->hmac ($query, $this->secret, 'sha1', 'base64');
+            $signature = $this->hmac ($this->encode ($query), $this->secret, 'sha1', 'base64');
             $headers = array (
                 'Json-Rpc-Tonce' => $nonce,
-                'Authorization' => "Basic " . $signature,
+                'Authorization' => "Basic " . $this->apiKey . ':' . $signature,
                 'Content-Length' => strlen ($body),
                 'Content-Type' => 'application/json',
             );
@@ -8051,14 +8064,19 @@ class livecoin extends Market {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
-            $query = $this->keysort ($params);
-            $body = $this->urlencode ($query);
+            $length = 0;
+            if ($params) {
+                $query = $this->keysort ($params);
+                $body = $this->urlencode ($query);
+                $length = count ($body);
+            }
+            $body = self.encode ($body || '');
             $signature = $this->hmac ($body, $this->secret, 'sha256');
             $headers = array (
                 'Api-Key' => $this->apiKey,
                 'Sign' => strtoupper ($signature),
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'Content-Length' => strlen ($body),
+                'Content-Length' => $length,
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -8272,8 +8290,9 @@ class luno extends Market {
         if ($query)
             $url .= '?' . $this->urlencode ($query);
         if ($type == 'private') {
-            $auth = base64_encode ($this->apiKey . ':' . $this->secret);
-            $headers = array ( 'Authorization' => 'Basic ' . $auth );
+            $auth = $this->encode ($this->apiKey . ':' . $this->secret);
+            $auth = base64_encode ($auth);
+            $headers = array ( 'Authorization' => 'Basic ' . $this->decode ($auth) );
         }
         return $this->fetch ($url, $method, $headers, $body);
     }
@@ -8421,7 +8440,7 @@ class mercado extends Market {
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'TAPI-ID' => $this->apiKey,
-                'TAPI-MAC' => $this->hmac ($auth, $this->secret, 'sha512'),
+                'TAPI-MAC' => $this->hmac ($this->encode ($auth), $this->secret, 'sha512'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -8581,7 +8600,7 @@ class okcoin extends Market {
             ), $params));
             // secret key must be at the end of $query
             $queryString = $this->urlencode ($query) . '&secret_key=' . $this->secret;
-            $query['sign'] = strtoupper ($this->hash ($queryString));
+            $query['sign'] = strtoupper ($this->hash ($this->encode ($queryString)));
             $body = $this->urlencode ($query);
             $headers = array ( 'Content-type' => 'application/x-www-form-urlencoded' );
         }
@@ -8792,7 +8811,7 @@ class paymium extends Market {
             $auth = $nonce . $url . $body;
             $headers = array (
                 'Api-Key' => $this->apiKey,
-                'Api-Signature' => $this->hmac ($auth, $this->secret),
+                'Api-Signature' => $this->hmac ($this->encode ($auth), $this->secret),
                 'Api-Nonce' => $nonce,
                 'Content-Type' => 'application/json',
             );
@@ -8980,7 +8999,7 @@ class poloniex extends Market {
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($body, $this->secret, 'sha512'),
+                'Sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -9121,8 +9140,8 @@ class quadrigacx extends Market {
             $url .= '?' . $this->urlencode ($params);
         } else {
             $nonce = $this->nonce ();
-            $request = implode ('', array ($nonce, $this->uid, $this->apiKey));
-            $signature = $this->hmac ($request, $this->secret);
+            $request = implode ('', array ((string) $nonce, $this->uid, $this->apiKey));
+            $signature = $this->hmac ($this->encode ($request), $this->secret);
             $query = array_merge (array (
                 'key' => $this->apiKey,
                 'nonce' => $nonce,
@@ -9484,7 +9503,7 @@ class southxchange extends Market {
             $body = $this->json ($query);
             $headers = array (
                 'Content-Type' => 'application/json',
-                'Hash' => $this->hmac ($body, $this->secret, 'sha512'),
+                'Hash' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -9681,10 +9700,11 @@ class therock extends Market {
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($type == 'private') {
             $nonce = (string) $this->nonce ();
+            $auth = $nonce . $url;
             $headers = array (
                 'X-TRT-KEY' => $this->apiKey,
                 'X-TRT-NONCE' => $nonce,
-                'X-TRT-SIGN' => $this->hmac ($nonce . $url, $this->secret, 'sha512'),
+                'X-TRT-SIGN' => $this->hmac ($this->encode ($auth), $this->secret, 'sha512'),
             );
             if ($query) {
                 $body = $this->json ($query);
@@ -9888,7 +9908,7 @@ class vaultoro extends Market {
             $url .= '?' . $this->urlencode ($query);
             $headers = array (
                 'Content-Type' => 'application/json',
-                'X-Signature' => $this->hmac ($url, $this->secret)
+                'X-Signature' => $this->hmac ($this->encode ($url), $this->secret)
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -10362,7 +10382,7 @@ class xbtce extends Market {
             else
                 $body = '';
             $auth = $nonce . $this->uid . $this->apiKey . $method . $url . $body;
-            $signature = $this->hmac ($auth, $this->secret, 'sha256', 'base64');
+            $signature = $this->hmac ($this->encode ($auth), $this->secret, 'sha256', 'base64');
             $credentials = implode (':', array ($this->uid, $this->apiKey, $nonce, $signature));
             $headers = array (
                 'Accept-Encoding' => 'gzip, deflate',
@@ -10522,7 +10542,7 @@ class yobit extends Market {
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'key' => $this->apiKey,
-                'sign' => $this->hmac ($body, $this->secret, 'sha512'),
+                'sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -10692,7 +10712,7 @@ class zaif extends Market {
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($body, $this->secret, 'sha512'),
+                'Sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);

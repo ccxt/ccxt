@@ -39,6 +39,9 @@ markets['coinspot'].secret = 'QGWL9ADB3JEQ7W48E8A3KTQQ42V2P821LQRJW3UU424ATYPXF8
 
 markets['lakebtc'].proxy = 'https://crossorigin.me/'
 
+markets['luno'].apiKey = 'nrpzg7rkd8pnf'
+markets['luno'].secret = 'Ps0DXw0TpTzdJ2Yek8V5TzFDfTWzyU5vfLdCiBP6vsI'
+
 var countryName = function (code) {
     return ((typeof countries[code] !== 'undefined') ? countries[code] : code)
 }
@@ -131,10 +134,10 @@ let testMarket = async market => {
         }
     }
 
-    log.green ('SYMBOL:', symbol)
-    if ((symbol.indexOf ('.d') < 0)) {
-        await testMarketSymbol (market, symbol)
-    }
+    // log.green ('SYMBOL:', symbol)
+    // if ((symbol.indexOf ('.d') < 0)) {
+    //     await testMarketSymbol (market, symbol)
+    // }
             
     // let trades = await market.fetchTrades (Object.keys (market.products)[0])
     // console.log (market.id, trades)
@@ -142,7 +145,7 @@ let testMarket = async market => {
     if (!market.apiKey || (market.apiKey.length < 1))
         return true
 
-    await sleep (delay)
+    // await sleep (delay)
 
     let balance = await market.fetchBalance ()
     console.log (market.id, 'balance', balance)

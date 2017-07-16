@@ -221,10 +221,17 @@ class Market (object):
         return result
 
     @staticmethod
-    def index_by (l, key):
-        result = {}
-        for x in l:
-            result[x[key]] = x
+    def index_by (array, key):
+        result = {}    
+        if type (array) is dict:
+            array = list (Market.keysort (array).items ())
+            for (id, element) in array:
+                k = element[key]
+                result[k] = element
+            return result
+        for element in array:
+            k = element[key]
+            result[k] = element
         return result
 
     @staticmethod
@@ -348,14 +355,26 @@ class Market (object):
             return base64.b64encode (h.digest ())
         return h.digest ()
 
+    # @staticmethod
+    # def hmac (request, secret, algorithm = hashlib.sha256, digest = 'hex'):
+    #     h = hmac.new (secret.encode (), request.encode (), algorithm)
+    #     # h = hmac.new (secret, request, algorithm)
+    #     if digest == 'hex':
+    #         return h.hexdigest ()
+    #     elif digest == 'base64':
+    #         return base64.b64encode (h.digest ())
+    #     return h.digest ().decode ()
+
     @staticmethod
     def hmac (request, secret, algorithm = hashlib.sha256, digest = 'hex'):
-        h = hmac.new (secret.encode (), request.encode (), algorithm)
+        # h = hmac.new (secret.encode (), request.encode (), algorithm)
+        # secret = secret if type (secret) is bytes else secret.encode ()
+        h = hmac.new (secret, request, algorithm)
         if digest == 'hex':
             return h.hexdigest ()
         elif digest == 'base64':
             return base64.b64encode (h.digest ())
-        return h.digest ().decode ()
+        return h.digest ()
 
     @staticmethod
     def base64urlencode (s):
@@ -363,10 +382,11 @@ class Market (object):
 
     @staticmethod
     def jwt (request, secret, algorithm = hashlib.sha256, alg = 'HS256'):
-        encodedHeader = Market.base64urlencode (Market.json ({ 'alg': alg, 'typ': 'JWT' }))
-        encodedData = Market.base64urlencode (Market.json (request))
+        encodedHeader = Market.base64urlencode (Market.encode (Market.json ({ 'alg': alg, 'typ': 'JWT' })))
+        encodedData = Market.base64urlencode (Market.encode (Market.json (request)))
         token = encodedHeader + '.' + encodedData
-        signature = Market.base64urlencode (Market.hmac (token, secret, algorithm, 'binary'))
+        hmac = Market.hmac (token, secret, algorithm, 'binary')
+        signature = Market.base64urlencode (hmac)
         return token + '.' + signature
 
     @staticmethod
@@ -374,12 +394,12 @@ class Market (object):
         return json.dumps (input, separators = (',', ':'))
 
     @staticmethod
-    def encode (input):
-        return input.encode ()
+    def encode (string):
+        return string.encode ()
 
     @staticmethod
-    def decode (input):
-        return input.decode ()
+    def decode (string):
+        return string.decode ()
 
     def nonce (self):
         return Market.seconds ()
@@ -388,11 +408,11 @@ class Market (object):
         if not reload:
             if self.products:
                 if not self.products_by_id:
-                    self.products_by_id = Market.indexBy (self.products, 'id')
+                    self.products_by_id = self.indexBy (self.products, 'id')
                     self.productsById = self.products_by_id
                 return self.products
         products = self.fetchProducts ()
-        self.products = Market.indexBy (products, 'symbol')
+        self.products = self.indexBy (products, 'symbol')
         self.products_by_id = Market.indexBy (products, 'id')
         self.productsById = self.products_by_id
         return self.products
@@ -750,7 +770,8 @@ class cryptocapital (Market):
                 'api_key': self.apiKey,
                 'nonce': self.nonce (),
             }, params)
-            query['signature'] = self.hmac (self.json (query), self.secret)
+            request = self.json (query)
+            query['signature'] = self.hmac (self.encode (request), self.secret)
             body = self.json (query)
             headers = { 'Content-Type': 'application/json' }
         return self.fetch (url, method, headers, body)
@@ -954,7 +975,7 @@ class anxpro (Market):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Rest-Key': self.apiKey,
-                'Rest-Sign': self.hmac (auth, secret, hashlib.sha512, 'base64'),
+                'Rest-Sign': self.hmac (self.encode (auth), secret, hashlib.sha512, 'base64'),
             }
         return self.fetch (url, method, headers, body)
 
@@ -1096,7 +1117,7 @@ class bit2c (Market):
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
                 'key': self.apiKey,
-                'sign': self.hmac (body, self.secret, hashlib.sha512, 'base64'),
+                'sign': self.hmac (self.encode (body), self.secret, hashlib.sha512, 'base64'),
             }
         return self.fetch (url, method, headers, body)
 
@@ -1240,7 +1261,7 @@ class bitbay (Market):
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
                 'API-Key': self.apiKey,
-                'API-Hash': self.hmac (body, self.secret, hashlib.sha512),
+                'API-Hash': self.hmac (self.encode (body), self.secret, hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)
 
@@ -1375,7 +1396,7 @@ class bitbays (Market):
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
                 'Key': self.apiKey,
-                'Sign': self.hmac (body, self.secret, hashlib.sha512),
+                'Sign': self.hmac (self.encode (body), self.secret, hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)
 
@@ -1525,7 +1546,7 @@ class bitcoincoid (Market):
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
                 'Key': self.apiKey,
-                'Sign': self.hmac (body, self.secret, hashlib.sha512),
+                'Sign': self.hmac (self.encode (body), self.secret, hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)
 
@@ -1713,10 +1734,11 @@ class bitfinex (Market):
             query = self.json (query)
             query = self.encode (query)
             payload = base64.b64encode (query)
+            secret = self.encode (self.secret)
             headers = {
                 'X-BFX-APIKEY': self.apiKey,
                 'X-BFX-PAYLOAD': payload,
-                'X-BFX-SIGNATURE': self.hmac (self.decode (payload), self.secret, hashlib.sha384),
+                'X-BFX-SIGNATURE': self.hmac (payload, secret, hashlib.sha384),
             }
         return self.fetch (url, method, headers, body)
 
@@ -1891,7 +1913,7 @@ class bitflyer (Market):
             headers = {
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
-                'ACCESS-SIGN': self.hmac (auth, self.secret),
+                'ACCESS-SIGN': self.hmac (self.encode (auth), self.secret),
                 'Content-Type': 'application/json',
             }
         return self.fetch (url, method, headers, body)
@@ -2222,7 +2244,7 @@ class bitmarket (Market):
             body = _urlencode.urlencode (query)
             headers = {
                 'API-Key': self.apiKey,
-                'API-Hash': self.hmac (body, self.secret, hashlib.sha512),
+                'API-Hash': self.hmac (self.encode (body), self.secret, hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)
 
@@ -2449,7 +2471,7 @@ class bitmex (Market):
                 'Content-Type': 'application/json',
                 'api-nonce': nonce,
                 'api-key': self.apiKey,
-                'api-signature': self.hmac (request, self.secret),
+                'api-signature': self.hmac (self.encode (request), self.secret),
             }
         return self.fetch (url, method, headers, body)
 
@@ -2621,7 +2643,7 @@ class bitso (Market):
                 body = self.json (params)
             nonce = str (self.nonce ())
             request = ''.join ([ nonce, method, query, body or '' ])
-            signature = self.hmac (request, self.secret)
+            signature = self.hmac (self.encode (request), self.secret)
             auth = self.apiKey + ':' + nonce + ':' + signature
             headers = { 'Authorization': "Bitso " + auth }
         return self.fetch (url, method, headers, body)
@@ -2769,7 +2791,7 @@ class bitstamp (Market):
         else:
             nonce = str (self.nonce ())
             auth = nonce + self.uid + self.apiKey
-            signature = self.hmac (auth, self.secret)
+            signature = self.hmac (self.encode (auth), self.secret)
             query = self.extend ({
                 'key': self.apiKey,
                 'signature': signature.upper (),
@@ -2948,7 +2970,7 @@ class bittrex (Market):
                 'nonce': nonce,
                 'apikey': self.apiKey,
             }, params))
-            headers = { 'apisign': self.hmac (url, self.secret, hashlib.sha512) }
+            headers = { 'apisign': self.hmac (self.encode (url), self.secret, hashlib.sha512) }
         return self.fetch (url, method, headers, body)
 
 #------------------------------------------------------------------------------
@@ -3104,7 +3126,7 @@ class blinktrade (Market):
             headers = {
                 'APIKey': self.apiKey,
                 'Nonce': nonce,
-                'Signature': self.hmac (nonce, self.secret),
+                'Signature': self.hmac (self.encode (nonce), self.secret),
                 'Content-Type': 'application/json',
             }
         return self.fetch (url, method, headers, body)
@@ -3293,7 +3315,7 @@ class btcchina (Market):
                 '&method=' + path +
                 '&params=' + p
             )
-            signature = self.hmac (query, self.secret, hashlib.sha1)
+            signature = self.hmac (self.encode (query), self.secret, hashlib.sha1)
             auth = self.apiKey + ':' + signature
             headers = {
                 'Content-Length': len (body),
@@ -3455,7 +3477,7 @@ class btce (Market):
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
                 'Key': self.apiKey,
-                'Sign': self.hmac (body, self.secret, hashlib.sha512),
+                'Sign': self.hmac (self.encode (body), self.secret, hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)
 
@@ -3591,7 +3613,7 @@ class btctrader (Market):
             headers = {
                 'X-PCK': self.apiKey,
                 'X-Stamp': str (nonce),
-                'X-Signature': self.hmac (auth, secret, hashlib.sha256, 'base64'),
+                'X-Signature': self.hmac (self.encode (auth), secret, hashlib.sha256, 'base64'),
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
             }
@@ -3798,9 +3820,10 @@ class btctradeua (Market):
                 'out_order_id': nonce,
                 'nonce': nonce,
             }, query))
+            auth = body + self.secret
             headers = {
                 'public-key': self.apiKey,
-                'api-sign': self.hash (body + self.secret, hashlib.sha256),
+                'api-sign': self.hash (self.encde (auth), 'sha256'),
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
             }
@@ -3956,7 +3979,7 @@ class btcx (Market):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': self.apiKey,
-                'Signature': self.hmac (body, self.secret, hashlib.sha512),
+                'Signature': self.hmac (self.encode (body), self.secret, hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)
 
@@ -4113,7 +4136,7 @@ class bter (Market):
             body = _urlencode.urlencode (self.extend (request, query))
             headers = {
                 'Key': self.apiKey,
-                'Sign': self.hmac (body, self.secret, hashlib.sha512),
+                'Sign': self.hmac (self.encode (body), self.secret, hashlib.sha512),
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
             }
@@ -4272,7 +4295,8 @@ class bxinth (Market):
             url += '?' + _urlencode.urlencode (params)
         if type == 'private':
             nonce = self.nonce ()
-            signature = self.hash (self.apiKey + nonce + self.secret, hashlib.sha256)
+            auth = self.apiKey + str (nonce) + self.secret
+            signature = self.hash (self.encode (auth), 'sha256')
             body = _urlencode.urlencode (self.extend ({
                 'key': self.apiKey,
                 'nonce': nonce,
@@ -4444,7 +4468,7 @@ class ccex (Market):
                 'nonce': nonce,
             }, params))
             url += '?' + _urlencode.urlencode (query)
-            headers = { 'apisign': self.hmac (url, self.secret, hashlib.sha512) }
+            headers = { 'apisign': self.hmac (self.encode (url), self.secret, hashlib.sha512) }
         elif type == 'public':
             url += '?' + _urlencode.urlencode (self.extend ({
                 'a': 'get' + path,
@@ -4598,9 +4622,10 @@ class cex (Market):
                 url += '?' + _urlencode.urlencode (query)
         else:
             nonce = str (self.nonce ())
+            auth = nonce + self.uid + self.apiKey
             body = _urlencode.urlencode (self.extend ({
                 'key': self.apiKey,
-                'signature': self.hmac (nonce + self.uid + self.apiKey, self.secret).upper (),
+                'signature': self.hmac (self.encode (auth), self.secret).upper (),
                 'nonce': nonce,
             }, query))
             headers = {
@@ -4800,14 +4825,17 @@ class coincheck (Market):
                 url += '?' + _urlencode.urlencode (query)
         else:
             nonce = str (self.nonce ())
+            length = 0
             if query:
                 body = _urlencode.urlencode (self.keysort (query))
+                length = len (body)
+            auth = nonce + url + (body or '')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len (body),
+                'Content-Length': length,
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-NONCE': nonce,
-                'ACCESS-SIGNATURE': self.hmac (nonce + url + (body or ''), self.secret)
+                'ACCESS-SIGNATURE': self.hmac (self.encode (auth), self.secret)
             }
         return self.fetch (url, method, headers, body)
 
@@ -4952,7 +4980,7 @@ class coinmate (Market):
         else:
             nonce = str (self.nonce ())
             auth = ' '.join ([ nonce, self.uid, self.apiKey ])
-            signature = self.hmac (auth, self.secret)
+            signature = self.hmac (self.encode (auth), self.secret)
             body = _urlencode.urlencode (self.extend ({
                 'clientId': self.uid,
                 'nonce': nonce,
@@ -5345,7 +5373,7 @@ class coinspot (Market):
                 'Content-Type': 'application/json',
                 'Content-Length': len (body),
                 'key': self.apiKey,
-                'sign': self.hmac (body, self.secret, hashlib.sha512),
+                'sign': self.hmac (self.encode (body), self.secret, hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)
 
@@ -5523,7 +5551,7 @@ class dsx (Market):
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
                 'Key': self.apiKey,
-                'Sign': self.hmac (body, self.secret, hashlib.sha512, 'base64'),
+                'Sign': self.hmac (self.encode (body), self.secret, hashlib.sha512, 'base64'),
             }
         return self.fetch (url, method, headers, body)
 
@@ -5684,7 +5712,7 @@ class exmo (Market):
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
                 'Key': self.apiKey,
-                'Sign': self.hmac (body, self.secret, hashlib.sha512),
+                'Sign': self.hmac (self.encode (body), self.secret, hashlib.sha512),
             }
         result = self.fetch (url, method, headers, body)
         if 'result' in result:
@@ -5842,7 +5870,7 @@ class flowbtc (Market):
         else:
             nonce = self.nonce ()
             auth = nonce + self.uid + self.apiKey
-            signature = self.hmac (auth, self.secret)
+            signature = self.hmac (self.encode (auth), self.secret)
             body = _urlencode.urlencode (self.extend ({
                 'apiKey': self.apiKey,
                 'apiNonce': nonce,
@@ -5981,7 +6009,7 @@ class fyb (Market):
             headers = {
                 'Content-type': 'application/x-www-form-urlencoded',
                 'key': self.apiKey,
-                'sig': self.hmac (body, self.secret, hashlib.sha1)
+                'sig': self.hmac (self.encode (body), self.secret, hashlib.sha1)
             }
         return self.fetch (url, method, headers, body)
 
@@ -6202,7 +6230,7 @@ class gdax (Market):
                 body = self.json (query)
             what = nonce + method + request + (body or '')
             secret = base64.b64decode (self.secret)
-            signature = self.hmac (what, secret, hashlib.sha256, 'binary')
+            signature = self.hmac (self.encode (what), secret, hashlib.sha256, 'binary')
             headers = {
                 'CB-ACCESS-KEY': self.apiKey,
                 'CB-ACCESS-SIGN': base64.b64encode (signature),
@@ -6367,7 +6395,7 @@ class gemini (Market):
                 'nonce': nonce,
             }, query)
             payload = base64.b64encode (self.json (request))
-            signature = self.hmac (payload, self.secret, hashlib.sha384)
+            signature = self.hmac (self.encode (payload), self.secret, hashlib.sha384)
             headers = {
                 'Content-Type': 'text/plain',
                 'Content-Length': 0,
@@ -6551,9 +6579,10 @@ class hitbtc (Market):
                     body = _urlencode.urlencode (query)
             if query:
                 url += '?' + _urlencode.urlencode (query)
+            auth = url + (body or '')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Signature': self.hmac (url + (body or ''), self.secret, hashlib.sha512).lower (),
+                'X-Signature': self.hmac (self.encode (auth), self.secret, hashlib.sha512).lower (),
             }
         url = self.urls['api'] + url
         return self.fetch (url, method, headers, body)
@@ -6702,7 +6731,7 @@ class huobi (Market):
             queryString = _urlencode.urlencode (self.omit (query, 'market'))
             # secret key must be at the end of query to be signed
             queryString += '&secret_key=' + self.secret
-            query['sign'] = self.hash (queryString)
+            query['sign'] = self.hash (self.encode (queryString))
             body = _urlencode.urlencode (query)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -6866,8 +6895,8 @@ class itbit (Market):
             timestamp = nonce
             auth = [ method, url, body, nonce, timestamp ]
             message = nonce + self.json (auth)
-            hashedMessage = self.hash (message, hashlib.sha256, 'binary')
-            signature = self.hmac (url + hashedMessage, self.secret, hashlib.sha512, 'base64')
+            hashedMessage = self.hash (message, 'sha256', 'binary')
+            signature = self.hmac (self.encode (url + hashedMessage), self.secret, hashlib.sha512, 'base64')
             headers = {
                 'Authorization': self.apiKey + ':' + signature,
                 'Content-Type': 'application/json',
@@ -7031,7 +7060,9 @@ class jubi (Market):
                 'key': self.apiKey,
                 'nonce': nonce,
             }, params)
-            query['signature'] = self.hmac (_urlencode.urlencode (query), self.hash (self.secret))
+            request = _urlencode.urlencode (query)
+            secret = self.hash (self.encode (self.secret))
+            query['signature'] = self.hmac (self.encode (request), secret)
             body = _urlencode.urlencode (query)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -7210,7 +7241,8 @@ class kraken (Market):
             nonce = str (self.nonce ())
             query = self.extend ({ 'nonce': nonce }, params)
             body = _urlencode.urlencode (query)
-            query = url + self.hash (nonce + body, hashlib.sha256, 'binary')
+            auth = self.encode (nonce + body)
+            query = self.encode (url) + self.hash (auth, 'sha256', 'binary')
             secret = base64.b64decode (self.secret)
             headers = {
                 'API-Key': self.apiKey,
@@ -7380,10 +7412,10 @@ class lakebtc (Market):
                 'params': params,
                 'id': nonce,
             })
-            signature = self.apiKey + ':' + self.hmac (query, self.secret, hashlib.sha1, 'base64')
+            signature = self.hmac (self.encode (query), self.secret, hashlib.sha1, 'base64')
             headers = {
                 'Json-Rpc-Tonce': nonce,
-                'Authorization': "Basic " + signature,
+                'Authorization': "Basic " + self.apiKey + ':' + signature,
                 'Content-Length': len (body),
                 'Content-Type': 'application/json',
             }
@@ -7547,14 +7579,18 @@ class livecoin (Market):
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
-            query = self.keysort (params)
-            body = _urlencode.urlencode (query)
+            length = 0
+            if params:
+                query = self.keysort (params)
+                body = _urlencode.urlencode (query)
+                length = len (body)
+            body = self.encode (body or '')
             signature = self.hmac (body, self.secret, hashlib.sha256)
             headers = {
                 'Api-Key': self.apiKey,
                 'Sign': signature.upper (),
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len (body),
+                'Content-Length': length,
             }
         return self.fetch (url, method, headers, body)
 
@@ -7755,8 +7791,9 @@ class luno (Market):
         if query:
             url += '?' + _urlencode.urlencode (query)
         if type == 'private':
-            auth = base64.b64encode (self.apiKey + ':' + self.secret)
-            headers = { 'Authorization': 'Basic ' + auth }
+            auth = self.encode (self.apiKey + ':' + self.secret)
+            auth = base64.b64encode (auth)
+            headers = { 'Authorization': 'Basic ' + self.decode (auth) }
         return self.fetch (url, method, headers, body)
 
 #------------------------------------------------------------------------------
@@ -7896,7 +7933,7 @@ class mercado (Market):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'TAPI-ID': self.apiKey,
-                'TAPI-MAC': self.hmac (auth, self.secret, hashlib.sha512),
+                'TAPI-MAC': self.hmac (self.encode (auth), self.secret, hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)
 
@@ -8048,7 +8085,7 @@ class okcoin (Market):
             }, params))
             # secret key must be at the end of query
             queryString = _urlencode.urlencode (query) + '&secret_key=' + self.secret
-            query['sign'] = self.hash (queryString).upper ()
+            query['sign'] = self.hash (self.encode (queryString)).upper ()
             body = _urlencode.urlencode (query)
             headers = { 'Content-type': 'application/x-www-form-urlencoded' }
         url = self.urls['api'] + url
@@ -8249,7 +8286,7 @@ class paymium (Market):
             auth = nonce + url + body
             headers = {
                 'Api-Key': self.apiKey,
-                'Api-Signature': self.hmac (auth, self.secret),
+                'Api-Signature': self.hmac (self.encode (auth), self.secret),
                 'Api-Nonce': nonce,
                 'Content-Type': 'application/json',
             }
@@ -8425,7 +8462,7 @@ class poloniex (Market):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': self.apiKey,
-                'Sign': self.hmac (body, self.secret, hashlib.sha512),
+                'Sign': self.hmac (self.encode (body), self.secret, hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)
 
@@ -8556,8 +8593,8 @@ class quadrigacx (Market):
             url += '?' + _urlencode.urlencode (params)
         else:
             nonce = self.nonce ()
-            request = ''.join ([ nonce, self.uid, self.apiKey ])
-            signature = self.hmac (request, self.secret)
+            request = ''.join ([ str (nonce), self.uid, self.apiKey ])
+            signature = self.hmac (self.encode (request), self.secret)
             query = self.extend ({
                 'key': self.apiKey,
                 'nonce': nonce,
@@ -8895,7 +8932,7 @@ class southxchange (Market):
             body = self.json (query)
             headers = {
                 'Content-Type': 'application/json',
-                'Hash': self.hmac (body, self.secret, hashlib.sha512),
+                'Hash': self.hmac (self.encode (body), self.secret, hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)
 
@@ -9080,10 +9117,11 @@ class therock (Market):
         query = self.omit (params, self.extract_params (path))
         if type == 'private':
             nonce = str (self.nonce ())
+            auth = nonce + url
             headers = {
                 'X-TRT-KEY': self.apiKey,
                 'X-TRT-NONCE': nonce,
-                'X-TRT-SIGN': self.hmac (nonce + url, self.secret, hashlib.sha512),
+                'X-TRT-SIGN': self.hmac (self.encode (auth), self.secret, hashlib.sha512),
             }
             if query:
                 body = self.json (query)
@@ -9275,7 +9313,7 @@ class vaultoro (Market):
             url += '?' + _urlencode.urlencode (query)
             headers = {
                 'Content-Type': 'application/json',
-                'X-Signature': self.hmac (url, self.secret)
+                'X-Signature': self.hmac (self.encode (url), self.secret)
             }
         return self.fetch (url, method, headers, body)
 
@@ -9722,7 +9760,7 @@ class xbtce (Market):
             else:
                 body = ''
             auth = nonce + self.uid + self.apiKey + method + url + body
-            signature = self.hmac (auth, self.secret, hashlib.sha256, 'base64')
+            signature = self.hmac (self.encode (auth), self.secret, hashlib.sha256, 'base64')
             credentials = ':'.join ([ self.uid, self.apiKey, nonce, signature ])
             headers = {
                 'Accept-Encoding': 'gzip, deflate',
@@ -9872,7 +9910,7 @@ class yobit (Market):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': self.apiKey,
-                'sign': self.hmac (body, self.secret, hashlib.sha512),
+                'sign': self.hmac (self.encode (body), self.secret, hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)
 
@@ -10032,6 +10070,6 @@ class zaif (Market):
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
                 'Key': self.apiKey,
-                'Sign': self.hmac (body, self.secret, hashlib.sha512),
+                'Sign': self.hmac (self.encode (body), self.secret, hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)

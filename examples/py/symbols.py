@@ -16,11 +16,11 @@ sys.path.append (root)
 
 import ccxt
 
-def log (*args):
+def dump (*args):
     print (' '.join ([str (arg) for arg in args]))
 
 def print_supported_markets ():
-    log ('Supported markets:', green (', '.join (ccxt.markets)))
+    dump ('Supported markets:', green (', '.join (ccxt.markets)))
 
 try:
 
@@ -31,7 +31,7 @@ try:
 
     if market_found:
         
-        log ('Instantiating', green (id), 'exchange market')
+        dump ('Instantiating', green (id), 'exchange market')
         
         # instantiate the exchange by id
         market = getattr (ccxt, id) ()
@@ -41,20 +41,20 @@ try:
         
         # output a list of all product symbols
         symbols = list (products.keys ())
-        log (green (id), 'has', len (symbols), 'symbols:', yellow (', '.join (symbols)))
+        dump (green (id), 'has', len (symbols), 'symbols:', yellow (', '.join (symbols)))
 
         # output a table of all products
-        log (pink ('{:<15} {:<15} {:<15} {:<15}'.format ('id', 'symbol', 'base', 'quote')))
+        dump (pink ('{:<15} {:<15} {:<15} {:<15}'.format ('id', 'symbol', 'base', 'quote')))
         tuples = list (ccxt.Market.keysort (products).items ())
         for (k, v) in tuples:
-            log ('{:<15} {:<15} {:<15} {:<15}'.format (v['id'], v['symbol'], v['base'], v['quote']))
+            dump ('{:<15} {:<15} {:<15} {:<15}'.format (v['id'], v['symbol'], v['base'], v['quote']))
 
     else:
 
-        log ('Market ' + red (id) + ' not found')
+        dump ('Market ' + red (id) + ' not found')
         print_supported_markets ()
 
 except:
     
-    log ("Usage: python " + sys.argv[0], green ('id'))
+    dump ("Usage: python " + sys.argv[0], green ('id'))
     print_supported_markets ()

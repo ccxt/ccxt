@@ -13,13 +13,17 @@ import ccxt
 import time
 import sys
 
-try:
+try: # try to load the markets config
 
     from config import markets as markets
 
-except ImportError:
+except ImportError: # fallback
 
     markets = {}
+
+# print a colored string
+def dump (*args):
+    print (' '.join ([str (arg) for arg in args]))
 
 def test_market_symbol_orderbook (market, symbol):
     delay = int (market.rateLimit / 1000)
@@ -53,10 +57,11 @@ def test_market_symbol (market, symbol):
 def load_market (market):
     products = market.load_products ()
     keys = list (market.products.keys ())
-    print (market.id , len (keys), 'symbols', keys)
+    # print (market.id , len (keys), 'symbols', keys)
 
 def test_market (market):
 
+    dump (red (market.id))
     delay = 2
     keys = list (market.products.keys ())
 
@@ -77,8 +82,8 @@ def test_market (market):
         if s in keys:
             symbol = s
 
-    if symbol.find ('.d') < 0:
-        test_market_symbol (market, symbol)
+    # if symbol.find ('.d') < 0:
+    #     test_market_symbol (market, symbol)
 
     #--------------------------------------------------------------------------
     # private API
@@ -88,7 +93,7 @@ def test_market (market):
 
     balance = market.fetch_balance ()
     print (balance)
-    time.sleep (delay)
+    # time.sleep (delay)
 
     amount = 1
     price = 0.0161
@@ -116,7 +121,7 @@ for id in ccxt.markets:
     markets[id] = market ({
         'verbose': False,
         # 'proxy': 'https://crossorigin.me/',
-        # 'proxy': 'https://cors-anywhere.herokuapp.com/',
+        'proxy': 'https://cors-anywhere.herokuapp.com/',
         # 'proxy': 'http://cors-proxy.htmldriven.com/?url=',
     })
 
@@ -128,6 +133,51 @@ markets['xbtce'].secret = 'qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwKqH
 
 markets['coinspot'].apiKey = '36b5803f892fe97ccd0b22da79ce6b21'
 markets['coinspot'].secret = 'QGWL9ADB3JEQ7W48E8A3KTQQ42V2P821LQRJW3UU424ATYPXF893RR4THKE9DT0RBNHKX8L54F35KBVFH'
+
+api_keys = {
+    '_1broker':    { 'apiKey': 'A0f79063a5e91e6d62fbcbbbbdd63258' },
+    '_1btcxe':     { 'apiKey': '7SuUd4B6zfGAojPn', 'secret': '392WCRKmGpcXdiVzsyQqwengLTOHkhDa' },
+    'bit2c':       { 'apiKey': '5296814c-b1dc-4201-a62a-9b2364e890da', 'secret': '8DC1100F7CAB0AE6FE72451C442BE7B111404CBD569CE6162F8F2122CAEB211C' },
+    'bitbay':      { 'apiKey': '3faec3e5458d24809a68fbaf0e97245b', 'secret': '2ffb20992e10dd54fd4fd4133cc09b00' },
+    'bitcoincoid': { 'apiKey': 'KFB2MWYU-HTOUVOSO-UZYRPLUY-LIYMVPRU-UTOMHXYD', 'secret': '5ecb9464b3fad228110f33c6fbb32990b755351216e63089fdaf8f2735b4577bd9c335236f1a71e3' },
+    'bitfinex':    { 'apiKey': '3oMHSKu37ZoJliKwcN35JHfXUBHxWvVqQmRfaFhbBTF', 'secret': 'm9Cf9krGuRolalRxsIBO53GNLmr6GXYIASwoGJiZxhS' },
+    'bitlish':     { 'apiKey': 'fixed:N5lK4iokAc9ajk0Z8pvHfpoJsyzNzQ2nespNH/mY7is', 'login': 'igor.kroitor@gmail.com', 'password': 'VfvfVskfHfve229!' },
+    'bitmarket':   { 'apiKey': '43a868dc9517485f28905b320581d1cf', 'secret': '892b34c7d8e6669550aa9d12aed0ad34' },
+    'bitmex':      { 'apiKey': 'nsLKchj2hAxc5t5CP6LGTNSC', 'secret': '4AqteCYo9ZCPx9J3dhNiGY-_LTfmtLyqCzh-XSbCibuC-Pf6', 'proxy': '' },
+    'bitso':       { 'apiKey': 'FZZzVkZgza', 'secret': 'f763b98d46d8c5e352b4ef70050bc9b1' },
+    'bittrex':     { 'apiKey': '60f38a5818934fc08308778f94d3d8c4', 'secret': '9d294ddb5b944403b58e5298653720c1' },
+    'btcx':        { 'apiKey': '53IPO-ZBQEN-91UNL-B8VD5-CTU1Z-E6RB1-S9X3P', 'secret': 'ptrearsi6oy1lmzazfcytnbozmsvjsnzha8hrrqqbjlnvgnqlpjb7kqxyency45a' },
+    'bxinth':      { 'apiKey': '191c59bb46d5', 'secret': '03031e588e69' },
+    'ccex':        { 'apiKey': '301D5954466D87CEAA9BA713A7951F5A', 'secret': 'F7DC06D6329FC1C266BFFA18DCC8A07D' },
+    'cex':         { 'apiKey': 'eqCv267WySlu577JnFbGK2RQzIs', 'secret': 'pZnbuNEm5eE4W1VRuFQvZEiFCA', 'uid': 'up105393824' },
+    'coincheck':   { 'apiKey': '1YBiSTpyEIkchWdE', 'secret': 'URuZrMASNkcd7vh1zb7zn4IQfZMoai3S' },
+    'coinsecure':  { 'apiKey': 'gzrm0fP6BGMilMzmsoJFPMpWjDvCLThyrVanX0yu' },
+    'exmo':        { 'apiKey': 'K-601084201c8ab462adbb95793af6b5cf60b88bc5', 'secret': 'S-3cab1e1de1b8d520e605a41a1c656f38e7436bad' },
+    'fybse':       { 'apiKey': 'gY7y57RlYqKN5ZI50O5C', 'secret': '1qm63Ojf5a' },
+    'fybsg':       { 'apiKey': '', 'secret': '' },
+    'hitbtc':      { 'apiKey': '18339694544745d9357f9e7c0f7c41bb', 'secret': '8340a60fb4e9fc73a169c26c7a7926f5' },
+    'huobi':       { 'apiKey': '09bdde40-cc179779-1941272a-433a7', 'secret': 'ce6487f4-f078c39f-018ea6ce-01922' },
+    'jubi':        { 'apiKey': '4edas-tn7jn-cpr8a-1er4k-r8h8i-cp6kj-jpzyz', 'secret': 'YYO(r-mp$2G-m4&1b-EYu~$-%tS4&-jNNhI-L!pg^' },
+    'kraken':      { 'apiKey': 'U8Xl/yQiCODrNjb7QJEN6aQyRUhgUPi6iEhsULj/+2OsYODUh/kzroWk', 'secret': '9U+KkReBBlyKiA+4458vK3LreLEclrThPMhYSBfut9UdCuOux5+AMKCtaC1/G8waPAtZIDQcwv2hCPelvRZEfQ==' },
+    'livecoin':    { 'apiKey': 'W5z7bvQM2pEShvGmqq1bXZkb1MR32GKw', 'secret': 'n8FrknvqwsRnTpGeNAbC51waYdE4xxSB', },
+    'luno':        { 'apiKey': 'nrpzg7rkd8pnf', 'secret': 'Ps0DXw0TpTzdJ2Yek8V5TzFDfTWzyU5vfLdCiBP6vsI' },
+    'okcoinusd':   { 'apiKey': 'da83cf1b-6fdc-495a-af55-f809bec64e2b', 'secret': '614D2E6D3428C2C5E54C81139A500BE0' },
+    'okcoincny':   { 'apiKey': '', 'secret' : '' },
+    'poloniex':    { 'apiKey': '6ORNNIXJ-EGXMM5BT-EEGJ5NRV-H78QHS3D', 'secret': '065aad42b2656f374974f4e42558b2d5071f31187aa973210186932acb2f2f3d86e2c481ddf5436e56596a50d4833f00e002d467d1d0597022a9a81ff4e66506' },
+    'quadrigacx':  { 'apiKey': 'jKvWkMqrOj', 'secret': 'f65a2e3bf3c73171ee14e389314b2f78', 'uid': '395037' },
+    'quoine':      { 'apiKey': '80953', 'secret': 'WfHUWcdFoGvZSuE7pE8XDh8FG9t5OP69iYrcwdnRs4rRn2uzZW+AHCyp/nBjlZcB+LWe3r6y2DCCYu+WcYkCAA==' },
+    'therock':     { 'apiKey': '2b2a54cc6258b2a971318000d60e6b61ba4af05e', 'secret': 'b424a76088bda492852dbd5cadbb60ebcf144427' },
+    'vaultoro':    { 'apiKey': 'A5jfgi567JP5QPpXYpETfsw92khpuNfR', 'secret': 'OExkUFpUX3o5UHB4amFtQ2R4QUh1RFBPMUhnX0k1bUY=' },
+    'virwox':      { 'apiKey': '1ea680450b32585f743c50c051bf8e4e', 'login': 'IgorKroitor', 'password': 'HfveVskfVfvf260' },
+    'yobit':       { 'apiKey': '5DB6C7C6034E667D77F85B245772A7FD', 'secret': '1b6cf1838716f5c87f07391a9b30f974' },
+    'zaif':        { 'apiKey': '580c7232-06c7-4698-8fb7-4cd2a543cea8', 'secret': '4c529fd6-fb28-4879-b20d-2a8f02c5db47' },
+}
+
+tuples = list (ccxt.Market.keysort (api_keys).items ())
+for (id, params) in tuples:
+    keys = list (params.keys ())
+    for key in keys:
+        setattr (markets[id], key, params[key])
 
 id = None
 
@@ -165,5 +215,5 @@ else:
             print (type (e).__name__, e.args, 'Market Not Available Error due to downtime or maintenance (ignoring)')
         except ccxt.AuthenticationError as e:
             print (type (e).__name__, e.args, 'Authentication Error (missing API keys, ignoring)')
-        except Exception as e:
-            print (type (e).__name__, e.args)
+        # except Exception as e:
+        #     print (type (e).__name__, e.args, str (e))
