@@ -2794,7 +2794,7 @@ class bitstamp (Market):
         else:
             nonce = str (self.nonce ())
             auth = nonce + self.uid + self.apiKey
-            signature = self.hmac (self.encode (auth), self.secret)
+            signature = self.hmac (self.encode (auth), self.encode (self.secret))
             query = self.extend ({
                 'key': self.apiKey,
                 'signature': signature.upper (),

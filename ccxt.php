@@ -2960,7 +2960,7 @@ class bitstamp extends Market {
         } else {
             $nonce = (string) $this->nonce ();
             $auth = $nonce . $this->uid . $this->apiKey;
-            $signature = $this->hmac ($this->encode ($auth), $this->secret);
+            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
             $query = array_merge (array (
                 'key' => $this->apiKey,
                 'signature' => strtoupper ($signature),

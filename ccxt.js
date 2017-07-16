@@ -2845,7 +2845,7 @@ var bitstamp = {
         } else {
             let nonce = this.nonce ().toString ();
             let auth = nonce + this.uid + this.apiKey;
-            let signature = this.hmac (this.encode (auth), this.secret);
+            let signature = this.hmac (this.encode (auth), this.encode (this.secret));
             query = this.extend ({
                 'key': this.apiKey,
                 'signature': signature.toUpperCase (),

@@ -125,7 +125,7 @@ for id in ccxt.markets:
     markets[id] = market ({
         'verbose': False,
         # 'proxy': 'https://crossorigin.me/',
-        # 'proxy': 'https://cors-anywhere.herokuapp.com/',
+        'proxy': 'https://cors-anywhere.herokuapp.com/',
         # 'proxy': 'http://cors-proxy.htmldriven.com/?url=',
     })
 
@@ -148,6 +148,9 @@ markets['poloniex'].secret = '065aad42b2656f374974f4e42558b2d5071f31187aa9732101
 
 markets['livecoin'].apiKey = 'W5z7bvQM2pEShvGmqq1bXZkb1MR32GKw'
 markets['livecoin'].secret = 'n8FrknvqwsRnTpGeNAbC51waYdE4xxSB'
+
+markets['bitstamp'].apiKey = 'blabla'
+markets['bitstamp'].secret = 'blabla'
 
 id = None
 
