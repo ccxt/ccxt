@@ -134,10 +134,10 @@ let testMarket = async market => {
         }
     }
 
-    // log.green ('SYMBOL:', symbol)
-    // if ((symbol.indexOf ('.d') < 0)) {
-    //     await testMarketSymbol (market, symbol)
-    // }
+    log.green ('SYMBOL:', symbol)
+    if ((symbol.indexOf ('.d') < 0)) {
+        await testMarketSymbol (market, symbol)
+    }
             
     // let trades = await market.fetchTrades (Object.keys (market.products)[0])
     // console.log (market.id, trades)
