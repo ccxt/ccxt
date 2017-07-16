@@ -232,6 +232,8 @@ class Market {
         $this->verbose   = false;
         $this->apiKey    = '';
         $this->secret    = '';
+        $this->password  = '';
+        $this->uid       = '';
         $this->productsById = null;
         $this->products_by_id = null;
 

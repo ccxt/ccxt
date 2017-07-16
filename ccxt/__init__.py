@@ -119,6 +119,8 @@ class Market (object):
     proxy     = ''
     apiKey    = ''
     secret    = ''
+    password  = ''
+    uid       = ''
     productsById = None
     products_by_id = None
 
