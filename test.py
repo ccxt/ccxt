@@ -123,7 +123,7 @@ def test_market (market):
 for id in ccxt.markets:
     market = getattr (ccxt, id)
     markets[id] = market ({
-        'verbose': True,
+        'verbose': False,
         # 'proxy': 'https://crossorigin.me/',
         # 'proxy': 'https://cors-anywhere.herokuapp.com/',
         # 'proxy': 'http://cors-proxy.htmldriven.com/?url=',
@@ -145,6 +145,9 @@ markets['gdax'].password = '6kszf4aci8r'
 
 markets['poloniex'].apiKey = '6ORNNIXJ-EGXMM5BT-EEGJ5NRV-H78QHS3D'
 markets['poloniex'].secret = '065aad42b2656f374974f4e42558b2d5071f31187aa973210186932acb2f2f3d86e2c481ddf5436e56596a50d4833f00e002d467d1d0597022a9a81ff4e66506'
+
+markets['livecoin'].apiKey = 'W5z7bvQM2pEShvGmqq1bXZkb1MR32GKw'
+markets['livecoin'].secret = 'n8FrknvqwsRnTpGeNAbC51waYdE4xxSB'
 
 id = None
 

@@ -7722,7 +7722,7 @@ class livecoin (Market):
                 body = _urlencode.urlencode (query)
                 length = len (body)
             body = self.encode (body or '')
-            signature = self.hmac (body, self.secret, hashlib.sha256)
+            signature = self.hmac (body, self.encode (self.secret), hashlib.sha256)
             headers = {
                 'Api-Key': self.apiKey,
                 'Sign': signature.upper (),
