@@ -71,12 +71,13 @@ try:
 
         except: # run through all symbols one by one
 
+            delay = int (market.rateLimit / 1000) # delay in between requests
+
             for symbol in symbols:
 
                 if symbol.find ('.d') < 0: # suffix '.d' means 'darkpool' on some markets
                     
                     # sleep to remain under the rateLimit
-                    delay = int (market.rateLimit / 1000)
                     time.sleep (delay)
 
                     # fetch and print ticker
