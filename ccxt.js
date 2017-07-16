@@ -10327,9 +10327,11 @@ var yobit = {
         });
         let orderbook = response[p['id']];
         let timestamp = this.milliseconds ();
+        let bids = ('bids' in orderbook) ? orderbook['bids'] : [];
+        let asks = ('asks' in orderbook) ? orderbook['asks'] : [];
         let result = {
-            'bids': orderbook['bids'],
-            'asks': orderbook['asks'],
+            'bids': bids,
+            'asks': asks,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };

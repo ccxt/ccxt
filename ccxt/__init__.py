@@ -10005,9 +10005,11 @@ class yobit (Market):
         })
         orderbook = response[p['id']]
         timestamp = self.milliseconds ()
+        bids = orderbook['bids'] if ('bids' in list (orderbook.keys ())) else []
+        asks = orderbook['asks'] if ('asks' in list (orderbook.keys ())) else []
         result = {
-            'bids': orderbook['bids'],
-            'asks': orderbook['asks'],
+            'bids': bids,
+            'asks': asks,
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),
         }

@@ -10633,9 +10633,11 @@ class yobit extends Market {
         ));
         $orderbook = $response[$p['id']];
         $timestamp = $this->milliseconds ();
+        $bids = (array_key_exists ('bids', $orderbook)) ? $orderbook['bids'] : array ();
+        $asks = (array_key_exists ('asks', $orderbook)) ? $orderbook['asks'] : array ();
         $result = array (
-            'bids' => $orderbook['bids'],
-            'asks' => $orderbook['asks'],
+            'bids' => $bids,
+            'asks' => $asks,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
