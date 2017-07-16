@@ -4785,9 +4785,10 @@ var cex = {
         } else {
             let nonce = this.nonce ().toString ();
             let auth = nonce + this.uid + this.apiKey;
+            let signature = this.hmac (this.encode (auth), this.encode (this.secret));
             body = this.urlencode (this.extend ({
                 'key': this.apiKey,
-                'signature': this.hmac (this.encode (auth), this.secret).toUpperCase (),
+                'signature': signature.toUpperCase (),
                 'nonce': nonce,
             }, query));
             headers = {

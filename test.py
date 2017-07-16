@@ -156,6 +156,8 @@ markets['bitstamp'].secret = 'blabla'
 markets['gemini'].apiKey = 'blabla'
 markets['gemini'].secret = 'blabla'
 
+markets['cex'].apiKey = 'blabla'
+markets['cex'].secret = 'blabla'
 
 id = None
 

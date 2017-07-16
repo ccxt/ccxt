@@ -4926,9 +4926,10 @@ class cex extends Market {
         } else {
             $nonce = (string) $this->nonce ();
             $auth = $nonce . $this->uid . $this->apiKey;
+            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
             $body = $this->urlencode (array_merge (array (
                 'key' => $this->apiKey,
-                'signature' => strtoupper ($this->hmac ($this->encode ($auth), $this->secret)),
+                'signature' => strtoupper ($signature),
                 'nonce' => $nonce,
             ), $query));
             $headers = array (

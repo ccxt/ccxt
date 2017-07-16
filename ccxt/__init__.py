@@ -4642,9 +4642,10 @@ class cex (Market):
         else:
             nonce = str (self.nonce ())
             auth = nonce + self.uid + self.apiKey
+            signature = self.hmac (self.encode (auth), self.encode (self.secret))
             body = _urlencode.urlencode (self.extend ({
                 'key': self.apiKey,
-                'signature': self.hmac (self.encode (auth), self.secret).upper (),
+                'signature': signature.upper (),
                 'nonce': nonce,
             }, query))
             headers = {
