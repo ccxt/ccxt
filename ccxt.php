@@ -37,6 +37,7 @@ class Market {
         'cex',
         'chilebit',
         'coincheck',
+        'coinmarketcap',
         'coinmate',
         'coinsecure',
         'coinspot',
@@ -5142,6 +5143,150 @@ class coincheck extends Market {
                 'ACCESS-SIGNATURE' => $this->hmac ($this->encode ($auth), $this->secret)
             );
         }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+class coinmarketcap extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'coinmarketcap',
+            'name' => 'CoinMarketCap',
+            'rateLimit' => 10000,
+            'version' => 'v1',
+            'countries' => 'US',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
+                'api' => 'https://api.coinmarketcap.com',
+                'www' => 'https://coinmarketcap.com',
+                'doc' => 'https://coinmarketcap.com/api',
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'ticker/',
+                        'ticker/{id}/',
+                        'global/',
+                    ),
+                ),
+            ),
+            'currencies' => array (
+                'AUD',
+                'BRL',
+                'CAD',
+                'CHF',
+                'CNY',
+                'EUR',
+                'GBP',
+                'HKD',
+                'IDR',
+                'INR',
+                'JPY',
+                'KRW',
+                'MXN',
+                'RUB',
+                'USD',
+            ),
+        ), $options));
+    }
+
+    public function fetch_order_book () {
+        throw new \Exception ('Fetching order books is not supported by the API of ' . $this->id);
+    }
+
+    public function fetch_products () {
+        $products = $this->publicGetTicker ();
+        $result = array ();
+        for ($p = 0; $p < count ($products); $p++) {
+            $product = $products[$p];
+            for ($c = 0; $c < count ($this->currencies); $c++) {
+                $base = $product['symbol'];                
+                $baseId = $product['id'];
+                $quote = $this->currencies[$c];
+                $quoteId = strtolower ($quote);
+                $symbol = $base . '/' . $quote;
+                $id = $baseId . '/' . $quote;
+                $result[] = array (
+                    'id' => $id,
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'info' => $product,
+                );
+            }
+        }
+        return $result;
+    }
+
+    public function fetchGlobal ($currency = 'USD') {
+        $request = array ();
+        if ($currency)
+            $request['convert'] = $currency;
+        return $this->publicGetGlobal ($request);
+    }
+
+    public function parseTicker ($ticker, $product) {
+        $timestamp = intval ($ticker['last_updated']) * 1000;
+        $volume = '24h_volume_' . $product['quoteId'];
+        $price = 'price_' . $product['quoteId'];
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => null,
+            'low' => null,
+            'bid' => null,
+            'ask' => null,
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker[$price]),
+            'change' => floatval ($ticker['percent_change_24h']),
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker[$volume]),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_tickers ($currency = 'USD') {
+        $request = array ();
+        if ($currency) 
+            $request['convert'] = $currency;
+        $response = $this->publicGetTicker ($request);
+        $tickers = array ();
+        for ($t = 0; $t < count ($response); $t++) {
+            $ticker = $response[$t];
+            $id = $ticker['id'] . '/' . $currency;
+            $product = $this->products_by_id[$id];
+            $symbol = $product['symbol'];
+            $tickers[$symbol] = $this->parseTicker ($ticker, $product);
+        }
+        return $tickers;
+    }
+
+    public function fetch_ticker ($product) {
+        $p = $this->product ($product);
+        $request = array (
+            'convert' => $p['quote'],
+            'id' => $p['baseId'],
+        );
+        $response = $this->publicGetTickerId ($request);
+        $ticker = $response[0];
+        return $this->parseTicker ($ticker, $p);
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $query = $this->omit ($params, $this->extract_params ($path));
+        if ($query)
+            $url .= '?' . $this->urlencode ($query);
         return $this->fetch ($url, $method, $headers, $body);
     }
 }

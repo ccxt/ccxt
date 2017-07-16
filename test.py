@@ -1,6 +1,6 @@
 # coding=utf-8
 
-def style     (s, style): return style + s + '\033[0m'
+def style     (s, style): return style + str (s) + '\033[0m'
 def green     (s): return style (s, '\033[92m')
 def blue      (s): return style (s, '\033[94m')
 def yellow    (s): return style (s, '\033[93m')
@@ -51,8 +51,12 @@ def test_market_symbol_ticker (market, symbol):
     )
 
 def test_market_symbol (market, symbol):
+
     test_market_symbol_ticker (market, symbol)
-    test_market_symbol_orderbook (market, symbol)
+    if market.id == 'coinmarketcap':
+        dump (green (market.fetchGlobal ()))
+    else:
+        test_market_symbol_orderbook (market, symbol)
 
 def load_market (market):
     products = market.load_products ()

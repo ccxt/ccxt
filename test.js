@@ -21,7 +21,7 @@ try {
 
 ccxt.markets.forEach (id => {
     markets[id] = new (ccxt)[id] ({
-        verbose: false,
+        verbose: true,
         // proxy: 'https://crossorigin.me/',
         // proxy: 'https://cors-anywhere.herokuapp.com/',
         // proxy: 'http://cors-proxy.htmldriven.com/?url=',
@@ -103,7 +103,13 @@ let testMarketSymbolOrderbook = async (market, symbol) => {
 
 let testMarketSymbol = async (market, symbol) => {
     await testMarketSymbolTicker (market, symbol)
-    await testMarketSymbolOrderbook (market, symbol)
+    if (market.id == 'coinmarketcap') {
+        // console.log (await market.fetchTickers ());
+        console.log (await market.fetchGlobal ());
+    } else {
+        await testMarketSymbolOrderbook (market, symbol)
+
+    }
 }
 
 let loadMarket = async market => {

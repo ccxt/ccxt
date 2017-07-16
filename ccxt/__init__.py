@@ -28,6 +28,7 @@ markets = [
     'cex',
     'chilebit',
     'coincheck',
+    'coinmarketcap',
     'coinmate',
     'coinsecure',
     'coinspot',
@@ -4837,6 +4838,140 @@ class coincheck (Market):
                 'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': self.hmac (self.encode (auth), self.secret)
             }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
+class coinmarketcap (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'coinmarketcap',
+            'name': 'CoinMarketCap',
+            'rateLimit': 10000,
+            'version': 'v1',
+            'countries': 'US',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
+                'api': 'https://api.coinmarketcap.com',
+                'www': 'https://coinmarketcap.com',
+                'doc': 'https://coinmarketcap.com/api',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'ticker/',
+                        'ticker/{id}/',
+                        'global/',
+                    ],
+                },
+            },
+            'currencies': [
+                'AUD',
+                'BRL',
+                'CAD',
+                'CHF',
+                'CNY',
+                'EUR',
+                'GBP',
+                'HKD',
+                'IDR',
+                'INR',
+                'JPY',
+                'KRW',
+                'MXN',
+                'RUB',
+                'USD',
+            ],
+        }
+        params.update (config)
+        super (coinmarketcap, self).__init__ (params)
+
+    def fetch_order_book (self):
+        raise Error ('Fetching order books is not supported by the API of ' + self.id)
+
+    def fetch_products (self):
+        products = self.publicGetTicker ()
+        result = []
+        for p in range (0, len (products)):
+            product = products[p]
+            for c in range (0, len (self.currencies)):
+                base = product['symbol']                
+                baseId = product['id']
+                quote = self.currencies[c]
+                quoteId = quote.lower ()
+                symbol = base + '/' + quote
+                id = baseId + '/' + quote
+                result.append ({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'info': product,
+                })
+        return result
+
+    def fetchGlobal (self, currency = 'USD'):
+        request = {}
+        if currency:
+            request['convert'] = currency
+        return self.publicGetGlobal (request)
+
+    def parseTicker (self, ticker, product):
+        timestamp = int (ticker['last_updated']) * 1000
+        volume = '24h_volume_' + product['quoteId']
+        price = 'price_' + product['quoteId']
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': None,
+            'low': None,
+            'bid': None,
+            'ask': None,
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker[price]),
+            'change': float (ticker['percent_change_24h']),
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker[volume]),
+            'info': ticker,
+        }
+
+    def fetch_tickers (self, currency = 'USD'):
+        request = {}
+        if currency:
+            request['convert'] = currency
+        response = self.publicGetTicker (request)
+        tickers = {}
+        for t in range (0, len (response)):
+            ticker = response[t]
+            id = ticker['id'] + '/' + currency
+            product = self.products_by_id[id]
+            symbol = product['symbol']
+            tickers[symbol] = self.parseTicker (ticker, product)
+        return tickers
+
+    def fetch_ticker (self, product):
+        p = self.product (product)
+        request = {
+            'convert': p['quote'],
+            'id': p['baseId'],
+        }
+        response = self.publicGetTickerId (request)
+        ticker = response[0]
+        return self.parseTicker (ticker, p)
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)
+        query = self.omit (params, self.extract_params (path))
+        if query:
+            url += '?' + _urlencode.urlencode (query)
         return self.fetch (url, method, headers, body)
 
 #------------------------------------------------------------------------------

@@ -4974,6 +4974,146 @@ var coincheck = {
 
 //-----------------------------------------------------------------------------
 
+var coinmarketcap = {
+
+    'id': 'coinmarketcap',
+    'name': 'CoinMarketCap',
+    'rateLimit': 10000,
+    'version': 'v1',
+    'countries': 'US',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
+        'api': 'https://api.coinmarketcap.com',
+        'www': 'https://coinmarketcap.com',
+        'doc': 'https://coinmarketcap.com/api',
+    },
+    'api': {
+        'public': {
+            'get': [
+                'ticker/',
+                'ticker/{id}/',
+                'global/',
+            ],
+        },
+    },
+    'currencies': [
+        'AUD',
+        'BRL',
+        'CAD',
+        'CHF',
+        'CNY',
+        'EUR',
+        'GBP',
+        'HKD',
+        'IDR',
+        'INR',
+        'JPY',
+        'KRW',
+        'MXN',
+        'RUB',
+        'USD',
+    ],
+
+    async fetchOrderBook () {
+        throw new Error ('Fetching order books is not supported by the API of ' + this.id);
+    },
+
+    async fetchProducts () {
+        let products = await this.publicGetTicker ();
+        let result = [];
+        for (let p = 0; p < products.length; p++) {
+            let product = products[p];
+            for (let c = 0; c < this.currencies.length; c++) {
+                let base = product['symbol'];                
+                let baseId = product['id'];
+                let quote = this.currencies[c];
+                let quoteId = quote.toLowerCase ();
+                let symbol = base + '/' + quote;
+                let id = baseId + '/' + quote;
+                result.push ({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'info': product,
+                });
+            }
+        }
+        return result;
+    },
+
+    fetchGlobal (currency = 'USD') {
+        let request = {};
+        if (currency)
+            request['convert'] = currency;
+        return this.publicGetGlobal (request);
+    },
+
+    parseTicker (ticker, product) {
+        let timestamp = parseInt (ticker['last_updated']) * 1000;
+        let volume = '24h_volume_' + product['quoteId'];
+        let price = 'price_' + product['quoteId'];
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': undefined,
+            'ask': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker[price]),
+            'change': parseFloat (ticker['percent_change_24h']),
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker[volume]),
+            'info': ticker,
+        };
+    },
+
+    async fetchTickers (currency = 'USD') { 
+        let request = {};
+        if (currency) 
+            request['convert'] = currency;
+        let response = await this.publicGetTicker (request);
+        let tickers = {};
+        for (let t = 0; t < response.length; t++) {
+            let ticker = response[t];
+            let id = ticker['id'] + '/' + currency;
+            let product = this.products_by_id[id];
+            let symbol = product['symbol'];
+            tickers[symbol] = this.parseTicker (ticker, product);
+        }
+        return tickers;
+    },
+
+    async fetchTicker (product) {
+        let p = this.product (product);
+        let request = {
+            'convert': p['quote'],
+            'id': p['baseId'],
+        };
+        let response = await this.publicGetTickerId (request);
+        let ticker = response[0];
+        return this.parseTicker (ticker, p);
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (Object.keys (query).length)
+            url += '?' + this.urlencode (query);
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var coinmate = {
 
     'id': 'coinmate',
@@ -10420,6 +10560,7 @@ var markets = {
     'cex':           cex,
     'chilebit':      chilebit,
     'coincheck':     coincheck,
+    'coinmarketcap': coinmarketcap,
     'coinmate':      coinmate,
     'coinsecure':    coinsecure,
     'coinspot':      coinspot,

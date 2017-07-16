@@ -71,7 +71,10 @@ function test_market_symbol ($market, $symbol) {
     usleep ($delay);
     test_market_symbol_ticker ($market, $symbol);
     usleep ($delay);
-    test_market_symbol_orderbook ($market, $symbol);
+    if ($market->id == 'coinmarketcap')
+        dump (var_export ($market->fetchGlobal ()));
+    else
+        test_market_symbol_orderbook ($market, $symbol);
 }
 
 function load_market ($market) {
