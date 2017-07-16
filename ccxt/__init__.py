@@ -70,7 +70,7 @@ markets = [
 
 __all__ = markets + [ 'markets', 'Market', 'DDoSProtectionError', 'MarketNotAvailabileError' ]
 
-__version__ = '1.0.107'
+__version__ = '1.0.108'
 
 # Python 2 & 3
 import base64
