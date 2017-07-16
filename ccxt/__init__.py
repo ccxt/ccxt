@@ -6554,8 +6554,10 @@ class gemini (Market):
                 'request': url,
                 'nonce': nonce,
             }, query)
-            payload = base64.b64encode (self.json (request))
-            signature = self.hmac (self.encode (payload), self.secret, hashlib.sha384)
+            payload = self.json (request)
+            payload = self.encode (payload)
+            payload = base64.b64encode (payload)
+            signature = self.hmac (payload, self.encode (self.secret), hashlib.sha384)
             headers = {
                 'Content-Type': 'text/plain',
                 'Content-Length': 0,

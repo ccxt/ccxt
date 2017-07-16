@@ -6966,8 +6966,10 @@ class gemini extends Market {
                 'request' => $url,
                 'nonce' => $nonce,
             ), $query);
-            $payload = base64_encode ($this->json ($request));
-            $signature = $this->hmac ($this->encode ($payload), $this->secret, 'sha384');
+            $payload = $this->json ($request);
+            $payload = $this->encode ($payload);
+            $payload = base64_encode ($payload);
+            $signature = $this->hmac ($payload, $this->encode ($this->secret), 'sha384');
             $headers = array (
                 'Content-Type' => 'text/plain',
                 'Content-Length' => 0,

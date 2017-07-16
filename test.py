@@ -153,6 +153,10 @@ markets['livecoin'].secret = 'n8FrknvqwsRnTpGeNAbC51waYdE4xxSB'
 markets['bitstamp'].apiKey = 'blabla'
 markets['bitstamp'].secret = 'blabla'
 
+markets['gemini'].apiKey = 'blabla'
+markets['gemini'].secret = 'blabla'
+
+
 id = None
 
 try:
