@@ -4092,8 +4092,8 @@ class bter (Market):
             orders = orderbook[side]
             for i in range (0, len (orders)):
                 order = orders[i]
-                price = order[0]
-                amount = order[1]
+                price = float (order[0])
+                amount = float (order[1])
                 result[side].append ([ price, amount ])
         result['asks'] = self.sort_by (result['asks'], 0)
         return result

@@ -4205,8 +4205,8 @@ var bter = {
             let orders = orderbook[side];
             for (let i = 0; i < orders.length; i++) {
                 let order = orders[i];
-                let price = order[0];
-                let amount = order[1];
+                let price = parseFloat (order[0]);
+                let amount = parseFloat (order[1]);
                 result[side].push ([ price, amount ]);
             }
         }

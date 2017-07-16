@@ -4334,8 +4334,8 @@ class bter extends Market {
             $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
                 $order = $orders[$i];
-                $price = $order[0];
-                $amount = $order[1];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
                 $result[$side][] = array ($price, $amount);
             }
         }
