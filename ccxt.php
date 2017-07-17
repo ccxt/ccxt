@@ -9875,7 +9875,7 @@ class therock extends Market {
             $headers = array (
                 'X-TRT-KEY' => $this->apiKey,
                 'X-TRT-NONCE' => $nonce,
-                'X-TRT-SIGN' => $this->hmac ($this->encode ($auth), $this->secret, 'sha512'),
+                'X-TRT-SIGN' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512'),
             );
             if ($query) {
                 $body = $this->json ($query);

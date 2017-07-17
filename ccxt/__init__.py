@@ -9312,7 +9312,7 @@ class therock (Market):
             headers = {
                 'X-TRT-KEY': self.apiKey,
                 'X-TRT-NONCE': nonce,
-                'X-TRT-SIGN': self.hmac (self.encode (auth), self.secret, hashlib.sha512),
+                'X-TRT-SIGN': self.hmac (self.encode (auth), self.encode (self.secret), hashlib.sha512),
             }
             if query:
                 body = self.json (query)
