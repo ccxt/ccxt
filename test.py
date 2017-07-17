@@ -159,7 +159,7 @@ config = {
     'luno':        { 'apiKey': 'nrpzg7rkd8pnf', 'secret': 'Ps0DXw0TpTzdJ2Yek8V5TzFDfTWzyU5vfLdCiBP6vsI' },
     'okcoinusd':   { 'apiKey': 'da83cf1b-6fdc-495a-af55-f809bec64e2b', 'secret': '614D2E6D3428C2C5E54C81139A500BE0' },
     'okcoincny':   { 'apiKey': '', 'secret' : '' },
-    'poloniex':    { 'apiKey': '6ORNNIXJ-EGXMM5BT-EEGJ5NRV-H78QHS3D', 'secret': '065aad42b2656f374974f4e42558b2d5071f31187aa973210186932acb2f2f3d86e2c481ddf5436e56596a50d4833f00e002d467d1d0597022a9a81ff4e66506' },
+    'poloniex':    { 'apiKey': 'DW6G1D24-2HWMZZTY-6TUADS2O-TF87O6LS', 'secret': '70cc628f95e4e536bd2de702c058ff482fff52f176ac884d6aa605040c29e31caca93430755d1c56a09d0c6a9fe90077754da54b194523f21591e63015bf81fd' },
     'quadrigacx':  { 'apiKey': 'jKvWkMqrOj', 'secret': 'f65a2e3bf3c73171ee14e389314b2f78', 'uid': '395037' },
     'quoine':      { 'apiKey': '80953', 'secret': 'WfHUWcdFoGvZSuE7pE8XDh8FG9t5OP69iYrcwdnRs4rRn2uzZW+AHCyp/nBjlZcB+LWe3r6y2DCCYu+WcYkCAA==' },
     'therock':     { 'apiKey': '2b2a54cc6258b2a971318000d60e6b61ba4af05e', 'secret': 'b424a76088bda492852dbd5cadbb60ebcf144427' },
