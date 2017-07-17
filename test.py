@@ -190,6 +190,8 @@ markets['gdax'].secret = '9aHjPmW+EtRRKN/OiZGjXh8OxyThnDL4mMDre4Ghvn8wjMniAr5jdE
 markets['gdax'].password = '6kszf4aci8r'
 
 markets['bitmex'].proxy = ''
+markets['ccex'].proxy = ''
+markets['coinsecure'].proxy = ''
 # markets['poloniex'].apiKey = '6ORNNIXJ-EGXMM5BT-EEGJ5NRV-H78QHS3D'
 # markets['poloniex'].secret = '065aad42b2656f374974f4e42558b2d5071f31187aa973210186932acb2f2f3d86e2c481ddf5436e56596a50d4833f00e002d467d1d0597022a9a81ff4e66506'
 

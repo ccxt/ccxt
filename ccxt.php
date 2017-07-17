@@ -6558,7 +6558,7 @@ class fyb extends Market {
             $headers = array (
                 'Content-type' => 'application/x-www-form-urlencoded',
                 'key' => $this->apiKey,
-                'sig' => $this->hmac ($this->encode ($body), $this->secret, 'sha1')
+                'sig' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha1')
             );
         }
         return $this->fetch ($url, $method, $headers, $body);

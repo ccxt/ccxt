@@ -6185,7 +6185,7 @@ class fyb (Market):
             headers = {
                 'Content-type': 'application/x-www-form-urlencoded',
                 'key': self.apiKey,
-                'sig': self.hmac (self.encode (body), self.secret, hashlib.sha1)
+                'sig': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha1)
             }
         return self.fetch (url, method, headers, body)
 
