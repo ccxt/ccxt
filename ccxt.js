@@ -779,7 +779,7 @@ var cryptocapital = {
                 'nonce': this.nonce (),
             }, params);
             let request = this.json (query);
-            query['signature'] = this.hmac (this.encode (request), this.secret);
+            query['signature'] = this.hmac (this.encode (request), this.encode (this.secret));
             body = this.json (query);
             headers = { 'Content-Type': 'application/json' };
         }

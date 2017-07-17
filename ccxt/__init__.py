@@ -796,7 +796,7 @@ class cryptocapital (Market):
                 'nonce': self.nonce (),
             }, params)
             request = self.json (query)
-            query['signature'] = self.hmac (self.encode (request), self.secret)
+            query['signature'] = self.hmac (self.encode (request), self.encode (self.secret))
             body = self.json (query)
             headers = { 'Content-Type': 'application/json' }
         return self.fetch (url, method, headers, body)

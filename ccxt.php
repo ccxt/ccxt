@@ -816,7 +816,7 @@ class cryptocapital extends Market {
                 'nonce' => $this->nonce (),
             ), $params);
             $request = $this->json ($query);
-            $query['signature'] = $this->hmac ($this->encode ($request), $this->secret);
+            $query['signature'] = $this->hmac ($this->encode ($request), $this->encode ($this->secret));
             $body = $this->json ($query);
             $headers = array ( 'Content-Type' => 'application/json' );
         }
