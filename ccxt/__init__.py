@@ -4663,6 +4663,8 @@ class cex (Market):
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
+            if not self.uid:
+                raise AuthenticationError (self.id + ' requires `' + self.id + '.uid` property for authentication' )
             nonce = str (self.nonce ())
             auth = nonce + self.uid + self.apiKey
             signature = self.hmac (self.encode (auth), self.encode (self.secret))
@@ -8784,6 +8786,8 @@ class quadrigacx (Market):
         if type == 'public':
             url += '?' + _urlencode.urlencode (params)
         else:
+            if not self.uid:
+                raise AuthenticationError (self.id + ' requires `' + self.id + '.uid` property for authentication' )
             nonce = self.nonce ()
             request = ''.join ([ str (nonce), self.uid, self.apiKey ])
             signature = self.hmac (self.encode (request), self.encode (self.secret))

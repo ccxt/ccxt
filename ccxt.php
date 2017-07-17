@@ -4924,6 +4924,8 @@ class cex extends Market {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            if (!$this->uid)
+                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication' )
             $nonce = (string) $this->nonce ();
             $auth = $nonce . $this->uid . $this->apiKey;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
@@ -9310,6 +9312,8 @@ class quadrigacx extends Market {
         if ($type == 'public') {
             $url .= '?' . $this->urlencode ($params);
         } else {
+            if (!$this->uid)
+                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication' )
             $nonce = $this->nonce ();
             $request = implode ('', array ((string) $nonce, $this->uid, $this->apiKey));
             $signature = $this->hmac ($this->encode ($request), $this->encode ($this->secret));

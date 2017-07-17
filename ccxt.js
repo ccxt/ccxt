@@ -4783,6 +4783,8 @@ var cex = {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            if (!this.uid)
+                throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication' )
             let nonce = this.nonce ().toString ();
             let auth = nonce + this.uid + this.apiKey;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret));
@@ -9046,6 +9048,8 @@ var quadrigacx = {
         if (type == 'public') {
             url += '?' + this.urlencode (params);
         } else {
+            if (!this.uid)
+                throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication' )
             let nonce = this.nonce ();
             let request = [ nonce.toString (), this.uid, this.apiKey ].join ('');
             let signature = this.hmac (this.encode (request), this.encode (this.secret));
