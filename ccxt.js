@@ -2723,7 +2723,7 @@ var bitso = {
                 body = this.json (params);
             let nonce = this.nonce ().toString ();
             let request = [ nonce, method, query, body || '' ].join ('');
-            let signature = this.hmac (this.encode (request), this.secret);
+            let signature = this.hmac (this.encode (request), this.encode (this.secret));
             let auth = this.apiKey + ':' + nonce + ':' + signature;
             headers = { 'Authorization': "Bitso " + auth };
         }

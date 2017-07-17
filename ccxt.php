@@ -2807,7 +2807,7 @@ class bitso extends Market {
                 $body = $this->json ($params);
             $nonce = (string) $this->nonce ();
             $request = implode ('', array ($nonce, $method, $query, $body || ''));
-            $signature = $this->hmac ($this->encode ($request), $this->secret);
+            $signature = $this->hmac ($this->encode ($request), $this->encode ($this->secret));
             $auth = $this->apiKey . ':' . $nonce . ':' . $signature;
             $headers = array ( 'Authorization' => "Bitso " . $auth );
         }

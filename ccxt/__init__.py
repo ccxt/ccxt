@@ -2675,7 +2675,7 @@ class bitso (Market):
                 body = self.json (params)
             nonce = str (self.nonce ())
             request = ''.join ([ nonce, method, query, body or '' ])
-            signature = self.hmac (self.encode (request), self.secret)
+            signature = self.hmac (self.encode (request), self.encode (self.secret))
             auth = self.apiKey + ':' + nonce + ':' + signature
             headers = { 'Authorization': "Bitso " + auth }
         return self.fetch (url, method, headers, body)
