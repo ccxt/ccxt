@@ -4870,7 +4870,7 @@ class coincheck (Market):
                 'Content-Length': length,
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-NONCE': nonce,
-                'ACCESS-SIGNATURE': self.hmac (self.encode (auth), self.secret)
+                'ACCESS-SIGNATURE': self.hmac (self.encode (auth), self.encode (self.secret)),
             }
         return self.fetch (url, method, headers, body)
 

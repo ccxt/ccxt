@@ -5151,7 +5151,7 @@ class coincheck extends Market {
                 'Content-Length' => $length,
                 'ACCESS-KEY' => $this->apiKey,
                 'ACCESS-NONCE' => $nonce,
-                'ACCESS-SIGNATURE' => $this->hmac ($this->encode ($auth), $this->secret)
+                'ACCESS-SIGNATURE' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret)),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
