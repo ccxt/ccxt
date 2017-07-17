@@ -9312,7 +9312,7 @@ class quadrigacx extends Market {
         } else {
             $nonce = $this->nonce ();
             $request = implode ('', array ((string) $nonce, $this->uid, $this->apiKey));
-            $signature = $this->hmac ($this->encode ($request), $this->secret);
+            $signature = $this->hmac ($this->encode ($request), $this->encode ($this->secret));
             $query = array_merge (array (
                 'key' => $this->apiKey,
                 'nonce' => $nonce,

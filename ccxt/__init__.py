@@ -8763,7 +8763,7 @@ class quadrigacx (Market):
         else:
             nonce = self.nonce ()
             request = ''.join ([ str (nonce), self.uid, self.apiKey ])
-            signature = self.hmac (self.encode (request), self.secret)
+            signature = self.hmac (self.encode (request), self.encode (self.secret))
             query = self.extend ({
                 'key': self.apiKey,
                 'nonce': nonce,

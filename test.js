@@ -43,6 +43,10 @@ markets['lakebtc'].proxy = 'https://crossorigin.me/'
 markets['luno'].apiKey = 'nrpzg7rkd8pnf'
 markets['luno'].secret = 'Ps0DXw0TpTzdJ2Yek8V5TzFDfTWzyU5vfLdCiBP6vsI'
 
+markets['cex'].apiKey = 'eqCv267WySlu577JnFbGK2RQzIs'
+markets['cex'].secret = 'pZnbuNEm5eE4W1VRuFQvZEiFCA'
+markets['cex'].uid = 'up105393824'
+
 var countryName = function (code) {
     return ((typeof countries[code] !== 'undefined') ? countries[code] : code)
 }

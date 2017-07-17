@@ -9048,7 +9048,7 @@ var quadrigacx = {
         } else {
             let nonce = this.nonce ();
             let request = [ nonce.toString (), this.uid, this.apiKey ].join ('');
-            let signature = this.hmac (this.encode (request), this.secret);
+            let signature = this.hmac (this.encode (request), this.encode (this.secret));
             let query = this.extend ({
                 'key': this.apiKey,
                 'nonce': nonce,

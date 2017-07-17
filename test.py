@@ -153,11 +153,14 @@ markets['livecoin'].secret = 'n8FrknvqwsRnTpGeNAbC51waYdE4xxSB'
 markets['bitstamp'].apiKey = 'blabla'
 markets['bitstamp'].secret = 'blabla'
 
-markets['gemini'].apiKey = 'blabla'
-markets['gemini'].secret = 'blabla'
+markets['quadrigacx'].apiKey = 'jKvWkMqrOj'
+markets['quadrigacx'].secret = 'f65a2e3bf3c73171ee14e389314b2f78'
+markets['quadrigacx'].uid = '395037'
 
-markets['cex'].apiKey = 'blabla'
-markets['cex'].secret = 'blabla'
+markets['cex'].apiKey = 'eqCv267WySlu577JnFbGK2RQzIs'
+markets['cex'].secret = 'pZnbuNEm5eE4W1VRuFQvZEiFCA'
+markets['cex'].uid = 'up105393824'
+
 
 id = None
 
