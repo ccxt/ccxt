@@ -9504,7 +9504,7 @@ class vaultoro (Market):
             url += '?' + _urlencode.urlencode (query)
             headers = {
                 'Content-Type': 'application/json',
-                'X-Signature': self.hmac (self.encode (url), self.secret)
+                'X-Signature': self.hmac (self.encode (url), self.encode (self.secret))
             }
         return self.fetch (url, method, headers, body)
 
@@ -10103,7 +10103,7 @@ class yobit (Market):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': self.apiKey,
-                'sign': self.hmac (self.encode (body), self.secret, hashlib.sha512),
+                'sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)
 
@@ -10263,6 +10263,6 @@ class zaif (Market):
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
                 'Key': self.apiKey,
-                'Sign': self.hmac (self.encode (body), self.secret, hashlib.sha512),
+                'Sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)

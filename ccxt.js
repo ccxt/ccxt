@@ -9789,7 +9789,7 @@ var vaultoro = {
             url += '?' + this.urlencode (query);
             headers = {
                 'Content-Type': 'application/json',
-                'X-Signature': this.hmac (this.encode (url), this.secret)
+                'X-Signature': this.hmac (this.encode (url), this.encode (this.secret))
             };
         }
         return this.fetch (url, method, headers, body);
@@ -10409,7 +10409,7 @@ var yobit = {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': this.apiKey,
-                'sign': this.hmac (this.encode (body), this.secret, 'sha512'),
+                'sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
         return this.fetch (url, method, headers, body);
@@ -10575,7 +10575,7 @@ var zaif = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
                 'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.secret, 'sha512'),
+                'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
         return this.fetch (url, method, headers, body);

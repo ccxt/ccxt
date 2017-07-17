@@ -10079,7 +10079,7 @@ class vaultoro extends Market {
             $url .= '?' . $this->urlencode ($query);
             $headers = array (
                 'Content-Type' => 'application/json',
-                'X-Signature' => $this->hmac ($this->encode ($url), $this->secret)
+                'X-Signature' => $this->hmac ($this->encode ($url), $this->encode ($this->secret))
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -10715,7 +10715,7 @@ class yobit extends Market {
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'key' => $this->apiKey,
-                'sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
+                'sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -10885,7 +10885,7 @@ class zaif extends Market {
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
+                'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
