@@ -3522,7 +3522,8 @@ class btce (Market):
         else:
             nonce = self.nonce ()
             body = _urlencode.urlencode (self.extend ({
-                'nonce': nonce, 'method': path,
+                'nonce': nonce,
+                'method': path,
             }, params))
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

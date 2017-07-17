@@ -3595,7 +3595,8 @@ var btce = {
         } else {
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({
-                'nonce': nonce, 'method': path,
+                'nonce': nonce,
+                'method': path,
             }, params));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
