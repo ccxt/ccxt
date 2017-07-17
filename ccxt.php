@@ -4761,7 +4761,7 @@ class ccex extends Market {
                 'nonce' => $nonce,
             ), $params));
             $url .= '?' . $this->urlencode ($query);
-            $headers = array ( 'apisign' => $this->hmac ($this->encode ($url), $this->secret, 'sha512') );
+            $headers = array ( 'apisign' => $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512') );
         } else if ($type == 'public') {
             $url .= '?' . $this->urlencode (array_merge (array (
                 'a' => 'get' . $path,

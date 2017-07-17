@@ -4624,7 +4624,7 @@ var ccex = {
                 'nonce': nonce,
             }, params));
             url += '?' + this.urlencode (query);
-            headers = { 'apisign': this.hmac (this.encode (url), this.secret, 'sha512') };
+            headers = { 'apisign': this.hmac (this.encode (url), this.encode (this.secret), 'sha512') };
         } else if (type == 'public') {
             url += '?' + this.urlencode (this.extend ({
                 'a': 'get' + path,

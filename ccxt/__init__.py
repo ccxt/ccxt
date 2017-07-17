@@ -4502,7 +4502,7 @@ class ccex (Market):
                 'nonce': nonce,
             }, params))
             url += '?' + _urlencode.urlencode (query)
-            headers = { 'apisign': self.hmac (self.encode (url), self.secret, hashlib.sha512) }
+            headers = { 'apisign': self.hmac (self.encode (url), self.encode (self.secret), hashlib.sha512) }
         elif type == 'public':
             url += '?' + _urlencode.urlencode (self.extend ({
                 'a': 'get' + path,
