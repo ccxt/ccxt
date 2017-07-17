@@ -2503,7 +2503,7 @@ class bitmex (Market):
                 'Content-Type': 'application/json',
                 'api-nonce': nonce,
                 'api-key': self.apiKey,
-                'api-signature': self.hmac (self.encode (request), self.secret),
+                'api-signature': self.hmac (self.encode (request), self.encode (self.secret)),
             }
         return self.fetch (url, method, headers, body)
 

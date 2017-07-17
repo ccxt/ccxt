@@ -2623,7 +2623,7 @@ class bitmex extends Market {
                 'Content-Type' => 'application/json',
                 'api-nonce' => $nonce,
                 'api-key' => $this->apiKey,
-                'api-signature' => $this->hmac ($this->encode ($request), $this->secret),
+                'api-signature' => $this->hmac ($this->encode ($request), $this->encode ($this->secret)),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
