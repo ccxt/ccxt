@@ -417,14 +417,15 @@ class Market (object):
 
     @staticmethod
     def base64urlencode (s):
-        return base64.urlsafe_b64encode (s).replace ('=', '')
+        return Market.decode (base64.urlsafe_b64encode (s)).replace ('=', '')
 
     @staticmethod
     def jwt (request, secret, algorithm = hashlib.sha256, alg = 'HS256'):
-        encodedHeader = Market.base64urlencode (Market.encode (Market.json ({ 'alg': alg, 'typ': 'JWT' })))
+        header = Market.encode (Market.json ({ 'alg': alg, 'typ': 'JWT' }))
+        encodedHeader = Market.base64urlencode (header)
         encodedData = Market.base64urlencode (Market.encode (Market.json (request)))
         token = encodedHeader + '.' + encodedData
-        hmac = Market.hmac (token, secret, algorithm, 'binary')
+        hmac = Market.hmac (Market.encode (token), Market.encode (secret), algorithm, 'binary')
         signature = Market.base64urlencode (hmac)
         return token + '.' + signature
 
