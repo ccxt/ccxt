@@ -354,20 +354,25 @@ var Market = function (config) {
             }))
     }
 
+    this.set_products =
+    this.setProducts = function (products) {
+        this.products = indexBy (Object.values (products), 'symbol')
+        this.productsById = indexBy (products, 'id')
+        this.products_by_id = this.productsById
+        this.symbols = Object.keys (this.products)
+        return this.products
+    }
+
     this.load_products =
     this.loadProducts = function (reload = false) {
         if (!reload && this.products) {
             if (!this.productsById) {
-                this.productsById = indexBy (Object.values (this.products), 'id')
-                this.products_by_id = this.productsById
+                return this.setProducts (this.products)
             }
-            return new Promise ((resolve, reject) => resolve (this.products))
+            return new Promise ((resolve, reject) => resolve (this.products))             
         }
         return this.fetchProducts ().then (products => {
-            this.products = indexBy (products, 'symbol')
-            this.productsById = indexBy (products, 'id')
-            this.products_by_id = this.productsById
-            return this.products
+            return this.setProducts (products)
         })
     }
 
@@ -2875,6 +2880,8 @@ var bitstamp = {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            if (!this.uid)
+                throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication');
             let nonce = this.nonce ().toString ();
             let auth = nonce + this.uid + this.apiKey;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret));
@@ -4784,7 +4791,7 @@ var cex = {
                 url += '?' + this.urlencode (query);
         } else {
             if (!this.uid)
-                throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication' )
+                throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication');
             let nonce = this.nonce ().toString ();
             let auth = nonce + this.uid + this.apiKey;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret));
@@ -5300,6 +5307,8 @@ var coinmate = {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
+            if (!this.uid)
+                throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication');
             let nonce = this.nonce ().toString ();
             let auth = [ nonce, this.uid, this.apiKey ].join (' ');
             let signature = this.hmac (this.encode (auth), this.secret);
@@ -6231,6 +6240,8 @@ var flowbtc = {
                 body = this.json (params);
             }
         } else {
+            if (!this.uid)
+                throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication');
             let nonce = this.nonce ();
             let auth = nonce + this.uid + this.apiKey;
             let signature = this.hmac (this.encode (auth), this.secret);
@@ -9049,7 +9060,7 @@ var quadrigacx = {
             url += '?' + this.urlencode (params);
         } else {
             if (!this.uid)
-                throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication' )
+                throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication');
             let nonce = this.nonce ();
             let request = [ nonce.toString (), this.uid, this.apiKey ].join ('');
             let signature = this.hmac (this.encode (request), this.encode (this.secret));
@@ -10241,7 +10252,7 @@ var xbtce = {
         if (!this.apiKey)
             throw new AuthenticationError (this.id + ' requires apiKey for all requests, their public API is always busy');
         if (!this.uid)
-                throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication' )
+                throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication');
         let url = this.urls['api'] + '/' + this.version;
         if (type == 'public')
             url += '/' + type;

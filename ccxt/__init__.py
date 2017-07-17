@@ -142,6 +142,7 @@ class Market (object):
     timeout   = 10000 # milliseconds = seconds * 1000
     verbose   = False
     products  = None
+    symbols   = None
     tickers   = None
     proxy     = ''
     apiKey    = ''
@@ -444,18 +445,24 @@ class Market (object):
     def nonce (self):
         return Market.seconds ()
 
+    def set_products (self, products):
+        self.products = self.indexBy (products, 'symbol')
+        self.products_by_id = Market.indexBy (products, 'id')
+        self.productsById = self.products_by_id
+        self.symbols = sorted (list (self.products.keys ()))            
+        return self.products
+
+    def setProducts (self, products):
+        return self.set_products  (products)
+
     def load_products (self, reload = False):
         if not reload:
             if self.products:
                 if not self.products_by_id:
-                    self.products_by_id = self.indexBy (self.products, 'id')
-                    self.productsById = self.products_by_id
+                    return self.set_products (self.products)
                 return self.products
         products = self.fetchProducts ()
-        self.products = self.indexBy (products, 'symbol')
-        self.products_by_id = Market.indexBy (products, 'id')
-        self.productsById = self.products_by_id
-        return self.products
+        return self.set_products (products)
 
     def loadProducts  (self, reload = False):
         return self.load_products  ()
@@ -2829,6 +2836,8 @@ class bitstamp (Market):
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
+            if not self.uid:
+                raise AuthenticationError (self.id + ' requires `' + self.id + '.uid` property for authentication')
             nonce = str (self.nonce ())
             auth = nonce + self.uid + self.apiKey
             signature = self.hmac (self.encode (auth), self.encode (self.secret))
@@ -4664,7 +4673,7 @@ class cex (Market):
                 url += '?' + _urlencode.urlencode (query)
         else:
             if not self.uid:
-                raise AuthenticationError (self.id + ' requires `' + self.id + '.uid` property for authentication' )
+                raise AuthenticationError (self.id + ' requires `' + self.id + '.uid` property for authentication')
             nonce = str (self.nonce ())
             auth = nonce + self.uid + self.apiKey
             signature = self.hmac (self.encode (auth), self.encode (self.secret))
@@ -5164,6 +5173,8 @@ class coinmate (Market):
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
+            if not self.uid:
+                raise AuthenticationError (self.id + ' requires `' + self.id + '.uid` property for authentication')
             nonce = str (self.nonce ())
             auth = ' '.join ([ nonce, self.uid, self.apiKey ])
             signature = self.hmac (self.encode (auth), self.secret)
@@ -6054,6 +6065,8 @@ class flowbtc (Market):
             if params:
                 body = self.json (params)
         else:
+            if not self.uid:
+                raise AuthenticationError (self.id + ' requires `' + self.id + '.uid` property for authentication')
             nonce = self.nonce ()
             auth = nonce + self.uid + self.apiKey
             signature = self.hmac (self.encode (auth), self.secret)
@@ -8787,7 +8800,7 @@ class quadrigacx (Market):
             url += '?' + _urlencode.urlencode (params)
         else:
             if not self.uid:
-                raise AuthenticationError (self.id + ' requires `' + self.id + '.uid` property for authentication' )
+                raise AuthenticationError (self.id + ' requires `' + self.id + '.uid` property for authentication')
             nonce = self.nonce ()
             request = ''.join ([ str (nonce), self.uid, self.apiKey ])
             signature = self.hmac (self.encode (request), self.encode (self.secret))
@@ -9942,7 +9955,7 @@ class xbtce (Market):
         if not self.apiKey:
             raise AuthenticationError (self.id + ' requires apiKey for all requests, their public API is always busy')
         if not self.uid:
-                raise AuthenticationError (self.id + ' requires `' + self.id + '.uid` property for authentication' )
+                raise AuthenticationError (self.id + ' requires `' + self.id + '.uid` property for authentication')
         url = self.urls['api'] + '/' + self.version
         if type == 'public':
             url += '/' + type

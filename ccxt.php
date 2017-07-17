@@ -391,6 +391,19 @@ class Market {
         return $decoded;
     }
 
+    public function set_products ($products) {
+        $this->products = $this->indexBy ($products, 'symbol');
+        $this->products_by_id = $this->indexBy ($products, 'id');
+        $this->productsById = $this->products_by_id;
+        $this->symbols = array_keys ($this->products);
+        sort ($this->symbols);
+        return $this->products;
+    }
+
+    public function setProducts ($products) {
+        return $this->set_products ($products);
+    }
+
     public function loadProducts ($reload = false) {
         return $this->load_products ($reload);
     }
@@ -398,16 +411,12 @@ class Market {
     public function load_products ($reload = false) {
         if (!$reload && $this->products) {
             if (!$this->products_by_id) {
-                $this->products_by_id = $this->indexBy (array_values ($this->products), 'id');
-                $this->productsById = $this->products_by_id;
+                return $this->set_products ($this->products);
             }
             return $this->products;
         }
         $products = $this->fetch_products ();
-        $this->products = $this->indexBy ($products, 'symbol');
-        $this->products_by_id = $this->indexBy ($products, 'id');
-        $this->productsById = $this->products_by_id;
-        return $this->products;
+        return $this->set_products ($products);
     }
 
     public function fetch_products () {
@@ -2963,6 +2972,8 @@ class bitstamp extends Market {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            if (!$this->uid)
+                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication');
             $nonce = (string) $this->nonce ();
             $auth = $nonce . $this->uid . $this->apiKey;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
@@ -4925,7 +4936,7 @@ class cex extends Market {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             if (!$this->uid)
-                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication' )
+                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication');
             $nonce = (string) $this->nonce ();
             $auth = $nonce . $this->uid . $this->apiKey;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
@@ -5458,6 +5469,8 @@ class coinmate extends Market {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
+            if (!$this->uid)
+                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication');
             $nonce = (string) $this->nonce ();
             $auth = implode (' ', array ($nonce, $this->uid, $this->apiKey));
             $signature = $this->hmac ($this->encode ($auth), $this->secret);
@@ -6409,6 +6422,8 @@ class flowbtc extends Market {
                 $body = $this->json ($params);
             }
         } else {
+            if (!$this->uid)
+                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication');
             $nonce = $this->nonce ();
             $auth = $nonce . $this->uid . $this->apiKey;
             $signature = $this->hmac ($this->encode ($auth), $this->secret);
@@ -9313,7 +9328,7 @@ class quadrigacx extends Market {
             $url .= '?' . $this->urlencode ($params);
         } else {
             if (!$this->uid)
-                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication' )
+                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication');
             $nonce = $this->nonce ();
             $request = implode ('', array ((string) $nonce, $this->uid, $this->apiKey));
             $signature = $this->hmac ($this->encode ($request), $this->encode ($this->secret));
@@ -10543,7 +10558,7 @@ class xbtce extends Market {
         if (!$this->apiKey)
             throw new AuthenticationError ($this->id . ' requires apiKey for all requests, their public API is always busy');
         if (!$this->uid)
-                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication' )
+                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication');
         $url = $this->urls['api'] . '/' . $this->version;
         if ($type == 'public')
             $url .= '/' . $type;
