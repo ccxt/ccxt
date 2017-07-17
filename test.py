@@ -125,7 +125,7 @@ for id in ccxt.markets:
     market = getattr (ccxt, id)
     markets[id] = market ({
         'verbose': True,
-        'proxy': 'https://crossorigin.me/',
+        # 'proxy': 'https://crossorigin.me/',
         # 'proxy': 'https://cors-anywhere.herokuapp.com/',
         # 'proxy': 'http://cors-proxy.htmldriven.com/?url=',
     })
@@ -190,10 +190,7 @@ markets['gdax'].apiKey = '92560ffae9b8a01d012726c698bcb2f1'
 markets['gdax'].secret = '9aHjPmW+EtRRKN/OiZGjXh8OxyThnDL4mMDre4Ghvn8wjMniAr5jdEZJLN/knW6FHeQyiz3dPIL5ytnF0Y6Xwg=='
 markets['gdax'].password = '6kszf4aci8r'
 
-markets['bitmex'].proxy = ''
-markets['ccex'].proxy = ''
-markets['coinsecure'].proxy = ''
-markets['coinmarketcap'].proxy = ''
+markets['anxpro'].proxy = 'https://crossorigin.me/'
 
 # markets['poloniex'].apiKey = '6ORNNIXJ-EGXMM5BT-EEGJ5NRV-H78QHS3D'
 # markets['poloniex'].secret = '065aad42b2656f374974f4e42558b2d5071f31187aa973210186932acb2f2f3d86e2c481ddf5436e56596a50d4833f00e002d467d1d0597022a9a81ff4e66506'
@@ -250,5 +247,5 @@ else:
             print (type (e).__name__, e.args, 'Market Not Available Error due to downtime or maintenance (ignoring)')
         except ccxt.AuthenticationError as e:
             print (type (e).__name__, e.args, 'Authentication Error (missing API keys, ignoring)')
-        # except Exception as e:
-        #     print (type (e).__name__, e.args, str (e))
+        except Exception as e:
+            print (type (e).__name__, e.args, str (e))

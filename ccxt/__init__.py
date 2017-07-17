@@ -236,7 +236,7 @@ class Market (object):
                     raise MarketNotAvailaibleError (self.id + ' ' + error)
                 else:
                     print (self.id, method, url, e.code, e.msg, text)
-                    pass
+                    raise
             except Exception as unused:
                 print (self.id, method, url, e.code, e.msg, text)
             raise
