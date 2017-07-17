@@ -206,12 +206,19 @@ class Market (object):
                 else:
                     data = gzip.GzipFile ('', 'rb', 9, io.BytesIO (text))
                     text = data.read ().decode ('utf-8')
-            return json.loads (text.decode ('utf-8'))
+            text = text.decode ('utf-8')
+            ddos_protection = re.search ('(cloudflare|incapsula)', text, flags = re.IGNORECASE)
+            market_not_available = re.search ('(offline|unavailable|busy|maintenance|maintenancing)', text, flags = re.IGNORECASE)
+            if market_not_available:
+                raise MarketNotAvailaibleError (self.id + ' Market Not Available Error')
+            if ddos_protection:
+                raise DDoSProtectionError (self.id + ' DDoS Protection Error')
+            return json.loads (text)
         except _urllib.HTTPError as e:
             try: 
                 text = e.fp.read ()
                 ddos_protection = re.search ('(cloudflare|incapsula)', text, flags = re.IGNORECASE)
-                market_not_available = re.search ('(offline|unavailable|busy|maintenance)', text, flags = re.IGNORECASE)
+                market_not_available = re.search ('(offline|unavailable|busy|maintenance|maintenancing)', text, flags = re.IGNORECASE)
                 if ddos_protection:
                     error = 'DDoS Protection Error'
                     print (self.id, method, url, e.code, e.msg, error)
@@ -1571,7 +1578,7 @@ class bitcoincoid (Market):
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
                 'Key': self.apiKey,
-                'Sign': self.hmac (self.encode (body), self.secret, hashlib.sha512),
+                'Sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)
 
