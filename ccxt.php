@@ -4236,7 +4236,7 @@ class btcx extends Market {
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
-                'Signature' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
+                'Signature' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);

@@ -4013,7 +4013,7 @@ class btcx (Market):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': self.apiKey,
-                'Signature': self.hmac (self.encode (body), self.secret, hashlib.sha512),
+                'Signature': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)
 
