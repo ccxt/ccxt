@@ -5737,7 +5737,7 @@ class dsx (Market):
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
                 'Key': self.apiKey,
-                'Sign': self.hmac (self.encode (body), self.secret, hashlib.sha512, 'base64'),
+                'Sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512, 'base64'),
             }
         return self.fetch (url, method, headers, body)
 
