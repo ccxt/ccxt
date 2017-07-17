@@ -3002,7 +3002,7 @@ class bittrex (Market):
                 'nonce': nonce,
                 'apikey': self.apiKey,
             }, params))
-            headers = { 'apisign': self.hmac (self.encode (url), self.secret, hashlib.sha512) }
+            headers = { 'apisign': self.hmac (self.encode (url), self.encode (self.secret), hashlib.sha512) }
         return self.fetch (url, method, headers, body)
 
 #------------------------------------------------------------------------------

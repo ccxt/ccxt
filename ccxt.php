@@ -3156,7 +3156,7 @@ class bittrex extends Market {
                 'nonce' => $nonce,
                 'apikey' => $this->apiKey,
             ), $params));
-            $headers = array ( 'apisign' => $this->hmac ($this->encode ($url), $this->secret, 'sha512') );
+            $headers = array ( 'apisign' => $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512') );
         }
         return $this->fetch ($url, $method, $headers, $body);
     }
