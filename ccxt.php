@@ -6236,7 +6236,7 @@ class exmo extends Market {
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
+                'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
         $result = $this->fetch ($url, $method, $headers, $body);

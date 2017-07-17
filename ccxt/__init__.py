@@ -214,6 +214,8 @@ class Market (object):
             if ddos_protection:
                 raise DDoSProtectionError (self.id + ' DDoS Protection Error')
             return json.loads (text)
+        except socket.timeout as e:
+            raise TimeoutError (self.id + ' request timeout')
         except _urllib.HTTPError as e:
             try: 
                 text = e.fp.read ()
@@ -5888,7 +5890,7 @@ class exmo (Market):
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
                 'Key': self.apiKey,
-                'Sign': self.hmac (self.encode (body), self.secret, hashlib.sha512),
+                'Sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512),
             }
         result = self.fetch (url, method, headers, body)
         if 'result' in result:

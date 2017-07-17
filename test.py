@@ -85,6 +85,7 @@ def test_market (market):
     for s in symbols:
         if s in keys:
             symbol = s
+            break
 
     if symbol.find ('.d') < 0:
         test_market_symbol (market, symbol)
