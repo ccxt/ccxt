@@ -186,7 +186,7 @@ class Market (object):
     def fetch (self, url, method = 'GET', headers = None, data = None):
         """Perform a HTTP request and return decoded JSON data"""
         version = '.'.join (map (str, sys.version_info[:3]))
-        userAgent = 'ccxt/0.1.0 (+https://github.com/kroitor/ccxt) Python/' + version
+        userAgent = 'ccxt/' + __version__ + ' (+https://github.com/kroitor/ccxt) Python/' + version
         headers = headers or {}
         headers.update ({ 'User-Agent': userAgent })
         if len (self.proxy):
