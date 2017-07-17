@@ -20,7 +20,7 @@ Current featurelist:
 -  optional normalised data for cross-market or cross-currency analytics and arbitrage
 -  an out-of-the box unified all-in-one API extremely easy to integrate
 
-`ccxt on GitHub <https://github.com/kroitor/ccxt>`__ | Install | Usage | `Manual <https://github.com/kroitor/ccxt/wiki>`__ | Public Offer
+`ccxt on GitHub <https://github.com/kroitor/ccxt>`__ | Install | Usage | `Manual <https://github.com/kroitor/ccxt/wiki>`__ | `Examples <https://github.com/kroitor/ccxt/tree/master/examples>`__ | Public Offer
 
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------

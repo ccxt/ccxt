@@ -68,7 +68,15 @@ markets = [
     'zaif',
 ]
 
-__all__ = markets + [ 'markets', 'Market', 'DDoSProtectionError', 'MarketNotAvailabileError' ]
+__all__ = markets + [
+    'markets',
+    'Market'
+    'DDoSProtectionError',
+    'NotAvailableError',
+    'MarketNotAvailabileError',
+    'OrderBookNotAvailableError',
+    'TickerNotAvailableError',
+]
 
 __version__ = '1.0.114'
 
