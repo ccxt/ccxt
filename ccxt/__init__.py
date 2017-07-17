@@ -93,6 +93,7 @@ import io
 import json
 import math
 import re
+import socket
 import sys
 import time
 import zlib
@@ -113,6 +114,9 @@ class CCXTError (Exception):
     pass
 
 class DDoSProtectionError (CCXTError):
+    pass
+
+class TimeoutError (socket.timeout):
     pass
 
 class AuthenticationError (CCXTError):
