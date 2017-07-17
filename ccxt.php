@@ -3703,7 +3703,7 @@ class btce extends Market {
         } else {
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array (
-                'nonce' => $nonce,
+                'nonce' => $nonce, $method => $path,
             ), $params));
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
