@@ -9941,6 +9941,8 @@ class xbtce (Market):
     def request (self, path, type = 'api', method = 'GET', params = {}, headers = None, body = None):
         if not self.apiKey:
             raise AuthenticationError (self.id + ' requires apiKey for all requests, their public API is always busy')
+        if not self.uid:
+                raise AuthenticationError (self.id + ' requires `' + self.id + '.uid` property for authentication' )
         url = self.urls['api'] + '/' + self.version
         if type == 'public':
             url += '/' + type

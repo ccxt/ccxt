@@ -148,8 +148,10 @@ config = {
     'cex':         { 'apiKey': 'eqCv267WySlu577JnFbGK2RQzIs', 'secret': 'pZnbuNEm5eE4W1VRuFQvZEiFCA', 'uid': 'up105393824' },
     'coincheck':   { 'apiKey': '1YBiSTpyEIkchWdE', 'secret': 'URuZrMASNkcd7vh1zb7zn4IQfZMoai3S' },
     'coinsecure':  { 'apiKey': 'gzrm0fP6BGMilMzmsoJFPMpWjDvCLThyrVanX0yu' },
+    'coinspot':    { 'apiKey': '36b5803f892fe97ccd0b22da79ce6b21', 'secret': 'QGWL9ADB3JEQ7W48E8A3KTQQ42V2P821LQRJW3UU424ATYPXF893RR4THKE9DT0RBNHKX8L54F35KBVFH', },
     'fybse':       { 'apiKey': 'gY7y57RlYqKN5ZI50O5C', 'secret': '1qm63Ojf5a' },
     'fybsg':       { 'apiKey': '', 'secret': '' },
+    'gdax':        { 'apiKey': '92560ffae9b8a01d012726c698bcb2f1', 'secret': '9aHjPmW+EtRRKN/OiZGjXh8OxyThnDL4mMDre4Ghvn8wjMniAr5jdEZJLN/knW6FHeQyiz3dPIL5ytnF0Y6Xwg==', 'password': '6kszf4aci8r', },
     'hitbtc':      { 'apiKey': '18339694544745d9357f9e7c0f7c41bb', 'secret': '8340a60fb4e9fc73a169c26c7a7926f5' },
     'huobi':       { 'apiKey': '09bdde40-cc179779-1941272a-433a7', 'secret': 'ce6487f4-f078c39f-018ea6ce-01922' },
     'jubi':        { 'apiKey': '4edas-tn7jn-cpr8a-1er4k-r8h8i-cp6kj-jpzyz', 'secret': 'YYO(r-mp$2G-m4&1b-EYu~$-%tS4&-jNNhI-L!pg^' },
@@ -163,6 +165,7 @@ config = {
     'therock':     { 'apiKey': '2b2a54cc6258b2a971318000d60e6b61ba4af05e', 'secret': 'b424a76088bda492852dbd5cadbb60ebcf144427' },
     'vaultoro':    { 'apiKey': 'A5jfgi567JP5QPpXYpETfsw92khpuNfR', 'secret': 'OExkUFpUX3o5UHB4amFtQ2R4QUh1RFBPMUhnX0k1bUY=' },
     'virwox':      { 'apiKey': '1ea680450b32585f743c50c051bf8e4e', 'login': 'IgorKroitor', 'password': 'HfveVskfVfvf260' },
+    'xbtce':       { 'apiKey': 'dK2jBXMTppAM57ZJ', 'secret': 'qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwKqH7ywsxcR78WT', 'uid': '68ef0552-3c37-4896-ba56-76173d9cd573', },
     'yobit':       { 'apiKey': '5DB6C7C6034E667D77F85B245772A7FD', 'secret': '1b6cf1838716f5c87f07391a9b30f974' },
     'zaif':        { 'apiKey': '580c7232-06c7-4698-8fb7-4cd2a543cea8', 'secret': '4c529fd6-fb28-4879-b20d-2a8f02c5db47' },
 }
@@ -177,37 +180,11 @@ for (id, params) in tuples:
 #     for key in config[id]
 # markets['_1broker'].apiKey = 'A0f79063a5e91e6d62fbcbbbbdd63258'
 
-# markets['xbtce'].uid    = '68ef0552-3c37-4896-ba56-76173d9cd573'
-# markets['xbtce'].apiKey = 'dK2jBXMTppAM57ZJ'
-# markets['xbtce'].secret = 'qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwKqH7ywsxcR78WT'
-
-markets['coinspot'].apiKey = '36b5803f892fe97ccd0b22da79ce6b21'
-markets['coinspot'].secret = 'QGWL9ADB3JEQ7W48E8A3KTQQ42V2P821LQRJW3UU424ATYPXF893RR4THKE9DT0RBNHKX8L54F35KBVFH'
-# markets['coinspot'].proxy = 'https://cors-anywhere.herokuapp.com/'
-
 markets['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
-markets['gdax'].apiKey = '92560ffae9b8a01d012726c698bcb2f1'
-markets['gdax'].secret = '9aHjPmW+EtRRKN/OiZGjXh8OxyThnDL4mMDre4Ghvn8wjMniAr5jdEZJLN/knW6FHeQyiz3dPIL5ytnF0Y6Xwg=='
-markets['gdax'].password = '6kszf4aci8r'
-
 markets['anxpro'].proxy = 'https://crossorigin.me/'
-
-# markets['poloniex'].apiKey = '6ORNNIXJ-EGXMM5BT-EEGJ5NRV-H78QHS3D'
-# markets['poloniex'].secret = '065aad42b2656f374974f4e42558b2d5071f31187aa973210186932acb2f2f3d86e2c481ddf5436e56596a50d4833f00e002d467d1d0597022a9a81ff4e66506'
-
-# markets['livecoin'].apiKey = 'W5z7bvQM2pEShvGmqq1bXZkb1MR32GKw'
-# markets['livecoin'].secret = 'n8FrknvqwsRnTpGeNAbC51waYdE4xxSB'
 
 # markets['bitstamp'].apiKey = 'blabla'
 # markets['bitstamp'].secret = 'blabla'
-
-# markets['quadrigacx'].apiKey = 'jKvWkMqrOj'
-# markets['quadrigacx'].secret = 'f65a2e3bf3c73171ee14e389314b2f78'
-# markets['quadrigacx'].uid = '395037'
-
-# markets['cex'].apiKey = 'eqCv267WySlu577JnFbGK2RQzIs'
-# markets['cex'].secret = 'pZnbuNEm5eE4W1VRuFQvZEiFCA'
-# markets['cex'].uid = 'up105393824'
 
 id = None
 
