@@ -1184,7 +1184,7 @@ class bit2c extends Market {
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
                 'key' => $this->apiKey,
-                'sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512', 'base64'),
+                'sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512', 'base64'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);

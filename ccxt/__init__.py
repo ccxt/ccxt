@@ -1142,7 +1142,7 @@ class bit2c (Market):
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
                 'key': self.apiKey,
-                'sign': self.hmac (self.encode (body), self.secret, hashlib.sha512, 'base64'),
+                'sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512, 'base64'),
             }
         return self.fetch (url, method, headers, body)
 
