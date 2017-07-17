@@ -6767,7 +6767,7 @@ class hitbtc (Market):
             auth = url + (body or '')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Signature': self.hmac (self.encode (auth), self.secret, hashlib.sha512).lower (),
+                'X-Signature': self.hmac (self.encode (auth), self.encode (self.secret), hashlib.sha512).lower (),
             }
         url = self.urls['api'] + url
         return self.fetch (url, method, headers, body)

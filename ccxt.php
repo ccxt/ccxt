@@ -7169,7 +7169,7 @@ class hitbtc extends Market {
             $auth = $url . ($body || '');
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'X-Signature' => strtolower ($this->hmac ($this->encode ($auth), $this->secret, 'sha512')),
+                'X-Signature' => strtolower ($this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512')),
             );
         }
         $url = $this->urls['api'] . $url;

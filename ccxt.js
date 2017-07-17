@@ -6959,7 +6959,7 @@ var hitbtc = {
             let auth = url + (body || '');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Signature': this.hmac (this.encode (auth), this.secret, 'sha512').toLowerCase (),
+                'X-Signature': this.hmac (this.encode (auth), this.encode (this.secret), 'sha512').toLowerCase (),
             };
         }
         url = this.urls['api'] + url;
