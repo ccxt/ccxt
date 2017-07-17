@@ -3597,12 +3597,12 @@ var btce = {
             body = this.urlencode (this.extend ({
                 'nonce': nonce,
                 'method': path,
-            }, params));
+            }, query));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
                 'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.secret, 'sha512'),
+                'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
         return this.fetch (url, method, headers, body);

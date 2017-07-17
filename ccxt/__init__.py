@@ -3524,12 +3524,12 @@ class btce (Market):
             body = _urlencode.urlencode (self.extend ({
                 'nonce': nonce,
                 'method': path,
-            }, params))
+            }, query))
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
                 'Key': self.apiKey,
-                'Sign': self.hmac (self.encode (body), self.secret, hashlib.sha512),
+                'Sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)
 

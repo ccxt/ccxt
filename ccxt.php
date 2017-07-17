@@ -3705,12 +3705,12 @@ class btce extends Market {
             $body = $this->urlencode (array_merge (array (
                 'nonce' => $nonce,
                 'method' => $path,
-            ), $params));
+            ), $query));
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
+                'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
