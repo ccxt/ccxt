@@ -58,8 +58,7 @@ if (count ($argv) > 1) {
         $products = $market->load_products ();
         
         // output a list of all product symbols
-        $symbols = array_keys ($products);
-        dump (green ($id), 'has', count ($symbols), 'symbols:', yellow (implode (', ', $symbols)));
+        dump (green ($id), 'has', count ($market->symbols), 'symbols:', yellow (implode (', ', $market->symbols)));
 
         // output a table of all products
         dump (tabulate (array ('id', 'symbol', 'base', 'quote', 'info'), array_map ('product_table_helper', $products)));

@@ -21,8 +21,7 @@ let listSymbols = async (id) => {
         let products = await market.loadProducts ()
 
         // output a list of all product symbols
-        let symbols = Object.keys (products)
-        log (id.green, 'has', symbols.length, 'symbols:', symbols.join (', ').yellow)
+        log (id.green, 'has', market.symbols.length, 'symbols:', market.symbols.join (', ').yellow)
 
         // make a table of all products
         let table = asTable.configure ({ delimiter: ' | ' }) (Object.values (products))

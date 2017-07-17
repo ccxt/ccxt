@@ -40,8 +40,7 @@ try:
         products = market.load_products ()
         
         # output a list of all product symbols
-        symbols = list (products.keys ())
-        dump (green (id), 'has', len (symbols), 'symbols:', yellow (', '.join (symbols)))
+        dump (green (id), 'has', len (market.symbols), 'symbols:', yellow (', '.join (market.symbols)))
 
         # output a table of all products
         dump (pink ('{:<15} {:<15} {:<15} {:<15}'.format ('id', 'symbol', 'base', 'quote')))
