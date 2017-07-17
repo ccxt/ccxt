@@ -1286,7 +1286,7 @@ class bitbay (Market):
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
                 'API-Key': self.apiKey,
-                'API-Hash': self.hmac (self.encode (body), self.secret, hashlib.sha512),
+                'API-Hash': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)
 

@@ -1283,7 +1283,7 @@ var bitbay = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
                 'API-Key': this.apiKey,
-                'API-Hash': this.hmac (this.encode (body), this.secret, 'sha512'),
+                'API-Hash': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
         return this.fetch (url, method, headers, body);
