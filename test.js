@@ -276,7 +276,7 @@ var test = async function () {
 
         for (const id of Object.keys (markets)) {
 
-            if (['lakebtc', 'coinspot', 'urdubit' ].indexOf (id) < 0) {
+            if (['lakebtc', 'coinspot', 'urdubit', 'coinsecure' ].indexOf (id) < 0) {
 
                 log.bright.green ('MARKET:', id)
 
