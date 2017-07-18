@@ -80,7 +80,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.0.154'
+__version__ = '1.0.155'
 
 # Python 2 & 3
 import base64
