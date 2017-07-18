@@ -6378,13 +6378,19 @@ class gdax (Market):
             'id': p['id'],
         })
         timestamp = self.parse8601 (ticker['time'])
+        bid = None
+        ask = None
+        if 'bid' in ticker:
+            bid = float (ticker['bid'])
+        if 'ask' in ticker:
+            ask = float (ticker['ask'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),
             'high': float (quote['high']),
             'low': float (quote['low']),
-            'bid': float (ticker['bid']),
-            'ask': float (ticker['ask']),
+            'bid': bid,
+            'ask': ask,
             'vwap': None,
             'open': float (quote['open']),
             'close': None,

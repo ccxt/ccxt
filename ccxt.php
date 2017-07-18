@@ -6751,13 +6751,19 @@ class gdax extends Market {
             'id' => $p['id'],
         ));
         $timestamp = $this->parse8601 ($ticker['time']);
+        $bid = null;
+        $ask = null;
+        if (array_key_exists ('bid', $ticker))
+            $bid = floatval ($ticker['bid']);
+        if (array_key_exists ('ask', $ticker))
+            $ask = floatval ($ticker['ask']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($quote['high']),
             'low' => floatval ($quote['low']),
-            'bid' => floatval ($ticker['bid']),
-            'ask' => floatval ($ticker['ask']),
+            'bid' => $bid,
+            'ask' => $ask,
             'vwap' => null,
             'open' => floatval ($quote['open']),
             'close' => null,

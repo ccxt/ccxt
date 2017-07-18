@@ -6546,13 +6546,19 @@ var gdax = {
             'id': p['id'],
         });
         let timestamp = this.parse8601 (ticker['time']);
+        let bid = undefined;
+        let ask = undefined;
+        if ('bid' in ticker)
+            bid = parseFloat (ticker['bid']);
+        if ('ask' in ticker)
+            ask = parseFloat (ticker['ask']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (quote['high']),
             'low': parseFloat (quote['low']),
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
+            'bid': bid,
+            'ask': ask,
             'vwap': undefined,
             'open': parseFloat (quote['open']),
             'close': undefined,
