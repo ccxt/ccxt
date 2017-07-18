@@ -270,6 +270,8 @@ var Market = function (config) {
     this.stringToBinary = stringToBinary
     this.stringToBase64 = stringToBase64
     this.base64ToBinary = base64ToBinary
+    this.base64ToString = base64ToString
+    this.utf16ToBase64 = utf16ToBase64
     this.urlencode = urlencode
     this.omit = omit
     this.extend = extend
@@ -6584,11 +6586,11 @@ var gdax = {
             'client_oid': this.nonce (),
             'product_id': this.productId (product),
             'side': side,
-            'size': amount,
+            'size': amount.toString (),
             'type': type,
         };
         if (type == 'limit')
-            order['price'] = price;
+            order['price'] = price.toString ();
         return this.privatePostOrders (this.extend (order, params));
     },
 
@@ -6609,12 +6611,13 @@ var gdax = {
                 body = this.json (query);
             let what = nonce + method + request + (body || '');
             let secret = this.base64ToBinary (this.secret);
-            let signature = this.hmac (this.encode (what), secret, 'sha256', 'binary');
+            let signature = this.hmac (this.encode (what), secret, 'sha256', 'base64');
             headers = {
                 'CB-ACCESS-KEY': this.apiKey,
-                'CB-ACCESS-SIGN': this.stringToBase64 (signature),
+                'CB-ACCESS-SIGN': signature,
                 'CB-ACCESS-TIMESTAMP': nonce,
                 'CB-ACCESS-PASSPHRASE': this.password,
+                'Content-Type': 'application/json',
             };
         }
         return this.fetch (url, method, headers, body);

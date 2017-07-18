@@ -1,6 +1,6 @@
 "use strict";
 
-const ccxt      = require ('./ccxt.es5.js')
+const ccxt      = require ('./ccxt.js')
 const countries = require ('./countries')
 const asTable   = require ('as-table')
 const util      = require ('util')
@@ -177,7 +177,7 @@ let testMarket = async market => {
     if ((symbol.indexOf ('.d') < 0)) {
         await testMarketSymbol (market, symbol)
     }
-            
+
     // let trades = await market.fetchTrades (Object.keys (market.products)[0])
     // console.log (market.id, trades)
 
@@ -237,16 +237,16 @@ var test = async function () {
     //-------------------------------------------------------------------------
     // list all supported exchanges
     
-    console.log (asTable.configure ({ delimiter: ' | ' }) (Object.values (markets).map (market => {
-        let website = Array.isArray (market.urls.www) ? market.urls.www[0] : market.urls.www
-        let countries = Array.isArray (market.countries) ? market.countries.map (countryName).join (', ') : countryName (market.countries)
-        let doc = Array.isArray (market.urls.doc) ? market.urls.doc[0] : market.urls.doc
-        return {
-            'id':        market.id,
-            'name':      market.name,
-            'countries': countries,
-        }        
-    })))
+    // console.log (asTable.configure ({ delimiter: ' | ' }) (Object.values (markets).map (market => {
+    //     let website = Array.isArray (market.urls.www) ? market.urls.www[0] : market.urls.www
+    //     let countries = Array.isArray (market.countries) ? market.countries.map (countryName).join (', ') : countryName (market.countries)
+    //     let doc = Array.isArray (market.urls.doc) ? market.urls.doc[0] : market.urls.doc
+    //     return {
+    //         'id':        market.id,
+    //         'name':      market.name,
+    //         'countries': countries,
+    //     }        
+    // })))
 
     if (process.argv.length > 2) {
         let id = process.argv[2]

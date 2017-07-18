@@ -87,8 +87,8 @@ def test_market (market):
             symbol = s
             break
 
-    if symbol.find ('.d') < 0:
-        test_market_symbol (market, symbol)
+    # if symbol.find ('.d') < 0:
+    #     test_market_symbol (market, symbol)
 
     #--------------------------------------------------------------------------
     # private API
@@ -176,15 +176,8 @@ for (id, params) in tuples:
     for key in params:
         setattr (markets[id], key, params[key])
 
-# for id in config
-#     for key in config[id]
-# markets['_1broker'].apiKey = 'A0f79063a5e91e6d62fbcbbbbdd63258'
-
 markets['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
 markets['anxpro'].proxy = 'https://crossorigin.me/'
-
-# markets['bitstamp'].apiKey = 'blabla'
-# markets['bitstamp'].secret = 'blabla'
 
 id = None
 

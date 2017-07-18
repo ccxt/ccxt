@@ -6789,11 +6789,11 @@ class gdax extends Market {
             'client_oid' => $this->nonce (),
             'product_id' => $this->product_id ($product),
             'side' => $side,
-            'size' => $amount,
+            'size' => (string) $amount,
             'type' => $type,
         );
         if ($type == 'limit')
-            $order['price'] = $price;
+            $order['price'] = (string) $price;
         return $this->privatePostOrders (array_merge ($order, $params));
     }
 
@@ -6814,12 +6814,13 @@ class gdax extends Market {
                 $body = $this->json ($query);
             $what = $nonce . $method . $request . ($body || '');
             $secret = base64_decode ($this->secret);
-            $signature = $this->hmac ($this->encode ($what), $secret, 'sha256', 'binary');
+            $signature = $this->hmac ($this->encode ($what), $secret, 'sha256', 'base64');
             $headers = array (
                 'CB-ACCESS-KEY' => $this->apiKey,
-                'CB-ACCESS-SIGN' => base64_encode ($signature),
+                'CB-ACCESS-SIGN' => $signature,
                 'CB-ACCESS-TIMESTAMP' => $nonce,
                 'CB-ACCESS-PASSPHRASE' => $this->password,
+                'Content-Type' => 'application/json',
             );
         }
         return $this->fetch ($url, $method, $headers, $body);

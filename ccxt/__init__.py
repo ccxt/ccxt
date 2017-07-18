@@ -6414,11 +6414,11 @@ class gdax (Market):
             'client_oid': self.nonce (),
             'product_id': self.product_id (product),
             'side': side,
-            'size': amount,
+            'size': str (amount),
             'type': type,
         }
         if type == 'limit':
-            order['price'] = price
+            order['price'] = str (price)
         return self.privatePostOrders (self.extend (order, params))
 
     def cancel_order (self, id):
@@ -6437,12 +6437,13 @@ class gdax (Market):
                 body = self.json (query)
             what = nonce + method + request + (body or '')
             secret = base64.b64decode (self.secret)
-            signature = self.hmac (self.encode (what), secret, hashlib.sha256, 'binary')
+            signature = self.hmac (self.encode (what), secret, hashlib.sha256, 'base64')
             headers = {
                 'CB-ACCESS-KEY': self.apiKey,
-                'CB-ACCESS-SIGN': base64.b64encode (signature),
+                'CB-ACCESS-SIGN': signature,
                 'CB-ACCESS-TIMESTAMP': nonce,
                 'CB-ACCESS-PASSPHRASE': self.password,
+                'Content-Type': 'application/json',
             }
         return self.fetch (url, method, headers, body)
 
