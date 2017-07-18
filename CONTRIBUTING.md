@@ -68,6 +68,8 @@ There is a custom utility script in the root of the repository, named `transpile
 
 ### Single Source Of Version Number
 
+The version number is sourced to JavaScript, Python and PHP from the main NPM package file `package.json`. The publishing shell script updates the version and exports it to all other files. This is done by the `vss.js` script, which stands for *version-single-sourcing*.
+
 ```UNDER CONSTRUCTION```
 
 ### Master/Slave Files
@@ -175,8 +177,15 @@ Below are key notes on how to keep the JS code transpileable:
 
 ## Bulding
 
+- `/build.sh`
+- `/publish.sh`
+
 ```UNDER CONSTRUCTION```
 
 ## Testing
+
+- `/test.js`
+- `/test.php`
+- `/test.py`
 
 ```UNDER CONSTRUCTION```
