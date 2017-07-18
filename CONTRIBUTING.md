@@ -74,10 +74,12 @@ There is a custom utility script in the root of the repository, named `transpile
 
 The ccxt library includes one single file per each language:
 
+```shell
 /ccxt/__init__.py  # slave Python-version of the ccxt library
 /ccxt.es5.js       # slave JavaScript ES5 version of the ccxt library
 /ccxt.js           # master JS ES6 version of the ccxt library
 /ccxt.php          # slave PHP version of the ccxt library
+```
 
 The structure of the master/slave file can be outlined like this:
 
