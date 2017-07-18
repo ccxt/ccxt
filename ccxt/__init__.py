@@ -70,7 +70,8 @@ markets = [
 
 __all__ = markets + [
     'markets',
-    'Market'
+    'Market',
+    'CCXTError',
     'DDoSProtectionError',
     'TimeoutError',
     'NotAvailableError',
