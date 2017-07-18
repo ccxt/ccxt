@@ -6419,7 +6419,7 @@ class gdax (Market):
         }
         if type == 'limit':
             order['price'] = price
-        return self.privatePostOrder (self.extend (order, params))
+        return self.privatePostOrders (self.extend (order, params))
 
     def cancel_order (self, id):
         return self.privateDeleteOrdersId ({ 'id': id })

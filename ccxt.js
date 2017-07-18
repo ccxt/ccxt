@@ -6589,7 +6589,7 @@ var gdax = {
         };
         if (type == 'limit')
             order['price'] = price;
-        return this.privatePostOrder (this.extend (order, params));
+        return this.privatePostOrders (this.extend (order, params));
     },
 
     cancelOrder (id) {

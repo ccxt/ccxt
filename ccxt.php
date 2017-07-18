@@ -6794,7 +6794,7 @@ class gdax extends Market {
         );
         if ($type == 'limit')
             $order['price'] = $price;
-        return $this->privatePostOrder (array_merge ($order, $params));
+        return $this->privatePostOrders (array_merge ($order, $params));
     }
 
     public function cancel_order ($id) {
