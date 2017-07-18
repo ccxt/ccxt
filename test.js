@@ -190,7 +190,6 @@ let testMarket = async market => {
     console.log (market.id, 'balance', balance)
 
     // sleep (delay)
-
     // try {
     //     let marketSellOrder = await market.createMarketSellOrder (Object.keys (market.products)[0], 1)
     //     console.log (market.id, 'ok', marketSellOrder)
@@ -199,7 +198,6 @@ let testMarket = async market => {
     // }
 
     // sleep (delay)
-
     // try {
     //     let marketBuyOrder = await market.createMarketBuyOrder (Object.keys (market.products)[0], 1)
     //     console.log (market.id, 'ok', marketBuyOrder)
@@ -208,7 +206,6 @@ let testMarket = async market => {
     // }
 
     // sleep (delay)
-
     // try {
     //     let limitSellOrder = await market.createLimitSellOrder (Object.keys (market.products)[0], 1, 3000)
     //     console.log (market.id, 'ok', limitSellOrder)
@@ -217,7 +214,6 @@ let testMarket = async market => {
     // }
 
     // sleep (delay)
-
     // try {
     //     let limitBuyOrder = await market.createLimitBuyOrder (Object.keys (market.products)[0], 1, 3000)
     //     console.log (market.id, 'ok', limitBuyOrder)
