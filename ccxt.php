@@ -6786,7 +6786,6 @@ class gdax extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         $order = array (
-            'client_oid' => $this->nonce (),
             'product_id' => $this->product_id ($product),
             'side' => $side,
             'size' => (string) $amount,

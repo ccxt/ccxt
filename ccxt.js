@@ -6583,7 +6583,6 @@ var gdax = {
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
         let order = {
-            'client_oid': this.nonce (),
             'product_id': this.productId (product),
             'side': side,
             'size': amount.toString (),

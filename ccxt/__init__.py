@@ -6411,7 +6411,6 @@ class gdax (Market):
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         order = {
-            'client_oid': self.nonce (),
             'product_id': self.product_id (product),
             'side': side,
             'size': str (amount),
