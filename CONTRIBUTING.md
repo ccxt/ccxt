@@ -149,7 +149,7 @@ Below are key notes on how to keep the JS code transpileable:
 
 - always use Pythnon-style indentaion, it is preserved as is for all languages
 
-- always put a semicolon at the end of each statement, as in PHP/C-style
+- always put a semicolon (`:`) at the end of each statement, as in PHP/C-style
 
 - all keys for associative dicts/arrays must be single-quoted strings everywhere (`array['good'], array.bad`)
 
