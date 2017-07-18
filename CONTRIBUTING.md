@@ -159,13 +159,11 @@ Below are key notes on how to keep the JS code transpileable:
 
 - if you need another base method you will have to implement it in the base class in all three languages
 
-- try to reduce syntax to basic one-liner statements ()
+- try to reduce syntax to basic one-liner statements
 
 - multiple lines are ok, but you should avoid deep nesting with lots of brackets
 
 - do not use conditional statements that are too complex
-
-- ...
 
 - ...
 
