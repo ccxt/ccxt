@@ -56,11 +56,11 @@ The contents of the repository are structured as follows:
 
 The ccxt library is available in three different languages (more to come). One of the primary objectives for developers is to design *portable* code, so that a single-language user can read code in other languages and understand it easily. This helps to ease the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
-At first, all language-specific version were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *master/copy* process. There is now a single master version in one language, which is in JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the master version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to participate in developing the master version as well.
+At first, all language-specific version were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *master/copy* process. There is now a single master version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the master version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the master version as well.
 
 ### Ad-Hoc Transpiler
 
-There is a custom utility script in the root of the repository, named `transpile.js` that derives versions in other languages from the master code is called `transpile.js`. The script converts language syntax from JS to Python/PHP and it is itself written in JavaScript. The transpiler does its job by sequentially applying series of regexp substitutions to perform one-to-one (line-to-line) mapping from JS to other languages.
+There is a custom utility script in the root of the repository, named `transpile.js` that derives versions in other languages from the master code. The script converts language syntax from JS to Python/PHP and it is itself written in JavaScript. The transpiler does its job by sequentially applying series of regexp substitutions to perform one-to-one (line-to-line) mapping from JS to other languages.
 
 ### Dependencies
 
