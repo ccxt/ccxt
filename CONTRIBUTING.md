@@ -184,8 +184,31 @@ Below are key notes on how to keep the JS code transpileable:
 
 ## Testing
 
-- `/test.js`
-- `/test.php`
-- `/test.py`
+By default the test scripts run through all markets to fetch tickers, order books and balances (conducts a basic test of public and private APIs).
+
+- `/test.js` run by Node.js / NPM
+- `/test.php` run by PHP
+- `/test.py` run by Python 2 / 3
+
+### Test Configurations
+
+### Test Params
+
+All tests accept one or two optional arguments like shown below:
+```shell
+# Usage:
+    node test [marketId [symbol]]
+    python test.py [marketId [symbol]]
+    php -f test.php [marketId [symbol]]
+# Examples:
+    node test kraken
+    node test gdax BTC/USD
+    python test.py btce
+    python test.py bitfinex ETH/BTC
+    php -f test.php hitbtc
+    php -f test.php zaif BTC/JPY
+```
+
+If arguments are specified, each test will only run for a particular market id and symbol. This might be helpful to run a partial test.
 
 ```UNDER CONSTRUCTION```
