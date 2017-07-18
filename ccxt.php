@@ -2,8 +2,7 @@
 
 namespace ccxt;
 
-class CCXTError           extends \Exception {}
-
+class CCXTError                  extends \Exception {}
 class DDoSProtectionError        extends CCXTError {}
 class TimeoutError               extends CCXTError {}
 class AuthenticationError        extends CCXTError {}

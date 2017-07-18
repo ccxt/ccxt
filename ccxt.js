@@ -10684,6 +10684,7 @@ let defineAllMarkets = function (markets) {
 if (isNode) {
     Object.assign (module.exports = defineAllMarkets (markets), {
 
+        CCXTError,
         DDoSProtectionError,
         TimeoutError,
         AuthenticationError,
