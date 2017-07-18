@@ -68,7 +68,7 @@ There is a custom utility script in the root of the repository, named `transpile
 
 ### Single Source Of Version Number
 
-The version number is sourced to JavaScript, Python and PHP from the main NPM package file `package.json`. The publishing shell script updates the version and exports it to all other files. This is done by the `vss.js` script, which stands for *version-single-sourcing*.
+The version number is sourced to JavaScript, Python and PHP from the main NPM package file `package.json`. The `publish.sh` script updates the version and exports it to all other files. This is done by the `vss.js` script, which stands for *version-single-sourcing*. Python package config function inside `setup.py` also reads that JSON file to update the version in Python Package Index (PyPI).
 
 ```UNDER CONSTRUCTION```
 
