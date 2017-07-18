@@ -1,12 +1,33 @@
 "use strict";
 
-const ccxt      = require ('./ccxt.js')
+/*  ------------------------------------------------------------------------ */
+
+const keys = ['--es6']
+const [processPath, , marketId = null, marketSymbol = null] = process.argv.filter (x => !keys.includes (x))
+const ccxtFile = process.argv.includes ('--es6') ? 'ccxt.js' : 'ccxt.es5.js'
+
+/*  ------------------------------------------------------------------------ */
+
+const ccxt      = require ('./' + ccxtFile)
 const countries = require ('./countries')
+
+/*  ------------------------------------------------------------------------ */
+
 const asTable   = require ('as-table')
 const util      = require ('util')
 const log       = require ('ololog')
+const ansi      = require ('ansicolor').nice;
 
-require ('ansicolor').nice;
+/*  ------------------------------------------------------------------------ */
+
+process.on ('uncaughtException',  e => { log.bright.red.error (e); process.exit (1) })
+process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit (1) })
+
+/*  ------------------------------------------------------------------------ */
+
+log.bright ('\nTESTING', ccxtFile.magenta, { market: marketId || 'all', symbol: marketSymbol || 'all' }, '\n')
+
+/*  ------------------------------------------------------------------------ */
 
 let markets = {}
 
@@ -227,9 +248,6 @@ let testMarket = async market => {
 
 var test = async function () {
 
-    process.on ('uncaughtException',  e => { log.bright.red.error (e); process.exit (1) })
-    process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit (1) })
-
     //-------------------------------------------------------------------------
     // list all supported exchanges
     
@@ -244,15 +262,13 @@ var test = async function () {
     //     }        
     // })))
 
-    if (process.argv.length > 2) {
-        let id = process.argv[2]
-        if (!markets[id])
-            throw new Error ('Market `' + id + '` not found')
-        const market = markets[id]
+    if (marketId) {
+        const market = markets[marketId]
+        if (!market)
+            throw new Error ('Market `' + marketId + '` not found')
         await loadMarket (market)
-        if (process.argv.length > 3) {
-            let symbol = process.argv[3]
-            await testMarketSymbol (market, symbol)
+        if (marketSymbol) {
+            await testMarketSymbol (market, marketSymbol)
         } else {
             await testMarket (market)
         }
