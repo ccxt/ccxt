@@ -6269,6 +6269,7 @@ class gdax (Market):
             'countries': 'US',
             'rateLimit': 1000,
             'urls': {
+                'test': 'https://api-public.sandbox.gdax.com',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg',
                 'api': 'https://api.gdax.com',
                 'www': 'https://www.gdax.com',
@@ -6432,6 +6433,12 @@ class gdax (Market):
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
+            if not self.apiKey:
+                raise AuthenticationError (self.id + ' requires apiKey property for authentication and trading')
+            if not self.secret:
+                raise AuthenticationError (self.id + ' requires secret property for authentication and trading')
+            if not self.password:
+                raise AuthenticationError (self.id + ' requires password property for authentication and trading')
             nonce = str (self.nonce ())
             if query:
                 body = self.json (query)
@@ -9964,7 +9971,7 @@ class xbtce (Market):
         if not self.apiKey:
             raise AuthenticationError (self.id + ' requires apiKey for all requests, their public API is always busy')
         if not self.uid:
-                raise AuthenticationError (self.id + ' requires `' + self.id + '.uid` property for authentication')
+            raise AuthenticationError (self.id + ' requires uid property for authentication and trading')
         url = self.urls['api'] + '/' + self.version
         if type == 'public':
             url += '/' + type

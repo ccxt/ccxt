@@ -285,22 +285,28 @@ let newRstMarketTable = rstMarketTableLines.map (line => {
     return line.replace (/(\||\+)(.).+?(\s|\=|\-)(\||\+)/, '$1')
 }).join ("\n")
 
-let travisBadgeImage  = ".. image:: https://travis-ci.org/kroitor/ccxt.svg?branch=master\n"
-let travisBadgeTarget = "   :target: https://travis-ci.org/kroitor/ccxt"
-let npmBadgeImage     = ".. image:: https://img.shields.io/npm/v/ccxt.svg\n"
-let npmBadgeTarget    = "   :target: https://npmjs.com/package/ccxt"
-let pypiBadgeImage    = ".. image:: https://img.shields.io/pypi/v/ccxt.svg\n"
-let pypiBadgeTarget   = "   :target: https://pypi.python.org/pypi?name=ccxt&:action=display"
+let travisBadgeImage    = ".. image:: https://travis-ci.org/kroitor/ccxt.svg?branch=master\n"
+let travisBadgeTarget   = "   :target: https://travis-ci.org/kroitor/ccxt"
+let npmBadgeImage       = ".. image:: https://img.shields.io/npm/v/ccxt.svg\n"
+let npmBadgeTarget      = "   :target: https://npmjs.com/package/ccxt"
+let pypiBadgeImage      = ".. image:: https://img.shields.io/pypi/v/ccxt.svg\n"
+let pypiBadgeTarget     = "   :target: https://pypi.python.org/pypi?name=ccxt&:action=display"
+let npmDownloadsImage   = ".. image:: https://img.shields.io/npm/dm/ccxt.svg\n"
+let npmDownloadsTarget  = "   :target: https://www.npmjs.com/package/ccxt"
+let pypiDownloadsImage  = ".. image:: https://img.shields.io/pypi/dm/ccxt.svg\n" 
+let pypiDownloadsTarget = "   :target: https://pypi.org/project/ccxt"
 
-let travisBadgeRST = travisBadgeImage + ' ' + travisBadgeTarget
-let npmBadgeRST    = npmBadgeImage + ' ' + npmBadgeTarget
-let pypiBadgeRST   = pypiBadgeImage + ' ' + pypiBadgeTarget
+let travisBadgeRST   = travisBadgeImage   + ' ' + travisBadgeTarget
+let npmBadgeRST      = npmBadgeImage      + ' ' + npmBadgeTarget
+let pypiBadgeRST     = pypiBadgeImage     + ' ' + pypiBadgeTarget
+let npmDownloadsRST  = npmDownloadsImage  + ' ' + npmDownloadsTarget
+let pypiDownloadsRST = pypiDownloadsImage + ' ' + pypiDownloadsTarget
 
-let badges = [ travisBadgeRST, npmBadgeRST, pypiBadgeRST ].join ("\n")
+let badges = [ travisBadgeRST, npmBadgeRST, pypiBadgeRST, npmDownloadsRST, pypiDownloadsRST ].join ("\n")
 
 rstNew = match[1] + "APIs:\n\n" + newRstMarketTable + "\n\n" + match[3]
 rstNew = rstNew.replace (/\.\.[^\n]+image\:\:[^\n]+[\n]/g, '')
-rstNew = rstNew.replace ('|Build Status| |npm| |PyPI|', badges)
+rstNew = rstNew.replace ('|Build Status| |npm| |PyPI| |NPM Downloads| |PyPI Downloads|', badges)
 rstNew = rstNew.replace (/   :target[^#]+$/g, '')
 fs.truncateSync (readmeRst)
 fs.writeFileSync (readmeRst, rstNew)

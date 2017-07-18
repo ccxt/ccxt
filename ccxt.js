@@ -6436,6 +6436,7 @@ var gdax = {
     'countries': 'US',
     'rateLimit': 1000,
     'urls': {
+        'test': 'https://api-public.sandbox.gdax.com',
         'logo': 'https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg',
         'api': 'https://api.gdax.com',
         'www': 'https://www.gdax.com',
@@ -6606,6 +6607,12 @@ var gdax = {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            if (!this.apiKey)
+                throw new AuthenticationError (this.id + ' requires apiKey property for authentication and trading');
+            if (!this.secret)
+                throw new AuthenticationError (this.id + ' requires secret property for authentication and trading');
+            if (!this.password)
+                throw new AuthenticationError (this.id + ' requires password property for authentication and trading');
             let nonce = this.nonce ().toString ();
             if (Object.keys (query).length)
                 body = this.json (query);
@@ -10262,7 +10269,7 @@ var xbtce = {
         if (!this.apiKey)
             throw new AuthenticationError (this.id + ' requires apiKey for all requests, their public API is always busy');
         if (!this.uid)
-                throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication');
+            throw new AuthenticationError (this.id + ' requires uid property for authentication and trading');
         let url = this.urls['api'] + '/' + this.version;
         if (type == 'public')
             url += '/' + type;

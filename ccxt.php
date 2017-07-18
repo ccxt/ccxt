@@ -6637,6 +6637,7 @@ class gdax extends Market {
             'countries' => 'US',
             'rateLimit' => 1000,
             'urls' => array (
+                'test' => 'https://api-public.sandbox.gdax.com',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg',
                 'api' => 'https://api.gdax.com',
                 'www' => 'https://www.gdax.com',
@@ -6809,6 +6810,12 @@ class gdax extends Market {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            if (!$this->apiKey)
+                throw new AuthenticationError ($this->id . ' requires apiKey property for authentication and trading');
+            if (!$this->secret)
+                throw new AuthenticationError ($this->id . ' requires $secret property for authentication and trading');
+            if (!$this->password)
+                throw new AuthenticationError ($this->id . ' requires password property for authentication and trading');
             $nonce = (string) $this->nonce ();
             if ($query)
                 $body = $this->json ($query);
@@ -10565,7 +10572,7 @@ class xbtce extends Market {
         if (!$this->apiKey)
             throw new AuthenticationError ($this->id . ' requires apiKey for all requests, their public API is always busy');
         if (!$this->uid)
-                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication');
+            throw new AuthenticationError ($this->id . ' requires uid property for authentication and trading');
         $url = $this->urls['api'] . '/' . $this->version;
         if ($type == 'public')
             $url .= '/' . $type;

@@ -1,0 +1,69 @@
+"use strict";
+
+const ccxt      = require ('../../ccxt.js')
+const asTable   = require ('as-table')
+const log       = require ('ololog').configure ({ locate: false })
+
+require ('ansicolor').nice;
+
+let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
+
+(async () => {
+
+    // instantiate the exchange
+    let gdax = new ccxt.gdax  ({ // ... or new ccxt.gdax ()
+        'apiKey': '92560ffae9b8a01d012726c698bcb2f1', // standard
+        'secret': '9aHjPmW+EtRRKN/OiZGjXh8OxyThnDL4mMDre4Ghvn8wjMniAr5jdEZJLN/knW6FHeQyiz3dPIL5ytnF0Y6Xwg==', 
+        'password': '6kszf4aci8r', // GDAX requires a password!
+    })
+
+    // use the testnet for GDAX
+    gdax.urls['api'] = 'https://api-public.sandbox.gdax.com'
+
+    let hitbtc = new ccxt.hitbtc ({
+        'apiKey': '18339694544745d9357f9e7c0f7c41bb',
+        'secret': '8340a60fb4e9fc73a169c26c7a7926f5',
+    })
+
+    let quadrigacx = new ccxt.quadrigacx ({
+        'apiKey': 'jKvWkMqrOj',
+        'secret': 'f65a2e3bf3c73171ee14e389314b2f78',
+        'uid': '395037', // QuadrigaCX requires uid!
+    })
+
+    try { 
+
+        // fetch account balance from exchange market
+        let gdaxBalance = await gdax.fetchBalance ()
+
+        // output the result
+        log (gdax.name.green, 'balance', gdaxBalance)
+
+        // fetch another
+        let hitbtcBalance = await hitbtc.fetchBalance ()
+
+        // output it
+        log (hitbtc.name.green, 'balance', hitbtcBalance)
+
+        // and the last one
+        let quadrigacxBalance = await quadrigacx.fetchBalance ()
+
+        // output it
+        log (quadrigacx.name.green, 'balance', quadrigacxBalance)
+
+    } catch (e) {
+
+        if (e instanceof ccxt.DDoSProtectionError || e.message.includes ('ECONNRESET')) {
+            log.bright.yellow ('[DDoS Protection Error] ' + e.message)
+        } else if (e instanceof ccxt.TimeoutError) {
+            log.bright.yellow ('[Timeout Error] ' + e.message)
+        } else if (e instanceof ccxt.AuthenticationError) {
+            log.bright.yellow ('[Authentication Error] ' + e.message)
+        } else if (e instanceof ccxt.MarketNotAvailaibleError) {
+            log.bright.yellow ('[Market Not Available Error] ' + e.message)
+        } else {
+            throw e;
+        }
+    }
+        
+}) ()
