@@ -6410,14 +6410,15 @@ class gdax (Market):
         })
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
+        oid = str (self.nonce ())
         order = {
             'product_id': self.product_id (product),
             'side': side,
-            'size': str (amount),
+            'size': amount,
             'type': type,
         }
         if type == 'limit':
-            order['price'] = str (price)
+            order['price'] = price
         return self.privatePostOrders (self.extend (order, params))
 
     def cancel_order (self, id):

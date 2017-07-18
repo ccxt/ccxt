@@ -6785,14 +6785,15 @@ class gdax extends Market {
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        $oid = (string) $this->nonce ();
         $order = array (
             'product_id' => $this->product_id ($product),
             'side' => $side,
-            'size' => (string) $amount,
+            'size' => $amount,
             'type' => $type,
         );
         if ($type == 'limit')
-            $order['price'] = (string) $price;
+            $order['price'] = $price;
         return $this->privatePostOrders (array_merge ($order, $params));
     }
 

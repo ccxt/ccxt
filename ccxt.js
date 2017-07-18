@@ -6582,14 +6582,15 @@ var gdax = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let oid = this.nonce ().toString ();
         let order = {
             'product_id': this.productId (product),
             'side': side,
-            'size': amount.toString (),
+            'size': amount,
             'type': type,
         };
         if (type == 'limit')
-            order['price'] = price.toString ();
+            order['price'] = price;
         return this.privatePostOrders (this.extend (order, params));
     },
 
