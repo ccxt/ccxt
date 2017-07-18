@@ -20,7 +20,7 @@ Current featurelist:
 -  optional normalised data for cross-market or cross-currency analytics and arbitrage
 -  an out-of-the box unified all-in-one API extremely easy to integrate
 
-`ccxt on GitHub <https://github.com/kroitor/ccxt>`__ | Install | Usage | `Manual <https://github.com/kroitor/ccxt/wiki>`__ | `Examples <https://github.com/kroitor/ccxt/tree/master/examples>`__ | Public Offer
+`ccxt on GitHub <https://github.com/kroitor/ccxt>`__ | Install | Usage | `Manual <https://github.com/kroitor/ccxt/wiki>`__ | `Examples <https://github.com/kroitor/ccxt/tree/master/examples>`__ | Contributing | **Public Offer**
 
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
@@ -419,6 +419,11 @@ PHP
 
     // buy BTC/JPY, you receive 1 BTC for ¥285000 when the order closes
     var_dump ($zaif->id, $zaif->create_limit_buy_order ('BTC/JPY', 1, 285000));
+
+Contributing
+------------
+
+Please read the ```CONTRIBUTING.md`` <https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md>`__ before making any changes you would like to commit. Our multilanguage code base is single-sourced from ```ccxt.js`` <https://github.com/kroitor/ccxt/blob/master/ccxt.js>`__ by a custom transpilation tool, and this poses some serious restrictions on how to code should be written to be recognizeable by the toolchain.
 
 Public Offer
 ------------
