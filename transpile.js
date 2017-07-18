@@ -293,20 +293,20 @@ let pypiBadgeImage      = ".. image:: https://img.shields.io/pypi/v/ccxt.svg\n"
 let pypiBadgeTarget     = "   :target: https://pypi.python.org/pypi?name=ccxt&:action=display"
 let npmDownloadsImage   = ".. image:: https://img.shields.io/npm/dm/ccxt.svg\n"
 let npmDownloadsTarget  = "   :target: https://www.npmjs.com/package/ccxt"
-let pypiDownloadsImage  = ".. image:: https://img.shields.io/pypi/dm/ccxt.svg\n" 
-let pypiDownloadsTarget = "   :target: https://pypi.org/project/ccxt"
+// let pypiDownloadsImage  = ".. image:: https://img.shields.io/pypi/dm/ccxt.svg\n" 
+// let pypiDownloadsTarget = "   :target: https://pypi.org/project/ccxt"
 
 let travisBadgeRST   = travisBadgeImage   + ' ' + travisBadgeTarget
 let npmBadgeRST      = npmBadgeImage      + ' ' + npmBadgeTarget
 let pypiBadgeRST     = pypiBadgeImage     + ' ' + pypiBadgeTarget
 let npmDownloadsRST  = npmDownloadsImage  + ' ' + npmDownloadsTarget
-let pypiDownloadsRST = pypiDownloadsImage + ' ' + pypiDownloadsTarget
+// let pypiDownloadsRST = pypiDownloadsImage + ' ' + pypiDownloadsTarget
 
-let badges = [ travisBadgeRST, npmBadgeRST, pypiBadgeRST, npmDownloadsRST, pypiDownloadsRST ].join ("\n")
+let badges = [ travisBadgeRST, npmBadgeRST, pypiBadgeRST, npmDownloadsRST ].join ("\n")
 
 rstNew = match[1] + "APIs:\n\n" + newRstMarketTable + "\n\n" + match[3]
 rstNew = rstNew.replace (/\.\.[^\n]+image\:\:[^\n]+[\n]/g, '')
-rstNew = rstNew.replace ('|Build Status| |npm| |PyPI| |NPM Downloads| |PyPI Downloads|', badges)
+rstNew = rstNew.replace ('|Build Status| |npm| |PyPI| |NPM Downloads|', badges)
 rstNew = rstNew.replace (/   :target[^#]+$/g, '')
 fs.truncateSync (readmeRst)
 fs.writeFileSync (readmeRst, rstNew)
