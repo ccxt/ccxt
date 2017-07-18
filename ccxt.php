@@ -8265,8 +8265,8 @@ class livecoin extends Market {
                 $body = $this->urlencode ($query);
                 $length = count ($body);
             }
-            $body = self.encode ($body || '');
-            $signature = $this->hmac ($body, self.encode ($this->secret), 'sha256');
+            $body = $this->encode ($body || '');
+            $signature = $this->hmac ($body, $this->encode ($this->secret), 'sha256');
             $headers = array (
                 'Api-Key' => $this->apiKey,
                 'Sign' => strtoupper ($signature),

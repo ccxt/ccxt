@@ -8031,8 +8031,8 @@ var livecoin = {
                 body = this.urlencode (query);
                 length = body.length;
             }
-            body = self.encode (body || '');
-            let signature = this.hmac (body, self.encode (this.secret), 'sha256');
+            body = this.encode (body || '');
+            let signature = this.hmac (body, this.encode (this.secret), 'sha256');
             headers = {
                 'Api-Key': this.apiKey,
                 'Sign': signature.toUpperCase (),
