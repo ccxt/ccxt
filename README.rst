@@ -425,7 +425,7 @@ PHP
 Contributing
 ------------
 
-Please read the ```CONTRIBUTING.md`` <https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md>`__ before making any changes that you would like adopted in the code.
+Please read the `CONTRIBUTING <https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md>`__ document before making changes that you would like adopted in the code.
 
 Public Offer
 ------------

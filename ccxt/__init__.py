@@ -150,6 +150,7 @@ class Market (object):
     secret    = ''
     password  = ''
     uid       = ''
+    twofa     = False
     productsById = None
     products_by_id = None
 

@@ -341,7 +341,7 @@ var_dump ($zaif->id, $zaif->create_limit_buy_order ('BTC/JPY', 1, 285000));
 
 ## Contributing
 
-Please read the [`CONTRIBUTING.md`](https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md) before making any changes that you would like adopted in the code.
+Please read the [CONTRIBUTING](https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code.
 
 ## Public Offer
 

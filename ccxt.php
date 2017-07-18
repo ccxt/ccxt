@@ -238,6 +238,7 @@ class Market {
         $this->secret    = '';
         $this->password  = '';
         $this->uid       = '';
+        $this->twofa     = false;
         $this->productsById = null;
         $this->products_by_id = null;
 
