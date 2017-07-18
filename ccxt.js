@@ -451,6 +451,7 @@ var Market = function (config) {
     this.rateLimit      = 2000  // milliseconds = seconds * 1000
     this.timeout        = 10000 // milliseconds = seconds * 1000
     this.verbose        = false
+    this.twofa          = false // two-factor authentication
     this.yyyymmddhhmmss = timestamp => {
         let date = new Date (timestamp)
         let yyyy = date.getUTCFullYear ()
@@ -6430,6 +6431,265 @@ var fybsg = extend (fyb, {
 
 //-----------------------------------------------------------------------------
 
+var gatecoin = {
+    
+    'id': 'gatecoin',
+    'name': 'Gatecoin',
+    'rateLimit': 2000,
+    'urls': {
+        'api': 'https://api.gatecoin.com',
+        'www': 'https://gatecoin.com',
+        'doc': [
+            'https://gatecoin.com/api',
+            'https://github.com/Gatecoin/RESTful-API-Implementation',
+        ],
+    },
+    'api': {
+        'public': {
+            'get': [
+                'Public/LiveTickers',
+                'Public/MarketDepth/{id}',
+                'Public/Transactions/{id}',
+            ],
+            'post': [
+                'Public/Contact'
+            ],
+        },
+        'private': {
+            'get': [
+                'Balance/Balances',
+                'Balance/Balances/{Currency}',
+                'Trade/Orders',
+                'Trade/Orders/{orderID}',
+                'Trade/StopOrders',
+                'Trade/StopOrdersHistory',
+            ],
+            'post': [
+                'ElectronicWallet/Withdrawals/{DigiCurrency}',
+                'Trade/Orders',
+                'Trade/QuickChange',
+                'Trade/QuickChange/Quote',
+                'Trade/StopOrders',
+            ],
+            'delete': [
+                'Trade/Orders',
+                'Trade/Orders/{orderId}',
+                'Trade/StopOrders',
+                'Trade/StopOrders/{ID}',
+            ],
+        },
+    },
+
+    // fetchProducts () {
+    //     var products = this.publicGetPublicLiveTickers ()
+    //     return _(products.tickers).map (product => {
+    //         let id = product.currencyPair
+    //         let base = id.slice (0, 3)
+    //         let quote = id.slice (3, 6)
+    //         let symbol = base + '/' + quote
+    //         return extend ({ id, symbol, base, quote }, product, { id, symbol, base, quote })
+    //     })
+    // },
+
+    async fetchProducts () {
+        let response = await this.publicGetPublicLiveTickers ();
+        let products = response['tickers'];
+        let result = [];
+        for (let p = 0; p < products.length; p++) {
+            let product = products[p];
+            let id = product['currencyPair'];
+            let base = id.slice (0, 3);
+            let quote = id.slice (3, 6);
+            let symbol = base + '/' + quote;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            });
+        }
+        return result;
+    },
+
+    fetchBalance () {
+        return this.privatePostUserInfo ();
+    },
+
+    async fetchOrderBook (product) {
+        let p = this.product (product);
+        let orderbook = await this.publicGetPublicMarketDepthId ({
+            'id': p['id'],
+        });
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order[['price']]);
+                let amount = parseFloat (order[['volume']]);
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
+    },
+
+    async fetchTicker (product) {
+        let response = await this.publicGetPublicLiveTickers ();
+        let products = response['tickers'];
+        let tickers = this.indexBy (products, 'currencyPair');
+        let p = this.product (product);
+        let ticker = tickers[p['id']];
+        let timestamp = parseInt (ticker['createDateTime']) * 1000;
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['bid']),
+            'ask': parseFloat (ticker['ask']),
+            'vwap': parseFloat (ticker['vwap']),
+            'open': parseFloat (ticker['open']),
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['volume']),
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        return this.publicGetTrades ({
+            'pair': this.productId (product),
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+
+        let method = 'privatePostTrade';
+        if (type == 'market') {
+            method += 'QuickChange';
+        } else {
+            method += 'Orders';
+        }
+
+        let order = {
+            'Code': this.productId (product),
+            'Way': (side == 'buy') ? 'Bid' : 'Ask',
+            'Amount': amount,
+        };
+
+        if (type == 'limit')
+            order['Price'] = price;
+
+        if (this.twofa) {
+            if ('ValidationCode' in params)
+                order['ValidationCode'] = params['ValidationCode'];
+            else
+                throw new AuthenticationError (this.id + ' two-factor authentication requires a missing ValidationCode parameter');
+        }
+
+        return this[method] (this.extend (order, params));
+    },
+
+    cancelOrder (id) {
+        return this.privatePostOrderCancel ({ 'order_id': id });
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        /*     
+            Key Name    The name you want to give to the API key
+            Key validity duration   The Gatecoin API key has a maximum validity of 1 year.
+            Allow IP's  If empty, all IPs are accepted. Multiple IPs are allowed if they are comma separated.
+                                        var contentType = (httpMethod == 'GET') ? '' : ct
+                                        var message = settings.type + settings.url + contentType + now
+                                        var hash = CryptoJS.HmacSHA256 (message.toLowerCase (), key)
+                                        var hashInBase64 = CryptoJS.enc.Base64.stringify (hash)
+                                    contentType For GET requests this field should be empty. For POST and PUT requests it should be application/json
+            message GET, POST, PUT  Link of the API contentType Unix timestamp
+            Example message POST https://api.gatecoin.com/Ping?Message=ExampleInputapplication/json1421393683.201
+            hash    HmacSHA256 encrypted message    Key, is the private key
+            hashInBase64    Base64 encoded hash
+                                        jqXHR.setRequestHeader("API_PUBLIC_KEY", publicKey);
+                                        jqXHR.setRequestHeader("API_REQUEST_SIGNATURE", hashInBase64);
+                                        jqXHR.setRequestHeader("API_REQUEST_DATE", now);
+            publicKey   Your public API Key generated in step 1
+            hashInBase64    Your signature created in step 2
+            now Unix timestamp including milliseconds
+
+//------------------------------------------------
+            now = str(time.time())
+            contentType = "" if httpMethod == "GET" else "application/json"
+
+            if command == "MarketDepth":
+              url = self.apiUrl + "Public/" + command + "/" + self.market
+            else:
+              url = self.apiUrl + command
+
+            message = httpMethod + url + contentType + now
+            message = message.lower()
+
+            signature = hmac.new(self.secret.encode(), msg=message.encode(), digestmod=hashlib.sha256).digest()
+            hashInBase64 = base64.b64encode(signature, altchars=None)
+
+            headers = {
+            'API_PUBLIC_KEY': self.key,
+            'API_REQUEST_SIGNATURE': hashInBase64,
+            'API_REQUEST_DATE': now,
+            'Content-Type':'application/json'
+            }
+        */
+
+        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (type == 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            let nonce = this.nonce ();
+            body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
+
+            var contentType = (method == 'GET') ? '' : 'application/json';
+            var request = method + url + contentType + nonce;
+
+            headers = {
+                'API_PUBLIC_KEY': this.apiKey,
+                'API_REQUEST_SIGNATURE': this.hmac (this.encode (request), this.encode (this.secret), 'sha256', 'base64'),
+                'API_REQUEST_DATE': nonce,
+                'Content-Type': contentType,
+            };
+
+            if (method == 'GET') {
+            
+            } else {
+            
+                headers['Content-Type'] = 'application/json';
+            }
+
+            if (method != 'GET')
+                headers['Content-Type'] = 'application/json'
+
+            var request = method + url + contentType + nonce
+
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var gdax = {
     'id': 'gdax',
     'name': 'GDAX',
@@ -10650,6 +10910,7 @@ var markets = {
     'foxbit':        foxbit,
     'fybse':         fybse,
     'fybsg':         fybsg,
+    'gatecoin':      gatecoin,
     'gdax':          gdax,
     'gemini':        gemini,
     'hitbtc':        hitbtc,
