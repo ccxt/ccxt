@@ -14,7 +14,6 @@ let ccxtpyFilename = './ccxt/__init__.py'
 let ccxtpy = fs.readFileSync (ccxtpyFilename, 'utf8')
 let ccxtpyParts = ccxtpy.split (/\_\_version\_\_ \= \'[^\']+\'/)
 let ccxtpyNewContent = ccxtpyParts[0] + "__version__ = '" + config.version + "'" + ccxtpyParts[1]
-// console.log (ccxtpyNewContent)
 fs.truncateSync (ccxtpyFilename)
 fs.writeFileSync (ccxtpyFilename, ccxtpyNewContent)
 

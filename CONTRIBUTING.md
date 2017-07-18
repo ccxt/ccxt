@@ -197,12 +197,12 @@ By default the test scripts run through all markets to fetch tickers, order book
 All tests accept one or two optional arguments like shown below:
 ```shell
 # Usage:
-    node test [marketId [symbol]]
+    node test.js [marketId [symbol]]
     python test.py [marketId [symbol]]
     php -f test.php [marketId [symbol]]
 # Examples:
-    node test kraken
-    node test gdax BTC/USD
+    node test.js kraken
+    node test.js gdax BTC/USD
     python test.py btce
     python test.py bitfinex ETH/BTC
     php -f test.php hitbtc
