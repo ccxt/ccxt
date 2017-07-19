@@ -22,7 +22,7 @@
     "node-fetch": "*"
   },
   "devDependencies": {
-    "ansicolor": "*",
+    "ansicolor": "^1.0.64",
     "as-table": "^1.0.12",
     "babel-cli": "^6.24.1",
     "babel-plugin-async-to-promises": "^1.0.5",
@@ -30,7 +30,7 @@
     "coveralls": "^2.13.1",
     "istanbul": "^0.4.5",
     "nyc": "^11.0.3",
-    "ololog": "*"
+    "ololog": "^1.0.1"
   },
   "author": {
     "name": "Igor Kroitor",
