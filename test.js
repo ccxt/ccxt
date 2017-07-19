@@ -158,7 +158,7 @@ let testMarketSymbolOrderbook = async (market, symbol) => {
 let testMarketSymbolTrades = async (market, symbol) => {
     let trades = await market.fetchTrades (symbol)
     console.log (market.id, trades)
-    log (market.id, symbol, 'trades', trades)
+    log (market.id, symbol, 'trades', Object.values (trades).length)
     return trades
 }
 
