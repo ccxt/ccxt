@@ -7870,6 +7870,27 @@ class liqui (btce):
         params.update (config)
         super (liqui, self).__init__ (params)
 
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][type]
+        query = self.omit (params, self.extract_params (path))
+        if type == 'public':
+            url +=  '/' + self.version + '/' + self.implode_params (path, params)
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
+            nonce = self.nonce ()
+            body = _urlencode.urlencode (self.extend ({
+                'nonce': nonce,
+                'method': path,
+            }, query))
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': len (body),
+                'Key': self.apiKey,
+                'Sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512),
+            }
+        return self.fetch (url, method, headers, body)
+
 #------------------------------------------------------------------------------
 
 class luno (Market):
