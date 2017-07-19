@@ -146,48 +146,13 @@ var urlencode = function (object) {
 
 if (isNode) {
 
-    const crypto = require ('crypto')
-    var   fetch  = require ('node-fetch')
-
-    //-------------------------------------------------------------------------
-    // node-specific string / binary / base64 conversion routines
-
-    var stringToBinary = function (string) {
-        return Buffer.from (string, 'binary')
-    }
-
-    var stringToBase64 = function (string) {
-        return new Buffer (string).toString ('base64')
-    }
-
-    var utf16ToBase64 = function (string) {
-        return stringToBase64 (string)
-    }
-
-    var base64ToBinary = function (string) {
-        return Buffer.from (string, 'base64')
-    }
-
-    var base64ToString = function (string) {
-        return Buffer.from (string, 'base64').toString ()
-    }
-
-    //-------------------------------------------------------------------------
-    // node-specific cryptography
-
-    var hash = function (request, hash = 'md5', digest = 'hex') {
-        return crypto.createHash (hash).update (request).digest (digest)
-    }
-
-    var hmac = function (request, secret, hash = 'sha256', digest = 'hex') {
-        return crypto.createHmac (hash, secret).update (request).digest (digest)
-    }
+    var CryptoJS = require ('crypto-js')
+    var fetch    = require ('node-fetch')
 
 } else {
 
-    //-------------------------------------------------------------------------
     // a quick fetch polyfill
-
+    
     var fetch = function (url, options, verbose = false) {
 
         return new Promise ((resolve, reject) => {
@@ -215,42 +180,29 @@ if (isNode) {
             xhr.send (options.body)
         })
     }
+}
 
-    //-------------------------------------------------------------------------
-    // browser-specific string / binary / base64 conversion routines
+//-----------------------------------------------------------------------------
+// string ←→ binary ←→ base64 conversion routines
 
-    var stringToBinary = function (string) {
-        return CryptoJS.enc.Latin1.parse (string)
-    }
+var stringToBinary = function (string) {
+    return CryptoJS.enc.Latin1.parse (string)
+}
 
-    var stringToBase64 = function (string) {
-        return CryptoJS.enc.Latin1.parse (string).toString (CryptoJS.enc.Base64)
-    }
+var stringToBase64 = function (string) {
+    return CryptoJS.enc.Latin1.parse (string).toString (CryptoJS.enc.Base64)
+}
 
-    var utf16ToBase64  = function (string) {
-        return CryptoJS.enc.Utf16.parse (string).toString (CryptoJS.enc.Base64)
-    }
+var utf16ToBase64  = function (string) {
+    return CryptoJS.enc.Utf16.parse (string).toString (CryptoJS.enc.Base64)
+}
 
-    var base64ToBinary = function (string) {
-        return CryptoJS.enc.Base64.parse (string)
-    }
+var base64ToBinary = function (string) {
+    return CryptoJS.enc.Base64.parse (string)
+}
 
-    var base64ToString = function (string) {
-        return CryptoJS.enc.Base64.parse (string).toString (CryptoJS.enc.Utf8)
-    }
-
-    //-------------------------------------------------------------------------
-    // browser-specific cryptography
-
-    var hash = function (request, hash = 'md5', digest = 'hex') {
-        var encoding = (digest === 'binary') ? 'Latin1' : capitalize (digest)
-        return CryptoJS[hash.toUpperCase ()] (request).toString (CryptoJS.enc[encoding])
-    }
-
-    var hmac = function (request, secret, hash = 'sha256', digest = 'hex') {
-        var encoding = (digest === 'binary') ? 'Latin1' : capitalize (digest)
-        return CryptoJS['Hmac' + hash.toUpperCase ()] (request, secret).toString (CryptoJS.enc[capitalize (encoding)])
-    }
+var base64ToString = function (string) {
+    return CryptoJS.enc.Base64.parse (string).toString (CryptoJS.enc.Utf8)
 }
 
 // url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
@@ -258,7 +210,22 @@ var urlencodeBase64 = function (base64string) {
     return base64string.replace (/[=]+$/, '').replace (/\+/g, '-').replace (/\//g, '_')
 }
 
+//-----------------------------------------------------------------------------
+// cryptography
+
+var hash = function (request, hash = 'md5', digest = 'hex') {
+    var encoding = (digest === 'binary') ? 'Latin1' : capitalize (digest)
+    return CryptoJS[hash.toUpperCase ()] (request).toString (CryptoJS.enc[encoding])
+}
+
+var hmac = function (request, secret, hash = 'sha256', digest = 'hex') {
+    var encoding = (digest === 'binary') ? 'Latin1' : capitalize (digest)
+    return CryptoJS['Hmac' + hash.toUpperCase ()] (request, secret).toString (CryptoJS.enc[capitalize (encoding)])
+}
+
+//-----------------------------------------------------------------------------
 // a JSON Web Token Authentication method
+
 var jwt = function (request, secret, alg = 'HS256', hash = 'sha256') {
     var encodedHeader = urlencodeBase64 (stringToBase64 (JSON.stringify ({ 'alg': alg, 'typ': 'JWT' })))
     var encodedData = urlencodeBase64 (stringToBase64 (JSON.stringify (request)))

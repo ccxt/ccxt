@@ -18,7 +18,7 @@
     "build": "babel ccxt.js --source-maps inline --out-file ccxt.es5.js"
   },
   "dependencies": {
-    "crypto": "0.0.3",
+    "crypto-js": "3.1.9-1",
     "node-fetch": "^1.7.1"
   },
   "devDependencies": {
