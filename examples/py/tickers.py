@@ -20,7 +20,7 @@ import ccxt
 def dump (*args):
     print (' '.join ([str (arg) for arg in args]))
 
-def print_supported_markets ():
+def print_markets ():
     dump ('Supported markets:', ', '.join (ccxt.markets))
 
 def print_usage ():
@@ -28,9 +28,9 @@ def print_usage ():
     dump ("Symbol is optional, for example:")
     dump ("python " + sys.argv[0], green ('kraken'))
     dump ("python " + sys.argv[0], green ('gdax'), yellow ('BTC/USD'))
-    print_supported_markets ()
+    print_markets ()
 
-def print_market_symbol_ticker (market, symbol):
+def print_ticker (market, symbol):
     ticker = market.fetch_ticker (symbol)
     dump (green (market.id), yellow (symbol), 'ticker',
         ticker['datetime'],
@@ -58,35 +58,46 @@ try:
         # load all products from the exchange
         products = market.load_products ()
         
-        # a list of all product symbols
-        symbols = list (products.keys ())
-
         # output all symbols
-        # dump (green (id), 'has', len (symbols), 'symbols:', yellow (', '.join (symbols)))
+        dump (green (id), 'has', len (market.symbols), 'symbols:', yellow (', '.join (market.symbols)))
 
-        try: # if symbol is present, get that symbol only 
+        try:
 
-            symbol = sys.argv[2]
-            print_market_symbol_ticker (market, symbol)
+            if len (sys.argv) > 2: # if symbol is present, get that symbol only 
 
-        except: # run through all symbols one by one
+                symbol = sys.argv[2]
+                print_ticker (market, symbol)
 
-            delay = int (market.rateLimit / 1000) # delay in between requests
+            else: # run through all symbols one by one
 
-            for symbol in symbols:
+                delay = int (market.rateLimit / 1000) # delay in between requests
 
-                if symbol.find ('.d') < 0: # suffix '.d' means 'darkpool' on some markets
-                    
-                    # sleep to remain under the rateLimit
-                    time.sleep (delay)
+                for symbol in market.symbols:
 
-                    # fetch and print ticker
-                    print_market_symbol_ticker (market, symbol)       
+                    # suffix '.d' means 'darkpool' on some markets
+                    if symbol.find ('.d') < 0: 
+                        
+                        # sleep to remain under the rateLimit
+                        time.sleep (delay)
+
+                        # fetch and print ticker
+                        print_ticker (market, symbol)
+
+        except ccxt.DDoSProtectionError as e:
+            print (type (e).__name__, e.args, 'DDoS Protection Error (ignoring)')
+        except ccxt.TimeoutError as e:
+            print (type (e).__name__, e.args, 'Timeout Error, request timed out (ignoring)')
+        except ccxt.MarketNotAvailaibleError as e:
+            print (type (e).__name__, e.args, 'Market Not Available Error due to downtime or maintenance (ignoring)')
+        except ccxt.AuthenticationError as e:
+            print (type (e).__name__, e.args, 'Authentication Error (missing API keys, ignoring)')
+            
     else:
 
         dump ('Market ' + red (id) + ' not found')
         print_usage ()
 
-except:
+except Exception as e:
 
-        print_usage ()
+    print (type (e).__name__, e.args, str (e))
+    print_usage ()

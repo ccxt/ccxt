@@ -199,7 +199,7 @@ Node.js (npm)
 
     npm install ccxt
 
-Node version of the ccxt library requires ``crypto`` and ``node-fetch``, both of them are installed automatically by npm.
+Node version of the ccxt library requires `crypto-js <https://www.npmjs.com/package/crypto-js>`__ and `node-fetch <https://www.npmjs.com/package/node-fetch>`__, both of them are installed automatically by npm.
 
 .. code:: javascript
 

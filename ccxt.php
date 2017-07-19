@@ -597,30 +597,27 @@ class _1broker extends Market {
             ));
             for ($p = 0; $p < count ($products['response']); $p++) {
                 $product = $products['response'][$p];
+                $id = $product['symbol'];
+                $symbol = null;
+                $base = null;
+                $quote = null;
                 if (($category == 'FOREX') || ($category == 'CRYPTO')) {
-                    $id = $product['symbol'];
                     $symbol = $product['name'];
-                    list ($base, $quote) = explode ('/', $symbol);
-                    $result[] = array (
-                        'id' => $id,
-                        'symbol' => $symbol,
-                        'base' => $base,
-                        'quote' => $quote,
-                        'info' => $product,
-                    );
+                    $parts = explode ('/', $symbol);
+                    $base = $parts[0];
+                    $quote = $parts[1];
                 } else {
-                    $id = $product['symbol'];
-                    $symbol = $product['symbol'];
-                    $name = $product['name'];
-                    $type = strtolower ($product['type']);
-                    $result[] = array (
-                        'id' => $id,
-                        'symbol' => $symbol,
-                        'name' => $name,
-                        'type' => $type,
-                        'info' => $product,
-                    );
+                    $base = $id;
+                    $quote = 'USD';
+                    $symbol = $base . '/' . $quote;
                 }
+                $result[] = array (
+                    'id' => $id,
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'info' => $product,
+                );
             }
         }
         return $result;
@@ -10922,20 +10919,20 @@ class zaif extends Market {
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['bid']),
-            'ask' => floatval ($ticker['ask']),
-            'vwap' => floatval ($ticker['vwap']),
+            'high' => $ticker['high'],
+            'low' => $ticker['low'],
+            'bid' => $ticker['bid'],
+            'ask' => $ticker['ask'],
+            'vwap' => $ticker['vwap'],
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval ($ticker['last']),
+            'last' => $ticker['last'],
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'quoteVolume' => $ticker['volume'],
             'info' => $ticker,
         );
     }

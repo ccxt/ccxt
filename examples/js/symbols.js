@@ -6,7 +6,16 @@ const log       = require ('ololog')
 
 require ('ansicolor').nice;
 
-let listSymbols = async (id) => {
+let printSupportedMarkets = function () {
+    log ('Supported markets:', ccxt.markets.join (', ').green)
+}
+
+let printUsage = function () {
+    log ('Usage: node', process.argv[1], 'id'.green)
+    printSupportedMarkets ()
+}
+
+let printSymbols = async (id) => {
 
     // check if the exchange is supported by ccxt
     let marketFound = ccxt.markets.indexOf (id) > -1
@@ -30,19 +39,20 @@ let listSymbols = async (id) => {
     } else {
 
         log ('Market ' + id.red + ' not found')
+        printSupportedMarkets ()
     }
 }
 
-(async () => {
+(async function main () {
 
     if (process.argv.length > 2) {
 
         let id = process.argv[2]
-        await listSymbols (id);
+        await printSymbols (id)
 
     } else {
 
-        log ('Usage: node', process.argv[1], 'id'.green)
+        printUsage ()
     }
 
     process.exit ()

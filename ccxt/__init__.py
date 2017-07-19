@@ -604,29 +604,26 @@ class _1broker (Market):
             })
             for p in range (0, len (products['response'])):
                 product = products['response'][p]
+                id = product['symbol']
+                symbol = None
+                base = None
+                quote = None
                 if (category == 'FOREX') or (category == 'CRYPTO'):
-                    id = product['symbol']
                     symbol = product['name']
-                    base, quote = symbol.split ('/')
-                    result.append ({
-                        'id': id,
-                        'symbol': symbol,
-                        'base': base,
-                        'quote': quote,
-                        'info': product,
-                    })
+                    parts = symbol.split ('/')
+                    base = parts[0]
+                    quote = parts[1]
                 else:
-                    id = product['symbol']
-                    symbol = product['symbol']
-                    name = product['name']
-                    type = product['type'].lower ()
-                    result.append ({
-                        'id': id,
-                        'symbol': symbol,
-                        'name': name,
-                        'type': type,
-                        'info': product,
-                    })
+                    base = id
+                    quote = 'USD'
+                    symbol = base + '/' + quote
+                result.append ({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'info': product,
+                })
         return result
 
     def fetch_balance (self):
@@ -10297,20 +10294,20 @@ class zaif (Market):
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),
-            'high': float (ticker['high']),
-            'low': float (ticker['low']),
-            'bid': float (ticker['bid']),
-            'ask': float (ticker['ask']),
-            'vwap': float (ticker['vwap']),
+            'high': ticker['high'],
+            'low': ticker['low'],
+            'bid': ticker['bid'],
+            'ask': ticker['ask'],
+            'vwap': ticker['vwap'],
             'open': None,
             'close': None,
             'first': None,
-            'last': float (ticker['last']),
+            'last': ticker['last'],
             'change': None,
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': float (ticker['volume']),
+            'quoteVolume': ticker['volume'],
             'info': ticker,
         }
 
