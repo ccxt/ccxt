@@ -606,7 +606,12 @@ class _1broker extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privateGetUserOverview ();
+        $result = $this->privateGetUserOverview ();
+        $response = $result['response'];
+        return array (
+            'BTC' => floatval ($response['balance']),
+            'info' => $response,
+        );
     }
 
     public function fetch_order_book ($product) {

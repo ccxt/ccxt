@@ -615,7 +615,12 @@ class _1broker (Market):
         return result
 
     def fetch_balance (self):
-        return self.privateGetUserOverview ()
+        result = self.privateGetUserOverview ()
+        response = result['response']
+        return {
+            'BTC': float (response['balance']),
+            'info': response,
+        }
 
     def fetch_order_book (self, product):
         response = self.privateGetMarketQuotes ({
