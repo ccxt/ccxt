@@ -99,6 +99,18 @@ class Market {
         return $result;
     }
 
+    public static function unique ($array) {
+        return array_unique ($array);
+    }
+
+    public static function pluck ($array, $key) {
+        $result = [];
+        foreach ($array as $element)
+            if (array_key_exists ($key, $element))
+                $result[] = $element[$key]; 
+        return $result; 
+    }
+
     public static function index_by ($arrayOfArrays, $key) {
         $result = array ();
         foreach ($arrayOfArrays as $array)
@@ -392,11 +404,16 @@ class Market {
     }
 
     public function set_products ($products) {
-        $this->products = $this->indexBy ($products, 'symbol');
-        $this->products_by_id = $this->indexBy ($products, 'id');
+        $values = array_values ($products);
+        $this->products = $this->indexBy ($values, 'symbol');
+        $this->products_by_id = $this->indexBy ($values, 'id');
         $this->productsById = $this->products_by_id;
         $this->symbols = array_keys ($this->products);
         sort ($this->symbols);
+        $base = $this->pluck ($values, 'base');
+        $quote = $this->pluck ($values, 'quote');
+        $this->currencies = $this->unique (array_merge ($base, $quote));
+        sort ($this->currencies);
         return $this->products;
     }
 
