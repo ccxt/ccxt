@@ -570,8 +570,13 @@ var _1broker = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privateGetUserOverview ();
+    async fetchBalance () {
+        let result = await this.privateGetUserOverview ();
+        let response = result['response'];
+        return {
+            'BTC': parseFloat (response['balance']),
+            'info': response,
+        };
     },
 
     async fetchOrderBook (product) {
