@@ -83,7 +83,7 @@ The ccxt library includes one single file per each language:
 /ccxt.php          # slave PHP version of the ccxt library
 ```
 
-Slave files are generated from the master files by the `build.sh` script:
+Slave files and docs are partially-generated from the master `ccxt.js` file by the `build.sh` script:
 ```shell
 #!/bin/bash
 
