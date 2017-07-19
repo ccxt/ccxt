@@ -464,8 +464,8 @@ class Market (object):
         self.products_by_id = Market.indexBy (values, 'id')
         self.productsById = self.products_by_id
         self.symbols = sorted (list (self.products.keys ()))
-        base = self.pluck (values, 'base')
-        quote = self.pluck (values, 'quote')
+        base = self.pluck ([product for product in values if 'base' in product], 'base')
+        quote = self.pluck ([product for product in values if 'quote' in product], 'quote')
         self.currencies = sorted (self.unique (base + quote))
         return self.products
 

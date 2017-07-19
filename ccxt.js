@@ -340,8 +340,8 @@ var Market = function (config) {
         this.productsById = indexBy (products, 'id')
         this.products_by_id = this.productsById
         this.symbols = Object.keys (this.products)
-        let base = this.pluck (values, 'base')
-        let quote = this.pluck (values, 'quote')
+        let base = this.pluck (values.filter (product => 'base' in product), 'base')
+        let quote = this.pluck (values.filter (product => 'quote' in product), 'quote')
         this.currencies = this.unique (base.concat (quote))
         return this.products
     }
@@ -522,30 +522,27 @@ var _1broker = {
             });
             for (let p = 0; p < products['response'].length; p++) {
                 let product = products['response'][p];
+                let id = product['symbol'];
+                let symbol = undefined;
+                let base = undefined;
+                let quote = undefined;
                 if ((category == 'FOREX') || (category == 'CRYPTO')) {
-                    let id = product['symbol'];
-                    let symbol = product['name'];
-                    let [ base, quote ] = symbol.split ('/');
-                    result.push ({
-                        'id': id,
-                        'symbol': symbol,
-                        'base': base,
-                        'quote': quote,
-                        'info': product,
-                    });
+                    symbol = product['name'];
+                    let parts = symbol.split ('/');
+                    base = parts[0];
+                    quote = parts[1];
                 } else {
-                    let id = product['symbol'];
-                    let symbol = product['symbol'];
-                    let name = product['name'];
-                    let type = product['type'].toLowerCase ();
-                    result.push ({
-                        'id': id,
-                        'symbol': symbol,
-                        'name': name,
-                        'type': type,
-                        'info': product,
-                    });
+                    base = id;
+                    quote = 'USD';
+                    symbol = base + '/' + quote;
                 }
+                result.push ({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'info': product,
+                });
             }
         }
         return result;
