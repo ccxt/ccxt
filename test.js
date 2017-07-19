@@ -285,26 +285,28 @@ var test = async function () {
 
         for (const id of Object.keys (markets)) {
 
-            if (['lakebtc', 'coinspot', 'urdubit', 'coinsecure', ].indexOf (id) < 0) {
+            log.bright.green ('MARKET:', id)
 
-                log.bright.green ('MARKET:', id)
+            try {
 
-                try {
-                    const market = markets[id]
+                const market = markets[id]
+
+                if (['lakebtc', 'coinspot', 'urdubit', 'coinsecure', ].indexOf (id) < 0) {
                     await loadMarket (market)
                     await testMarket (market)
-                } catch (e) {
-                    if (e instanceof ccxt.DDoSProtectionError || e.message.includes ('ECONNRESET')) {
-                        log.bright.yellow ('[DDoS Protection Error] ' + e.message + ' (ignoring)')
-                    } else if (e instanceof ccxt.TimeoutError) {
-                        log.bright.yellow ('[Timeout Error] ' + e.message + ' (ignoring)')
-                    } else if (e instanceof ccxt.AuthenticationError) {
-                        log.bright.yellow ('[Authentication Error] ' + e.message + ' (ignoring)')
-                    } else if (e instanceof ccxt.MarketNotAvailaibleError) {
-                        log.bright.yellow ('[Market Not Available Error] ' + e.message + ' (ignoring)')
-                    } else {
-                        throw e;
-                    }
+                }
+                
+            } catch (e) {
+                if (e instanceof ccxt.DDoSProtectionError || e.message.includes ('ECONNRESET')) {
+                    log.bright.yellow ('[DDoS Protection Error] ' + e.message + ' (ignoring)')
+                } else if (e instanceof ccxt.TimeoutError) {
+                    log.bright.yellow ('[Timeout Error] ' + e.message + ' (ignoring)')
+                } else if (e instanceof ccxt.AuthenticationError) {
+                    log.bright.yellow ('[Authentication Error] ' + e.message + ' (ignoring)')
+                } else if (e instanceof ccxt.MarketNotAvailaibleError) {
+                    log.bright.yellow ('[Market Not Available Error] ' + e.message + ' (ignoring)')
+                } else {
+                    throw e;
                 }
             }
         }
