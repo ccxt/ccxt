@@ -160,7 +160,7 @@ Below are key notes on how to keep the JS code transpileable:
 
 - unfold all maps and comprehensions to basic for-loops
 
-- always use Pythnon-style indentation, it is preserved as is for all languages
+- always use Python-style indentation, it is preserved as is for all languages
 
 - always put a semicolon (`;`) at the end of each statement, as in PHP/C-style
 
