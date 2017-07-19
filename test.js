@@ -42,7 +42,7 @@ try {
 
 ccxt.markets.forEach (id => {
     markets[id] = new (ccxt)[id] ({
-        verbose: false,
+        verbose: true,
         // proxy: 'https://crossorigin.me/',
         // proxy: 'https://cors-anywhere.herokuapp.com/',
         // proxy: 'http://cors-proxy.htmldriven.com/?url=',
@@ -157,7 +157,6 @@ let testMarketSymbolOrderbook = async (market, symbol) => {
 
 let testMarketSymbolTrades = async (market, symbol) => {
     let trades = await market.fetchTrades (symbol)
-    console.log (market.id, trades)
     log (market.id, symbol, 'trades', Object.values (trades).length)
     return trades
 }
