@@ -742,7 +742,7 @@ class cryptocapital extends Market {
     public function fetch_balance () {
         $response = $this->privatePostBalancesAndInfo ();
         $balance = $response['balances-and-info'];
-        $result = $balance['available']
+        $result = $balance['available'];
         return array (
             'available' => $result,
             'info' => $balance,

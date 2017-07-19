@@ -128,6 +128,14 @@ var flat = function (array) {
     return array.reduce ((acc, cur) => acc.concat (cur), [])
 }
 
+var unique = function (array) {
+    return array.filter ((value, index, self) => (self.indexOf (value) == index))
+}
+
+var pluck = function (array, key) {
+    return array.map (element => element[key])
+}
+
 var urlencode = function (object) {
     return Object.keys (object).map (key =>
         encodeURIComponent (key) + '=' + encodeURIComponent (object[key])).join ('&')
@@ -274,6 +282,8 @@ var Market = function (config) {
     this.utf16ToBase64 = utf16ToBase64
     this.urlencode = urlencode
     this.omit = omit
+    this.pluck = pluck
+    this.unique = unique
     this.extend = extend
     this.flatten = flat
     this.indexBy = indexBy
@@ -358,10 +368,14 @@ var Market = function (config) {
 
     this.set_products =
     this.setProducts = function (products) {
-        this.products = indexBy (Object.values (products), 'symbol')
+        let values = Object.values (products)
+        this.products = indexBy (values, 'symbol')
         this.productsById = indexBy (products, 'id')
         this.products_by_id = this.productsById
         this.symbols = Object.keys (this.products)
+        let base = this.pluck (values, 'base')
+        let quote = this.pluck (values, 'quote')
+        this.currencies = this.unique (base.concat (quote))
         return this.products
     }
 
@@ -703,7 +717,7 @@ var cryptocapital = {
     async fetchBalance () {
         let response = await this.privatePostBalancesAndInfo ();
         let balance = response['balances-and-info'];
-        let result = balance['available']
+        let result = balance['available'];
         return {
             'available': result,
             'info': balance,

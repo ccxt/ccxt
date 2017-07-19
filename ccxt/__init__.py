@@ -322,6 +322,14 @@ class Market (object):
         return result
 
     @staticmethod
+    def unique (array):
+        return list (set (array))
+
+    @staticmethod
+    def pluck (array, key):
+        return [element[key] for element in array]
+
+    @staticmethod
     def s ():
         return Market.seconds ()
     
@@ -448,10 +456,16 @@ class Market (object):
         return Market.seconds ()
 
     def set_products (self, products):
-        self.products = self.indexBy (products, 'symbol')
-        self.products_by_id = Market.indexBy (products, 'id')
+        values = products
+        if type (values) is dict:
+            values = list (products.values ())
+        self.products = self.indexBy (values, 'symbol')
+        self.products_by_id = Market.indexBy (values, 'id')
         self.productsById = self.products_by_id
-        self.symbols = sorted (list (self.products.keys ()))            
+        self.symbols = sorted (list (self.products.keys ()))
+        base = self.pluck (values, 'base')
+        quote = self.pluck (values, 'quote')
+        self.currencies = sorted (self.unique (base + quote))
         return self.products
 
     def setProducts (self, products):
