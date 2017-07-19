@@ -54,7 +54,7 @@ The contents of the repository are structured as follows:
 
 ### MultiLanguage Support
 
-The ccxt library is available in three different languages (more to come). One of the primary objectives for developers is to design *portable* code, so that a single-language user can read code in other languages and understand it easily. This helps to ease the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
+The ccxt library is available in three different languages (more to come). One of the primary objectives for developers is to design *portable* code, so that a single-language user can read code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
 At first, all language-specific version were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *master/copy* process. There is now a single master version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the master version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the master version as well.
 
@@ -81,6 +81,16 @@ The ccxt library includes one single file per each language:
 /ccxt.es5.js       # slave JavaScript ES5 version of the ccxt library
 /ccxt.js           # master JS ES6 version of the ccxt library
 /ccxt.php          # slave PHP version of the ccxt library
+```
+
+Slave files are generated from the master files by the `build.sh` script:
+```shell
+#!/bin/bash
+
+npm run export-markets && # export-markets.js, bake the list of exchanges into docs
+npm run mdrst &&          # pandoc:       README.md → README.rst for PyPI
+npm run transpile &&      # transpile.js: ccxt.js → ccxt/__init__.py and ccxt.php 
+npm run build             # babel:        ccxt.js → ccxt.es5.js
 ```
 
 The structure of the master/slave file can be outlined like this:
@@ -121,7 +131,7 @@ Key notes on the structure of the library file:
 
 - thin ruler comments are there for code block separation
 - bold ruler comments are there to separate language-specific base code from language-agnostic derived implementations
-- bold rulers are markers for the transpiler to quickly find the code for conversion
+- bold rulers are marker hints for the transpiler to quickly find the code for conversion
 - the second bold ruler and footer are optional
 - ...
 
