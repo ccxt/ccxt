@@ -26,6 +26,7 @@
     "as-table": "^1.0.12",
     "babel-cli": "^6.24.1",
     "babel-plugin-async-to-promises": "^1.0.5",
+    "babel-plugin-transform-es2017-object-entries": "0.0.4",
     "babel-preset-es2015": "^6.24.1",
     "coveralls": "^2.13.1",
     "istanbul": "^0.4.5",
