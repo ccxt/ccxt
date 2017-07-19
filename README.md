@@ -122,7 +122,7 @@ An alternative way of installing this library into your code is to copy a single
 npm install ccxt
 ```
 
-Node version of the ccxt library requires `crypto` and `node-fetch`, both of them are installed automatically by npm.
+Node version of the ccxt library requires [crypto-js](https://www.npmjs.com/package/crypto-js) and [node-fetch](https://www.npmjs.com/package/node-fetch), both of them are installed automatically by npm.
 
 ```JavaScript
 var ccxt = require ('ccxt')
