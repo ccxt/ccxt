@@ -3815,9 +3815,7 @@ class btctrader extends Market {
 
     public function fetch_trades ($product) {
         $maxCount = 50;
-        return $this->publicGetTrades (array (
-            // 'last' => $maxCount,
-        ));
+        return $this->publicGetTrades ();
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
@@ -3875,7 +3873,7 @@ class btcexchange extends btctrader {
             'id' => 'btcexchange',
             'name' => 'BTCExchange',
             'countries' => 'PH', // Philippines
-            'rateLimit' => 1000,
+            'rateLimit' => 3000,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27993052-4c92911a-64aa-11e7-96d8-ec6ac3435757.jpg',
                 'api' => 'https://www.btcexchange.ph/api',
@@ -4284,6 +4282,7 @@ class bter extends Market {
                         'ticker/{id}',
                         'orderBook/{id}',
                         'trade/{id}',
+                        'tradeHistory/{id}',
                         'tradeHistory/{id}/{tid}',
                     ),
                 ),
@@ -4385,7 +4384,7 @@ class bter extends Market {
     }
 
     public function fetch_trades ($product) {
-        return $this->publicGetTradeId (array (
+        return $this->publicGetTradeHistoryId (array (
             'id' => $this->product_id ($product),
         ));
     }
@@ -6393,8 +6392,8 @@ class flowbtc extends Market {
     }
 
     public function fetch_trades ($product) {
-        return $this->publicGetTrades (array (
-            'pair' => $this->product_id ($product),
+        return $this->publicPostGetTrades (array (
+            'productPair' => $this->product_id ($product),
         ));
     }
 
@@ -10542,9 +10541,8 @@ class xbtce extends Market {
     }
 
     public function fetch_trades ($product) {
-        return $this->apiGetTradesPairs (array (
-            'pairs' => $this->product_id ($product),
-        ));
+        // no method for trades?
+        return $this->privateGetTrade ();
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {

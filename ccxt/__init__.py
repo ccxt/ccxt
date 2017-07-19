@@ -3629,9 +3629,7 @@ class btctrader (Market):
 
     def fetch_trades (self, product):
         maxCount = 50
-        return self.publicGetTrades ({
-            # 'last': maxCount,
-        })
+        return self.publicGetTrades ()
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         method = 'privatePost' + self.capitalize (side)
@@ -3682,7 +3680,7 @@ class btcexchange (btctrader):
             'id': 'btcexchange',
             'name': 'BTCExchange',
             'countries': 'PH', # Philippines
-            'rateLimit': 1000,
+            'rateLimit': 3000,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27993052-4c92911a-64aa-11e7-96d8-ec6ac3435757.jpg',
                 'api': 'https://www.btcexchange.ph/api',
@@ -4066,6 +4064,7 @@ class bter (Market):
                         'ticker/{id}',
                         'orderBook/{id}',
                         'trade/{id}',
+                        'tradeHistory/{id}',
                         'tradeHistory/{id}/{tid}',
                     ],
                 },
@@ -4161,7 +4160,7 @@ class bter (Market):
         }
 
     def fetch_trades (self, product):
-        return self.publicGetTradeId ({
+        return self.publicGetTradeHistoryId ({
             'id': self.product_id (product),
         })
 
@@ -6042,8 +6041,8 @@ class flowbtc (Market):
         }
 
     def fetch_trades (self, product):
-        return self.publicGetTrades ({
-            'pair': self.product_id (product),
+        return self.publicPostGetTrades ({
+            'productPair': self.product_id (product),
         })
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
@@ -9945,9 +9944,8 @@ class xbtce (Market):
         }
 
     def fetch_trades (self, product):
-        return self.apiGetTradesPairs ({
-            'pairs': self.product_id (product),
-        })
+        # no method for trades?
+        return self.privateGetTrade ()
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         if type == 'market':
