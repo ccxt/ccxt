@@ -410,10 +410,12 @@ class Market {
         $this->productsById = $this->products_by_id;
         $this->symbols = array_keys ($this->products);
         sort ($this->symbols);
-        $base = $this->pluck (array_filter ($values, function ($product) { return array_key_exists ('base', $product); }), 'base');
-        $quote = $this->pluck (array_filter ($values, function ($product) { return array_key_exists ('quote', $product); }), 'quote');
-        // $base = $this->pluck ($values, 'base');
-        // $quote = $this->pluck ($values, 'quote');
+        $base = $this->pluck (array_filter ($values, function ($product) { 
+            return array_key_exists ('base', $product);
+        }), 'base');
+        $quote = $this->pluck (array_filter ($values, function ($product) {
+            return array_key_exists ('quote', $product);
+        }), 'quote');
         $this->currencies = $this->unique (array_merge ($base, $quote));
         sort ($this->currencies);
         return $this->products;
