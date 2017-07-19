@@ -43,7 +43,7 @@ The contents of the repository are structured as follows:
 /export-markets.js # used to create tables of markets in the docs during the build
 /package.json      # npm package file, also used in setup.py for version single-sourcing
 /publish.sh        # commit and publish the module in NPM/PyPI (do not run if you are not sure)
-/send.sh           # commit and push everything for testing
+/send.sh           # update the version, commit and push the code for testing with travis-ci
 /setup.cfg         # wheels config file for the Python package
 /test.js           # a test in JavaScript that runs through all markets and calls basic APIs
 /test.php          # same in PHP
