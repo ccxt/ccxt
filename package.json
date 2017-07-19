@@ -18,8 +18,8 @@
     "build": "babel ccxt.js --source-maps inline --out-file ccxt.es5.js"
   },
   "dependencies": {
-    "crypto": "*",
-    "node-fetch": "*"
+    "crypto": "0.0.3",
+    "node-fetch": "^1.7.1"
   },
   "devDependencies": {
     "ansicolor": "^1.0.64",
