@@ -87,7 +87,7 @@ Slave files are generated from the master files by the `build.sh` script:
 ```shell
 #!/bin/bash
 
-npm run export-markets && # export-markets.js, bake the list of exchanges into docs
+npm run export-markets && # export-markets.js → README.md and ../ccxt.wiki/*
 npm run mdrst &&          # pandoc:       README.md → README.rst for PyPI
 npm run transpile &&      # transpile.js: ccxt.js → ccxt/__init__.py and ccxt.php 
 npm run build             # babel:        ccxt.js → ccxt.es5.js
