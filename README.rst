@@ -339,7 +339,7 @@ JavaScript
         console.log (bitfinex.id,  await bitfinex.loadProducts  ())
         console.log (huobi.id,     await huobi.loadProducts ())
 
-        console.log (kraken.id,    await kraken.fetchOrderBook (Object.keys (kraken.products)[0]))
+        console.log (kraken.id,    await kraken.fetchOrderBook (kraken.symbols[0]))
         console.log (bitfinex.id,  await bitfinex.fetchTicker ('BTC/USD'))
         console.log (huobi.id,     await huobi.fetchTrades ('ETH/CNY'))
 
@@ -376,7 +376,7 @@ Python
     print (bitmex.id, bitmex.load_products ())
     print (huobi.id,  huobi.load_products ())
 
-    print (hitbtc.fetch_order_book (hitbtc_products.keys ()[0]))
+    print (hitbtc.fetch_order_book (hitbtc.symbols[0]))
     print (bitmex.fetch_ticker ('BTC/USD'))
     print (huobi.fetch_trades ('LTC/CNY'))
 
@@ -409,7 +409,7 @@ PHP
     var_dump ($bittrex->load_products ());
     var_dump ($quoine->load_products ());
 
-    var_dump ($poloniex->fetch_order_book (array_keys ($poloniex_products)[0]));
+    var_dump ($poloniex->fetch_order_book ($poloniex->symbols[0]));
     var_dump ($bittrex->fetch_trades ('BTC/USD'));
     var_dump ($quoine->fetch_ticker ('ETH/EUR'));
     var_dump ($zaif->fetch_ticker ('BTC/JPY'));
