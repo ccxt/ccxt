@@ -138,19 +138,20 @@ class TickerNotAvailableError (NotAvailableError):
 
 class Market (object):
 
-    id        = None
-    rateLimit = 2000  # milliseconds = seconds * 1000
-    timeout   = 10000 # milliseconds = seconds * 1000
-    verbose   = False
-    products  = None
-    symbols   = None
-    tickers   = None
-    proxy     = ''
-    apiKey    = ''
-    secret    = ''
-    password  = ''
-    uid       = ''
-    twofa     = False
+    id         = None
+    rateLimit  = 2000  # milliseconds = seconds * 1000
+    timeout    = 10000 # milliseconds = seconds * 1000
+    verbose    = False
+    products   = None
+    symbols    = None
+    currencies = None
+    tickers    = None
+    proxy      = ''
+    apiKey     = ''
+    secret     = ''
+    password   = ''
+    uid        = ''
+    twofa      = False
     productsById = None
     products_by_id = None
 
