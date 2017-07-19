@@ -8095,6 +8095,29 @@ var liqui = extend (btce, {
         'www': 'https://liqui.io',
         'doc': 'https://liqui.io/api',
     },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][type];
+        let query = this.omit (params, this.extractParams (path));
+        if (type == 'public') {
+            url +=  '/' + this.version + '/' + this.implodeParams (path, params);
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            let nonce = this.nonce ();
+            body = this.urlencode (this.extend ({
+                'nonce': nonce,
+                'method': path,
+            }, query));
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': body.length,
+                'Key': this.apiKey,
+                'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
 })
 
 //-----------------------------------------------------------------------------
