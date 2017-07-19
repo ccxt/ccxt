@@ -573,8 +573,11 @@ var _1broker = {
     async fetchBalance () {
         let result = await this.privateGetUserOverview ();
         let response = result['response'];
-        return {
+        let available = {
             'BTC': parseFloat (response['balance']),
+        };
+        return {
+            'available': available,
             'info': response,
         };
     },
@@ -697,8 +700,14 @@ var cryptocapital = {
     'products': {
     },
 
-    fetchBalance () {
-        return this.privatePostBalancesAndInfo ();
+    async fetchBalance () {
+        let response = await this.privatePostBalancesAndInfo ();
+        let balance = response['balances-and-info'];
+        let result = balance['available']
+        return {
+            'available': result,
+            'info': balance,
+        };
     },
 
     async fetchOrderBook (product) {

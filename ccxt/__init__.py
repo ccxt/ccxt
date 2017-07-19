@@ -617,8 +617,11 @@ class _1broker (Market):
     def fetch_balance (self):
         result = self.privateGetUserOverview ()
         response = result['response']
-        return {
+        available = {
             'BTC': float (response['balance']),
+        }
+        return {
+            'available': available,
             'info': response,
         }
 
@@ -740,7 +743,13 @@ class cryptocapital (Market):
         super (cryptocapital, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostBalancesAndInfo ()
+        response = self.privatePostBalancesAndInfo ()
+        balance = response['balances-and-info']
+        result = balance['available']
+        return {
+            'available': result,
+            'info': balance,
+        }
 
     def fetch_order_book (self, product):
         response = self.publicGetOrderBook ({

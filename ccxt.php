@@ -608,8 +608,11 @@ class _1broker extends Market {
     public function fetch_balance () {
         $result = $this->privateGetUserOverview ();
         $response = $result['response'];
-        return array (
+        $available = array (
             'BTC' => floatval ($response['balance']),
+        );
+        return array (
+            'available' => $available,
             'info' => $response,
         );
     }
@@ -737,7 +740,13 @@ class cryptocapital extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostBalancesAndInfo ();
+        $response = $this->privatePostBalancesAndInfo ();
+        $balance = $response['balances-and-info'];
+        $result = $balance['available']
+        return array (
+            'available' => $result,
+            'info' => $balance,
+        );
     }
 
     public function fetch_order_book ($product) {
