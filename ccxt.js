@@ -3705,9 +3705,7 @@ var btctrader = {
 
     fetchTrades (product) {
         let maxCount = 50;
-        return this.publicGetTrades ({
-            // 'last': maxCount,
-        });
+        return this.publicGetTrades ();
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
@@ -3763,7 +3761,7 @@ var btcexchange = extend (btctrader, {
     'id': 'btcexchange',
     'name': 'BTCExchange',
     'countries': 'PH', // Philippines
-    'rateLimit': 1000,
+    'rateLimit': 3000,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27993052-4c92911a-64aa-11e7-96d8-ec6ac3435757.jpg',
         'api': 'https://www.btcexchange.ph/api',
@@ -4155,6 +4153,7 @@ var bter = {
                 'ticker/{id}',
                 'orderBook/{id}',
                 'trade/{id}',
+                'tradeHistory/{id}',
                 'tradeHistory/{id}/{tid}',
             ],
         },
@@ -4254,7 +4253,7 @@ var bter = {
     },
 
     fetchTrades (product) {
-        return this.publicGetTradeId ({
+        return this.publicGetTradeHistoryId ({
             'id': this.productId (product),
         });
     },
@@ -6213,8 +6212,8 @@ var flowbtc = {
     },
 
     fetchTrades (product) {
-        return this.publicGetTrades ({
-            'pair': this.productId (product),
+        return this.publicPostGetTrades ({
+            'productPair': this.productId (product),
         });
     },
 
@@ -10238,9 +10237,8 @@ var xbtce = {
     },
 
     fetchTrades (product) {
-        return this.apiGetTradesPairs ({
-            'pairs': this.productId (product),
-        });
+        // no method for trades?
+        return this.privateGetTrade ();
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {

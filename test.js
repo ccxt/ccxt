@@ -155,14 +155,24 @@ let testMarketSymbolOrderbook = async (market, symbol) => {
     return orderbook
 }
 
+let testMarketSymbolTrades = async (market, symbol) => {
+    let trades = await market.fetchTrades (symbol)
+    console.log (market.id, trades)
+    log (market.id, symbol, 'trades', trades)
+    return trades
+}
+
 let testMarketSymbol = async (market, symbol) => {
+    await sleep (market.rateLimit) 
     await testMarketSymbolTicker (market, symbol)
     if (market.id == 'coinmarketcap') {
         // console.log (await market.fetchTickers ());
         console.log (await market.fetchGlobal ());
     } else {
         await testMarketSymbolOrderbook (market, symbol)
-
+        if ([ '_1broker', 'xbtce', 'btcexchange' ].indexOf (market.id) < 0) {
+            await testMarketSymbolTrades (market, symbol)
+        }
     }
 }
 
@@ -276,7 +286,7 @@ var test = async function () {
 
         for (const id of Object.keys (markets)) {
 
-            if (['lakebtc', 'coinspot', 'urdubit', 'coinsecure' ].indexOf (id) < 0) {
+            if (['lakebtc', 'coinspot', 'urdubit', 'coinsecure', ].indexOf (id) < 0) {
 
                 log.bright.green ('MARKET:', id)
 
