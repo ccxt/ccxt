@@ -91,30 +91,14 @@ if len (sys.argv) > 2:
     table = []
     dump (green (' symbol          | ' + ''.join ([' {:<15} | '.format (id) for id in ids])))
     dump (green (''.join (['-----------------+-' for x in range (0, len (ids) + 1)])))
+
     for symbol in arbitrableSymbols:
         string = ' {:<15} | '.format (symbol)
         row = { }
         for id in ids:
+            # if a symbol is present in a market print that market's id in the row
             string += ' {:<15} | '.format (id if symbol in markets[id].symbols else '')
         dump (string)
-        # dump ('{:<15}'.format ('') + ' '.join (['{:<15}'.format (id) for id in ids]))
-
-    # for row in table:
-        
-
-    # # output a list of all product symbols
-    # dump (green (id), 'has', len (market.symbols), 'symbols:', yellow (', '.join (market.symbols)))
-
-    # # output a table of all products
-    # dump (pink ('{:<15} {:<15} {:<15} {:<15}'.format ('id', 'symbol', 'base', 'quote')))
-    # tuples = list (ccxt.Market.keysort (products).items ())
-    # for (k, v) in tuples:
-    #     dump ('{:<15} {:<15} {:<15} {:<15}'.format (v['id'], v['symbol'], v['base'], v['quote']))
-
-    # # dump (table)
-    # # log (asTable.configure ({ delimiter: ' | ' }) (table))
-
-    # dump (arbitrableSymbols)
 
 else:
     

@@ -223,7 +223,7 @@ class Market (object):
             ddos_protection = re.search ('(cloudflare|incapsula)', text, flags = re.IGNORECASE)
             market_not_available = re.search ('(offline|unavailable|busy|maintenance|maintenancing)', text, flags = re.IGNORECASE)
             if market_not_available:
-                raise MarketNotAvailaibleError (self.id + ' Market Not Available Error')
+                raise MarketNotAvailableError (self.id + ' Market Not Available Error')
             if ddos_protection:
                 raise DDoSProtectionError (self.id + ' DDoS Protection Error')
             return json.loads (text)
@@ -241,7 +241,7 @@ class Market (object):
                 if market_not_available:
                     error = 'Market Not Available'
                     print (self.id, method, url, e.code, e.msg, error)
-                    raise MarketNotAvailaibleError (self.id + ' ' + error)
+                    raise MarketNotAvailableError (self.id + ' ' + error)
                 else:
                     print (self.id, method, url, e.code, e.msg, text)
                     raise
