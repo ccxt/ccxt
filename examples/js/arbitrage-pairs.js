@@ -11,7 +11,7 @@ let printSupportedMarkets = function () {
 }
 
 let printUsage = function () {
-    log ('Usage: node', process.argv[1], 'id1'.green, 'id2'.yellow, '...')
+    log ('Usage: node', process.argv[1], 'id1'.green, 'id2'.yellow, 'id3'.blue, '...')
     printSupportedMarkets ()
 }
 
