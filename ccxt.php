@@ -6292,7 +6292,7 @@ class exmo extends Market {
         $result = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('result', $result)) {
             if (!$result['result']) {
-                throw new MarketNotAvailaibleError ('[Market Not Available] ' . $this->id . ' ' . $result['error']);
+                throw new MarketNotAvailableError ('[Market Not Available] ' . $this->id . ' ' . $result['error']);
             }
         }
         return $result;

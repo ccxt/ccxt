@@ -55,7 +55,7 @@ class NotAvailableError extends CCXTError {
 class MarketNotAvailableError extends NotAvailableError {
     constructor (message) {
         super (message)
-        this.constructor = MarketNotAvailaileError
+        this.constructor = MarketNotAvailaleError
         this.__proto__   = MarketNotAvailableError.prototype
         this.message     = message
     }    
@@ -337,7 +337,7 @@ var Market = function (config) {
             .then (response => (typeof response === 'string') ? response : response.text ())
             .then (response => {
                 if (response.match (/offline|unavailable|maintain|maintenanc(?:e|ing)/i))
-                    throw new MarketNotAvailaibleError (this.id + ' is offline, on maintenance or unreachable from this location at the moment')
+                    throw new MarketNotAvailableError (this.id + ' is offline, on maintenance or unreachable from this location at the moment')
                 if (response.match (/cloudflare|incapsula|overload/i))
                     throw new DDoSProtectionError (this.id + ' is not accessible from this location at the moment')
                 try {
@@ -6092,7 +6092,7 @@ var exmo = {
         let result = await this.fetch (url, method, headers, body);
         if ('result' in result) {
             if (!result['result']) {
-                throw new MarketNotAvailaibleError ('[Market Not Available] ' + this.id + ' ' + result['error']);
+                throw new MarketNotAvailableError ('[Market Not Available] ' + this.id + ' ' + result['error']);
             }
         }
         return result;
