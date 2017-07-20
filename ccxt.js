@@ -7,67 +7,84 @@ var isNode = (typeof window === 'undefined')
 //-----------------------------------------------------------------------------
 
 class CCXTError extends Error {
-    constructor () {
-        super ()
+    constructor (message) {
+        super (message)
         // a workaround to make `instanceof CCXTError` work in ES5
         this.constructor = CCXTError 
         this.__proto__   = CCXTError.prototype
+        this.message     = message
     }
 }
 
 class DDoSProtectionError extends CCXTError {
-    constructor () {
-        super ()
+    constructor (message) {
+        super (message)
         this.constructor = DDoSProtectionError 
         this.__proto__   = DDoSProtectionError.prototype
+        this.message     = message
     }
 }
 
 class TimeoutError extends CCXTError {
-    constructor () {
-        super ()
+    constructor (message) {
+        super (message)
         this.constructor = TimeoutError 
         this.__proto__   = TimeoutError.prototype
+        this.message     = message
     }
 }
 
 class AuthenticationError extends CCXTError {
-    constructor () {
-        super ()
+    constructor (message) {
+        super (message)
         this.constructor = AuthenticationError
         this.__proto__   = AuthenticationError.prototype
+        this.message     = message
     }    
 }
 
-class NotAvailaibleError extends CCXTError {
-    constructor () {
-        super ()
-        this.constructor = NotAvailaibleError
-        this.__proto__   = NotAvailaibleError.prototype
+class NotAvailableError extends CCXTError {
+    constructor (message) {
+        super (message)
+        this.constructor = NotAvailableError
+        this.__proto__   = NotAvailableError.prototype
+        this.message     = message
     }    
 }
 
-class MarketNotAvailaibleError extends NotAvailaibleError {
-    constructor () {
-        super ()
-        this.constructor = MarketNotAvailaibleError
-        this.__proto__   = MarketNotAvailaibleError.prototype
+class MarketNotAvailableError extends NotAvailableError {
+    constructor (message) {
+        super (message)
+        this.constructor = MarketNotAvailaileError
+        this.__proto__   = MarketNotAvailableError.prototype
+        this.message     = message
     }    
 }
 
-class OrderBookNotAvailableError extends NotAvailaibleError {
-    constructor () {
-        super ()
+class EndpointNotAvailableError extends NotAvailableError {
+    constructor (message) {
+        super (message)
+        this.constructor = EndpointNotAvailableError
+        this.__proto__   = EndpointNotAvailableError.prototype
+        this.message     = message
+    }       
+}
+
+class OrderBookNotAvailableError extends NotAvailableError {
+    constructor (message) {
+        super (message)
         this.constructor = OrderBookNotAvailableError
         this.__proto__   = OrderBookNotAvailableError.prototype
+        this.message     = message
     }    
 }
 
-class TickerNotAvailableError extends NotAvailaibleError {
-    constructor () {
-        super ()
+class TickerNotAvailableError extends NotAvailableError {
+    constructor (message) {
+        super (message)
         this.constructor = TickerNotAvailableError
         this.__proto__   = TickerNotAvailableError.prototype
+        this.message     = message
     }    
 }
 
@@ -319,9 +336,9 @@ var Market = function (config) {
         return timeout (this.timeout, fetch (url, options)
             .then (response => (typeof response === 'string') ? response : response.text ())
             .then (response => {
-                if (response.match (/offline|unavailable|busy|maintain|maintenanc(?:e|ing)/i))
+                if (response.match (/offline|unavailable|maintain|maintenanc(?:e|ing)/i))
                     throw new MarketNotAvailaibleError (this.id + ' is offline, on maintenance or unreachable from this location at the moment')
-                if (response.match (/cloudflare|incapsula/i))
+                if (response.match (/cloudflare|incapsula|overload/i))
                     throw new DDoSProtectionError (this.id + ' is not accessible from this location at the moment')
                 try {
                     return JSON.parse (response)
@@ -946,6 +963,8 @@ var anxpro = {
     },
 
     fetchTrades (product) {
+        let error = this.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled';
+        throw new EndpointNotAvailableError (error)
         return this.publicGetCurrencyPairMoneyTradeFetch ({
             'currency_pair': this.productId (product),
         });
@@ -10717,8 +10736,9 @@ if (isNode) {
         DDoSProtectionError,
         TimeoutError,
         AuthenticationError,
-        NotAvailaibleError,
-        MarketNotAvailaibleError,
+        NotAvailableError,
+        MarketNotAvailableError,
+        EndpointNotAvailableError,
         OrderBookNotAvailableError,
         TickerNotAvailableError,
     })

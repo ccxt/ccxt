@@ -30,15 +30,12 @@ log.bright ('\nTESTING', ccxtFile.magenta, { market: marketId || 'all', symbol: 
 /*  ------------------------------------------------------------------------ */
 
 let markets = {}
-
-try {
-
-    markets = require ('./config')
-
-} catch (e) {
-
-    markets = {}
-}
+let proxies = [
+    '',
+    'https://crossorigin.me/',
+    'https://cors-anywhere.herokuapp.com/',
+    // 'http://cors-proxy.htmldriven.com/?url=',
+]
 
 ccxt.markets.forEach (id => {
     markets[id] = new (ccxt)[id] ({
@@ -94,7 +91,6 @@ for (let id in config)
         markets[id][key] = config[id][key]
 
 markets['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
-markets['anxpro'].proxy = 'https://crossorigin.me/'
 
 var countryName = function (code) {
     return ((typeof countries[code] !== 'undefined') ? countries[code] : code)
@@ -286,29 +282,42 @@ var test = async function () {
         for (const id of Object.keys (markets)) {
 
             log.bright.green ('MARKET:', id)
+            
+            const market = markets[id]
+            let currentProxy = 0
+            let maxRetries   = proxies.length
+            
+            for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
 
-            try {
+                try {
 
-                const market = markets[id]
+                    market.proxy = proxies[currentProxy]              
 
-                if (['lakebtc', 'coinspot', 'urdubit', 'coinsecure', ].indexOf (id) < 0) {
-                    await loadMarket (market)
-                    await testMarket (market)
+                    if ([ 'coinspot' ].indexOf (id) < 0) {
+                        await loadMarket (market)
+                        await testMarket (market)
+                        break;
+                    }
+
+                } catch (e) {
+                    currentProxy = ++currentProxy % proxies.length
+                    if (e instanceof ccxt.DDoSProtectionError || e.message.includes ('ECONNRESET')) {
+                        log.bright.yellow ('[DDoS Protection Error] ' + e.message)
+                    } else if (e instanceof ccxt.TimeoutError) {
+                        log.bright.yellow ('[Timeout Error] ' + e.message)
+                    } else if (e instanceof ccxt.AuthenticationError) {
+                        log.bright.yellow ('[Authentication Error] ' + e.message)
+                    } else if (e instanceof ccxt.MarketNotAvailableError) {
+                        log.bright.yellow ('[Market Not Available Error] ' + e.message)
+                    } else if (e instanceof ccxt.EndpointNotAvailableError) {
+                        log.bright.yellow ('[Endpoint Not Available Error] ' + e.message)
+                    } else {
+                        throw e;
+                    }
                 }
-                
-            } catch (e) {
-                if (e instanceof ccxt.DDoSProtectionError || e.message.includes ('ECONNRESET')) {
-                    log.bright.yellow ('[DDoS Protection Error] ' + e.message + ' (ignoring)')
-                } else if (e instanceof ccxt.TimeoutError) {
-                    log.bright.yellow ('[Timeout Error] ' + e.message + ' (ignoring)')
-                } else if (e instanceof ccxt.AuthenticationError) {
-                    log.bright.yellow ('[Authentication Error] ' + e.message + ' (ignoring)')
-                } else if (e instanceof ccxt.MarketNotAvailaibleError) {
-                    log.bright.yellow ('[Market Not Available Error] ' + e.message + ' (ignoring)')
-                } else {
-                    throw e;
-                }
+
             }
+
         }
     }
 

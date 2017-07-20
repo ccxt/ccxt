@@ -1015,6 +1015,8 @@ class anxpro (Market):
         }
 
     def fetch_trades (self, product):
+        error = self.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled'
+        raise EndpointNotAvailableError (error)
         return self.publicGetCurrencyPairMoneyTradeFetch ({
             'currency_pair': self.product_id (product),
         })
@@ -1785,7 +1787,7 @@ class bitfinex (Market):
             'price': str (price),
             'side': side,
             'type': 'exchange ' + type,
-            'ocoorder': false,
+            'ocoorder': False,
             'buy_price_oco': 0,
             'sell_price_oco': 0,
         }, params))
