@@ -166,6 +166,10 @@ var urlencode = function (object) {
         encodeURIComponent (key) + '=' + encodeURIComponent (object[key])).join ('&')
 }
 
+var sum = function (... args) {
+    return args.filter (arg => typeof arg != 'undefined').reduce ((sum, value) => sum + value, 0)
+}
+
 //-----------------------------------------------------------------------------
 // platform-specific code (Node.js / Web Browsers)
 
@@ -283,6 +287,7 @@ var Market = function (config) {
     this.keysort = keysort
     this.capitalize = capitalize
     this.json = JSON.stringify
+    this.sum = sum
 
     this.encode = string => string
     this.decode = string => string
@@ -574,15 +579,20 @@ var _1broker = {
     },
 
     async fetchBalance () {
-        let result = await this.privateGetUserOverview ();
-        let response = result['response'];
-        let available = {
-            'BTC': parseFloat (response['balance']),
-        };
-        return {
-            'available': available,
-            'info': response,
-        };
+        let balance = await this.privateGetUserOverview ();
+        let response = balance['response'];
+        let result = { 'info': response };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            result[currency] = {
+                'free': undefined,
+                'used': undefined,
+                'total': 0,
+            };
+        }
+        result['BTC']['free'] = parseFloat (response['balance']);
+        result['BTC']['total'] = result['BTC']['free'];
+        return result;
     },
 
     async fetchOrderBook (product) {
@@ -706,11 +716,22 @@ var cryptocapital = {
     async fetchBalance () {
         let response = await this.privatePostBalancesAndInfo ();
         let balance = response['balances-and-info'];
-        let result = balance['available'];
-        return {
-            'available': result,
-            'info': balance,
-        };
+        console.log (balance);
+        let result = { 'info': balance };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = {
+                'free': undefined,
+                'used': undefined,
+            };
+            if (currency in balance['available'])
+                account['free'] = balance['available'][currency];
+            if (currency in balance['on_hold'])
+                account['used'] = balance['on_hold'][currency];
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
@@ -792,7 +813,7 @@ var cryptocapital = {
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (this.id == 'cryptocapital')
-            throw new Error (this.id + ' is an abstract base API for _1BTCXE');
+            throw new Error (this.id + ' is an abstract base API for _1btcxe');
         let url = this.urls['api'] + '/' + path;
         if (type == 'public') {
             if (Object.keys (params).length)
@@ -10753,7 +10774,7 @@ if (isNode) {
         OrderBookNotAvailableError,
         TickerNotAvailableError,
 
-        // common functions
+        // common utility functions
 
         sleep,
         timeout,
@@ -10767,8 +10788,10 @@ if (isNode) {
         unique,
         pluck,
         urlencode,
+        sum,
 
         // underscore aliases
+
         index_by: indexBy, 
         sort_by: sortBy,
 

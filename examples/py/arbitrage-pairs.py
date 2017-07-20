@@ -96,7 +96,7 @@ if len (sys.argv) > 2:
         string = ' {:<15} | '.format (symbol)
         row = { }
         for id in ids:
-            # if a symbol is present in a market print that market's id in the row
+            # if a symbol is present on a market print that market's id in the row
             string += ' {:<15} | '.format (id if symbol in markets[id].symbols else '')
         dump (string)
 

@@ -631,15 +631,19 @@ class _1broker (Market):
         return result
 
     def fetch_balance (self):
-        result = self.privateGetUserOverview ()
-        response = result['response']
-        available = {
-            'BTC': float (response['balance']),
-        }
-        return {
-            'available': available,
-            'info': response,
-        }
+        balance = self.privateGetUserOverview ()
+        response = balance['response']
+        result = { 'info': response }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            result[currency] = {
+                'free': None,
+                'used': None,
+                'total': 0,
+            }
+        result['BTC']['free'] = float (response['balance'])
+        result['BTC']['total'] = result['BTC']['free']
+        return result
 
     def fetch_order_book (self, product):
         response = self.privateGetMarketQuotes ({
@@ -761,11 +765,21 @@ class cryptocapital (Market):
     def fetch_balance (self):
         response = self.privatePostBalancesAndInfo ()
         balance = response['balances-and-info']
-        result = balance['available']
-        return {
-            'available': result,
-            'info': balance,
-        }
+        console.log (balance)
+        result = { 'info': balance }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+            }
+            if currency in balance['available']:
+                account['free'] = balance['available'][currency]
+            if currency in balance['on_hold']:
+                account['used'] = balance['on_hold'][currency]
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         response = self.publicGetOrderBook ({
@@ -839,7 +853,7 @@ class cryptocapital (Market):
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         if self.id == 'cryptocapital':
-            raise Error (self.id + ' is an abstract base API for _1BTCXE')
+            raise Error (self.id + ' is an abstract base API for _1btcxe')
         url = self.urls['api'] + '/' + path
         if type == 'public':
             if params:

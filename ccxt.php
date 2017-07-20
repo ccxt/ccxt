@@ -625,15 +625,20 @@ class _1broker extends Market {
     }
 
     public function fetch_balance () {
-        $result = $this->privateGetUserOverview ();
-        $response = $result['response'];
-        $available = array (
-            'BTC' => floatval ($response['balance']),
-        );
-        return array (
-            'available' => $available,
-            'info' => $response,
-        );
+        $balance = $this->privateGetUserOverview ();
+        $response = $balance['response'];
+        $result = array ( 'info' => $response );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $result[$currency] = array (
+                'free' => null,
+                'used' => null,
+                'total' => 0,
+            );
+        }
+        $result['BTC']['free'] = floatval ($response['balance']);
+        $result['BTC']['total'] = $result['BTC']['free'];
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -761,11 +766,22 @@ class cryptocapital extends Market {
     public function fetch_balance () {
         $response = $this->privatePostBalancesAndInfo ();
         $balance = $response['balances-and-info'];
-        $result = $balance['available'];
-        return array (
-            'available' => $result,
-            'info' => $balance,
-        );
+        console.log ($balance);
+        $result = array ( 'info' => $balance );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $account = array (
+                'free' => null,
+                'used' => null,
+            );
+            if (array_key_exists ($currency, $balance['available']))
+                $account['free'] = $balance['available'][$currency];
+            if (array_key_exists ($currency, $balance['on_hold']))
+                $account['used'] = $balance['on_hold'][$currency];
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -847,7 +863,7 @@ class cryptocapital extends Market {
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if ($this->id == 'cryptocapital')
-            throw new \Exception ($this->id . ' is an abstract base API for _1BTCXE');
+            throw new \Exception ($this->id . ' is an abstract base API for _1btcxe');
         $url = $this->urls['api'] . '/' . $path;
         if ($type == 'public') {
             if ($params)
@@ -3562,11 +3578,11 @@ class btcchina extends Market {
             $p = implode (',', $p);
             $body = $this->json ($request);
             $query = (
-                'tonce=' . $nonce .
-                '&accesskey=' . $this->apiKey .
-                '&requestmethod=' . strtolower ($method) .
-                '&id=' . $nonce .
-                '&$method=' . $path .
+                'tonce=' . $nonce +
+                '&accesskey=' . $this->apiKey +
+                '&requestmethod=' . strtolower ($method) +
+                '&id=' . $nonce +
+                '&$method=' . $path +
                 '&$params=' . $p
             );
             $signature = $this->hmac ($this->encode ($query), $this->secret, 'sha1');
