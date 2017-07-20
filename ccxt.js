@@ -55,7 +55,7 @@ class NotAvailableError extends CCXTError {
 class MarketNotAvailableError extends NotAvailableError {
     constructor (message) {
         super (message)
-        this.constructor = MarketNotAvailaleError
+        this.constructor = MarketNotAvailableError
         this.__proto__   = MarketNotAvailableError.prototype
         this.message     = message
     }    
