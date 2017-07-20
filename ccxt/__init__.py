@@ -128,7 +128,7 @@ class AuthenticationError (CCXTError):
 class NotAvailableError (CCXTError):
     pass
 
-class MarketNotAvailaibleError (NotAvailableError):
+class MarketNotAvailableError (NotAvailableError):
     pass
 
 class EndpointNotAvailableError (NotAvailableError):
