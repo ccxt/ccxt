@@ -1035,7 +1035,7 @@ class anxpro extends Market {
 
     public function fetch_trades ($product) {
         $error = $this->id . ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled';
-        throw new EndpointNotAvailableError ($error)
+        throw new EndpointNotAvailableError ($error);
         return $this->publicGetCurrencyPairMoneyTradeFetch (array (
             'currency_pair' => $this->product_id ($product),
         ));

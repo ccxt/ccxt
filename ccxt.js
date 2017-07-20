@@ -141,8 +141,16 @@ var sortBy = function (array, key, descending = false) {
     return array.sort ((a, b) => ((a[key] < b[key]) ? -descending : ((a[key] > b[key]) ? descending : 0)))
 }
 
-var flat = function (array) {
-    return array.reduce ((acc, cur) => acc.concat (cur), [])
+var flatten = function (array, result = []) {
+    for (let i = 0, length = array.length; i < length; i++) {
+        const value = array[i]
+        if (Array.isArray (value)) {
+            flatten (value, result)
+        } else {
+            result.push (value)
+        }
+    }
+    return result
 }
 
 var unique = function (array) {
@@ -269,7 +277,7 @@ var Market = function (config) {
     this.pluck = pluck
     this.unique = unique
     this.extend = extend
-    this.flatten = flat
+    this.flatten = flatten
     this.indexBy = indexBy
     this.sortBy = sortBy
     this.keysort = keysort
@@ -964,7 +972,7 @@ var anxpro = {
 
     fetchTrades (product) {
         let error = this.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled';
-        throw new EndpointNotAvailableError (error)
+        throw new EndpointNotAvailableError (error);
         return this.publicGetCurrencyPairMoneyTradeFetch ({
             'currency_pair': this.productId (product),
         });
@@ -10730,7 +10738,10 @@ let defineAllMarkets = function (markets) {
 }
 
 if (isNode) {
+    
     Object.assign (module.exports = defineAllMarkets (markets), {
+
+        // exceptions
 
         CCXTError,
         DDoSProtectionError,
@@ -10741,8 +10752,42 @@ if (isNode) {
         EndpointNotAvailableError,
         OrderBookNotAvailableError,
         TickerNotAvailableError,
+
+        // common functions
+
+        sleep,
+        timeout,
+        capitalize,
+        keysort,
+        extend,
+        omit,
+        indexBy,
+        sortBy,
+        flatten,
+        unique,
+        pluck,
+        urlencode,
+
+        // underscore aliases
+        index_by: indexBy, 
+        sort_by: sortBy,
+
+        // crypto functions
+
+        stringToBinary,
+        stringToBase64,
+        utf16ToBase64,
+        base64ToBinary,
+        base64ToString,
+        urlencodeBase64,
+        hash,
+        hmac,
+        jwt,
+
     })
+
 } else
+
     window.ccxt = defineAllMarkets (markets)
 
 }) ()

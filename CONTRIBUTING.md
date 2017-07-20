@@ -189,6 +189,7 @@ Below are key notes on how to keep the JS code transpileable:
 ## Bulding
 
 - `/build.sh`
+- `/version.sh`
 - `/publish.sh`
 
 ```UNDER CONSTRUCTION```

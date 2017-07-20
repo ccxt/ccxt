@@ -173,8 +173,7 @@ let testMarketSymbol = async (market, symbol) => {
 
 let loadMarket = async market => {
     let products  = await market.loadProducts ()
-    let keys = Object.keys (products)
-    console.log (market.id, keys.length, 'symbols', keys.join (', '))
+    console.log (market.id, market.symbols.length, 'symbols', market.symbols.join (', '))
 }
 
 let testMarket = async market => {
@@ -291,7 +290,7 @@ var test = async function () {
 
                 try {
 
-                    market.proxy = proxies[currentProxy]              
+                    market.proxy = proxies[currentProxy]
 
                     if ([ 'coinspot' ].indexOf (id) < 0) {
                         await loadMarket (market)
