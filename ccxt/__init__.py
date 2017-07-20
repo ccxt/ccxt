@@ -76,6 +76,7 @@ __all__ = markets + [
     'TimeoutError',
     'NotAvailableError',
     'MarketNotAvailabileError',
+    'EndpointNotAvailableError',
     'OrderBookNotAvailableError',
     'TickerNotAvailableError',
 ]
@@ -128,6 +129,9 @@ class NotAvailableError (CCXTError):
     pass
 
 class MarketNotAvailaibleError (NotAvailableError):
+    pass
+
+class EndpointNotAvailableError (NotAvailableError):
     pass
 
 class OrderBookNotAvailableError (NotAvailableError):

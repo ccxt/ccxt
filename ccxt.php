@@ -8,6 +8,7 @@ class TimeoutError               extends CCXTError {}
 class AuthenticationError        extends CCXTError {}
 class NotAvailableError          extends CCXTError {}
 class MarketNotAvailableError    extends NotAvailableError {}
+class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
