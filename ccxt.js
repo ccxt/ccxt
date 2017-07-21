@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.13'
+var version = '1.1.14'
 var isNode  = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
@@ -637,7 +637,7 @@ var _1broker = {
             result[currency] = {
                 'free': undefined,
                 'used': undefined,
-                'total': 0,
+                'total': undefined,
             };
         }
         result['BTC']['free'] = parseFloat (response['balance']);
@@ -772,6 +772,7 @@ var cryptocapital = {
             let account = {
                 'free': undefined,
                 'used': undefined,
+                'total': undefined,
             };
             if (currency in balance['available'])
                 account['free'] = balance['available'][currency];
@@ -992,6 +993,7 @@ var anxpro = {
             let account = {
                 'free': undefined,
                 'used': undefined,
+                'total': undefined,
             };
             if (currency in balance['Wallets']) {
                 let wallet = balance['Wallets'][currency];
@@ -1164,6 +1166,7 @@ var bit2c = {
             let account = {
                 'free': undefined,
                 'used': undefined,
+                'total': undefined,
             };
             if (currency in balance) {
                 let available = 'AVAILABLE_' + currency;
@@ -1344,6 +1347,7 @@ var bitbay = {
             let account = {
                 'free': undefined,
                 'used': undefined,
+                'total': undefined,
             };
             if (currency in balance) {
                 account['free'] = parseFloat (balance[currency]['available']);
@@ -1476,6 +1480,28 @@ var bitbays = {
         'ODS/BTC': { 'id': 'ods_btc', 'symbol': 'ODS/BTC', 'base': 'ODS', 'quote': 'BTC' },
         'LSK/BTC': { 'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC' },
         'LSK/CNY': { 'id': 'lsk_cny', 'symbol': 'LSK/CNY', 'base': 'LSK', 'quote': 'CNY' },
+    },
+
+    async fetchBalance () {
+        let response = await this.privatePostInfo ();
+        let balance = response['result']['wallet'];
+        let result = { 'info': balance };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let lowercase = currency.toLowerCase ();
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if (lowercase in balance) {
+                account['free'] = parseFloat (balance[lowercase]['avail']);
+                account['used'] = parseFloat (balance[lowercase]['lock']);
+                account['total'] = this.sum (account['free'], account['used']);
+            }
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {

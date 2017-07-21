@@ -81,7 +81,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.13'
+__version__ = '1.1.14'
 
 # Python 2 & 3
 import base64
@@ -678,7 +678,7 @@ class _1broker (Market):
             result[currency] = {
                 'free': None,
                 'used': None,
-                'total': 0,
+                'total': None,
             }
         result['BTC']['free'] = float (response['balance'])
         result['BTC']['total'] = result['BTC']['free']
@@ -810,6 +810,7 @@ class cryptocapital (Market):
             account = {
                 'free': None,
                 'used': None,
+                'total': None,
             }
             if currency in balance['available']:
                 account['free'] = balance['available'][currency]
@@ -1027,6 +1028,7 @@ class anxpro (Market):
             account = {
                 'free': None,
                 'used': None,
+                'total': None,
             }
             if currency in balance['Wallets']:
                 wallet = balance['Wallets'][currency]
@@ -1190,6 +1192,7 @@ class bit2c (Market):
             account = {
                 'free': None,
                 'used': None,
+                'total': None,
             }
             if currency in balance:
                 available = 'AVAILABLE_' + currency
@@ -1361,6 +1364,7 @@ class bitbay (Market):
             account = {
                 'free': None,
                 'used': None,
+                'total': None,
             }
             if currency in balance:
                 account['free'] = float (balance[currency]['available'])
@@ -1488,6 +1492,25 @@ class bitbays (Market):
         }
         params.update (config)
         super (bitbays, self).__init__ (params)
+
+    def fetch_balance (self):
+        response = self.privatePostInfo ()
+        balance = response['result']['wallet']
+        result = { 'info': balance }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            lowercase = currency.lower ()
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if lowercase in balance:
+                account['free'] = float (balance[lowercase]['avail'])
+                account['used'] = float (balance[lowercase]['lock'])
+                account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         response = self.publicGetDepth ({

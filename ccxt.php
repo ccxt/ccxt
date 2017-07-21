@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.13';
+$version = '1.1.14';
 
 class Market {
 
@@ -631,7 +631,7 @@ class _1broker extends Market {
             $result[$currency] = array (
                 'free' => null,
                 'used' => null,
-                'total' => 0,
+                'total' => null,
             );
         }
         $result['BTC']['free'] = floatval ($response['balance']);
@@ -770,6 +770,7 @@ class cryptocapital extends Market {
             $account = array (
                 'free' => null,
                 'used' => null,
+                'total' => null,
             );
             if (array_key_exists ($currency, $balance['available']))
                 $account['free'] = $balance['available'][$currency];
@@ -998,6 +999,7 @@ class anxpro extends Market {
             $account = array (
                 'free' => null,
                 'used' => null,
+                'total' => null,
             );
             if (array_key_exists ($currency, $balance['Wallets'])) {
                 $wallet = $balance['Wallets'][$currency];
@@ -1174,6 +1176,7 @@ class bit2c extends Market {
             $account = array (
                 'free' => null,
                 'used' => null,
+                'total' => null,
             );
             if (array_key_exists ($currency, $balance)) {
                 $available = 'AVAILABLE_' . $currency;
@@ -1358,6 +1361,7 @@ class bitbay extends Market {
             $account = array (
                 'free' => null,
                 'used' => null,
+                'total' => null,
             );
             if (array_key_exists ($currency, $balance)) {
                 $account['free'] = floatval ($balance[$currency]['available']);
@@ -1494,6 +1498,28 @@ class bitbays extends Market {
                 'LSK/CNY' => array ( 'id' => 'lsk_cny', 'symbol' => 'LSK/CNY', 'base' => 'LSK', 'quote' => 'CNY' ),
             ),
         ), $options));
+    }
+
+    public function fetch_balance () {
+        $response = $this->privatePostInfo ();
+        $balance = $response['result']['wallet'];
+        $result = array ( 'info' => $balance );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $lowercase = strtolower ($currency);
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            if (array_key_exists ($lowercase, $balance)) {
+                $account['free'] = floatval ($balance[$lowercase]['avail']);
+                $account['used'] = floatval ($balance[$lowercase]['lock']);
+                $account['total'] = $this->sum ($account['free'], $account['used']);
+            }
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
