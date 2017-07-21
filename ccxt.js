@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.15'
+var version = '1.1.16'
 var isNode  = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
@@ -1654,8 +1654,29 @@ var bitcoincoid = {
         'XRP/BTC':  { 'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc' },
     },
 
-    fetchBalance () {
-        return this.privatePostGetInfo ();
+    async fetchBalance () {
+        let response = await this.privatePostGetInfo ();
+        let balance = response['return']['balance'];
+        let frozen = response['return']['balance_hold'];
+        let result = { 'info': balance };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let lowercase = currency.toLowerCase ();
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if (lowercase in balance) {
+                account['free'] = parseFloat (balance[lowercase]);
+            }
+            if (lowercase in frozen) {
+                account['used'] = parseFloat (balance[lowercase]['locked']);
+            }
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {

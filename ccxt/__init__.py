@@ -81,7 +81,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.15'
+__version__ = '1.1.16'
 
 # Python 2 & 3
 import base64
@@ -1657,7 +1657,25 @@ class bitcoincoid (Market):
         super (bitcoincoid, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostGetInfo ()
+        response = self.privatePostGetInfo ()
+        balance = response['return']['balance']
+        frozen = response['return']['balance_hold']
+        result = { 'info': balance }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            lowercase = currency.lower ()
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if lowercase in balance:
+                account['free'] = float (balance[lowercase])
+            if lowercase in frozen:
+                account['used'] = float (balance[lowercase]['locked'])
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetPairDepth ({
