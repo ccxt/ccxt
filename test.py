@@ -167,12 +167,12 @@ else:
             load_market (market)
             test_market (market)
         except ccxt.DDoSProtectionError as e:
-            print (type (e).__name__, e.args, e.msg)
+            print (type (e).__name__, e.args)
         except ccxt.TimeoutError as e:
-            print (type (e).__name__, e.args, e.msg)
+            print (type (e).__name__, str (e))
         except ccxt.MarketNotAvailableError as e:
-            print (type (e).__name__, e.args, e.msg)
+            print (type (e).__name__, e.args)
         except ccxt.AuthenticationError as e:
-            print (type (e).__name__, e.args, e.msg)
+            print (type (e).__name__, str (e))
         except Exception as e:
             print (type (e).__name__, e.args, str (e))
