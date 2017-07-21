@@ -207,10 +207,52 @@ class Market (object):
         request = _urllib.Request (url, data, headers)
         request.get_method = lambda: method
         response = None
-        try:
+        try: # send request and load response
             handler = _urllib.HTTPHandler if url.startswith ('http://') else _urllib.HTTPSHandler
             opener = _urllib.build_opener (handler)
             response = opener.open (request, timeout = int (self.timeout / 1000))
+        except socket.timeout as e:
+            raise TimeoutError (self.id + ' ' + method  + ' ' + url + ' request timeout')
+
+        except _urllib.URLError as e:
+        except _urllib.HTTPError as e:
+
+            # ddos
+            
+            # 400 Bad Request
+            # 401 Unauthorized (RFC 7235)
+            # 403 Forbidden
+            # 429 Too Many Requests
+            # 503 Service Unavailable
+            # 504 Gateway Timeout
+
+
+            # availability
+            # 408 Request Timeout
+            # 500 Internal Server Error
+            # 501 Not Implemented
+            # 502 Bad Gateway
+
+            # auth
+            # 511 Network Authentication Required (RFC 6585)
+
+            # ccxt errors
+            # 404 Not Found
+            # 405 Method Not Allowed
+            
+
+
+            raise 
+            
+            
+Though being an exception (a subclass of URLError), an HTTPError can also function as a non-exceptional file-like return value (the same thing that urlopen() returns). This is useful when handling exotic HTTP errors, such as requests for authentication.
+
+code
+An HTTP status code as defined in RFC 2616. This numeric value corresponds to a value found in the dictionary of codes as found in BaseHTTPServer.BaseHTTPRequestHandler.responses.
+
+reason
+The reason for this error. It can be a message string or another exception instance.
+
             text = response.read ()
             encoding = response.info ().get ('Content-Encoding')
             if encoding in ('gzip', 'x-gzip', 'deflate'):
