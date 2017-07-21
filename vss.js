@@ -49,9 +49,8 @@ let ccxtphpFilename = './ccxt.php'
 let ccxtphp = fs.readFileSync (ccxtphpFilename, 'utf8')
 let ccxtphpParts = ccxtphp.split (/\$version \= \'[^\']+\'/)
 let ccxtphpNewContent = ccxtphpParts[0] + '$version' + " = '" + version + "'" + ccxtphpParts[1]
-console.log (ccxtphpNewContent)
-// fs.truncateSync (ccxtphpFilename)
-// fs.writeFileSync (ccxtphpFilename, ccxtphpNewContent)
+fs.truncateSync (ccxtphpFilename)
+fs.writeFileSync (ccxtphpFilename, ccxtphpNewContent)
 console.log ('Done.')
 
 //-----------------------------------------------------------------------------

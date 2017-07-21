@@ -1018,7 +1018,7 @@ class anxpro (Market):
         super (anxpro, self).__init__ (params)
 
     def fetch_balance (self):
-        response =  self.privatePostMoneyInfo ()
+        response = self.privatePostMoneyInfo ()
         balance = response['data']
         currencies = list (balance['Wallets'].keys ())
         result = { 'info': balance }
@@ -1183,7 +1183,21 @@ class bit2c (Market):
         super (bit2c, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostAccountBalanceV2 ()
+        balance = self.privatePostAccountBalanceV2 ()
+        result = { 'info': balance }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+            }
+            if currency in balance:
+                available = 'AVAILABLE_' + currency
+                account['free'] = balance[available]
+                account['total'] = balance[currency]
+                account['used'] = account['total'] - account['free']
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetExchangesPairOrderbook ({
