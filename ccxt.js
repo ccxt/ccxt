@@ -934,21 +934,21 @@ var anxpro = {
 
     async fetchBalance () {
         let response = await  this.privatePostMoneyInfo ();
-        console.log (response['data']['Wallets']['USD'])
-        process.exit ()
-        let balance = response['balances-and-info'];
+        let balance = response['data'];
+        let currencies = Object.keys (balance['Wallets']);
         let result = { 'info': balance };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        for (let c = 0; c < currencies.length; c++) {
+            let currency = currencies[c];
             let account = {
                 'free': undefined,
                 'used': undefined,
             };
-            if (currency in balance['available'])
-                account['free'] = balance['available'][currency];
-            if (currency in balance['on_hold'])
-                account['used'] = balance['on_hold'][currency];
-            account['total'] = this.sum (account['free'], account['used']);
+            if (currency in balance['Wallets']) {
+                let wallet = balance['Wallets'][currency];
+                account['free'] = parseFloat (wallet['Available_Balance']['value']);
+                account['total'] = parseFloat (wallet['Balance']['value']);
+                account['used'] = account['total'] - account['free'];
+            }
             result[currency] = account;
         }
         return result;

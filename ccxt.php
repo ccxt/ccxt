@@ -996,7 +996,25 @@ class anxpro extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostMoneyInfo ();
+        $response =  $this->privatePostMoneyInfo ();
+        $balance = $response['data'];
+        $currencies = array_keys ($balance['Wallets']);
+        $result = array ( 'info' => $balance );
+        for ($c = 0; $c < count ($currencies); $c++) {
+            $currency = $currencies[$c];
+            $account = array (
+                'free' => null,
+                'used' => null,
+            );
+            if (array_key_exists ($currency, $balance['Wallets'])) {
+                $wallet = $balance['Wallets'][$currency];
+                $account['free'] = floatval ($wallet['Available_Balance']['value']);
+                $account['total'] = floatval ($wallet['Balance']['value']);
+                $account['used'] = $account['total'] - $account['free'];
+            }
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {

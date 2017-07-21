@@ -983,7 +983,23 @@ class anxpro (Market):
         super (anxpro, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostMoneyInfo ()
+        response =  self.privatePostMoneyInfo ()
+        balance = response['data']
+        currencies = list (balance['Wallets'].keys ())
+        result = { 'info': balance }
+        for c in range (0, len (currencies)):
+            currency = currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+            }
+            if currency in balance['Wallets']:
+                wallet = balance['Wallets'][currency]
+                account['free'] = float (wallet['Available_Balance']['value'])
+                account['total'] = float (wallet['Balance']['value'])
+                account['used'] = account['total'] - account['free']
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         response = self.publicGetCurrencyPairMoneyDepthFull ({

@@ -19,11 +19,6 @@ function dump ($s) { echo implode (' ', func_get_args ()) . "\n"; }
 
 $markets = null;
 
-if (file_exists ('config.php'))
-    include 'config.php';
-else
-    $markets = array ();
-
 //-----------------------------------------------------------------------------
 
 foreach (\ccxt\Market::$markets as $id) {
@@ -36,52 +31,14 @@ foreach (\ccxt\Market::$markets as $id) {
     ));
 }
 
-$config = array (
-    '_1broker'    => array ('apiKey' => 'A0f79063a5e91e6d62fbcbbbbdd63258'),
-    '_1btcxe'     => array ('apiKey' => '7SuUd4B6zfGAojPn', 'secret' => '392WCRKmGpcXdiVzsyQqwengLTOHkhDa'),
-    'bit2c'       => array ('apiKey' => '5296814c-b1dc-4201-a62a-9b2364e890da', 'secret' => '8DC1100F7CAB0AE6FE72451C442BE7B111404CBD569CE6162F8F2122CAEB211C'),
-    'bitbay'      => array ('apiKey' => '3faec3e5458d24809a68fbaf0e97245b', 'secret' => '2ffb20992e10dd54fd4fd4133cc09b00'),
-    'bitcoincoid' => array ('apiKey' => 'KFB2MWYU-HTOUVOSO-UZYRPLUY-LIYMVPRU-UTOMHXYD', 'secret' => '5ecb9464b3fad228110f33c6fbb32990b755351216e63089fdaf8f2735b4577bd9c335236f1a71e3'),
-    'bitfinex'    => array ('apiKey' => '3oMHSKu37ZoJliKwcN35JHfXUBHxWvVqQmRfaFhbBTF', 'secret' => 'm9Cf9krGuRolalRxsIBO53GNLmr6GXYIASwoGJiZxhS'),
-    'bitlish'     => array ('apiKey' => 'fixed:N5lK4iokAc9ajk0Z8pvHfpoJsyzNzQ2nespNH/mY7is', 'login' => 'igor.kroitor@gmail.com', 'password' => 'VfvfVskfHfve229!'),
-    'bitmarket'   => array ('apiKey' => '43a868dc9517485f28905b320581d1cf', 'secret' => '892b34c7d8e6669550aa9d12aed0ad34'),
-    'bitmex'      => array ('apiKey' => 'nsLKchj2hAxc5t5CP6LGTNSC', 'secret' => '4AqteCYo9ZCPx9J3dhNiGY-_LTfmtLyqCzh-XSbCibuC-Pf6'),
-    'bitso'       => array ('apiKey' => 'FZZzVkZgza', 'secret' => 'f763b98d46d8c5e352b4ef70050bc9b1'),
-    'bittrex'     => array ('apiKey' => '60f38a5818934fc08308778f94d3d8c4', 'secret' => '9d294ddb5b944403b58e5298653720c1'),
-    'btcx'        => array ('apiKey' => '53IPO-ZBQEN-91UNL-B8VD5-CTU1Z-E6RB1-S9X3P', 'secret' => 'ptrearsi6oy1lmzazfcytnbozmsvjsnzha8hrrqqbjlnvgnqlpjb7kqxyency45a'),
-    'bxinth'      => array ('apiKey' => '191c59bb46d5', 'secret' => '03031e588e69'),
-    # 'ccex'       => array ('apiKey' => '301D5954466D87CEAA9BA713A7951F5A', 'secret' => 'F7DC06D6329FC1C266BFFA18DCC8A07D'),
-    'cex'         => array ('apiKey' => 'eqCv267WySlu577JnFbGK2RQzIs', 'secret' => 'pZnbuNEm5eE4W1VRuFQvZEiFCA', 'uid' => 'up105393824'),
-    'coincheck'   => array ('apiKey' => '1YBiSTpyEIkchWdE', 'secret' => 'URuZrMASNkcd7vh1zb7zn4IQfZMoai3S'),
-    'coinsecure'  => array ('apiKey' => 'gzrm0fP6BGMilMzmsoJFPMpWjDvCLThyrVanX0yu'),
-    'coinspot'    => array ('apiKey' => '36b5803f892fe97ccd0b22da79ce6b21', 'secret' => 'QGWL9ADB3JEQ7W48E8A3KTQQ42V2P821LQRJW3UU424ATYPXF893RR4THKE9DT0RBNHKX8L54F35KBVFH'),
-    'fybse'       => array ('apiKey' => 'gY7y57RlYqKN5ZI50O5C', 'secret' => '1qm63Ojf5a'),
-    'fybsg'       => array ('apiKey' => '', 'secret' => ''),
-    'gdax'        => array ('apiKey' => '92560ffae9b8a01d012726c698bcb2f1', 'secret' => '9aHjPmW+EtRRKN/OiZGjXh8OxyThnDL4mMDre4Ghvn8wjMniAr5jdEZJLN/knW6FHeQyiz3dPIL5ytnF0Y6Xwg==', 'password' => '6kszf4aci8r'),
-    'hitbtc'      => array ('apiKey' => '18339694544745d9357f9e7c0f7c41bb', 'secret' => '8340a60fb4e9fc73a169c26c7a7926f5'),
-    'huobi'       => array ('apiKey' => '09bdde40-cc179779-1941272a-433a7', 'secret' => 'ce6487f4-f078c39f-018ea6ce-01922'),
-    'jubi'        => array ('apiKey' => '4edas-tn7jn-cpr8a-1er4k-r8h8i-cp6kj-jpzyz', 'secret' => 'YYO(r-mp$2G-m4&1b-EYu~$-%tS4&-jNNhI-L!pg^'),
-    'livecoin'    => array ('apiKey' => 'W5z7bvQM2pEShvGmqq1bXZkb1MR32GKw', 'secret' => 'n8FrknvqwsRnTpGeNAbC51waYdE4xxSB'),
-    'luno'        => array ('apiKey' => 'nrpzg7rkd8pnf', 'secret' => 'Ps0DXw0TpTzdJ2Yek8V5TzFDfTWzyU5vfLdCiBP6vsI'),
-    'okcoinusd'   => array ('apiKey' => 'da83cf1b-6fdc-495a-af55-f809bec64e2b', 'secret' => '614D2E6D3428C2C5E54C81139A500BE0'),
-    'okcoincny'   => array ('apiKey' => '', 'secret' => ''),
-    'poloniex'    => array ('apiKey' => 'DW6G1D24-2HWMZZTY-6TUADS2O-TF87O6LS', 'secret' => '70cc628f95e4e536bd2de702c058ff482fff52f176ac884d6aa605040c29e31caca93430755d1c56a09d0c6a9fe90077754da54b194523f21591e63015bf81fd'),
-    'quadrigacx'  => array ('apiKey' => 'jKvWkMqrOj', 'secret' => 'f65a2e3bf3c73171ee14e389314b2f78', 'uid' => '395037'),
-    'quoine'      => array ('apiKey' => '80953', 'secret' => 'WfHUWcdFoGvZSuE7pE8XDh8FG9t5OP69iYrcwdnRs4rRn2uzZW+AHCyp/nBjlZcB+LWe3r6y2DCCYu+WcYkCAA=='),
-    'therock'     => array ('apiKey' => '2b2a54cc6258b2a971318000d60e6b61ba4af05e', 'secret' => 'b424a76088bda492852dbd5cadbb60ebcf144427'),
-    'vaultoro'    => array ('apiKey' => 'A5jfgi567JP5QPpXYpETfsw92khpuNfR', 'secret' => 'OExkUFpUX3o5UHB4amFtQ2R4QUh1RFBPMUhnX0k1bUY='),
-    'virwox'      => array ('apiKey' => '1ea680450b32585f743c50c051bf8e4e', 'login' => 'IgorKroitor', 'password' => 'HfveVskfVfvf260'),
-    'xbtce'       => array ('apiKey' => 'dK2jBXMTppAM57ZJ', 'secret' => 'qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwKqH7ywsxcR78WT', 'uid' => '68ef0552-3c37-4896-ba56-76173d9cd573'),
-    'yobit'       => array ('apiKey' => '5DB6C7C6034E667D77F85B245772A7FD', 'secret' => '1b6cf1838716f5c87f07391a9b30f974'),
-    'zaif'        => array ('apiKey' => '580c7232-06c7-4698-8fb7-4cd2a543cea8', 'secret' => '4c529fd6-fb28-4879-b20d-2a8f02c5db47'),
-);
+$config = json_decode (file_get_contents ('./keys.json'), true);
 
 foreach ($config as $id => $params)
     foreach ($params as $key => $value)
         $markets[$id]->$key = $value;
 
 $markets['gdax']->urls['api'] = 'https://api-public.sandbox.gdax.com';
-$markets['anxpro']->proxy = 'https://crossorigin.me/';
+$markets['anxpro']->proxy = 'https://cors-anywhere.herokuapp.com/';
 
 function test_market_symbol_ticker ($market, $symbol) { 
     $ticker = $market->fetch_ticker ($symbol);
