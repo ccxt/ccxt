@@ -238,7 +238,7 @@ let tryAllProxies = async function (market, proxies) {
 
             market.proxy = proxies[currentProxy]
 
-            if ([ 'coinspot' ].indexOf (market.id) < 0) {
+            if ([ 'coinspot', 'lakebtc' ].indexOf (market.id) < 0) {
                 await loadMarket (market)
                 await testMarket (market)
                 break;
