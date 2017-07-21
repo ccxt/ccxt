@@ -253,7 +253,7 @@ var hmac = function (request, secret, hash = 'sha256', digest = 'hex') {
 }
 
 //-----------------------------------------------------------------------------
-// a JSON Web Token Authentication method
+// a JSON Web Token authentication method
 
 var jwt = function (request, secret, alg = 'HS256', hash = 'sha256') {
     var encodedHeader = urlencodeBase64 (stringToBase64 (JSON.stringify ({ 'alg': alg, 'typ': 'JWT' })))
@@ -270,7 +270,7 @@ var Market = function (config) {
 
     this.hash = hash
     this.hmac = hmac
-    this.jwt = jwt
+    this.jwt = jwt // JSON Web Token
     this.stringToBinary = stringToBinary
     this.stringToBase64 = stringToBase64
     this.base64ToBinary = base64ToBinary
@@ -348,19 +348,19 @@ var Market = function (config) {
 
         return timeout (this.timeout, fetch (url, options)
             .then (response => (typeof response === 'string') ? response : response.text ())
-            .then (response => this.handleResponse (response)))
+            .then (response => this.handleResponse (url, method, headers, response)))
     }
 
-    this.handleResponse = function (response) {
-        if (response.match (/offline|unavailable|maintain|maintenanc(?:e|ing)/i))
+    this.handleResponse = function (url, method = 'GET', headers = undefined, body = undefined) {
+        if (body.match (/offline|unavailable|maintain|maintenanc(?:e|ing)/i))
             throw new MarketNotAvailableError (this.id + ' is offline, on maintenance or unreachable from this location at the moment')
-        if (response.match (/cloudflare|incapsula|overload/i))
+        if (body.match (/cloudflare|incapsula|overload/i))
             throw new DDoSProtectionError (this.id + ' is not accessible from this location at the moment')
         try {
-            return JSON.parse (response)
+            return JSON.parse (body)
         } catch (e) {
             if (this.verbose)
-                console.log (this.id, 'error', e, 'response: \'' + response + '\'')
+                console.log (this.id, 'error', e, 'response body: \'' + body + '\'')
             throw e
         }
     }

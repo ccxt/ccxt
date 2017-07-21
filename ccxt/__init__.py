@@ -75,7 +75,7 @@ __all__ = markets + [
     'DDoSProtectionError',
     'TimeoutError',
     'NotAvailableError',
-    'MarketNotAvailabileError',
+    'MarketNotAvailableError',
     'EndpointNotAvailableError',
     'OrderBookNotAvailableError',
     'TickerNotAvailableError',
@@ -190,8 +190,19 @@ class Market (object):
                         f = functools.partial (self.request, url, apiType, uppercaseMethod)
                         setattr (self, camelcase,  f)
                         setattr (self, underscore, f)
+
+    def raise_error (self, exception, url, method = 'GET', headers = None, error = None, message = None):
+        raise exception (' '.join ([ 
+            self.id, 
+            method, 
+            url, 
+            str (error.code) if error else '', 
+            error.msg if error else '', 
+            (error.read ().decode ('utf-8') if error else '') + ' ' + (message if message else ''),
+        ]))
+
     
-    def fetch (self, url, method = 'GET', headers = None, data = None):
+    def fetch (self, url, method = 'GET', headers = None, body = None):
         """Perform a HTTP request and return decoded JSON data"""
         version = '.'.join (map (str, sys.version_info[:3]))
         userAgent = 'ccxt/' + __version__ + ' (+https://github.com/kroitor/ccxt) Python/' + version
@@ -201,10 +212,10 @@ class Market (object):
             headers.update ({ 'Origin': '*' })
         url = self.proxy + url
         if self.verbose:
-            print (url, method, headers, data)
-        if data:
-            data = data.encode ()
-        request = _urllib.Request (url, data, headers)
+            print (url, method, headers, body)
+        if body:
+            body = body.encode ()
+        request = _urllib.Request (url, body, headers)
         request.get_method = lambda: method
         response = None
         try: # send request and load response
@@ -212,84 +223,47 @@ class Market (object):
             opener = _urllib.build_opener (handler)
             response = opener.open (request, timeout = int (self.timeout / 1000))
         except socket.timeout as e:
-            raise TimeoutError (self.id + ' ' + method  + ' ' + url + ' request timeout')
-
+            raise TimeoutError (' '.join ([ self.id, method, url, 'request timeout' ]))
         except _urllib.URLError as e:
+            self.raise_error (MarketNotAvailableError, url, method, headers, e)
         except _urllib.HTTPError as e:
+            if e.code == 429:
+                self.raise_error (DDoSProtectionError, url, method, headers, e)
+            elif e.code in [500, 501, 502, 404]:
+                self.raise_error (MarketNotAvailableError, url, method, headers, e)
+            elif e.code in [400, 403, 405, 503]:
+                message = 'invalid API keys, market down, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
+                self.raise_error (MarketNotAvailableError, url, method, headers, e, message)
+            elif e.code in [408, 504]:
+                self.raise_error (TimeoutError, url, method, headers, e)
+            elif e.code in [401, 511]:
+                self.raise_error (AuthenticationError, url, method, headers, e)
+        text = response.read ()
+        encoding = response.info ().get ('Content-Encoding')
+        if encoding in ('gzip', 'x-gzip', 'deflate'):
+            if encoding == 'deflate':
+                text = zlib.decompress (text, -zlib.MAX_WBITS)
+            else:
+                data = gzip.GzipFile ('', 'rb', 9, io.BytesIO (text))
+                text = data.read ()
+        body = text.decode ('utf-8')
+        return self.handle_response (url, method, headers, body)
 
-            # ddos
-            
-            # 400 Bad Request
-            # 401 Unauthorized (RFC 7235)
-            # 403 Forbidden
-            # 429 Too Many Requests
-            # 503 Service Unavailable
-            # 504 Gateway Timeout
-
-
-            # availability
-            # 408 Request Timeout
-            # 500 Internal Server Error
-            # 501 Not Implemented
-            # 502 Bad Gateway
-
-            # auth
-            # 511 Network Authentication Required (RFC 6585)
-
-            # ccxt errors
-            # 404 Not Found
-            # 405 Method Not Allowed
-            
-
-
-            raise 
-            
-            
-Though being an exception (a subclass of URLError), an HTTPError can also function as a non-exceptional file-like return value (the same thing that urlopen() returns). This is useful when handling exotic HTTP errors, such as requests for authentication.
-
-code
-An HTTP status code as defined in RFC 2616. This numeric value corresponds to a value found in the dictionary of codes as found in BaseHTTPServer.BaseHTTPRequestHandler.responses.
-
-reason
-The reason for this error. It can be a message string or another exception instance.
-
-            text = response.read ()
-            encoding = response.info ().get ('Content-Encoding')
-            if encoding in ('gzip', 'x-gzip', 'deflate'):
-                if encoding == 'deflate':
-                    text = zlib.decompress (text, -zlib.MAX_WBITS)
-                else:
-                    data = gzip.GzipFile ('', 'rb', 9, io.BytesIO (text))
-                    text = data.read ().decode ('utf-8')
-            text = text.decode ('utf-8')
-            ddos_protection = re.search ('(cloudflare|incapsula)', text, flags = re.IGNORECASE)
-            market_not_available = re.search ('(offline|unavailable|busy|maintenance|maintenancing)', text, flags = re.IGNORECASE)
-            if market_not_available:
-                raise MarketNotAvailableError (self.id + ' Market Not Available Error')
-            if ddos_protection:
-                raise DDoSProtectionError (self.id + ' DDoS Protection Error')
-            return json.loads (text)
-        except socket.timeout as e:
-            raise TimeoutError (self.id + ' request timeout')
-        except _urllib.HTTPError as e:
-            try: 
-                text = e.fp.read ()
-                ddos_protection = re.search ('(cloudflare|incapsula)', text, flags = re.IGNORECASE)
-                market_not_available = re.search ('(offline|unavailable|busy|maintenance|maintenancing)', text, flags = re.IGNORECASE)
-                if ddos_protection:
-                    error = 'DDoS Protection Error'
-                    print (self.id, method, url, e.code, e.msg, error)
-                    raise DDoSProtectionError (self.id + ' ' + error)
-                if market_not_available:
-                    error = 'Market Not Available'
-                    print (self.id, method, url, e.code, e.msg, error)
-                    raise MarketNotAvailableError (self.id + ' ' + error)
-                else:
-                    print (self.id, method, url, e.code, e.msg, text)
-                    raise
-            except Exception as unused:
-                print (self.id, method, url, e.code, e.msg, text)
-            raise
+    def handle_response (self, url, method = 'GET', headers = None, body = None):
+        ddos_protection = re.search ('(cloudflare|incapsula)', body, flags = re.IGNORECASE)
+        market_not_available = re.search ("(" + 'offline|unavailable|busy|maintenance|maintenancing' + ")", body, flags = re.IGNORECASE)
+        if market_not_available:
+            message = 'market downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
+            raise MarketNotAvailableError (' '.join ([
+                self.id,
+                method,
+                url,                
+                body,
+                message,
+            ]))
+        if ddos_protection:
+            raise DDoSProtectionError (' '.join ([ self.id, method, url, body ]))
+        return json.loads (body)
 
     @staticmethod
     def capitalize (string): # first character only, rest characters unchanged

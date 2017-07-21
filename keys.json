@@ -18,7 +18,7 @@
     "coinsecure":  { "apiKey": "gzrm0fP6BGMilMzmsoJFPMpWjDvCLThyrVanX0yu" },
     "coinspot":    { "apiKey": "36b5803f892fe97ccd0b22da79ce6b21", "secret": "QGWL9ADB3JEQ7W48E8A3KTQQ42V2P821LQRJW3UU424ATYPXF893RR4THKE9DT0RBNHKX8L54F35KBVFH" },
     "fybse":       { "apiKey": "gY7y57RlYqKN5ZI50O5C", "secret": "1qm63Ojf5a" },
-    "gdax":        { "apiKey": "92560ffae9b8a01d012726c698bcb2f1", "secret": "9aHjPmW+EtRRKN/OiZGjXh8OxyThnDL4mMDre4Ghvn8wjMniAr5jdEZJLN/knW6FHeQyiz3dPIL5ytnF0Y6Xwg==", "password": "6kszf4aci8r" },
+    "gdax":        { "apiKey": "ab92d373df90c6cbc760e52669ef2b80", "secret": "xrQq6DBJqa6JGLR7UUHZr91NOH5k/BAuSxBjTt9e2/5qEOYXkYreP2FM3/Tczb4kZBmkklDjq450mEkOqiVHSQ==", "password": "kkwfq0g4goq" },    
     "hitbtc":      { "apiKey": "18339694544745d9357f9e7c0f7c41bb", "secret": "8340a60fb4e9fc73a169c26c7a7926f5" },
     "huobi":       { "apiKey": "09bdde40-cc179779-1941272a-433a7", "secret": "ce6487f4-f078c39f-018ea6ce-01922" },
     "jubi":        { "apiKey": "4edas-tn7jn-cpr8a-1er4k-r8h8i-cp6kj-jpzyz", "secret": "YYO(r-mp$2G-m4&1b-EYu~$-%tS4&-jNNhI-L!pg^" },

@@ -167,12 +167,12 @@ else:
             load_market (market)
             test_market (market)
         except ccxt.DDoSProtectionError as e:
-            print (type (e).__name__, e.args, 'DDoS Protection Error (ignoring)')
+            print (type (e).__name__, e.args, e.msg)
         except ccxt.TimeoutError as e:
-            print (type (e).__name__, e.args, 'Timeout Error, request timed out (ignoring)')
+            print (type (e).__name__, e.args, e.msg)
         except ccxt.MarketNotAvailableError as e:
-            print (type (e).__name__, e.args, 'Market Not Available Error due to downtime or maintenance (ignoring)')
+            print (type (e).__name__, e.args, e.msg)
         except ccxt.AuthenticationError as e:
-            print (type (e).__name__, e.args, 'Authentication Error (missing API keys, ignoring)')
+            print (type (e).__name__, e.args, e.msg)
         except Exception as e:
             print (type (e).__name__, e.args, str (e))
