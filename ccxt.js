@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.11'
+var version = '1.1.12'
 var isNode  = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
@@ -1335,8 +1335,24 @@ var bitbay = {
         'LSK/BTC': { 'id': 'LSKBTC', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC' },
     },
 
-    fetchBalance () {
-        return this.privatePostInfo ();
+    async fetchBalance () {
+        let response = await this.privatePostInfo ();
+        let balance = response['balances'];
+        let result = { 'info': balance };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = {
+                'free': undefined,
+                'used': undefined,
+            };
+            if (currency in balance) {
+                account['free'] = parseFloat (balance[currency]['available']);
+                account['used'] = parseFloat (balance[currency]['locked']);
+                account['total'] = this.sum (account['free'], account['used']);
+            }
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {

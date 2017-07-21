@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.11';
+$version = '1.1.12';
 
 class Market {
 
@@ -1350,7 +1350,23 @@ class bitbay extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostInfo ();
+        $response = $this->privatePostInfo ();
+        $balance = $response['balances'];
+        $result = array ( 'info' => $balance );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $account = array (
+                'free' => null,
+                'used' => null,
+            );
+            if (array_key_exists ($currency, $balance)) {
+                $account['free'] = floatval ($balance[$currency]['available']);
+                $account['used'] = floatval ($balance[$currency]['locked']);
+                $account['total'] = $this->sum ($account['free'], $account['used']);
+            }
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {

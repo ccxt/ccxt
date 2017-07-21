@@ -81,7 +81,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.11'
+__version__ = '1.1.12'
 
 # Python 2 & 3
 import base64
@@ -1353,7 +1353,21 @@ class bitbay (Market):
         super (bitbay, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostInfo ()
+        response = self.privatePostInfo ()
+        balance = response['balances']
+        result = { 'info': balance }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+            }
+            if currency in balance:
+                account['free'] = float (balance[currency]['available'])
+                account['used'] = float (balance[currency]['locked'])
+                account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetIdOrderbook ({
