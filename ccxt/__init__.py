@@ -335,6 +335,10 @@ class Market (object):
         return [element[key] for element in array]
 
     @staticmethod
+    def sum (*args):
+        return sum ([arg for arg in args if isinstance (arg, int) or isinstance (arg, float)])
+
+    @staticmethod
     def s ():
         return Market.seconds ()
     
@@ -765,7 +769,6 @@ class cryptocapital (Market):
     def fetch_balance (self):
         response = self.privatePostBalancesAndInfo ()
         balance = response['balances-and-info']
-        console.log (balance)
         result = { 'info': balance }
         for c in range (0, len (self.currencies)):
             currency = self.currencies[c]

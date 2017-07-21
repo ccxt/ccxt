@@ -716,7 +716,6 @@ var cryptocapital = {
     async fetchBalance () {
         let response = await this.privatePostBalancesAndInfo ();
         let balance = response['balances-and-info'];
-        console.log (balance);
         let result = { 'info': balance };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];

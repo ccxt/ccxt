@@ -153,6 +153,11 @@ class Market {
     public static function sortBy ($arrayOfArrays, $key, $descending = false) {
         return Market::sort_by ($arrayOfArrays, $key, $descending);
     }
+
+    public static function sum () {
+
+        return array_sum (array_filter (func_get_args (), function ($x) { return $t; }));
+    }
     
     public static function extractParams ($string) {
         return Market::extract_params ($string);
@@ -766,7 +771,6 @@ class cryptocapital extends Market {
     public function fetch_balance () {
         $response = $this->privatePostBalancesAndInfo ();
         $balance = $response['balances-and-info'];
-        console.log ($balance);
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
