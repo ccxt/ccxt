@@ -1671,7 +1671,7 @@ var bitcoincoid = {
                 account['free'] = parseFloat (balance[lowercase]);
             }
             if (lowercase in frozen) {
-                account['used'] = parseFloat (balance[lowercase]['locked']);
+                account['used'] = parseFloat (frozen[lowercase]);
             }
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;

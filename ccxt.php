@@ -1693,7 +1693,7 @@ class bitcoincoid extends Market {
                 $account['free'] = floatval ($balance[$lowercase]);
             }
             if (array_key_exists ($lowercase, $frozen)) {
-                $account['used'] = floatval ($balance[$lowercase]['locked']);
+                $account['used'] = floatval ($frozen[$lowercase]);
             }
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;

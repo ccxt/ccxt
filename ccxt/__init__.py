@@ -1672,7 +1672,7 @@ class bitcoincoid (Market):
             if lowercase in balance:
                 account['free'] = float (balance[lowercase])
             if lowercase in frozen:
-                account['used'] = float (balance[lowercase]['locked'])
+                account['used'] = float (frozen[lowercase])
             account['total'] = self.sum (account['free'], account['used'])
             result[currency] = account
         return result
