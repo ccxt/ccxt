@@ -49,6 +49,7 @@ ccxt.markets.forEach (id => {
 let config = {
     '_1broker':    { 'apiKey': 'A0f79063a5e91e6d62fbcbbbbdd63258' },
     '_1btcxe':     { 'apiKey': '7SuUd4B6zfGAojPn', 'secret': '392WCRKmGpcXdiVzsyQqwengLTOHkhDa' },
+    'anxpro':      { 'apiKey': '960da1a0-95be-4b89-ad4a-9ab82ed8b5b9', 'secret': 'LrYWKKMdewwtjXWJYxBz8aOHdSb7CWZmRA7BdQ58P06ixd98K2wYz08VY+kR8sPnCaOsiF/ochWuJSKHOfYeIQ==' },
     'bit2c':       { 'apiKey': '5296814c-b1dc-4201-a62a-9b2364e890da', 'secret': '8DC1100F7CAB0AE6FE72451C442BE7B111404CBD569CE6162F8F2122CAEB211C' },
     'bitbay':      { 'apiKey': '3faec3e5458d24809a68fbaf0e97245b', 'secret': '2ffb20992e10dd54fd4fd4133cc09b00' },
     'bitcoincoid': { 'apiKey': 'KFB2MWYU-HTOUVOSO-UZYRPLUY-LIYMVPRU-UTOMHXYD', 'secret': '5ecb9464b3fad228110f33c6fbb32990b755351216e63089fdaf8f2735b4577bd9c335236f1a71e3' },
@@ -165,10 +166,16 @@ let testMarketSymbol = async (market, symbol) => {
         console.log (await market.fetchGlobal ());
     } else {
         await testMarketSymbolOrderbook (market, symbol)
-        if ([ '_1broker', 'xbtce', 'btcexchange' ].indexOf (market.id) < 0) {
+        if ([ '_1broker', 'xbtce', 'btcexchange', 'anxpro' ].indexOf (market.id) < 0) {
             await testMarketSymbolTrades (market, symbol)
         }
     }
+}
+
+let testMarketBalance = async (market, symbol) => {
+    await sleep (market.rateLimit) 
+    let balance = await market.fetchBalance ()
+    console.log (market.id, 'balance', balance)
 }
 
 let loadMarket = async market => {
@@ -209,10 +216,7 @@ let testMarket = async market => {
     if (!market.apiKey || (market.apiKey.length < 1))
         return true
 
-    // await sleep (delay)
-
-    let balance = await market.fetchBalance ()
-    console.log (market.id, 'balance', balance)
+    await testMarketBalance (market)
 
     // sleep (delay)
     // try {
@@ -250,72 +254,94 @@ let testMarket = async market => {
 
 //-----------------------------------------------------------------------------
 
-var test = async function () {
+let printExchangesTable = function () {
+    console.log (asTable.configure ({ delimiter: ' | ' }) (Object.values (markets).map (market => {
+        let website = Array.isArray (market.urls.www) ? market.urls.www[0] : market.urls.www
+        let countries = Array.isArray (market.countries) ? market.countries.map (countryName).join (', ') : countryName (market.countries)
+        let doc = Array.isArray (market.urls.doc) ? market.urls.doc[0] : market.urls.doc
+        return {
+            'id':        market.id,
+            'name':      market.name,
+            'countries': countries,
+        }        
+    })))
+}
 
-    //-------------------------------------------------------------------------
-    // list all supported exchanges
+let tryAllProxies = async function (market, proxies) {
+
+    let currentProxy = 0
+    let maxRetries   = proxies.length
     
-    // console.log (asTable.configure ({ delimiter: ' | ' }) (Object.values (markets).map (market => {
-    //     let website = Array.isArray (market.urls.www) ? market.urls.www[0] : market.urls.www
-    //     let countries = Array.isArray (market.countries) ? market.countries.map (countryName).join (', ') : countryName (market.countries)
-    //     let doc = Array.isArray (market.urls.doc) ? market.urls.doc[0] : market.urls.doc
-    //     return {
-    //         'id':        market.id,
-    //         'name':      market.name,
-    //         'countries': countries,
-    //     }        
-    // })))
+    for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
+
+        try {
+
+            market.proxy = proxies[currentProxy]
+
+            if ([ 'coinspot' ].indexOf (market.id) < 0) {
+                await loadMarket (market)
+                await testMarket (market)
+                break;
+            }
+
+        } catch (e) {
+
+            currentProxy = ++currentProxy % proxies.length
+            if (e instanceof ccxt.DDoSProtectionError || e.message.includes ('ECONNRESET')) {
+                log.bright.yellow (market.id, '[DDoS Protection Error] ' + e.message)
+            } else if (e instanceof ccxt.TimeoutError) {
+                log.bright.yellow (market.id, '[Timeout Error] ' + e.message)
+            } else if (e instanceof ccxt.AuthenticationError) {
+                log.bright.yellow (market.id, '[Authentication Error] ' + e.message)
+            } else if (e instanceof ccxt.MarketNotAvailableError) {
+                log.bright.yellow (market.id, '[Market Not Available Error] ' + e.message)
+            } else if (e instanceof ccxt.EndpointNotAvailableError) {
+                log.bright.yellow (market.id, '[Endpoint Not Available Error] ' + e.message)
+            } else {
+                throw e;
+            }
+        }
+
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+var test = async function () {
+  
+    // printExchangesTable ()   
 
     if (marketId) {
+
         const market = markets[marketId]
+        
         if (!market)
             throw new Error ('Market `' + marketId + '` not found')
-        await loadMarket (market)
+                
         if (marketSymbol) {
-            await testMarketSymbol (market, marketSymbol)
+
+            if (marketSymbol == 'balance')
+
+                await testMarketBalance (market)
+
+            else
+
+                await testMarketSymbol (market, marketSymbol)
+        
         } else {
-            await testMarket (market)
+
+            await tryAllProxies (market, proxies)
         }
+
     } else {
 
         for (const id of Object.keys (markets)) {
-
+    
             log.bright.green ('MARKET:', id)
-            
+    
             const market = markets[id]
-            let currentProxy = 0
-            let maxRetries   = proxies.length
-            
-            for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
 
-                try {
-
-                    market.proxy = proxies[currentProxy]
-
-                    if ([ 'coinspot' ].indexOf (id) < 0) {
-                        await loadMarket (market)
-                        await testMarket (market)
-                        break;
-                    }
-
-                } catch (e) {
-                    currentProxy = ++currentProxy % proxies.length
-                    if (e instanceof ccxt.DDoSProtectionError || e.message.includes ('ECONNRESET')) {
-                        log.bright.yellow ('[DDoS Protection Error] ' + e.message)
-                    } else if (e instanceof ccxt.TimeoutError) {
-                        log.bright.yellow ('[Timeout Error] ' + e.message)
-                    } else if (e instanceof ccxt.AuthenticationError) {
-                        log.bright.yellow ('[Authentication Error] ' + e.message)
-                    } else if (e instanceof ccxt.MarketNotAvailableError) {
-                        log.bright.yellow ('[Market Not Available Error] ' + e.message)
-                    } else if (e instanceof ccxt.EndpointNotAvailableError) {
-                        log.bright.yellow ('[Endpoint Not Available Error] ' + e.message)
-                    } else {
-                        throw e;
-                    }
-                }
-
-            }
+            await tryAllProxies (market, proxies)
 
         }
     }

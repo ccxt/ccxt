@@ -932,8 +932,26 @@ var anxpro = {
         'XRP/BTC': { 'id': 'XRPBTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC' },
     },
 
-    fetchBalance () {
-        return this.privatePostMoneyInfo ();
+    async fetchBalance () {
+        let response = await  this.privatePostMoneyInfo ();
+        console.log (response['data']['Wallets']['USD'])
+        process.exit ()
+        let balance = response['balances-and-info'];
+        let result = { 'info': balance };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = {
+                'free': undefined,
+                'used': undefined,
+            };
+            if (currency in balance['available'])
+                account['free'] = balance['available'][currency];
+            if (currency in balance['on_hold'])
+                account['used'] = balance['on_hold'][currency];
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
