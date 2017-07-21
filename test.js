@@ -121,7 +121,7 @@ let testMarketSymbol = async (market, symbol) => {
     await sleep (market.rateLimit) 
     await testMarketSymbolTicker (market, symbol)
     if (market.id == 'coinmarketcap') {
-        log (await market.fetchTickers ());
+        // log (await market.fetchTickers ());
         log (await market.fetchGlobal ());
     } else {
         await testMarketSymbolOrderbook (market, symbol)
