@@ -348,19 +348,21 @@ var Market = function (config) {
 
         return timeout (this.timeout, fetch (url, options)
             .then (response => (typeof response === 'string') ? response : response.text ())
-            .then (response => {
-                if (response.match (/offline|unavailable|maintain|maintenanc(?:e|ing)/i))
-                    throw new MarketNotAvailableError (this.id + ' is offline, on maintenance or unreachable from this location at the moment')
-                if (response.match (/cloudflare|incapsula|overload/i))
-                    throw new DDoSProtectionError (this.id + ' is not accessible from this location at the moment')
-                try {
-                    return JSON.parse (response)
-                } catch (e) {
-                    if (this.verbose)
-                        console.log (this.id, 'error', e, 'response: \'' + response + '\'')
-                    throw e
-                }
-            }))
+            .then (response => this.handleResponse (response)))
+    }
+
+    this.handleResponse = function (response) {
+        if (response.match (/offline|unavailable|maintain|maintenanc(?:e|ing)/i))
+            throw new MarketNotAvailableError (this.id + ' is offline, on maintenance or unreachable from this location at the moment')
+        if (response.match (/cloudflare|incapsula|overload/i))
+            throw new DDoSProtectionError (this.id + ' is not accessible from this location at the moment')
+        try {
+            return JSON.parse (response)
+        } catch (e) {
+            if (this.verbose)
+                console.log (this.id, 'error', e, 'response: \'' + response + '\'')
+            throw e
+        }
     }
 
     this.set_products =
