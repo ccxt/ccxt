@@ -51,6 +51,7 @@ for (let id in config)
         markets[id][key] = config[id][key]
 
 markets['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
+markets['lakebtc'].proxy = proxies[1]
 
 var countryName = function (code) {
     return ((typeof countries[code] !== 'undefined') ? countries[code] : code)
