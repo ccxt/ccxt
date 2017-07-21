@@ -22,6 +22,17 @@ console.log ('New version: ', version)
 
 //-----------------------------------------------------------------------------
 
+console.log ('Single-sourcing version', version, './package.json → ./ccxt.js')
+let ccxtjsFilename = './ccxt.js'
+let ccxtjs = fs.readFileSync (ccxtjsFilename, 'utf8')
+let ccxtjsParts = ccxtjs.split (/var version \= \'[^\']+\'/)
+let ccxtjsNewContent = ccxtjsParts[0] + "var version = '" + version + "'" + ccxtjsParts[1]
+fs.truncateSync (ccxtjsFilename)
+fs.writeFileSync (ccxtjsFilename, ccxtjsNewContent)
+console.log ('Done.')
+
+//-----------------------------------------------------------------------------
+
 console.log ('Single-sourcing version', version, './package.json → ./ccxt/__init__.py')
 let ccxtpyFilename = './ccxt/__init__.py'
 let ccxtpy = fs.readFileSync (ccxtpyFilename, 'utf8')
@@ -33,13 +44,14 @@ console.log ('Done.')
 
 //-----------------------------------------------------------------------------
 
-console.log ('Single-sourcing version', version, './package.json → ./ccxt.js')
-let ccxtjsFilename = './ccxt.js'
-let ccxtjs = fs.readFileSync (ccxtjsFilename, 'utf8')
-let ccxtjsParts = ccxtjs.split (/var version \= \'[^\']+\'/)
-let ccxtjsNewContent = ccxtjsParts[0] + "var version = '" + version + "'" + ccxtjsParts[1]
-fs.truncateSync (ccxtjsFilename)
-fs.writeFileSync (ccxtjsFilename, ccxtjsNewContent)
+console.log ('Single-sourcing version', version, './package.json → ./ccxt.php')
+let ccxtphpFilename = './ccxt.php'
+let ccxtphp = fs.readFileSync (ccxtphpFilename, 'utf8')
+let ccxtphpParts = ccxtphp.split (/\$version \= \'[^\']+\'/)
+let ccxtphpNewContent = ccxtphpParts[0] + '$version' + " = '" + version + "'" + ccxtphpParts[1]
+console.log (ccxtphpNewContent)
+// fs.truncateSync (ccxtphpFilename)
+// fs.writeFileSync (ccxtphpFilename, ccxtphpNewContent)
 console.log ('Done.')
 
 //-----------------------------------------------------------------------------

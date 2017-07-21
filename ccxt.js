@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.10'
+var version = '1.1.11'
 var isNode  = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
@@ -983,7 +983,7 @@ var anxpro = {
     },
 
     async fetchBalance () {
-        let response = await  this.privatePostMoneyInfo ();
+        let response = await this.privatePostMoneyInfo ();
         let balance = response['data'];
         let currencies = Object.keys (balance['Wallets']);
         let result = { 'info': balance };
@@ -1156,8 +1156,24 @@ var bit2c = {
         'LTC/NIS': { 'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS' },
     },
 
-    fetchBalance () {
-        return this.privatePostAccountBalanceV2 ();
+    async fetchBalance () {
+        let balance = await this.privatePostAccountBalanceV2 ();
+        let result = { 'info': balance };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = {
+                'free': undefined,
+                'used': undefined,
+            };
+            if (currency in balance) {
+                let available = 'AVAILABLE_' + currency;
+                account['free'] = balance[available];
+                account['total'] = balance[currency];
+                account['used'] = account['total'] - account['free'];
+            }
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {

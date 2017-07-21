@@ -12,6 +12,8 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
+$version = '1.1.10';
+
 class Market {
 
     public static $markets = array (
@@ -323,18 +325,9 @@ class Market {
     }
 
     public function fetch ($url, $method = 'GET', $headers = null, $body = null) {
-
-        /*
-            try {
-                return JSON.parse (response)
-            } catch (e) {
-                var cloudflareProtection = response.match (/cloudflare/i) ? 'DDoS protection by Cloudflare' : ''
-                if ($this->verbose)
-                    console.log ($this->id, response, cloudflareProtection, e)
-                throw e
-            }
-        */
-
+        
+        global $version;
+        
         if (strlen ($this->proxy))
             $headers['Origin'] = '*';
 
@@ -362,7 +355,7 @@ class Market {
         curl_setopt ($this->curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt ($this->curl, CURLOPT_SSL_VERIFYPEER, false);
 
-        $userAgent = 'ccxt/0.1.0 (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
+        $userAgent = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
         curl_setopt ($this->curl, CURLOPT_USERAGENT, $userAgent);
 
         curl_setopt ($this->curl, CURLOPT_ENCODING, '');
