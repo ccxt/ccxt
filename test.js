@@ -33,31 +33,38 @@ log.bright ('\nTESTING', ccxtFile.magenta, { market: marketId || 'all', symbol: 
 let markets = {}
 let proxies = [
     '',
-    'https://crossorigin.me/',
     'https://cors-anywhere.herokuapp.com/',
-    // 'http://cors-proxy.htmldriven.com/?url=',
+    'https://crossorigin.me/',
+    // 'http://cors-proxy.htmldriven.com/?url=', // we don't want this for now
 ]
 
+// instantiate all markets
 ccxt.markets.forEach (id => {
-    markets[id] = new (ccxt)[id] ({
-        verbose: true,
-    })
+    markets[id] = new (ccxt)[id] ({ verbose: true })
 })
 
+// load api keys from config
 let config = JSON.parse (fs.readFileSync ('./keys.json', 'utf8'))
 
+// set up api keys appropriately
 for (let id in config)
     for (let key in config[id])
         markets[id][key] = config[id][key]
 
+// move gdax to sandbox
 markets['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
-markets['lakebtc'].proxy = proxies[1]
+
+//-----------------------------------------------------------------------------
 
 var countryName = function (code) {
     return ((typeof countries[code] !== 'undefined') ? countries[code] : code)
 }
 
+//-----------------------------------------------------------------------------
+
 let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
+
+//-----------------------------------------------------------------------------
 
 let testMarketSymbolTicker = async (market, symbol) => {
     await sleep (market.rateLimit)
@@ -76,6 +83,8 @@ let testMarketSymbolTicker = async (market, symbol) => {
     return ticker;
 }
 
+//-----------------------------------------------------------------------------
+
 let testMarketSymbolOrderbook = async (market, symbol) => {
     await sleep (market.rateLimit) 
     let orderbook = await market.fetchOrderBook (symbol)
@@ -91,7 +100,7 @@ let testMarketSymbolOrderbook = async (market, symbol) => {
         let first = 0
         let last = bids.length - 1
         if (bids[first][0] < bids[last][0])
-            log (market.id, symbol, 'bids reversed')
+            log (market.id, symbol, 'bids reversed!'.red.bright, bids[first][0], bids[last][0])
         else if (bids[first][0] > bids[last][0])
             log (market.id, symbol, 'bids ok')
     }
@@ -100,23 +109,27 @@ let testMarketSymbolOrderbook = async (market, symbol) => {
         let first = 0
         let last = asks.length - 1
         if (asks[first][0] > asks[last][0])
-            log (market.id, symbol, 'asks reversed', asks[first][0], asks[last][0])
+            log (market.id, symbol, 'asks reversed!'.red.bright, asks[first][0], asks[last][0])
         else if (asks[first][0] < asks[last][0])
             log (market.id, symbol, 'asks ok')
     }
 
     if (bids.length && asks.length)
         if (bids[0][0] > asks[0][0])
-            log (this.id, symbol, 'order book', 'bid is greater than ask!')
+            log (this.id, symbol, 'order book', 'bid is greater than ask!'.red.bright)
 
     return orderbook
 }
+
+//-----------------------------------------------------------------------------
 
 let testMarketSymbolTrades = async (market, symbol) => {
     let trades = await market.fetchTrades (symbol)
     log (market.id, symbol, 'trades', Object.values (trades).length)
     return trades
 }
+
+//-----------------------------------------------------------------------------
 
 let testMarketSymbol = async (market, symbol) => {
     await sleep (market.rateLimit) 
@@ -132,24 +145,27 @@ let testMarketSymbol = async (market, symbol) => {
     }
 }
 
+//-----------------------------------------------------------------------------
+
 let testMarketBalance = async (market, symbol) => {
     await sleep (market.rateLimit) 
     let balance = await market.fetchBalance ()
     log (market.id.green, 'balance', balance)
 }
 
+//-----------------------------------------------------------------------------
+
 let loadMarket = async market => {
     let products  = await market.loadProducts ()
     log (market.id.green, market.symbols.length, 'symbols', market.symbols.join (', '))
 }
 
+//-----------------------------------------------------------------------------
+
 let testMarket = async market => {
 
     let delay = market.rateLimit
-
-    let keys = Object.keys (market.products)
-
-    let symbol = keys[0]
+    let symbol = market.symbols[0]
     let symbols = [
         'BTC/USD',
         'BTC/CNY',
@@ -159,7 +175,7 @@ let testMarket = async market => {
         'LTC/BTC',
     ]
     for (let s in symbols) {
-        if (keys.includes (symbols[s])) {
+        if (market.symbols.includes (symbols[s])) {
             symbol = symbols[s]
             break
         }
@@ -170,9 +186,6 @@ let testMarket = async market => {
         await testMarketSymbol (market, symbol)
     }
 
-    // let trades = await market.fetchTrades (Object.keys (market.products)[0])
-    // console.log (market.id, trades)
-
     if (!market.apiKey || (market.apiKey.length < 1))
         return true
 
@@ -180,7 +193,8 @@ let testMarket = async market => {
 
     // sleep (delay)
     // try {
-    //     let marketSellOrder = await market.createMarketSellOrder (Object.keys (market.products)[0], 1)
+    //     let marketSellOrder = 
+    //         await market.createMarketSellOrder (market.symbols[0], 1)
     //     console.log (market.id, 'ok', marketSellOrder)
     // } catch (e) {
     //     console.log (market.id, 'error', 'market sell', e)
@@ -188,7 +202,7 @@ let testMarket = async market => {
 
     // sleep (delay)
     // try {
-    //     let marketBuyOrder = await market.createMarketBuyOrder (Object.keys (market.products)[0], 1)
+    //     let marketBuyOrder = await market.createMarketBuyOrder (market.symbols[0], 1)
     //     console.log (market.id, 'ok', marketBuyOrder)
     // } catch (e) {
     //     console.log (market.id, 'error', 'market buy', e)
@@ -196,7 +210,7 @@ let testMarket = async market => {
 
     // sleep (delay)
     // try {
-    //     let limitSellOrder = await market.createLimitSellOrder (Object.keys (market.products)[0], 1, 3000)
+    //     let limitSellOrder = await market.createLimitSellOrder (market.symbols[0], 1, 3000)
     //     console.log (market.id, 'ok', limitSellOrder)
     // } catch (e) {
     //     console.log (market.id, 'error', 'limit sell', e)
@@ -204,7 +218,7 @@ let testMarket = async market => {
 
     // sleep (delay)
     // try {
-    //     let limitBuyOrder = await market.createLimitBuyOrder (Object.keys (market.products)[0], 1, 3000)
+    //     let limitBuyOrder = await market.createLimitBuyOrder (market.symbols[0], 1, 3000)
     //     console.log (market.id, 'ok', limitBuyOrder)
     // } catch (e) {
     //     console.log (market.id, 'error', 'limit buy', e)
@@ -215,10 +229,17 @@ let testMarket = async market => {
 //-----------------------------------------------------------------------------
 
 let printExchangesTable = function () {
-    console.log (asTable.configure ({ delimiter: ' | ' }) (Object.values (markets).map (market => {
-        let website = Array.isArray (market.urls.www) ? market.urls.www[0] : market.urls.www
-        let countries = Array.isArray (market.countries) ? market.countries.map (countryName).join (', ') : countryName (market.countries)
-        let doc = Array.isArray (market.urls.doc) ? market.urls.doc[0] : market.urls.doc
+    let astable = asTable.configure ({ delimiter: ' | ' }) 
+    console.log (astable (Object.values (markets).map (market => {
+        let website = Array.isArray (market.urls.www) ? 
+            market.urls.www[0] :
+            market.urls.www
+        let countries = Array.isArray (market.countries) ? 
+            market.countries.map (countryName).join (', ') :
+            countryName (market.countries)
+        let doc = Array.isArray (market.urls.doc) ? 
+            market.urls.doc[0] :
+            market.urls.doc
         return {
             'id':        market.id,
             'name':      market.name,
@@ -226,6 +247,8 @@ let printExchangesTable = function () {
         }        
     })))
 }
+
+//-----------------------------------------------------------------------------
 
 let tryAllProxies = async function (market, proxies) {
 
@@ -247,7 +270,7 @@ let tryAllProxies = async function (market, proxies) {
         } catch (e) {
 
             currentProxy = ++currentProxy % proxies.length
-            if (e instanceof ccxt.DDoSProtectionError || e.message.includes ('ECONNRESET')) {
+            if (e instanceof ccxt.DDoSProtectionError) {
                 log.bright.yellow (market.id, '[DDoS Protection Error] ' + e.message)
             } else if (e instanceof ccxt.TimeoutError) {
                 log.bright.yellow (market.id, '[Timeout Error] ' + e.message)
@@ -279,21 +302,14 @@ var test = async function () {
             throw new Error ('Market `' + marketId + '` not found')
                 
         if (marketSymbol) {
-
-            if (marketSymbol == 'balance')
-
-                await testMarketBalance (market)
-
-            else
-
-                await testMarketSymbol (market, marketSymbol)
+        
+            await (marketSymbol == 'balance') ? 
+                testMarketBalance (market) :
+                testMarketSymbol (market, marketSymbol)
         
         } else {
-
-            // await tryAllProxies (market, proxies)
-
-            await loadMarket (market)
-            await testMarket (market)
+        
+            await tryAllProxies (market, proxies)
         }
 
     } else {
@@ -301,9 +317,7 @@ var test = async function () {
         for (const id of Object.keys (markets)) {
     
             log.bright.green ('MARKET:', id)
-    
             const market = markets[id]
-
             await tryAllProxies (market, proxies)
 
         }

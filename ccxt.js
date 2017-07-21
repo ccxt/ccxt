@@ -2,7 +2,10 @@
 
 (function () {
 
-var isNode = (typeof window === 'undefined')
+//-----------------------------------------------------------------------------
+
+var version = '1.0.0'
+var isNode  = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
 
@@ -197,8 +200,9 @@ if (isNode) {
                 if (xhr.readyState == 4) {
                     if (xhr.status == 200)
                         resolve (xhr.responseText)
-                    else
+                    else { // [403, 404, ...].indexOf (xhr.status) >= 0
                         throw new Error (method, url, xhr.status, xhr.responseText)
+                    }
                 }
             }
 
@@ -331,10 +335,13 @@ var Market = function (config) {
 
     this.fetch = function (url, method = 'GET', headers = undefined, body = undefined) {
 
-        if (isNode)
+        if (isNode) {
             headers = extend ({
-                'User-Agent': 'ccxt/0.1.0 (+https://github.com/kroitor/ccxt) Node.js/' + this.nodeVersion + ' (JavaScript)'
+                'User-Agent': 'ccxt/' + version + 
+                    ' (+https://github.com/kroitor/ccxt)' + 
+                    ' Node.js/' + this.nodeVersion + ' (JavaScript)'
             }, headers)
+        }
 
         if (this.proxy.length)
             headers = extend ({ 'Origin': '*' }, headers)
@@ -347,8 +354,49 @@ var Market = function (config) {
             console.log (this.id, url, options)
 
         return timeout (this.timeout, fetch (url, options)
-            .then (response => (typeof response === 'string') ? response : response.text ())
-            .then (response => this.handleResponse (url, method, headers, response)))
+            .catch (e => {
+                if (isNode) {
+                    throw new MarketNotAvailableError ([ this.id, method, url, e.type, e.message ].join (' '))
+                }
+                throw e // rethrow all unknown errors
+            })
+            .then (response => {
+                if (typeof response == 'string')
+                    return response
+                return response.text ().then (text => {
+                    if (response.status == 200)
+                        return text
+                    let error = undefined
+                    let details = undefined
+                    if ([ 429 ].indexOf (response.status) >= 0) {
+                        error = DDoSProtectionError
+                    } else if ([ 500, 501, 502, 404 ].indexOf (response.status) >= 0) {
+                        error = MarketNotAvailableError
+                    } else if ([ 400, 403, 405, 503 ].indexOf (response.status) >= 0) {
+                        let ddosProtection = text.match (/cloudflare|incapsula/i)
+                        if (ddosProtection) {
+                            error = DDoSProtectionError
+                        } else {
+                            error = MarketNotAvailableError
+                            details = 'Possible reasons: ' + [
+                                'invalid API keys',
+                                'market down or offline', 
+                                'on maintenance',
+                                'DDoS protection',
+                                'rate-limiting in effect',
+                            ].join (', ')                            
+                        }
+                    } else if ([ 408, 504 ].indexOf (response.status) >= 0) {
+                        error = TimeoutError
+                    } else if ([ 401, 422, 511 ].indexOf (response.status) >= 0) {
+                        error = AuthenticationError
+                    } else {
+                        error = Error
+                        details = 'Unknown Error'
+                    }
+                    throw new error ([ this.id, method, url, response.status, response.statusText, details ].join (' '))
+                })                
+            }).then (response => this.handleResponse (url, method, headers, response)))
     }
 
     this.handleResponse = function (url, method = 'GET', headers = undefined, body = undefined) {
@@ -10780,6 +10828,8 @@ let defineAllMarkets = function (markets) {
 if (isNode) {
     
     Object.assign (module.exports = defineAllMarkets (markets), {
+
+        version,
 
         // exceptions
 

@@ -191,11 +191,18 @@ class Market (object):
                         setattr (self, camelcase,  f)
                         setattr (self, underscore, f)
 
-    def raise_error (self, exception_type, url, method = 'GET', error = None, more = None):
-        more = (' ' + more) if more else ''
+    def raise_error (self, exception_type, url, method = 'GET', error = None, details = None):
+        details = (' ' + details) if details else ''
         if error:
             body = error.read ().decode ('utf-8')
-            raise exception_type (' '.join ([ self.id, method, url, str (error.code), error.msg, body + more ]))
+            raise exception_type (' '.join ([ 
+                self.id, 
+                method,
+                url,
+                str (error.code),
+                error.msg,
+                body + details,
+            ]))
         else:
             raise exception_type (' '.join ([ self.id, method, url, more ]))   
     
@@ -222,21 +229,32 @@ class Market (object):
         except socket.timeout as e:
             raise TimeoutError (' '.join ([ self.id, method, url, 'request timeout' ]))
         except _urllib.HTTPError as e:
+            error = None
+            details = None
             if e.code == 429:
-                self.raise_error (DDoSProtectionError, url, method, e)
+                error = DDoSProtectionError
             elif e.code in [500, 501, 502, 404]:
-                self.raise_error (MarketNotAvailableError, url, method, e)
+                error = MarketNotAvailableError
             elif e.code in [400, 403, 405, 503]:
-                message = 'invalid API keys, market down, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
-                ddos_protection = re.search ('(cloudflare|incapsula)', e.read ().decode ('utf-8'), flags = re.IGNORECASE)
+                # special case to detect ddos protection
+                reason = e.read ().decode ('utf-8')
+                ddos_protection = re.search ('(cloudflare|incapsula)', reason, flags = re.IGNORECASE)
                 if ddos_protection:
-                    self.raise_error (DDoSProtectionError, url, method, e)
+                    error = DDoSProtectionError
                 else:
-                    self.raise_error (MarketNotAvailableError, url, method, e, message)
+                    error = MarketNotAvailableError
+                    details = 'Possible reasons: ' + ', '.join ([
+                        'invalid API keys',
+                        'market down or offline', 
+                        'on maintenance',
+                        'DDoS protection',
+                        'rate-limiting in effect',
+                    ])                    
             elif e.code in [408, 504]:
-                self.raise_error (TimeoutError, url, method, e)
-            elif e.code in [401, 511]:
-                self.raise_error (AuthenticationError, url, method, e)
+                error = TimeoutError
+            elif e.code in [401, 422, 511]:
+                error = AuthenticationError
+            self.raise_error (error, url, method, e, details)
         except _urllib.URLError as e:
             self.raise_error (MarketNotAvailableError, url, method, e)
         text = response.read ()

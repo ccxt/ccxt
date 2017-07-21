@@ -126,7 +126,7 @@ Node version of the ccxt library requires [crypto-js](https://www.npmjs.com/pack
 
 ```JavaScript
 var ccxt = require ('ccxt')
-console.log (Object.keys (ccxt)) // print all available markets
+console.log (ccxt.market) // print all available markets
 ```
 
 ### Python
@@ -141,7 +141,7 @@ Python version of the ccxt library does not require any additional dependencies 
 
 ```Python
 import ccxt
-print (dir (ccxt)) # print a list of all available market classes
+print (ccxt.markets) # print a list of all available market classes
 ```
 
 ### PHP
@@ -158,7 +158,7 @@ The ccxt library in PHP requires common PHP modules:
 
 ```PHP
 include "ccxt.php";
-$market = new \cxxt\$id (); // $id is a string literal id of your desired exchange market
+var_dump (\cxxt\Market::$markets); // print a list of all available market classes
 ```
 
 ### Web Browsers

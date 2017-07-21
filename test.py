@@ -1,5 +1,15 @@
 # coding=utf-8
 
+import ccxt
+import time
+import sys
+import json
+
+markets = {}
+
+#------------------------------------------------------------------------------
+# string coloring functions
+
 def style     (s, style): return style + str (s) + '\033[0m'
 def green     (s): return style (s, '\033[92m')
 def blue      (s): return style (s, '\033[94m')
@@ -9,22 +19,17 @@ def pink      (s): return style (s, '\033[95m')
 def bold      (s): return style (s, '\033[1m')
 def underline (s): return style (s, '\033[4m')
 
-import ccxt
-import time
-import sys
-import json
-
-markets = {}
-
 # print a colored string
 def dump (*args):
     print (' '.join ([str (arg) for arg in args]))
+
+#------------------------------------------------------------------------------
 
 def test_market_symbol_orderbook (market, symbol):
     delay = int (market.rateLimit / 1000)
     time.sleep (delay)
     orderbook = market.fetch_order_book (symbol)
-    print (market.id, symbol, 'order book',
+    dump (market.id, symbol, 'order book',
         orderbook['datetime'],
         'bid: ' +       str (orderbook['bids'][0][0] if len (orderbook['bids']) else 'N/A'), 
         'bidVolume: ' + str (orderbook['bids'][0][1] if len (orderbook['bids']) else 'N/A'),
@@ -36,7 +41,7 @@ def test_market_symbol_ticker (market, symbol):
     delay = int (market.rateLimit / 1000)
     time.sleep (delay)
     ticker = market.fetch_ticker (symbol)
-    print (market.id, symbol, 'ticker',
+    dump (market.id, symbol, 'ticker',
         ticker['datetime'],
         'high: '    + str (ticker['high']),
         'low: '     + str (ticker['low']),
@@ -54,16 +59,14 @@ def test_market_symbol (market, symbol):
 
 def load_market (market):
     products = market.load_products ()
-    keys = list (market.products.keys ())
-    # print (market.id , len (keys), 'symbols', keys)
 
 def test_market (market):
 
-    dump (red (market.id))
+    dump (green (market.id))
     delay = 2
     keys = list (market.products.keys ())
 
-    #--------------------------------------------------------------------------
+    #..........................................................................
     # public API
 
     symbol = keys[0]
@@ -84,14 +87,14 @@ def test_market (market):
     if symbol.find ('.d') < 0:
         test_market_symbol (market, symbol)
 
-    #--------------------------------------------------------------------------
+    #..........................................................................
     # private API
 
     if (not hasattr (market, 'apiKey') or (len (market.apiKey) < 1)):
         return 
 
     balance = market.fetch_balance ()
-    print (balance)
+    dump (balance)
     # time.sleep (delay)
 
     amount = 1
@@ -113,31 +116,87 @@ def test_market (market):
     # print (limitSell)
     # time.sleep (delay)
 
+
+# let tryAllProxies = async function (market, proxies) {
+#     let currentProxy = 0
+#     let maxRetries   = proxies.length
+#     for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
+#         try {
+#             market.proxy = proxies[currentProxy]
+#             if ([ 'coinspot' ].indexOf (market.id) < 0) {
+#                 await loadMarket (market)
+#                 await testMarket (market)
+#                 break;
+#             }
+#         } catch (e) {
+#             currentProxy = ++currentProxy % proxies.length
+#             if (e instanceof ccxt.DDoSProtectionError) {
+#                 log.bright.yellow (market.id, '[DDoS Protection Error] ' + e.message)
+#             } else if (e instanceof ccxt.TimeoutError) {
+#                 log.bright.yellow (market.id, '[Timeout Error] ' + e.message)
+#             } else if (e instanceof ccxt.AuthenticationError) {
+#                 log.bright.yellow (market.id, '[Authentication Error] ' + e.message)
+#             } else if (e instanceof ccxt.MarketNotAvailableError) {
+#                 log.bright.yellow (market.id, '[Market Not Available Error] ' + e.message)
+#             } else if (e instanceof ccxt.EndpointNotAvailableError) {
+#                 log.bright.yellow (market.id, '[Endpoint Not Available Error] ' + e.message)
+#             } else {
+#                 throw e;
+#             }
+#         }
+#     }
+# }
+
 #------------------------------------------------------------------------------
 
+def try_all_proxies (market, proxies):
+    current_proxy = 0
+    max_retries = len (proxies)
+    for num_retries in range (0, max_retries):    
+        try:
+            market.proxy = proxies[current_proxy]
+            current_proxy = (current_proxy + 1) % len (proxies)
+            load_market (market)
+            test_market (market)
+            break
+        except ccxt.DDoSProtectionError as e:
+            dump (yellow (type (e).__name__), e.args)
+        except ccxt.TimeoutError as e:
+            dump (yellow (type (e).__name__), str (e))
+        except ccxt.MarketNotAvailableError as e:
+            dump (yellow (type (e).__name__), e.args)
+        except ccxt.AuthenticationError as e:
+            dump (yellow (type (e).__name__), str (e))
+
+#------------------------------------------------------------------------------
+
+proxies = [
+    '',
+    'https://cors-anywhere.herokuapp.com/',
+    'https://crossorigin.me/',
+    # 'http://cors-proxy.htmldriven.com/?url=', # we don't want this for now
+]
+
+# instantiate all markets
 for id in ccxt.markets:
     market = getattr (ccxt, id)
-    markets[id] = market ({
-        'verbose': True,
-        # 'proxy': 'https://crossorigin.me/',
-        # 'proxy': 'https://cors-anywhere.herokuapp.com/',
-        # 'proxy': 'http://cors-proxy.htmldriven.com/?url=',
-    })
+    markets[id] = market ({ 'verbose': True })
 
+# load the api keys from config
 with open ('./keys.json') as file:    
     config = json.load (file)
 
+# set up api keys appropriately
 tuples = list (ccxt.Market.keysort (config).items ())
 for (id, params) in tuples:
     options = list (params.items ())
     for key in params:
         setattr (markets[id], key, params[key])
 
+# move gdax to sandbox
 markets['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
-markets['anxpro'].proxy = 'https://cors-anywhere.herokuapp.com/'
 
 id = None
-
 try:
     id = sys.argv[1]
 except:
@@ -146,7 +205,6 @@ except:
 if id:
     
     market = markets[id]
-    load_market (market)
     symbol = None
     
     try:
@@ -155,24 +213,14 @@ if id:
         symbol = None
     
     if symbol:
+        load_market (market)
         test_market_symbol (market, symbol)
     else:
-        test_market (market)
+        try_all_proxies (market, proxies)
 
 else:
+
     tuples = list (ccxt.Market.keysort (markets).items ())
     for (id, params) in tuples:
-        try:
-            market = markets[id]
-            load_market (market)
-            test_market (market)
-        except ccxt.DDoSProtectionError as e:
-            print (type (e).__name__, e.args)
-        except ccxt.TimeoutError as e:
-            print (type (e).__name__, str (e))
-        except ccxt.MarketNotAvailableError as e:
-            print (type (e).__name__, e.args)
-        except ccxt.AuthenticationError as e:
-            print (type (e).__name__, str (e))
-        except Exception as e:
-            print (type (e).__name__, e.args, str (e))
+        market = markets[id]
+        try_all_proxies (market, proxies)

@@ -25,7 +25,7 @@
     "livecoin":    { "apiKey": "W5z7bvQM2pEShvGmqq1bXZkb1MR32GKw", "secret": "n8FrknvqwsRnTpGeNAbC51waYdE4xxSB" },
     "luno":        { "apiKey": "nrpzg7rkd8pnf", "secret": "Ps0DXw0TpTzdJ2Yek8V5TzFDfTWzyU5vfLdCiBP6vsI" },
     "okcoinusd":   { "apiKey": "da83cf1b-6fdc-495a-af55-f809bec64e2b", "secret": "614D2E6D3428C2C5E54C81139A500BE0" },
-    "poloniex":    { "apiKey": "DW6G1D24-2HWMZZTY-6TUADS2O-TF87O6LS", "secret": "70cc628f95e4e536bd2de702c058ff482fff52f176ac884d6aa605040c29e31caca93430755d1c56a09d0c6a9fe90077754da54b194523f21591e63015bf81fd" },
+    "poloniex":    { "apiKey": "BLWC235I-69P3AOOG-9K2PIH6N-HGZPOXAQ", "secret": "34ebd79b4400df54114c5d3e2b339b27d28eccc747766c78c0d42826ebc3d2a21bb4c9870f2168dcc6d9437dc08e6253f5949fe85b4b73e30b7e56e879624f8d" },
     "quadrigacx":  { "apiKey": "jKvWkMqrOj", "secret": "f65a2e3bf3c73171ee14e389314b2f78", "uid": "395037" },
     "quoine":      { "apiKey": "80953", "secret": "WfHUWcdFoGvZSuE7pE8XDh8FG9t5OP69iYrcwdnRs4rRn2uzZW+AHCyp/nBjlZcB+LWe3r6y2DCCYu+WcYkCAA==" },
     "therock":     { "apiKey": "2b2a54cc6258b2a971318000d60e6b61ba4af05e", "secret": "b424a76088bda492852dbd5cadbb60ebcf144427" },
