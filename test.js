@@ -186,8 +186,8 @@ let testMarket = async market => {
         await testMarketSymbol (market, symbol)
     }
 
-    // if (!market.apiKey || (market.apiKey.length < 1))
-    //     return true
+    if (!market.apiKey || (market.apiKey.length < 1))
+        return true
 
     await testMarketBalance (market)
 
