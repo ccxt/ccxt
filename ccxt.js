@@ -3180,8 +3180,31 @@ var bitstamp = {
         });
     },
 
-    fetchBalance () {
-        return this.privatePostBalance ();
+    async fetchBalance () {
+        console.log (this.currencies)
+        process.exit ()
+        let balances = await this.privatePostBalance ();
+        let result = { 'info': response };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let lowercase = currency.toLowerCase ();
+            let total = lowercase + '_balance';
+            let free = lowercase + '_available';
+            let used = lowercase + '_reserved';
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if (free in balance)
+                account['free'] = parseFloat (balance[free]);
+            if (used in balance)
+                account['used'] = parseFloat (balance[used]);
+            if (total in balance)
+                account['total'] = parseFloat (balance[total]);
+            result[currency] = account;
+        }
+        return result;
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
