@@ -260,12 +260,9 @@ let tryAllProxies = async function (market, proxies) {
         try {
 
             market.proxy = proxies[currentProxy]
-
-            if ([ 'coinspot' ].indexOf (market.id) < 0) {
-                await loadMarket (market)
-                await testMarket (market)
-                break;
-            }
+            await loadMarket (market)
+            await testMarket (market)
+            break
 
         } catch (e) {
 
