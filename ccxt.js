@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.31'
+var version = '1.1.32'
 var isNode  = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
@@ -2291,6 +2291,10 @@ var bitlish = {
             let id = product['id'];
             let symbol = product['name'];
             let [ base, quote ] = symbol.split ('/');
+            // issue #4 bitlish names Dash as DSH, instead of DASH
+            if (base == 'DSH')
+                base = 'DASH';
+            symbol = base + '/' + quote;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -2361,8 +2365,35 @@ var bitlish = {
         });
     },
 
-    fetchBalance () {
-        return this.privatePostBalance ();
+    async fetchBalance () {
+        let response = await this.privatePostBalance ();
+        let result = { 'info': response };
+        let currencies = Object.keys (response);
+        let balance = {};
+        for (let c = 0; c < currencies.length; c++) {
+            let currency = currencies[c];
+            let account = response[currency];
+            currency = currency.toUpperCase ();
+            // issue #4 bitlish names Dash as DSH, instead of DASH
+            if (currency == 'DSH')
+                currency = 'DASH';
+            balance[currency] = account;
+        }
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if (currency in balance) {
+                account['free'] = parseFloat (balance[currency]['funds']);
+                account['used'] = parseFloat (balance[currency]['holded']);                
+                account['total'] = this.sum (account['free'], account['used']);
+            }
+            result[currency] = account;
+        }
+        return result;
     },
 
     signIn () {

@@ -81,7 +81,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.31'
+__version__ = '1.1.32'
 
 # Python 2 & 3
 import base64
@@ -2251,6 +2251,10 @@ class bitlish (Market):
             id = product['id']
             symbol = product['name']
             base, quote = symbol.split ('/')
+            # issue #4 bitlish names Dash as DSH, instead of DASH
+            if base == 'DSH':
+                base = 'DASH'
+            symbol = base + '/' + quote
             result.append ({
                 'id': id,
                 'symbol': symbol,
@@ -2315,7 +2319,31 @@ class bitlish (Market):
         })
 
     def fetch_balance (self):
-        return self.privatePostBalance ()
+        response = self.privatePostBalance ()
+        result = { 'info': response }
+        currencies = list (response.keys ())
+        balance = {}
+        for c in range (0, len (currencies)):
+            currency = currencies[c]
+            account = response[currency]
+            currency = currency.upper ()
+            # issue #4 bitlish names Dash as DSH, instead of DASH
+            if currency == 'DSH':
+                currency = 'DASH'
+            balance[currency] = account
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in balance:
+                account['free'] = float (balance[currency]['funds'])
+                account['used'] = float (balance[currency]['holded'])                
+                account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def sign_in (self):
         return self.privatePostSignin ({

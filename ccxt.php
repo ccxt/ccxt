@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.31';
+$version = '1.1.32';
 
 class Market {
 
@@ -2322,6 +2322,10 @@ class bitlish extends Market {
             $id = $product['id'];
             $symbol = $product['name'];
             list ($base, $quote) = explode ('/', $symbol);
+            // issue #4 bitlish names Dash as DSH, instead of DASH
+            if ($base == 'DSH')
+                $base = 'DASH';
+            $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -2393,7 +2397,34 @@ class bitlish extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostBalance ();
+        $response = $this->privatePostBalance ();
+        $result = array ( 'info' => $response );
+        $currencies = array_keys ($response);
+        $balance = array ();
+        for ($c = 0; $c < count ($currencies); $c++) {
+            $currency = $currencies[$c];
+            $account = $response[$currency];
+            $currency = strtoupper ($currency);
+            // issue #4 bitlish names Dash as DSH, instead of DASH
+            if ($currency == 'DSH')
+                $currency = 'DASH';
+            $balance[$currency] = $account;
+        }
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            if (array_key_exists ($currency, $balance)) {
+                $account['free'] = floatval ($balance[$currency]['funds']);
+                $account['used'] = floatval ($balance[$currency]['holded']);                
+                $account['total'] = $this->sum ($account['free'], $account['used']);
+            }
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function sign_in () {
