@@ -31,7 +31,7 @@
     "coveralls": "^2.13.1",
     "istanbul": "^0.4.5",
     "nyc": "^11.0.3",
-    "ololog": "^1.0.1"
+    "ololog": "^1.0.6"
   },
   "author": {
     "name": "Igor Kroitor",
