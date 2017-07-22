@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.43';
+$version = '1.1.44';
 
 class Market {
 
@@ -3964,7 +3964,25 @@ class btce extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostGetInfo ();
+        $response = $this->privatePostGetInfo ();
+        $balances = $response['return'];
+        $result = array ( 'info' => $balances );
+        $funds = $balances['funds'];
+        $currencies = array_keys ($funds);
+        for ($c = 0; $c < count ($currencies); $c++) {
+            $currency = $currencies[$c];
+            $uppercase = strtoupper ($currency);
+            // they misspell DASH as dsh :/
+            if ($uppercase == 'DSH')
+                $uppercase = 'DASH';
+            $account = array (
+                'free' => $funds[$currency],
+                'used' => null,
+                'total' => $funds[$currency],
+            );
+            $result[$uppercase] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {

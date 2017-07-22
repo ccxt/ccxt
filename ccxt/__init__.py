@@ -81,7 +81,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.43'
+__version__ = '1.1.44'
 
 # Python 2 & 3
 import base64
@@ -3796,7 +3796,24 @@ class btce (Market):
         return result
 
     def fetch_balance (self):
-        return self.privatePostGetInfo ()
+        response = self.privatePostGetInfo ()
+        balances = response['return']
+        result = { 'info': balances }
+        funds = balances['funds']
+        currencies = list (funds.keys ())
+        for c in range (0, len (currencies)):
+            currency = currencies[c]
+            uppercase = currency.upper ()
+            # they misspell DASH as dsh :/
+            if uppercase == 'DSH':
+                uppercase = 'DASH'
+            account = {
+                'free': funds[currency],
+                'used': None,
+                'total': funds[currency],
+            }
+            result[uppercase] = account
+        return result
 
     def fetch_order_book (self, product):
         p = self.product (product)
