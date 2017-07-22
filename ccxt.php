@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.18';
+$version = '1.1.19';
 
 class Market {
 
@@ -2146,8 +2146,8 @@ class bitflyer extends Market {
                 'total' => null,
             );
             if (array_key_exists ($currency, $balances)) {
-                $account['free'] = floatval ($balances[$currency]['available']);
-                $account['total'] = floatval ($balances[$currency]['amount']);
+                $account['total'] = $balances[$currency]['amount'];
+                $account['free'] = $balances[$currency]['available'];                
                 $account['used'] = $account['total'] - $account['free'];
             }
             $result[$currency] = $account;

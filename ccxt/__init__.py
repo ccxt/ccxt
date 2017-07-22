@@ -81,7 +81,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.18'
+__version__ = '1.1.19'
 
 # Python 2 & 3
 import base64
@@ -2087,8 +2087,8 @@ class bitflyer (Market):
                 'total': None,
             }
             if currency in balances:
-                account['free'] = float (balances[currency]['available'])
-                account['total'] = float (balances[currency]['amount'])
+                account['total'] = balances[currency]['amount']
+                account['free'] = balances[currency]['available']                
                 account['used'] = account['total'] - account['free']
             result[currency] = account
         return result
