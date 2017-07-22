@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.40'
+var version = '1.1.41'
 var isNode  = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
@@ -3324,8 +3324,27 @@ var bittrex = {
         return result;
     },
 
-    fetchBalance () {
-        return this.accountGetBalances ();
+    async fetchBalance () {
+        let response = await this.accountGetBalances ();
+        let balances = response['result'];
+        let result = { 'info': balances };
+        let indexed = this.indexBy (balances, 'Currency');
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if (currency in indexed) {
+                let balance = indexed[currency];
+                account['free'] = balance['Available'];
+                account['used'] = balance['Pending'];
+                account['total'] = balance['Balance'];
+            }
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {

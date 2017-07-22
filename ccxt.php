@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.40';
+$version = '1.1.41';
 
 class Market {
 
@@ -3375,7 +3375,26 @@ class bittrex extends Market {
     }
 
     public function fetch_balance () {
-        return $this->accountGetBalances ();
+        $response = $this->accountGetBalances ();
+        $balances = $response['result'];
+        $result = array ( 'info' => $balances );
+        $indexed = $this->index_by ($balances, 'Currency');
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            if (array_key_exists ($currency, $indexed)) {
+                $balance = $indexed[$currency];
+                $account['free'] = $balance['Available'];
+                $account['used'] = $balance['Pending'];
+                $account['total'] = $balance['Balance'];
+            }
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {

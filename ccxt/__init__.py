@@ -81,7 +81,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.40'
+__version__ = '1.1.41'
 
 # Python 2 & 3
 import base64
@@ -3244,7 +3244,24 @@ class bittrex (Market):
         return result
 
     def fetch_balance (self):
-        return self.accountGetBalances ()
+        response = self.accountGetBalances ()
+        balances = response['result']
+        result = { 'info': balances }
+        indexed = self.index_by (balances, 'Currency')
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in indexed:
+                balance = indexed[currency]
+                account['free'] = balance['Available']
+                account['used'] = balance['Pending']
+                account['total'] = balance['Balance']
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         response = self.publicGetOrderbook ({
