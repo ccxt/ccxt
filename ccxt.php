@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.38';
+$version = '1.1.39';
 
 class Market {
 
@@ -2793,12 +2793,10 @@ class bitmex extends Market {
             $currency = strtoupper ($balance['currency']);
             $currency = $this->commonCurrencyCode ($currency);
             $account = array (
-                'free' => null,
+                'free' => $balance['availableMargin'],
                 'used' => null,
-                'total' => null,
+                'total' => $balance['amount'],
             );
-            $account['free'] = $balance['availableMargin'];
-            $account['total'] = $balance['amount'];
             if ($currency == 'BTC') {
                 $account['free'] = $account['free'] * 0.00000001;
                 $account['total'] = $account['total'] * 0.00000001;
@@ -2999,7 +2997,20 @@ class bitso extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privateGetBalance ();
+        $response = $this->privateGetBalance ();
+        $balances = $response['payload']['balances'];
+        $result = array ( 'info' => $response );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
+            $currency = strtoupper ($balance['currency']);
+            $account = array (
+                'free' => floatval ($balance['available']),
+                'used' => floatval ($balance['locked']),
+                'total' => floatval ($balance['total']),
+            );
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {

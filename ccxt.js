@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.38'
+var version = '1.1.39'
 var isNode  = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
@@ -2754,12 +2754,10 @@ var bitmex = {
             let currency = balance['currency'].toUpperCase ();
             currency = this.commonCurrencyCode (currency);
             let account = {
-                'free': undefined,
+                'free': balance['availableMargin'],
                 'used': undefined,
-                'total': undefined,
+                'total': balance['amount'],
             };
-            account['free'] = balance['availableMargin'];
-            account['total'] = balance['amount'];
             if (currency == 'BTC') {
                 account['free'] = account['free'] * 0.00000001;
                 account['total'] = account['total'] * 0.00000001;
@@ -2955,8 +2953,21 @@ var bitso = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privateGetBalance ();
+    async fetchBalance () {
+        let response = await this.privateGetBalance ();
+        let balances = response['payload']['balances'];
+        let result = { 'info': response };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = balance['currency'].toUpperCase ();
+            let account = {
+                'free': parseFloat (balance['available']),
+                'used': parseFloat (balance['locked']),
+                'total': parseFloat (balance['total']),
+            };
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
