@@ -10,11 +10,12 @@ console.log (exchange.symbols)
 
 let symbol = exchange.symbols[0]
 
+console.log (ticker)
 let ticker = await exchange.fetchTicker (symbol)
-console.log (symbol, ticker)
+console.log (ticker)
 
 let orderbook = await exchange.fetchTicker (symbol)
-console.log (symbol, orderbook)
+console.log (orderbook)
 
 let balance = await exchange.fetchBalance ()
-console.log (symbol, balance)
+console.log (balance)
