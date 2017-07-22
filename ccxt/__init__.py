@@ -81,7 +81,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.33'
+__version__ = '1.1.34'
 
 # Python 2 & 3
 import base64
@@ -194,17 +194,18 @@ class Market (object):
     def raise_error (self, exception_type, url, method = 'GET', error = None, details = None):
         details = (' ' + details) if details else ''
         if error:
-            body = error.read ().decode ('utf-8')
+            if type (error) is _urllib.HTTPError:
+                details = str (error.code) + error.msg + error.read ().decode ('utf-8') + details
+            else:
+                details = str (error)
             raise exception_type (' '.join ([ 
                 self.id, 
                 method,
                 url,
-                str (error.code),
-                error.msg,
-                body + details,
+                details,
             ]))
         else:
-            raise exception_type (' '.join ([ self.id, method, url, more ]))   
+            raise exception_type (' '.join ([ self.id, method, url, details ]))   
     
     def fetch (self, url, method = 'GET', headers = None, body = None):
         """Perform a HTTP request and return decoded JSON data"""
@@ -256,7 +257,7 @@ class Market (object):
                 error = AuthenticationError
             self.raise_error (error, url, method, e, details)
         except _urllib.URLError as e:
-            self.raise_error (MarketNotAvailableError, url, method, e)
+            self.raise_error (MarketNotAvailableError, url, method, e)        
         text = response.read ()
         encoding = response.info ().get ('Content-Encoding')
         if encoding in ('gzip', 'x-gzip', 'deflate'):
@@ -269,20 +270,23 @@ class Market (object):
         return self.handle_response (url, method, headers, body)
 
     def handle_response (self, url, method = 'GET', headers = None, body = None):
-        ddos_protection = re.search ('(cloudflare|incapsula)', body, flags = re.IGNORECASE)
-        market_not_available = re.search ("(" + 'offline|unavailable|busy|maintenance|maintenancing' + ")", body, flags = re.IGNORECASE)
-        if market_not_available:
-            message = 'market downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
-            raise MarketNotAvailableError (' '.join ([
-                self.id,
-                method,
-                url,                
-                body,
-                message,
-            ]))
-        if ddos_protection:
-            raise DDoSProtectionError (' '.join ([ self.id, method, url, body ]))
-        return json.loads (body)
+        try:
+            return json.loads (body)
+        except Exception as e:
+            ddos_protection = re.search ('(cloudflare|incapsula)', body, flags = re.IGNORECASE)
+            market_not_available = re.search ("(" + 'offline|unavailable|busy|maintenance|maintenancing' + ")", body, flags = re.IGNORECASE)
+            if market_not_available:
+                message = 'market downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
+                raise MarketNotAvailableError (' '.join ([
+                    self.id,
+                    method,
+                    url,                
+                    body,
+                    message,
+                ]))
+            if ddos_protection:
+                raise DDoSProtectionError (' '.join ([ self.id, method, url, body ]))
+        
 
     @staticmethod
     def capitalize (string): # first character only, rest characters unchanged
