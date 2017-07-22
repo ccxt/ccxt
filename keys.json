@@ -8,7 +8,7 @@
     "bitfinex":    { "apiKey": "5A1VikyEtDpmFkrzX4e52LsaVgCxXyMnY9JElqvNMxo", "secret": "Rgxxw1BGnq6NLTLq1hn0oQ5FBDRLYFFVRzyEKYbz1io" },
     "bitlish":     { "apiKey": "fixed:N5lK4iokAc9ajk0Z8pvHfpoJsyzNzQ2nespNH/mY7is", "login": "igor.kroitor@gmail.com", "password": "VfvfVskfHfve229!" },
     "bitmarket":   { "apiKey": "43a868dc9517485f28905b320581d1cf", "secret": "892b34c7d8e6669550aa9d12aed0ad34" },
-    "bitmex":      { "apiKey": "nsLKchj2hAxc5t5CP6LGTNSC", "secret": "4AqteCYo9ZCPx9J3dhNiGY-_LTfmtLyqCzh-XSbCibuC-Pf6" },
+    "bitmex":      { "apiKey": "ifMw6RdHO2KBm-N1GkBR3hnV", "secret": "IkGnEnqHROKUNlnjysInc0_Q0VSl5ItdmxX9UbuDhSMQ57gU" },
     "bitso":       { "apiKey": "FZZzVkZgza", "secret": "f763b98d46d8c5e352b4ef70050bc9b1" },
     "bittrex":     { "apiKey": "60f38a5818934fc08308778f94d3d8c4", "secret": "9d294ddb5b944403b58e5298653720c1" },
     "btcx":        { "apiKey": "53IPO-ZBQEN-91UNL-B8VD5-CTU1Z-E6RB1-S9X3P", "secret": "ptrearsi6oy1lmzazfcytnbozmsvjsnzha8hrrqqbjlnvgnqlpjb7kqxyency45a" },
