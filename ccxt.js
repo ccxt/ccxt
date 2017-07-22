@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.36'
+var version = '1.1.37'
 var isNode  = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
@@ -2746,8 +2746,28 @@ var bitmex = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privateGetUserMargin ({ 'currency': 'all' });
+    async fetchBalance () {
+        let response = await this.privateGetUserMargin ({ 'currency': 'all' });
+        let result = { 'info': response };
+        for (let b = 0; b < response.length; b++) {
+            let balance = response[b];
+            let currency = balance['currency'].toUpperCase ();
+            currency = this.commonCurrencyCode (currency);
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            account['free'] = balance['availableMargin'];
+            account['total'] = balance['amount'];
+            if (currency == 'BTC') {
+                account['free'] = account['free'] * 0.00000001;
+                account['total'] = account['total'] * 0.00000001;
+            }
+            account['used'] = account['total'] - account['free'];
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {

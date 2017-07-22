@@ -81,7 +81,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.36'
+__version__ = '1.1.37'
 
 # Python 2 & 3
 import base64
@@ -2692,7 +2692,25 @@ class bitmex (Market):
         return result
 
     def fetch_balance (self):
-        return self.privateGetUserMargin ({ 'currency': 'all' })
+        response = self.privateGetUserMargin ({ 'currency': 'all' })
+        result = { 'info': response }
+        for b in range (0, len (response)):
+            balance = response[b]
+            currency = balance['currency'].upper ()
+            currency = self.commonCurrencyCode (currency)
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            account['free'] = balance['availableMargin']
+            account['total'] = balance['amount']
+            if currency == 'BTC':
+                account['free'] = account['free'] * 0.00000001
+                account['total'] = account['total'] * 0.00000001
+            account['used'] = account['total'] - account['free']
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetOrderBookL2 ({

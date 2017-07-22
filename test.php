@@ -26,7 +26,7 @@ foreach (\ccxt\Market::$markets as $id) {
     $markets[$id] = new $market (array (
         'verbose' => true,
         // 'proxy' => 'https://crossorigin.me/',
-        'proxy' => 'https://cors-anywhere.herokuapp.com/',
+        // 'proxy' => 'https://cors-anywhere.herokuapp.com/',
         // 'proxy' => 'http://cors-proxy.htmldriven.com/?url=',
     ));
 }
@@ -81,10 +81,9 @@ function load_market ($market) {
 
 function test_market ($market) {
 
-    $keys = array_keys ($market->products);
     $delay = $market->rateLimit * 1000;
 
-    $symbol = $keys[0];
+    $symbol = $market->symbols[0];
     $symbols = array (
         'BTC/USD',
         'BTC/CNY',
@@ -95,7 +94,7 @@ function test_market ($market) {
     );
 
     foreach ($symbols as $s) {
-        if (in_array ($s, $keys)) {
+        if (in_array ($s, $market->symbols)) {
             $symbol = $s;
             break;
         }
@@ -143,6 +142,8 @@ if (count ($argv) > 1) {
         try {
     
             load_market ($market);
+
+            echo "------------------------------------------------------------------------------------------------------";
             test_market ($market);
 
         } catch (\ccxt\TimeoutError $e) {

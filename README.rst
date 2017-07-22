@@ -6,7 +6,7 @@ CCXT – CryptoCurrency eXchange Trading Library
 .. image:: https://img.shields.io/npm/v/ccxt.svg
     :target: https://npmjs.com/package/ccxt
 .. image:: https://img.shields.io/pypi/v/ccxt.svg
-    :target: https://pypi.python.org/pypi?name=ccxt&:action=display
+    :target: https://pypi.python.org/pypi/ccxt
 .. image:: https://img.shields.io/npm/dm/ccxt.svg
     :target: https://www.npmjs.com/package/ccxt
 .. image:: https://img.shields.io/scrutinizer/g/kroitor/ccxt.svg
