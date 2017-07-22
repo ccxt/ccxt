@@ -81,7 +81,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.41'
+__version__ = '1.1.42'
 
 # Python 2 & 3
 import base64
@@ -3601,7 +3601,25 @@ class btcchina (Market):
         return result
 
     def fetch_balance (self):
-        return self.privatePostGetAccountInfo ()
+        response = self.privatePostGetAccountInfo ()
+        balances = response['result']
+        result = { 'info': balances }
+
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            lowercase = currency.lower ()
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if lowercase in balances['balance']:
+                account['total'] = float (balances['balance'][lowercase]['amount'])
+            if lowercase in balances['frozen']:
+                account['used'] = float (balances['frozen'][lowercase]['amount'])
+            account['free'] = account['total'] - account['used']
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetOrderbook ({

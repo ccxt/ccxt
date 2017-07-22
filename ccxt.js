@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.41'
+var version = '1.1.42'
 var isNode  = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
@@ -3697,93 +3697,27 @@ var btcchina = {
         return result;
     },
 
-/*
-{
-    "result": {
-    "profile": {
-    "username": "btc",
-    "trade_password_enabled": true,
-    "otp_enabled": true,
-    "trade_fee": 0,
-    "trade_fee_cnyltc": 0,
-    "trade_fee_btcltc": 0,
-    "daily_btc_limit": 10,
-    "daily_ltc_limit": 300,
-    "btc_deposit_address": "123myZyM9jBYGw5EB3wWmfgJ4Mvqnu7gEu",
-    "btc_withdrawal_address": "123GzXJnfugniyy7ZDw3hSjkm4tHPHzHba",
-    "ltc_deposit_address": "L12ysdcsNS3ZksRrVWMSoHjJgcm5VQn2Tc",
-    "ltc_withdrawal_address": "L23GzXJnfugniyy7ZDw3hSjkm4tHPHzHba",
-    "api_key_permission": 3
-    },
-    "balance": {
-    "btc": {
-    "currency": "BTC",
-    "symbol": "\u0e3f",
-    "amount": "100.00000000",
-    "amount_integer": "10000000000",
-    "amount_decimal": 8
-    },
-    "ltc": {
-    "currency": "LTC",
-    "symbol": "\u0141",
-    "amount": "0.00000000",
-    "amount_integer": "0",
-    "amount_decimal": 8
-    },
-    "cny": {
-    "currency": "CNY",
-    "symbol": "\u00a5",
-    "amount": "50000.00000",
-    "amount_integer": "5000000000",
-    "amount_decimal": 5
-    }
-    },
-    "frozen": {
-    "btc": {
-    "currency": "BTC",
-    "symbol": "\u0e3f",
-    "amount": "0.00000000",
-    "amount_integer": "0",
-    "amount_decimal": 8
-    },
-    "ltc": {
-    "currency": "LTC",
-    "symbol": "\u0141",
-    "amount": "0.00000000",
-    "amount_integer": "0",
-    "amount_decimal": 8
-    },
-    "cny": {
-    "currency": "CNY",
-    "symbol": "\u00a5",
-    "amount": "0.00000",
-    "amount_integer": "0",
-    "amount_decimal": 5
-    }
-    }
-    "loan": {
-    "btc": {
-    "currency":"BTC",
-    "symbol":"\u0e3f",
-    "amount":"0.00000000",
-    "amount_integer":"0",
-    "amount_decimal":8
-    },
-    "cny":{
-    "currency":"CNY",
-    "symbol":"\u00a5",
-    "amount":"0.00000",
-    "amount_integer":"0",
-    "amount_decimal":5
-    }
-    }
-    },
-    "id": "1"
-}
+    async fetchBalance () {
+        let response = await this.privatePostGetAccountInfo ();
+        let balances = response['result'];
+        let result = { 'info': balances };
 
-*/
-    fetchBalance () {
-        return this.privatePostGetAccountInfo ();
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let lowercase = currency.toLowerCase ();
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if (lowercase in balances['balance'])
+                account['total'] = parseFloat (balances['balance'][lowercase]['amount']);
+            if (lowercase in balances['frozen'])
+                account['used'] = parseFloat (balances['frozen'][lowercase]['amount']);
+            account['free'] = account['total'] - account['used'];
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
