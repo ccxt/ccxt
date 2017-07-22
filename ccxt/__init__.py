@@ -81,7 +81,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.39'
+__version__ = '1.1.40'
 
 # Python 2 & 3
 import base64
@@ -3104,7 +3104,27 @@ class bitstamp (Market):
         })
 
     def fetch_balance (self):
-        return self.privatePostBalance ()
+        balance = self.privatePostBalance ()
+        result = { 'info': balance }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            lowercase = currency.lower ()
+            total = lowercase + '_balance'
+            free = lowercase + '_available'
+            used = lowercase + '_reserved'
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if free in balance:
+                account['free'] = float (balance[free])
+            if used in balance:
+                account['used'] = float (balance[used])
+            if total in balance:
+                account['total'] = float (balance[total])
+            result[currency] = account
+        return result
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         method = 'privatePost' + self.capitalize (side)

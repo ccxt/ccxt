@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.39'
+var version = '1.1.40'
 var isNode  = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
@@ -3181,10 +3181,8 @@ var bitstamp = {
     },
 
     async fetchBalance () {
-        console.log (this.currencies)
-        process.exit ()
-        let balances = await this.privatePostBalance ();
-        let result = { 'info': response };
+        let balance = await this.privatePostBalance ();
+        let result = { 'info': balance };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();

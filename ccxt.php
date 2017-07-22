@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.39';
+$version = '1.1.40';
 
 class Market {
 
@@ -3227,7 +3227,28 @@ class bitstamp extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostBalance ();
+        $balance = $this->privatePostBalance ();
+        $result = array ( 'info' => $balance );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $lowercase = strtolower ($currency);
+            $total = $lowercase . '_balance';
+            $free = $lowercase . '_available';
+            $used = $lowercase . '_reserved';
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            if (array_key_exists ($free, $balance))
+                $account['free'] = floatval ($balance[$free]);
+            if (array_key_exists ($used, $balance))
+                $account['used'] = floatval ($balance[$used]);
+            if (array_key_exists ($total, $balance))
+                $account['total'] = floatval ($balance[$total]);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
