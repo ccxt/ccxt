@@ -14,7 +14,7 @@ console.log (ticker)
 let ticker = await exchange.fetchTicker (symbol)
 console.log (ticker)
 
-let orderbook = await exchange.fetchTicker (symbol)
+let orderbook = await exchange.fetchOrderBook (symbol)
 console.log (orderbook)
 
 let balance = await exchange.fetchBalance ()
