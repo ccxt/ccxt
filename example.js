@@ -9,8 +9,8 @@ await exchange.loadProducts ()
 console.log (exchange.symbols)
 
 let symbol = exchange.symbols[0]
+console.log (symbol)
 
-console.log (ticker)
 let ticker = await exchange.fetchTicker (symbol)
 console.log (ticker)
 
