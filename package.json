@@ -42,6 +42,7 @@
   "bugs": {
     "url": "https://github.com/kroitor/ccxt/issues"
   },
+  "runkitExampleFilename": "example.js",
   "homepage": "https://github.com/kroitor/ccxt",
   "keywords": [
     "algotrading",
