@@ -81,7 +81,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.16'
+__version__ = '1.1.17'
 
 # Python 2 & 3
 import base64
@@ -1866,7 +1866,28 @@ class bitfinex (Market):
         return result
 
     def fetch_balance (self):
-        return self.privatePostBalances ()
+        response = self.privatePostBalances ()
+        balances = {}
+        for b in range (0, len (response)):
+            account = response[b]
+            if account['type'] == 'exchange':
+                currency = response[b]['currency']
+                uppercase = currency.upper ()
+                balances[uppercase] = account
+        result = { 'info': response }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in balances:
+                account['free'] = float (balances[currency]['available'])
+                account['total'] = float (balances[currency]['amount'])
+                account['used'] = account['total'] - account['free']
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetBookSymbol ({

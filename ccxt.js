@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.16'
+var version = '1.1.17'
 var isNode  = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
@@ -1874,8 +1874,33 @@ var bitfinex = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privatePostBalances ();
+    async fetchBalance () {
+        let response = await this.privatePostBalances ();
+        let balances = {};
+        for (let b = 0; b < response.length; b++) {
+            let account = response[b];
+            if (account['type'] == 'exchange') {
+                let currency = response[b]['currency'];
+                let uppercase = currency.toUpperCase ();
+                balances[uppercase] = account;
+            }
+        }
+        let result = { 'info': response };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if (currency in balances) {
+                account['free'] = parseFloat (balances[currency]['available']);
+                account['total'] = parseFloat (balances[currency]['amount']);
+                account['used'] = account['total'] - account['free'];
+            }
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
