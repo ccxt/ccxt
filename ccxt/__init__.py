@@ -81,7 +81,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.17'
+__version__ = '1.1.18'
 
 # Python 2 & 3
 import base64
@@ -307,13 +307,10 @@ class Market (object):
         result = {}    
         if type (array) is dict:
             array = list (Market.keysort (array).items ())
-            for (id, element) in array:
+        for element in array:
+            if (key in element) and (element[key] is not None):
                 k = element[key]
                 result[k] = element
-            return result
-        for element in array:
-            k = element[key]
-            result[k] = element
         return result
 
     @staticmethod
@@ -367,7 +364,7 @@ class Market (object):
 
     @staticmethod
     def pluck (array, key):
-        return [element[key] for element in array]
+        return [element[key] for element in array if (key in element) and (element[key] is not None)]
 
     @staticmethod
     def sum (*args):
@@ -1850,8 +1847,10 @@ class bitfinex (Market):
         for p in range (0, len (products)):
             product = products[p]
             id = product['pair'].upper ()
-            base = id[0:3]
-            quote = id[3:6]
+            baseId = id[0:3]
+            quoteId = id[3:6]
+            base = baseId
+            quote = quoteId
             # issue #4 Bitfinex names Dash as DSH, instead of DASH
             if base == 'DSH':
                 base = 'DASH'
@@ -1861,6 +1860,8 @@ class bitfinex (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': product,
             })
         return result
@@ -1871,7 +1872,10 @@ class bitfinex (Market):
         for b in range (0, len (response)):
             account = response[b]
             if account['type'] == 'exchange':
-                currency = response[b]['currency']
+                currency = account['currency']
+                # issue #4 Bitfinex names Dash as DSH, instead of DASH
+                if currency == 'DSH':
+                    currency = 'DASH'
                 uppercase = currency.upper ()
                 balances[uppercase] = account
         result = { 'info': response }
@@ -2068,7 +2072,26 @@ class bitflyer (Market):
         return result
 
     def fetch_balance (self):
-        return self.privateGetBalance ()
+        response = self.privateGetBalance ()
+        balances = {}
+        for b in range (0, len (response)):
+            account = response[b]
+            currency = account['currency_code']
+            balances[currency] = account
+        result = { 'info': response }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in balances:
+                account['free'] = float (balances[currency]['available'])
+                account['total'] = float (balances[currency]['amount'])
+                account['used'] = account['total'] - account['free']
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetBoard ({

@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.17'
+var version = '1.1.18'
 var isNode  = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
@@ -134,8 +134,12 @@ var omit = function (object) {
 
 var indexBy = function (array, key) {
     const result = {}
-    for (var i = 0; i < array.length; i++)
-        result[array[i][key]] = array[i]
+    for (var i = 0; i < array.length; i++) {
+        let element = array[i]
+        if (typeof element[key] != 'undefined') {
+            result[element[key]] = element
+        }
+    }
     return result
 }
 
@@ -161,7 +165,9 @@ var unique = function (array) {
 }
 
 var pluck = function (array, key) {
-    return array.map (element => element[key])
+    return (array
+        .filter (element => (typeof element[key] != 'undefined'))
+        .map (element => element[key]))
 }
 
 var urlencode = function (object) {
@@ -1857,8 +1863,10 @@ var bitfinex = {
         for (let p = 0; p < products.length; p++) {
             let product = products[p];
             let id = product['pair'].toUpperCase ();
-            let base = id.slice (0, 3);
-            let quote = id.slice (3, 6);
+            let baseId = id.slice (0, 3);
+            let quoteId = id.slice (3, 6);
+            let base = baseId;
+            let quote = quoteId;
             // issue #4 Bitfinex names Dash as DSH, instead of DASH
             if (base == 'DSH')
                 base = 'DASH';
@@ -1868,6 +1876,8 @@ var bitfinex = {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': product,
             });
         }
@@ -1880,7 +1890,10 @@ var bitfinex = {
         for (let b = 0; b < response.length; b++) {
             let account = response[b];
             if (account['type'] == 'exchange') {
-                let currency = response[b]['currency'];
+                let currency = account['currency'];
+                // issue #4 Bitfinex names Dash as DSH, instead of DASH
+                if (currency == 'DSH')
+                    currency = 'DASH';
                 let uppercase = currency.toUpperCase ();
                 balances[uppercase] = account;
             }
@@ -2089,8 +2102,30 @@ var bitflyer = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privateGetBalance ();
+    async fetchBalance () {
+        let response = await this.privateGetBalance ();
+        let balances = {};
+        for (let b = 0; b < response.length; b++) {
+            let account = response[b];
+            let currency = account['currency_code'];
+            balances[currency] = account;
+        }
+        let result = { 'info': response };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if (currency in balances) {
+                account['total'] = balances[currency]['amount'];
+                account['free'] = balances[currency]['available'];                
+                account['used'] = account['total'] - account['free'];
+            }
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {

@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.17';
+$version = '1.1.18';
 
 class Market {
 
@@ -109,15 +109,18 @@ class Market {
     public static function pluck ($array, $key) {
         $result = [];
         foreach ($array as $element)
-            if (array_key_exists ($key, $element))
+            if (isset ($key, $element))
                 $result[] = $element[$key]; 
         return $result; 
     }
 
-    public static function index_by ($arrayOfArrays, $key) {
+    public static function index_by ($array, $key) {
         $result = array ();
-        foreach ($arrayOfArrays as $array)
-            $result[$array[$key]] = $array;
+        foreach ($array as $element) {
+            if (isset ($element[$key])) {
+                $result[$element[$key]] = $element;    
+            }            
+        }
         return $result;
     }
 
@@ -1883,8 +1886,10 @@ class bitfinex extends Market {
         for ($p = 0; $p < count ($products); $p++) {
             $product = $products[$p];
             $id = strtoupper ($product['pair']);
-            $base = mb_substr ($id, 0, 3);
-            $quote = mb_substr ($id, 3, 6);
+            $baseId = mb_substr ($id, 0, 3);
+            $quoteId = mb_substr ($id, 3, 6);
+            $base = $baseId;
+            $quote = $quoteId;
             // issue #4 Bitfinex names Dash as DSH, instead of DASH
             if ($base == 'DSH')
                 $base = 'DASH';
@@ -1894,6 +1899,8 @@ class bitfinex extends Market {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'info' => $product,
             );
         }
@@ -1906,7 +1913,10 @@ class bitfinex extends Market {
         for ($b = 0; $b < count ($response); $b++) {
             $account = $response[$b];
             if ($account['type'] == 'exchange') {
-                $currency = $response[$b]['currency'];
+                $currency = $account['currency'];
+                // issue #4 Bitfinex names Dash as DSH, instead of DASH
+                if ($currency == 'DSH')
+                    $currency = 'DASH';
                 $uppercase = strtoupper ($currency);
                 $balances[$uppercase] = $account;
             }
@@ -2120,7 +2130,29 @@ class bitflyer extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privateGetBalance ();
+        $response = $this->privateGetBalance ();
+        $balances = array ();
+        for ($b = 0; $b < count ($response); $b++) {
+            $account = $response[$b];
+            $currency = $account['currency_code'];
+            $balances[$currency] = $account;
+        }
+        $result = array ( 'info' => $response );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            if (array_key_exists ($currency, $balances)) {
+                $account['free'] = floatval ($balances[$currency]['available']);
+                $account['total'] = floatval ($balances[$currency]['amount']);
+                $account['used'] = $account['total'] - $account['free'];
+            }
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
