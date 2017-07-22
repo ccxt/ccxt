@@ -3901,8 +3901,26 @@ var btce = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privatePostGetInfo ();
+    async fetchBalance () {
+        let response = await this.privatePostGetInfo ();
+        let balances = response['return'];
+        let result = { 'info': balances };
+        let funds = balances['funds'];
+        let currencies = Object.keys (funds);
+        for (let c = 0; c < currencies.length; c++) {
+            let currency = currencies[c];
+            let uppercase = currency.toUpperCase ();
+            // they misspell DASH as dsh :/
+            if (uppercase == 'DSH')
+                uppercase = 'DASH';
+            let account = {
+                'free': funds[currency],
+                'used': undefined,
+                'total': funds[currency],
+            };
+            result[uppercase] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
