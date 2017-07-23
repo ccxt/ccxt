@@ -149,7 +149,6 @@ while (markets = regex.exec (contents)) {
             [ /([^\s]+)\.toString \(\)/g, 'str ($1)' ],                
             [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$2.join ($1)' ],
             [ /Math\.(max|min)/g, '$1' ],
-            // typeof xxx['yyy'] == 'undefined'
         ]
 
         let phRegex = [
@@ -167,7 +166,6 @@ while (markets = regex.exec (contents)) {
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
             [ /this_\./g, '$this_->' ],
-            // [ /([^a-zA-Z\$])this([^a-zA-Z])/g, '$1$this$2' ],
             [ /\{\}/g, 'array ()' ],
             [ /\[\]/g, 'array ()' ],
             [ /\{([^\n\}]+)\}/g, 'array ($1)' ],

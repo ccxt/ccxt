@@ -16,8 +16,6 @@ with open (path.join (here, 'README.rst'), encoding='utf-8') as f:
 with open (path.join (here, 'package.json'), encoding = 'utf-8') as f:
     package = json.load (f)
  
-keywords = [('"' + item + '"') for item in package['keywords'] if (' ' not in item)]
-
 setup (
 
     name = package['name'],

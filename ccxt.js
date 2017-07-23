@@ -3646,7 +3646,6 @@ var bl3p = {
         },
         'private': {
             'post': [
-
                 '{market}/money/depth/full',
                 '{market}/money/order/add',
                 '{market}/money/order/cancel',
@@ -3654,7 +3653,6 @@ var bl3p = {
                 '{market}/money/orders',
                 '{market}/money/orders/history',
                 '{market}/money/trades/fetch',
-
                 'GENMKT/money/info',
                 'GENMKT/money/deposit_address',
                 'GENMKT/money/new_deposit_address',
@@ -3664,26 +3662,36 @@ var bl3p = {
         },
     },
     'products': {
-        // GENMKT is not a product, they mean general market info )
         'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
         'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
     },
 
-    fetchBalance () {
-        /*
+    async fetchBalance () {        
+        let response = await this.privatePostGENMKTMoneyInfo ();
+        let balance = response['wallets'];
 
-        Response
-
-        user_id int Id of the user.
-        trade_fee float Percentage fee for the user
-        wallets array Array of wallets.
-        Each array item of 'wallets' will contain:
-
-        balance amountObj Balance in this wallet
-        available amountObj Available in this wallet.
-
-        */
-        return this.privatePostGENMKTMoneyInfo ();
+        let result = { 'info': balance };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if (currency in balance) {
+                if ('available' in balance[currency]) {
+                    account['free'] = parseFloat (balance[currency]['available']);
+                }
+            }
+            if (currency in balance) {
+                if ('balance' in balance[currency]) {
+                    account['total'] = parseFloat (balance[currency]['balance']);
+                }
+            }
+            account['used'] = account['total'] - account['free'];
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {

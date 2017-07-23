@@ -198,7 +198,44 @@ Below are key notes on how to keep the JS code transpileable:
 - do not use conditional statements that are too complex
 - ...
 
-If you want to add (support for) another market or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn by example, take a look at how same things are implemented in other markets and try to copy the code flow and style.
+**If you want to add (support for) another market or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn by example, take a look at how same things are implemented in other markets and try to copy the code flow and style.**
+
+The basic JSON-skeleton for a new market integration is as follows:
+
+```JSON
+{
+   "id": "example",
+   "name": "Example Exchange",
+   "country": [ "US", "EU", "CN", "RU" ],
+   "rateLimit": 1000,
+   "version": "1",
+   "comment": "This comment is optional",
+   "urls": {
+      "logo": "https://example.com/image.jpg",
+      "api": "https://api.example.com/api",
+      "www": "https://www.example.com",
+      "doc": [
+         "https://www.example.com/docs/api",
+         "https://www.example.com/docs/howto",
+         "https://github.com/example/docs",
+      ],
+   },
+   "api": {
+      "public": {
+         "get": [
+            "endpoint/example",
+            "orderbook/{pair}/full",
+            "{pair}/ticker",
+         ]
+      },
+      "private": {
+         "post": [
+            "balance",
+         ],
+      }
+   }
+}
+```
 
 ```UNDER CONSTRUCTION```
 
