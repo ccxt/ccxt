@@ -3639,6 +3639,9 @@ var bl3p = {
     'api': {
         'public': {
             'get': [
+                '{id}/ticker',
+                '{id}/orderbook',
+                '{id}/trades',
             ],
         },
         'private': {
@@ -3646,7 +3649,283 @@ var bl3p = {
             ],
         },
     },
+
+    async fetchProducts () {
+        let products = await this.publicGetPairSettings ();
+        let keys = Object.keys (products);
+        let result = [];
+        for (let p = 0; p < keys.length; p++) {
+            let id = keys[p];
+            let product = products[id];
+            let symbol = id.replace ('_', '/');
+            let [ base, quote ] = symbol.split ('/');
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            });
+        }
+        return result;
+    },
+
+    fetchBalance () {
+        return this.privatePostUserInfo ();
+    },
+
+    async fetchOrderBook (product) {
+        let p = this.product (product);
+        let response = await this.publicGetOrderBook ({
+            'pair': p['id'],
+        });
+        let orderbook = response[p['id']];
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = { 'bids': 'bid', 'asks': 'ask' };
+        let keys = Object.keys (sides);
+        for (let k = 0; k < keys.length; k++) {
+            let key = keys[k];
+            let side = sides[key];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order[0]);
+                let amount = parseFloat (order[1]);
+                result[key].push ([ price, amount ]);
+            }
+        }
+        return result;
+    },
+
+    async fetchTicker (product) {
+        let response = await this.publicGetTicker ();
+        let p = this.product (product);
+        let ticker = response[p['id']];
+        let timestamp = ticker['updated'] * 1000;
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['buy_price']),
+            'ask': parseFloat (ticker['sell_price']),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last_trade']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': parseFloat (ticker['avg']),
+            'baseVolume': parseFloat (ticker['vol']),
+            'quoteVolume': parseFloat (ticker['vol_curr']),
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        return this.publicGetTrades ({
+            'pair': this.productId (product),
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let prefix = '';
+        if (type =='market')
+            prefix = 'market_';
+        let order = {
+            'pair': this.productId (product),
+            'quantity': amount,
+            'price': price || 0,
+            'type': prefix + side,
+        };
+        return this.privatePostOrderCreate (this.extend (order, params));
+    },
+
+    cancelOrder (id) {
+        return this.privatePostOrderCancel ({ 'order_id': id }); // var is ok
+    },
+
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + this.version + '/' + path;
+        if (type == 'public') {
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
+        } else {
+
+            /*
+
+            base64 encode of (
+                HMAC_SHA512 of (
+                    $path_of_request + null terminator + $post_data_string
+                ) with the key set to the base64 decode of the private apikey)
+            )
+            Note: That the HMAC_SHA512 needs to output raw binary data, using hexits (hexadecimal digits) will return an error.
+
+            */
+
+            let nonce = this.nonce ();
+            body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': body.length,
+                'Rest-Key': this.apiKey,
+                'Rest-Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+            };
+        }
+        let result = await this.fetch (url, method, headers, body);
+        if ('result' in result) {
+            if (!result['result']) {
+                throw new MarketNotAvailableError ('[Market Not Available] ' + this.id + ' ' + result['error']);
+            }
+        }
+        return result;
+    },
 }
+
+Skip to content
+This repository
+Search
+Pull requests
+Issues
+Marketplace
+Gist
+ @kroitor
+ Sign out
+ Watch 6
+  Star 6
+  Fork 3 BitonicNL/bl3p-api
+ Code  Issues 0  Pull requests 0  Projects 0  Wiki Insights 
+Branch: master Find file Copy pathbl3p-api/docs/authenticated_api/http.md
+2a1ae0b  13 days ago
+@gnaoot gnaoot Update http.md
+1 contributor
+RawBlameHistory     
+987 lines (854 sloc)  14.4 KB
+Authenticated API | HTTP Calls
+
+Table of contents
+
+Introduction
+
+Basic functions
+
+Create an order
+Cancel an order
+Get a specific order
+Get the whole orderbook
+Account info & functions
+
+Get the transaction history
+Create a new deposit address
+Get the last deposit address
+Create a withdrawal
+Get account info & balance
+Get active orders
+Get order history
+Fetch all trades on BL3P
+Appendix - Error code
+
+1 - Introduction
+
+This document describes the usage of the private HTTP API of BL3P. In the file on directory above you can find the base.md file. The base.md document describes all basic details that you need to know to use the BL3P API. If you would like to know how to make a connection to the BL3P API, please check the examples that are available one directory above.
+
+2 - Basic functions
+
+Definition of the path variable order:
+
+/<version>/<market>/<namespace>/<callname>[/<subcallname>]
+Description of the path variables:
+
+Version of API (is currently: 1)
+
+<version> = 1
+Market that the call will be applied to.
+
+Note: GENMKT is used for market independent calls
+
+<market> = BTCEUR, LTCEUR, GENMKT
+Namespace of call. Usualy: "money"
+
+<namespace> = $namespace
+Name of call (for example: “order”)
+
+<callname> = $callname
+Name of subcall, (for example: “add”)
+
+<subcallname> = $subcallname
+The response is a succes or an error. In case of result: succes, the requested data will be returned. In case of an error, an error code will be retuned. The possible error codes are listed in the appendix.
+
+2.1 - Create an order
+
+Call
+
+<market>/money/order/add
+Request
+
+type string
+
+'bid', 'ask'
+amount_int int
+
+Amount BTC, amount LTC (*1e8)
+The field described above is optional
+
+price_int int
+
+Limit price in EUR (*1e5)
+The field described above is optional
+
+amount_funds_int int
+
+Maximal EUR amount to spend (*1e5)
+The field described above is optional
+
+fee_currency string
+
+Currency the fee is accounted in. Can be: 'EUR' or 'BTC'
+Response
+
+order_id int
+
+The id of the order.
+2.2 - Cancel an order
+
+Call
+
+<market>/money/order/cancel
+Request
+
+order_id int
+
+The id of the order that you wish to cancel.
+Response
+
+For this call there is no specific result returned other then
+the result of the call which contains: 'success' or 'failed' and a optional error array.
+2.3 - Get a specific order
+
+Call
+
+<market>/money/order/result
+<market>/money/depth/full
+
+GENMKT/money/wallet/history
+GENMKT/money/new_deposit_address
+GENMKT/money/deposit_address
+GENMKT/money/withdraw
+GENMKT/money/info
+
+<market>/money/orders
+<market>/money/orders/history
+<market>/money/trades/fetch
+
 
 //-----------------------------------------------------------------------------
 
