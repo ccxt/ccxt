@@ -3,8 +3,7 @@ node_js:
 - node
 before_install:
 - set -e
-- sudo apt-get update -qq
-- sudo apt-get install -y pandoc
+- sudo apt-get install pandoc=1.19.2.1
 script:
 - git clone https://github.com/kroitor/ccxt.wiki.git
 - npm config set git-tag-version=false
