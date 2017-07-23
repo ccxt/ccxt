@@ -3688,10 +3688,10 @@ var bl3p = {
 
     async fetchOrderBook (product) {
         let p = this.product (product);
-        let response = await this.publicGetMarketBook ({
+        let response = await this.publicGetMarketOrderbook ({
             'market': p['id'],
         });
-        let orderbook = response[p['id']];
+        let orderbook = response['data'];
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -3699,46 +3699,42 @@ var bl3p = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        let sides = { 'bids': 'bid', 'asks': 'ask' };
-        let keys = Object.keys (sides);
-        for (let k = 0; k < keys.length; k++) {
-            let key = keys[k];
-            let side = sides[key];
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
             let orders = orderbook[side];
             for (let i = 0; i < orders.length; i++) {
                 let order = orders[i];
-                let price = parseFloat (order[0]);
-                let amount = parseFloat (order[1]);
-                result[key].push ([ price, amount ]);
+                let price = order['price_int'] / 100000;
+                let amount = order['amount_int'] / 100000000;
+                result[side].push ([ price, amount ]);
             }
         }
         return result;
     },
 
     async fetchTicker (product) {
-        let p = this.product (product);
-        let response = await this.publicGetMarketTicker ({
-            'market': p['id'],
+        let ticker = await this.publicGetMarketTicker ({
+            'market': this.productId (product),
         });        
-        let ticker = response[p['id']];
-        let timestamp = ticker['updated'] * 1000;
+        let timestamp = ticker['timestamp'] * 1000;
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy_price']),
-            'ask': parseFloat (ticker['sell_price']),
+            'bid': parseFloat (ticker['bid']),
+            'ask': parseFloat (ticker['ask']),
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': parseFloat (ticker['last_trade']),
+            'last': parseFloat (ticker['last']),
             'change': undefined,
             'percentage': undefined,
-            'average': parseFloat (ticker['avg']),
-            'baseVolume': parseFloat (ticker['vol']),
-            'quoteVolume': parseFloat (ticker['vol_curr']),
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['volume']['24h']),
             'info': ticker,
         };
     },
