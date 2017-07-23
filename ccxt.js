@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.50'
+var version = '1.1.51'
 var isNode  = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
@@ -4056,8 +4056,24 @@ var btctrader = {
     'products': {
     },
 
-    fetchBalance () {
-        return this.privateGetBalance ();
+    async fetchBalance () {
+        let response = await this.privateGetBalance ();
+        let result = { 'info': response };
+        let base = { 
+            'free': response['bitcoin_available'],
+            'used': response['bitcoin_reserved'],
+            'total': response['bitcoin_balance'],
+        };
+        let quote = {
+            'free': response['money_available'],
+            'used': response['money_reserved'],
+            'total': response['money_balance'],
+        };
+        let symbol = this.symbols[0];
+        let product = this.products[symbol];
+        result[product['base']] = base;
+        result[product['quote']] = quote;
+        return result;
     },
 
     async fetchOrderBook (product) {

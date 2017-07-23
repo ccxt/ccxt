@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.50';
+$version = '1.1.51';
 
 class Market {
 
@@ -4123,7 +4123,23 @@ class btctrader extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privateGetBalance ();
+        $response = $this->privateGetBalance ();
+        $result = array ( 'info' => $response );
+        $base = array ( 
+            'free' => $response['bitcoin_available'],
+            'used' => $response['bitcoin_reserved'],
+            'total' => $response['bitcoin_balance'],
+        );
+        $quote = array (
+            'free' => $response['money_available'],
+            'used' => $response['money_reserved'],
+            'total' => $response['money_balance'],
+        );
+        $symbol = $this->symbols[0];
+        $product = $this->products[$symbol];
+        $result[$product['base']] = $base;
+        $result[$product['quote']] = $quote;
+        return $result;
     }
 
     public function fetch_order_book ($product) {

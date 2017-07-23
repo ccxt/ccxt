@@ -81,7 +81,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.50'
+__version__ = '1.1.51'
 
 # Python 2 & 3
 import base64
@@ -3945,7 +3945,23 @@ class btctrader (Market):
         super (btctrader, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privateGetBalance ()
+        response = self.privateGetBalance ()
+        result = { 'info': response }
+        base = { 
+            'free': response['bitcoin_available'],
+            'used': response['bitcoin_reserved'],
+            'total': response['bitcoin_balance'],
+        }
+        quote = {
+            'free': response['money_available'],
+            'used': response['money_reserved'],
+            'total': response['money_balance'],
+        }
+        symbol = self.symbols[0]
+        product = self.products[symbol]
+        result[product['base']] = base
+        result[product['quote']] = quote
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetOrderbook ()
