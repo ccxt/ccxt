@@ -4865,6 +4865,7 @@ var bxinth = {
         }
         return result;
     },
+    
     async fetchOrderBook (product) {
         let orderbook = await this.publicGetOrderbook ({
             'pairing': this.productId (product),
