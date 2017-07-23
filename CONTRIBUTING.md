@@ -29,7 +29,6 @@ The contents of the repository are structured as follows:
 /MANIFEST.in       # a PyPI-package file listing extra package files (license, configs, etc...)
 /README.md         # master markdown for GitHub, npmjs.com, npms.io, yarn and others
 /README.rst        # slave reStructuredText for PyPI
-/build.sh          # the main build script
 /ccxt/             # Python ccxt module/package folder for PyPI
 /ccxt/__init__.py  # slave Python-version of the ccxt library
 /ccxt.es5.js       # slave JavaScript ES5 version of the ccxt library
@@ -42,8 +41,6 @@ The contents of the repository are structured as follows:
 /examples/py       # ...
 /export-markets.js # used to create tables of markets in the docs during the build
 /package.json      # npm package file, also used in setup.py for version single-sourcing
-/publish.sh        # commit and publish the module in NPM/PyPI (do not run if you are not sure)
-/send.sh           # update the version, commit and push the code for testing with travis-ci
 /setup.cfg         # wheels config file for the Python package
 /test.js           # a test in JavaScript that runs through all markets and calls basic APIs
 /test.php          # same in PHP
@@ -59,21 +56,56 @@ The ccxt library is available in three different languages (more to come). One o
 
 At first, all language-specific version were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *master/copy* process. There is now a single master version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the master version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the master version as well.
 
-### Ad-Hoc Transpiler
+### Continuous Integration (CI)
 
-There is a custom utility script in the root of the repository, named `transpile.js` that derives versions in other languages from the master code. The script converts language syntax from JS to Python/PHP and it is itself written in JavaScript. The transpiler does its job by sequentially applying series of regexp substitutions to perform one-to-one (line-to-line) mapping from JS to other languages.
+Builds are automated by the external CI service (we use TravisCI). They are executed on remote server and triggered by new commits / pull requests. A build consists of multiple sequential stages (described in the [`.travis.yml`](https://github.com/kroitor/ccxt/blob/master/.travis.yml) script):
 
-### Dependencies
+1. Installing dependencies
+2. Incrementing version number _(not triggered by pull requests)_
+3. Generating transpiled sources and documentation from the master JavaScript source.
+4. Running tests + collecting code coverage analytics
+5. Sending coverage report to [Coveralls.io](https://coveralls.io)
+6. Pushing built files back to GitHub _(not triggered by pull requests)_
+7. Pushing generated Wiki files back to a separate GitHub repo _(not triggered by pull requests)_
 
-```UNDER CONSTRUCTION```
+You can always execute build steps manually to make sure everything's work before commiting your changes to the server. Here's how you do that...
 
-### Single Source Of Version Number
+### 1. Installing Dependencies
 
-The version number is sourced to JavaScript, Python and PHP from the main NPM package file `package.json`. The `publish.sh` script updates the version and exports it to all other files. This is done by the `vss.js` script, which stands for *version-single-sourcing*. Python package config function inside `setup.py` also reads that JSON file to update the version in Python Package Index (PyPI).
+You will need the latest version of `pandoc`, which supports the `--wrap=preserve` option. On OSX it is easily installed with `brew install pandoc` (will need `brew`). For other options see the [`Installing Pandoc`](http://pandoc.org/installing.html) guide.
 
-```UNDER CONSTRUCTION```
+### 2. Incrementing Version Number (you won't need that)
 
-### Master/Slave Files
+The version number is sourced to JavaScript, Python and PHP from the main NPM package file `package.json`. When releasing, it is incremented by the standard `npm version patch` command. But you will not need that, as releases are fully automated by the CI service.
+
+### 3. Generating Transpiled Sources And Documentation
+
+Everything's done by the `npm run build` command. There is a custom utility script in the root of the repository, named `transpile.js` that derives versions in other languages from the master code. The script converts language syntax from JS to Python/PHP and it is itself written in JavaScript. The transpiler does its job by sequentially applying series of regexp substitutions to perform one-to-one (line-to-line) mapping from JS to other languages.
+
+More details can be found in [Master/Slave Sources Structure And Coding Rules](dasdasd) (please read it prior hacking the actual source code).
+
+### 4. Running tests + collecting code coverage analytics
+
+Run the standard `npm test` command to see the test results and the code coverage analytics report — which is also available in HTML (see the generated `coverage` folder). This command requires `npm run build` executed first.
+
+To speed up development process, you can use `npm run fasttest` command, which tests only the master `ccxt.js` file, and thus does not require the `npm run build` to be executed first. You can also pass a market name and an (optional) symbol, to test only a small subset of the code, which is like 100x faster than full test:
+
+```bash
+npm run fasttest kraken BTC/USD  # Will run only for the BTC/USD pair on Kraken exchange
+```
+
+Other languages can also be tested by running these scripts (they require `npm run build` to be executed prior):
+
+```
+python test.py
+```
+```
+php -f test.php
+```
+
+They also accept a market id and a symbol as additional arguments (e.g. `python test.py kraken` or `python test.py kraken BTC/USD`).
+
+## Master/Slave Sources Structure And Coding Rules
 
 The ccxt library includes one single file per each language:
 
@@ -84,15 +116,7 @@ The ccxt library includes one single file per each language:
 /ccxt.php          # slave PHP version of the ccxt library
 ```
 
-Slave files and docs are partially-generated from the master `ccxt.js` file by the `build.sh` script:
-```shell
-#!/bin/bash
-
-npm run export-markets && # export-markets.js → README.md and ../ccxt.wiki/*
-npm run mdrst &&          # pandoc:       README.md → README.rst for PyPI
-npm run transpile &&      # transpile.js: ccxt.js → ccxt/__init__.py and ccxt.php 
-npm run build             # babel:        ccxt.js → ccxt.es5.js
-```
+Slave files and docs are partially-generated from the master `ccxt.js` file by the `npm run build` command.
 
 The structure of the master/slave file can be outlined like this:
 
@@ -182,45 +206,4 @@ Below are key notes on how to keep the JS code transpileable:
 
 ```UNDER CONSTRUCTION```
 
-## How To Set Up Your Environment
 
-```UNDER CONSTRUCTION```
-
-## Bulding
-
-- `/build.sh`
-- `/update-version.sh`
-- `/publish.sh`
-
-```UNDER CONSTRUCTION```
-
-## Testing
-
-By default the test scripts run through all markets to fetch tickers, order books and balances (conducts a basic test of public and private APIs).
-
-- `/test.js` run by Node.js / NPM
-- `/test.php` run by PHP
-- `/test.py` run by Python 2 / 3
-
-### Test Configurations
-
-### Test Params
-
-All tests accept one or two optional arguments like shown below:
-```shell
-# Usage:
-    node test.js [marketId [symbol]]
-    python test.py [marketId [symbol]]
-    php -f test.php [marketId [symbol]]
-# Examples:
-    node test.js kraken
-    node test.js gdax BTC/USD
-    python test.py btce
-    python test.py bitfinex ETH/BTC
-    php -f test.php hitbtc
-    php -f test.php zaif BTC/JPY
-```
-
-If arguments are specified, each test will only run for a particular market id and symbol. This might be helpful to run a partial test.
-
-```UNDER CONSTRUCTION```
