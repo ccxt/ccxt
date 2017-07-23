@@ -3758,7 +3758,7 @@ var bl3p = {
     },
 
     cancelOrder (id) {
-        return this.privatePostMarketMoneyOrderCancel ({ 'order_id': id }); // var is ok
+        return this.privatePostMarketMoneyOrderCancel ({ 'order_id': id });
     },
 
     async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
