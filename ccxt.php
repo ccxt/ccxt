@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.64';
+$version = '1.1.65';
 
 class Market {
 
@@ -4740,7 +4740,7 @@ class bter extends Market {
             );
             if (array_key_exists ('available', $balance)) {
                 if (array_key_exists ($currency, $balance['available'])) {
-                    $account['free'] = floatval (balace['available'][$currency]);
+                    $account['free'] = floatval ($balance['available'][$currency]);
                 }
             }
             if (array_key_exists ('locked', $balance)) {

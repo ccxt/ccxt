@@ -81,7 +81,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.64'
+__version__ = '1.1.65'
 
 # Python 2 & 3
 import base64
@@ -4528,7 +4528,7 @@ class bter (Market):
             }
             if 'available' in balance:
                 if currency in balance['available']:
-                    account['free'] = float (balace['available'][currency])
+                    account['free'] = float (balance['available'][currency])
             if 'locked' in balance:
                 if currency in balance['locked']:
                     account['used'] = float (balance['locked'][currency])
