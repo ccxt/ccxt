@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "npm run export-markets && npm run mdrst && npm run transpile && npm run vss && npm run babel",
-    "test": "nyc --reporter=html --reporter=text node test",
+    "test": "npm run build && nyc --reporter=html --reporter=text ./test.sh",
     "fasttest": "node test --es6",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "export-markets": "node export-markets",
