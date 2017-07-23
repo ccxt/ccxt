@@ -13,7 +13,7 @@
     "fasttest": "node test --es6",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "export-markets": "node export-markets",
-    "mdrst": "pandoc --columns=10000 --from=markdown --to=rst --output=README.rst README.md",
+    "mdrst": "pandoc --no-wrap --columns=10000 --from=markdown --to=rst --output=README.rst README.md",
     "transpile": "node transpile",
     "vss": "node vss",
     "babel": "babel ccxt.js --source-maps inline --out-file ccxt.es5.js"
