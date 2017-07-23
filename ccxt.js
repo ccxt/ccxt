@@ -4657,7 +4657,7 @@ var bter = {
             };
             if ('available' in balance) {
                 if (currency in balance['available']) {
-                    account['free'] = parseFloat (balace['available'][currency]);
+                    account['free'] = parseFloat (balance['available'][currency]);
                 }
             }
             if ('locked' in balance) {
