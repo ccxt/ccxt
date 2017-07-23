@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.54'
+var version = '1.1.55'
 var isNode  = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
@@ -4645,8 +4645,30 @@ var bter = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privatePostBalances ();
+    async fetchBalance () {
+        let balance = await this.privatePostBalances ();
+        let result = { 'info': balance };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if ('available' in balance) {
+                if (currency in balance['available']) {
+                    account['free'] = parseFloat (balace['available'][currency]);
+                }
+            }
+            if ('locked' in balance) {
+                if (currency in balance['locked']) {
+                    account['used'] = parseFloat (balance['locked'][currency]);
+                }
+            }
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
@@ -4734,7 +4756,7 @@ var bter = {
             body = this.urlencode (this.extend (request, query));
             headers = {
                 'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.secret, 'sha512'),
+                'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
             };

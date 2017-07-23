@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.54';
+$version = '1.1.55';
 
 class Market {
 
@@ -4730,7 +4730,29 @@ class bter extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostBalances ();
+        $balance = $this->privatePostBalances ();
+        $result = array ( 'info' => $balance );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            if (array_key_exists ('available', $balance)) {
+                if (array_key_exists ($currency, $balance['available'])) {
+                    $account['free'] = floatval (balace['available'][$currency]);
+                }
+            }
+            if (array_key_exists ('locked', $balance)) {
+                if (array_key_exists ($currency, $balance['locked'])) {
+                    $account['used'] = floatval ($balance['locked'][$currency]);
+                }
+            }
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -4818,7 +4840,7 @@ class bter extends Market {
             $body = $this->urlencode (array_merge ($request, $query));
             $headers = array (
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
+                'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
             );

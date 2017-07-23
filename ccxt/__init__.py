@@ -81,7 +81,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.54'
+__version__ = '1.1.55'
 
 # Python 2 & 3
 import base64
@@ -192,10 +192,15 @@ class Market (object):
                         setattr (self, underscore, f)
 
     def raise_error (self, exception_type, url, method = 'GET', error = None, details = None):
-        details = (' ' + details) if details else ''
+        details = details if details else ''
         if error:
             if type (error) is _urllib.HTTPError:
-                details = str (error.code) + error.msg + error.read ().decode ('utf-8') + details
+                details = ' '.join ([
+                    str (error.code),
+                    error.msg,
+                    error.read ().decode ('utf-8'),
+                    details,
+                ])
             else:
                 details = str (error)
             raise exception_type (' '.join ([ 
@@ -275,6 +280,8 @@ class Market (object):
         except Exception as e:
             ddos_protection = re.search ('(cloudflare|incapsula)', body, flags = re.IGNORECASE)
             market_not_available = re.search ("(" + 'offline|unavailable|busy|maintenance|maintenancing' + ")", body, flags = re.IGNORECASE)
+            if ddos_protection:
+                raise DDoSProtectionError (' '.join ([ self.id, method, url, body ]))
             if market_not_available:
                 message = 'market downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
                 raise MarketNotAvailableError (' '.join ([
@@ -284,9 +291,7 @@ class Market (object):
                     body,
                     message,
                 ]))
-            if ddos_protection:
-                raise DDoSProtectionError (' '.join ([ self.id, method, url, body ]))
-        
+            raise
 
     @staticmethod
     def capitalize (string): # first character only, rest characters unchanged
@@ -4512,7 +4517,24 @@ class bter (Market):
         return result
 
     def fetch_balance (self):
-        return self.privatePostBalances ()
+        balance = self.privatePostBalances ()
+        result = { 'info': balance }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if 'available' in balance:
+                if currency in balance['available']:
+                    account['free'] = float (balace['available'][currency])
+            if 'locked' in balance:
+                if currency in balance['locked']:
+                    account['used'] = float (balance['locked'][currency])
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetOrderBookId ({
@@ -4592,7 +4614,7 @@ class bter (Market):
             body = _urlencode.urlencode (self.extend (request, query))
             headers = {
                 'Key': self.apiKey,
-                'Sign': self.hmac (self.encode (body), self.secret, hashlib.sha512),
+                'Sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512),
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
             }
