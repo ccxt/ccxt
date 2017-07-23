@@ -198,6 +198,8 @@ Below are key notes on how to keep the JS code transpileable:
 - do not use conditional statements that are too complex
 - ...
 
+If you want to add (support for) another market or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn by example, take a look at how same things are implemented in other markets and try to copy the code flow and style.
+
 ```UNDER CONSTRUCTION```
 
 

@@ -3620,8 +3620,8 @@ var bl3p = {
     'id': 'bl3p',
     'name': 'BL3P',
     'countries': [ 'NL', 'EU' ], // Netherlands, EU
-    'rateLimit': '',
-    'version': '',
+    'rateLimit': 2000,
+    'version': '1',
     'comment': 'An exchange market by BitonicNL',
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
@@ -3646,8 +3646,27 @@ var bl3p = {
         },
         'private': {
             'post': [
+
+                '{market}/money/depth/full',
+                '{market}/money/order/add',
+                '{market}/money/order/cancel',
+                '{market}/money/order/result',
+                '{market}/money/orders',
+                '{market}/money/orders/history',
+                '{market}/money/trades/fetch',
+
+                'GENMKT/money/info',
+                'GENMKT/money/deposit_address',
+                'GENMKT/money/new_deposit_address',
+                'GENMKT/money/wallet/history',
+                'GENMKT/money/withdraw',
             ],
         },
+    },
+    'products': {
+        // GENMKT is not a product, they mean general market info )
+        'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+        'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
     },
 
     async fetchProducts () {
@@ -3736,6 +3755,42 @@ var bl3p = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
+    
+        /*
+            Request
+
+            type string
+
+            'bid', 'ask'
+            amount_int int
+
+            Amount BTC, amount LTC (*1e8)
+            The field described above is optional
+
+            price_int int
+
+            Limit price in EUR (*1e5)
+            The field described above is optional
+
+            amount_funds_int int
+
+            Maximal EUR amount to spend (*1e5)
+            The field described above is optional
+
+            fee_currency string
+
+            Currency the fee is accounted in. Can be: 'EUR' or 'BTC'
+            Response
+
+            order_id int
+
+            The id of the order.
+            2.2 - Cancel an order
+
+            Call
+
+        */
+
         let prefix = '';
         if (type =='market')
             prefix = 'market_';
@@ -3788,33 +3843,7 @@ var bl3p = {
         return result;
     },
 }
-
-Skip to content
-This repository
-Search
-Pull requests
-Issues
-Marketplace
-Gist
- @kroitor
- Sign out
- Watch 6
-  Star 6
-  Fork 3 BitonicNL/bl3p-api
- Code  Issues 0  Pull requests 0  Projects 0  Wiki Insights 
-Branch: master Find file Copy pathbl3p-api/docs/authenticated_api/http.md
-2a1ae0b  13 days ago
-@gnaoot gnaoot Update http.md
-1 contributor
-RawBlameHistory     
-987 lines (854 sloc)  14.4 KB
-Authenticated API | HTTP Calls
-
-Table of contents
-
-Introduction
-
-Basic functions
+/*
 
 Create an order
 Cancel an order
@@ -3834,7 +3863,10 @@ Appendix - Error code
 
 1 - Introduction
 
-This document describes the usage of the private HTTP API of BL3P. In the file on directory above you can find the base.md file. The base.md document describes all basic details that you need to know to use the BL3P API. If you would like to know how to make a connection to the BL3P API, please check the examples that are available one directory above.
+This document describes the usage of the private HTTP API of BL3P. 
+In the file on directory above you can find the base.md file. 
+The base.md document describes all basic details that you need to know to use the BL3P API. 
+If you would like to know how to make a connection to the BL3P API, please check the examples that are available one directory above.
 
 2 - Basic functions
 
@@ -3850,7 +3882,7 @@ Market that the call will be applied to.
 
 Note: GENMKT is used for market independent calls
 
-<market> = BTCEUR, LTCEUR, GENMKT
+<market> = 
 Namespace of call. Usualy: "money"
 
 <namespace> = $namespace
@@ -3860,72 +3892,15 @@ Name of call (for example: “order”)
 Name of subcall, (for example: “add”)
 
 <subcallname> = $subcallname
-The response is a succes or an error. In case of result: succes, the requested data will be returned. In case of an error, an error code will be retuned. The possible error codes are listed in the appendix.
+The response is a succes or an error. In case of result: succes, the requested data will be returned. 
+In case of an error, an error code will be retuned. 
+The possible error codes are listed in the appendix.
 
 2.1 - Create an order
 
 Call
 
-<market>/money/order/add
-Request
-
-type string
-
-'bid', 'ask'
-amount_int int
-
-Amount BTC, amount LTC (*1e8)
-The field described above is optional
-
-price_int int
-
-Limit price in EUR (*1e5)
-The field described above is optional
-
-amount_funds_int int
-
-Maximal EUR amount to spend (*1e5)
-The field described above is optional
-
-fee_currency string
-
-Currency the fee is accounted in. Can be: 'EUR' or 'BTC'
-Response
-
-order_id int
-
-The id of the order.
-2.2 - Cancel an order
-
-Call
-
-<market>/money/order/cancel
-Request
-
-order_id int
-
-The id of the order that you wish to cancel.
-Response
-
-For this call there is no specific result returned other then
-the result of the call which contains: 'success' or 'failed' and a optional error array.
-2.3 - Get a specific order
-
-Call
-
-<market>/money/order/result
-<market>/money/depth/full
-
-GENMKT/money/wallet/history
-GENMKT/money/new_deposit_address
-GENMKT/money/deposit_address
-GENMKT/money/withdraw
-GENMKT/money/info
-
-<market>/money/orders
-<market>/money/orders/history
-<market>/money/trades/fetch
-
+*/
 
 //-----------------------------------------------------------------------------
 
