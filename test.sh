@@ -7,10 +7,10 @@ echo ----------------- JavaScript ------------------
 node test $1 $2
 
 echo
-echo ----------------- PHP ------------------
+echo ----------------- Python ------------------
 echo
 python test.py $1 $2
 
 echo
-echo ----------------- Python ------------------
+echo ----------------- PHP ------------------
 php -f test.php $1 $2
