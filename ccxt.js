@@ -5189,8 +5189,26 @@ var cex = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privatePostBalance ();
+    async fetchBalance () {
+        let balances = await this.privatePostBalance ();
+        let result = { 'info': balances };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let uppercase = currency.toUpperCase ();
+            // they misspell DASH as dsh :/
+            if (uppercase == 'DSH')
+                uppercase = 'DASH';
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': balances[currency].available + balances[currency].orders,
+            };
+            account['free'] = parseFloat (balances[currency].available);
+            account['used'] = parseFloat (balances[currency].orders);
+            account['total'] = this.sum (account['free'], account['used']);
+            result[uppercase] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {

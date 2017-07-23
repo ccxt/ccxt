@@ -5032,7 +5032,24 @@ class cex (Market):
         return result
 
     def fetch_balance (self):
-        return self.privatePostBalance ()
+        balances = self.privatePostBalance ()
+        result = { 'info': balances }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            uppercase = currency.upper ()
+            # they misspell DASH as dsh :/
+            if uppercase == 'DSH':
+                uppercase = 'DASH'
+            account = {
+                'free': None,
+                'used': None,
+                'total': balances[currency].available + balances[currency].orders,
+            }
+            account['free'] = float (balances[currency].available)
+            account['used'] = float (balances[currency].orders)
+            account['total'] = self.sum (account['free'], account['used'])
+            result[uppercase] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook =  self.publicGetOrderBookPair ({

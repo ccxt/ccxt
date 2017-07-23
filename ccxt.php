@@ -5286,7 +5286,25 @@ class cex extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostBalance ();
+        $balances = $this->privatePostBalance ();
+        $result = array ( 'info' => $balances );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $uppercase = strtoupper ($currency);
+            // they misspell DASH as dsh :/
+            if ($uppercase == 'DSH')
+                $uppercase = 'DASH';
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => $balances[$currency].available . $balances[$currency].orders,
+            );
+            $account['free'] = floatval ($balances[$currency].available);
+            $account['used'] = floatval ($balances[$currency].orders);
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$uppercase] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
