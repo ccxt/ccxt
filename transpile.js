@@ -266,8 +266,8 @@ ccxtphp +=
     php.join ("\n//-----------------------------------------------------------------------------\n") + 
     "\n?>"
 
-fs.createReadStream (oldNamePy).pipe (fs.createWriteStream (newNamePy))
-fs.createReadStream (oldNamePHP).pipe (fs.createWriteStream (newNamePHP))
+// fs.createReadStream (oldNamePy).pipe (fs.createWriteStream (newNamePy))
+// fs.createReadStream (oldNamePHP).pipe (fs.createWriteStream (newNamePHP))
 fs.truncateSync (oldNamePy)
 fs.truncateSync (oldNamePHP)
 fs.writeFileSync (oldNamePy, ccxtpy)
