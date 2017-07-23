@@ -12,3 +12,4 @@ tmp/
 .tox/
 coverage
 .nyc_output
+travis-keys.sh
