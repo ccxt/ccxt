@@ -4865,7 +4865,7 @@ var bxinth = {
         }
         return result;
     },
-    
+
     async fetchOrderBook (product) {
         let orderbook = await this.publicGetOrderbook ({
             'pairing': this.productId (product),
@@ -7390,8 +7390,9 @@ var hitbtc = {
             let id = product['symbol'];
             let base = product['commodity'];
             let quote = product['currency'];
-            if (base == 'DSH')
-                base = 'DASH';
+            // looks like they now have it correct
+            // if (base == 'DSH')
+                // base = 'DASH';
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
