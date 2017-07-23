@@ -81,7 +81,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.60'
+__version__ = '1.1.61'
 
 # Python 2 & 3
 import base64
@@ -4696,8 +4696,30 @@ class bxinth (Market):
             })
         return result
 
+    def commonCurrencyCode (self, currency):
+        # why would they use three letters instead of four for currency codes
+        if currency == 'DAS':
+            return 'DASH'
+        if currency == 'DOG':
+            return 'DOGE'
+        return currency
+
     def fetch_balance (self):
-        return self.privatePostBalance ()
+        response = self.privatePostBalance ()
+        balance = response['balance']
+        result = { 'info': balance }
+        currencies = list (balance.keys ())
+        for c in range (0, len (currencies)):
+            currency = currencies[c]
+            code = self.commonCurrencyCode (currency)
+            account = {
+                'free': float (balance[currency]['available']),
+                'used': None,
+                'total': float (balance[currency]['total']),
+            }
+            account['used'] = account['total'] - account['free']
+            result[code] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetOrderbook ({
@@ -7140,8 +7162,9 @@ class hitbtc (Market):
             id = product['symbol']
             base = product['commodity']
             quote = product['currency']
-            if base == 'DSH':
-                base = 'DASH'
+            # looks like they now have it correct
+            # if base == 'DSH':
+                # base = 'DASH'
             symbol = base + '/' + quote
             result.append ({
                 'id': id,
