@@ -1,6 +1,7 @@
 language: node_js
 node_js:
 - node
+os: osx
 before_install:
 - set -e
 - sudo apt-get install pandoc
