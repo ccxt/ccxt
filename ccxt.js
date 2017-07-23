@@ -3773,46 +3773,15 @@ var bl3p = {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
-
-            /*
-
-            base64 encode of (
-                HMAC_SHA512 of (
-                    $path_of_request + null terminator + $post_data_string
-                ) with the key set to the base64 decode of the private apikey)
-            )
-            Note: That the HMAC_SHA512 needs to output raw binary data, using hexits (hexadecimal digits) will return an error.
-
-            // generate a nonce as microtime, with as-string handling to avoid problems with 32bits systems
-            $mt = explode(' ', microtime());
-            $vars['nonce'] = $mt[1].substr($mt[0], 2, 6);
-
-            // generate the POST data string
-            $post_data = http_build_query($params, '', '&');
-            $body = $path . chr(0). $post_data;
-            
-            //build signature for Rest-Sign
-            $sign = base64_encode(hash_hmac('sha512', $body, base64_decode($this->privkey), true));
-            
-            //combine the url and the desired path
-            $fullpath = $this->url . $path;
-            
-            //set headers
-            $headers = array(
-                'Rest-Key: '.$this->pubkey,
-                'Rest-Sign: '. $sign,
-            );
-
-            */
-
             let nonce = this.nonce ();
-            body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
-            let 
+            body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
+            let secret = this.base64ToBinary (this.secret);
+            let auth = request + "\0" + body;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
                 'Rest-Key': this.apiKey,
-                'Rest-Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512', 'base64'),
+                'Rest-Sign': this.hmac (this.encode (auth), secret, 'sha512', 'base64'),
             };
         }
         return this.fetch (url, method, headers, body);
