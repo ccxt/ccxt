@@ -12,6 +12,7 @@
     "bitso":       { "apiKey": "FZZzVkZgza", "secret": "f763b98d46d8c5e352b4ef70050bc9b1" },
     "bittrex":     { "apiKey": "60f38a5818934fc08308778f94d3d8c4", "secret": "9d294ddb5b944403b58e5298653720c1" },
     "btce":        { "apiKey": "9CVM7IPZ-300HPKQD-ME5Y21HS-6LLQUPN5-NCX0GXHF", "secret": "77c7395cbf788ee5eafbe79133deac3da5c62b72f72b7184eba3f49c5bb1d654" },
+    "btctradeua":  { "apiKey": "a3571d16c2f848688aeefce64fa4d3fecd6e6f32b717454af8550731c0c22b13", "secret": "ab12d6af9c74cb5aa8c68b9633855797664b05e9c763407eace1fbe0ce3781a2" },
     "btcx":        { "apiKey": "53IPO-ZBQEN-91UNL-B8VD5-CTU1Z-E6RB1-S9X3P", "secret": "ptrearsi6oy1lmzazfcytnbozmsvjsnzha8hrrqqbjlnvgnqlpjb7kqxyency45a" },
     "bxinth":      { "apiKey": "191c59bb46d5", "secret": "03031e588e69" },
     "cex":         { "apiKey": "eqCv267WySlu577JnFbGK2RQzIs", "secret": "pZnbuNEm5eE4W1VRuFQvZEiFCA", "uid": "up105393824" },
