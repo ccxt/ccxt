@@ -16,7 +16,12 @@ let version = config.version
 
 console.log ('Old version: ', version)
 let [ major, minor, patch ] = version.split ('.')
-patch = (parseInt (patch) + 1).toString ()
+
+// we don't increment it here anymore, because
+// npm version patch will be explicitly called before
+
+// patch = (parseInt (patch) + 1).toString ()
+
 version = [ major, minor, patch ].join ('.')
 console.log ('New version: ', version)
 

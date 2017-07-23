@@ -13,3 +13,4 @@ tmp/
 coverage
 .nyc_output
 travis-keys.sh
+ccxt.wiki/

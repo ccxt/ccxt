@@ -9,6 +9,8 @@ const util      = require ('util')
 let markets
 let verbose = false
 
+let wikiPath = 'ccxt.wiki'
+
 try {
 
     markets = require ('./config')
@@ -107,8 +109,8 @@ let changeInFile = (filename) => {
 }
 
 changeInFile ('README.md')
-changeInFile ('../ccxt.wiki/Exchange-Markets.md')
-changeInFile ('../ccxt.wiki/Manual.md')
+changeInFile (wikiPath + '/Exchange-Markets.md')
+changeInFile (wikiPath + '/Manual.md')
 
 // console.log (typeof countries)
 // console.log (countries)
@@ -178,7 +180,7 @@ marketsByCountries = marketsByCountries.sort ((a, b) => {
     lines[1] = headerLine.join ('|')
     lines = lines.map (line => '|' + line + '|').join ("\n")
     let result = "The ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + lines + "\n\n"
-    let filename = '../ccxt.wiki/Exchange-Markets-By-Country.md'
+    let filename = wikiPath + '/Exchange-Markets-By-Country.md'
     fs.truncateSync (filename)
     fs.writeFileSync (filename, result)
     // console.log (result)
