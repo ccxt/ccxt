@@ -2,9 +2,10 @@ language: node_js
 node_js:
 - node
 before_install:
+- set -e
+- sudo apt-get update -qq
 - sudo apt-get install -y pandoc
 script:
-- set -e
 - git clone https://github.com/kroitor/ccxt.wiki.git
 - npm config set git-tag-version=false
 - NPM_VERSION=$(npm version patch)
