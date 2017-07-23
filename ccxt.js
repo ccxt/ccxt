@@ -3620,7 +3620,7 @@ var bl3p = {
     'id': 'bl3p',
     'name': 'BL3P',
     'countries': [ 'NL', 'EU' ], // Netherlands, EU
-    'rateLimit': 2000,
+    'rateLimit': 1000,
     'version': '1',
     'comment': 'An exchange market by BitonicNL',
     'urls': {
@@ -3639,9 +3639,9 @@ var bl3p = {
     'api': {
         'public': {
             'get': [
-                '{id}/ticker',
-                '{id}/orderbook',
-                '{id}/trades',
+                '{market}/ticker',
+                '{market}/orderbook',
+                '{market}/trades',
             ],
         },
         'private': {
@@ -3669,34 +3669,27 @@ var bl3p = {
         'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
     },
 
-    async fetchProducts () {
-        let products = await this.publicGetPairSettings ();
-        let keys = Object.keys (products);
-        let result = [];
-        for (let p = 0; p < keys.length; p++) {
-            let id = keys[p];
-            let product = products[id];
-            let symbol = id.replace ('_', '/');
-            let [ base, quote ] = symbol.split ('/');
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': product,
-            });
-        }
-        return result;
-    },
-
     fetchBalance () {
-        return this.privatePostUserInfo ();
+        /*
+
+        Response
+
+        user_id int Id of the user.
+        trade_fee float Percentage fee for the user
+        wallets array Array of wallets.
+        Each array item of 'wallets' will contain:
+
+        balance amountObj Balance in this wallet
+        available amountObj Available in this wallet.
+
+        */
+        return this.privatePostGENMKTMoneyInfo ();
     },
 
     async fetchOrderBook (product) {
         let p = this.product (product);
-        let response = await this.publicGetOrderBook ({
-            'pair': p['id'],
+        let response = await this.publicGetMarketBook ({
+            'market': p['id'],
         });
         let orderbook = response[p['id']];
         let timestamp = this.milliseconds ();
@@ -3723,8 +3716,10 @@ var bl3p = {
     },
 
     async fetchTicker (product) {
-        let response = await this.publicGetTicker ();
         let p = this.product (product);
+        let response = await this.publicGetMarketTicker ({
+            'market': p['id'],
+        });        
         let ticker = response[p['id']];
         let timestamp = ticker['updated'] * 1000;
         return {
@@ -3749,69 +3744,34 @@ var bl3p = {
     },
 
     fetchTrades (product) {
-        return this.publicGetTrades ({
-            'pair': this.productId (product),
+        return this.publicGetMarketTrades ({
+            'market': this.productId (product),
         });
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-    
-        /*
-            Request
-
-            type string
-
-            'bid', 'ask'
-            amount_int int
-
-            Amount BTC, amount LTC (*1e8)
-            The field described above is optional
-
-            price_int int
-
-            Limit price in EUR (*1e5)
-            The field described above is optional
-
-            amount_funds_int int
-
-            Maximal EUR amount to spend (*1e5)
-            The field described above is optional
-
-            fee_currency string
-
-            Currency the fee is accounted in. Can be: 'EUR' or 'BTC'
-            Response
-
-            order_id int
-
-            The id of the order.
-            2.2 - Cancel an order
-
-            Call
-
-        */
-
-        let prefix = '';
-        if (type =='market')
-            prefix = 'market_';
         let order = {
-            'pair': this.productId (product),
-            'quantity': amount,
-            'price': price || 0,
-            'type': prefix + side,
+            'market': this.productId (product),
+            'amount_int': amount,
+            'fee_currency': p['quote'],
+            'type': (side == 'buy') ? bid : ask,
         };
-        return this.privatePostOrderCreate (this.extend (order, params));
+        if (type == 'limit')
+            order['price_int'] = price;
+        return this.privatePostMarketMoneyOrderAdd (this.extend (order, params));
     },
 
     cancelOrder (id) {
-        return this.privatePostOrderCancel ({ 'order_id': id }); // var is ok
+        return this.privatePostMarketMoneyOrderCancel ({ 'order_id': id }); // var is ok
     },
 
     async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + path;
+        let request  ='/' + this.version + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'] + request;
+        let query = this.omit (params, this.extractParams (path));
         if (type == 'public') {
-            if (Object.keys (params).length)
-                url += '?' + this.urlencode (params);
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
         } else {
 
             /*
@@ -3823,84 +3783,41 @@ var bl3p = {
             )
             Note: That the HMAC_SHA512 needs to output raw binary data, using hexits (hexadecimal digits) will return an error.
 
+            // generate a nonce as microtime, with as-string handling to avoid problems with 32bits systems
+            $mt = explode(' ', microtime());
+            $vars['nonce'] = $mt[1].substr($mt[0], 2, 6);
+
+            // generate the POST data string
+            $post_data = http_build_query($params, '', '&');
+            $body = $path . chr(0). $post_data;
+            
+            //build signature for Rest-Sign
+            $sign = base64_encode(hash_hmac('sha512', $body, base64_decode($this->privkey), true));
+            
+            //combine the url and the desired path
+            $fullpath = $this->url . $path;
+            
+            //set headers
+            $headers = array(
+                'Rest-Key: '.$this->pubkey,
+                'Rest-Sign: '. $sign,
+            );
+
             */
 
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
+            let 
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
                 'Rest-Key': this.apiKey,
-                'Rest-Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+                'Rest-Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512', 'base64'),
             };
         }
-        let result = await this.fetch (url, method, headers, body);
-        if ('result' in result) {
-            if (!result['result']) {
-                throw new MarketNotAvailableError ('[Market Not Available] ' + this.id + ' ' + result['error']);
-            }
-        }
-        return result;
+        return this.fetch (url, method, headers, body);
     },
 }
-/*
-
-Create an order
-Cancel an order
-Get a specific order
-Get the whole orderbook
-Account info & functions
-
-Get the transaction history
-Create a new deposit address
-Get the last deposit address
-Create a withdrawal
-Get account info & balance
-Get active orders
-Get order history
-Fetch all trades on BL3P
-Appendix - Error code
-
-1 - Introduction
-
-This document describes the usage of the private HTTP API of BL3P. 
-In the file on directory above you can find the base.md file. 
-The base.md document describes all basic details that you need to know to use the BL3P API. 
-If you would like to know how to make a connection to the BL3P API, please check the examples that are available one directory above.
-
-2 - Basic functions
-
-Definition of the path variable order:
-
-/<version>/<market>/<namespace>/<callname>[/<subcallname>]
-Description of the path variables:
-
-Version of API (is currently: 1)
-
-<version> = 1
-Market that the call will be applied to.
-
-Note: GENMKT is used for market independent calls
-
-<market> = 
-Namespace of call. Usualy: "money"
-
-<namespace> = $namespace
-Name of call (for example: “order”)
-
-<callname> = $callname
-Name of subcall, (for example: “add”)
-
-<subcallname> = $subcallname
-The response is a succes or an error. In case of result: succes, the requested data will be returned. 
-In case of an error, an error code will be retuned. 
-The possible error codes are listed in the appendix.
-
-2.1 - Create an order
-
-Call
-
-*/
 
 //-----------------------------------------------------------------------------
 
@@ -5507,14 +5424,13 @@ var cex = {
         let result = { 'info': balances };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
-            let uppercase = currency.toUpperCase ();
             let account = {
                 'free': parseFloat (balances[currency]['available']),
                 'used': parseFloat (balances[currency]['orders']),
                 'total': undefined,
             };
             account['total'] = this.sum (account['free'], account['used']);
-            result[uppercase] = account;
+            result[currency] = account;
         }
         return result;
     },

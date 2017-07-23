@@ -160,8 +160,7 @@ class Market {
     }
 
     public static function sum () {
-
-        return array_sum (array_filter (func_get_args (), function ($x) { return $t; }));
+        return array_sum (array_filter (func_get_args (), function ($x) { return isset ($x) ? $x : 0; }));
     }
     
     public static function extractParams ($string) {
