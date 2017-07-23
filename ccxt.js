@@ -3615,6 +3615,41 @@ var blinktrade = {
 
 //-----------------------------------------------------------------------------
 
+var bl3p = {
+
+    'id': 'bl3p',
+    'name': 'BL3P',
+    'countries': [ 'NL', 'EU' ], // Netherlands, EU
+    'rateLimit': '',
+    'version': '',
+    'comment': 'An exchange market by BitonicNL',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
+        'api': 'https://api.bl3p.eu',
+        'www': [
+            'https://bl3p.eu',
+            'https://bitonic.nl',
+        ],
+        'doc': [
+            'https://github.com/BitonicNL/bl3p-api/tree/master/docs',
+            'https://bl3p.eu/api',
+            'https://bitonic.nl/en/api',
+        ],
+    },
+    'api': {
+        'public': {
+            'get': [
+            ],
+        },
+        'private': {
+            'post': [
+            ],
+        },
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var btcchina = {
 
     'id': 'btcchina',
@@ -11170,6 +11205,7 @@ var markets = {
     'bitso':         bitso,
     'bitstamp':      bitstamp,
     'bittrex':       bittrex,
+    'bl3p':          bl3p,
     'btcchina':      btcchina,
     'btce':          btce,
     'btcexchange':   btcexchange,
