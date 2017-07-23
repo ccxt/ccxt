@@ -82,7 +82,7 @@ The version number is sourced to JavaScript, Python and PHP from the main NPM pa
 
 Everything's done by the `npm run build` command. There is a custom utility script in the root of the repository, named `transpile.js` that derives versions in other languages from the master code. The script converts language syntax from JS to Python/PHP and it is itself written in JavaScript. The transpiler does its job by sequentially applying series of regexp substitutions to perform one-to-one (line-to-line) mapping from JS to other languages.
 
-More details can be found in [Master/Slave Sources Structure And Coding Rules](dasdasd) (please read it prior hacking the actual source code).
+More details can be found in [Master/Slave Sources Structure And Coding Rules](https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md#masterslave-sources-structure-and-coding-rules) (please read it prior hacking the actual source code).
 
 ### 4. Running tests + collecting code coverage analytics
 
