@@ -297,7 +297,8 @@ var test = async function () {
             throw new Error ('Market `' + marketId + '` not found')
                 
         if (marketSymbol) {
-        
+
+            await loadMarket (market)
             await (marketSymbol == 'balance') ? 
                 testMarketBalance (market) :
                 testMarketSymbol (market, marketSymbol)
