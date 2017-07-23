@@ -88,7 +88,7 @@ More details can be found in [Master/Slave Sources Structure And Coding Rules](h
 
 Run the standard `npm test` command to see the test results and the code coverage analytics report — which is also available in HTML (see the generated `coverage` folder). This command requires `npm run build` executed first.
 
-To speed up development process, you can use `npm run fasttest` command, which tests only the master `ccxt.js` file, and thus does not require the `npm run build` to be executed first. You can also pass a market name and an (optional) symbol, to test only a small subset of the code, which is like 100x faster than full test:
+To speed up development process, you can use `npm run fasttest` command, which tests only the master `ccxt.js` file, and thus does not require the `npm run build` to be executed first. You can also pass a market name and an (optional) symbol, to test only a small subset of the code, which is like 100x faster than the full test:
 
 ```bash
 npm run fasttest kraken BTC/USD  # Will run only for the BTC/USD pair on Kraken exchange
