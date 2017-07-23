@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.60';
+$version = '1.1.64';
 
 class Market {
 
@@ -4926,8 +4926,32 @@ class bxinth extends Market {
         return $result;
     }
 
+    public function commonCurrencyCode ($currency) {
+        // why would they use three letters instead of four for $currency codes
+        if ($currency == 'DAS')
+            return 'DASH';
+        if ($currency == 'DOG')
+            return 'DOGE';
+        return $currency;
+    }
+
     public function fetch_balance () {
-        return $this->privatePostBalance ();
+        $response = $this->privatePostBalance ();
+        $balance = $response['balance'];
+        $result = array ( 'info' => $balance );
+        $currencies = array_keys ($balance);
+        for ($c = 0; $c < count ($currencies); $c++) {
+            $currency = $currencies[$c];
+            $code = $this->commonCurrencyCode ($currency);
+            $account = array (
+                'free' => floatval ($balance[$currency]['available']),
+                'used' => null,
+                'total' => floatval ($balance[$currency]['total']),
+            );
+            $account['used'] = $account['total'] - $account['free'];
+            $result[$code] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -7531,8 +7555,9 @@ class hitbtc extends Market {
             $id = $product['symbol'];
             $base = $product['commodity'];
             $quote = $product['currency'];
-            if ($base == 'DSH')
-                $base = 'DASH';
+            // looks like they now have it correct
+            // if ($base == 'DSH')
+                // $base = 'DASH';
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,

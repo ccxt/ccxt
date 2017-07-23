@@ -29,7 +29,6 @@ The contents of the repository are structured as follows:
 /MANIFEST.in       # a PyPI-package file listing extra package files (license, configs, etc...)
 /README.md         # master markdown for GitHub, npmjs.com, npms.io, yarn and others
 /README.rst        # slave reStructuredText for PyPI
-/build.sh          # the main build script
 /ccxt/             # Python ccxt module/package folder for PyPI
 /ccxt/__init__.py  # slave Python-version of the ccxt library
 /ccxt.es5.js       # slave JavaScript ES5 version of the ccxt library
@@ -42,8 +41,6 @@ The contents of the repository are structured as follows:
 /examples/py       # ...
 /export-markets.js # used to create tables of markets in the docs during the build
 /package.json      # npm package file, also used in setup.py for version single-sourcing
-/publish.sh        # commit and publish the module in NPM/PyPI (do not run if you are not sure)
-/send.sh           # update the version, commit and push the code for testing with travis-ci
 /setup.cfg         # wheels config file for the Python package
 /test.js           # a test in JavaScript that runs through all markets and calls basic APIs
 /test.php          # same in PHP
@@ -53,27 +50,67 @@ The contents of the repository are structured as follows:
 /vss.js            # reads single-sourced version from package.json and writes it everywhere
 ```
 
-### MultiLanguage Support
+### Multilanguage Support
 
 The ccxt library is available in three different languages (more to come). One of the primary objectives for developers is to design *portable* code, so that a single-language user can read code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
-At first, all language-specific version were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *master/copy* process. There is now a single master version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the master version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the master version as well.
+At first, all language-specific version were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *master/slave* process. There is now a single master version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the master version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the master version as well.
 
-### Ad-Hoc Transpiler
+### Continuous Integration
 
-There is a custom utility script in the root of the repository, named `transpile.js` that derives versions in other languages from the master code. The script converts language syntax from JS to Python/PHP and it is itself written in JavaScript. The transpiler does its job by sequentially applying series of regexp substitutions to perform one-to-one (line-to-line) mapping from JS to other languages.
+Builds are automated by [travis-ci]. Code coverage is analyzed with [coveralls.io](https://coveralls.io). All build steps are described in the [`.travis.yml`](https://github.com/kroitor/ccxt/blob/master/.travis.yml) file. A build consists of the following:
 
-### Dependencies
+1. Install dependencies
+2. Increment version number _(not triggered by pull requests)_
+3. Transpile JavaScript → Python/PHP and wiki documentation from the master source file
+4. Run tests and collect code coverage analytics
+5. Send coverage report to [coveralls.io](https://coveralls.io)
+6. Push built files back to GitHub _(not triggered by pull requests)_
+7. Push generated wiki documentation files back to a separate GitHub repo _(not triggered by pull requests)_
 
-```UNDER CONSTRUCTION```
+You can also execute build steps manually to make sure everything works before committing your changes.
 
-### Single Source Of Version Number
+#### Install Dependencies
 
-The version number is sourced to JavaScript, Python and PHP from the main NPM package file `package.json`. The `publish.sh` script updates the version and exports it to all other files. This is done by the `vss.js` script, which stands for *version-single-sourcing*. Python package config function inside `setup.py` also reads that JSON file to update the version in Python Package Index (PyPI).
+You will need the latest version of `pandoc` supporting `--wrap=preserve` option. On OSX it can be installed easily with `brew install pandoc` (you will need [brew](https://brew.sh/) as well). For other options see the [`Installing Pandoc`](http://pandoc.org/installing.html) guide.
 
-```UNDER CONSTRUCTION```
+#### Increment Version Number
 
-### Master/Slave Files
+The version number is single-sourced from the main NPM package file `package.json` to JavaScript, Python and PHP. It gets incremented by the standard `npm version patch` command upon each release and then the updated version number is injected into all source files.
+
+#### Transpile Sources And Documentation
+
+Everything is done by the `npm run build` command. The transpilation is performed by a custom utility script in the root of the repository, named `transpile.js` that derives slave versions in other languages from the master code. The script converts language syntax from JS to Python/PHP and it is itself written in JavaScript. The transpiler does its job by sequentially applying series of regexp substitutions to perform one-to-one (line-to-line) mapping from JS to other languages.
+
+Read [Master/Slave Code](https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md#masterslave-code) below for more details before hacking the actual source code.
+
+#### Run Tests And Collect Coverage
+
+Run the standard `npm test` command to see test results and code coverage analytics. The coverage analysis is also available in HTML (see the generated `coverage` folder). A transpilation by  `npm run build` is necessary prior to executing the `npm test` for proper work.
+
+To speed up test execution you can use `npm run fasttest` command. It will only test the master `ccxt.js` file, and thus does not require the `npm run build` to be executed first. You can also pass a market name and an symbol (optional), to test a part of code or a single market. A partial test is usually many times faster than the full test:
+
+```bash
+npm test                         # runs the full test, requires a rebuild with `npm run build`
+npm test kraken                  # runs a partial test for Kraken, requires `npm run build`
+npm test kraken BTC/USD          # partial test for BTC/USD @ Kraken, requires `npm run build`
+npm run fasttest                 # full test of master source file only
+npm run fasttest gdax            # partial test of master source file only for GDAX
+npm run fasttest gdax BTC/USD    # partial test only for the BTC/USD pair on GDAX exchange
+```
+
+Other languages can also be tested by running the following scripts (`npm run build` is required in prior):
+
+```bash
+python test.py
+python test.py kraken
+python test.py kraken BTC/USD
+php -f test.php
+php -f test.php gdax
+php -f test.php gdax BTC/USD
+```
+
+## Master/Slave Code
 
 The ccxt library includes one single file per each language:
 
@@ -84,15 +121,7 @@ The ccxt library includes one single file per each language:
 /ccxt.php          # slave PHP version of the ccxt library
 ```
 
-Slave files and docs are partially-generated from the master `ccxt.js` file by the `build.sh` script:
-```shell
-#!/bin/bash
-
-npm run export-markets && # export-markets.js → README.md and ../ccxt.wiki/*
-npm run mdrst &&          # pandoc:       README.md → README.rst for PyPI
-npm run transpile &&      # transpile.js: ccxt.js → ccxt/__init__.py and ccxt.php 
-npm run build             # babel:        ccxt.js → ccxt.es5.js
-```
+Slave files and docs are partially-generated from the master `ccxt.js` file by the `npm run build` command.
 
 The structure of the master/slave file can be outlined like this:
 
@@ -157,70 +186,18 @@ Key notes on the structure of the library file:
 Below are key notes on how to keep the JS code transpileable:
 
 - do not use language-specific code syntax sugar, even if you really want to
-
 - unfold all maps and comprehensions to basic for-loops
-
 - always use Python-style indentation, it is preserved as is for all languages
-
-- always put a semicolon (`;`) at the end of each statement, as in PHP/C-style
-
+- always put a semicolon (`;`) at the end of each statement, as in PHP/C-style=
 - all associative keys must be single-quoted strings everywhere (`array['good'], array.bad`)
-
 - all local variables should be declared with `let` keyword
-
 - do everything with base class methods only
-
 - if you need another base method you will have to implement it in the base class in all three languages
-
 - try to reduce syntax to basic one-liner statements
-
 - multiple lines are ok, but you should avoid deep nesting with lots of brackets
-
 - do not use conditional statements that are too complex
-
 - ...
 
 ```UNDER CONSTRUCTION```
 
-## How To Set Up Your Environment
 
-```UNDER CONSTRUCTION```
-
-## Bulding
-
-- `/build.sh`
-- `/update-version.sh`
-- `/publish.sh`
-
-```UNDER CONSTRUCTION```
-
-## Testing
-
-By default the test scripts run through all markets to fetch tickers, order books and balances (conducts a basic test of public and private APIs).
-
-- `/test.js` run by Node.js / NPM
-- `/test.php` run by PHP
-- `/test.py` run by Python 2 / 3
-
-### Test Configurations
-
-### Test Params
-
-All tests accept one or two optional arguments like shown below:
-```shell
-# Usage:
-    node test.js [marketId [symbol]]
-    python test.py [marketId [symbol]]
-    php -f test.php [marketId [symbol]]
-# Examples:
-    node test.js kraken
-    node test.js gdax BTC/USD
-    python test.py btce
-    python test.py bitfinex ETH/BTC
-    php -f test.php hitbtc
-    php -f test.php zaif BTC/JPY
-```
-
-If arguments are specified, each test will only run for a particular market id and symbol. This might be helpful to run a partial test.
-
-```UNDER CONSTRUCTION```
