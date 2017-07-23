@@ -4,7 +4,7 @@ node_js:
 os: osx
 before_install:
 - set -e
-brew install pandoc
+- brew install pandoc
 # - sudo apt-get install pandoc
 script:
 - npm config set git-tag-version=false
