@@ -176,7 +176,10 @@ var urlencode = function (object) {
 }
 
 var sum = function (... args) {
-    return args.filter (arg => typeof arg != 'undefined').reduce ((sum, value) => sum + value, 0)
+    let result = args.filter (arg => typeof arg != 'undefined')
+    return (result.length > 1) ? 
+        result.reduce ((sum, value) => sum + value, 0) : 
+        undefined
 }
 
 //-----------------------------------------------------------------------------
