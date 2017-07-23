@@ -4838,10 +4838,33 @@ var bxinth = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privatePostBalance ();
+    commonCurrencyCode (currency) {
+        // why would they use three letters instead of four for currency codes
+        if (currency == 'DAS')
+            return 'DASH';
+        if (currency == 'DOG')
+            return 'DOGE';
+        return currency;
     },
 
+    async fetchBalance () {
+        let response = await this.privatePostBalance ();
+        let balance = response['balance'];
+        let result = { 'info': balance };
+        let currencies = Object.keys (balance);
+        for (let c = 0; c < currencies.length; c++) {
+            let currency = currencies[c];
+            let code = this.commonCurrencyCode (currency);
+            let account = {
+                'free': parseFloat (balance[currency]['available']),
+                'used': undefined,
+                'total': parseFloat (balance[currency]['total']),
+            };
+            account['used'] = account['total'] - account['free'];
+            result[code] = account;
+        }
+        return result;
+    },
     async fetchOrderBook (product) {
         let orderbook = await this.publicGetOrderbook ({
             'pairing': this.productId (product),
