@@ -14,12 +14,11 @@ script:
 - echo 'skipping coveralls' #npm run coveralls
 - git config --global user.email "travis@travis-ci.org"
 - git config --global user.name "Travis CI"
-- сd ccxt.wiki && git commit -a -m "${NPM_VERSION:1}" && git remote remove origin && git remote add origin https://${GITHUB_TOKEN}@github.com/kroitor/ccxt.wiki.git && git push origin HEAD:master
-- cd ..
 - git commit -a -m "${NPM_VERSION:1}" -m "[ci skip]"
 - git remote remove origin
 - git remote add origin https://${GITHUB_TOKEN}@github.com/kroitor/ccxt.git
 - git push origin HEAD:master
+- npm run build-wiki
 deploy:
   - provider: npm
     email: igor.kroitor@gmail.com
