@@ -68,7 +68,7 @@ Builds are automated by [travis-ci]. Code coverage is analyzed with [coveralls.i
 6. Push built files back to GitHub _(not triggered by pull requests)_
 7. Push generated wiki documentation files back to a separate GitHub repo _(not triggered by pull requests)_
 
-You can also execute build steps manually to make sure everything works before committing your changes to the server. Here's how you do that...
+You can also execute build steps manually to make sure everything works before committing your changes.
 
 #### Install Dependencies
 
