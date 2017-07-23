@@ -139,9 +139,7 @@ let testMarketSymbol = async (market, symbol) => {
         log (await market.fetchGlobal ());
     } else {
         await testMarketSymbolOrderbook (market, symbol)
-        if ([ '_1broker', 'xbtce', 'btcexchange', 'anxpro' ].indexOf (market.id) < 0) {
-            await testMarketSymbolTrades (market, symbol)
-        }
+        // await testMarketSymbolTrades (market, symbol)
     }
 }
 

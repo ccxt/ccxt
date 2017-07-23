@@ -81,7 +81,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.53'
+__version__ = '1.1.54'
 
 # Python 2 & 3
 import base64
@@ -4135,7 +4135,19 @@ class btctradeua (Market):
         return self.privatePostAuth ()
 
     def fetch_balance (self):
-        return self.privatePostBalance ()
+        response = self.privatePostBalance ()
+        accounts = response['accounts']
+        result = { 'info': response }
+        for b in range (0, len (accounts)):
+            account = accounts[b]
+            currency = account['currency']
+            balance = float (account['balance'])
+            result[currency] = {
+                'free': balance,
+                'used': None,
+                'total': balance,
+            }
+        return result
 
     def fetch_order_book (self, product):
         p = self.product (product)
@@ -4254,7 +4266,7 @@ class btctradeua (Market):
             auth = body + self.secret
             headers = {
                 'public-key': self.apiKey,
-                'api-sign': self.hash (self.encde (auth), 'sha256'),
+                'api-sign': self.hash (self.encode (auth), 'sha256'),
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
             }

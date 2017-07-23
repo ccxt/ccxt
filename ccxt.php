@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.53';
+$version = '1.1.54';
 
 class Market {
 
@@ -4325,7 +4325,20 @@ class btctradeua extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostBalance ();
+        $response = $this->privatePostBalance ();
+        $accounts = $response['accounts'];
+        $result = array ( 'info' => $response );
+        for ($b = 0; $b < count ($accounts); $b++) {
+            $account = $accounts[$b];
+            $currency = $account['currency'];
+            $balance = floatval ($account['balance']);
+            $result[$currency] = array (
+                'free' => $balance,
+                'used' => null,
+                'total' => $balance,
+            );
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -4456,7 +4469,7 @@ class btctradeua extends Market {
             $auth = $body . $this->secret;
             $headers = array (
                 'public-key' => $this->apiKey,
-                'api-sign' => $this->hash ($this->encde ($auth), 'sha256'),
+                'api-sign' => $this->hash ($this->encode ($auth), 'sha256'),
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
             );
