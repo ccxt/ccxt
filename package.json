@@ -8,14 +8,15 @@
     "url": "https://github.com/kroitor/ccxt.git"
   },
   "scripts": {
-    "test": "npm run build && nyc --reporter=html --reporter=text node test",
+    "build": "npm run export-markets && npm run mdrst && npm run transpile && npm run vss && npm run babel",
+    "test": "nyc --reporter=html --reporter=text node test",
     "fasttest": "node test --es6",
-    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "export-markets": "node export-markets",
     "mdrst": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=README.rst README.md",
     "transpile": "node transpile",
     "vss": "node vss",
-    "build": "babel ccxt.js --source-maps inline --out-file ccxt.es5.js"
+    "babel": "babel ccxt.js --source-maps inline --out-file ccxt.es5.js"
   },
   "dependencies": {
     "crypto-js": "3.1.9-1",
