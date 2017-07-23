@@ -3510,7 +3510,7 @@ class blinktrade (Market):
             headers = {
                 'APIKey': self.apiKey,
                 'Nonce': nonce,
-                'Signature': self.hmac (self.encode (nonce), self.secret),
+                'Signature': self.hmac (self.encode (nonce), self.encode (self.secret)),
                 'Content-Type': 'application/json',
             }
         return self.fetch (url, method, headers, body)
@@ -5059,16 +5059,11 @@ class cex (Market):
         for c in range (0, len (self.currencies)):
             currency = self.currencies[c]
             uppercase = currency.upper ()
-            # they misspell DASH as dsh :/
-            if uppercase == 'DSH':
-                uppercase = 'DASH'
             account = {
-                'free': None,
-                'used': None,
-                'total': balances[currency].available + balances[currency].orders,
+                'free': float (balances[currency]['available']),
+                'used': float (balances[currency]['orders']),
+                'total': None,
             }
-            account['free'] = float (balances[currency].available)
-            account['used'] = float (balances[currency].orders)
             account['total'] = self.sum (account['free'], account['used'])
             result[uppercase] = account
         return result
@@ -10472,7 +10467,7 @@ class xbtce (Market):
             else:
                 body = ''
             auth = nonce + self.uid + self.apiKey + method + url + body
-            signature = self.hmac (self.encode (auth), self.secret, hashlib.sha256, 'base64')
+            signature = self.hmac (self.encode (auth), self.encode (self.secret), hashlib.sha256, 'base64')
             credentials = ':'.join ([ self.uid, self.apiKey, nonce, signature ])
             headers = {
                 'Accept-Encoding': 'gzip, deflate',

@@ -3655,7 +3655,7 @@ class blinktrade extends Market {
             $headers = array (
                 'APIKey' => $this->apiKey,
                 'Nonce' => $nonce,
-                'Signature' => $this->hmac ($this->encode ($nonce), $this->secret),
+                'Signature' => $this->hmac ($this->encode ($nonce), $this->encode ($this->secret)),
                 'Content-Type' => 'application/json',
             );
         }
@@ -5314,16 +5314,11 @@ class cex extends Market {
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $uppercase = strtoupper ($currency);
-            // they misspell DASH as dsh :/
-            if ($uppercase == 'DSH')
-                $uppercase = 'DASH';
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => $balances[$currency].available . $balances[$currency].orders,
+                'free' => floatval ($balances[$currency]['available']),
+                'used' => floatval ($balances[$currency]['orders']),
+                'total' => null,
             );
-            $account['free'] = floatval ($balances[$currency].available);
-            $account['used'] = floatval ($balances[$currency].orders);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$uppercase] = $account;
         }
@@ -11076,7 +11071,7 @@ class xbtce extends Market {
             else
                 $body = '';
             $auth = $nonce . $this->uid . $this->apiKey . $method . $url . $body;
-            $signature = $this->hmac ($this->encode ($auth), $this->secret, 'sha256', 'base64');
+            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256', 'base64');
             $credentials = implode (':', array ($this->uid, $this->apiKey, $nonce, $signature));
             $headers = array (
                 'Accept-Encoding' => 'gzip, deflate',

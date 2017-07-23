@@ -3605,7 +3605,7 @@ var blinktrade = {
             headers = {
                 'APIKey': this.apiKey,
                 'Nonce': nonce,
-                'Signature': this.hmac (this.encode (nonce), this.secret),
+                'Signature': this.hmac (this.encode (nonce), this.encode (this.secret)),
                 'Content-Type': 'application/json',
             };
         }
@@ -10989,7 +10989,7 @@ var xbtce = {
             else
                 body = '';
             let auth = nonce + this.uid + this.apiKey + method + url + body;
-            let signature = this.hmac (this.encode (auth), this.secret, 'sha256', 'base64');
+            let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
             let credentials = [ this.uid, this.apiKey, nonce, signature ].join (':');
             headers = {
                 'Accept-Encoding': 'gzip, deflate',
