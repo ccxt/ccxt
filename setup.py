@@ -53,6 +53,6 @@ setup (
         'Environment :: Console'
     ],
 
-    keywords = ' '.join (keywords),
+    keywords = package['keywords'],
     packages = find_packages ()
 )
