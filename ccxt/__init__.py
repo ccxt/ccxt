@@ -81,7 +81,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.52'
+__version__ = '1.1.53'
 
 # Python 2 & 3
 import base64
@@ -4329,7 +4329,19 @@ class btcx (Market):
         super (btcx, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostBalance ()
+        balances = self.privatePostBalance ()
+        result = { 'info': balances }
+        currencies = list (balances.keys ())
+        for c in range (0, len (currencies)):
+            currency = currencies[c]
+            uppercase = currency.upper ()
+            account = {
+                'free': balances[currency],
+                'used': None,
+                'total': balances[currency],
+            }
+            result[uppercase] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetDepthIdLimit ({

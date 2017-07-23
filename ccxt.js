@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.52'
+var version = '1.1.53'
 var isNode  = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
@@ -4450,8 +4450,21 @@ var btcx = {
         'BTC/EUR': { 'id': 'btc/eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
     },
 
-    fetchBalance () {
-        return this.privatePostBalance ();
+    async fetchBalance () {
+        let balances = await this.privatePostBalance ();
+        let result = { 'info': balances };
+        let currencies = Object.keys (balances);
+        for (let c = 0; c < currencies.length; c++) {
+            let currency = currencies[c];
+            let uppercase = currency.toUpperCase ();
+            let account = {
+                'free': balances[currency],
+                'used': undefined,
+                'total': balances[currency],
+            };
+            result[uppercase] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
