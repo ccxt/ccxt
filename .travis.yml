@@ -5,13 +5,12 @@ before_install:
 - sudo apt-get install -y pandoc
 script:
 - set -e
+- git clone https://github.com/kroitor/ccxt.wiki.git
 - npm config set git-tag-version=false
 - NPM_VERSION=$(npm version patch)
 - npm run build
 - npm test
 - npm run coveralls
-- git clone https://github.com/kroitor/ccxt.wiki.git
-- ./build.sh
 - сd ccxt.wiki
 - git config --global user.email "travis@travis-ci.org"
 - git config --global user.name "Travis CI"
