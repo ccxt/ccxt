@@ -82,7 +82,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.67'
+__version__ = '1.1.68'
 
 # Python 2 & 3
 import base64
@@ -5058,7 +5058,19 @@ class ccex (Market):
         return result
 
     def fetch_balance (self):
-        return self.privateGetBalances ()
+        response = self.privateGetBalances ()
+        balances = response['result']
+        result = { 'info': balances }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = balance['Currency']
+            account = {
+                'free': balance['Available'],
+                'used': balance['Pending'],
+                'total': balance['Balance'],
+            }
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         response = self.publicGetOrderbook ({
