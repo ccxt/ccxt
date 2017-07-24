@@ -9430,7 +9430,18 @@ class quadrigacx (Market):
         super (quadrigacx, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostBalance ()
+        balances = self.privatePostBalance ()
+        result = { 'info': balances }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            lowercase = currency.lower()
+            account = {
+                'free': float (balances[lowercase + '_available']),
+                'used': float (balances[lowercase + '_reserved']),
+                'total': float (balances[lowercase + '_balance']),
+            }
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetOrderBook ({

@@ -10144,7 +10144,19 @@ class quadrigacx extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostBalance ();
+        $balances = $this->privatePostBalance ();
+        $result = array ( 'info' => $balances );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $lowercase = strtolower ($currency);
+            $account = array (
+                'free' => floatval ($balances[$lowercase . '_available']),
+                'used' => floatval ($balances[$lowercase . '_reserved']),
+                'total' => floatval ($balances[$lowercase . '_balance']),
+            );
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {

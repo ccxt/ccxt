@@ -9755,8 +9755,20 @@ var quadrigacx = {
         'ETH/CAD': { 'id': 'eth_cad', 'symbol': 'ETH/CAD', 'base': 'ETH', 'quote': 'CAD' },
     },
 
-    fetchBalance () {
-        return this.privatePostBalance ();
+    async fetchBalance () {
+        let balances = await this.privatePostBalance ();
+        let result = { 'info': balances };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let lowercase = currency.toLowerCase ();
+            let account = {
+                'free': parseFloat (balances[lowercase + '_available']),
+                'used': parseFloat (balances[lowercase + '_reserved']),
+                'total': parseFloat (balances[lowercase + '_balance']),
+            };
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
