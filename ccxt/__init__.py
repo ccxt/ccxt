@@ -98,6 +98,7 @@ import json
 import math
 import re
 import socket
+import ssl
 import sys
 import time
 import zlib
@@ -235,6 +236,8 @@ class Market (object):
             response = opener.open (request, timeout = int (self.timeout / 1000))
         except socket.timeout as e:
             raise TimeoutError (' '.join ([ self.id, method, url, 'request timeout' ]))
+        except ssl.SSLError as e:
+            self.raise_error (MarketNotAvailableError, url, method, e)
         except _urllib.HTTPError as e:
             error = None
             details = None

@@ -96,7 +96,7 @@ def test_market (market):
         return 
 
     balance = market.fetch_balance ()
-    dump (green (market.id), 'balance', market.omit (balance, 'info'))
+    dump (green (market.id), 'balance', balance)
     # time.sleep (delay)
 
     amount = 1
