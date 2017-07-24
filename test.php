@@ -38,26 +38,24 @@ $markets['anxpro']->proxy = 'https://cors-anywhere.herokuapp.com/';
 function test_market_symbol_ticker ($market, $symbol) { 
     dump (green ($market->id), green ($symbol), 'fetching ticker...');
     $ticker = $market->fetch_ticker ($symbol);
-    dump (green ($market->id), green ($symbol), 'ticker:');
-    echo implode (' ', array (
+    dump (green ($market->id), green ($symbol), 'ticker:', implode (' ', array (
         $ticker['datetime'],
         'high: '    . $ticker['high'],
         'low: '     . $ticker['low'],
         'bid: '     . $ticker['bid'],
         'ask: '     . $ticker['ask'],
-        'volume: '  . $ticker['quoteVolume'])) . "\n";
+        'volume: '  . $ticker['quoteVolume'])));
 }
 
 function test_market_symbol_orderbook ($market, $symbol) {
     dump (green ($market->id), green ($symbol), 'fetching order book...');
     $orderbook = $market->fetch_order_book ($symbol);
-    dump (green ($market->id), green ($symbol), 'order book:');
-    echo implode (' ', array (
+    dump (green ($market->id), green ($symbol), 'order book:', implode (' ', array (
         $orderbook['datetime'],
         'bid: '       . @$orderbook['bids'][0][0],
         'bidVolume: ' . @$orderbook['bids'][0][1],
         'ask: '       . @$orderbook['asks'][0][0],
-        'askVolume: ' . @$orderbook['asks'][0][1])) . "\n";
+        'askVolume: ' . @$orderbook['asks'][0][1])));
 }
 
 function test_market_symbol ($market, $symbol) {

@@ -5216,8 +5216,21 @@ var ccex = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privateGetBalances ();
+    async fetchBalance () {
+        let response = await this.privateGetBalances ();
+        let balances = response['result'];
+        let result = { 'info': balances };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = balance['Currency'];
+            let account = {
+                'free': balance['Available'],
+                'used': balance['Pending'],
+                'total': balance['Balance'],
+            };
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
