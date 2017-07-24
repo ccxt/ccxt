@@ -40,7 +40,7 @@ let proxies = [
 
 // instantiate all markets
 ccxt.markets.forEach (id => {
-    markets[id] = new (ccxt)[id] ({ verbose: true })
+    markets[id] = new (ccxt)[id] ({ verbose: false })
 })
 
 // load api keys from config
@@ -69,7 +69,7 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
 let testMarketSymbolTicker = async (market, symbol) => {
     await sleep (market.rateLimit)
     let ticker = await market.fetchTicker (symbol)
-    log (market.id.green, symbol, 'ticker', ticker,
+    log (market.id.green, symbol, 'ticker',
         ticker['datetime'],
         'high: '    + ticker['high'],
         'low: '     + ticker['low'],
