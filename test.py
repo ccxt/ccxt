@@ -154,6 +154,9 @@ def test_market (market):
 def try_all_proxies (market, proxies):
     current_proxy = 0
     max_retries = len (proxies)
+    # a special case for ccex
+    if (market.id == 'ccex')
+        currentProxy = 1
     for num_retries in range (0, max_retries):    
         try:
             market.proxy = proxies[current_proxy]

@@ -256,6 +256,10 @@ let tryAllProxies = async function (market, proxies) {
 
     let currentProxy = 0
     let maxRetries   = proxies.length
+
+    // a special case for ccex
+    if (market.id == 'ccex')
+        currentProxy = 1
     
     for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
 

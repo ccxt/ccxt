@@ -79,6 +79,11 @@ function try_all_proxies ($market, $proxies) {
 
     $current_proxy = 0;
     $max_retries = count ($proxies);
+
+    // a special case for ccex
+    if ($market->id == 'ccex')
+        $currentProxy = 1;
+
     for ($i = 0; $i < $max_retries; $i++) {
 
         try {
