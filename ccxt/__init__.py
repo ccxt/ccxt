@@ -259,7 +259,7 @@ class Market (object):
                         'on maintenance',
                         'DDoS protection',
                         'rate-limiting in effect',
-                    ])                    
+                    ])
             elif e.code in [408, 504]:
                 error = TimeoutError
             elif e.code in [401, 422, 511]:
@@ -283,7 +283,7 @@ class Market (object):
             return json.loads (body)
         except Exception as e:
             ddos_protection = re.search ('(cloudflare|incapsula)', body, flags = re.IGNORECASE)
-            market_not_available = re.search ("(" + 'offline|unavailable|busy|maintenance|maintenancing' + ")", body, flags = re.IGNORECASE)
+            market_not_available = re.search ('(offline|unavailable|busy|maintenance|maintenancing)', body, flags = re.IGNORECASE)
             if ddos_protection:
                 raise DDoSProtectionError (' '.join ([ self.id, method, url, body ]))
             if market_not_available:

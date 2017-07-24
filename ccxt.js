@@ -409,7 +409,7 @@ var Market = function (config) {
     }
 
     this.handleResponse = function (url, method = 'GET', headers = undefined, body = undefined) {
-        if (body.match (/offline|unavailable|maintain|maintenanc(?:e|ing)/i))
+        if (body.match (/offline|unavailable|maintain|maintenance|maintenancing/i))
             throw new MarketNotAvailableError (this.id + ' is offline, on maintenance or unreachable from this location at the moment')
         if (body.match (/cloudflare|incapsula|overload/i))
             throw new DDoSProtectionError (this.id + ' is not accessible from this location at the moment')

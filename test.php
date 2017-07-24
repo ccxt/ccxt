@@ -23,12 +23,7 @@ $markets = null;
 
 foreach (\ccxt\Market::$markets as $id) {
     $market = '\\ccxt\\' . $id;
-    $markets[$id] = new $market (array (
-        'verbose' => false,
-        // 'proxy' => 'https://crossorigin.me/',
-        'proxy' => 'https://cors-anywhere.herokuapp.com/',
-        // 'proxy' => 'http://cors-proxy.htmldriven.com/?url=',
-    ));
+    $markets[$id] = new $market (array ('verbose' => false));
 }
 
 $config = json_decode (file_get_contents ('./keys.json'), true);
@@ -41,8 +36,10 @@ $markets['gdax']->urls['api'] = 'https://api-public.sandbox.gdax.com';
 $markets['anxpro']->proxy = 'https://cors-anywhere.herokuapp.com/';
 
 function test_market_symbol_ticker ($market, $symbol) { 
+    dump (green ($market->id), green ($symbol), 'fetching ticker...');
     $ticker = $market->fetch_ticker ($symbol);
-    echo implode (' ', array ($market->id, $symbol, 'ticker',
+    dump (green ($market->id), green ($symbol), 'ticker:');
+    echo implode (' ', array (
         $ticker['datetime'],
         'high: '    . $ticker['high'],
         'low: '     . $ticker['low'],
@@ -52,8 +49,10 @@ function test_market_symbol_ticker ($market, $symbol) {
 }
 
 function test_market_symbol_orderbook ($market, $symbol) {
+    dump (green ($market->id), green ($symbol), 'fetching order book...');
     $orderbook = $market->fetch_order_book ($symbol);
-    echo implode (' ', array ($market->id, $symbol, 'order book',
+    dump (green ($market->id), green ($symbol), 'order book:');
+    echo implode (' ', array (
         $orderbook['datetime'],
         'bid: '       . @$orderbook['bids'][0][0],
         'bidVolume: ' . @$orderbook['bids'][0][1],
@@ -73,10 +72,38 @@ function test_market_symbol ($market, $symbol) {
 }
 
 function load_market ($market) {
-
     $products = $market->load_products ();
     $symbols = array_keys ($products);    
-    echo $market->id . ' ' . count ($symbols) . " symbols: " . implode (", ", $symbols) . "\n";
+    dump (green ($market->id), green (count ($symbols)), 'symbols:', implode (', ', $symbols));
+}
+
+function try_all_proxies ($market, $proxies) {
+
+    $current_proxy = 0;
+    $max_retries = count ($proxies);
+    for ($i = 0; $i < $max_retries; $i++) {
+
+        try {
+
+            $market->proxy = $proxies[$current_proxy];
+            $current_proxy = (++$current_proxy) % count ($proxies);
+
+            load_market ($market);
+            test_market ($market);
+            break;
+
+        } catch (\ccxt\TimeoutError $e) {
+            dump (yellow ('[Timeout Error] ' . $e->getMessage () . ' (ignoring)'));
+        } catch (\ccxt\DDoSProtectionError $e) {
+            dump (yellow ('[DDoS Protection Error] ' . $e->getMessage () . ' (ignoring)'));
+        } catch (\ccxt\AuthenticationError $e) {
+            dump (yellow ('[Authentication Error] ' . $e->getMessage () . ' (ignoring)'));
+        } catch (\ccxt\MarketNotAvailableError $e) {
+            dump (yellow ('[Market Not Available Error] ' . $e->getMessage () . ' (ignoring)'));
+        } catch (Exception $e) {
+            dump (red ('[Error] ' . $e->getMessage ()));
+        }
+    }
 }
 
 function test_market ($market) {
@@ -100,8 +127,12 @@ function test_market ($market) {
         }
     }
 
-    if (strpos ($symbol, '.d') === false)
+    if (strpos ($symbol, '.d') === false) {
+
+        dump (green ('SYMBOL:'), green ($symbol));
+
         test_market_symbol ($market, $symbol);
+    }
 
     // usleep ($delay);
     // $trades = $market->fetch_trades (array_keys ($products)[0]);
@@ -116,19 +147,31 @@ function test_market ($market) {
     var_dump ($balance);
 }
 
+$proxies = array (
+    '',
+    'https://cors-anywhere.herokuapp.com/',
+    'https://crossorigin.me/',
+    // 'http://cors-proxy.htmldriven.com/?url=', // we don't want this for now
+);
+
 if (count ($argv) > 1) {
     
     if ($markets[$argv[1]]) {
     
         $id = $argv[1];
         $market = $markets[$id];
-        load_market ($market);
+
+        dump (green ('MARKET:'), green ($market->id));
 
         if (count ($argv) > 2) {
+
+            load_market ($market);
             test_market_symbol ($market, $argv[2]);
+
+        } else {
+
+            try_all_proxies ($market, $proxies);
         }
-        else 
-            test_market ($market);
 
     } else {
     
@@ -142,33 +185,7 @@ if (count ($argv) > 1) {
         if ($id == 'virwox')
             continue;
     
-        try {
-    
-            load_market ($market);
-
-            echo "------------------------------------------------------------------------------------------------------";
-            test_market ($market);
-
-        } catch (\ccxt\TimeoutError $e) {
-
-            dump (yellow ('[Timeout Error] ' . $e->getMessage () . ' (ignoring)'));
-
-        } catch (\ccxt\DDoSProtectionError $e) {
-
-            dump (yellow ('[DDoS Protection Error] ' . $e->getMessage () . ' (ignoring)'));
-
-        } catch (\ccxt\AuthenticationError $e) {
-
-            dump (yellow ('[Authentication Error] ' . $e->getMessage () . ' (ignoring)'));
-
-        } catch (\ccxt\MarketNotAvailableError $e) {
-
-            dump (yellow ('[Market Not Available Error] ' . $e->getMessage () . ' (ignoring)'));
-
-        } catch (Exception $e) {
-
-            dump (red ('[Error] ' . $e->getMessage () . ' (ignoring)'));            
-        }
+        try_all_proxies ($market, $proxies);
     }
 
 }
