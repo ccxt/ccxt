@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.67';
+$version = '1.1.68';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5492,7 +5492,20 @@ class ccex extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privateGetBalances ();
+        $response = $this->privateGetBalances ();
+        $balances = $response['result'];
+        $result = array ( 'info' => $balances );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
+            $currency = $balance['Currency'];
+            $account = array (
+                'free' => $balance['Available'],
+                'used' => $balance['Pending'],
+                'total' => $balance['Balance'],
+            );
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
