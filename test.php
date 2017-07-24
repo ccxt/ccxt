@@ -117,6 +117,7 @@ function test_market ($market) {
     $symbols = array (
         'BTC/USD',
         'BTC/CNY',
+        'BTC/EUR',
         'BTC/ETH',
         'ETH/BTC',
         'BTC/JPY',

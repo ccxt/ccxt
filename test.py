@@ -75,6 +75,7 @@ def test_market (market):
     symbols = [
         'BTC/USD',
         'BTC/CNY',
+        'BTC/EUR',
         'BTC/ETH',
         'ETH/BTC',
         'BTC/JPY',

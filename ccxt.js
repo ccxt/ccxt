@@ -177,9 +177,8 @@ var urlencode = function (object) {
 
 var sum = function (... args) {
     let result = args.filter (arg => typeof arg != 'undefined')
-    return (result.length > 1) ? 
-        result.reduce ((sum, value) => sum + value, 0) : 
-        undefined
+    return (result.length > 0) ? 
+        result.reduce ((sum, value) => sum + value, 0) : undefined
 }
 
 //-----------------------------------------------------------------------------
@@ -799,9 +798,9 @@ var cryptocapital = {
                 'total': undefined,
             };
             if (currency in balance['available'])
-                account['free'] = balance['available'][currency];
+                account['free'] = parseFloat (balance['available'][currency]);
             if (currency in balance['on_hold'])
-                account['used'] = balance['on_hold'][currency];
+                account['used'] = parseFloat (balance['on_hold'][currency]);
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
@@ -3997,6 +3996,10 @@ var btcchina = {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
+            if (!this.apiKey)
+                throw new AuthenticationError (this.id + ' requires `' + this.id + '.apiKey` property for authentication');
+            if (!this.secret)
+                throw new AuthenticationError (this.id + ' requires `' + this.id + '.secret` property for authentication');
             let p = [];
             if ('params' in params)
                 p = params['params'];
@@ -4016,11 +4019,11 @@ var btcchina = {
                 '&method=' + path +
                 '&params=' + p
             );
-            let signature = this.hmac (this.encode (query), this.secret, 'sha1');
+            let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha1');
             let auth = this.apiKey + ':' + signature;
             headers = {
                 'Content-Length': body.length,
-                'Authorization': 'Basic ' + this.stringToBase64 (query),
+                'Authorization': 'Basic ' + this.stringToBase64 (auth),
                 'Json-Rpc-Tonce': nonce,
             };
         }

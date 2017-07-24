@@ -66,17 +66,23 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
 
 //-----------------------------------------------------------------------------
 
+let human_value = function (price) {
+    return typeof price == 'undefined' ? 'N/A' : price
+}
+
+//-----------------------------------------------------------------------------
+
 let testMarketSymbolTicker = async (market, symbol) => {
     await sleep (market.rateLimit)
     log (market.id.green, symbol.green, 'fetching ticker...')
     let ticker = await market.fetchTicker (symbol)
     log (market.id.green, symbol.green, 'ticker',
         ticker['datetime'],
-        'high: '    + ticker['high'],
-        'low: '     + ticker['low'],
-        'bid: '     + ticker['bid'],
-        'ask: '     + ticker['ask'],
-        'volume: '  + ticker['quoteVolume'])
+        'high: '    + human_value (ticker['high']),
+        'low: '     + human_value (ticker['low']),
+        'bid: '     + human_value (ticker['bid']),
+        'ask: '     + human_value (ticker['ask']),
+        'volume: '  + human_value (ticker['quoteVolume']))
 
     if (ticker['bid'] > ticker['ask'])
         log (this.id, symbol, 'ticker', 'bid is greater than ask!')
@@ -84,18 +90,16 @@ let testMarketSymbolTicker = async (market, symbol) => {
     return ticker;
 }
 
-//-----------------------------------------------------------------------------
-
 let testMarketSymbolOrderbook = async (market, symbol) => {
     await sleep (market.rateLimit) 
     log (market.id.green, symbol.green, 'fetching order book...')
     let orderbook = await market.fetchOrderBook (symbol)
-    log (market.id.green, symbol.green, 'order book',
+    log (market.id.green, symbol.green,
         orderbook['datetime'],
-        'bid: '       + ((orderbook.bids.length > 0) ? orderbook.bids[0][0] : 'N/A'), 
-        'bidVolume: ' + ((orderbook.bids.length > 0) ? orderbook.bids[0][1] : 'N/A'),
-        'ask: '       + ((orderbook.asks.length > 0) ? orderbook.asks[0][0] : 'N/A'),
-        'askVolume: ' + ((orderbook.asks.length > 0) ? orderbook.asks[0][1] : 'N/A'))
+        'bid: '       + ((orderbook.bids.length > 0) ? human_value (orderbook.bids[0][0]) : 'N/A'), 
+        'bidVolume: ' + ((orderbook.bids.length > 0) ? human_value (orderbook.bids[0][1]) : 'N/A'),
+        'ask: '       + ((orderbook.asks.length > 0) ? human_value (orderbook.asks[0][0]) : 'N/A'),
+        'askVolume: ' + ((orderbook.asks.length > 0) ? human_value (orderbook.asks[0][1]) : 'N/A'))
 
     let bids = orderbook.bids
     if (bids.length > 1) {
@@ -128,7 +132,7 @@ let testMarketSymbolOrderbook = async (market, symbol) => {
 let testMarketSymbolTrades = async (market, symbol) => {
     log (market.id.green, symbol.green, 'fetching trades...')
     let trades = await market.fetchTrades (symbol)
-    log (market.id, symbol.green, 'trades', Object.values (trades).length)
+    log (market.id, symbol.green, Object.values (trades).length)
     return trades
 }
 
@@ -152,14 +156,71 @@ let testMarketBalance = async (market, symbol) => {
     await sleep (market.rateLimit)
     log (market.id.green, 'fetching balance...')
     let balance = await market.fetchBalance ()
-    log (market.id.green, 'balance', market.omit (balance, 'info'))
+
+    let currencies = [
+        'USD',
+        'CNY',
+        'EUR',
+        'BTC',
+        'ETH',
+        'JPY',
+        'LTC',
+        'DASH',
+        'DOGE',
+    ]
+
+    if ('info' in balance) {
+
+        let result = currencies
+            .filter (currency => (currency in balance) && 
+                (typeof balance[currency]['total'] != 'undefined'))
+
+        if (result.length > 0) {
+            result = result.map (currency => currency + ': ' + human_value (balance[currency]['total']))
+            if (market.currencies.length > result.length)
+                result = result.join (', ') + ' + more...'
+            else
+                result = result.join (', ')
+
+        } else {
+
+            result = 'zero balance'
+        }
+
+        log (market.id.green, result)
+
+    } else {
+
+        log (market.id.green, market.omit (balance, 'info'))    
+    }    
 }
 
 //-----------------------------------------------------------------------------
 
 let loadMarket = async market => {
     let products  = await market.loadProducts ()
-    log (market.id.green, market.symbols.length.toString ().bright.green, 'symbols', market.symbols.join (', '))
+    let symbols = [
+        'BTC/USD',
+        'BTC/CNY',
+        'BTC/EUR',
+        'BTC/ETH',
+        'ETH/BTC',
+        'BTC/JPY',
+        'LTC/BTC',
+        'ETH/EUR',
+        'ETH/JPY',
+        'ETH/CNY',
+        'LTC/CNY',
+        'DASH/BTC',
+        'DOGE/BTC',
+    ]
+    let result = market.symbols.filter (symbol => symbols.indexOf (symbol) >= 0)
+    if (result.length > 0)
+        if (market.symbols.length > result.length)
+            result = result.join (', ') + ' + more...'
+        else
+            result = result.join (', ')
+    log (market.id.green, market.symbols.length.toString ().bright.green, 'symbols', result)
 }
 
 //-----------------------------------------------------------------------------
@@ -171,6 +232,7 @@ let testMarket = async market => {
     let symbols = [
         'BTC/USD',
         'BTC/CNY',
+        'BTC/EUR',
         'BTC/ETH',
         'ETH/BTC',
         'BTC/JPY',
@@ -326,6 +388,8 @@ var test = async function () {
 
         }
     }
+
+    process.exit ();
 
 } ()
 

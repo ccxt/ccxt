@@ -8,7 +8,7 @@ node test $1 $2
 
 echo
 echo ----------------- Python ------------------
-echo
+# echo Skipped.
 python test.py $1 $2
 
 echo
