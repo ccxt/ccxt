@@ -72,7 +72,7 @@ You can also execute build steps manually to make sure everything works before c
 
 #### Install Dependencies
 
-You will need the latest version of `pandoc` supporting `--wrap=preserve` option. On OSX it can be installed easily with `brew install pandoc` (you will need [brew](https://brew.sh/) as well). For other options see the [`Installing Pandoc`](http://pandoc.org/installing.html) guide.
+You will need the latest version of `pandoc` supporting `--wrap=preserve` option. On OSX it can be installed easily with `brew install pandoc` (you will need [brew](https://brew.sh/) as well). For other options see [Installing pandoc](http://pandoc.org/installing.html).
 
 #### Increment Version Number
 
@@ -218,7 +218,7 @@ The basic JSON-skeleton for a new market integration is as follows:
          "https://www.example.com/docs/api",
          "https://www.example.com/docs/howto",
          "https://github.com/example/docs",
-      ],
+      ]
    },
    "api": {
       "public": {
@@ -231,7 +231,7 @@ The basic JSON-skeleton for a new market integration is as follows:
       "private": {
          "post": [
             "balance",
-         ],
+         ]
       }
    }
 }
