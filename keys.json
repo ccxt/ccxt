@@ -16,7 +16,6 @@
     "btcx":        { "apiKey": "53IPO-ZBQEN-91UNL-B8VD5-CTU1Z-E6RB1-S9X3P", "secret": "ptrearsi6oy1lmzazfcytnbozmsvjsnzha8hrrqqbjlnvgnqlpjb7kqxyency45a" },
     "bter":        { "apiKey": "9600DEB4-B499-417C-B496-5925953236E5", "secret": "c7853b8c94b1ab1b1ce4a9c2e7318cb3bbe9777168ab9b1d0eceb73969b64291" },
     "bxinth":      { "apiKey": "191c59bb46d5", "secret": "03031e588e69" },
-    "ccex":        { "proxy": "https://cors-anywhere.herokuapp.com/", "apiKey": "C23FD689BE30CB6F2BDCF30AA2101AB4", "secret": "CC8A32F31E4956CAA9BE6CD178290F8E" },
     "cex":         { "apiKey": "eqCv267WySlu577JnFbGK2RQzIs", "secret": "pZnbuNEm5eE4W1VRuFQvZEiFCA", "uid": "up105393824" },
     "coincheck":   { "apiKey": "1YBiSTpyEIkchWdE", "secret": "URuZrMASNkcd7vh1zb7zn4IQfZMoai3S" },
     "coinsecure":  { "apiKey": "gzrm0fP6BGMilMzmsoJFPMpWjDvCLThyrVanX0yu" },
