@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.65';
+$version = '1.1.66';
 
 class Market {
 
@@ -3809,11 +3809,12 @@ class bl3p extends Market {
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        $p = $this->product ($product);
         $order = array (
-            'market' => $this->product_id ($product),
+            'market' => $p['id'],
             'amount_int' => $amount,
-            'fee_currency' => p['quote'],
-            'type' => ($side == 'buy') ? bid : ask,
+            'fee_currency' => $p['quote'],
+            'type' => ($side == 'buy') ? 'bid' : 'ask',
         );
         if ($type == 'limit')
             $order['price_int'] = $price;
