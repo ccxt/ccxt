@@ -82,7 +82,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.65'
+__version__ = '1.1.66'
 
 # Python 2 & 3
 import base64
@@ -3654,11 +3654,12 @@ class bl3p (Market):
         })
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
+        p = self.product (product)
         order = {
-            'market': self.product_id (product),
+            'market': p['id'],
             'amount_int': amount,
             'fee_currency': p['quote'],
-            'type': bid if (side == 'buy') else ask,
+            'type': 'bid' if (side == 'buy') else 'ask',
         }
         if type == 'limit':
             order['price_int'] = price
