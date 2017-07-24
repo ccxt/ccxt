@@ -9817,7 +9817,7 @@ var quadrigacx = {
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': undefined,
+            'last': parseFloat (ticker['last']),
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
