@@ -3685,9 +3685,9 @@ var bl3p = {
 
     async fetchBalance () {        
         let response = await this.privatePostGENMKTMoneyInfo ();
-        let balance = response['wallets'];
-
-        let result = { 'info': balance };
+        let data = response['data'];
+        let balance = data['wallets'];
+        let result = { 'info': data };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let account = {
@@ -3697,15 +3697,19 @@ var bl3p = {
             };
             if (currency in balance) {
                 if ('available' in balance[currency]) {
-                    account['free'] = parseFloat (balance[currency]['available']);
+                    account['free'] = parseFloat (balance[currency]['available']['value']);
                 }
             }
             if (currency in balance) {
                 if ('balance' in balance[currency]) {
-                    account['total'] = parseFloat (balance[currency]['balance']);
+                    account['total'] = parseFloat (balance[currency]['balance']['value']);
                 }
             }
-            account['used'] = account['total'] - account['free'];
+            if (account['total']) {
+                if (account['free']) {
+                    account['used'] = account['total'] - account['free'];
+                }
+            }
             result[currency] = account;
         }
         return result;
@@ -3788,8 +3792,8 @@ var bl3p = {
     },
 
     async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request  ='/' + this.version + '/' + this.implodeParams (path, params);
-        let url = this.urls['api'] + request;
+        let request = this.implodeParams (path, params);
+        let url = this.urls['api'] + '/' + this.version + '/' + request;
         let query = this.omit (params, this.extractParams (path));
         if (type == 'public') {
             if (Object.keys (query).length)
@@ -3799,11 +3803,12 @@ var bl3p = {
             body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
             let secret = this.base64ToBinary (this.secret);
             let auth = request + "\0" + body;
+            let signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
                 'Rest-Key': this.apiKey,
-                'Rest-Sign': this.hmac (this.encode (auth), secret, 'sha512', 'base64'),
+                'Rest-Sign': signature,
             };
         }
         return this.fetch (url, method, headers, body);
