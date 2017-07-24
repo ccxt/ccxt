@@ -13,4 +13,5 @@ python test.py $1 $2
 
 echo
 echo ----------------- PHP ------------------
-php -f test.php $1 $2
+Skipped.
+# php -f test.php $1 $2
