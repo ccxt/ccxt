@@ -10197,7 +10197,7 @@ class quadrigacx extends Market {
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => null,
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,

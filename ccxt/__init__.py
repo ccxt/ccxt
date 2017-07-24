@@ -9478,7 +9478,7 @@ class quadrigacx (Market):
             'open': None,
             'close': None,
             'first': None,
-            'last': None,
+            'last': float (ticker['last']),
             'change': None,
             'percentage': None,
             'average': None,
