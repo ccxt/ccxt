@@ -82,7 +82,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.70'
+__version__ = '1.1.71'
 
 # Python 2 & 3
 import base64
@@ -9434,7 +9434,7 @@ class quadrigacx (Market):
         result = { 'info': balances }
         for c in range (0, len (self.currencies)):
             currency = self.currencies[c]
-            lowercase = currency.lower()
+            lowercase = currency.lower ()
             account = {
                 'free': float (balances[lowercase + '_available']),
                 'used': float (balances[lowercase + '_reserved']),
