@@ -68,8 +68,9 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
 
 let testMarketSymbolTicker = async (market, symbol) => {
     await sleep (market.rateLimit)
+    log (market.id.green, symbol.green, 'fetching ticker...')
     let ticker = await market.fetchTicker (symbol)
-    log (market.id.green, symbol, 'ticker',
+    log (market.id.green, symbol.green, 'ticker',
         ticker['datetime'],
         'high: '    + ticker['high'],
         'low: '     + ticker['low'],
@@ -87,8 +88,9 @@ let testMarketSymbolTicker = async (market, symbol) => {
 
 let testMarketSymbolOrderbook = async (market, symbol) => {
     await sleep (market.rateLimit) 
+    log (market.id.green, symbol.green, 'fetching order book...')
     let orderbook = await market.fetchOrderBook (symbol)
-    log (market.id.green, symbol, 'order book',
+    log (market.id.green, symbol.green, 'order book',
         orderbook['datetime'],
         'bid: '       + ((orderbook.bids.length > 0) ? orderbook.bids[0][0] : 'N/A'), 
         'bidVolume: ' + ((orderbook.bids.length > 0) ? orderbook.bids[0][1] : 'N/A'),
@@ -124,8 +126,9 @@ let testMarketSymbolOrderbook = async (market, symbol) => {
 //-----------------------------------------------------------------------------
 
 let testMarketSymbolTrades = async (market, symbol) => {
+    log (market.id.green, symbol.green, 'fetching trades...')
     let trades = await market.fetchTrades (symbol)
-    log (market.id, symbol, 'trades', Object.values (trades).length)
+    log (market.id, symbol.green, 'trades', Object.values (trades).length)
     return trades
 }
 
@@ -146,16 +149,17 @@ let testMarketSymbol = async (market, symbol) => {
 //-----------------------------------------------------------------------------
 
 let testMarketBalance = async (market, symbol) => {
-    await sleep (market.rateLimit) 
+    await sleep (market.rateLimit)
+    log (market.id.green, 'fetching balance...')
     let balance = await market.fetchBalance ()
-    log (market.id.green, 'balance', balance)
+    log (market.id.green, 'balance', market.omit (balance, 'info'))
 }
 
 //-----------------------------------------------------------------------------
 
 let loadMarket = async market => {
     let products  = await market.loadProducts ()
-    log (market.id.green, market.symbols.length, 'symbols', market.symbols.join (', '))
+    log (market.id.green, market.symbols.length.toString ().bright.green, 'symbols', market.symbols.join (', '))
 }
 
 //-----------------------------------------------------------------------------

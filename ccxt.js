@@ -3754,11 +3754,12 @@ var bl3p = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let p = this.product (product);
         let order = {
-            'market': this.productId (product),
+            'market': p['id'],
             'amount_int': amount,
             'fee_currency': p['quote'],
-            'type': (side == 'buy') ? bid : ask,
+            'type': (side == 'buy') ? 'bid' : 'ask',
         };
         if (type == 'limit')
             order['price_int'] = price;

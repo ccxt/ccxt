@@ -28,8 +28,9 @@ def dump (*args):
 def test_market_symbol_orderbook (market, symbol):
     delay = int (market.rateLimit / 1000)
     time.sleep (delay)
+    dump (green (market.id), green (symbol), 'fetching order book...')
     orderbook = market.fetch_order_book (symbol)
-    dump (market.id, symbol, 'order book',
+    dump (green (market.id), green (symbol), 'order book',
         orderbook['datetime'],
         'bid: ' +       str (orderbook['bids'][0][0] if len (orderbook['bids']) else 'N/A'), 
         'bidVolume: ' + str (orderbook['bids'][0][1] if len (orderbook['bids']) else 'N/A'),
@@ -40,8 +41,9 @@ def test_market_symbol_orderbook (market, symbol):
 def test_market_symbol_ticker (market, symbol):
     delay = int (market.rateLimit / 1000)
     time.sleep (delay)
+    dump (green (market.id), green (symbol), 'fetching ticker...')
     ticker = market.fetch_ticker (symbol)
-    dump (market.id, symbol, 'ticker',
+    dump (green (market.id), green (symbol), 'ticker',
         ticker['datetime'],
         'high: '    + str (ticker['high']),
         'low: '     + str (ticker['low']),
@@ -94,7 +96,7 @@ def test_market (market):
         return 
 
     balance = market.fetch_balance ()
-    dump (balance)
+    dump (green (market.id), 'balance', market.omit (balance, 'info'))
     # time.sleep (delay)
 
     amount = 1
