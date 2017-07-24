@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.71';
+$version = '1.1.72';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3905,9 +3905,9 @@ class bl3p extends Market {
 
     public function fetch_balance () {
         $response = $this->privatePostGENMKTMoneyInfo ();
-        $balance = $response['wallets'];
-
-        $result = array ( 'info' => $balance );
+        $data = $response['data'];
+        $balance = $data['wallets'];
+        $result = array ( 'info' => $data );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = array (
@@ -3917,15 +3917,19 @@ class bl3p extends Market {
             );
             if (array_key_exists ($currency, $balance)) {
                 if (array_key_exists ('available', $balance[$currency])) {
-                    $account['free'] = floatval ($balance[$currency]['available']);
+                    $account['free'] = floatval ($balance[$currency]['available']['value']);
                 }
             }
             if (array_key_exists ($currency, $balance)) {
                 if (array_key_exists ('balance', $balance[$currency])) {
-                    $account['total'] = floatval ($balance[$currency]['balance']);
+                    $account['total'] = floatval ($balance[$currency]['balance']['value']);
                 }
             }
-            $account['used'] = $account['total'] - $account['free'];
+            if ($account['total']) {
+                if ($account['free']) {
+                    $account['used'] = $account['total'] - $account['free'];
+                }
+            }
             $result[$currency] = $account;
         }
         return $result;
@@ -4008,8 +4012,8 @@ class bl3p extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request  ='/' . $this->version . '/' . $this->implode_params ($path, $params);
-        $url = $this->urls['api'] . $request;
+        $request = $this->implode_params ($path, $params);
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $request;
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($type == 'public') {
             if ($query)
@@ -4019,11 +4023,12 @@ class bl3p extends Market {
             $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $query));
             $secret = base64_decode ($this->secret);
             $auth = $request . "\0" . $body;
+            $signature = $this->hmac ($this->encode ($auth), $secret, 'sha512', 'base64');
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
                 'Rest-Key' => $this->apiKey,
-                'Rest-Sign' => $this->hmac ($this->encode ($auth), $secret, 'sha512', 'base64'),
+                'Rest-Sign' => $signature,
             );
         }
         return $this->fetch ($url, $method, $headers, $body);

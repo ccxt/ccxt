@@ -217,7 +217,7 @@ The basic JSON-skeleton for a new market integration is as follows:
       "doc": [
          "https://www.example.com/docs/api",
          "https://www.example.com/docs/howto",
-         "https://github.com/example/docs",
+         "https://github.com/example/docs"
       ]
    },
    "api": {
@@ -225,12 +225,12 @@ The basic JSON-skeleton for a new market integration is as follows:
          "get": [
             "endpoint/example",
             "orderbook/{pair}/full",
-            "{pair}/ticker",
+            "{pair}/ticker"
          ]
       },
       "private": {
          "post": [
-            "balance",
+            "balance"
          ]
       }
    }

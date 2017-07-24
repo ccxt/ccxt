@@ -82,7 +82,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.71'
+__version__ = '1.1.72'
 
 # Python 2 & 3
 import base64
@@ -3582,9 +3582,9 @@ class bl3p (Market):
 
     def fetch_balance (self):
         response = self.privatePostGENMKTMoneyInfo ()
-        balance = response['wallets']
-
-        result = { 'info': balance }
+        data = response['data']
+        balance = data['wallets']
+        result = { 'info': data }
         for c in range (0, len (self.currencies)):
             currency = self.currencies[c]
             account = {
@@ -3594,11 +3594,13 @@ class bl3p (Market):
             }
             if currency in balance:
                 if 'available' in balance[currency]:
-                    account['free'] = float (balance[currency]['available'])
+                    account['free'] = float (balance[currency]['available']['value'])
             if currency in balance:
                 if 'balance' in balance[currency]:
-                    account['total'] = float (balance[currency]['balance'])
-            account['used'] = account['total'] - account['free']
+                    account['total'] = float (balance[currency]['balance']['value'])
+            if account['total']:
+                if account['free']:
+                    account['used'] = account['total'] - account['free']
             result[currency] = account
         return result
 
@@ -3672,8 +3674,8 @@ class bl3p (Market):
         return self.privatePostMarketMoneyOrderCancel ({ 'order_id': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        request  ='/' + self.version + '/' + self.implode_params (path, params)
-        url = self.urls['api'] + request
+        request = self.implode_params (path, params)
+        url = self.urls['api'] + '/' + self.version + '/' + request
         query = self.omit (params, self.extract_params (path))
         if type == 'public':
             if query:
@@ -3683,11 +3685,12 @@ class bl3p (Market):
             body = _urlencode.urlencode (self.extend ({ 'nonce': nonce }, query))
             secret = base64.b64decode (self.secret)
             auth = request + "\0" + body
+            signature = self.hmac (self.encode (auth), secret, hashlib.sha512, 'base64')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
                 'Rest-Key': self.apiKey,
-                'Rest-Sign': self.hmac (self.encode (auth), secret, hashlib.sha512, 'base64'),
+                'Rest-Sign': signature,
             }
         return self.fetch (url, method, headers, body)
 

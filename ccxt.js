@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.71'
+var version = '1.1.72'
 var isNode  = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
@@ -9817,7 +9817,7 @@ var quadrigacx = {
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': undefined,
+            'last': parseFloat (ticker['last']),
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
