@@ -82,7 +82,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.68'
+__version__ = '1.1.69'
 
 # Python 2 & 3
 import base64
@@ -823,9 +823,9 @@ class cryptocapital (Market):
                 'total': None,
             }
             if currency in balance['available']:
-                account['free'] = balance['available'][currency]
+                account['free'] = float (balance['available'][currency])
             if currency in balance['on_hold']:
-                account['used'] = balance['on_hold'][currency]
+                account['used'] = float (balance['on_hold'][currency])
             account['total'] = self.sum (account['free'], account['used'])
             result[currency] = account
         return result
@@ -3871,6 +3871,10 @@ class btcchina (Market):
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
+            if not self.apiKey:
+                raise AuthenticationError (self.id + ' requires `' + self.id + '.apiKey` property for authentication')
+            if not self.secret:
+                raise AuthenticationError (self.id + ' requires `' + self.id + '.secret` property for authentication')
             p = []
             if 'params' in params:
                 p = params['params']
@@ -3890,11 +3894,11 @@ class btcchina (Market):
                 '&method=' + path +
                 '&params=' + p
             )
-            signature = self.hmac (self.encode (query), self.secret, hashlib.sha1)
+            signature = self.hmac (self.encode (query), self.encode (self.secret), hashlib.sha1)
             auth = self.apiKey + ':' + signature
             headers = {
                 'Content-Length': len (body),
-                'Authorization': 'Basic ' + base64.b64encode (query),
+                'Authorization': 'Basic ' + base64.b64encode (auth),
                 'Json-Rpc-Tonce': nonce,
             }
         return self.fetch (url, method, headers, body)
@@ -5449,7 +5453,24 @@ class coincheck (Market):
         super (coincheck, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privateGetAccountsBalance ()
+        balances = self.privateGetAccountsBalance ()
+        result = { 'info': balances }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            lowercase = currency.lower ()
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if lowercase in balances:
+                account['free'] = float (balances[lowercase])
+            reserved = lowercase + '_reserved'
+            if reserved in balances:
+                account['used'] = float (balances[reserved])
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook =  self.publicGetOrderBooks ()

@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.68';
+$version = '1.1.69';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -955,9 +955,9 @@ class cryptocapital extends Market {
                 'total' => null,
             );
             if (array_key_exists ($currency, $balance['available']))
-                $account['free'] = $balance['available'][$currency];
+                $account['free'] = floatval ($balance['available'][$currency]);
             if (array_key_exists ($currency, $balance['on_hold']))
-                $account['used'] = $balance['on_hold'][$currency];
+                $account['used'] = floatval ($balance['on_hold'][$currency]);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
@@ -4220,6 +4220,10 @@ class btcchina extends Market {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
+            if (!$this->apiKey)
+                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.apiKey` property for authentication');
+            if (!$this->secret)
+                throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.secret` property for authentication');
             $p = array ();
             if (array_key_exists ('params', $params))
                 $p = $params['params'];
@@ -4239,11 +4243,11 @@ class btcchina extends Market {
                 '&$method=' . $path +
                 '&$params=' . $p
             );
-            $signature = $this->hmac ($this->encode ($query), $this->secret, 'sha1');
+            $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha1');
             $auth = $this->apiKey . ':' . $signature;
             $headers = array (
                 'Content-Length' => strlen ($body),
-                'Authorization' => 'Basic ' . base64_encode ($query),
+                'Authorization' => 'Basic ' . base64_encode ($auth),
                 'Json-Rpc-Tonce' => $nonce,
             );
         }
@@ -5905,7 +5909,25 @@ class coincheck extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privateGetAccountsBalance ();
+        $balances = $this->privateGetAccountsBalance ();
+        $result = array ( 'info' => $balances );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $lowercase = strtolower ($currency);
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            if (array_key_exists ($lowercase, $balances))
+                $account['free'] = floatval ($balances[$lowercase]);
+            $reserved = $lowercase . '_reserved';
+            if (array_key_exists ($reserved, $balances))
+                $account['used'] = floatval ($balances[$reserved]);
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
