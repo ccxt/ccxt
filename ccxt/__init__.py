@@ -16,6 +16,7 @@ markets = [
     'bitso',
     'bitstamp',
     'bittrex',
+    'bl3p',
     'btcchina',
     'btce',
     'btcexchange',
@@ -3517,6 +3518,174 @@ class blinktrade (Market):
 
 #------------------------------------------------------------------------------
 
+class bl3p (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'bl3p',
+            'name': 'BL3P',
+            'countries': [ 'NL', 'EU' ], # Netherlands, EU
+            'rateLimit': 1000,
+            'version': '1',
+            'comment': 'An exchange market by BitonicNL',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
+                'api': 'https://api.bl3p.eu',
+                'www': [
+                    'https://bl3p.eu',
+                    'https://bitonic.nl',
+                ],
+                'doc': [
+                    'https://github.com/BitonicNL/bl3p-api/tree/master/docs',
+                    'https://bl3p.eu/api',
+                    'https://bitonic.nl/en/api',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        '{market}/ticker',
+                        '{market}/orderbook',
+                        '{market}/trades',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        '{market}/money/depth/full',
+                        '{market}/money/order/add',
+                        '{market}/money/order/cancel',
+                        '{market}/money/order/result',
+                        '{market}/money/orders',
+                        '{market}/money/orders/history',
+                        '{market}/money/trades/fetch',
+                        'GENMKT/money/info',
+                        'GENMKT/money/deposit_address',
+                        'GENMKT/money/new_deposit_address',
+                        'GENMKT/money/wallet/history',
+                        'GENMKT/money/withdraw',
+                    ],
+                },
+            },
+            'products': {
+                'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+                'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
+            },
+        }
+        params.update (config)
+        super (bl3p, self).__init__ (params)
+
+    def fetch_balance (self):
+        response = self.privatePostGENMKTMoneyInfo ()
+        balance = response['wallets']
+
+        result = { 'info': balance }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in balance:
+                if 'available' in balance[currency]:
+                    account['free'] = float (balance[currency]['available'])
+            if currency in balance:
+                if 'balance' in balance[currency]:
+                    account['total'] = float (balance[currency]['balance'])
+            account['used'] = account['total'] - account['free']
+            result[currency] = account
+        return result
+
+    def fetch_order_book (self, product):
+        p = self.product (product)
+        response = self.publicGetMarketOrderbook ({
+            'market': p['id'],
+        })
+        orderbook = response['data']
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = order['price_int'] / 100000
+                amount = order['amount_int'] / 100000000
+                result[side].append ([ price, amount ])
+        return result
+
+    def fetch_ticker (self, product):
+        ticker = self.publicGetMarketTicker ({
+            'market': self.product_id (product),
+        })        
+        timestamp = ticker['timestamp'] * 1000
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['bid']),
+            'ask': float (ticker['ask']),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['volume']['24h']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetMarketTrades ({
+            'market': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        order = {
+            'market': self.product_id (product),
+            'amount_int': amount,
+            'fee_currency': p['quote'],
+            'type': bid if (side == 'buy') else ask,
+        }
+        if type == 'limit':
+            order['price_int'] = price
+        return self.privatePostMarketMoneyOrderAdd (self.extend (order, params))
+
+    def cancel_order (self, id):
+        return self.privatePostMarketMoneyOrderCancel ({ 'order_id': id })
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        request  ='/' + self.version + '/' + self.implode_params (path, params)
+        url = self.urls['api'] + request
+        query = self.omit (params, self.extract_params (path))
+        if type == 'public':
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
+            nonce = self.nonce ()
+            body = _urlencode.urlencode (self.extend ({ 'nonce': nonce }, query))
+            secret = base64.b64decode (self.secret)
+            auth = request + "\0" + body
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': len (body),
+                'Rest-Key': self.apiKey,
+                'Rest-Sign': self.hmac (self.encode (auth), secret, hashlib.sha512, 'base64'),
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class btcchina (Market):
 
     def __init__ (self, config = {}):
@@ -5058,14 +5227,13 @@ class cex (Market):
         result = { 'info': balances }
         for c in range (0, len (self.currencies)):
             currency = self.currencies[c]
-            uppercase = currency.upper ()
             account = {
                 'free': float (balances[currency]['available']),
                 'used': float (balances[currency]['orders']),
                 'total': None,
             }
             account['total'] = self.sum (account['free'], account['used'])
-            result[uppercase] = account
+            result[currency] = account
         return result
 
     def fetch_order_book (self, product):

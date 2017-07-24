@@ -32,6 +32,7 @@ class Market {
         'bitso',
         'bitstamp',
         'bittrex',
+        'bl3p',
         'btcchina',
         'btce',
         'btcexchange',
@@ -3665,6 +3666,189 @@ class blinktrade extends Market {
 
 //-----------------------------------------------------------------------------
 
+class bl3p extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'bl3p',
+            'name' => 'BL3P',
+            'countries' => array ( 'NL', 'EU' ), // Netherlands, EU
+            'rateLimit' => 1000,
+            'version' => '1',
+            'comment' => 'An exchange market by BitonicNL',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
+                'api' => 'https://api.bl3p.eu',
+                'www' => array (
+                    'https://bl3p.eu',
+                    'https://bitonic.nl',
+                ),
+                'doc' => array (
+                    'https://github.com/BitonicNL/bl3p-api/tree/master/docs',
+                    'https://bl3p.eu/api',
+                    'https://bitonic.nl/en/api',
+                ),
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        '{market}/ticker',
+                        '{market}/orderbook',
+                        '{market}/trades',
+                    ),
+                ),
+                'private' => array (
+                    'post' => array (
+                        '{market}/money/depth/full',
+                        '{market}/money/order/add',
+                        '{market}/money/order/cancel',
+                        '{market}/money/order/result',
+                        '{market}/money/orders',
+                        '{market}/money/orders/history',
+                        '{market}/money/trades/fetch',
+                        'GENMKT/money/info',
+                        'GENMKT/money/deposit_address',
+                        'GENMKT/money/new_deposit_address',
+                        'GENMKT/money/wallet/history',
+                        'GENMKT/money/withdraw',
+                    ),
+                ),
+            ),
+            'products' => array (
+                'BTC/EUR' => array ( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
+                'LTC/EUR' => array ( 'id' => 'LTCEUR', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR' ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_balance () {
+        $response = $this->privatePostGENMKTMoneyInfo ();
+        $balance = $response['wallets'];
+
+        $result = array ( 'info' => $balance );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            if (array_key_exists ($currency, $balance)) {
+                if (array_key_exists ('available', $balance[$currency])) {
+                    $account['free'] = floatval ($balance[$currency]['available']);
+                }
+            }
+            if (array_key_exists ($currency, $balance)) {
+                if (array_key_exists ('balance', $balance[$currency])) {
+                    $account['total'] = floatval ($balance[$currency]['balance']);
+                }
+            }
+            $account['used'] = $account['total'] - $account['free'];
+            $result[$currency] = $account;
+        }
+        return $result;
+    }
+
+    public function fetch_order_book ($product) {
+        $p = $this->product ($product);
+        $response = $this->publicGetMarketOrderbook (array (
+            'market' => $p['id'],
+        ));
+        $orderbook = $response['data'];
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = $order['price_int'] / 100000;
+                $amount = $order['amount_int'] / 100000000;
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $ticker = $this->publicGetMarketTicker (array (
+            'market' => $this->product_id ($product),
+        ));        
+        $timestamp = $ticker['timestamp'] * 1000;
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['volume']['24h']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetMarketTrades (array (
+            'market' => $this->product_id ($product),
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        $order = array (
+            'market' => $this->product_id ($product),
+            'amount_int' => $amount,
+            'fee_currency' => p['quote'],
+            'type' => ($side == 'buy') ? bid : ask,
+        );
+        if ($type == 'limit')
+            $order['price_int'] = $price;
+        return $this->privatePostMarketMoneyOrderAdd (array_merge ($order, $params));
+    }
+
+    public function cancel_order ($id) {
+        return $this->privatePostMarketMoneyOrderCancel (array ( 'order_id' => $id ));
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $request  ='/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'] . $request;
+        $query = $this->omit ($params, $this->extract_params ($path));
+        if ($type == 'public') {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
+        } else {
+            $nonce = $this->nonce ();
+            $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $query));
+            $secret = base64_decode ($this->secret);
+            $auth = $request . "\0" . $body;
+            $headers = array (
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body),
+                'Rest-Key' => $this->apiKey,
+                'Rest-Sign' => $this->hmac ($this->encode ($auth), $secret, 'sha512', 'base64'),
+            );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 class btcchina extends Market {
 
     public function __construct ($options = array ()) {
@@ -5313,14 +5497,13 @@ class cex extends Market {
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
-            $uppercase = strtoupper ($currency);
             $account = array (
                 'free' => floatval ($balances[$currency]['available']),
                 'used' => floatval ($balances[$currency]['orders']),
                 'total' => null,
             );
             $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$uppercase] = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
