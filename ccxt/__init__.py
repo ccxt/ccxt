@@ -27,6 +27,7 @@ markets = [
     'bxinth',
     'ccex',
     'cex',
+    'chbtc',
     'chilebit',
     'coincheck',
     'coinmarketcap',
@@ -5341,6 +5342,182 @@ class cex (Market):
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
             }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
+class chbtc (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'chbtc',
+            'name': 'CHBTC',
+            'countries': 'CN',
+            'rateLimit': 1000,
+            'version': 'v1',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg',
+                'api': {
+                    'public': 'http://api.chbtc.com/data', # no https for public API
+                    'private': 'https://trade.chbtc.com/api',
+                },
+                'www': 'https://trade.chbtc.com/api',
+                'doc': 'https://www.chbtc.com/i/developer',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'ticker',
+                        'depth',
+                        'trades',
+                        'kline',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'order',
+                        'cancelOrder',
+                        'getOrder',
+                        'getOrders',
+                        'getOrdersNew',
+                        'getOrdersIgnoreTradeType',
+                        'getUnfinishedOrdersIgnoreTradeType',
+                        'getAccountInfo',
+                        'getUserAddress',
+                        'getWithdrawAddress',
+                        'getWithdrawRecord',
+                        'getChargeRecord',
+                        'getCnyWithdrawRecord',
+                        'getCnyChargeRecord',
+                        'withdraw',
+                    ],
+                },
+            },
+            'products': {
+                'BTC/CNY': { 'id': 'btc_cny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', },
+                'LTC/CNY': { 'id': 'ltc_cny', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', },
+                'ETH/CNY': { 'id': 'eth_cny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY', },
+                'ETC/CNY': { 'id': 'etc_cny', 'symbol': 'ETC/CNY', 'base': 'ETC', 'quote': 'CNY', },
+                'BTS/CNY': { 'id': 'bts_cny', 'symbol': 'BTS/CNY', 'base': 'BTS', 'quote': 'CNY', },
+                'EOS/CNY': { 'id': 'eos_cny', 'symbol': 'EOS/CNY', 'base': 'EOS', 'quote': 'CNY', },
+            },
+        }
+        params.update (config)
+        super (chbtc, self).__init__ (params)
+
+    def fetch_products (self):
+        products = self.publicGetPairSettings ()
+        keys = list (products.keys ())
+        result = []
+        for p in range (0, len (keys)):
+            id = keys[p]
+            product = products[id]
+            symbol = id.replace ('_', '/')
+            base, quote = symbol.split ('/')
+            result.append ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            })
+        return result
+
+    def fetch_balance (self):
+        response = self.privatePostGetAccountInfo ()
+        balances = response['result']
+        result = { 'info': balances }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in balances['balance']:
+                account['free'] = balances['balance'][currency]['amount']
+            if currency in balances['frozen']:
+                account['used'] = balances['frozen'][currency]['amount']
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
+
+    def fetch_order_book (self, product):
+        p = self.product (product)
+        orderbook = self.publicGetDepth ({
+            'currency': p['id'],
+        })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        result['bids'] = self.sort_by (result['bids'], 0, True)
+        result['asks'] = self.sort_by (result['asks'], 0)
+        return result
+
+    def fetch_ticker (self, product):
+        response = self.publicGetTicker ({
+            'currency': self.product_id (product),
+        })
+        ticker = response['ticker']
+        timestamp = self.milliseconds ()
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['buy']),
+            'ask': float (ticker['sell']),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['vol']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetTrades ({
+            'currency': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        paramString = 'price=' + price
+        paramString += '&amount=' + amount
+        paramString += '&tradeType=' + '1' if (side == 'buy') else '0'
+        paramString += '&currency=' + self.product_id (product)
+        return self.privatePostOrder (paramString)
+
+    def cancel_order (self, id, params = {}):
+        return self.privatePostCancelOrder (self.extend ({ 'id': id }, params))
+
+    def nonce (self):
+        return self.milliseconds ()
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][type] 
+        if type == 'public':
+            url += '/' + self.version + '/' + path
+            if params:
+                url += '?' + _urlencode.urlencode (params)
+        else:
+            paramsLength = len (params) # params should be a string herenot 
+            nonce = self.nonce ()            
+            auth = 'method=' + path            
+            auth += '&accesskey=' + self.apiKey            
+            auth += params if paramsLength else ''
+            secret = self.hash (self.encode (self.secret), 'sha1')
+            signature = self.hmac (self.encode (auth), self.encode (secret), hashlib.md5)
+            suffix = 'sign=' + signature + '&reqTime=' + str (nonce)
+            url += '/' + path + '?' + auth + '&' + suffix
         return self.fetch (url, method, headers, body)
 
 #------------------------------------------------------------------------------
