@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.78';
+$version = '1.1.79';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -170,6 +170,7 @@ class Market {
         'virwox',
         'xbtce',
         'yobit',
+        'yunbi',
         'zaif',
     );
 
@@ -11879,6 +11880,208 @@ class yobit extends Market {
                 'key' => $this->apiKey,
                 'sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+class yunbi extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'yunbi',
+            'name' => 'YUNBI',
+            'countries' => 'CN',
+            'rateLimit' => 1000,
+            'version' => 'v2',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg',
+                'api' => 'https://yunbi.com',
+                'www' => '',
+                'doc' => array (
+                    'https://yunbi.com/documents/api/guide',
+                    'https://yunbi.com/swagger/',
+                ),
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'tickers',
+                        'tickers/{market}',
+                        'markets',
+                        'order_book',
+                        'k',
+                        'depth',
+                        'trades',
+                        'k_with_pending_trades',
+                        'timestamp',
+                        'addresses/{address}',
+                        'partners/orders/{id}/trades',
+                    ),
+                ),
+                'private' => array (
+                    'get' => array (
+                        'deposits',
+                        'members/me',
+                        'deposit',
+                        'deposit_address',
+                        'order',
+                        'orders',
+                        'trades/my',
+                    ),
+                    'post' => array (
+                        'order/delete',
+                        'orders',
+                        'orders/multi',
+                        'orders/clear',
+                    ),
+                ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_products () {
+        $products = $this->publicGetMarkets ();
+        $result = array ();
+        for ($p = 0; $p < count ($products); $p++) {
+            $product = $products[$p];
+            $id = $product['id'];
+            $symbol = $product['name'];
+            list ($base, $quote) = explode ('/', $symbol);
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_balance () {
+        $response = $this->privateGetMembersMe ();
+        $balances = $response['accounts'];
+        $result = array ( 'info' => $balances );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
+            $currency = $balance['currency'];
+            $uppercase = strtoupper ($currency);
+            $account = array (
+                'free' => floatval ($balance['balance']),
+                'used' => floatval ($balance['locked']),
+                'total' => null,
+            );
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$uppercase] = $account;
+        }
+        return $result;
+    }
+
+    public function fetch_order_book ($product) {
+        $p = $this->product ($product);
+        $orderbook = $this->publicGetDepth (array (
+            'market' => $p['id'],
+        ));
+        $timestamp = $orderbook['timestamp'] * 1000;
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        $result['bids'] = $this->sort_by ($result['bids'], 0, true);
+        $result['asks'] = $this->sort_by ($result['asks'], 0);
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $response = $this->publicGetTickersMarket (array (
+            'market' => $this->product_id ($product),
+        ));
+        $ticker = $response['ticker'];
+        $timestamp = $response['at'] * 1000;
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['vol']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetTrades (array (
+            'pair' => $this->product_id ($product),
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        $order = array (
+            'market' => $this->product_id ($product),
+            'side' => $side,
+            'volume' => $amount,
+            'ord_type' => $type,
+        );
+        if ($type == 'market') {
+            $order['price'] = $price;
+        }
+        return $this->privatePostOrders (array_merge ($order, $params));
+    }
+
+    public function cancel_order ($id) {
+        return $this->privatePostOrderDelete (array ( 'id' => $id ));
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $request = '/api/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $query = $this->omit ($params, $this->extract_params ($path));
+        $url = $this->urls['api'] . $request . '.json';
+        if ($type == 'public') {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
+        } else {
+            $nonce = (string) $this->nonce ();
+            $query = $this->urlencode ($this->keysort (array_merge (array (
+                'access_key' => $this->apiKey,
+                'tonce' => $nonce,
+            ), $params)));
+            $auth = $method . '|' . $request . '|' . $query;
+            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
+            $suffix = $query . '&$signature=' . $signature;
+            if ($method == 'GET') {
+                $url .= '?' . $suffix;
+            } else {
+                $body = $suffix;
+                $headers = array (
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                );
+            }
         }
         return $this->fetch ($url, $method, $headers, $body);
     }

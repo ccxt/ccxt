@@ -67,6 +67,7 @@ markets = [
     'virwox',
     'xbtce',
     'yobit',
+    'yunbi',
     'zaif',
 ]
 
@@ -83,7 +84,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.78'
+__version__ = '1.1.79'
 
 # Python 2 & 3
 import base64
@@ -11055,6 +11056,193 @@ class yobit (Market):
                 'key': self.apiKey,
                 'sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512),
             }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
+class yunbi (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'yunbi',
+            'name': 'YUNBI',
+            'countries': 'CN',
+            'rateLimit': 1000,
+            'version': 'v2',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg',
+                'api': 'https://yunbi.com',
+                'www': '',
+                'doc': [
+                    'https://yunbi.com/documents/api/guide',
+                    'https://yunbi.com/swagger/',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'tickers',
+                        'tickers/{market}',
+                        'markets',
+                        'order_book',
+                        'k',
+                        'depth',
+                        'trades',
+                        'k_with_pending_trades',
+                        'timestamp',
+                        'addresses/{address}',
+                        'partners/orders/{id}/trades',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'deposits',
+                        'members/me',
+                        'deposit',
+                        'deposit_address',
+                        'order',
+                        'orders',
+                        'trades/my',
+                    ],
+                    'post': [
+                        'order/delete',
+                        'orders',
+                        'orders/multi',
+                        'orders/clear',
+                    ],
+                },
+            },
+        }
+        params.update (config)
+        super (yunbi, self).__init__ (params)
+
+    def fetch_products (self):
+        products = self.publicGetMarkets ()
+        result = []
+        for p in range (0, len (products)):
+            product = products[p]
+            id = product['id']
+            symbol = product['name']
+            base, quote = symbol.split ('/')
+            result.append ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            })
+        return result
+
+    def fetch_balance (self):
+        response = self.privateGetMembersMe ()
+        balances = response['accounts']
+        result = { 'info': balances }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = balance['currency']
+            uppercase = currency.upper ()
+            account = {
+                'free': float (balance['balance']),
+                'used': float (balance['locked']),
+                'total': None,
+            }
+            account['total'] = self.sum (account['free'], account['used'])
+            result[uppercase] = account
+        return result
+
+    def fetch_order_book (self, product):
+        p = self.product (product)
+        orderbook = self.publicGetDepth ({
+            'market': p['id'],
+        })
+        timestamp = orderbook['timestamp'] * 1000
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order[0])
+                amount = float (order[1])
+                result[side].append ([ price, amount ])
+        result['bids'] = self.sort_by (result['bids'], 0, True)
+        result['asks'] = self.sort_by (result['asks'], 0)
+        return result
+
+    def fetch_ticker (self, product):
+        response = self.publicGetTickersMarket ({
+            'market': self.product_id (product),
+        })
+        ticker = response['ticker']
+        timestamp = response['at'] * 1000
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['buy']),
+            'ask': float (ticker['sell']),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['vol']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetTrades ({
+            'pair': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        order = {
+            'market': self.product_id (product),
+            'side': side,
+            'volume': amount,
+            'ord_type': type,
+        }
+        if type == 'market':
+            order['price'] = price
+        return self.privatePostOrders (self.extend (order, params))
+
+    def cancel_order (self, id):
+        return self.privatePostOrderDelete ({ 'id': id })
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        request = '/api/' + self.version + '/' + self.implode_params (path, params)
+        query = self.omit (params, self.extract_params (path))
+        url = self.urls['api'] + request + '.json'
+        if type == 'public':
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
+            nonce = str (self.nonce ())
+            query = _urlencode.urlencode (self.keysort (self.extend ({
+                'access_key': self.apiKey,
+                'tonce': nonce,
+            }, params)))
+            auth = method + '|' + request + '|' + query
+            signature = self.hmac (self.encode (auth), self.encode (self.secret))
+            suffix = query + '&signature=' + signature
+            if method == 'GET':
+                url += '?' + suffix
+            else:
+                body = suffix
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
         return self.fetch (url, method, headers, body)
 
 #------------------------------------------------------------------------------
