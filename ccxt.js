@@ -5959,8 +5959,25 @@ var coinmate = {
         'BTC/CZK': { 'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK'  },
     },
 
-    fetchBalance () {
-        return this.privatePostBalances ();
+    async fetchBalance () {
+        let response = await this.privatePostBalances ();
+        let balances = response['data'];
+        let result = { 'info': balances };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if (currency in balances) {
+                account['free'] = balances[currency]['available'];
+                account['used'] = balances[currency]['reserved'];
+                account['total'] = balances[currency]['balance'];
+            }            
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
@@ -6056,8 +6073,8 @@ var coinmate = {
             if (!this.uid)
                 throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication');
             let nonce = this.nonce ().toString ();
-            let auth = [ nonce, this.uid, this.apiKey ].join (' ');
-            let signature = this.hmac (this.encode (auth), this.secret);
+            let auth = nonce + this.uid + this.apiKey;
+            let signature = this.hmac (this.encode (auth), this.encode (this.secret));
             body = this.urlencode (this.extend ({
                 'clientId': this.uid,
                 'nonce': nonce,
@@ -6066,7 +6083,6 @@ var coinmate = {
             }, params));
             headers = {
                 'Content-Type':  'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
             };
         }
         return this.fetch (url, method, headers, body);
