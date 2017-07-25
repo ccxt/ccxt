@@ -602,7 +602,7 @@ class _1broker (Market):
             'id': '_1broker',
             'name': '1Broker',
             'countries': 'US',
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'version': 'v2',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg',
@@ -979,7 +979,7 @@ class anxpro (Market):
             'name': 'ANXPro',
             'countries': [ 'JP', 'SG', 'HK', 'NZ', ],
             'version': '2',
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
                 'api': 'https://anxpro.com/api',
@@ -1465,7 +1465,7 @@ class bitbays (Market):
             'id': 'bitbays',
             'name': 'BitBays',
             'countries': [ 'CN', 'GB', 'HK', 'AU', 'CA' ],
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27808599-983687d2-6051-11e7-8d95-80dfcbe5cbb4.jpg',
@@ -1788,7 +1788,7 @@ class bitfinex (Market):
             'name': 'Bitfinex',
             'countries': 'US',
             'version': 'v1',
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
                 'api': 'https://api.bitfinex.com',
@@ -2202,7 +2202,7 @@ class bitlish (Market):
             'id': 'bitlish',
             'name': 'bitlish',
             'countries': [ 'GB', 'EU', 'RU', ],
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
@@ -2396,7 +2396,7 @@ class bitmarket (Market):
             'id': 'bitmarket',
             'name': 'BitMarket',
             'countries': [ 'PL', 'EU', ],
-            'rateLimit': 3000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg',
                 'api': {
@@ -2579,7 +2579,7 @@ class bitmex (Market):
             'name': 'BitMEX',
             'countries': 'SC', # Seychelles
             'version': 'v1',
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
                 'api': 'https://www.bitmex.com',
@@ -3188,7 +3188,7 @@ class bittrex (Market):
             'name': 'Bittrex',
             'countries': 'US',
             'version': 'v1.1',
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
                 'api': 'https://bittrex.com/api',
@@ -3703,7 +3703,7 @@ class btcchina (Market):
             'id': 'btcchina',
             'name': 'BTCChina',
             'countries': 'CN',
-            'rateLimit': 3000,
+            'rateLimit': 1500,
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg',
@@ -4247,7 +4247,7 @@ class btcexchange (btctrader):
             'id': 'btcexchange',
             'name': 'BTCExchange',
             'countries': 'PH', # Philippines
-            'rateLimit': 3000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27993052-4c92911a-64aa-11e7-96d8-ec6ac3435757.jpg',
                 'api': 'https://www.btcexchange.ph/api',
@@ -4270,7 +4270,7 @@ class btctradeua (Market):
             'id': 'btctradeua',
             'name': 'BTC Trade UA',
             'countries': 'UA', # Ukraine,
-            'rateLimit': 2000,
+            'rateLimit': 3000,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
                 'api': 'https://btc-trade.com.ua/api',
@@ -4492,7 +4492,7 @@ class btcx (Market):
             'id': 'btcx',
             'name': 'BTCX',
             'countries': [ 'IS', 'US', 'EU', ],
-            'rateLimit': 3000, # support in english is very poor, unable to tell rate limits
+            'rateLimit': 1500, # support in english is very poor, unable to tell rate limits
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg',
@@ -4812,7 +4812,7 @@ class bxinth (Market):
             'id': 'bxinth',
             'name': 'BX.in.th',
             'countries': 'TH', # Thailand
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
                 'api': 'https://bx.in.th/api',
@@ -5001,7 +5001,7 @@ class ccex (Market):
             'id': 'ccex',
             'name': 'C-CEX',
             'countries': [ 'DE', 'EU', ],
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
                 'api': {
@@ -5181,7 +5181,7 @@ class cex (Market):
             'id': 'cex',
             'name': 'CEX.IO',
             'countries': [ 'GB', 'EU', 'CY', 'RU', ],
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
                 'api': 'https://cex.io/api',
@@ -5378,7 +5378,7 @@ class coincheck (Market):
             'id': 'coincheck',
             'name': 'coincheck',
             'countries': [ 'JP', 'ID', ],
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
                 'api': 'https://coincheck.com/api',
@@ -6032,7 +6032,24 @@ class coinsecure (Market):
         super (coinsecure, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privateGetUserExchangeBankSummary ()
+        response = self.privateGetUserExchangeBankSummary ()
+        balance = response['message']
+        coin = {
+            'free': balance['availableCoinBalance'],
+            'used': balance['pendingCoinBalance'],
+            'total': balance['totalCoinBalance'],
+        }
+        fiat = {
+            'free': balance['availableFiatBalance'],
+            'used': balance['pendingFiatBalance'],
+            'total': balance['totalFiatBalance'],
+        }
+        result = {
+            'info': balance,
+            'BTC': coin,
+            'INR': fiat,
+        }
+        return result
 
     def fetch_order_book (self, product):
         bids = self.publicGetExchangeBidOrders ()
@@ -6269,7 +6286,7 @@ class dsx (Market):
             'id': 'dsx',
             'name': 'DSX',
             'countries': 'UK',
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
                 'api': {
@@ -6799,7 +6816,7 @@ class fyb (Market):
 
     def __init__ (self, config = {}):
         params = {
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'api': {
                 'public': {
                     'get': [
@@ -7147,7 +7164,7 @@ class gemini (Market):
             'id': 'gemini',
             'name': 'Gemini',
             'countries': 'US',
-            'rateLimit': 2000, # 200 for private API
+            'rateLimit': 1500, # 200 for private API
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
@@ -7316,7 +7333,7 @@ class hitbtc (Market):
             'id': 'hitbtc',
             'name': 'HitBTC',
             'countries': 'HK', # Hong Kong
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'version': '1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
@@ -7498,7 +7515,7 @@ class huobi (Market):
             'id': 'huobi',
             'name': 'Huobi',
             'countries': 'CN',
-            'rateLimit': 5000,
+            'rateLimit': 2000,
             'version': 'v3',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
@@ -7652,7 +7669,7 @@ class itbit (Market):
             'id': 'itbit',
             'name': 'itBit',
             'countries': 'US',
-            'rateLimit': 3000,
+            'rateLimit': 2000,
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
@@ -7816,7 +7833,7 @@ class jubi (Market):
             'id': 'jubi',
             'name': 'jubi.com',
             'countries': 'CN',
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg',
@@ -7982,7 +7999,7 @@ class kraken (Market):
             'name': 'Kraken',
             'countries': 'US',
             'version': '0',
-            'rateLimit': 3000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
                 'api': 'https://api.kraken.com',
@@ -8556,7 +8573,7 @@ class luno (Market):
             'id': 'luno',
             'name': 'luno',
             'countries': [ 'GB', 'SG', 'ZA', ],
-            'rateLimit': 5000,
+            'rateLimit': 3000,
             'version': '1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
@@ -8873,7 +8890,7 @@ class okcoin (Market):
     def __init__ (self, config = {}):
         params = {
             'version': 'v1',
-            'rateLimit': 2000, # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            'rateLimit': 1000, # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'api': {
                 'public': {
                     'get': [
@@ -9078,7 +9095,7 @@ class paymium (Market):
             'id': 'paymium',
             'name': 'Paymium',
             'countries': [ 'FR', 'EU', ],
-            'rateLimit': 3000,
+            'rateLimit': 2000,
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
@@ -9230,7 +9247,7 @@ class poloniex (Market):
             'id': 'poloniex',
             'name': 'Poloniex',
             'countries': 'US',
-            'rateLimit': 1000, # 6 calls per second
+            'rateLimit': 500, # 6 calls per second
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
                 'api': {
@@ -9404,7 +9421,7 @@ class quadrigacx (Market):
             'id': 'quadrigacx',
             'name': 'QuadrigaCX',
             'countries': 'CA',
-            'rateLimit': 2000,
+            'rateLimit': 1000,
             'version': 'v2',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg',
@@ -9559,7 +9576,7 @@ class quoine (Market):
             'name': 'QUOINE',
             'countries': [ 'JP', 'SG', 'VN' ],
             'version': '2',
-            'rateLimit': 2000,
+            'rateLimit': 1000,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766844-9615a4e8-5ee8-11e7-8814-fcd004db8cdd.jpg',
                 'api': 'https://api.quoine.com',
@@ -9738,6 +9755,7 @@ class southxchange (Market):
             'id': 'southxchange',
             'name': 'SouthXchange',
             'countries': 'AR', # Argentina
+            'rateLimit': 1000,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
                 'api': 'https://www.southxchange.com/api',
@@ -10868,7 +10886,7 @@ class zaif (Market):
             'id': 'zaif',
             'name': 'Zaif',
             'countries': 'JP',
-            'rateLimit': 3000,
+            'rateLimit': 2000,
             'version': '1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',

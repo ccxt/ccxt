@@ -454,7 +454,7 @@ We implement bots, algorithmic trading software and strategies by your design. C
 
 We are coders, not investors, so we ABSOLUTELY DO NOT do any kind of financial or trading advisory neither we invent profitable strategies to make you a fortune out of thin air. We guarantee the stability of the bot or trading software, but we cannot guarantee the profitability of your strategy nor can we protect you from natural financial risks and economic losses. Exact rules for the trading strategy is up to the trader/investor himself. We charge a fix flat price in cryptocurrency for our programming services and for implementing your requirements in software.
 
-Please, contact us on GitHub or via email if you're interested in integrating this software into an existing project or in developing new opensource and commercial projects. Questions are welcome.
+Please, contact us on GitHub or by email if you're interested in integrating this software into an existing project or in developing new opensource and commercial projects. Questions are welcome.
 
 Contact Us
 ----------
