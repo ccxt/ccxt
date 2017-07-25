@@ -86,14 +86,14 @@ Read [Master/Slave Code](https://github.com/kroitor/ccxt/blob/master/CONTRIBUTIN
 
 #### Run Tests And Collect Coverage
 
-Run the standard `npm test` command to see test results and code coverage analytics. The coverage analysis is also available in HTML (see the generated `coverage` folder). A transpilation by  `npm run build` is necessary prior to executing the `npm test` for proper work.
+Run the standard `npm test` command to see test results and code coverage analytics. The coverage analysis is also available in HTML (see the generated `coverage` folder). A transpilation is triggered automatically by the `npm test` command, so there is no need to execute the `npm run build` manually before.
 
-To speed up test execution you can use `npm run fasttest` command. It will only test the master `ccxt.js` file, and thus does not require the `npm run build` to be executed first. You can also pass a market name and an symbol (optional), to test a part of code or a single market. A partial test is usually many times faster than the full test:
+To speed up test execution you can use the `npm run fasttest` command. It will only test the master `ccxt.js` file, and thus does not require the `npm run build` to be executed first. You can also pass a market name and an symbol (optional), to test a part of code or a single market. A partial test is usually many times faster than the full test:
 
 ```bash
-npm test                         # runs the full test, requires a rebuild with `npm run build`
-npm test kraken                  # runs a partial test for Kraken, requires `npm run build`
-npm test kraken BTC/USD          # partial test for BTC/USD @ Kraken, requires `npm run build`
+npm test                         # runs the full test
+npm test kraken                  # runs a partial test for Kraken
+npm test kraken BTC/USD          # partial test for BTC/USD @ Kraken
 npm run fasttest                 # full test of master source file only
 npm run fasttest gdax            # partial test of master source file only for GDAX
 npm run fasttest gdax BTC/USD    # partial test only for the BTC/USD pair on GDAX exchange
