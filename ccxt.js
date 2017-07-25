@@ -268,8 +268,7 @@ var hmac = function (request, secret, hash = 'sha256', digest = 'hex') {
 
 //-----------------------------------------------------------------------------
 // a special case for Kraken, until we find a better workaround
-// this breaks down the support for browsers
-// see issues #52 and #23
+// this breaks down the support for browsers, see issues #52 and #23
 
 var signForKraken = function (path, request, secret, nonce) {
     const secret_buffer = new Buffer (secret, 'base64');
