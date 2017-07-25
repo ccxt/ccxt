@@ -8110,6 +8110,9 @@ var huobi = {
             };
         } else {
             url += '/' + type + '/' + this.implodeParams (path, params) + '_json.js';
+            let query = this.omit (params, this.extractParams (path));
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
         }
         return this.fetch (url, method, headers, body);
     },
