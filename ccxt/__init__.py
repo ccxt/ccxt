@@ -82,7 +82,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.72'
+__version__ = '1.1.73'
 
 # Python 2 & 3
 import base64
@@ -9484,7 +9484,7 @@ class quadrigacx (Market):
             'open': None,
             'close': None,
             'first': None,
-            'last': None,
+            'last': float (ticker['last']),
             'change': None,
             'percentage': None,
             'average': None,
