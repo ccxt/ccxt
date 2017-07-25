@@ -130,6 +130,7 @@ class Market {
         'bxinth',
         'ccex',
         'cex',
+        'chbtc',
         'chilebit',
         'coincheck',
         'coinmarketcap',
@@ -5797,6 +5798,194 @@ class cex extends Market {
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Content-Length' => strlen ($body),
             );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+class chbtc extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'chbtc',
+            'name' => 'CHBTC',
+            'countries' => 'CN',
+            'rateLimit' => 1000,
+            'version' => 'v1',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg',
+                'api' => array (
+                    'public' => 'http://api.chbtc.com/data', // no https for public API
+                    'private' => 'https://trade.chbtc.com/api',
+                ),
+                'www' => 'https://trade.chbtc.com/api',
+                'doc' => 'https://www.chbtc.com/i/developer',
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'ticker',
+                        'depth',
+                        'trades',
+                        'kline',
+                    ),
+                ),
+                'private' => array (
+                    'post' => array (
+                        'order',
+                        'cancelOrder',
+                        'getOrder',
+                        'getOrders',
+                        'getOrdersNew',
+                        'getOrdersIgnoreTradeType',
+                        'getUnfinishedOrdersIgnoreTradeType',
+                        'getAccountInfo',
+                        'getUserAddress',
+                        'getWithdrawAddress',
+                        'getWithdrawRecord',
+                        'getChargeRecord',
+                        'getCnyWithdrawRecord',
+                        'getCnyChargeRecord',
+                        'withdraw',
+                    ),
+                ),
+            ),
+            'products' => array (
+                'BTC/CNY' => array ( 'id' => 'btc_cny', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY', ),
+                'LTC/CNY' => array ( 'id' => 'ltc_cny', 'symbol' => 'LTC/CNY', 'base' => 'LTC', 'quote' => 'CNY', ),
+                'ETH/CNY' => array ( 'id' => 'eth_cny', 'symbol' => 'ETH/CNY', 'base' => 'ETH', 'quote' => 'CNY', ),
+                'ETC/CNY' => array ( 'id' => 'etc_cny', 'symbol' => 'ETC/CNY', 'base' => 'ETC', 'quote' => 'CNY', ),
+                'BTS/CNY' => array ( 'id' => 'bts_cny', 'symbol' => 'BTS/CNY', 'base' => 'BTS', 'quote' => 'CNY', ),
+                'EOS/CNY' => array ( 'id' => 'eos_cny', 'symbol' => 'EOS/CNY', 'base' => 'EOS', 'quote' => 'CNY', ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_products () {
+        $products = $this->publicGetPairSettings ();
+        $keys = array_keys ($products);
+        $result = array ();
+        for ($p = 0; $p < count ($keys); $p++) {
+            $id = $keys[$p];
+            $product = $products[$id];
+            $symbol = str_replace ('_', '/', $id);
+            list ($base, $quote) = explode ('/', $symbol);
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_balance () {
+        $response = $this->privatePostGetAccountInfo ();
+        $balances = $response['result'];
+        $result = array ( 'info' => $balances );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            if (array_key_exists ($currency, $balances['balance']))
+                $account['free'] = $balances['balance'][$currency]['amount'];
+            if (array_key_exists ($currency, $balances['frozen']))
+                $account['used'] = $balances['frozen'][$currency]['amount'];
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
+    }
+
+    public function fetch_order_book ($product) {
+        $p = $this->product ($product);
+        $orderbook = $this->publicGetDepth (array (
+            'currency' => $p['id'],
+        ));
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => $orderbook['bids'],
+            'asks' => $orderbook['asks'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $result['bids'] = $this->sort_by ($result['bids'], 0, true);
+        $result['asks'] = $this->sort_by ($result['asks'], 0);
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $response = $this->publicGetTicker (array (
+            'currency' => $this->product_id ($product),
+        ));
+        $ticker = $response['ticker'];
+        $timestamp = $this->milliseconds ();
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['vol']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetTrades (array (
+            'currency' => $this->product_id ($product),
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        $paramString = 'price=' . $price;
+        $paramString .= '&$amount=' . $amount;
+        $paramString .= '&tradeType=' . ($side == 'buy') ? '1' : '0';
+        $paramString .= '&currency=' . $this->product_id ($product);
+        return $this->privatePostOrder ($paramString);
+    }
+
+    public function cancel_order ($id, $params = array ()) {
+        return $this->privatePostCancelOrder (array_merge (array ( 'id' => $id ), $params));
+    }
+
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$type]; 
+        if ($type == 'public') {
+            $url .= '/' . $this->version . '/' . $path;
+            if ($params)
+                $url .= '?' . $this->urlencode ($params);
+        } else {
+            $paramsLength = count ($params); // $params should be a string here!
+            $nonce = $this->nonce ();            
+            $auth = 'method=' . $path;            
+            $auth .= '&accesskey=' . $this->apiKey;            
+            $auth .= $paramsLength ? $params : '';
+            $secret = $this->hash ($this->encode ($this->secret), 'sha1');
+            $signature = $this->hmac ($this->encode ($auth), $this->encode ($secret), 'md5');
+            $suffix = 'sign=' . $signature . '&reqTime=' . (string) $nonce;
+            $url .= '/' . $path . '?' . $auth . '&' . $suffix;
         }
         return $this->fetch ($url, $method, $headers, $body);
     }

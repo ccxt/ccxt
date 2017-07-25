@@ -5539,6 +5539,189 @@ var cex = {
 
 //-----------------------------------------------------------------------------
 
+var chbtc = {
+    'id': 'chbtc',
+    'name': 'CHBTC',
+    'countries': 'CN',
+    'rateLimit': 1000,
+    'version': 'v1',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg',
+        'api': {
+            'public': 'http://api.chbtc.com/data', // no https for public API
+            'private': 'https://trade.chbtc.com/api',
+        },
+        'www': 'https://trade.chbtc.com/api',
+        'doc': 'https://www.chbtc.com/i/developer',
+    },
+    'api': {
+        'public': {
+            'get': [
+                'ticker',
+                'depth',
+                'trades',
+                'kline',
+            ],
+        },
+        'private': {
+            'post': [
+                'order',
+                'cancelOrder',
+                'getOrder',
+                'getOrders',
+                'getOrdersNew',
+                'getOrdersIgnoreTradeType',
+                'getUnfinishedOrdersIgnoreTradeType',
+                'getAccountInfo',
+                'getUserAddress',
+                'getWithdrawAddress',
+                'getWithdrawRecord',
+                'getChargeRecord',
+                'getCnyWithdrawRecord',
+                'getCnyChargeRecord',
+                'withdraw',
+            ],
+        },
+    },
+    'products': {
+        'BTC/CNY': { 'id': 'btc_cny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', },
+        'LTC/CNY': { 'id': 'ltc_cny', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', },
+        'ETH/CNY': { 'id': 'eth_cny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY', },
+        'ETC/CNY': { 'id': 'etc_cny', 'symbol': 'ETC/CNY', 'base': 'ETC', 'quote': 'CNY', },
+        'BTS/CNY': { 'id': 'bts_cny', 'symbol': 'BTS/CNY', 'base': 'BTS', 'quote': 'CNY', },
+        'EOS/CNY': { 'id': 'eos_cny', 'symbol': 'EOS/CNY', 'base': 'EOS', 'quote': 'CNY', },
+    },
+
+    async fetchProducts () {
+        let products = await this.publicGetPairSettings ();
+        let keys = Object.keys (products);
+        let result = [];
+        for (let p = 0; p < keys.length; p++) {
+            let id = keys[p];
+            let product = products[id];
+            let symbol = id.replace ('_', '/');
+            let [ base, quote ] = symbol.split ('/');
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            });
+        }
+        return result;
+    },
+
+    async fetchBalance () {
+        let response = await this.privatePostGetAccountInfo ();
+        let balances = response['result'];
+        let result = { 'info': balances };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if (currency in balances['balance'])
+                account['free'] = balances['balance'][currency]['amount'];
+            if (currency in balances['frozen'])
+                account['used'] = balances['frozen'][currency]['amount'];
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
+    },
+
+    async fetchOrderBook (product) {
+        let p = this.product (product);
+        let orderbook = await this.publicGetDepth ({
+            'currency': p['id'],
+        });
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        result['bids'] = this.sortBy (result['bids'], 0, true);
+        result['asks'] = this.sortBy (result['asks'], 0);
+        return result;
+    },
+
+    async fetchTicker (product) {
+        let response = await this.publicGetTicker ({
+            'currency': this.productId (product),
+        });
+        let ticker = response['ticker'];
+        let timestamp = this.milliseconds ();
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['buy']),
+            'ask': parseFloat (ticker['sell']),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['vol']),
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        return this.publicGetTrades ({
+            'currency': this.productId (product),
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let paramString = 'price=' + price;
+        paramString += '&amount=' + amount;
+        paramString += '&tradeType=' + (side == 'buy') ? '1' : '0';
+        paramString += '&currency=' + this.productId (product);
+        return this.privatePostOrder (paramString);
+    },
+
+    cancelOrder (id, params = {}) {
+        return this.privatePostCancelOrder (this.extend ({ 'id': id }, params));
+    },
+
+    nonce () {
+        return this.milliseconds ();
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][type]; 
+        if (type == 'public') {
+            url += '/' + this.version + '/' + path;
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
+        } else {
+            let paramsLength = params.length; // params should be a string here!
+            let nonce = this.nonce ();            
+            let auth = 'method=' + path;            
+            auth += '&accesskey=' + this.apiKey;            
+            auth += paramsLength ? params : '';
+            let secret = this.hash (this.encode (this.secret), 'sha1');
+            let signature = this.hmac (this.encode (auth), this.encode (secret), 'md5');
+            let suffix = 'sign=' + signature + '&reqTime=' + nonce.toString ();
+            url += '/' + path + '?' + auth + '&' + suffix;
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var chilebit = extend (blinktrade, {
     'id': 'chilebit',
     'name': 'ChileBit',
@@ -11458,6 +11641,7 @@ var markets = {
     'bxinth':        bxinth,
     'ccex':          ccex,
     'cex':           cex,
+    'chbtc':         chbtc,
     'chilebit':      chilebit,
     'coincheck':     coincheck,
     'coinmarketcap': coinmarketcap,
