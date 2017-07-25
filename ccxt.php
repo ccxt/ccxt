@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.77';
+$version = '1.1.78';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8454,6 +8454,9 @@ class huobi extends Market {
             );
         } else {
             $url .= '/' . $type . '/' . $this->implode_params ($path, $params) . '_json.js';
+            $query = $this->omit ($params, $this->extract_params ($path));
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
         }
         return $this->fetch ($url, $method, $headers, $body);
     }

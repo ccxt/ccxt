@@ -83,7 +83,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.77'
+__version__ = '1.1.78'
 
 # Python 2 & 3
 import base64
@@ -7835,6 +7835,9 @@ class huobi (Market):
             }
         else:
             url += '/' + type + '/' + self.implode_params (path, params) + '_json.js'
+            query = self.omit (params, self.extract_params (path))
+            if query:
+                url += '?' + _urlencode.urlencode (query)
         return self.fetch (url, method, headers, body)
 
 #------------------------------------------------------------------------------
