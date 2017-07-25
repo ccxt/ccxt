@@ -6239,8 +6239,47 @@ var coinsecure = {
         'BTC/INR': { 'id': 'BTC/INR', 'symbol': 'BTC/INR', 'base': 'BTC', 'quote': 'INR' },
     },
 
-    fetchBalance () {
-        return this.privateGetUserExchangeBankSummary ();
+    /*
+
+    { success:    true,
+               count:    12,
+             message: {   pendingCoinBalance:  0,
+                          pendingFiatBalance:  0,
+                        availableCoinBalance:  0,
+                        availableFiatBalance:  0,
+                            totalCoinBalance:  0,
+                            totalFiatBalance:  0,
+                           coinFeePercentage:  0.6,
+                           fiatFeePercentage:  0.6,
+                              bankLinkStatus: "Incomplete",
+                               hasTradeNetki:  false,
+                              tradeNetkiName: "none",
+                           tradeNetkiAddress: "none"        },
+                time:    1500950710531,
+              method:   "Exchange Bank Summary",
+               title:   "/v1/user/exchange/bank/summary"       }
+
+    */
+
+    async fetchBalance () {
+        let response = await this.privateGetUserExchangeBankSummary ();
+        let balances = response['data'];
+        let result = { 'info': balances };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if (currency in balances) {
+                account['free'] = balances[currency]['available'];
+                account['used'] = balances[currency]['reserved'];
+                account['total'] = balances[currency]['balance'];
+            }            
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
