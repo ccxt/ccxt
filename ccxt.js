@@ -171,8 +171,8 @@ var pluck = function (array, key) {
 }
 
 var urlencode = function (object) {
-    return Object.keys (object).map (key =>
-        encodeURIComponent (key) + '=' + encodeURIComponent (object[key])).join ('&')
+    // this is related to the Kraken workaround, see issues #52 and #23
+    return qs.stringify (object)
 }
 
 var sum = function (... args) {
@@ -186,8 +186,10 @@ var sum = function (... args) {
 
 if (isNode) {
 
+    var crypto   = require ('crypto')
     var CryptoJS = require ('crypto-js')
     var fetch    = require ('node-fetch')
+    var qs       = require ('qs')
 
 } else {
 
@@ -265,6 +267,20 @@ var hmac = function (request, secret, hash = 'sha256', digest = 'hex') {
 }
 
 //-----------------------------------------------------------------------------
+// a special case for Kraken, until we find a better workaround
+// this breaks down the support for browsers
+// see issues #52 and #23
+
+var signForKraken = function (path, request, secret, nonce) {
+    const secret_buffer = new Buffer (secret, 'base64');
+    const hash          = new crypto.createHash ('sha256');
+    const hmac          = new crypto.createHmac ('sha512', secret_buffer);
+    const hash_digest   = hash.update (nonce + request).digest ('binary');
+    const hmac_digest   = hmac.update (path + hash_digest, 'binary').digest ('base64');
+    return hmac_digest;
+}
+
+//-----------------------------------------------------------------------------
 // a JSON Web Token authentication method
 
 var jwt = function (request, secret, alg = 'HS256', hash = 'sha256') {
@@ -282,6 +298,8 @@ var Market = function (config) {
 
     this.hash = hash
     this.hmac = hmac
+    // a special case until we find a better workaround, see issues #52 and #23
+    this.signForKraken = signForKraken 
     this.jwt = jwt // JSON Web Token
     this.stringToBinary = stringToBinary
     this.stringToBase64 = stringToBase64
@@ -8612,8 +8630,25 @@ var kraken = {
         });
     },
 
-    fetchBalance () {
-        return this.privatePostBalance ();
+    async fetchBalance () {
+        let response = await this.privatePostBalance ();
+        let balances = response['result'];
+        let result = { 'info': balances };
+        let currencies = Object.keys (balances);
+        for (let c = 0; c < currencies.length; c++) {
+            let code = currencies[c];
+            let currency = code;
+            if ((currency[0] == 'X') || (currency[0] == 'Z'))
+                currency = currency.slice (1);
+            let balance = parseFloat (balances[code]);
+            let account = {
+                'free': balance,
+                'used': undefined,
+                'total': balance,
+            };
+            result[currency] = account;
+        }
+        return result;
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
@@ -8639,14 +8674,17 @@ var kraken = {
                 url += '?' + this.urlencode (params);
         } else {
             let nonce = this.nonce ().toString ();
-            let query = this.extend ({ 'nonce': nonce }, params);
-            body = this.urlencode (query);
-            let auth = this.encode (nonce + body);
-            query = this.encode (url) + this.hash (auth, 'sha256', 'binary');
-            let secret = this.base64ToBinary (this.secret);
+            body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
+            // a workaround for Kraken to replace the old CryptoJS block below, see issues #52 and #23
+            let signature = this.signForKraken (url, body, this.secret, nonce);
+            // an old CryptoJS block that does not want to work properly under Node
+            // let auth = this.encode (nonce + body);
+            // let query = this.encode (url) + this.hash (auth, 'sha256', 'binary');
+            // let secret = this.base64ToBinary (this.secret);
+            // let signature = this.hmac (query, secret, 'sha512', 'base64');
             headers = {
                 'API-Key': this.apiKey,
-                'API-Sign': this.hmac (query, secret, 'sha512', 'base64'),
+                'API-Sign': signature,
                 'Content-type': 'application/x-www-form-urlencoded',
             };
         }
