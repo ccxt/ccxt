@@ -53,6 +53,7 @@ def test_market_symbol_ticker (market, symbol):
     )
 
 def test_market_symbol (market, symbol):
+    dump (green ('SYMBOL: ' + symbol))
     test_market_symbol_ticker (market, symbol)
     if market.id == 'coinmarketcap':
         dump (green (market.fetchGlobal ()))
@@ -64,7 +65,7 @@ def load_market (market):
 
 def test_market (market):
 
-    dump (green (market.id))
+    dump (green ('MARKET: ' + market.id))
     delay = 2
     keys = list (market.products.keys ())
 

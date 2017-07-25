@@ -11450,6 +11450,204 @@ var yobit = {
 
 //-----------------------------------------------------------------------------
 
+var yunbi = {
+
+    'id': 'yunbi',
+    'name': 'YUNBI',
+    'countries': 'CN',
+    'rateLimit': 1000,
+    'version': 'v2',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg',
+        'api': 'https://yunbi.com',
+        'www': '',
+        'doc': [
+            'https://yunbi.com/documents/api/guide',
+            'https://yunbi.com/swagger/',
+        ],
+    },
+    'api': {
+        'public': {
+            'get': [
+                'tickers',
+                'tickers/{market}',
+                'markets',
+                'order_book',
+                'k',
+                'depth',
+                'trades',
+                'k_with_pending_trades',
+                'timestamp',
+                'addresses/{address}',
+                'partners/orders/{id}/trades',
+            ],
+        },
+        'private': {
+            'get': [
+                'deposits',
+                'members/me',
+                'deposit',
+                'deposit_address',
+                'order',
+                'orders',
+                'trades/my',
+            ],
+            'post': [
+                'order/delete',
+                'orders',
+                'orders/multi',
+                'orders/clear',
+            ],
+        },
+    },
+
+    async fetchProducts () {
+        let products = await this.publicGetMarkets ();
+        let result = [];
+        for (let p = 0; p < products.length; p++) {
+            let product = products[p];
+            let id = product['id'];
+            let symbol = product['name'];
+            let [ base, quote ] = symbol.split ('/');
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            });
+        }
+        return result;
+    },
+
+    async fetchBalance () {
+        let response = await this.privateGetMembersMe ();
+        let balances = response['accounts'];
+        let result = { 'info': balances };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = balance['currency'];
+            let uppercase = currency.toUpperCase ();
+            let account = {
+                'free': parseFloat (balance['balance']),
+                'used': parseFloat (balance['locked']),
+                'total': undefined,
+            };
+            account['total'] = this.sum (account['free'], account['used']);
+            result[uppercase] = account;
+        }
+        return result;
+    },
+
+    async fetchOrderBook (product) {
+        let p = this.product (product);
+        let orderbook = await this.publicGetDepth ({
+            'market': p['id'],
+        });
+        let timestamp = orderbook['timestamp'] * 1000;
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order[0]);
+                let amount = parseFloat (order[1]);
+                result[side].push ([ price, amount ]);
+            }
+        }
+        result['bids'] = this.sortBy (result['bids'], 0, true);
+        result['asks'] = this.sortBy (result['asks'], 0);
+        return result;
+    },
+
+    async fetchTicker (product) {
+        let response = await this.publicGetTickersMarket ({
+            'market': this.productId (product),
+        });
+        let ticker = response['ticker'];
+        let timestamp = response['at'] * 1000;
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['buy']),
+            'ask': parseFloat (ticker['sell']),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['vol']),
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        return this.publicGetTrades ({
+            'pair': this.productId (product),
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let order = {
+            'market': this.productId (product),
+            'side': side,
+            'volume': amount,
+            'ord_type': type,
+        };
+        if (type == 'market') {
+            order['price'] = price;
+        }
+        return this.privatePostOrders (this.extend (order, params));
+    },
+
+    cancelOrder (id) {
+        return this.privatePostOrderDelete ({ 'id': id });
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let request = '/api/' + this.version + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        let url = this.urls['api'] + request + '.json';
+        if (type == 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            let nonce = this.nonce ().toString ();
+            let query = this.urlencode (this.keysort (this.extend ({
+                'access_key': this.apiKey,
+                'tonce': nonce,
+            }, params)));
+            let auth = method + '|' + request + '|' + query;
+            let signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            let suffix = query + '&signature=' + signature;
+            if (method == 'GET') {
+                url += '?' + suffix;
+            } else {
+                body = suffix;
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                };
+            }
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var zaif = {
 
     'id': 'zaif',
@@ -11684,6 +11882,7 @@ var markets = {
     'virwox':        virwox,
     'xbtce':         xbtce,
     'yobit':         yobit,
+    'yunbi':         yunbi,
     'zaif':          zaif,
 }
 
