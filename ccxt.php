@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.73';
+$version = '1.1.74';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -6242,7 +6242,24 @@ class coinmate extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostBalances ();
+        $response = $this->privatePostBalances ();
+        $balances = $response['data'];
+        $result = array ( 'info' => $balances );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            if (array_key_exists ($currency, $balances)) {
+                $account['free'] = $balances[$currency]['available'];
+                $account['used'] = $balances[$currency]['reserved'];
+                $account['total'] = $balances[$currency]['balance'];
+            }            
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -6338,8 +6355,8 @@ class coinmate extends Market {
             if (!$this->uid)
                 throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication');
             $nonce = (string) $this->nonce ();
-            $auth = implode (' ', array ($nonce, $this->uid, $this->apiKey));
-            $signature = $this->hmac ($this->encode ($auth), $this->secret);
+            $auth = $nonce . $this->uid . $this->apiKey;
+            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
             $body = $this->urlencode (array_merge (array (
                 'clientId' => $this->uid,
                 'nonce' => $nonce,
@@ -6348,7 +6365,6 @@ class coinmate extends Market {
             ), $params));
             $headers = array (
                 'Content-Type' =>  'application/x-www-form-urlencoded',
-                'Content-Length' => strlen ($body),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);

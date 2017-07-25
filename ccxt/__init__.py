@@ -82,7 +82,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.73'
+__version__ = '1.1.74'
 
 # Python 2 & 3
 import base64
@@ -5761,7 +5761,22 @@ class coinmate (Market):
         super (coinmate, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostBalances ()
+        response = self.privatePostBalances ()
+        balances = response['data']
+        result = { 'info': balances }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in balances:
+                account['free'] = balances[currency]['available']
+                account['used'] = balances[currency]['reserved']
+                account['total'] = balances[currency]['balance']
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         response = self.publicGetOrderBook ({
@@ -5848,8 +5863,8 @@ class coinmate (Market):
             if not self.uid:
                 raise AuthenticationError (self.id + ' requires `' + self.id + '.uid` property for authentication')
             nonce = str (self.nonce ())
-            auth = ' '.join ([ nonce, self.uid, self.apiKey ])
-            signature = self.hmac (self.encode (auth), self.secret)
+            auth = nonce + self.uid + self.apiKey
+            signature = self.hmac (self.encode (auth), self.encode (self.secret))
             body = _urlencode.urlencode (self.extend ({
                 'clientId': self.uid,
                 'nonce': nonce,
@@ -5858,7 +5873,6 @@ class coinmate (Market):
             }, params))
             headers = {
                 'Content-Type':  'application/x-www-form-urlencoded',
-                'Content-Length': len (body),
             }
         return self.fetch (url, method, headers, body)
 
