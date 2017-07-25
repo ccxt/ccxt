@@ -408,6 +408,15 @@ class Market {
         return $hmac;
     }
 
+    // this is a special case workaround for Kraken, see issues #52 and #23
+    public function signForKraken ($path, $request, $secret, $nonce) {
+        $auth = $this->encode ($nonce . $request);
+        $query = $this->encode ($path) . $this->hash ($auth, 'sha256', 'binary');
+        $secret = base64_decode ($secret);
+        $signature = $this->hmac ($query, $secret, 'sha512', 'base64');
+        return $signature;
+    }
+    
     public function jwt ($request, $secret, $alg = 'HS256', $hash = 'sha256') {
         $encodedHeader = $this->urlencodeBase64 (json_encode (array ('alg' => $alg, 'typ' => 'JWT')));
         $encodedData = $this->urlencodeBase64 (json_encode ($request, JSON_UNESCAPED_SLASHES));
@@ -8969,7 +8978,24 @@ class kraken extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostBalance ();
+        $response = $this->privatePostBalance ();
+        $balances = $response['result'];
+        $result = array ( 'info' => $balances );
+        $currencies = array_keys ($balances);
+        for ($c = 0; $c < count ($currencies); $c++) {
+            $code = $currencies[$c];
+            $currency = $code;
+            if (($currency[0] == 'X') || ($currency[0] == 'Z'))
+                $currency = mb_substr ($currency, 1);
+            $balance = floatval ($balances[$code]);
+            $account = array (
+                'free' => $balance,
+                'used' => null,
+                'total' => $balance,
+            );
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
@@ -8995,14 +9021,17 @@ class kraken extends Market {
                 $url .= '?' . $this->urlencode ($params);
         } else {
             $nonce = (string) $this->nonce ();
-            $query = array_merge (array ( 'nonce' => $nonce ), $params);
-            $body = $this->urlencode ($query);
-            $auth = $this->encode ($nonce . $body);
-            $query = $this->encode ($url) . $this->hash ($auth, 'sha256', 'binary');
-            $secret = base64_decode ($this->secret);
+            $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $params));
+            // a workaround for Kraken to replace the old CryptoJS block below, see issues #52 and #23
+            $signature = $this->signForKraken ($url, $body, $this->secret, $nonce);
+            // an old CryptoJS block that does not want to work properly under Node
+            // $auth = $this->encode ($nonce . $body);
+            // $query = $this->encode ($url) . $this->hash ($auth, 'sha256', 'binary');
+            // $secret = base64_decode ($this->secret);
+            // $signature = $this->hmac ($query, $secret, 'sha512', 'base64');
             $headers = array (
                 'API-Key' => $this->apiKey,
-                'API-Sign' => $this->hmac ($query, $secret, 'sha512', 'base64'),
+                'API-Sign' => $signature,
                 'Content-type' => 'application/x-www-form-urlencoded',
             );
         }

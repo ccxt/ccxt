@@ -482,6 +482,15 @@ class Market (object):
             return base64.b64encode (h.digest ())
         return h.digest ()
 
+    # this is a special case workaround for Kraken, see issues #52 and #23
+    @staticmethod
+    def signForKraken (path, request, secret, nonce):
+        auth = Market.encode (nonce + request)
+        query = Market.encode (path) + Market.hash (auth, 'sha256', 'binary')
+        secret = base64.b64decode (secret)
+        signature = Market.hmac (query, secret, hashlib.sha512, 'base64')
+        return signature
+
     @staticmethod
     def base64urlencode (s):
         return Market.decode (base64.urlsafe_b64encode (s)).replace ('=', '')
@@ -8322,7 +8331,23 @@ class kraken (Market):
         })
 
     def fetch_balance (self):
-        return self.privatePostBalance ()
+        response = self.privatePostBalance ()
+        balances = response['result']
+        result = { 'info': balances }
+        currencies = list (balances.keys ())
+        for c in range (0, len (currencies)):
+            code = currencies[c]
+            currency = code
+            if (currency[0] == 'X') or (currency[0] == 'Z'):
+                currency = currency[1:]
+            balance = float (balances[code])
+            account = {
+                'free': balance,
+                'used': None,
+                'total': balance,
+            }
+            result[currency] = account
+        return result
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         order = {
@@ -8345,14 +8370,17 @@ class kraken (Market):
                 url += '?' + _urlencode.urlencode (params)
         else:
             nonce = str (self.nonce ())
-            query = self.extend ({ 'nonce': nonce }, params)
-            body = _urlencode.urlencode (query)
-            auth = self.encode (nonce + body)
-            query = self.encode (url) + self.hash (auth, 'sha256', 'binary')
-            secret = base64.b64decode (self.secret)
+            body = _urlencode.urlencode (self.extend ({ 'nonce': nonce }, params))
+            # a workaround for Kraken to replace the old CryptoJS block below, see issues #52 and #23
+            signature = self.signForKraken (url, body, self.secret, nonce)
+            # an old CryptoJS block that does not want to work properly under Node
+            # auth = self.encode (nonce + body)
+            # query = self.encode (url) + self.hash (auth, 'sha256', 'binary')
+            # secret = base64.b64decode (self.secret)
+            # signature = self.hmac (query, secret, hashlib.sha512, 'base64')
             headers = {
                 'API-Key': self.apiKey,
-                'API-Sign': self.hmac (query, secret, hashlib.sha512, 'base64'),
+                'API-Sign': signature,
                 'Content-type': 'application/x-www-form-urlencoded',
             }
         url = self.urls['api'] + url

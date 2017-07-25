@@ -187,7 +187,7 @@ proxies = [
 # instantiate all markets
 for id in ccxt.markets:
     market = getattr (ccxt, id)
-    markets[id] = market ({ 'verbose': False })
+    markets[id] = market ({ 'verbose': True })
 
 # load the api keys from config
 with open ('./keys.json') as file:    
