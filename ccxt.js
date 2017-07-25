@@ -11460,7 +11460,7 @@ var yunbi = {
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg',
         'api': 'https://yunbi.com',
-        'www': '',
+        'www': 'https://yunbi.com',
         'doc': [
             'https://yunbi.com/documents/api/guide',
             'https://yunbi.com/swagger/',
