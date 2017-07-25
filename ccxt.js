@@ -8110,6 +8110,13 @@ var huobi = {
             };
         } else {
             url += '/' + type + '/' + this.implodeParams (path, params) + '_json.js';
+            // append unused params as query string
+            // for case http://api.huobi.com/staticmarket/btc_kline_005_json.js?length=500
+            Object.keys(params)
+              .filter(key => path.includes(key))
+              .forEach(key => delete params[key]);
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
         }
         return this.fetch (url, method, headers, body);
     },
