@@ -8635,13 +8635,15 @@ var kraken = {
         let response = await this.privatePostBalance ();
         let balances = response['result'];
         let result = { 'info': balances };
-        let currencies = Object.keys (balances);
-        for (let c = 0; c < currencies.length; c++) {
-            let code = currencies[c];
-            let currency = code;
-            if ((currency[0] == 'X') || (currency[0] == 'Z'))
-                currency = currency.slice (1);
-            let balance = parseFloat (balances[code]);
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let xcode = 'X' + currency; // X-ISO4217-A3 standard currency codes
+            let zcode = 'Z' + currency;
+            let balance = undefined;
+            if (xcode in balances)
+                balance = parseFloat (balances[xcode])
+            else if (zcode in balances)
+                balance = parseFloat (balances[zcode])
             let account = {
                 'free': balance,
                 'used': undefined,
