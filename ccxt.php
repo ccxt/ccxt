@@ -664,11 +664,11 @@ class Market {
     }
 
     public function create_market_buy_order ($product, $amount, $params = array ()) {
-        return $this->create_order ($product, 'market', 'buy', $amount, $params);
+        return $this->create_order ($product, 'market', 'buy', $amount, null, $params);
     }
 
     public function create_market_sell_order ($product, $amount, $params = array ()) {
-        return $this->create_order ($product, 'market', 'sell', $amount, $params);
+        return $this->create_order ($product, 'market', 'sell', $amount, null, $params);
     }
 
     public function createLimitBuyOrder ($product, $amount, $price, $params = array ()) {

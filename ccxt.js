@@ -535,12 +535,12 @@ var Market = function (config) {
 
     this.create_market_buy_order =
     this.createMarketBuyOrder = function (product, amount, params = {}) {
-        return this.createOrder (product, 'market', 'buy', amount, params)
+        return this.createOrder (product, 'market', 'buy', amount, undefined, params)
     }
 
     this.create_market_sell_order =
     this.createMarketSellOrder = function (product, amount, params = {}) {
-        return this.createOrder (product, 'market', 'sell', amount, params)
+        return this.createOrder (product, 'market', 'sell', amount, undefined, params)
     }
 
     this.iso8601        = timestamp => new Date (timestamp).toISOString ()
