@@ -84,7 +84,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.86'
+__version__ = '1.1.87'
 
 # Python 2 & 3
 import base64
@@ -1973,7 +1973,7 @@ class bitfinex (Market):
         })
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
-        return self.privatePostOrderNew (self.extend ({
+        order = {
             'symbol': self.product_id (product),
             'amount': str (amount),
             'side': side,
@@ -1981,12 +1981,12 @@ class bitfinex (Market):
             'ocoorder': False,
             'buy_price_oco': 0,
             'sell_price_oco': 0,
-        }, params))
+        }
         if type == 'market':
             order['price'] = str (self.nonce ())
         else:
             order['price'] = price
-        }
+        return self.privatePostOrderNew (self.extend (order, params))
 
     def cancel_order (self, id):
         return self.privatePostOrderCancel ({ 'order_id': id })

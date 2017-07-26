@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.86';
+$version = '1.1.87';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2188,7 +2188,7 @@ class bitfinex extends Market {
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
-        return $this->privatePostOrderNew (array_merge (array (
+        $order = array (
             'symbol' => $this->product_id ($product),
             'amount' => (string) $amount,
             'side' => $side,
@@ -2196,12 +2196,13 @@ class bitfinex extends Market {
             'ocoorder' => false,
             'buy_price_oco' => 0,
             'sell_price_oco' => 0,
-        ), $params));
+        );
         if ($type == 'market') {
-            order['price'] = (string) $this->nonce ();
+            $order['price'] = (string) $this->nonce ();
         } else {
-            order['price'] = $price;
+            $order['price'] = $price;
         }
+        return $this->privatePostOrderNew (array_merge ($order, $params));
     }
 
     public function cancel_order ($id) {
