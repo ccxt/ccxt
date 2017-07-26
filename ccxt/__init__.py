@@ -84,7 +84,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.83'
+__version__ = '1.1.84'
 
 # Python 2 & 3
 import base64
@@ -11249,9 +11249,9 @@ class yunbi (Market):
         return self.privatePostOrderDelete ({ 'id': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        request = '/api/' + self.version + '/' + self.implode_params (path, params)
+        request = '/api/' + self.version + '/' + self.implode_params (path, params) + '.json'
         query = self.omit (params, self.extract_params (path))
-        url = self.urls['api'] + request + '.json'
+        url = self.urls['api'] + request
         if type == 'public':
             if query:
                 url += '?' + _urlencode.urlencode (query)
@@ -11270,6 +11270,7 @@ class yunbi (Market):
                 body = suffix
                 headers = {
                     'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Length': len (body),
                 }
         return self.fetch (url, method, headers, body)
 
