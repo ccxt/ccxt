@@ -4,8 +4,19 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.90'
+var version = '1.1.91'
 var isNode  = (typeof window === 'undefined')
+var isReactNative = false
+
+try {
+
+    let reactNative = require ('react-native')
+    isReactNative = reactNative != undefined
+
+} catch (e) {
+
+    isReactNative = false
+}
 
 //-----------------------------------------------------------------------------
 
@@ -189,6 +200,13 @@ if (isNode) {
     var crypto   = require ('crypto')
     var CryptoJS = require ('crypto-js')
     var fetch    = require ('node-fetch')
+    var qs       = require ('qs')
+
+} else if (isReactNative) {
+
+    var crypto   = require ('crypto')
+    var CryptoJS = require ('crypto-js')    
+    var fetch    = window.fetch
     var qs       = require ('qs')
 
 } else {
@@ -12395,7 +12413,7 @@ let defineAllMarkets = function (markets) {
     return result
 }
 
-if (isNode) {
+if (isNode || isReactNative) {
     
     Object.assign (module.exports = defineAllMarkets (markets), {
 
