@@ -2013,13 +2013,17 @@ var bitfinex = {
         return this.privatePostOrderNew (this.extend ({
             'symbol': this.productId (product),
             'amount': amount.toString (),
-            'price': price.toString (),
             'side': side,
             'type': 'exchange ' + type,
             'ocoorder': false,
             'buy_price_oco': 0,
             'sell_price_oco': 0,
         }, params));
+        if (type == 'market') {
+            order['price'] = this.nonce ().toString ();
+        } else {
+            order['price'] = price;
+        }
     },
 
     cancelOrder (id) {

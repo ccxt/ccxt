@@ -2191,13 +2191,17 @@ class bitfinex extends Market {
         return $this->privatePostOrderNew (array_merge (array (
             'symbol' => $this->product_id ($product),
             'amount' => (string) $amount,
-            'price' => (string) $price,
             'side' => $side,
             'type' => 'exchange ' . $type,
             'ocoorder' => false,
             'buy_price_oco' => 0,
             'sell_price_oco' => 0,
         ), $params));
+        if ($type == 'market') {
+            order['price'] = (string) $this->nonce ();
+        } else {
+            order['price'] = $price;
+        }
     }
 
     public function cancel_order ($id) {

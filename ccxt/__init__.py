@@ -1976,13 +1976,17 @@ class bitfinex (Market):
         return self.privatePostOrderNew (self.extend ({
             'symbol': self.product_id (product),
             'amount': str (amount),
-            'price': str (price),
             'side': side,
             'type': 'exchange ' + type,
             'ocoorder': False,
             'buy_price_oco': 0,
             'sell_price_oco': 0,
         }, params))
+        if type == 'market':
+            order['price'] = str (self.nonce ())
+        else:
+            order['price'] = price
+        }
 
     def cancel_order (self, id):
         return self.privatePostOrderCancel ({ 'order_id': id })
