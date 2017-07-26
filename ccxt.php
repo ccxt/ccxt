@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.84';
+$version = '1.1.85';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3687,7 +3687,11 @@ class bittrex extends Market {
                 'nonce' => $nonce,
                 'apikey' => $this->apiKey,
             ), $params));
+<<<<<<< HEAD
             $signature = $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512');
+=======
+            $signature = $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512')
+>>>>>>> df56b824bbad66d35e40328355c251118c0450c0
             $headers = array ( 'apisign' => $signature );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -8992,9 +8996,15 @@ class kraken extends Market {
             $zcode = 'Z' . $currency;
             $balance = null;
             if (array_key_exists ($xcode, $balances))
+<<<<<<< HEAD
                 $balance = floatval ($balances[$xcode]);
             if (array_key_exists ($zcode, $balances))
                 $balance = floatval ($balances[$zcode]);
+=======
+                $balance = floatval ($balances[$xcode])
+            if (array_key_exists ($zcode, $balances))
+                $balance = floatval ($balances[$zcode])
+>>>>>>> df56b824bbad66d35e40328355c251118c0450c0
             $account = array (
                 'free' => $balance,
                 'used' => null,
