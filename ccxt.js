@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.87'
+var version = '1.1.88'
 var isNode  = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
@@ -471,7 +471,7 @@ var Market = function (config) {
     this.loadProducts = function (reload = false) {
         if (!reload && this.products) {
             if (!this.productsById) {
-                return this.setProducts (this.products)
+                return new Promise ((resolve, reject) => resolve (this.setProducts (this.products)))
             }
             return new Promise ((resolve, reject) => resolve (this.products))             
         }
