@@ -6,7 +6,13 @@ CCXT – CryptoCurrency eXchange Trading Library
 .. image:: https://img.shields.io/npm/v/ccxt.svg
     :target: https://npmjs.com/package/ccxt
 .. image:: https://img.shields.io/pypi/v/ccxt.svg
-    :target: https://pypi.python.org/pypi?name=ccxt&:action=display
+    :target: https://pypi.python.org/pypi/ccxt
+.. image:: https://img.shields.io/npm/dm/ccxt.svg
+    :target: https://www.npmjs.com/package/ccxt
+.. image:: https://img.shields.io/scrutinizer/g/kroitor/ccxt.svg
+    :target: https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master
+.. image:: https://badge.runkitcdn.com/ccxt.svg
+    :target: https://npm.runkit.com/ccxt
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
@@ -25,7 +31,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 65 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 69 cryptocurrency exchange markets and trading APIs:
 
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id              | name                                                      | ver   | doc                                                                                              | countries                                  |
@@ -60,6 +66,8 @@ The ccxt library currently supports the following 65 cryptocurrency exchange mar
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bittrex         | `Bittrex <https://bittrex.com>`__                         | 1.1   | `API <https://bittrex.com/Home/Api>`__                                                           | US                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| bl3p            | `BL3P <https://bl3p.eu>`__                                | 1     | `API <https://github.com/BitonicNL/bl3p-api/tree/master/docs>`__                                 | Netherlands, EU                            |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | btcchina        | `BTCChina <https://www.btcchina.com>`__                   | 1     | `API <https://www.btcchina.com/apidocs>`__                                                       | China                                      |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | btce            | `BTC-e <https://btc-e.com>`__                             | 3     | `API <https://btc-e.com/api/3/docs>`__                                                           | Bulgaria, Russia                           |
@@ -80,9 +88,13 @@ The ccxt library currently supports the following 65 cryptocurrency exchange mar
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | cex             | `CEX.IO <https://cex.io>`__                               | \*    | `API <https://cex.io/cex-api>`__                                                                 | UK, EU, Cyprus, Russia                     |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| chbtc           | `CHBTC <https://trade.chbtc.com/api>`__                   | 1     | `API <https://www.chbtc.com/i/developer>`__                                                      | China                                      |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | chilebit        | `ChileBit <https://chilebit.net>`__                       | 1     | `API <https://blinktrade.com/docs>`__                                                            | Chile                                      |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | coincheck       | `coincheck <https://coincheck.com>`__                     | \*    | `API <https://coincheck.com/documents/exchange/api>`__                                           | Japan, Indonesia                           |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| coingi          | `Coingi <https://coingi.com>`__                           | \*    | `API <http://docs.coingi.apiary.io/>`__                                                          | Panama, Bulgaria, China, US                |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | coinmarketcap   | `CoinMarketCap <https://coinmarketcap.com>`__             | 1     | `API <https://coinmarketcap.com/api>`__                                                          | US                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -158,6 +170,8 @@ The ccxt library currently supports the following 65 cryptocurrency exchange mar
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | yobit           | `YoBit <https://www.yobit.net>`__                         | 3     | `API <https://www.yobit.net/en/api/>`__                                                          | Russia                                     |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| yunbi           | `YUNBI <https://yunbi.com>`__                             | 2     | `API <https://yunbi.com/documents/api/guide>`__                                                  | China                                      |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | zaif            | `Zaif <https://zaif.jp>`__                                | 1     | `API <http://techbureau-api-document.readthedocs.io/ja/latest/index.html>`__                     | Japan                                      |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 
@@ -197,12 +211,12 @@ Node.js (npm)
 
     npm install ccxt
 
-Node version of the ccxt library requires ``crypto`` and ``node-fetch``, both of them are installed automatically by npm.
+Node version of the ccxt library requires `crypto-js <https://www.npmjs.com/package/crypto-js>`__ and `node-fetch <https://www.npmjs.com/package/node-fetch>`__, both of them are installed automatically by npm.
 
 .. code:: javascript
 
     var ccxt = require ('ccxt')
-    console.log (Object.keys (ccxt)) // print all available markets
+    console.log (ccxt.market) // print all available markets
 
 Python
 ~~~~~~
@@ -218,7 +232,7 @@ Python version of the ccxt library does not require any additional dependencies 
 .. code:: python
 
     import ccxt
-    print (dir (ccxt)) # print a list of all available market classes
+    print (ccxt.markets) # print a list of all available market classes
 
 PHP
 ~~~
@@ -236,7 +250,7 @@ The ccxt library in PHP requires common PHP modules:
 .. code:: php
 
     include "ccxt.php";
-    $market = new \cxxt\$id (); // $id is a string literal id of your desired exchange market
+    var_dump (\cxxt\Market::$markets); // print a list of all available market classes
 
 Web Browsers
 ~~~~~~~~~~~~
@@ -337,7 +351,7 @@ JavaScript
         console.log (bitfinex.id,  await bitfinex.loadProducts  ())
         console.log (huobi.id,     await huobi.loadProducts ())
 
-        console.log (kraken.id,    await kraken.fetchOrderBook (Object.keys (kraken.products)[0]))
+        console.log (kraken.id,    await kraken.fetchOrderBook (kraken.symbols[0]))
         console.log (bitfinex.id,  await bitfinex.fetchTicker ('BTC/USD'))
         console.log (huobi.id,     await huobi.fetchTrades ('ETH/CNY'))
 
@@ -374,7 +388,7 @@ Python
     print (bitmex.id, bitmex.load_products ())
     print (huobi.id,  huobi.load_products ())
 
-    print (hitbtc.fetch_order_book (hitbtc_products.keys ()[0]))
+    print (hitbtc.fetch_order_book (hitbtc.symbols[0]))
     print (bitmex.fetch_ticker ('BTC/USD'))
     print (huobi.fetch_trades ('LTC/CNY'))
 
@@ -407,7 +421,7 @@ PHP
     var_dump ($bittrex->load_products ());
     var_dump ($quoine->load_products ());
 
-    var_dump ($poloniex->fetch_order_book (array_keys ($poloniex_products)[0]));
+    var_dump ($poloniex->fetch_order_book ($poloniex->symbols[0]));
     var_dump ($bittrex->fetch_trades ('BTC/USD'));
     var_dump ($quoine->fetch_ticker ('ETH/EUR'));
     var_dump ($zaif->fetch_ticker ('BTC/JPY'));
@@ -423,7 +437,7 @@ PHP
 Contributing
 ------------
 
-Please read the ```CONTRIBUTING.md`` <https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md>`__ before making any changes you would like to commit. Our multilanguage code base is single-sourced from ```ccxt.js`` <https://github.com/kroitor/ccxt/blob/master/ccxt.js>`__ by a custom transpilation tool, and this poses some serious restrictions on how to code should be written to be recognizeable by the toolchain.
+Please read the `CONTRIBUTING <https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md>`__ document before making changes that you would like adopted in the code.
 
 Public Offer
 ------------
@@ -446,7 +460,7 @@ We implement bots, algorithmic trading software and strategies by your design. C
 
 We are coders, not investors, so we ABSOLUTELY DO NOT do any kind of financial or trading advisory neither we invent profitable strategies to make you a fortune out of thin air. We guarantee the stability of the bot or trading software, but we cannot guarantee the profitability of your strategy nor can we protect you from natural financial risks and economic losses. Exact rules for the trading strategy is up to the trader/investor himself. We charge a fix flat price in cryptocurrency for our programming services and for implementing your requirements in software.
 
-Please, contact us on GitHub or via email if you're interested in integrating this software into an existing project or in developing new opensource and commercial projects. Questions are welcome.
+Please, contact us on GitHub or by email if you're interested in integrating this software into an existing project or in developing new opensource and commercial projects. Questions are welcome.
 
 Contact Us
 ----------

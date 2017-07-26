@@ -15,9 +15,7 @@ with open (path.join (here, 'README.rst'), encoding='utf-8') as f:
 # Get the version number and other params from package.json    
 with open (path.join (here, 'package.json'), encoding = 'utf-8') as f:
     package = json.load (f)
-
-keywords = ' '.join ([item for item in package['keywords'] if (' ' not in item)])
-
+ 
 setup (
 
     name = package['name'],
@@ -53,6 +51,6 @@ setup (
         'Environment :: Console'
     ],
 
-    keywords = keywords,
+    keywords = package['keywords'],
     packages = find_packages ()
 )

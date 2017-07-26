@@ -16,6 +16,7 @@ markets = [
     'bitso',
     'bitstamp',
     'bittrex',
+    'bl3p',
     'btcchina',
     'btce',
     'btcexchange',
@@ -26,8 +27,10 @@ markets = [
     'bxinth',
     'ccex',
     'cex',
+    'chbtc',
     'chilebit',
     'coincheck',
+    'coingi',
     'coinmarketcap',
     'coinmate',
     'coinsecure',
@@ -65,6 +68,7 @@ markets = [
     'virwox',
     'xbtce',
     'yobit',
+    'yunbi',
     'zaif',
 ]
 
@@ -75,12 +79,13 @@ __all__ = markets + [
     'DDoSProtectionError',
     'TimeoutError',
     'NotAvailableError',
-    'MarketNotAvailabileError',
+    'MarketNotAvailableError',
+    'EndpointNotAvailableError',
     'OrderBookNotAvailableError',
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.0.165'
+__version__ = '1.1.90'
 
 # Python 2 & 3
 import base64
@@ -96,6 +101,7 @@ import json
 import math
 import re
 import socket
+import ssl
 import sys
 import time
 import zlib
@@ -127,7 +133,10 @@ class AuthenticationError (CCXTError):
 class NotAvailableError (CCXTError):
     pass
 
-class MarketNotAvailaibleError (NotAvailableError):
+class MarketNotAvailableError (NotAvailableError):
+    pass
+
+class EndpointNotAvailableError (NotAvailableError):
     pass
 
 class OrderBookNotAvailableError (NotAvailableError):
@@ -138,18 +147,20 @@ class TickerNotAvailableError (NotAvailableError):
 
 class Market (object):
 
-    id        = None
-    rateLimit = 2000  # milliseconds = seconds * 1000
-    timeout   = 10000 # milliseconds = seconds * 1000
-    verbose   = False
-    products  = None
-    symbols   = None
-    tickers   = None
-    proxy     = ''
-    apiKey    = ''
-    secret    = ''
-    password  = ''
-    uid       = ''
+    id         = None
+    rateLimit  = 2000  # milliseconds = seconds * 1000
+    timeout    = 10000 # milliseconds = seconds * 1000
+    verbose    = False
+    products   = None
+    symbols    = None
+    currencies = None
+    tickers    = None
+    proxy      = ''
+    apiKey     = ''
+    secret     = ''
+    password   = ''
+    uid        = ''
+    twofa      = False
     productsById = None
     products_by_id = None
 
@@ -184,8 +195,29 @@ class Market (object):
                         f = functools.partial (self.request, url, apiType, uppercaseMethod)
                         setattr (self, camelcase,  f)
                         setattr (self, underscore, f)
+
+    def raise_error (self, exception_type, url, method = 'GET', error = None, details = None):
+        details = details if details else ''
+        if error:
+            if type (error) is _urllib.HTTPError:
+                details = ' '.join ([
+                    str (error.code),
+                    error.msg,
+                    error.read ().decode ('utf-8'),
+                    details,
+                ])
+            else:
+                details = str (error)
+            raise exception_type (' '.join ([ 
+                self.id, 
+                method,
+                url,
+                details,
+            ]))
+        else:
+            raise exception_type (' '.join ([ self.id, method, url, details ]))   
     
-    def fetch (self, url, method = 'GET', headers = None, data = None):
+    def fetch (self, url, method = 'GET', headers = None, body = None):
         """Perform a HTTP request and return decoded JSON data"""
         version = '.'.join (map (str, sys.version_info[:3]))
         userAgent = 'ccxt/' + __version__ + ' (+https://github.com/kroitor/ccxt) Python/' + version
@@ -195,52 +227,79 @@ class Market (object):
             headers.update ({ 'Origin': '*' })
         url = self.proxy + url
         if self.verbose:
-            print (url, method, headers, data)
-        if data:
-            data = data.encode ()
-        request = _urllib.Request (url, data, headers)
+            print (url, method, headers, body)
+        if body:
+            body = body.encode ()
+        request = _urllib.Request (url, body, headers)
         request.get_method = lambda: method
         response = None
-        try:
+        try: # send request and load response
             handler = _urllib.HTTPHandler if url.startswith ('http://') else _urllib.HTTPSHandler
             opener = _urllib.build_opener (handler)
             response = opener.open (request, timeout = int (self.timeout / 1000))
-            text = response.read ()
-            encoding = response.info ().get ('Content-Encoding')
-            if encoding in ('gzip', 'x-gzip', 'deflate'):
-                if encoding == 'deflate':
-                    text = zlib.decompress (text, -zlib.MAX_WBITS)
-                else:
-                    data = gzip.GzipFile ('', 'rb', 9, io.BytesIO (text))
-                    text = data.read ().decode ('utf-8')
-            text = text.decode ('utf-8')
-            ddos_protection = re.search ('(cloudflare|incapsula)', text, flags = re.IGNORECASE)
-            market_not_available = re.search ('(offline|unavailable|busy|maintenance|maintenancing)', text, flags = re.IGNORECASE)
-            if market_not_available:
-                raise MarketNotAvailaibleError (self.id + ' Market Not Available Error')
-            if ddos_protection:
-                raise DDoSProtectionError (self.id + ' DDoS Protection Error')
-            return json.loads (text)
         except socket.timeout as e:
-            raise TimeoutError (self.id + ' request timeout')
+            raise TimeoutError (' '.join ([ self.id, method, url, 'request timeout' ]))
+        except ssl.SSLError as e:
+            self.raise_error (MarketNotAvailableError, url, method, e)
         except _urllib.HTTPError as e:
-            try: 
-                text = e.fp.read ()
-                ddos_protection = re.search ('(cloudflare|incapsula)', text, flags = re.IGNORECASE)
-                market_not_available = re.search ('(offline|unavailable|busy|maintenance|maintenancing)', text, flags = re.IGNORECASE)
+            error = None
+            details = None
+            if e.code == 429:
+                error = DDoSProtectionError
+            elif e.code in [500, 501, 502, 404]:
+                details = e.read ().decode ('utf-8') if e else None
+                error = MarketNotAvailableError
+            elif e.code in [400, 403, 405, 503]:
+                # special case to detect ddos protection
+                reason = e.read ().decode ('utf-8')
+                ddos_protection = re.search ('(cloudflare|incapsula)', reason, flags = re.IGNORECASE)
                 if ddos_protection:
-                    error = 'DDoS Protection Error'
-                    print (self.id, method, url, e.code, e.msg, error)
-                    raise DDoSProtectionError (self.id + ' ' + error)
-                if market_not_available:
-                    error = 'Market Not Available'
-                    print (self.id, method, url, e.code, e.msg, error)
-                    raise MarketNotAvailaibleError (self.id + ' ' + error)
+                    error = DDoSProtectionError
                 else:
-                    print (self.id, method, url, e.code, e.msg, text)
-                    raise
-            except Exception as unused:
-                print (self.id, method, url, e.code, e.msg, text)
+                    error = MarketNotAvailableError
+                    details = 'Possible reasons: ' + ', '.join ([
+                        'invalid API keys',
+                        'market down or offline', 
+                        'on maintenance',
+                        'DDoS protection',
+                        'rate-limiting in effect',
+                        reason,
+                    ])
+            elif e.code in [408, 504]:
+                error = TimeoutError
+            elif e.code in [401, 422, 511]:
+                error = AuthenticationError
+            self.raise_error (error, url, method, e, details)
+        except _urllib.URLError as e:
+            self.raise_error (MarketNotAvailableError, url, method, e)        
+        text = response.read ()
+        encoding = response.info ().get ('Content-Encoding')
+        if encoding in ('gzip', 'x-gzip', 'deflate'):
+            if encoding == 'deflate':
+                text = zlib.decompress (text, -zlib.MAX_WBITS)
+            else:
+                data = gzip.GzipFile ('', 'rb', 9, io.BytesIO (text))
+                text = data.read ()
+        body = text.decode ('utf-8')
+        return self.handle_response (url, method, headers, body)
+
+    def handle_response (self, url, method = 'GET', headers = None, body = None):
+        try:
+            return json.loads (body)
+        except Exception as e:
+            ddos_protection = re.search ('(cloudflare|incapsula)', body, flags = re.IGNORECASE)
+            market_not_available = re.search ('(offline|unavailable|busy|maintenance|maintenancing)', body, flags = re.IGNORECASE)
+            if ddos_protection:
+                raise DDoSProtectionError (' '.join ([ self.id, method, url, body ]))
+            if market_not_available:
+                message = 'market downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
+                raise MarketNotAvailableError (' '.join ([
+                    self.id,
+                    method,
+                    url,                
+                    body,
+                    message,
+                ]))
             raise
 
     @staticmethod
@@ -266,13 +325,10 @@ class Market (object):
         result = {}    
         if type (array) is dict:
             array = list (Market.keysort (array).items ())
-            for (id, element) in array:
+        for element in array:
+            if (key in element) and (element[key] is not None):
                 k = element[key]
                 result[k] = element
-            return result
-        for element in array:
-            k = element[key]
-            result[k] = element
         return result
 
     @staticmethod
@@ -319,6 +375,18 @@ class Market (object):
             else:
                 if arg in result: del result[arg]
         return result
+
+    @staticmethod
+    def unique (array):
+        return list (set (array))
+
+    @staticmethod
+    def pluck (array, key):
+        return [element[key] for element in array if (key in element) and (element[key] is not None)]
+
+    @staticmethod
+    def sum (*args):
+        return sum ([arg for arg in args if isinstance (arg, int) or isinstance (arg, float)])
 
     @staticmethod
     def s ():
@@ -417,6 +485,15 @@ class Market (object):
             return base64.b64encode (h.digest ())
         return h.digest ()
 
+    # this is a special case workaround for Kraken, see issues #52 and #23
+    @staticmethod
+    def signForKraken (path, request, secret, nonce):
+        auth = Market.encode (nonce + request)
+        query = Market.encode (path) + Market.hash (auth, 'sha256', 'binary')
+        secret = base64.b64decode (secret)
+        signature = Market.hmac (query, secret, hashlib.sha512, 'base64')
+        return signature
+
     @staticmethod
     def base64urlencode (s):
         return Market.decode (base64.urlsafe_b64encode (s)).replace ('=', '')
@@ -447,10 +524,16 @@ class Market (object):
         return Market.seconds ()
 
     def set_products (self, products):
-        self.products = self.indexBy (products, 'symbol')
-        self.products_by_id = Market.indexBy (products, 'id')
+        values = products
+        if type (values) is dict:
+            values = list (products.values ())
+        self.products = self.indexBy (values, 'symbol')
+        self.products_by_id = Market.indexBy (values, 'id')
         self.productsById = self.products_by_id
-        self.symbols = sorted (list (self.products.keys ()))            
+        self.symbols = sorted (list (self.products.keys ()))
+        base = self.pluck ([product for product in values if 'base' in product], 'base')
+        quote = self.pluck ([product for product in values if 'quote' in product], 'quote')
+        self.currencies = sorted (self.unique (base + quote))
         return self.products
 
     def setProducts (self, products):
@@ -507,10 +590,10 @@ class Market (object):
         return self.create_order (product, 'limit', 'sell', amount, price, params)
 
     def create_market_buy_order (self, product, amount, params = {}):
-        return self.create_order (product, 'market', 'buy', amount, params)
+        return self.create_order (product, 'market', 'buy', amount, None, params)
 
     def create_market_sell_order (self, product, amount, params = {}):
-        return self.create_order (product, 'market', 'sell', amount, params)
+        return self.create_order (product, 'market', 'sell', amount, None, params)
 
     def createLimitBuyOrder (self, product, amount, price, params = {}):
         return self.create_limit_buy_order (product, amount, price, params)
@@ -533,7 +616,7 @@ class _1broker (Market):
             'id': '_1broker',
             'name': '1Broker',
             'countries': 'US',
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'version': 'v2',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg',
@@ -588,33 +671,42 @@ class _1broker (Market):
             })
             for p in range (0, len (products['response'])):
                 product = products['response'][p]
+                id = product['symbol']
+                symbol = None
+                base = None
+                quote = None
                 if (category == 'FOREX') or (category == 'CRYPTO'):
-                    id = product['symbol']
                     symbol = product['name']
-                    base, quote = symbol.split ('/')
-                    result.append ({
-                        'id': id,
-                        'symbol': symbol,
-                        'base': base,
-                        'quote': quote,
-                        'info': product,
-                    })
+                    parts = symbol.split ('/')
+                    base = parts[0]
+                    quote = parts[1]
                 else:
-                    id = product['symbol']
-                    symbol = product['symbol']
-                    name = product['name']
-                    type = product['type'].lower ()
-                    result.append ({
-                        'id': id,
-                        'symbol': symbol,
-                        'name': name,
-                        'type': type,
-                        'info': product,
-                    })
+                    base = id
+                    quote = 'USD'
+                    symbol = base + '/' + quote
+                result.append ({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'info': product,
+                })
         return result
 
     def fetch_balance (self):
-        return self.privateGetUserOverview ()
+        balance = self.privateGetUserOverview ()
+        response = balance['response']
+        result = { 'info': response }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            result[currency] = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+        result['BTC']['free'] = float (response['balance'])
+        result['BTC']['total'] = result['BTC']['free']
+        return result
 
     def fetch_order_book (self, product):
         response = self.privateGetMarketQuotes ({
@@ -734,7 +826,23 @@ class cryptocapital (Market):
         super (cryptocapital, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostBalancesAndInfo ()
+        response = self.privatePostBalancesAndInfo ()
+        balance = response['balances-and-info']
+        result = { 'info': balance }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in balance['available']:
+                account['free'] = float (balance['available'][currency])
+            if currency in balance['on_hold']:
+                account['used'] = float (balance['on_hold'][currency])
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         response = self.publicGetOrderBook ({
@@ -808,7 +916,7 @@ class cryptocapital (Market):
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         if self.id == 'cryptocapital':
-            raise Error (self.id + ' is an abstract base API for _1BTCXE')
+            raise Error (self.id + ' is an abstract base API for _1btcxe')
         url = self.urls['api'] + '/' + path
         if type == 'public':
             if params:
@@ -885,7 +993,7 @@ class anxpro (Market):
             'name': 'ANXPro',
             'countries': [ 'JP', 'SG', 'HK', 'NZ', ],
             'version': '2',
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
                 'api': 'https://anxpro.com/api',
@@ -935,7 +1043,24 @@ class anxpro (Market):
         super (anxpro, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostMoneyInfo ()
+        response = self.privatePostMoneyInfo ()
+        balance = response['data']
+        currencies = list (balance['Wallets'].keys ())
+        result = { 'info': balance }
+        for c in range (0, len (currencies)):
+            currency = currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in balance['Wallets']:
+                wallet = balance['Wallets'][currency]
+                account['free'] = float (wallet['Available_Balance']['value'])
+                account['total'] = float (wallet['Balance']['value'])
+                account['used'] = account['total'] - account['free']
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         response = self.publicGetCurrencyPairMoneyDepthFull ({
@@ -988,6 +1113,8 @@ class anxpro (Market):
         }
 
     def fetch_trades (self, product):
+        error = self.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled'
+        raise EndpointNotAvailableError (error)
         return self.publicGetCurrencyPairMoneyTradeFetch ({
             'currency_pair': self.product_id (product),
         })
@@ -1082,7 +1209,22 @@ class bit2c (Market):
         super (bit2c, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostAccountBalanceV2 ()
+        balance = self.privatePostAccountBalanceV2 ()
+        result = { 'info': balance }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in balance:
+                available = 'AVAILABLE_' + currency
+                account['free'] = balance[available]
+                account['total'] = balance[currency]
+                account['used'] = account['total'] - account['free']
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetExchangesPairOrderbook ({
@@ -1238,7 +1380,22 @@ class bitbay (Market):
         super (bitbay, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostInfo ()
+        response = self.privatePostInfo ()
+        balance = response['balances']
+        result = { 'info': balance }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in balance:
+                account['free'] = float (balance[currency]['available'])
+                account['used'] = float (balance[currency]['locked'])
+                account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetIdOrderbook ({
@@ -1322,7 +1479,7 @@ class bitbays (Market):
             'id': 'bitbays',
             'name': 'BitBays',
             'countries': [ 'CN', 'GB', 'HK', 'AU', 'CA' ],
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27808599-983687d2-6051-11e7-8d95-80dfcbe5cbb4.jpg',
@@ -1359,6 +1516,25 @@ class bitbays (Market):
         }
         params.update (config)
         super (bitbays, self).__init__ (params)
+
+    def fetch_balance (self):
+        response = self.privatePostInfo ()
+        balance = response['result']['wallet']
+        result = { 'info': balance }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            lowercase = currency.lower ()
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if lowercase in balance:
+                account['free'] = float (balance[lowercase]['avail'])
+                account['used'] = float (balance[lowercase]['lock'])
+                account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         response = self.publicGetDepth ({
@@ -1505,7 +1681,25 @@ class bitcoincoid (Market):
         super (bitcoincoid, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostGetInfo ()
+        response = self.privatePostGetInfo ()
+        balance = response['return']['balance']
+        frozen = response['return']['balance_hold']
+        result = { 'info': balance }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            lowercase = currency.lower ()
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if lowercase in balance:
+                account['free'] = float (balance[lowercase])
+            if lowercase in frozen:
+                account['used'] = float (frozen[lowercase])
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetPairDepth ({
@@ -1608,7 +1802,7 @@ class bitfinex (Market):
             'name': 'Bitfinex',
             'countries': 'US',
             'version': 'v1',
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
                 'api': 'https://api.bitfinex.com',
@@ -1680,8 +1874,10 @@ class bitfinex (Market):
         for p in range (0, len (products)):
             product = products[p]
             id = product['pair'].upper ()
-            base = id[0:3]
-            quote = id[3:6]
+            baseId = id[0:3]
+            quoteId = id[3:6]
+            base = baseId
+            quote = quoteId
             # issue #4 Bitfinex names Dash as DSH, instead of DASH
             if base == 'DSH':
                 base = 'DASH'
@@ -1691,12 +1887,38 @@ class bitfinex (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': product,
             })
         return result
 
     def fetch_balance (self):
-        return self.privatePostBalances ()
+        response = self.privatePostBalances ()
+        balances = {}
+        for b in range (0, len (response)):
+            account = response[b]
+            if account['type'] == 'exchange':
+                currency = account['currency']
+                # issue #4 Bitfinex names Dash as DSH, instead of DASH
+                if currency == 'DSH':
+                    currency = 'DASH'
+                uppercase = currency.upper ()
+                balances[uppercase] = account
+        result = { 'info': response }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in balances:
+                account['free'] = float (balances[currency]['available'])
+                account['total'] = float (balances[currency]['amount'])
+                account['used'] = account['total'] - account['free']
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetBookSymbol ({
@@ -1752,19 +1974,26 @@ class bitfinex (Market):
         })
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
-        return self.privatePostOrderNew (self.extend ({
+        order = {
             'symbol': self.product_id (product),
             'amount': str (amount),
-            'price': str (price),
             'side': side,
             'type': 'exchange ' + type,
-            'ocoorder': false,
+            'ocoorder': False,
             'buy_price_oco': 0,
             'sell_price_oco': 0,
-        }, params))
+        }
+        if type == 'market':
+            order['price'] = str (self.nonce ())
+        else:
+            order['price'] = price
+        return self.privatePostOrderNew (self.extend (order, params))
 
     def cancel_order (self, id):
         return self.privatePostOrderCancel ({ 'order_id': id })
+
+    def nonce (self):
+        return self.milliseconds ()
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         request = '/' + self.version + '/' + self.implode_params (path, params)
@@ -1877,7 +2106,26 @@ class bitflyer (Market):
         return result
 
     def fetch_balance (self):
-        return self.privateGetBalance ()
+        response = self.privateGetBalance ()
+        balances = {}
+        for b in range (0, len (response)):
+            account = response[b]
+            currency = account['currency_code']
+            balances[currency] = account
+        result = { 'info': response }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in balances:
+                account['total'] = balances[currency]['amount']
+                account['free'] = balances[currency]['available']                
+                account['used'] = account['total'] - account['free']
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetBoard ({
@@ -1975,7 +2223,7 @@ class bitlish (Market):
             'id': 'bitlish',
             'name': 'bitlish',
             'countries': [ 'GB', 'EU', 'RU', ],
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
@@ -2037,6 +2285,10 @@ class bitlish (Market):
             id = product['id']
             symbol = product['name']
             base, quote = symbol.split ('/')
+            # issue #4 bitlish names Dash as DSH, instead of DASH
+            if base == 'DSH':
+                base = 'DASH'
+            symbol = base + '/' + quote
             result.append ({
                 'id': id,
                 'symbol': symbol,
@@ -2101,7 +2353,31 @@ class bitlish (Market):
         })
 
     def fetch_balance (self):
-        return self.privatePostBalance ()
+        response = self.privatePostBalance ()
+        result = { 'info': response }
+        currencies = list (response.keys ())
+        balance = {}
+        for c in range (0, len (currencies)):
+            currency = currencies[c]
+            account = response[currency]
+            currency = currency.upper ()
+            # issue #4 bitlish names Dash as DSH, instead of DASH
+            if currency == 'DSH':
+                currency = 'DASH'
+            balance[currency] = account
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in balance:
+                account['free'] = float (balance[currency]['funds'])
+                account['used'] = float (balance[currency]['holded'])                
+                account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def sign_in (self):
         return self.privatePostSignin ({
@@ -2141,7 +2417,7 @@ class bitmarket (Market):
             'id': 'bitmarket',
             'name': 'BitMarket',
             'countries': [ 'PL', 'EU', ],
-            'rateLimit': 3000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg',
                 'api': {
@@ -2215,14 +2491,32 @@ class bitmarket (Market):
                 'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
                 'LTC/PLN': { 'id': 'LTCPLN', 'symbol': 'LTC/PLN', 'base': 'LTC', 'quote': 'PLN' },
                 'LTC/BTC': { 'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
-                'LMX/BTC': { 'id': 'LiteMineXBTC', 'symbol': 'LMX/BTC', 'base': 'LMX', 'quote': 'BTC' },
+                'LiteMineX/BTC': { 'id': 'LiteMineXBTC', 'symbol': 'LiteMineX/BTC', 'base': 'LiteMineX', 'quote': 'BTC' },
+                'PlnX/BTC': { 'id': 'PlnxBTC', 'symbol': 'PlnX/BTC', 'base': 'PlnX', 'quote': 'BTC' },
             },
         }
         params.update (config)
         super (bitmarket, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostInfo ()
+        response = self.privatePostInfo ()
+        data = response['data']
+        balance = data['balances']
+        result = { 'info': data }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in balance['available']:
+                account['free'] = balance['available'][currency]
+            if currency in balance['blocked']:
+                account['used'] = balance['blocked'][currency]
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetJsonMarketOrderbook ({
@@ -2306,7 +2600,7 @@ class bitmex (Market):
             'name': 'BitMEX',
             'countries': 'SC', # Seychelles
             'version': 'v1',
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
                 'api': 'https://www.bitmex.com',
@@ -2428,7 +2722,23 @@ class bitmex (Market):
         return result
 
     def fetch_balance (self):
-        return self.privateGetUserMargin ({ 'currency': 'all' })
+        response = self.privateGetUserMargin ({ 'currency': 'all' })
+        result = { 'info': response }
+        for b in range (0, len (response)):
+            balance = response[b]
+            currency = balance['currency'].upper ()
+            currency = self.commonCurrencyCode (currency)
+            account = {
+                'free': balance['availableMargin'],
+                'used': None,
+                'total': balance['amount'],
+            }
+            if currency == 'BTC':
+                account['free'] = account['free'] * 0.00000001
+                account['total'] = account['total'] * 0.00000001
+            account['used'] = account['total'] - account['free']
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetOrderBookL2 ({
@@ -2610,7 +2920,19 @@ class bitso (Market):
         return result
 
     def fetch_balance (self):
-        return self.privateGetBalance ()
+        response = self.privateGetBalance ()
+        balances = response['payload']['balances']
+        result = { 'info': response }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = balance['currency'].upper ()
+            account = {
+                'free': float (balance['available']),
+                'used': float (balance['locked']),
+                'total': float (balance['total']),
+            }
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         response = self.publicGetOrderBook ({
@@ -2754,6 +3076,9 @@ class bitstamp (Market):
                 'XRP/USD': { 'id': 'xrpusd', 'symbol': 'XRP/USD', 'base': 'XRP', 'quote': 'USD' },
                 'XRP/EUR': { 'id': 'xrpeur', 'symbol': 'XRP/EUR', 'base': 'XRP', 'quote': 'EUR' },
                 'XRP/BTC': { 'id': 'xrpbtc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC' },
+                'LTC/USD': { 'id': 'ltcusd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD' },
+                'LTC/EUR': { 'id': 'ltceur', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
+                'LTC/BTC': { 'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
             },
         }
         params.update (config)
@@ -2812,7 +3137,27 @@ class bitstamp (Market):
         })
 
     def fetch_balance (self):
-        return self.privatePostBalance ()
+        balance = self.privatePostBalance ()
+        result = { 'info': balance }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            lowercase = currency.lower ()
+            total = lowercase + '_balance'
+            free = lowercase + '_available'
+            used = lowercase + '_reserved'
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if free in balance:
+                account['free'] = float (balance[free])
+            if used in balance:
+                account['used'] = float (balance[used])
+            if total in balance:
+                account['total'] = float (balance[total])
+            result[currency] = account
+        return result
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         method = 'privatePost' + self.capitalize (side)
@@ -2864,7 +3209,7 @@ class bittrex (Market):
             'name': 'Bittrex',
             'countries': 'US',
             'version': 'v1.1',
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
                 'api': 'https://bittrex.com/api',
@@ -2932,7 +3277,24 @@ class bittrex (Market):
         return result
 
     def fetch_balance (self):
-        return self.accountGetBalances ()
+        response = self.accountGetBalances ()
+        balances = response['result']
+        result = { 'info': balances }
+        indexed = self.index_by (balances, 'Currency')
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in indexed:
+                balance = indexed[currency]
+                account['free'] = balance['Available']
+                account['used'] = balance['Pending']
+                account['total'] = balance['Balance']
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         response = self.publicGetOrderbook ({
@@ -3020,7 +3382,8 @@ class bittrex (Market):
                 'nonce': nonce,
                 'apikey': self.apiKey,
             }, params))
-            headers = { 'apisign': self.hmac (self.encode (url), self.encode (self.secret), hashlib.sha512) }
+            signature = self.hmac (self.encode (url), self.encode (self.secret), hashlib.sha512)
+            headers = { 'apisign': signature }
         return self.fetch (url, method, headers, body)
 
 #------------------------------------------------------------------------------
@@ -3176,8 +3539,180 @@ class blinktrade (Market):
             headers = {
                 'APIKey': self.apiKey,
                 'Nonce': nonce,
-                'Signature': self.hmac (self.encode (nonce), self.secret),
+                'Signature': self.hmac (self.encode (nonce), self.encode (self.secret)),
                 'Content-Type': 'application/json',
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
+class bl3p (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'bl3p',
+            'name': 'BL3P',
+            'countries': [ 'NL', 'EU' ], # Netherlands, EU
+            'rateLimit': 1000,
+            'version': '1',
+            'comment': 'An exchange market by BitonicNL',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
+                'api': 'https://api.bl3p.eu',
+                'www': [
+                    'https://bl3p.eu',
+                    'https://bitonic.nl',
+                ],
+                'doc': [
+                    'https://github.com/BitonicNL/bl3p-api/tree/master/docs',
+                    'https://bl3p.eu/api',
+                    'https://bitonic.nl/en/api',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        '{market}/ticker',
+                        '{market}/orderbook',
+                        '{market}/trades',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        '{market}/money/depth/full',
+                        '{market}/money/order/add',
+                        '{market}/money/order/cancel',
+                        '{market}/money/order/result',
+                        '{market}/money/orders',
+                        '{market}/money/orders/history',
+                        '{market}/money/trades/fetch',
+                        'GENMKT/money/info',
+                        'GENMKT/money/deposit_address',
+                        'GENMKT/money/new_deposit_address',
+                        'GENMKT/money/wallet/history',
+                        'GENMKT/money/withdraw',
+                    ],
+                },
+            },
+            'products': {
+                'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+                'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
+            },
+        }
+        params.update (config)
+        super (bl3p, self).__init__ (params)
+
+    def fetch_balance (self):
+        response = self.privatePostGENMKTMoneyInfo ()
+        data = response['data']
+        balance = data['wallets']
+        result = { 'info': data }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in balance:
+                if 'available' in balance[currency]:
+                    account['free'] = float (balance[currency]['available']['value'])
+            if currency in balance:
+                if 'balance' in balance[currency]:
+                    account['total'] = float (balance[currency]['balance']['value'])
+            if account['total']:
+                if account['free']:
+                    account['used'] = account['total'] - account['free']
+            result[currency] = account
+        return result
+
+    def fetch_order_book (self, product):
+        p = self.product (product)
+        response = self.publicGetMarketOrderbook ({
+            'market': p['id'],
+        })
+        orderbook = response['data']
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = order['price_int'] / 100000
+                amount = order['amount_int'] / 100000000
+                result[side].append ([ price, amount ])
+        return result
+
+    def fetch_ticker (self, product):
+        ticker = self.publicGetMarketTicker ({
+            'market': self.product_id (product),
+        })        
+        timestamp = ticker['timestamp'] * 1000
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['bid']),
+            'ask': float (ticker['ask']),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['volume']['24h']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetMarketTrades ({
+            'market': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        p = self.product (product)
+        order = {
+            'market': p['id'],
+            'amount_int': amount,
+            'fee_currency': p['quote'],
+            'type': 'bid' if (side == 'buy') else 'ask',
+        }
+        if type == 'limit':
+            order['price_int'] = price
+        return self.privatePostMarketMoneyOrderAdd (self.extend (order, params))
+
+    def cancel_order (self, id):
+        return self.privatePostMarketMoneyOrderCancel ({ 'order_id': id })
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        request = self.implode_params (path, params)
+        url = self.urls['api'] + '/' + self.version + '/' + request
+        query = self.omit (params, self.extract_params (path))
+        if type == 'public':
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
+            nonce = self.nonce ()
+            body = _urlencode.urlencode (self.extend ({ 'nonce': nonce }, query))
+            secret = base64.b64decode (self.secret)
+            auth = request + "\0" + body
+            signature = self.hmac (self.encode (auth), secret, hashlib.sha512, 'base64')
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': len (body),
+                'Rest-Key': self.apiKey,
+                'Rest-Sign': signature,
             }
         return self.fetch (url, method, headers, body)
 
@@ -3190,7 +3725,7 @@ class btcchina (Market):
             'id': 'btcchina',
             'name': 'BTCChina',
             'countries': 'CN',
-            'rateLimit': 3000,
+            'rateLimit': 1500,
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg',
@@ -3272,7 +3807,25 @@ class btcchina (Market):
         return result
 
     def fetch_balance (self):
-        return self.privatePostGetAccountInfo ()
+        response = self.privatePostGetAccountInfo ()
+        balances = response['result']
+        result = { 'info': balances }
+
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            lowercase = currency.lower ()
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if lowercase in balances['balance']:
+                account['total'] = float (balances['balance'][lowercase]['amount'])
+            if lowercase in balances['frozen']:
+                account['used'] = float (balances['frozen'][lowercase]['amount'])
+            account['free'] = account['total'] - account['used']
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetOrderbook ({
@@ -3346,6 +3899,10 @@ class btcchina (Market):
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
+            if not self.apiKey:
+                raise AuthenticationError (self.id + ' requires `' + self.id + '.apiKey` property for authentication')
+            if not self.secret:
+                raise AuthenticationError (self.id + ' requires `' + self.id + '.secret` property for authentication')
             p = []
             if 'params' in params:
                 p = params['params']
@@ -3365,11 +3922,11 @@ class btcchina (Market):
                 '&method=' + path +
                 '&params=' + p
             )
-            signature = self.hmac (self.encode (query), self.secret, hashlib.sha1)
+            signature = self.hmac (self.encode (query), self.encode (self.secret), hashlib.sha1)
             auth = self.apiKey + ':' + signature
             headers = {
                 'Content-Length': len (body),
-                'Authorization': 'Basic ' + base64.b64encode (query),
+                'Authorization': 'Basic ' + base64.b64encode (auth),
                 'Json-Rpc-Tonce': nonce,
             }
         return self.fetch (url, method, headers, body)
@@ -3449,7 +4006,24 @@ class btce (Market):
         return result
 
     def fetch_balance (self):
-        return self.privatePostGetInfo ()
+        response = self.privatePostGetInfo ()
+        balances = response['return']
+        result = { 'info': balances }
+        funds = balances['funds']
+        currencies = list (funds.keys ())
+        for c in range (0, len (currencies)):
+            currency = currencies[c]
+            uppercase = currency.upper ()
+            # they misspell DASH as dsh :/
+            if uppercase == 'DSH':
+                uppercase = 'DASH'
+            account = {
+                'free': funds[currency],
+                'used': None,
+                'total': funds[currency],
+            }
+            result[uppercase] = account
+        return result
 
     def fetch_order_book (self, product):
         p = self.product (product)
@@ -3581,7 +4155,23 @@ class btctrader (Market):
         super (btctrader, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privateGetBalance ()
+        response = self.privateGetBalance ()
+        result = { 'info': response }
+        base = { 
+            'free': response['bitcoin_available'],
+            'used': response['bitcoin_reserved'],
+            'total': response['bitcoin_balance'],
+        }
+        quote = {
+            'free': response['money_available'],
+            'used': response['money_reserved'],
+            'total': response['money_balance'],
+        }
+        symbol = self.symbols[0]
+        product = self.products[symbol]
+        result[product['base']] = base
+        result[product['quote']] = quote
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetOrderbook ()
@@ -3628,9 +4218,7 @@ class btctrader (Market):
 
     def fetch_trades (self, product):
         maxCount = 50
-        return self.publicGetTrades ({
-            # 'last': maxCount,
-        })
+        return self.publicGetTrades ()
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         method = 'privatePost' + self.capitalize (side)
@@ -3681,7 +4269,7 @@ class btcexchange (btctrader):
             'id': 'btcexchange',
             'name': 'BTCExchange',
             'countries': 'PH', # Philippines
-            'rateLimit': 1000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27993052-4c92911a-64aa-11e7-96d8-ec6ac3435757.jpg',
                 'api': 'https://www.btcexchange.ph/api',
@@ -3704,7 +4292,7 @@ class btctradeua (Market):
             'id': 'btctradeua',
             'name': 'BTC Trade UA',
             'countries': 'UA', # Ukraine,
-            'rateLimit': 2000,
+            'rateLimit': 3000,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
                 'api': 'https://btc-trade.com.ua/api',
@@ -3757,7 +4345,19 @@ class btctradeua (Market):
         return self.privatePostAuth ()
 
     def fetch_balance (self):
-        return self.privatePostBalance ()
+        response = self.privatePostBalance ()
+        accounts = response['accounts']
+        result = { 'info': response }
+        for b in range (0, len (accounts)):
+            account = accounts[b]
+            currency = account['currency']
+            balance = float (account['balance'])
+            result[currency] = {
+                'free': balance,
+                'used': None,
+                'total': balance,
+            }
+        return result
 
     def fetch_order_book (self, product):
         p = self.product (product)
@@ -3876,7 +4476,7 @@ class btctradeua (Market):
             auth = body + self.secret
             headers = {
                 'public-key': self.apiKey,
-                'api-sign': self.hash (self.encde (auth), 'sha256'),
+                'api-sign': self.hash (self.encode (auth), 'sha256'),
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
             }
@@ -3914,7 +4514,7 @@ class btcx (Market):
             'id': 'btcx',
             'name': 'BTCX',
             'countries': [ 'IS', 'US', 'EU', ],
-            'rateLimit': 3000, # support in english is very poor, unable to tell rate limits
+            'rateLimit': 1500, # support in english is very poor, unable to tell rate limits
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg',
@@ -3951,7 +4551,19 @@ class btcx (Market):
         super (btcx, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostBalance ()
+        balances = self.privatePostBalance ()
+        result = { 'info': balances }
+        currencies = list (balances.keys ())
+        for c in range (0, len (currencies)):
+            currency = currencies[c]
+            uppercase = currency.upper ()
+            account = {
+                'free': balances[currency],
+                'used': None,
+                'total': balances[currency],
+            }
+            result[uppercase] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetDepthIdLimit ({
@@ -4065,6 +4677,7 @@ class bter (Market):
                         'ticker/{id}',
                         'orderBook/{id}',
                         'trade/{id}',
+                        'tradeHistory/{id}',
                         'tradeHistory/{id}/{tid}',
                     ],
                 },
@@ -4109,7 +4722,24 @@ class bter (Market):
         return result
 
     def fetch_balance (self):
-        return self.privatePostBalances ()
+        balance = self.privatePostBalances ()
+        result = { 'info': balance }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if 'available' in balance:
+                if currency in balance['available']:
+                    account['free'] = float (balance['available'][currency])
+            if 'locked' in balance:
+                if currency in balance['locked']:
+                    account['used'] = float (balance['locked'][currency])
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetOrderBookId ({
@@ -4160,7 +4790,7 @@ class bter (Market):
         }
 
     def fetch_trades (self, product):
-        return self.publicGetTradeId ({
+        return self.publicGetTradeHistoryId ({
             'id': self.product_id (product),
         })
 
@@ -4189,7 +4819,7 @@ class bter (Market):
             body = _urlencode.urlencode (self.extend (request, query))
             headers = {
                 'Key': self.apiKey,
-                'Sign': self.hmac (self.encode (body), self.secret, hashlib.sha512),
+                'Sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512),
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
             }
@@ -4204,7 +4834,7 @@ class bxinth (Market):
             'id': 'bxinth',
             'name': 'BX.in.th',
             'countries': 'TH', # Thailand
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
                 'api': 'https://bx.in.th/api',
@@ -4271,8 +4901,30 @@ class bxinth (Market):
             })
         return result
 
+    def commonCurrencyCode (self, currency):
+        # why would they use three letters instead of four for currency codes
+        if currency == 'DAS':
+            return 'DASH'
+        if currency == 'DOG':
+            return 'DOGE'
+        return currency
+
     def fetch_balance (self):
-        return self.privatePostBalance ()
+        response = self.privatePostBalance ()
+        balance = response['balance']
+        result = { 'info': balance }
+        currencies = list (balance.keys ())
+        for c in range (0, len (currencies)):
+            currency = currencies[c]
+            code = self.commonCurrencyCode (currency)
+            account = {
+                'free': float (balance[currency]['available']),
+                'used': None,
+                'total': float (balance[currency]['total']),
+            }
+            account['used'] = account['total'] - account['free']
+            result[code] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetOrderbook ({
@@ -4371,7 +5023,7 @@ class ccex (Market):
             'id': 'ccex',
             'name': 'C-CEX',
             'countries': [ 'DE', 'EU', ],
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
                 'api': {
@@ -4438,7 +5090,19 @@ class ccex (Market):
         return result
 
     def fetch_balance (self):
-        return self.privateGetBalances ()
+        response = self.privateGetBalances ()
+        balances = response['result']
+        result = { 'info': balances }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = balance['Currency']
+            account = {
+                'free': balance['Available'],
+                'used': balance['Pending'],
+                'total': balance['Balance'],
+            }
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         response = self.publicGetOrderbook ({
@@ -4539,7 +5203,7 @@ class cex (Market):
             'id': 'cex',
             'name': 'CEX.IO',
             'countries': [ 'GB', 'EU', 'CY', 'RU', ],
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
                 'api': 'https://cex.io/api',
@@ -4607,7 +5271,18 @@ class cex (Market):
         return result
 
     def fetch_balance (self):
-        return self.privatePostBalance ()
+        balances = self.privatePostBalance ()
+        result = { 'info': balances }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': float (balances[currency]['available']),
+                'used': float (balances[currency]['orders']),
+                'total': None,
+            }
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook =  self.publicGetOrderBookPair ({
@@ -4692,6 +5367,182 @@ class cex (Market):
 
 #------------------------------------------------------------------------------
 
+class chbtc (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'chbtc',
+            'name': 'CHBTC',
+            'countries': 'CN',
+            'rateLimit': 1000,
+            'version': 'v1',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg',
+                'api': {
+                    'public': 'http://api.chbtc.com/data', # no https for public API
+                    'private': 'https://trade.chbtc.com/api',
+                },
+                'www': 'https://trade.chbtc.com/api',
+                'doc': 'https://www.chbtc.com/i/developer',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'ticker',
+                        'depth',
+                        'trades',
+                        'kline',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'order',
+                        'cancelOrder',
+                        'getOrder',
+                        'getOrders',
+                        'getOrdersNew',
+                        'getOrdersIgnoreTradeType',
+                        'getUnfinishedOrdersIgnoreTradeType',
+                        'getAccountInfo',
+                        'getUserAddress',
+                        'getWithdrawAddress',
+                        'getWithdrawRecord',
+                        'getChargeRecord',
+                        'getCnyWithdrawRecord',
+                        'getCnyChargeRecord',
+                        'withdraw',
+                    ],
+                },
+            },
+            'products': {
+                'BTC/CNY': { 'id': 'btc_cny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', },
+                'LTC/CNY': { 'id': 'ltc_cny', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', },
+                'ETH/CNY': { 'id': 'eth_cny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY', },
+                'ETC/CNY': { 'id': 'etc_cny', 'symbol': 'ETC/CNY', 'base': 'ETC', 'quote': 'CNY', },
+                'BTS/CNY': { 'id': 'bts_cny', 'symbol': 'BTS/CNY', 'base': 'BTS', 'quote': 'CNY', },
+                'EOS/CNY': { 'id': 'eos_cny', 'symbol': 'EOS/CNY', 'base': 'EOS', 'quote': 'CNY', },
+            },
+        }
+        params.update (config)
+        super (chbtc, self).__init__ (params)
+
+    def fetch_products (self):
+        products = self.publicGetPairSettings ()
+        keys = list (products.keys ())
+        result = []
+        for p in range (0, len (keys)):
+            id = keys[p]
+            product = products[id]
+            symbol = id.replace ('_', '/')
+            base, quote = symbol.split ('/')
+            result.append ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            })
+        return result
+
+    def fetch_balance (self):
+        response = self.privatePostGetAccountInfo ()
+        balances = response['result']
+        result = { 'info': balances }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in balances['balance']:
+                account['free'] = balances['balance'][currency]['amount']
+            if currency in balances['frozen']:
+                account['used'] = balances['frozen'][currency]['amount']
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
+
+    def fetch_order_book (self, product):
+        p = self.product (product)
+        orderbook = self.publicGetDepth ({
+            'currency': p['id'],
+        })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        result['bids'] = self.sort_by (result['bids'], 0, True)
+        result['asks'] = self.sort_by (result['asks'], 0)
+        return result
+
+    def fetch_ticker (self, product):
+        response = self.publicGetTicker ({
+            'currency': self.product_id (product),
+        })
+        ticker = response['ticker']
+        timestamp = self.milliseconds ()
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['buy']),
+            'ask': float (ticker['sell']),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['vol']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetTrades ({
+            'currency': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        paramString = 'price=' + price
+        paramString += '&amount=' + amount
+        paramString += '&tradeType=' + '1' if (side == 'buy') else '0'
+        paramString += '&currency=' + self.product_id (product)
+        return self.privatePostOrder (paramString)
+
+    def cancel_order (self, id, params = {}):
+        return self.privatePostCancelOrder (self.extend ({ 'id': id }, params))
+
+    def nonce (self):
+        return self.milliseconds ()
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][type] 
+        if type == 'public':
+            url += '/' + self.version + '/' + path
+            if params:
+                url += '?' + _urlencode.urlencode (params)
+        else:
+            paramsLength = len (params) # params should be a string herenot 
+            nonce = self.nonce ()            
+            auth = 'method=' + path            
+            auth += '&accesskey=' + self.apiKey            
+            auth += params if paramsLength else ''
+            secret = self.hash (self.encode (self.secret), 'sha1')
+            signature = self.hmac (self.encode (auth), self.encode (secret), hashlib.md5)
+            suffix = 'sign=' + signature + '&reqTime=' + str (nonce)
+            url += '/' + path + '?' + auth + '&' + suffix
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class chilebit (blinktrade):
 
     def __init__ (self, config = {}):
@@ -4725,7 +5576,7 @@ class coincheck (Market):
             'id': 'coincheck',
             'name': 'coincheck',
             'countries': [ 'JP', 'ID', ],
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
                 'api': 'https://coincheck.com/api',
@@ -4806,7 +5657,24 @@ class coincheck (Market):
         super (coincheck, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privateGetAccountsBalance ()
+        balances = self.privateGetAccountsBalance ()
+        result = { 'info': balances }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            lowercase = currency.lower ()
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if lowercase in balances:
+                account['free'] = float (balances[lowercase])
+            reserved = lowercase + '_reserved'
+            if reserved in balances:
+                account['used'] = float (balances[reserved])
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook =  self.publicGetOrderBooks ()
@@ -4892,6 +5760,182 @@ class coincheck (Market):
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': self.hmac (self.encode (auth), self.encode (self.secret)),
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
+class coingi (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'coingi',
+            'name': 'Coingi',
+            'rateLimit': 1000,
+            'countries': [ 'PA', 'BG', 'CN', 'US' ], # Panama, Bulgaria, China, US
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
+                'api': 'https://api.coingi.com',
+                'www': 'https://coingi.com',
+                'doc': 'http://docs.coingi.apiary.io/',
+            },
+            'api': {
+                'current': {
+                    'get': [
+                        'order-book/{pair}/{askCount}/{bidCount}/{depth}',
+                        'transactions/{pair}/{maxCount}',
+                        '24hour-rolling-aggregation',
+                    ],
+                },
+                'user': {
+                    'post': [
+                        'balance',
+                        'add-order',
+                        'cancel-order',
+                        'orders',
+                        'transactions',
+                        'create-crypto-withdrawal',
+                    ],
+                },
+            },
+            'products': {
+                'LTC/BTC': { 'id': 'ltc-btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+                'PPC/BTC': { 'id': 'ppc-btc', 'symbol': 'PPC/BTC', 'base': 'PPC', 'quote': 'BTC' },
+                'DOGE/BTC': { 'id': 'doge-btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC' },
+                'VTC/BTC': { 'id': 'vtc-btc', 'symbol': 'VTC/BTC', 'base': 'VTC', 'quote': 'BTC' },
+                'FTC/BTC': { 'id': 'ftc-btc', 'symbol': 'FTC/BTC', 'base': 'FTC', 'quote': 'BTC' },
+                'NMC/BTC': { 'id': 'nmc-btc', 'symbol': 'NMC/BTC', 'base': 'NMC', 'quote': 'BTC' },
+                'DASH/BTC': { 'id': 'dash-btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
+            },
+        }
+        params.update (config)
+        super (coingi, self).__init__ (params)
+
+    def fetch_balance (self):
+        currencies = []
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c].lower ()
+            currencies.append (currency)
+        balances = self.userPostBalance ({
+            'currencies': ','.join (currencies)
+        })
+        result = { 'info': balances }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = balance['currency']['name']
+            currency = currency.upper ()
+            account = {
+                'free': balance['available'],
+                'used': balance['blocked'] + balance['inOrders'] + balance['withdrawing'],
+                'total': None,
+            }
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
+
+    def fetch_order_book (self, product):
+        p = self.product (product)
+        orderbook = self.currentGetOrderBookPairAskCountBidCountDepth ({
+            'pair': p['id'],
+            'askCount': 512, # maximum returned number of asks 1-512
+            'bidCount': 512, # maximum returned number of bids 1-512
+            'depth': 32, # maximum number of depth range steps 1-32
+        })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = order['price']
+                amount = order['baseAmount']
+                result[side].append ([ price, amount ])
+        return result
+
+    def fetch_ticker (self, product):
+        response = self.currentGet24hourRollingAggregation ()
+        tickers = {}
+        for t in range (0, len (response)):
+            ticker = response[t]
+            base = ticker['currencyPair']['base'].upper ()
+            quote = ticker['currencyPair']['counter'].upper ()
+            symbol = base + '/' + quote
+            tickers[symbol] = ticker
+        timestamp = self.milliseconds ()
+        p = self.product (product)
+        ticker = {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': None,
+            'low': None,
+            'bid': None,
+            'ask': None,
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': None,
+            'info': None,
+        }
+        if p['symbol'] in tickers:
+            aggregation = tickers[p['symbol']]
+            ticker['high'] = aggregation['high']
+            ticker['low'] = aggregation['low']
+            ticker['bid'] = aggregation['highestBid']
+            ticker['ask'] = aggregation['lowestAsk']
+            ticker['baseVolume'] = aggregation['baseVolume']
+            ticker['quoteVolume'] = aggregation['counterVolume']
+            ticker['high'] = aggregation['high']
+            ticker['info'] = aggregation
+        return ticker
+
+    def fetch_trades (self, product):
+        return self.publicGetTransactionsPairMaxCount ({
+            'pair': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        order = {
+            'currencyPair': self.product_id (product),
+            'volume': amount,
+            'price': price,
+            'orderType': 0 if (side == 'buy') else 1,
+        }
+        return self.userPostAddOrder (self.extend (order, params))
+
+    def cancel_order (self, id):
+        return self.userPostCancelOrder ({ 'orderId': id })
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'] + '/' + type + '/' + self.implode_params (path, params)
+        query = self.omit (params, self.extract_params (path))
+        if type == 'current':
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
+            nonce = self.nonce ()
+            request = self.extend ({
+                'token': self.apiKey,
+                'nonce': nonce,
+            }, query)
+            auth = str (nonce) + '$' + self.apiKey
+            request['signature'] = self.hmac (self.encode (auth), self.encode (self.secret))
+            body = self.json (request)            
+            headers = {
+                'Content-Type': 'application/json',
+                'Content-Length': len (body),
             }
         return self.fetch (url, method, headers, body)
 
@@ -5091,7 +6135,22 @@ class coinmate (Market):
         super (coinmate, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostBalances ()
+        response = self.privatePostBalances ()
+        balances = response['data']
+        result = { 'info': balances }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in balances:
+                account['free'] = balances[currency]['available']
+                account['used'] = balances[currency]['reserved']
+                account['total'] = balances[currency]['balance']
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         response = self.publicGetOrderBook ({
@@ -5178,8 +6237,8 @@ class coinmate (Market):
             if not self.uid:
                 raise AuthenticationError (self.id + ' requires `' + self.id + '.uid` property for authentication')
             nonce = str (self.nonce ())
-            auth = ' '.join ([ nonce, self.uid, self.apiKey ])
-            signature = self.hmac (self.encode (auth), self.secret)
+            auth = nonce + self.uid + self.apiKey
+            signature = self.hmac (self.encode (auth), self.encode (self.secret))
             body = _urlencode.urlencode (self.extend ({
                 'clientId': self.uid,
                 'nonce': nonce,
@@ -5188,7 +6247,6 @@ class coinmate (Market):
             }, params))
             headers = {
                 'Content-Type':  'application/x-www-form-urlencoded',
-                'Content-Length': len (body),
             }
         return self.fetch (url, method, headers, body)
 
@@ -5348,7 +6406,24 @@ class coinsecure (Market):
         super (coinsecure, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privateGetUserExchangeBankSummary ()
+        response = self.privateGetUserExchangeBankSummary ()
+        balance = response['message']
+        coin = {
+            'free': balance['availableCoinBalance'],
+            'used': balance['pendingCoinBalance'],
+            'total': balance['totalCoinBalance'],
+        }
+        fiat = {
+            'free': balance['availableFiatBalance'],
+            'used': balance['pendingFiatBalance'],
+            'total': balance['totalFiatBalance'],
+        }
+        result = {
+            'info': balance,
+            'BTC': coin,
+            'INR': fiat,
+        }
+        return result
 
     def fetch_order_book (self, product):
         bids = self.publicGetExchangeBidOrders ()
@@ -5585,7 +6660,7 @@ class dsx (Market):
             'id': 'dsx',
             'name': 'DSX',
             'countries': 'UK',
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
                 'api': {
@@ -5916,7 +6991,7 @@ class exmo (Market):
         result = self.fetch (url, method, headers, body)
         if 'result' in result:
             if not result['result']:
-                raise MarketNotAvailaibleError ('[Market Not Available] ' + self.id + ' ' + result['error'])
+                raise MarketNotAvailableError ('[Market Not Available] ' + self.id + ' ' + result['error'])
         return result
 
 #------------------------------------------------------------------------------
@@ -6041,8 +7116,8 @@ class flowbtc (Market):
         }
 
     def fetch_trades (self, product):
-        return self.publicGetTrades ({
-            'pair': self.product_id (product),
+        return self.publicPostGetTrades ({
+            'productPair': self.product_id (product),
         })
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
@@ -6115,7 +7190,7 @@ class fyb (Market):
 
     def __init__ (self, config = {}):
         params = {
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'api': {
                 'public': {
                     'get': [
@@ -6167,6 +7242,12 @@ class fyb (Market):
     def fetch_ticker (self, product):
         ticker = self.publicGetTickerdetailed ()
         timestamp = self.milliseconds ()
+        last = None
+        volume = None
+        if 'last' in ticker:
+            last = float (ticker['last'])
+        if 'vol' in ticker:
+            volume = float (ticker['vol'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),
@@ -6178,12 +7259,12 @@ class fyb (Market):
             'open': None,
             'close': None,
             'first': None,
-            'last': float (ticker['last']),
+            'last': last,
             'change': None,
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': float (ticker['vol']),
+            'quoteVolume': volume,
             'info': ticker,
         }
 
@@ -6269,6 +7350,7 @@ class gdax (Market):
             'countries': 'US',
             'rateLimit': 1000,
             'urls': {
+                'test': 'https://api-public.sandbox.gdax.com',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg',
                 'api': 'https://api.gdax.com',
                 'www': 'https://www.gdax.com',
@@ -6432,6 +7514,12 @@ class gdax (Market):
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
+            if not self.apiKey:
+                raise AuthenticationError (self.id + ' requires apiKey property for authentication and trading')
+            if not self.secret:
+                raise AuthenticationError (self.id + ' requires secret property for authentication and trading')
+            if not self.password:
+                raise AuthenticationError (self.id + ' requires password property for authentication and trading')
             nonce = str (self.nonce ())
             if query:
                 body = self.json (query)
@@ -6456,7 +7544,7 @@ class gemini (Market):
             'id': 'gemini',
             'name': 'Gemini',
             'countries': 'US',
-            'rateLimit': 2000, # 200 for private API
+            'rateLimit': 1500, # 200 for private API
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
@@ -6625,7 +7713,7 @@ class hitbtc (Market):
             'id': 'hitbtc',
             'name': 'HitBTC',
             'countries': 'HK', # Hong Kong
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'version': '1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
@@ -6691,8 +7779,9 @@ class hitbtc (Market):
             id = product['symbol']
             base = product['commodity']
             quote = product['currency']
-            if base == 'DSH':
-                base = 'DASH'
+            # looks like they now have it correct
+            # if base == 'DSH':
+                # base = 'DASH'
             symbol = base + '/' + quote
             result.append ({
                 'id': id,
@@ -6806,7 +7895,7 @@ class huobi (Market):
             'id': 'huobi',
             'name': 'Huobi',
             'countries': 'CN',
-            'rateLimit': 5000,
+            'rateLimit': 2000,
             'version': 'v3',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
@@ -6949,6 +8038,9 @@ class huobi (Market):
             }
         else:
             url += '/' + type + '/' + self.implode_params (path, params) + '_json.js'
+            query = self.omit (params, self.extract_params (path))
+            if query:
+                url += '?' + _urlencode.urlencode (query)
         return self.fetch (url, method, headers, body)
 
 #------------------------------------------------------------------------------
@@ -6960,7 +8052,7 @@ class itbit (Market):
             'id': 'itbit',
             'name': 'itBit',
             'countries': 'US',
-            'rateLimit': 3000,
+            'rateLimit': 2000,
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
@@ -7124,7 +8216,7 @@ class jubi (Market):
             'id': 'jubi',
             'name': 'jubi.com',
             'countries': 'CN',
-            'rateLimit': 2000,
+            'rateLimit': 1500,
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg',
@@ -7290,7 +8382,7 @@ class kraken (Market):
             'name': 'Kraken',
             'countries': 'US',
             'version': '0',
-            'rateLimit': 3000,
+            'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
                 'api': 'https://api.kraken.com',
@@ -7432,7 +8524,25 @@ class kraken (Market):
         })
 
     def fetch_balance (self):
-        return self.privatePostBalance ()
+        response = self.privatePostBalance ()
+        balances = response['result']
+        result = { 'info': balances }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            xcode = 'X' + currency # X-ISO4217-A3 standard currency codes
+            zcode = 'Z' + currency
+            balance = None
+            if xcode in balances:
+                balance = float (balances[xcode])
+            if zcode in balances:
+                balance = float (balances[zcode])
+            account = {
+                'free': balance,
+                'used': None,
+                'total': balance,
+            }
+            result[currency] = account
+        return result
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         order = {
@@ -7455,14 +8565,17 @@ class kraken (Market):
                 url += '?' + _urlencode.urlencode (params)
         else:
             nonce = str (self.nonce ())
-            query = self.extend ({ 'nonce': nonce }, params)
-            body = _urlencode.urlencode (query)
-            auth = self.encode (nonce + body)
-            query = self.encode (url) + self.hash (auth, 'sha256', 'binary')
-            secret = base64.b64decode (self.secret)
+            body = _urlencode.urlencode (self.extend ({ 'nonce': nonce }, params))
+            # a workaround for Kraken to replace the old CryptoJS block below, see issues #52 and #23
+            signature = self.signForKraken (url, body, self.secret, nonce)
+            # an old CryptoJS block that does not want to work properly under Node
+            # auth = self.encode (nonce + body)
+            # query = self.encode (url) + self.hash (auth, 'sha256', 'binary')
+            # secret = base64.b64decode (self.secret)
+            # signature = self.hmac (query, secret, hashlib.sha512, 'base64')
             headers = {
                 'API-Key': self.apiKey,
-                'API-Sign': self.hmac (query, secret, hashlib.sha512, 'base64'),
+                'API-Sign': signature,
                 'Content-type': 'application/x-www-form-urlencoded',
             }
         url = self.urls['api'] + url
@@ -7834,6 +8947,27 @@ class liqui (btce):
         params.update (config)
         super (liqui, self).__init__ (params)
 
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][type]
+        query = self.omit (params, self.extract_params (path))
+        if type == 'public':
+            url +=  '/' + self.version + '/' + self.implode_params (path, params)
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
+            nonce = self.nonce ()
+            body = _urlencode.urlencode (self.extend ({
+                'nonce': nonce,
+                'method': path,
+            }, query))
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': len (body),
+                'Key': self.apiKey,
+                'Sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512),
+            }
+        return self.fetch (url, method, headers, body)
+
 #------------------------------------------------------------------------------
 
 class luno (Market):
@@ -7843,7 +8977,7 @@ class luno (Market):
             'id': 'luno',
             'name': 'luno',
             'countries': [ 'GB', 'SG', 'ZA', ],
-            'rateLimit': 5000,
+            'rateLimit': 3000,
             'version': '1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
@@ -8160,7 +9294,7 @@ class okcoin (Market):
     def __init__ (self, config = {}):
         params = {
             'version': 'v1',
-            'rateLimit': 2000, # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            'rateLimit': 1000, # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'api': {
                 'public': {
                     'get': [
@@ -8365,7 +9499,7 @@ class paymium (Market):
             'id': 'paymium',
             'name': 'Paymium',
             'countries': [ 'FR', 'EU', ],
-            'rateLimit': 3000,
+            'rateLimit': 2000,
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
@@ -8517,7 +9651,7 @@ class poloniex (Market):
             'id': 'poloniex',
             'name': 'Poloniex',
             'countries': 'US',
-            'rateLimit': 1000, # 6 calls per second
+            'rateLimit': 500, # 6 calls per second
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
                 'api': {
@@ -8691,7 +9825,7 @@ class quadrigacx (Market):
             'id': 'quadrigacx',
             'name': 'QuadrigaCX',
             'countries': 'CA',
-            'rateLimit': 2000,
+            'rateLimit': 1000,
             'version': 'v2',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg',
@@ -8734,7 +9868,18 @@ class quadrigacx (Market):
         super (quadrigacx, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostBalance ()
+        balances = self.privatePostBalance ()
+        result = { 'info': balances }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            lowercase = currency.lower ()
+            account = {
+                'free': float (balances[lowercase + '_available']),
+                'used': float (balances[lowercase + '_reserved']),
+                'total': float (balances[lowercase + '_balance']),
+            }
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetOrderBook ({
@@ -8774,7 +9919,7 @@ class quadrigacx (Market):
             'open': None,
             'close': None,
             'first': None,
-            'last': None,
+            'last': float (ticker['last']),
             'change': None,
             'percentage': None,
             'average': None,
@@ -8835,7 +9980,7 @@ class quoine (Market):
             'name': 'QUOINE',
             'countries': [ 'JP', 'SG', 'VN' ],
             'version': '2',
-            'rateLimit': 2000,
+            'rateLimit': 1000,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766844-9615a4e8-5ee8-11e7-8814-fcd004db8cdd.jpg',
                 'api': 'https://api.quoine.com',
@@ -9014,6 +10159,7 @@ class southxchange (Market):
             'id': 'southxchange',
             'name': 'SouthXchange',
             'countries': 'AR', # Argentina
+            'rateLimit': 1000,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
                 'api': 'https://www.southxchange.com/api',
@@ -9937,9 +11083,8 @@ class xbtce (Market):
         }
 
     def fetch_trades (self, product):
-        return self.apiGetTradesPairs ({
-            'pairs': self.product_id (product),
-        })
+        # no method for trades?
+        return self.privateGetTrade ()
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         if type == 'market':
@@ -9964,7 +11109,7 @@ class xbtce (Market):
         if not self.apiKey:
             raise AuthenticationError (self.id + ' requires apiKey for all requests, their public API is always busy')
         if not self.uid:
-                raise AuthenticationError (self.id + ' requires `' + self.id + '.uid` property for authentication')
+            raise AuthenticationError (self.id + ' requires uid property for authentication and trading')
         url = self.urls['api'] + '/' + self.version
         if type == 'public':
             url += '/' + type
@@ -9980,7 +11125,7 @@ class xbtce (Market):
             else:
                 body = ''
             auth = nonce + self.uid + self.apiKey + method + url + body
-            signature = self.hmac (self.encode (auth), self.secret, hashlib.sha256, 'base64')
+            signature = self.hmac (self.encode (auth), self.encode (self.secret), hashlib.sha256, 'base64')
             credentials = ':'.join ([ self.uid, self.apiKey, nonce, signature ])
             headers = {
                 'Accept-Encoding': 'gzip, deflate',
@@ -10138,6 +11283,194 @@ class yobit (Market):
 
 #------------------------------------------------------------------------------
 
+class yunbi (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'yunbi',
+            'name': 'YUNBI',
+            'countries': 'CN',
+            'rateLimit': 1000,
+            'version': 'v2',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg',
+                'api': 'https://yunbi.com',
+                'www': 'https://yunbi.com',
+                'doc': [
+                    'https://yunbi.com/documents/api/guide',
+                    'https://yunbi.com/swagger/',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'tickers',
+                        'tickers/{market}',
+                        'markets',
+                        'order_book',
+                        'k',
+                        'depth',
+                        'trades',
+                        'k_with_pending_trades',
+                        'timestamp',
+                        'addresses/{address}',
+                        'partners/orders/{id}/trades',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'deposits',
+                        'members/me',
+                        'deposit',
+                        'deposit_address',
+                        'order',
+                        'orders',
+                        'trades/my',
+                    ],
+                    'post': [
+                        'order/delete',
+                        'orders',
+                        'orders/multi',
+                        'orders/clear',
+                    ],
+                },
+            },
+        }
+        params.update (config)
+        super (yunbi, self).__init__ (params)
+
+    def fetch_products (self):
+        products = self.publicGetMarkets ()
+        result = []
+        for p in range (0, len (products)):
+            product = products[p]
+            id = product['id']
+            symbol = product['name']
+            base, quote = symbol.split ('/')
+            result.append ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            })
+        return result
+
+    def fetch_balance (self):
+        response = self.privateGetMembersMe ()
+        balances = response['accounts']
+        result = { 'info': balances }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = balance['currency']
+            uppercase = currency.upper ()
+            account = {
+                'free': float (balance['balance']),
+                'used': float (balance['locked']),
+                'total': None,
+            }
+            account['total'] = self.sum (account['free'], account['used'])
+            result[uppercase] = account
+        return result
+
+    def fetch_order_book (self, product):
+        p = self.product (product)
+        orderbook = self.publicGetDepth ({
+            'market': p['id'],
+        })
+        timestamp = orderbook['timestamp'] * 1000
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order[0])
+                amount = float (order[1])
+                result[side].append ([ price, amount ])
+        result['bids'] = self.sort_by (result['bids'], 0, True)
+        result['asks'] = self.sort_by (result['asks'], 0)
+        return result
+
+    def fetch_ticker (self, product):
+        response = self.publicGetTickersMarket ({
+            'market': self.product_id (product),
+        })
+        ticker = response['ticker']
+        timestamp = response['at'] * 1000
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['buy']),
+            'ask': float (ticker['sell']),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['vol']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetTrades ({
+            'pair': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        order = {
+            'market': self.product_id (product),
+            'side': side,
+            'volume': amount,
+            'ord_type': type,
+        }
+        if type == 'market':
+            order['price'] = price
+        return self.privatePostOrders (self.extend (order, params))
+
+    def cancel_order (self, id):
+        return self.privatePostOrderDelete ({ 'id': id })
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        request = '/api/' + self.version + '/' + self.implode_params (path, params) + '.json'
+        query = self.omit (params, self.extract_params (path))
+        url = self.urls['api'] + request
+        if type == 'public':
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
+            nonce = str (self.nonce ())
+            query = _urlencode.urlencode (self.keysort (self.extend ({
+                'access_key': self.apiKey,
+                'tonce': nonce,
+            }, params)))
+            auth = method + '|' + request + '|' + query
+            signature = self.hmac (self.encode (auth), self.encode (self.secret))
+            suffix = query + '&signature=' + signature
+            if method == 'GET':
+                url += '?' + suffix
+            else:
+                body = suffix
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Length': len (body),
+                }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class zaif (Market):
 
     def __init__ (self, config = {}):
@@ -10145,7 +11478,7 @@ class zaif (Market):
             'id': 'zaif',
             'name': 'Zaif',
             'countries': 'JP',
-            'rateLimit': 3000,
+            'rateLimit': 2000,
             'version': '1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
@@ -10241,20 +11574,20 @@ class zaif (Market):
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),
-            'high': float (ticker['high']),
-            'low': float (ticker['low']),
-            'bid': float (ticker['bid']),
-            'ask': float (ticker['ask']),
-            'vwap': float (ticker['vwap']),
+            'high': ticker['high'],
+            'low': ticker['low'],
+            'bid': ticker['bid'],
+            'ask': ticker['ask'],
+            'vwap': ticker['vwap'],
             'open': None,
             'close': None,
             'first': None,
-            'last': float (ticker['last']),
+            'last': ticker['last'],
             'change': None,
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': float (ticker['volume']),
+            'quoteVolume': ticker['volume'],
             'info': ticker,
         }
 

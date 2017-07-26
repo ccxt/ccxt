@@ -96,9 +96,9 @@ while (markets = regex.exec (contents)) {
         let pyRegex = [
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\s+\'undefined\'/g, '$1[$2] is None' ],
             [ /undefined/g, 'None' ],
-            [ /this.stringToBinary\s*\((.*)\)/g, '$1' ],
-            [ /this.stringToBase64/g, 'base64.b64encode' ],
-            [ /this.base64ToBinary/g, 'base64.b64decode' ],
+            [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
+            [ /this\.stringToBase64/g, 'base64.b64encode' ],
+            [ /this\.base64ToBinary/g, 'base64.b64decode' ],
             [ /\.implodeParams/g, '.implode_params'],
             [ /\.extractParams/g, '.extract_params'],
             [ /\.indexBy/g, '.index_by'],
@@ -112,7 +112,8 @@ while (markets = regex.exec (contents)) {
             [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)/g, 'list ($1.keys ())' ],
             [ /\[([^\]]+)\]\.join\s*\(([^\)]+)\)/g, "$2.join ([$1])" ],
-            [ /hash \(([^,]+)\, \'(sha[0-9])\'/g, 'hash ($1, $2' ],
+            [ /hash \(([^,]+)\, \'(sha[0-9])\'/g, "hash ($1, '$2'" ],
+            [ /hmac \(([^,]+)\, ([^,]+)\, \'(md5)\'/g, 'hmac ($1, $2, hashlib.$3' ],
             [ /hmac \(([^,]+)\, ([^,]+)\, \'(sha[0-9]+)\'/g, 'hmac ($1, $2, hashlib.$3' ],
             [ /throw new ([\S]+) \((.*)\)/g, 'raise $1 ($2)'],
             [ /(\s)await(\s)/g, '$1' ],
@@ -143,12 +144,12 @@ while (markets = regex.exec (contents)) {
             [/ \/\//g, ' #' ],
             [ /\.indexOf/g, '.find'],
             [ /\strue/g, ' True'],
+            [ /\sfalse/g, ' False'],
             [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '($1 in list ($2.keys ()))' ],
             [ /([^\s]+\s*\(\))\.toString \(\)/g, 'str ($1)' ],
             [ /([^\s]+)\.toString \(\)/g, 'str ($1)' ],                
             [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$2.join ($1)' ],
             [ /Math\.(max|min)/g, '$1' ],
-            // typeof xxx['yyy'] == 'undefined'
         ]
 
         let phRegex = [
@@ -157,7 +158,7 @@ while (markets = regex.exec (contents)) {
             [ /this\.extend/g, 'array_merge' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64/g, 'base64_encode' ],
-            [ /this.base64ToBinary/g, 'base64_decode' ],
+            [ /this\.base64ToBinary/g, 'base64_decode' ],
             [ /\.implodeParams/g, '.implode_params'],
             [ /\.extractParams/g, '.extract_params'],
             [ /\.indexBy/g, '.index_by'],
@@ -166,7 +167,6 @@ while (markets = regex.exec (contents)) {
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
             [ /this_\./g, '$this_->' ],
-            // [ /([^a-zA-Z\$])this([^a-zA-Z])/g, '$1$this$2' ],
             [ /\{\}/g, 'array ()' ],
             [ /\[\]/g, 'array ()' ],
             [ /\{([^\n\}]+)\}/g, 'array ($1)' ],
@@ -190,7 +190,8 @@ while (markets = regex.exec (contents)) {
             [ /JSON\.stringify/g, 'json_encode' ],
             [ /parseFloat\s/g, 'floatval '],
             [ /parseInt\s/g, 'intval '],
-            [ / \+/g, ' .' ],
+            [ / \+ /g, ' . ' ],
+            [ / \+\= /g, ' .= ' ],
             [ /([^\s]+(?:\s*\(.+\))?)\.toUpperCase\s*\(\)/g, 'strtoupper ($1)' ],
             [ /([^\s]+(?:\s*\(.+\))?)\.toLowerCase\s*\(\)/g, 'strtolower ($1)' ],
             [ /([^\s]+(?:\s*\(.+\))?)\.replace\s*\(([^\)]+)\)/g, 'str_replace ($2, $1)' ],
@@ -264,8 +265,8 @@ ccxtphp +=
     php.join ("\n//-----------------------------------------------------------------------------\n") + 
     "\n?>"
 
-fs.createReadStream (oldNamePy).pipe (fs.createWriteStream (newNamePy))
-fs.createReadStream (oldNamePHP).pipe (fs.createWriteStream (newNamePHP))
+// fs.createReadStream (oldNamePy).pipe (fs.createWriteStream (newNamePy))
+// fs.createReadStream (oldNamePHP).pipe (fs.createWriteStream (newNamePHP))
 fs.truncateSync (oldNamePy)
 fs.truncateSync (oldNamePHP)
 fs.writeFileSync (oldNamePy, ccxtpy)
@@ -285,22 +286,35 @@ let newRstMarketTable = rstMarketTableLines.map (line => {
     return line.replace (/(\||\+)(.).+?(\s|\=|\-)(\||\+)/, '$1')
 }).join ("\n")
 
-let travisBadgeImage  = ".. image:: https://travis-ci.org/kroitor/ccxt.svg?branch=master\n"
-let travisBadgeTarget = "   :target: https://travis-ci.org/kroitor/ccxt"
-let npmBadgeImage     = ".. image:: https://img.shields.io/npm/v/ccxt.svg\n"
-let npmBadgeTarget    = "   :target: https://npmjs.com/package/ccxt"
-let pypiBadgeImage    = ".. image:: https://img.shields.io/pypi/v/ccxt.svg\n"
-let pypiBadgeTarget   = "   :target: https://pypi.python.org/pypi?name=ccxt&:action=display"
+let travisBadgeImage    = ".. image:: https://travis-ci.org/kroitor/ccxt.svg?branch=master\n"
+let travisBadgeTarget   = "   :target: https://travis-ci.org/kroitor/ccxt"
+let npmBadgeImage       = ".. image:: https://img.shields.io/npm/v/ccxt.svg\n"
+let npmBadgeTarget      = "   :target: https://npmjs.com/package/ccxt"
+let pypiBadgeImage      = ".. image:: https://img.shields.io/pypi/v/ccxt.svg\n"
+let pypiBadgeTarget     = "   :target: https://pypi.python.org/pypi/ccxt"
+let npmDownloadsImage   = ".. image:: https://img.shields.io/npm/dm/ccxt.svg\n"
+let npmDownloadsTarget  = "   :target: https://www.npmjs.com/package/ccxt"
+let scrutinizerImage    = ".. image:: https://img.shields.io/scrutinizer/g/kroitor/ccxt.svg\n"
+let scrutinizerTarget   = "   :target: https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master"
+let runkitImage         = ".. image:: https://badge.runkitcdn.com/ccxt.svg\n"
+let runkitTarget        = "   :target: https://npm.runkit.com/ccxt"
 
-let travisBadgeRST = travisBadgeImage + ' ' + travisBadgeTarget
-let npmBadgeRST    = npmBadgeImage + ' ' + npmBadgeTarget
-let pypiBadgeRST   = pypiBadgeImage + ' ' + pypiBadgeTarget
+// let pypiDownloadsImage  = ".. image:: https://img.shields.io/pypi/dm/ccxt.svg\n" 
+// let pypiDownloadsTarget = "   :target: https://pypi.org/project/ccxt"
 
-let badges = [ travisBadgeRST, npmBadgeRST, pypiBadgeRST ].join ("\n")
+let travisBadgeRST   = travisBadgeImage   + ' ' + travisBadgeTarget
+let npmBadgeRST      = npmBadgeImage      + ' ' + npmBadgeTarget
+let pypiBadgeRST     = pypiBadgeImage     + ' ' + pypiBadgeTarget
+let npmDownloadsRST  = npmDownloadsImage  + ' ' + npmDownloadsTarget
+let scrutinizerRST   = scrutinizerImage   + ' ' + scrutinizerTarget
+let runkitRST        = runkitImage        + ' ' + runkitTarget
+// let pypiDownloadsRST = pypiDownloadsImage + ' ' + pypiDownloadsTarget
+
+let badges = [ travisBadgeRST, npmBadgeRST, pypiBadgeRST, npmDownloadsRST, scrutinizerRST, runkitRST ].join ("\n")
 
 rstNew = match[1] + "APIs:\n\n" + newRstMarketTable + "\n\n" + match[3]
 rstNew = rstNew.replace (/\.\.[^\n]+image\:\:[^\n]+[\n]/g, '')
-rstNew = rstNew.replace ('|Build Status| |npm| |PyPI|', badges)
+rstNew = rstNew.replace ('|Build Status| |npm| |PyPI| |NPM Downloads| |Scrutinizer Code Quality| |Try ccxt on RunKit|', badges)
 rstNew = rstNew.replace (/   :target[^#]+$/g, '')
 fs.truncateSync (readmeRst)
 fs.writeFileSync (readmeRst, rstNew)

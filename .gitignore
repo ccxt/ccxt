@@ -10,3 +10,7 @@ ccxt.egg-info/
 tmp/
 *.pyc
 .tox/
+coverage
+.nyc_output
+travis-keys.sh
+ccxt.wiki/

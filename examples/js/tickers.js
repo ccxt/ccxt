@@ -6,13 +6,24 @@ const log       = require ('ololog').configure ({ locate: false })
 
 require ('ansicolor').nice;
 
-let printUsage = function () {
-    log ('Usage: node', process.argv[1], 'id'.green, '[symbol]'.yellow)
+//-----------------------------------------------------------------------------
+
+let printSupportedMarkets = function () {
+    log ('Supported markets:', ccxt.markets.join (', ').green)
 }
 
-let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
+let printUsage = function () {
+    log ('Usage: node', process.argv[1], 'id'.green, '[symbol]'.yellow)
+    printSupportedMarkets ()
+}
 
-let printMarketSymbolTicker = async (market, symbol) => {
+let printSymbols = function (market) {
+    log (id.green, 'has', market.symbols.length, 'symbols:', market.symbols.join (', ').yellow)
+}
+
+let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
+
+let printTicker = async (market, symbol) => {
     let ticker = await market.fetchTicker (symbol)
     log (market.id.green, symbol.yellow, 'ticker',
         ticker['datetime'],
@@ -21,10 +32,40 @@ let printMarketSymbolTicker = async (market, symbol) => {
         'bid: '     + ticker['bid'],
         'ask: '     + ticker['ask'],
         'volume: '  + ticker['quoteVolume'])
-    return ticker;
+    return ticker
 }
 
-(async () => {
+//-----------------------------------------------------------------------------
+
+let printTickers = async (id) => {
+
+    log ('Instantiating', id.green, 'exchange market')
+
+    // instantiate the exchange by id
+    let market = new ccxt[id] ()
+
+    // load all products from the exchange
+    let products = await market.loadProducts ()
+
+    if (process.argv.length > 3) { // if a symbol was supplied, get that symbol only
+
+        let symbol = process.argv[3]
+
+        await printTicker (market, symbol)
+
+    } else { // otherwise run through all symbols one by one
+
+        for (let symbol of market.symbols) 
+            if ((symbol.indexOf ('.d') < 0)) { // skip darkpool symbols 
+                await sleep (market.rateLimit)
+                await printTicker (market, symbol)
+            }
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+(async function main () {
 
     if (process.argv.length > 2) {
 
@@ -35,38 +76,7 @@ let printMarketSymbolTicker = async (market, symbol) => {
 
         if (marketFound) {
             
-            log ('Instantiating', id.green, 'exchange market')
-
-            // instantiate the exchange by id
-            let market = new ccxt[id] ()
-
-            // load all products from the exchange
-            let products = await market.loadProducts ()
-
-            if (process.argv.length > 3) { // if a symbol was supplied, get that symbol only
-
-                let symbol = process.argv[3]
-                await printMarketSymbolTicker (market, symbol)
-
-            } else { // otherwise run through all symbols one by one
-
-                let symbols = Object.keys (products)
-
-                for (let symbol of symbols) 
-                    if ((symbol.indexOf ('.d') < 0)) { // skip darkpool symbols 
-
-                        await sleep (market.rateLimit)
-                        await printMarketSymbolTicker (market, symbol)
-                    }
-            }
-
-            // output a list of all product symbols
-            let symbols = Object.keys (products)
-            log (id.green, 'has', symbols.length, 'symbols:', symbols.join (', ').yellow)
-
-            // make a table of all products
-            let table = asTable.configure ({ delimiter: ' | ' }) (Object.values (products))
-            log (table) 
+            await printTickers (id)
 
         } else {
 
