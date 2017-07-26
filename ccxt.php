@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.83';
+$version = '1.1.84';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12088,9 +12088,9 @@ class yunbi extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/api/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $request = '/api/' . $this->version . '/' . $this->implode_params ($path, $params) . '.json';
         $query = $this->omit ($params, $this->extract_params ($path));
-        $url = $this->urls['api'] . $request . '.json';
+        $url = $this->urls['api'] . $request;
         if ($type == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
@@ -12109,6 +12109,7 @@ class yunbi extends Market {
                 $body = $suffix;
                 $headers = array (
                     'Content-Type' => 'application/x-www-form-urlencoded',
+                    'Content-Length' => strlen ($body),
                 );
             }
         }
