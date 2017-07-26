@@ -2010,7 +2010,7 @@ var bitfinex = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-        return this.privatePostOrderNew (this.extend ({
+        let order = {
             'symbol': this.productId (product),
             'amount': amount.toString (),
             'side': side,
@@ -2018,12 +2018,13 @@ var bitfinex = {
             'ocoorder': false,
             'buy_price_oco': 0,
             'sell_price_oco': 0,
-        }, params));
+        };
         if (type == 'market') {
             order['price'] = this.nonce ().toString ();
         } else {
             order['price'] = price;
         }
+        return this.privatePostOrderNew (this.extend (order, params));
     },
 
     cancelOrder (id) {
