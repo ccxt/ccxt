@@ -84,7 +84,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.87'
+__version__ = '1.1.88'
 
 # Python 2 & 3
 import base64
@@ -7065,6 +7065,12 @@ class fyb (Market):
     def fetch_ticker (self, product):
         ticker = self.publicGetTickerdetailed ()
         timestamp = self.milliseconds ()
+        last = None
+        volume = None
+        if 'last' in ticker:
+            last = float (ticker['last'])
+        if 'vol' in ticker:
+            volume = float (ticker['vol'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),
@@ -7076,12 +7082,12 @@ class fyb (Market):
             'open': None,
             'close': None,
             'first': None,
-            'last': float (ticker['last']),
+            'last': last,
             'change': None,
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': float (ticker['vol']),
+            'quoteVolume': volume,
             'info': ticker,
         }
 

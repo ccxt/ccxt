@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.87';
+$version = '1.1.88';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7636,6 +7636,12 @@ class fyb extends Market {
     public function fetch_ticker ($product) {
         $ticker = $this->publicGetTickerdetailed ();
         $timestamp = $this->milliseconds ();
+        $last = null;
+        $volume = null;
+        if (array_key_exists ('last', $ticker))
+            $last = floatval ($ticker['last']);
+        if (array_key_exists ('vol', $ticker))
+            $volume = floatval ($ticker['vol']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -7647,12 +7653,12 @@ class fyb extends Market {
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval ($ticker['last']),
+            'last' => $last,
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['vol']),
+            'quoteVolume' => $volume,
             'info' => $ticker,
         );
     }
