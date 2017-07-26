@@ -84,7 +84,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.84'
+__version__ = '1.1.85'
 
 # Python 2 & 3
 import base64
@@ -3372,7 +3372,8 @@ class bittrex (Market):
                 'nonce': nonce,
                 'apikey': self.apiKey,
             }, params))
-            headers = { 'apisign': self.hmac (self.encode (url), self.encode (self.secret), hashlib.sha512) }
+            signature = self.hmac (self.encode (url), self.encode (self.secret), hashlib.sha512)
+            headers = { 'apisign': signature }
         return self.fetch (url, method, headers, body)
 
 #------------------------------------------------------------------------------
@@ -8334,13 +8335,15 @@ class kraken (Market):
         response = self.privatePostBalance ()
         balances = response['result']
         result = { 'info': balances }
-        currencies = list (balances.keys ())
-        for c in range (0, len (currencies)):
-            code = currencies[c]
-            currency = code
-            if (currency[0] == 'X') or (currency[0] == 'Z'):
-                currency = currency[1:]
-            balance = float (balances[code])
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            xcode = 'X' + currency # X-ISO4217-A3 standard currency codes
+            zcode = 'Z' + currency
+            balance = None
+            if xcode in balances:
+                balance = float (balances[xcode])
+            if zcode in balances:
+                balance = float (balances[zcode])
             account = {
                 'free': balance,
                 'used': None,
