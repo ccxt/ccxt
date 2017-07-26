@@ -6134,8 +6134,7 @@ var coingi = {
                 'token': this.apiKey,
                 'nonce': nonce,
             }, query);
-            
-            let auth = nonce + '$' + this.apiKey; 
+            let auth = 'nonce=' + nonce + '$apiKey=' + this.apiKey; 
             request['signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
             body = this.json (request);            
             headers = {

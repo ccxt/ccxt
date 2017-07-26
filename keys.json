@@ -19,6 +19,7 @@
     "cex":         { "apiKey": "eqCv267WySlu577JnFbGK2RQzIs", "secret": "pZnbuNEm5eE4W1VRuFQvZEiFCA", "uid": "up105393824" },
     "chbtc":       { "apiKey": "aa149b74-f022-45b8-9794-332620f671a1", "secret": "d7aa3120-df98-4594-8511-4e75413b8d42" },
     "coincheck":   { "apiKey": "1YBiSTpyEIkchWdE", "secret": "URuZrMASNkcd7vh1zb7zn4IQfZMoai3S" },
+    "coingi":      { "apiKey": "6ZUYcF0BAABlKbb4oD5rNoOvnfhSzpls/zj4g+DstYCYm85aGuFh1LpsYug339PT", "secret": "6TLLWAqYkCSA68U+0oJ2GFCvNxZJgQntZnRbnN2b" },
     "coinmate":    { "apiKey": "bxiwQvVltTBUtLKpTxr8XShv8ZFqqnbvMdULciJja3Q", "secret": "CdzqS50f3fzpb99FYQVGccn6krx00bmv3svJ_lpnTS8", "uid": "12092" },
     "coinsecure":  { "apiKey": "gzrm0fP6BGMilMzmsoJFPMpWjDvCLThyrVanX0yu" },
     "coinspot":    { "apiKey": "dcc45f8d3155a5826d861af93781331b", "secret": "138G4KY0KCF2NNAM5WY8R76F9XEFJ1JRQN79M1X14VMH1A8G66WCEG33C37QWEEC56CYV0RML4GV6MXT3" },
