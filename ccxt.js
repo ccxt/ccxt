@@ -5976,6 +5976,179 @@ var coincheck = {
 
 //-----------------------------------------------------------------------------
 
+var coingi = {
+
+    'id': 'coingi',
+    'name': 'Coingi',
+    'rateLimit': 1000,
+    'countries': '',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
+        'api': 'https://api.coingi.com',
+        'www': 'https://coingi.com',
+        'doc': 'http://docs.coingi.apiary.io/',
+    },
+    'api': {
+        'current': {
+            'get': [
+                'order-book/{pair}/{askCount}/{bidCount}/{depth}',
+                'transactions/{pair}/{maxCount}',
+                '24hour-rolling-aggregation',
+            ],
+        },
+        'user': {
+            'post': [
+                'balance',
+                'add-order',
+                'cancel-order',
+                'orders',
+                'transactions',
+                'create-crypto-withdrawal',
+            ],
+        },
+    },
+    'products': {
+        'LTC/BTC': { 'id': 'ltc-btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+        'PPC/BTC': { 'id': 'ppc-btc', 'symbol': 'PPC/BTC', 'base': 'PPC', 'quote': 'BTC' },
+        'DOGE/BTC': { 'id': 'doge-btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC' },
+        'VTC/BTC': { 'id': 'vtc-btc', 'symbol': 'VTC/BTC', 'base': 'VTC', 'quote': 'BTC' },
+        'FTC/BTC': { 'id': 'ftc-btc', 'symbol': 'FTC/BTC', 'base': 'FTC', 'quote': 'BTC' },
+        'NMC/BTC': { 'id': 'nmc-btc', 'symbol': 'NMC/BTC', 'base': 'NMC', 'quote': 'BTC' },
+        'DASH/BTC': { 'id': 'dash-btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
+    },
+
+    fetchBalance () {
+        let currencies = [];
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c].toLowerCase ();
+            currencies.push (currency);
+        }
+        return this.userPostBalance ({
+            'currencies': currencies.join (',')
+        });
+    },
+
+    async fetchOrderBook (product) {
+        let p = this.product (product);
+        let orderbook = await this.currentGetOrderBookPairAskCountBidCountDepth ({
+            'pair': p['id'],
+            'askCount': 512, // maximum returned number of asks 1-512
+            'bidCount': 512, // maximum returned number of bids 1-512
+            'depth': 32, // maximum number of depth range steps 1-32
+        });
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = order['price'];
+                let amount = order['baseAmount'];
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
+    },
+
+    async fetchTicker (product) {
+        let response = await this.currentGet24hourRollingAggregation ();
+        let tickers = {}
+        for (let t = 0; t < response.length; t++) {
+            let ticker = response[t];
+            let base = ticker['currencyPair']['base'].toUpperCase ();
+            let quote = ticker['currencyPair']['counter'].toUpperCase ();
+            let symbol = base + '/' + quote;
+            tickers[symbol] = ticker;
+        }
+        let timestamp = this.milliseconds ();
+        let p = this.product (product);
+        let ticker = {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': undefined,
+            'ask': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': undefined,
+        };
+        if (p['symbol'] in tickers) {
+            let aggregation = tickers[p['symbol']];
+            ticker['high'] = aggregation['high'];
+            ticker['low'] = aggregation['low'];
+            ticker['bid'] = aggregation['highestBid'];
+            ticker['ask'] = aggregation['lowestAsk'];
+            ticker['baseVolume'] = aggregation['baseVolume'];
+            ticker['quoteVolume'] = aggregation['counterVolume'];
+            ticker['high'] = aggregation['high'];
+            ticker['info'] = aggregation;
+        }
+        return ticker;
+    },
+
+    fetchTrades (product) {
+        return this.publicGetTransactionsPairMaxCount ({
+            'pair': this.productId (product),
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let order = {
+            'currencyPair': this.productId (product),
+            'volume': amount,
+            'price': price,
+            'orderType': (side == 'buy') ? 0 : 1,
+        };
+        return this.userPostAddOrder (this.extend (order, params));
+    },
+
+    cancelOrder (id) {
+        return this.userPostCancelOrder ({ 'orderId': id });
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + type + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (type == 'current') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            let nonce = this.nonce ();
+            let request = this.extend ({
+                'token': this.apiKey,
+                'nonce': nonce,
+            }, query);
+            
+            let auth = nonce + '$' + this.apiKey; 
+            request['signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
+            body = this.json (request);            
+            headers = {
+                'Content-Type': 'application/json',
+                'Content-Length': body.length,
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var coinmarketcap = {
 
     'id': 'coinmarketcap',
@@ -11896,6 +12069,7 @@ var markets = {
     'chbtc':         chbtc,
     'chilebit':      chilebit,
     'coincheck':     coincheck,
+    'coingi':        coingi,
     'coinmarketcap': coinmarketcap,
     'coinmate':      coinmate,
     'coinsecure':    coinsecure,
