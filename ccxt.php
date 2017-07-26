@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.89';
+$version = '1.1.90';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -133,6 +133,7 @@ class Market {
         'chbtc',
         'chilebit',
         'coincheck',
+        'coingi',
         'coinmarketcap',
         'coinmate',
         'coinsecure',
@@ -6240,6 +6241,196 @@ class coincheck extends Market {
                 'ACCESS-KEY' => $this->apiKey,
                 'ACCESS-NONCE' => $nonce,
                 'ACCESS-SIGNATURE' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret)),
+            );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+class coingi extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'coingi',
+            'name' => 'Coingi',
+            'rateLimit' => 1000,
+            'countries' => array ( 'PA', 'BG', 'CN', 'US' ), // Panama, Bulgaria, China, US
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
+                'api' => 'https://api.coingi.com',
+                'www' => 'https://coingi.com',
+                'doc' => 'http://docs.coingi.apiary.io/',
+            ),
+            'api' => array (
+                'current' => array (
+                    'get' => array (
+                        'order-book/{pair}/{askCount}/{bidCount}/{depth}',
+                        'transactions/{pair}/{maxCount}',
+                        '24hour-rolling-aggregation',
+                    ),
+                ),
+                'user' => array (
+                    'post' => array (
+                        'balance',
+                        'add-order',
+                        'cancel-order',
+                        'orders',
+                        'transactions',
+                        'create-crypto-withdrawal',
+                    ),
+                ),
+            ),
+            'products' => array (
+                'LTC/BTC' => array ( 'id' => 'ltc-btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                'PPC/BTC' => array ( 'id' => 'ppc-btc', 'symbol' => 'PPC/BTC', 'base' => 'PPC', 'quote' => 'BTC' ),
+                'DOGE/BTC' => array ( 'id' => 'doge-btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC' ),
+                'VTC/BTC' => array ( 'id' => 'vtc-btc', 'symbol' => 'VTC/BTC', 'base' => 'VTC', 'quote' => 'BTC' ),
+                'FTC/BTC' => array ( 'id' => 'ftc-btc', 'symbol' => 'FTC/BTC', 'base' => 'FTC', 'quote' => 'BTC' ),
+                'NMC/BTC' => array ( 'id' => 'nmc-btc', 'symbol' => 'NMC/BTC', 'base' => 'NMC', 'quote' => 'BTC' ),
+                'DASH/BTC' => array ( 'id' => 'dash-btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC' ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_balance () {
+        $currencies = array ();
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = strtolower ($this->currencies[$c]);
+            $currencies[] = $currency;
+        }
+        $balances = $this->userPostBalance (array (
+            'currencies' => implode (',', $currencies)
+        ));
+        $result = array ( 'info' => $balances );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
+            $currency = $balance['currency']['name'];
+            $currency = strtoupper ($currency);
+            $account = array (
+                'free' => $balance['available'],
+                'used' => $balance['blocked'] . $balance['inOrders'] . $balance['withdrawing'],
+                'total' => null,
+            );
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
+    }
+
+    public function fetch_order_book ($product) {
+        $p = $this->product ($product);
+        $orderbook = $this->currentGetOrderBookPairAskCountBidCountDepth (array (
+            'pair' => $p['id'],
+            'askCount' => 512, // maximum returned number of asks 1-512
+            'bidCount' => 512, // maximum returned number of bids 1-512
+            'depth' => 32, // maximum number of depth range steps 1-32
+        ));
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = $order['price'];
+                $amount = $order['baseAmount'];
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $response = $this->currentGet24hourRollingAggregation ();
+        $tickers = array ();
+        for ($t = 0; $t < count ($response); $t++) {
+            $ticker = $response[$t];
+            $base = strtoupper ($ticker['currencyPair']['base']);
+            $quote = strtoupper ($ticker['currencyPair']['counter']);
+            $symbol = $base . '/' . $quote;
+            $tickers[$symbol] = $ticker;
+        }
+        $timestamp = $this->milliseconds ();
+        $p = $this->product ($product);
+        $ticker = array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => null,
+            'low' => null,
+            'bid' => null,
+            'ask' => null,
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => null,
+            'info' => null,
+        );
+        if (array_key_exists ($p['symbol'], $tickers)) {
+            $aggregation = $tickers[$p['symbol']];
+            $ticker['high'] = $aggregation['high'];
+            $ticker['low'] = $aggregation['low'];
+            $ticker['bid'] = $aggregation['highestBid'];
+            $ticker['ask'] = $aggregation['lowestAsk'];
+            $ticker['baseVolume'] = $aggregation['baseVolume'];
+            $ticker['quoteVolume'] = $aggregation['counterVolume'];
+            $ticker['high'] = $aggregation['high'];
+            $ticker['info'] = $aggregation;
+        }
+        return $ticker;
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetTransactionsPairMaxCount (array (
+            'pair' => $this->product_id ($product),
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        $order = array (
+            'currencyPair' => $this->product_id ($product),
+            'volume' => $amount,
+            'price' => $price,
+            'orderType' => ($side == 'buy') ? 0 : 1,
+        );
+        return $this->userPostAddOrder (array_merge ($order, $params));
+    }
+
+    public function cancel_order ($id) {
+        return $this->userPostCancelOrder (array ( 'orderId' => $id ));
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $type . '/' . $this->implode_params ($path, $params);
+        $query = $this->omit ($params, $this->extract_params ($path));
+        if ($type == 'current') {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
+        } else {
+            $nonce = $this->nonce ();
+            $request = array_merge (array (
+                'token' => $this->apiKey,
+                'nonce' => $nonce,
+            ), $query);
+            $auth = (string) $nonce . '$' . $this->apiKey;
+            $request['signature'] = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
+            $body = $this->json ($request);            
+            $headers = array (
+                'Content-Type' => 'application/json',
+                'Content-Length' => strlen ($body),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);

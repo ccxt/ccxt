@@ -31,7 +31,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 68 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 69 cryptocurrency exchange markets and trading APIs:
 
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id              | name                                                      | ver   | doc                                                                                              | countries                                  |
@@ -93,6 +93,8 @@ The ccxt library currently supports the following 68 cryptocurrency exchange mar
 | chilebit        | `ChileBit <https://chilebit.net>`__                       | 1     | `API <https://blinktrade.com/docs>`__                                                            | Chile                                      |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | coincheck       | `coincheck <https://coincheck.com>`__                     | \*    | `API <https://coincheck.com/documents/exchange/api>`__                                           | Japan, Indonesia                           |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| coingi          | `Coingi <https://coingi.com>`__                           | \*    | `API <http://docs.coingi.apiary.io/>`__                                                          | Panama, Bulgaria, China, US                |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | coinmarketcap   | `CoinMarketCap <https://coinmarketcap.com>`__             | 1     | `API <https://coinmarketcap.com/api>`__                                                          | US                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+

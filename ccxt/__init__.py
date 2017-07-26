@@ -30,6 +30,7 @@ markets = [
     'chbtc',
     'chilebit',
     'coincheck',
+    'coingi',
     'coinmarketcap',
     'coinmate',
     'coinsecure',
@@ -84,7 +85,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.89'
+__version__ = '1.1.90'
 
 # Python 2 & 3
 import base64
@@ -5759,6 +5760,182 @@ class coincheck (Market):
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': self.hmac (self.encode (auth), self.encode (self.secret)),
+            }
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
+class coingi (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'coingi',
+            'name': 'Coingi',
+            'rateLimit': 1000,
+            'countries': [ 'PA', 'BG', 'CN', 'US' ], # Panama, Bulgaria, China, US
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
+                'api': 'https://api.coingi.com',
+                'www': 'https://coingi.com',
+                'doc': 'http://docs.coingi.apiary.io/',
+            },
+            'api': {
+                'current': {
+                    'get': [
+                        'order-book/{pair}/{askCount}/{bidCount}/{depth}',
+                        'transactions/{pair}/{maxCount}',
+                        '24hour-rolling-aggregation',
+                    ],
+                },
+                'user': {
+                    'post': [
+                        'balance',
+                        'add-order',
+                        'cancel-order',
+                        'orders',
+                        'transactions',
+                        'create-crypto-withdrawal',
+                    ],
+                },
+            },
+            'products': {
+                'LTC/BTC': { 'id': 'ltc-btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+                'PPC/BTC': { 'id': 'ppc-btc', 'symbol': 'PPC/BTC', 'base': 'PPC', 'quote': 'BTC' },
+                'DOGE/BTC': { 'id': 'doge-btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC' },
+                'VTC/BTC': { 'id': 'vtc-btc', 'symbol': 'VTC/BTC', 'base': 'VTC', 'quote': 'BTC' },
+                'FTC/BTC': { 'id': 'ftc-btc', 'symbol': 'FTC/BTC', 'base': 'FTC', 'quote': 'BTC' },
+                'NMC/BTC': { 'id': 'nmc-btc', 'symbol': 'NMC/BTC', 'base': 'NMC', 'quote': 'BTC' },
+                'DASH/BTC': { 'id': 'dash-btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
+            },
+        }
+        params.update (config)
+        super (coingi, self).__init__ (params)
+
+    def fetch_balance (self):
+        currencies = []
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c].lower ()
+            currencies.append (currency)
+        balances = self.userPostBalance ({
+            'currencies': ','.join (currencies)
+        })
+        result = { 'info': balances }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = balance['currency']['name']
+            currency = currency.upper ()
+            account = {
+                'free': balance['available'],
+                'used': balance['blocked'] + balance['inOrders'] + balance['withdrawing'],
+                'total': None,
+            }
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
+
+    def fetch_order_book (self, product):
+        p = self.product (product)
+        orderbook = self.currentGetOrderBookPairAskCountBidCountDepth ({
+            'pair': p['id'],
+            'askCount': 512, # maximum returned number of asks 1-512
+            'bidCount': 512, # maximum returned number of bids 1-512
+            'depth': 32, # maximum number of depth range steps 1-32
+        })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = order['price']
+                amount = order['baseAmount']
+                result[side].append ([ price, amount ])
+        return result
+
+    def fetch_ticker (self, product):
+        response = self.currentGet24hourRollingAggregation ()
+        tickers = {}
+        for t in range (0, len (response)):
+            ticker = response[t]
+            base = ticker['currencyPair']['base'].upper ()
+            quote = ticker['currencyPair']['counter'].upper ()
+            symbol = base + '/' + quote
+            tickers[symbol] = ticker
+        timestamp = self.milliseconds ()
+        p = self.product (product)
+        ticker = {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': None,
+            'low': None,
+            'bid': None,
+            'ask': None,
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': None,
+            'info': None,
+        }
+        if p['symbol'] in tickers:
+            aggregation = tickers[p['symbol']]
+            ticker['high'] = aggregation['high']
+            ticker['low'] = aggregation['low']
+            ticker['bid'] = aggregation['highestBid']
+            ticker['ask'] = aggregation['lowestAsk']
+            ticker['baseVolume'] = aggregation['baseVolume']
+            ticker['quoteVolume'] = aggregation['counterVolume']
+            ticker['high'] = aggregation['high']
+            ticker['info'] = aggregation
+        return ticker
+
+    def fetch_trades (self, product):
+        return self.publicGetTransactionsPairMaxCount ({
+            'pair': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        order = {
+            'currencyPair': self.product_id (product),
+            'volume': amount,
+            'price': price,
+            'orderType': 0 if (side == 'buy') else 1,
+        }
+        return self.userPostAddOrder (self.extend (order, params))
+
+    def cancel_order (self, id):
+        return self.userPostCancelOrder ({ 'orderId': id })
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'] + '/' + type + '/' + self.implode_params (path, params)
+        query = self.omit (params, self.extract_params (path))
+        if type == 'current':
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
+            nonce = self.nonce ()
+            request = self.extend ({
+                'token': self.apiKey,
+                'nonce': nonce,
+            }, query)
+            auth = str (nonce) + '$' + self.apiKey
+            request['signature'] = self.hmac (self.encode (auth), self.encode (self.secret))
+            body = self.json (request)            
+            headers = {
+                'Content-Type': 'application/json',
+                'Content-Length': len (body),
             }
         return self.fetch (url, method, headers, body)
 
