@@ -20,30 +20,10 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit 
 //-----------------------------------------------------------------------------
 
 let loadMarket = async market => {
-    let products  = await market.loadProducts ()
-    let symbols = [
-        'BTC/USD',
-        'BTC/CNY',
-        'BTC/EUR',
-        'BTC/ETH',
-        'ETH/BTC',
-        'BTC/JPY',
-        'LTC/BTC',
-        'ETH/EUR',
-        'ETH/JPY',
-        'ETH/CNY',
-        'LTC/CNY',
-        'DASH/BTC',
-        'DOGE/BTC',
-    ]
-    let result = market.symbols.filter (symbol => symbols.indexOf (symbol) >= 0)
-    if (result.length > 0)
-        if (market.symbols.length > result.length)
-            result = result.join (', ') + ' + more...'
-        else
-            result = result.join (', ')
-
-    log (market.id.green, 'loaded', market.symbols.length.toString ().bright.green, 'symbols', (market.proxy ? market.proxy : '_').blue)
+    await market.loadProducts ()
+    log (market.id.green, 'loaded', 
+        market.symbols.length.toString ().bright.green, 'symbols', 
+        (market.proxy ? market.proxy : '_').blue)
 }
 
 //-----------------------------------------------------------------------------
