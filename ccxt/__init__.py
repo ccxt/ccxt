@@ -587,10 +587,10 @@ class Market (object):
         return self.create_order (product, 'limit', 'sell', amount, price, params)
 
     def create_market_buy_order (self, product, amount, params = {}):
-        return self.create_order (product, 'market', 'buy', amount, params)
+        return self.create_order (product, 'market', 'buy', amount, None, params)
 
     def create_market_sell_order (self, product, amount, params = {}):
-        return self.create_order (product, 'market', 'sell', amount, params)
+        return self.create_order (product, 'market', 'sell', amount, None, params)
 
     def createLimitBuyOrder (self, product, amount, price, params = {}):
         return self.create_limit_buy_order (product, amount, price, params)
