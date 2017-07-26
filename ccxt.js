@@ -2026,6 +2026,10 @@ var bitfinex = {
         return this.privatePostOrderCancel ({ 'order_id': id });
     },
 
+    nonce () {
+        return this.milliseconds ();
+    },
+
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
@@ -3478,7 +3482,7 @@ var bittrex = {
                 'nonce': nonce,
                 'apikey': this.apiKey,
             }, params));
-            let signature = this.hmac (this.encode (url), this.encode (this.secret), 'sha512')
+            let signature = this.hmac (this.encode (url), this.encode (this.secret), 'sha512');
             headers = { 'apisign': signature };
         }
         return this.fetch (url, method, headers, body);
@@ -8641,9 +8645,9 @@ var kraken = {
             let zcode = 'Z' + currency;
             let balance = undefined;
             if (xcode in balances)
-                balance = parseFloat (balances[xcode])
+                balance = parseFloat (balances[xcode]);
             if (zcode in balances)
-                balance = parseFloat (balances[zcode])
+                balance = parseFloat (balances[zcode]);
             let account = {
                 'free': balance,
                 'used': undefined,

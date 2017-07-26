@@ -5,7 +5,7 @@
     "bit2c":       { "apiKey": "5296814c-b1dc-4201-a62a-9b2364e890da", "secret": "8DC1100F7CAB0AE6FE72451C442BE7B111404CBD569CE6162F8F2122CAEB211C" },
     "bitbay":      { "apiKey": "3faec3e5458d24809a68fbaf0e97245b", "secret": "2ffb20992e10dd54fd4fd4133cc09b00" },
     "bitcoincoid": { "apiKey": "KFB2MWYU-HTOUVOSO-UZYRPLUY-LIYMVPRU-UTOMHXYD", "secret": "5ecb9464b3fad228110f33c6fbb32990b755351216e63089fdaf8f2735b4577bd9c335236f1a71e3" },
-    "bitfinex":    { "apiKey": "5A1VikyEtDpmFkrzX4e52LsaVgCxXyMnY9JElqvNMxo", "secret": "Rgxxw1BGnq6NLTLq1hn0oQ5FBDRLYFFVRzyEKYbz1io" },
+    "bitfinex":    { "apiKey": "02YsRDRAFwqt9JXfFKPIEw82mgmNbZtfpwvt8q5WK5a", "secret": "IummLrCfcZ9d9NPEtMg6chCpO8hugCvsDIscNm1F3pE" },
     "bitlish":     { "apiKey": "fixed:N5lK4iokAc9ajk0Z8pvHfpoJsyzNzQ2nespNH/mY7is", "login": "igor.kroitor@gmail.com", "password": "VfvfVskfHfve229!" },
     "bitmarket":   { "apiKey": "43a868dc9517485f28905b320581d1cf", "secret": "892b34c7d8e6669550aa9d12aed0ad34" },
     "bitmex":      { "apiKey": "ifMw6RdHO2KBm-N1GkBR3hnV", "secret": "IkGnEnqHROKUNlnjysInc0_Q0VSl5ItdmxX9UbuDhSMQ57gU" },

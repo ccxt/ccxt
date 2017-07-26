@@ -2204,6 +2204,10 @@ class bitfinex extends Market {
         return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
     }
 
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
@@ -3683,7 +3687,8 @@ class bittrex extends Market {
                 'nonce' => $nonce,
                 'apikey' => $this->apiKey,
             ), $params));
-            $headers = array ( 'apisign' => $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512') );
+            $signature = $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512');
+            $headers = array ( 'apisign' => $signature );
         }
         return $this->fetch ($url, $method, $headers, $body);
     }
@@ -8981,13 +8986,15 @@ class kraken extends Market {
         $response = $this->privatePostBalance ();
         $balances = $response['result'];
         $result = array ( 'info' => $balances );
-        $currencies = array_keys ($balances);
-        for ($c = 0; $c < count ($currencies); $c++) {
-            $code = $currencies[$c];
-            $currency = $code;
-            if (($currency[0] == 'X') || ($currency[0] == 'Z'))
-                $currency = mb_substr ($currency, 1);
-            $balance = floatval ($balances[$code]);
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $xcode = 'X' . $currency; // X-ISO4217-A3 standard $currency codes
+            $zcode = 'Z' . $currency;
+            $balance = null;
+            if (array_key_exists ($xcode, $balances))
+                $balance = floatval ($balances[$xcode]);
+            if (array_key_exists ($zcode, $balances))
+                $balance = floatval ($balances[$zcode]);
             $account = array (
                 'free' => $balance,
                 'used' => null,
