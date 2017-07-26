@@ -8642,7 +8642,7 @@ var kraken = {
             let balance = undefined;
             if (xcode in balances)
                 balance = parseFloat (balances[xcode])
-            else if (zcode in balances)
+            if (zcode in balances)
                 balance = parseFloat (balances[zcode])
             let account = {
                 'free': balance,
