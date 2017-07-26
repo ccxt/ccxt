@@ -7500,6 +7500,12 @@ var fyb = {
     async fetchTicker (product) {
         let ticker = await this.publicGetTickerdetailed ();
         let timestamp = this.milliseconds ();
+        let last = undefined;
+        let volume = undefined;
+        if ('last' in ticker)
+            last = parseFloat (ticker['last']);
+        if ('vol' in ticker)
+            parseFloat (ticker['vol']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -7511,12 +7517,12 @@ var fyb = {
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'last': last,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['vol']),
+            'quoteVolume': volume,
             'info': ticker,
         };
     },
