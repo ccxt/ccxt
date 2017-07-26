@@ -415,6 +415,7 @@ var Market = function (config) {
                         error = TimeoutError
                     } else if ([ 401, 422, 511 ].indexOf (response.status) >= 0) {
                         error = AuthenticationError
+                        details = text
                     } else {
                         error = Error
                         details = 'Unknown Error'
@@ -11655,9 +11656,9 @@ var yunbi = {
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/api/' + this.version + '/' + this.implodeParams (path, params);
+        let request = '/api/' + this.version + '/' + this.implodeParams (path, params) + '.json';
         let query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + request + '.json';
+        let url = this.urls['api'] + request;
         if (type == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
@@ -11676,6 +11677,7 @@ var yunbi = {
                 body = suffix;
                 headers = {
                     'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Length': body.length,
                 };
             }
         }
