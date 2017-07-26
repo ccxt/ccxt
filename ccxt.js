@@ -7505,7 +7505,7 @@ var fyb = {
         if ('last' in ticker)
             last = parseFloat (ticker['last']);
         if ('vol' in ticker)
-            parseFloat (ticker['vol']);
+            volume = parseFloat (ticker['vol']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
