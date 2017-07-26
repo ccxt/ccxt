@@ -6017,15 +6017,29 @@ var coingi = {
         'DASH/BTC': { 'id': 'dash-btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
     },
 
-    fetchBalance () {
+    async fetchBalance () {
         let currencies = [];
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c].toLowerCase ();
             currencies.push (currency);
         }
-        return this.userPostBalance ({
+        let balances = await this.userPostBalance ({
             'currencies': currencies.join (',')
         });
+        let result = { 'info': balances };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = balance['currency']['name'];
+            currency = currency.toUpperCase ();
+            let account = {
+                'free': balance['available'],
+                'used': balance['blocked'] + balance['inOrders'] + balance['withdrawing'],
+                'total': undefined,
+            };
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
@@ -6059,7 +6073,7 @@ var coingi = {
 
     async fetchTicker (product) {
         let response = await this.currentGet24hourRollingAggregation ();
-        let tickers = {}
+        let tickers = {};
         for (let t = 0; t < response.length; t++) {
             let ticker = response[t];
             let base = ticker['currencyPair']['base'].toUpperCase ();
@@ -6134,7 +6148,7 @@ var coingi = {
                 'token': this.apiKey,
                 'nonce': nonce,
             }, query);
-            let auth = 'nonce=' + nonce + '$apiKey=' + this.apiKey; 
+            let auth = nonce.toString () + '$' + this.apiKey;
             request['signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
             body = this.json (request);            
             headers = {
