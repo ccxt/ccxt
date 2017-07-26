@@ -7616,6 +7616,7 @@ var gatecoin = {
     'name': 'Gatecoin',
     'rateLimit': 2000,
     'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/28646817-508457f2-726c-11e7-9eeb-3528d2413a58.jpg',
         'api': 'https://api.gatecoin.com',
         'www': 'https://gatecoin.com',
         'doc': [
@@ -7839,27 +7840,20 @@ var gatecoin = {
         } else {
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
-
             var contentType = (method == 'GET') ? '' : 'application/json';
             var request = method + url + contentType + nonce;
-
             headers = {
                 'API_PUBLIC_KEY': this.apiKey,
                 'API_REQUEST_SIGNATURE': this.hmac (this.encode (request), this.encode (this.secret), 'sha256', 'base64'),
                 'API_REQUEST_DATE': nonce,
                 'Content-Type': contentType,
             };
-
             if (method == 'GET') {
-            
             } else {
-            
                 headers['Content-Type'] = 'application/json';
             }
-
             if (method != 'GET')
                 headers['Content-Type'] = 'application/json'
-
             var request = method + url + contentType + nonce
 
         }
