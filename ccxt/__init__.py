@@ -85,7 +85,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.93'
+__version__ = '1.1.94'
 
 # Python 2 & 3
 import base64
@@ -9722,8 +9722,8 @@ class poloniex (Market):
         for p in range (0, len (keys)):
             id = keys[p]
             product = products[id]
-            symbol = id.replace ('_', '/')
-            quote, base = symbol.split ('/')
+            quote, base = id.split ('_')
+            symbol = base + '/' + quote
             result.append ({
                 'id': id,
                 'symbol': symbol,

@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.93';
+$version = '1.1.94';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10455,8 +10455,8 @@ class poloniex extends Market {
         for ($p = 0; $p < count ($keys); $p++) {
             $id = $keys[$p];
             $product = $products[$id];
-            $symbol = str_replace ('_', '/', $id);
-            list ($quote, $base) = explode ('/', $symbol);
+            list ($quote, $base) = explode ('_', $id);
+            $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
