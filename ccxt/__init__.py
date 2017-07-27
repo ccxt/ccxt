@@ -85,7 +85,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.91'
+__version__ = '1.1.92'
 
 # Python 2 & 3
 import base64
@@ -8536,6 +8536,8 @@ class kraken (Market):
                 balance = float (balances[xcode])
             if zcode in balances:
                 balance = float (balances[zcode])
+            if currency in balances:
+                balance = float (balances[currency])
             account = {
                 'free': balance,
                 'used': None,

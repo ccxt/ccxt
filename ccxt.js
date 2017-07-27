@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.91'
+var version = '1.1.92'
 var isNode  = (typeof window === 'undefined')
 var isReactNative = false
 
@@ -197,10 +197,10 @@ var sum = function (... args) {
 
 if (isNode) {
 
-    var crypto   = require ('crypto')
-    var CryptoJS = require ('crypto-js')
-    var fetch    = require ('node-fetch')
-    var qs       = require ('qs')
+    var crypto   = module.require ('crypto')
+    var CryptoJS = module.require ('crypto-js')
+    var fetch    = module.require ('node-fetch')
+    var qs       = module.require ('qs')
 
 } else if (isReactNative) {
 
