@@ -233,10 +233,12 @@ class Market (object):
         request = _urllib.Request (url, body, headers)
         request.get_method = lambda: method
         response = None
+        test = None
         try: # send request and load response
             handler = _urllib.HTTPHandler if url.startswith ('http://') else _urllib.HTTPSHandler
             opener = _urllib.build_opener (handler)
             response = opener.open (request, timeout = int (self.timeout / 1000))
+            text = response.read ()
         except socket.timeout as e:
             raise TimeoutError (' '.join ([ self.id, method, url, 'request timeout' ]))
         except ssl.SSLError as e:
@@ -272,7 +274,6 @@ class Market (object):
             self.raise_error (error, url, method, e, details)
         except _urllib.URLError as e:
             self.raise_error (MarketNotAvailableError, url, method, e)        
-        text = response.read ()
         encoding = response.info ().get ('Content-Encoding')
         if encoding in ('gzip', 'x-gzip', 'deflate'):
             if encoding == 'deflate':
