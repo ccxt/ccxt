@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.91';
+$version = '1.1.92';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9197,6 +9197,8 @@ class kraken extends Market {
                 $balance = floatval ($balances[$xcode]);
             if (array_key_exists ($zcode, $balances))
                 $balance = floatval ($balances[$zcode]);
+            if (array_key_exists ($currency, $balances))
+                $balance = floatval ($balances[$currency]);
             $account = array (
                 'free' => $balance,
                 'used' => null,
