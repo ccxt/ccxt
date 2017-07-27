@@ -7633,6 +7633,8 @@ var gatecoin = {
     'id': 'gatecoin',
     'name': 'Gatecoin',
     'rateLimit': 2000,
+    'countries': 'HK', // Hong Kong
+    'comment': 'a regulated/licensed exchange',
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28646817-508457f2-726c-11e7-9eeb-3528d2413a58.jpg',
         'api': 'https://api.gatecoin.com',
@@ -7805,14 +7807,30 @@ var gatecoin = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privatePostUserInfo ();
+    async fetchBalance () {
+        let response = await this.privateGetBalanceBalances ();
+        let balances = response['balances'];
+        let result = { 'info': balances };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = balance['currency'];
+            let account = {
+                'free': balance['availableBalance'],
+                'used': this.sum (
+                    balance['pendingIncoming'], 
+                    balance['pendingOutgoing'],
+                    balance['openOrder']),
+                'total': balance['balance'],
+            };
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
         let p = this.product (product);
-        let orderbook = await this.publicGetPublicMarketDepthId ({
-            'id': p['id'],
+        let orderbook = await this.publicGetPublicMarketDepthCurrencyPair ({
+            'CurrencyPair': p['id'],
         });
         let timestamp = this.milliseconds ();
         let result = {
@@ -7864,117 +7882,56 @@ var gatecoin = {
     },
 
     fetchTrades (product) {
-        return this.publicGetTrades ({
-            'pair': this.productId (product),
+        return this.publicGetPublicTransactionsCurrencyPair ({
+            'CurrencyPair': this.productId (product),
         });
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-
-        let method = 'privatePostTrade';
-        if (type == 'market') {
-            method += 'QuickChange';
-        } else {
-            method += 'Orders';
-        }
-
         let order = {
             'Code': this.productId (product),
             'Way': (side == 'buy') ? 'Bid' : 'Ask',
             'Amount': amount,
         };
-
         if (type == 'limit')
             order['Price'] = price;
-
         if (this.twofa) {
             if ('ValidationCode' in params)
                 order['ValidationCode'] = params['ValidationCode'];
             else
                 throw new AuthenticationError (this.id + ' two-factor authentication requires a missing ValidationCode parameter');
         }
-
-        return this[method] (this.extend (order, params));
+        return this.privatePostTradeOrders (this.extend (order, params));
     },
 
     cancelOrder (id) {
-        return this.privatePostOrderCancel ({ 'order_id': id });
+        return this.privateDeleteTradeOrdersOrderID ({ 'OrderID': id });
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (type == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+
             let nonce = this.nonce ();
+            let contentType = (method == 'GET') ? '' : 'application/json';
+            let auth = method + url + contentType + nonce;
+            auth = auth.toLowerCase ();
+
             body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
-            var contentType = (method == 'GET') ? '' : 'application/json';
-            var request = method + url + contentType + nonce;
+            let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64')
             headers = {
                 'API_PUBLIC_KEY': this.apiKey,
-                'API_REQUEST_SIGNATURE': this.hmac (this.encode (request), this.encode (this.secret), 'sha256', 'base64'),
+                'API_REQUEST_SIGNATURE': signature,
                 'API_REQUEST_DATE': nonce,
-                'Content-Type': contentType,
             };
-            if (method == 'GET') {
-            } else {
-                headers['Content-Type'] = 'application/json';
-            }
             if (method != 'GET')
-                headers['Content-Type'] = 'application/json'
-            var request = method + url + contentType + nonce
-
+                headers['Content-Type'] = contentType;
         }
         return this.fetch (url, method, headers, body);
-
-
-        /*     
-            Key Name    The name you want to give to the API key
-            Key validity duration   The Gatecoin API key has a maximum validity of 1 year.
-            Allow IP's  If empty, all IPs are accepted. Multiple IPs are allowed if they are comma separated.
-                                        var contentType = (httpMethod == 'GET') ? '' : ct
-                                        var message = settings.type + settings.url + contentType + now
-                                        var hash = CryptoJS.HmacSHA256 (message.toLowerCase (), key)
-                                        var hashInBase64 = CryptoJS.enc.Base64.stringify (hash)
-                                    contentType For GET requests this field should be empty. For POST and PUT requests it should be application/json
-            message GET, POST, PUT  Link of the API contentType Unix timestamp
-            Example message POST https://api.gatecoin.com/Ping?Message=ExampleInputapplication/json1421393683.201
-            hash    HmacSHA256 encrypted message    Key, is the private key
-            hashInBase64    Base64 encoded hash
-                                        jqXHR.setRequestHeader("API_PUBLIC_KEY", publicKey);
-                                        jqXHR.setRequestHeader("API_REQUEST_SIGNATURE", hashInBase64);
-                                        jqXHR.setRequestHeader("API_REQUEST_DATE", now);
-            publicKey   Your public API Key generated in step 1
-            hashInBase64    Your signature created in step 2
-            now Unix timestamp including milliseconds
-
-//------------------------------------------------
-            now = str(time.time())
-            contentType = "" if httpMethod == "GET" else "application/json"
-
-            if command == "MarketDepth":
-              url = self.apiUrl + "Public/" + command + "/" + self.market
-            else:
-              url = self.apiUrl + command
-
-            message = httpMethod + url + contentType + now
-            message = message.lower()
-
-            signature = hmac.new(self.secret.encode(), msg=message.encode(), digestmod=hashlib.sha256).digest()
-            hashInBase64 = base64.b64encode(signature, altchars=None)
-
-            headers = {
-            'API_PUBLIC_KEY': self.key,
-            'API_REQUEST_SIGNATURE': hashInBase64,
-            'API_REQUEST_DATE': now,
-            'Content-Type':'application/json'
-            }
-        */
-
-        
     },
 }
 
