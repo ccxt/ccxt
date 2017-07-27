@@ -8859,6 +8859,8 @@ var kraken = {
             let xcode = 'X' + currency; // X-ISO4217-A3 standard currency codes
             let zcode = 'Z' + currency;
             let balance = undefined;
+            if (currency in balances)
+                balance = parseFloat (balances[currency])
             if (xcode in balances)
                 balance = parseFloat (balances[xcode]);
             if (zcode in balances)
