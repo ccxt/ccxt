@@ -8860,7 +8860,7 @@ var kraken = {
             let zcode = 'Z' + currency;
             let balance = undefined;
             if (currency in balances)
-                balance = parseFloat (balances[currency])
+                balance = parseFloat (balances[currency]);
             if (xcode in balances)
                 balance = parseFloat (balances[xcode]);
             if (zcode in balances)
