@@ -246,7 +246,7 @@ class Market (object):
             details = None
             if e.code == 429:
                 error = DDoSProtectionError
-            elif e.code in [500, 501, 502, 404]:
+            elif e.code in [500, 501, 502, 404, 525]:
                 details = e.read ().decode ('utf-8') if e else None
                 error = MarketNotAvailableError
             elif e.code in [400, 403, 405, 503]:
