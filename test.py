@@ -229,6 +229,6 @@ else:
 
     tuples = list (ccxt.Market.keysort (markets).items ())
     for (id, params) in tuples:
-        if id is not 'virwox':
+        if (id is not 'virwox') and (id is not 'btctradeua'):
             market = markets[id]
             try_all_proxies (market, proxies)
