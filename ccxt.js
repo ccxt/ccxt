@@ -7845,8 +7845,8 @@ var gatecoin = {
             let orders = orderbook[side];
             for (let i = 0; i < orders.length; i++) {
                 let order = orders[i];
-                let price = parseFloat (order[['price']]);
-                let amount = parseFloat (order[['volume']]);
+                let price = parseFloat (order['price']);
+                let amount = parseFloat (order['volume']);
                 result[side].push ([ price, amount ]);
             }
         }
@@ -7918,11 +7918,11 @@ var gatecoin = {
 
             let nonce = this.nonce ();
             let contentType = (method == 'GET') ? '' : 'application/json';
-            let auth = method + url + contentType + nonce;
+            let auth = method + url + contentType + nonce.toString ();
             auth = auth.toLowerCase ();
 
             body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
-            let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64')
+            let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
             headers = {
                 'API_PUBLIC_KEY': this.apiKey,
                 'API_REQUEST_SIGNATURE': signature,
