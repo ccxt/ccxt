@@ -7395,8 +7395,49 @@ var flowbtc = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privatePostUserInfo ();
+/*
+
+{   currencies: [ { name: "BTC", balance: 0, hold: 0 },
+                          { name: "BRL", balance: 0, hold: 0 },
+                          { name: "MXN", balance: 0, hold: 0 },
+                          { name: "LTC", balance: 0, hold: 0 }  ],
+          productPairs: [ { productPairName: "LTCBRL",
+                            productPairCode:  97,
+                                 tradeCount:  0,
+                                tradeVolume:  0        },
+                          { productPairName: "BTCMXN",
+                            productPairCode:  98,
+                                 tradeCount:  0,
+                                tradeVolume:  0        },
+                          { productPairName: "BTCBRL",
+                            productPairCode:  99,
+                                 tradeCount:  0,
+                                tradeVolume:  0        }  ],
+            isAccepted:    true                                    }
+
+*/
+
+    async fetchBalance () {
+        let response = await this.privatePostGetAccountInfo ();
+        let balances = response['result'];
+        let result = { 'info': balances };
+        let indexed = this.indexBy (balances, 'Currency');
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if (currency in indexed) {
+                let balance = indexed[currency];
+                account['free'] = balance['Available'];
+                account['used'] = balance['Pending'];
+                account['total'] = balance['Balance'];
+            }
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
@@ -7471,9 +7512,12 @@ var flowbtc = {
     },
 
     cancelOrder (id, params = {}) {
-        return this.privatePostCancelOrder (this.extend ({
-            'serverOrderId': id,
-        }, params));
+        if ('ins' in params) {
+            return this.privatePostCancelOrder (this.extend ({
+                'serverOrderId': id,
+            }, params));            
+        }
+        throw new Error (this.id + ' required `ins` symbol parameter for cancelling an order');
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -7486,9 +7530,9 @@ var flowbtc = {
             if (!this.uid)
                 throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication');
             let nonce = this.nonce ();
-            let auth = nonce + this.uid + this.apiKey;
-            let signature = this.hmac (this.encode (auth), this.secret);
-            body = this.urlencode (this.extend ({
+            let auth = nonce.toString () + this.uid + this.apiKey;
+            let signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            body = this.json (this.extend ({
                 'apiKey': this.apiKey,
                 'apiNonce': nonce,
                 'apiSig': signature.toUpperCase (),
