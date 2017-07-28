@@ -9657,8 +9657,30 @@ var livecoin = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privateGetPaymentBalances ();
+    async fetchBalance () {
+        let balances = await this.privateGetPaymentBalances ();
+        let result = { 'info': balances };
+        for (let b = 0; b < this.currencies.length; b++) {
+            let balance = balances[b];
+            let currency = balance[b];
+            let account = undefined
+            if (currency in result)
+                account = result[currency];
+            else
+                account = {
+                    'free': undefined,
+                    'used': undefined,
+                    'total': undefined,
+                };
+            if (balance['type'] == 'total')
+                account['total'] = parseFloat (balance['value']);
+            if (balance['type'] == 'available')
+                account['free'] = parseFloat (balance['value']);
+            if (balance['type'] == 'trade')
+                account['used'] = parseFloat (balance['value']);
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
