@@ -7395,46 +7395,19 @@ var flowbtc = {
         return result;
     },
 
-/*
-
-{   currencies: [ { name: "BTC", balance: 0, hold: 0 },
-                          { name: "BRL", balance: 0, hold: 0 },
-                          { name: "MXN", balance: 0, hold: 0 },
-                          { name: "LTC", balance: 0, hold: 0 }  ],
-          productPairs: [ { productPairName: "LTCBRL",
-                            productPairCode:  97,
-                                 tradeCount:  0,
-                                tradeVolume:  0        },
-                          { productPairName: "BTCMXN",
-                            productPairCode:  98,
-                                 tradeCount:  0,
-                                tradeVolume:  0        },
-                          { productPairName: "BTCBRL",
-                            productPairCode:  99,
-                                 tradeCount:  0,
-                                tradeVolume:  0        }  ],
-            isAccepted:    true                                    }
-
-*/
-
     async fetchBalance () {
         let response = await this.privatePostGetAccountInfo ();
-        let balances = response['result'];
-        let result = { 'info': balances };
-        let indexed = this.indexBy (balances, 'Currency');
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let balances = response['currencies'];
+        let result = { 'info': response };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = balance['name'];
             let account = {
-                'free': undefined,
-                'used': undefined,
+                'free': balance['balance'],
+                'used': balance['hold'],
                 'total': undefined,
             };
-            if (currency in indexed) {
-                let balance = indexed[currency];
-                account['free'] = balance['Available'];
-                account['used'] = balance['Pending'];
-                account['total'] = balance['Balance'];
-            }
+            account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
         return result;
