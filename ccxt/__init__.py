@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.104'
+__version__ = '1.1.105'
 
 # Python 2 & 3
 import base64
@@ -7279,7 +7279,26 @@ class fyb (Market):
         super (fyb, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostGetaccinfo ()
+        balance = self.privatePostGetaccinfo ()
+        btc = float (balance['btcBal'])
+        symbol = self.symbols[0]
+        quote = self.products[symbol]['quote']
+        lowercase = quote.lower () + 'Bal'
+        fiat = float (balance[lowercase])
+        accounts = {
+            'BTC': {
+                'free': btc,
+                'used': None,
+                'total': btc,
+            },
+        }
+        accounts[quote] = {
+            'free': fiat,
+            'used': None,
+            'total': fiat,
+        }
+        accounts['info'] = balance
+        return accounts
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetOrderbook ()
