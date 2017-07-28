@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.107';
+$version = '1.1.108';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9019,7 +9019,29 @@ class huobi extends Market {
     }
 
     public function fetch_balance () {
-        return $this->tradePostGetAccountInfo ();
+        $balances = $this->tradePostGetAccountInfo ();
+        $result = array ( 'info' => $balances );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $lowercase = strtolower ($currency);
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            $available = 'available_' . $lowercase . '_display';
+            $frozen = 'frozen_' . $lowercase . '_display';
+            $loan = 'loan_' . $lowercase . '_display';
+            if (array_key_exists ($available, $balances))
+                $account['free'] = floatval ($balances[$available]);
+            if (array_key_exists ($frozen, $balances))
+                $account['used'] = floatval ($balances[$frozen]);
+            if (array_key_exists ($loan, $balances))
+                $account['used'] = $this->sum ($account['used'], floatval ($balances[$loan]));
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {

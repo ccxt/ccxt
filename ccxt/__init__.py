@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.107'
+__version__ = '1.1.108'
 
 # Python 2 & 3
 import base64
@@ -8370,7 +8370,28 @@ class huobi (Market):
         super (huobi, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.tradePostGetAccountInfo ()
+        balances = self.tradePostGetAccountInfo ()
+        result = { 'info': balances }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            lowercase = currency.lower ()
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            available = 'available_' + lowercase + '_display'
+            frozen = 'frozen_' + lowercase + '_display'
+            loan = 'loan_' + lowercase + '_display'
+            if available in balances:
+                account['free'] = float (balances[available])
+            if frozen in balances:
+                account['used'] = float (balances[frozen])
+            if loan in balances:
+                account['used'] = self.sum (account['used'], float (balances[loan]))
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         p = self.product (product)
