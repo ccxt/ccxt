@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.111'
+__version__ = '1.1.112'
 
 # Python 2 & 3
 import base64
@@ -11899,11 +11899,11 @@ class yunbi (Market):
         order = {
             'market': self.product_id (product),
             'side': side,
-            'volume': amount,
+            'volume': str (amount),
             'ord_type': type,
         }
-        if type == 'market':
-            order['price'] = price
+        if type == 'limit':
+            order['price'] = str (price)
         return self.privatePostOrders (self.extend (order, params))
 
     def cancel_order (self, id):
