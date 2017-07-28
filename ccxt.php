@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.105';
+$version = '1.1.106';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8417,24 +8417,16 @@ class gdax extends Market {
     }
 
     public function fetch_balance () {
-        $response = $this->privateGetAccounts ();
-        console.log ($response);
-        $balances = $response['result'];
+        $balances = $this->privateGetAccounts ();
         $result = array ( 'info' => $balances );
-        $indexed = $this->index_by ($balances, 'Currency');
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
+            $currency = $balance['currency'];
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => floatval ($balance['available']),
+                'used' => floatval ($balance['hold']),
+                'total' => floatval ($balance['balance']),
             );
-            if (array_key_exists ($currency, $indexed)) {
-                $balance = $indexed[$currency];
-                $account['free'] = $balance['Available'];
-                $account['used'] = $balance['Pending'];
-                $account['total'] = $balance['Balance'];
-            }
             $result[$currency] = $account;
         }
         return $result;
