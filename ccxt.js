@@ -6817,8 +6817,24 @@ var coinspot = {
         'DOGE/AUD': { 'id': 'DOGE', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD', },
     },
 
-    fetchBalance () {
-        return this.privatePostMyBalances ();
+    async fetchBalance () {
+        let response = await this.privatePostMyBalances ();
+        let balances = response['balance'];
+        let currencies = Object.keys (balances)
+        let result = { 'info': balances };
+        for (let c = 0; c < currencies.length; c++) {
+            let currency = currencies[c];
+            let uppercase = currency.toUpperCase ();
+            let account = {
+                'free': balances[currency],
+                'used': undefined,
+                'total': balances[currency],
+            };
+            if (uppercase == 'DRK')
+                uppercase = 'DASH';
+            result[uppercase] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {

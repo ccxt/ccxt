@@ -213,6 +213,8 @@ let loadMarket = async market => {
         'LTC/CNY',
         'DASH/BTC',
         'DOGE/BTC',
+        'BTC/AUD',
+        'BTC/PLN',
     ]
     let result = market.symbols.filter (symbol => symbols.indexOf (symbol) >= 0)
     if (result.length > 0)
