@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.99';
+$version = '1.1.100';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7298,7 +7298,21 @@ class dsx extends Market {
     }
 
     public function fetch_balance () {
-        return $this->tapiPostGetInfo ();
+        $response = $this->tapiPostGetInfo ();
+        $balances = $response['return'];
+        $result = array ( 'info' => $balances );
+        $currencies = array_keys ($balances['total']);
+        for ($c = 0; $c < count ($currencies); $c++) {
+            $currency = $currencies[$c];
+            $account = array (
+                'free' => $balances['funds'][$currency],
+                'used' => null,
+                'total' => $balances['total'][$currency],
+            );
+            $account['used'] = $account['total'] - $account['free'];
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -7391,6 +7405,7 @@ class dsx extends Market {
             $method = $path;
             $body = $this->urlencode (array_merge (array (
                 'method' => $path,
+                'nonce' => $nonce,
             ), $query));
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',

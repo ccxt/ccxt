@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.99'
+__version__ = '1.1.100'
 
 # Python 2 & 3
 import base64
@@ -6753,7 +6753,20 @@ class dsx (Market):
         return result
 
     def fetch_balance (self):
-        return self.tapiPostGetInfo ()
+        response = self.tapiPostGetInfo ()
+        balances = response['return']
+        result = { 'info': balances }
+        currencies = list (balances['total'].keys ())
+        for c in range (0, len (currencies)):
+            currency = currencies[c]
+            account = {
+                'free': balances['funds'][currency],
+                'used': None,
+                'total': balances['total'][currency],
+            }
+            account['used'] = account['total'] - account['free']
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         p = self.product (product)
@@ -6838,6 +6851,7 @@ class dsx (Market):
             method = path
             body = _urlencode.urlencode (self.extend ({
                 'method': path,
+                'nonce': nonce,
             }, query))
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
