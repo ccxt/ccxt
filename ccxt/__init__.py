@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.100'
+__version__ = '1.1.101'
 
 # Python 2 & 3
 import base64
@@ -6933,7 +6933,22 @@ class exmo (Market):
         return result
 
     def fetch_balance (self):
-        return self.privatePostUserInfo ()
+        response = self.privatePostUserInfo ()
+        result = { 'info': response }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in response['balances']:
+                account['free'] = float (response['balances'][currency])
+            if currency in response['reserved']:
+                account['used'] = float (response['reserved'][currency])
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         p = self.product (product)
