@@ -3,6 +3,10 @@
 const fs = require ('fs')
 const ccxt = require ('./ccxt')
 
+//-----------------------------------------------------------------------------
+
+console.log ('Updating badges → ./README.rst')
+
 let readmeRst = 'README.rst'
 let rst = fs.readFileSync (readmeRst, 'utf8')
 let rstNew = 
@@ -54,13 +58,23 @@ let badges = [
     exchangesRST,
 ].join ("\n")
 
-console.log (badges)
-
 rstNew = match[1] + "APIs:\n\n" + newRstMarketTable + "\n\n" + match[3]
 rstNew = rstNew.replace (/\.\.[^\n]+image\:\:[^\n]+[\n]/g, '')
 rstNew = rstNew.replace ('|Build Status| |npm| |PyPI| |NPM Downloads| |Scrutinizer Code Quality| |Try ccxt on RunKit| |Supported Exchanges|', badges)
 rstNew = rstNew.replace (/   :target[^#]+$/g, '')
 fs.truncateSync (readmeRst)
 fs.writeFileSync (readmeRst, rstNew)
+
+//-----------------------------------------------------------------------------
+
+console.log ('Updating badges → ./README.md')
+
+let readmeMd = 'README.md'
+let md = fs.readFileSync (readmeMd, 'utf8')
+let mdNew = 
+    md.replace (/shields\.io\/badge\/exchanges\-[0-9]+\-blue/g, 'shields.io/badge/exchanges-' + ccxt.markets.length + '-blue')
+
+fs.truncateSync (readmeMd)
+fs.writeFileSync (readmeMd, mdNew)
 
 console.log ('Badges updated successfully.')
