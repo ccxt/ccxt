@@ -10317,7 +10317,8 @@ var okcoin = {
 
     async fetchBalance () {
         let response = await this.privatePostUserinfo ();
-        let balances = response['funds'];
+        console.log (response);
+        let balances = response['info']['funds'];
         let result = { 'info': response };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
