@@ -10130,6 +10130,28 @@ var mercado = {
         return this[method] ();
     },
 
+    async fetchBalance () {
+        let response = await this.privatePostGetAccountInfo ();
+        let balances = response['balance'];
+        let result = { 'info': response };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let lowercase = currency.toLowerCase ();
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if (lowercase in balances) {
+                account['free'] = parseFloat (balances[lowercase]['available']);
+                account['total'] = parseFloat (balances[lowercase]['total']);
+                account['used'] = account['total'] - account['free'];
+            }           
+            result[currency] = account;
+        }
+        return result;
+    },
+
     fetchBalance () {
         return this.privatePostGetAccountInfo ();
     },
