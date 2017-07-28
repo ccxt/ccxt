@@ -188,14 +188,15 @@ Below are key notes on how to keep the JS code transpileable:
 - do not use language-specific code syntax sugar, even if you really want to
 - unfold all maps and comprehensions to basic for-loops
 - always use Python-style indentation, it is preserved as is for all languages
-- always put a semicolon (`;`) at the end of each statement, as in PHP/C-style=
+- always put a semicolon (`;`) at the end of each statement, as in PHP/C-style
 - all associative keys must be single-quoted strings everywhere (`array['good'], array.bad`)
-- all local variables should be declared with `let` keyword
+- all local variables should be declared with the `let` keyword
 - do everything with base class methods only
-- if you need another base method you will have to implement it in the base class in all three languages
-- try to reduce syntax to basic one-liner statements
+- if you need another base method you will have to implement it in all three languages
+- try to reduce syntax to basic one-liner expressions
 - multiple lines are ok, but you should avoid deep nesting with lots of brackets
-- do not use conditional statements that are too complex
+- do not use conditional statements that are too complex (heavy if-bracketing)
+- do not use heavy ternary conditionals
 - ...
 
 **If you want to add (support for) another market or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn by example, take a look at how same things are implemented in other markets and try to copy the code flow and style.**

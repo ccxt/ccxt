@@ -120,37 +120,6 @@ def test_market (market):
     # print (limitSell)
     # time.sleep (delay)
 
-
-# let tryAllProxies = async function (market, proxies) {
-#     let currentProxy = 0
-#     let maxRetries   = proxies.length
-#     for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
-#         try {
-#             market.proxy = proxies[currentProxy]
-#             if ([ 'coinspot' ].indexOf (market.id) < 0) {
-#                 await loadMarket (market)
-#                 await testMarket (market)
-#                 break;
-#             }
-#         } catch (e) {
-#             currentProxy = ++currentProxy % proxies.length
-#             if (e instanceof ccxt.DDoSProtectionError) {
-#                 log.bright.yellow (market.id, '[DDoS Protection Error] ' + e.message)
-#             } else if (e instanceof ccxt.TimeoutError) {
-#                 log.bright.yellow (market.id, '[Timeout Error] ' + e.message)
-#             } else if (e instanceof ccxt.AuthenticationError) {
-#                 log.bright.yellow (market.id, '[Authentication Error] ' + e.message)
-#             } else if (e instanceof ccxt.MarketNotAvailableError) {
-#                 log.bright.yellow (market.id, '[Market Not Available Error] ' + e.message)
-#             } else if (e instanceof ccxt.EndpointNotAvailableError) {
-#                 log.bright.yellow (market.id, '[Endpoint Not Available Error] ' + e.message)
-#             } else {
-#                 throw e;
-#             }
-#         }
-#     }
-# }
-
 #------------------------------------------------------------------------------
 
 def try_all_proxies (market, proxies):
@@ -187,7 +156,7 @@ proxies = [
 # instantiate all markets
 for id in ccxt.markets:
     market = getattr (ccxt, id)
-    markets[id] = market ({ 'verbose': True })
+    markets[id] = market ({ 'verbose': False })
 
 # load the api keys from config
 with open ('./keys.json') as file:    

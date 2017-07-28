@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.92'
+var version = '1.1.115'
 var isNode  = (typeof window === 'undefined')
 var isReactNative = false
 
@@ -407,13 +407,13 @@ var Market = function (config) {
                 if (typeof response == 'string')
                     return response
                 return response.text ().then (text => {
-                    if (response.status == 200)
+                    if ((response.status >= 200) && (response.status <= 300))
                         return text
                     let error = undefined
-                    let details = undefined
+                    let details = text
                     if ([ 429 ].indexOf (response.status) >= 0) {
                         error = DDoSProtectionError
-                    } else if ([ 500, 501, 502, 404 ].indexOf (response.status) >= 0) {
+                    } else if ([ 500, 501, 502, 404, 525 ].indexOf (response.status) >= 0) {
                         error = MarketNotAvailableError
                     } else if ([ 400, 403, 405, 503 ].indexOf (response.status) >= 0) {
                         let ddosProtection = text.match (/cloudflare|incapsula/i)
@@ -421,22 +421,21 @@ var Market = function (config) {
                             error = DDoSProtectionError
                         } else {
                             error = MarketNotAvailableError
-                            details = 'Possible reasons: ' + [
+                            details = text + ' (possible reasons: ' + [
                                 'invalid API keys',
+                                'bad or old nonce',
                                 'market down or offline', 
                                 'on maintenance',
                                 'DDoS protection',
                                 'rate-limiting in effect',
-                            ].join (', ')                            
+                            ].join (', ') + ')'
                         }
                     } else if ([ 408, 504 ].indexOf (response.status) >= 0) {
                         error = TimeoutError
                     } else if ([ 401, 422, 511 ].indexOf (response.status) >= 0) {
                         error = AuthenticationError
-                        details = text
                     } else {
                         error = Error
-                        details = 'Unknown Error'
                     }
                     throw new error ([ this.id, method, url, response.status, response.statusText, details ].join (' '))
                 })                
@@ -571,6 +570,7 @@ var Market = function (config) {
     this.rateLimit      = 2000  // milliseconds = seconds * 1000
     this.timeout        = 10000 // milliseconds = seconds * 1000
     this.verbose        = false
+    this.twofa          = false // two-factor authentication
     this.yyyymmddhhmmss = timestamp => {
         let date = new Date (timestamp)
         let yyyy = date.getUTCFullYear ()
@@ -5730,9 +5730,10 @@ var chbtc = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-        let paramString = 'price=' + price;
-        paramString += '&amount=' + amount;
-        paramString += '&tradeType=' + (side == 'buy') ? '1' : '0';
+        let paramString = '&price=' + price.toString ();
+        paramString += '&amount=' + amount.toString ();
+        let tradeType = (side == 'buy') ? '1' : '0';
+        paramString += '&tradeType=' + tradeType;
         paramString += '&currency=' + this.productId (product);
         return this.privatePostOrder (paramString);
     },
@@ -6816,8 +6817,27 @@ var coinspot = {
         'DOGE/AUD': { 'id': 'DOGE', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD', },
     },
 
-    fetchBalance () {
-        return this.privatePostMyBalances ();
+    async fetchBalance () {
+        let response = await this.privatePostMyBalances ();
+        if ('balance' in response) {
+            let balances = response['balance'];
+            let currencies = Object.keys (balances);
+            let result = { 'info': balances };
+            for (let c = 0; c < currencies.length; c++) {
+                let currency = currencies[c];
+                let uppercase = currency.toUpperCase ();
+                let account = {
+                    'free': balances[currency],
+                    'used': undefined,
+                    'total': balances[currency],
+                };
+                if (uppercase == 'DRK')
+                    uppercase = 'DASH';
+                result[uppercase] = account;
+            }
+            return result;
+        }
+        return response;
     },
 
     async fetchOrderBook (product) {
@@ -6998,9 +7018,23 @@ var dsx = {
         }
         return result;
     },
-
-    fetchBalance () {
-        return this.tapiPostGetInfo ();
+  
+    async fetchBalance () {
+        let response = await this.tapiPostGetInfo ();
+        let balances = response['return'];
+        let result = { 'info': balances };
+        let currencies = Object.keys (balances['total']);
+        for (let c = 0; c < currencies.length; c++) {
+            let currency = currencies[c];
+            let account = {
+                'free': balances['funds'][currency],
+                'used': undefined,
+                'total': balances['total'][currency],
+            };
+            account['used'] = account['total'] - account['free'];
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
@@ -7093,6 +7127,7 @@ var dsx = {
             let method = path;
             body = this.urlencode (this.extend ({
                 'method': path,
+                'nonce': nonce,
             }, query));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -7173,8 +7208,24 @@ var exmo = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privatePostUserInfo ();
+    async fetchBalance () {
+        let response = await this.privatePostUserInfo ();
+        let result = { 'info': response };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if (currency in response['balances'])
+                account['free'] = parseFloat (response['balances'][currency]);
+            if (currency in response['reserved'])
+                account['used'] = parseFloat (response['reserved'][currency]);
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
@@ -7346,8 +7397,22 @@ var flowbtc = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privatePostUserInfo ();
+    async fetchBalance () {
+        let response = await this.privatePostGetAccountInfo ();
+        let balances = response['currencies'];
+        let result = { 'info': response };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = balance['name'];
+            let account = {
+                'free': balance['balance'],
+                'used': balance['hold'],
+                'total': undefined,
+            };
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
@@ -7422,9 +7487,12 @@ var flowbtc = {
     },
 
     cancelOrder (id, params = {}) {
-        return this.privatePostCancelOrder (this.extend ({
-            'serverOrderId': id,
-        }, params));
+        if ('ins' in params) {
+            return this.privatePostCancelOrder (this.extend ({
+                'serverOrderId': id,
+            }, params));            
+        }
+        throw new Error (this.id + ' required `ins` symbol parameter for cancelling an order');
     },
 
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -7437,9 +7505,9 @@ var flowbtc = {
             if (!this.uid)
                 throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication');
             let nonce = this.nonce ();
-            let auth = nonce + this.uid + this.apiKey;
-            let signature = this.hmac (this.encode (auth), this.secret);
-            body = this.urlencode (this.extend ({
+            let auth = nonce.toString () + this.uid + this.apiKey;
+            let signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            body = this.json (this.extend ({
                 'apiKey': this.apiKey,
                 'apiNonce': nonce,
                 'apiSig': signature.toUpperCase (),
@@ -7501,8 +7569,26 @@ var fyb = {
         },
     },
 
-    fetchBalance () {
-        return this.privatePostGetaccinfo ();
+    async fetchBalance () {
+        let balance = await this.privatePostGetaccinfo ();
+        let btc = parseFloat (balance['btcBal']);
+        let symbol = this.symbols[0];
+        let quote = this.products[symbol]['quote'];
+        let lowercase = quote.toLowerCase () + 'Bal';
+        let fiat = parseFloat (balance[lowercase]);
+        let crypto = {
+            'free': btc,
+            'used': undefined,
+            'total': btc,
+        };
+        let accounts = { 'BTC': crypto };
+        accounts[quote] = {
+            'free': fiat,
+            'used': undefined,
+            'total': fiat,
+        };
+        accounts['info'] = balance;
+        return accounts;
     },
 
     async fetchOrderBook (product) {
@@ -7627,6 +7713,315 @@ var fybsg = extend (fyb, {
 
 //-----------------------------------------------------------------------------
 
+var gatecoin = {
+    
+    'id': 'gatecoin',
+    'name': 'Gatecoin',
+    'rateLimit': 2000,
+    'countries': 'HK', // Hong Kong
+    'comment': 'a regulated/licensed exchange',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/28646817-508457f2-726c-11e7-9eeb-3528d2413a58.jpg',
+        'api': 'https://api.gatecoin.com',
+        'www': 'https://gatecoin.com',
+        'doc': [
+            'https://gatecoin.com/api',
+            'https://github.com/Gatecoin/RESTful-API-Implementation',
+            'https://api.gatecoin.com/swagger-ui/index.html',
+        ],
+    },
+    'api': {
+        'public': {
+            'get': [
+                'Public/ExchangeRate', // Get the exchange rates
+                'Public/LiveTicker', // Get live ticker for all currency
+                'Public/LiveTicker/{CurrencyPair}', // Get live ticker by currency
+                'Public/LiveTickers', // Get live ticker for all currency
+                'Public/MarketDepth/{CurrencyPair}', // Gets prices and market depth for the currency pair.
+                'Public/NetworkStatistics/{DigiCurrency}', // Get the network status of a specific digital currency
+                'Public/StatisticHistory/{DigiCurrency}/{Typeofdata}', // Get the historical data of a specific digital currency
+                'Public/TickerHistory/{CurrencyPair}/{Timeframe}', // Get ticker history
+                'Public/Transactions/{CurrencyPair}', // Gets recent transactions
+                'Public/TransactionsHistory/{CurrencyPair}', // Gets all transactions
+                'Reference/BusinessNatureList', // Get the business nature list.
+                'Reference/Countries', // Get the country list.
+                'Reference/Currencies', // Get the currency list.
+                'Reference/CurrencyPairs', // Get the currency pair list.
+                'Reference/CurrentStatusList', // Get the current status list.
+                'Reference/IdentydocumentTypes', // Get the different types of identity documents possible.
+                'Reference/IncomeRangeList', // Get the income range list.
+                'Reference/IncomeSourceList', // Get the income source list.
+                'Reference/VerificationLevelList', // Get the verif level list.
+                'Stream/PublicChannel', // Get the public pubnub channel list
+            ],
+            'post': [
+                'Export/Transactions', // Request a export of all trades from based on currencypair, start date and end date
+                'Ping', // Post a string, then get it back.
+                'Public/Unsubscribe/{EmailCode}', // Lets the user unsubscribe from emails
+                'RegisterUser', // Initial trader registration.
+            ],
+        },
+        'private': {
+            'get': [
+                'Account/CorporateData', // Get corporate account data
+                'Account/DocumentAddress', // Check if residence proof uploaded
+                'Account/DocumentCorporation', // Check if registered document uploaded
+                'Account/DocumentID', // Check if ID document copy uploaded
+                'Account/DocumentInformation', // Get Step3 Data
+                'Account/Email', // Get user email
+                'Account/FeeRate', // Get fee rate of logged in user
+                'Account/Level', // Get verif level of logged in user
+                'Account/PersonalInformation', // Get Step1 Data
+                'Account/Phone', // Get user phone number
+                'Account/Profile', // Get trader profile
+                'Account/Questionnaire', // Fill the questionnaire
+                'Account/Referral', // Get referral information
+                'Account/ReferralCode', // Get the referral code of the logged in user
+                'Account/ReferralNames', // Get names of referred traders
+                'Account/ReferralReward', // Get referral reward information
+                'Account/ReferredCode', // Get referral code
+                'Account/ResidentInformation', // Get Step2 Data
+                'Account/SecuritySettings', // Get verif details of logged in user
+                'Account/User', // Get all user info
+                'APIKey/APIKey', // Get API Key for logged in user
+                'Auth/ConnectionHistory', // Gets connection history of logged in user
+                'Balance/Balances', // Gets the available balance for each currency for the logged in account.
+                'Balance/Balances/{Currency}', // Gets the available balance for s currency for the logged in account.
+                'Balance/Deposits', // Get all account deposits, including wire and digital currency, of the logged in user
+                'Balance/Withdrawals', // Get all account withdrawals, including wire and digital currency, of the logged in user
+                'Bank/Accounts/{Currency}/{Location}', // Get internal bank account for deposit
+                'Bank/Transactions', // Get all account transactions of the logged in user
+                'Bank/UserAccounts', // Gets all the bank accounts related to the logged in user.
+                'Bank/UserAccounts/{Currency}', // Gets all the bank accounts related to the logged in user.
+                'ElectronicWallet/DepositWallets', // Gets all crypto currency addresses related deposits to the logged in user.
+                'ElectronicWallet/DepositWallets/{DigiCurrency}', // Gets all crypto currency addresses related deposits to the logged in user by currency.
+                'ElectronicWallet/Transactions', // Get all digital currency transactions of the logged in user
+                'ElectronicWallet/Transactions/{DigiCurrency}', // Get all digital currency transactions of the logged in user
+                'ElectronicWallet/UserWallets', // Gets all external digital currency addresses related to the logged in user.
+                'ElectronicWallet/UserWallets/{DigiCurrency}', // Gets all external digital currency addresses related to the logged in user by currency.
+                'Info/ReferenceCurrency', // Get user's reference currency
+                'Info/ReferenceLanguage', // Get user's reference language
+                'Notification/Messages', // Get from oldest unread + 3 read message to newest messages
+                'Trade/Orders', // Gets open orders for the logged in trader.
+                'Trade/Orders/{OrderID}', // Gets an order for the logged in trader.
+                'Trade/StopOrders', // Gets all stop orders for the logged in trader. Max 1000 record.
+                'Trade/StopOrdersHistory', // Gets all stop orders for the logged in trader. Max 1000 record.
+                'Trade/Trades', // Gets all transactions of logged in user
+                'Trade/UserTrades', // Gets all transactions of logged in user            
+            ],
+            'post': [
+                'Account/DocumentAddress', // Upload address proof document
+                'Account/DocumentCorporation', // Upload registered document document
+                'Account/DocumentID', // Upload ID document copy
+                'Account/Email/RequestVerify', // Request for verification email
+                'Account/Email/Verify', // Verification email
+                'Account/GoogleAuth', // Enable google auth
+                'Account/Level', // Request verif level of logged in user
+                'Account/Questionnaire', // Fill the questionnaire
+                'Account/Referral', // Post a referral email
+                'APIKey/APIKey', // Create a new API key for logged in user
+                'Auth/ChangePassword', // Change password.
+                'Auth/ForgotPassword', // Request reset password
+                'Auth/ForgotUserID', // Request user id
+                'Auth/Login', // Trader session log in.
+                'Auth/Logout', // Logout from the current session.
+                'Auth/LogoutOtherSessions', // Logout other sessions.
+                'Auth/ResetPassword', // Reset password
+                'Bank/Transactions', // Request a transfer from the traders account of the logged in user. This is only available for bank account
+                'Bank/UserAccounts', // Add an account the logged in user
+                'ElectronicWallet/DepositWallets/{DigiCurrency}', // Add an digital currency addresses to the logged in user.
+                'ElectronicWallet/Transactions/Deposits/{DigiCurrency}', // Get all internal digital currency transactions of the logged in user
+                'ElectronicWallet/Transactions/Withdrawals/{DigiCurrency}', // Get all external digital currency transactions of the logged in user
+                'ElectronicWallet/UserWallets/{DigiCurrency}', // Add an external digital currency addresses to the logged in user.
+                'ElectronicWallet/Withdrawals/{DigiCurrency}', // Request a transfer from the traders account to an external address. This is only available for crypto currencies.
+                'Notification/Messages', // Mark all as read
+                'Notification/Messages/{ID}', // Mark as read
+                'Trade/Orders', // Place an order at the exchange.
+                'Trade/StopOrders', // Place a stop order at the exchange.
+            ],
+            'put': [
+                'Account/CorporateData', // Update user company data for corporate account
+                'Account/DocumentID', // Update ID document meta data
+                'Account/DocumentInformation', // Update Step3 Data
+                'Account/Email', // Update user email
+                'Account/PersonalInformation', // Update Step1 Data
+                'Account/Phone', // Update user phone number
+                'Account/Questionnaire', // update the questionnaire
+                'Account/ReferredCode', // Update referral code
+                'Account/ResidentInformation', // Update Step2 Data
+                'Account/SecuritySettings', // Update verif details of logged in user
+                'Account/User', // Update all user info
+                'Bank/UserAccounts', // Update the label of existing user bank accounnt
+                'ElectronicWallet/DepositWallets/{DigiCurrency}/{AddressName}', // Update the name of an address
+                'ElectronicWallet/UserWallets/{DigiCurrency}', // Update the name of an external address
+                'Info/ReferenceCurrency', // User's reference currency
+                'Info/ReferenceLanguage', // Update user's reference language
+            ],
+            'delete': [
+                'APIKey/APIKey/{PublicKey}', // Remove an API key
+                'Bank/Transactions/{RequestID}', // Delete pending account withdraw of the logged in user
+                'Bank/UserAccounts/{Currency}/{Label}', // Delete an account of the logged in user
+                'ElectronicWallet/DepositWallets/{DigiCurrency}/{AddressName}', // Delete an digital currency addresses related to the logged in user.
+                'ElectronicWallet/UserWallets/{DigiCurrency}/{AddressName}', // Delete an external digital currency addresses related to the logged in user.
+                'Trade/Orders', // Cancels all existing order
+                'Trade/Orders/{OrderID}', // Cancels an existing order
+                'Trade/StopOrders', // Cancels all existing stop orders
+                'Trade/StopOrders/{ID}', // Cancels an existing stop order
+            ],
+        },
+    },
+
+    async fetchProducts () {
+        let response = await this.publicGetPublicLiveTickers ();
+        let products = response['tickers'];
+        let result = [];
+        for (let p = 0; p < products.length; p++) {
+            let product = products[p];
+            let id = product['currencyPair'];
+            let base = id.slice (0, 3);
+            let quote = id.slice (3, 6);
+            let symbol = base + '/' + quote;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            });
+        }
+        return result;
+    },
+
+    async fetchBalance () {
+        let response = await this.privateGetBalanceBalances ();
+        let balances = response['balances'];
+        let result = { 'info': balances };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = balance['currency'];
+            let account = {
+                'free': balance['availableBalance'],
+                'used': this.sum (
+                    balance['pendingIncoming'], 
+                    balance['pendingOutgoing'],
+                    balance['openOrder']),
+                'total': balance['balance'],
+            };
+            result[currency] = account;
+        }
+        return result;
+    },
+
+    async fetchOrderBook (product) {
+        let p = this.product (product);
+        let orderbook = await this.publicGetPublicMarketDepthCurrencyPair ({
+            'CurrencyPair': p['id'],
+        });
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order['price']);
+                let amount = parseFloat (order['volume']);
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
+    },
+
+    async fetchTicker (product) {
+        let p = this.product (product);
+        let response = await this.publicGetPublicLiveTickerCurrencyPair ({
+            'CurrencyPair': p['id'],
+        });
+        let ticker = response['ticker'];
+        let timestamp = parseInt (ticker['createDateTime']) * 1000;
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['bid']),
+            'ask': parseFloat (ticker['ask']),
+            'vwap': parseFloat (ticker['vwap']),
+            'open': parseFloat (ticker['open']),
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['volume']),
+            'info': ticker,
+        };
+    },
+
+    fetchTrades (product) {
+        return this.publicGetPublicTransactionsCurrencyPair ({
+            'CurrencyPair': this.productId (product),
+        });
+    },
+
+    createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let order = {
+            'Code': this.productId (product),
+            'Way': (side == 'buy') ? 'Bid' : 'Ask',
+            'Amount': amount,
+        };
+        if (type == 'limit')
+            order['Price'] = price;
+        if (this.twofa) {
+            if ('ValidationCode' in params)
+                order['ValidationCode'] = params['ValidationCode'];
+            else
+                throw new AuthenticationError (this.id + ' two-factor authentication requires a missing ValidationCode parameter');
+        }
+        return this.privatePostTradeOrders (this.extend (order, params));
+    },
+
+    cancelOrder (id) {
+        return this.privateDeleteTradeOrdersOrderID ({ 'OrderID': id });
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (type == 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+
+            let nonce = this.nonce ();
+            let contentType = (method == 'GET') ? '' : 'application/json';
+            let auth = method + url + contentType + nonce.toString ();
+            auth = auth.toLowerCase ();
+
+            body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
+            let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            headers = {
+                'API_PUBLIC_KEY': this.apiKey,
+                'API_REQUEST_SIGNATURE': signature,
+                'API_REQUEST_DATE': nonce,
+            };
+            if (method != 'GET')
+                headers['Content-Type'] = contentType;
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var gdax = {
     'id': 'gdax',
     'name': 'GDAX',
@@ -7707,8 +8102,20 @@ var gdax = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privateGetAccounts ();
+    async fetchBalance () {
+        let balances = await this.privateGetAccounts ();
+        let result = { 'info': balances };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = balance['currency'];
+            let account = {
+                'free': parseFloat (balance['available']),
+                'used': parseFloat (balance['hold']),
+                'total': parseFloat (balance['balance']),
+            };
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
@@ -7829,7 +8236,6 @@ var gdax = {
 }
 
 //-----------------------------------------------------------------------------
-// TBD REQUIRES 2FA VIA AUTHY, A BANK ACCOUNT, IDENTITY VERIFICATION TO START
 
 var gemini = {
     'id': 'gemini',
@@ -7954,8 +8360,21 @@ var gemini = {
         });
     },
 
-    fetchBalance () {
-        return this.privatePostBalances ();
+    async fetchBalance () {
+        let balances = await this.privatePostBalances ();
+        let result = { 'info': balances };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = balance['currency'];
+            let account = {
+                'free': parseFloat (balance['available']),
+                'used': undefined,
+                'total': parseFloat (balance['amount']),
+            };
+            account['used'] = account['total'] - account['free'];
+            result[currency] = account;
+        }
+        return result;
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
@@ -8090,8 +8509,22 @@ var hitbtc = {
         return result;
     },
 
-    fetchBalance () {
-        return this.tradingGetBalance ();
+    async fetchBalance () {
+        let response = await this.tradingGetBalance ();
+        let balances = response['balance'];
+        let result = { 'info': balances };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = balance['currency_code'];
+            let account = {
+                'free': parseFloat (balance['cash']),
+                'used': parseFloat (balance['reserved']),
+                'total': undefined,
+            };
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
@@ -8257,10 +8690,32 @@ var huobi = {
         'LTC/CNY': { 'id': 'ltc', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', 'type': 'staticmarket', 'coinType': 2, },
         'BTC/USD': { 'id': 'btc', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'usdmarket',    'coinType': 1, },
     },
-
-    fetchBalance () {
-        return this.tradePostGetAccountInfo ();
-    },
+    
+    async fetchBalance () {
+        let balances = await this.tradePostGetAccountInfo ();
+        let result = { 'info': balances };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let lowercase = currency.toLowerCase ();
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            let available = 'available_' + lowercase + '_display';
+            let frozen = 'frozen_' + lowercase + '_display';
+            let loan = 'loan_' + lowercase + '_display';
+            if (available in balances)
+                account['free'] = parseFloat (balances[available]);
+            if (frozen in balances)
+                account['used'] = parseFloat (balances[frozen]);
+            if (loan in balances)
+                account['used'] = this.sum (account['used'], parseFloat (balances[loan]));
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
+    }, 
 
     async fetchOrderBook (product) {
         let p = this.product (product);
@@ -8467,7 +8922,25 @@ var itbit = {
         });
     },
 
-    fetchBalance () {
+    async fetchBalance () {
+        let response = await this.privateGetBalances ();
+        let balances = response['balances'];
+        let result = { 'info': response };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = balance['currency'];
+            let account = {
+                'free': parseFloat (balance['availableBalance']),
+                'used': undefined,
+                'total': parseFloat (balance['totalBalance']),
+            };
+            account['used'] = account['total'] - account['free'];
+            result[currency] = account;
+        }
+        return result;
+    },
+
+    fetchWallets () {
         return this.privateGetWallets ();
     },
 
@@ -8548,6 +9021,7 @@ var jubi = {
                 'depth',
                 'orders',
                 'ticker',
+                'allticker',
             ],
         },
         'private': {
@@ -8561,55 +9035,52 @@ var jubi = {
             ],
         },
     },
-    'products': {
-        'BTC/CNY':  { 'id': 'btc',  'symbol': 'BTC/CNY',  'base': 'BTC',  'quote': 'CNY' },
-        'ETH/CNY':  { 'id': 'eth',  'symbol': 'ETH/CNY',  'base': 'ETH',  'quote': 'CNY' },
-        'ANS/CNY':  { 'id': 'ans',  'symbol': 'ANS/CNY',  'base': 'ANS',  'quote': 'CNY' },
-        'BLK/CNY':  { 'id': 'blk',  'symbol': 'BLK/CNY',  'base': 'BLK',  'quote': 'CNY' },
-        'DNC/CNY':  { 'id': 'dnc',  'symbol': 'DNC/CNY',  'base': 'DNC',  'quote': 'CNY' },
-        'DOGE/CNY': { 'id': 'doge', 'symbol': 'DOGE/CNY', 'base': 'DOGE', 'quote': 'CNY' },
-        'EAC/CNY':  { 'id': 'eac',  'symbol': 'EAC/CNY',  'base': 'EAC',  'quote': 'CNY' },
-        'ETC/CNY':  { 'id': 'etc',  'symbol': 'ETC/CNY',  'base': 'ETC',  'quote': 'CNY' },
-        'FZ/CNY':   { 'id': 'fz',   'symbol': 'FZ/CNY',   'base': 'FZ',   'quote': 'CNY' },
-        'GOOC/CNY': { 'id': 'gooc', 'symbol': 'GOOC/CNY', 'base': 'GOOC', 'quote': 'CNY' },
-        'GAME/CNY': { 'id': 'game', 'symbol': 'GAME/CNY', 'base': 'GAME', 'quote': 'CNY' },
-        'HLB/CNY':  { 'id': 'hlb',  'symbol': 'HLB/CNY',  'base': 'HLB',  'quote': 'CNY' },
-        'IFC/CNY':  { 'id': 'ifc',  'symbol': 'IFC/CNY',  'base': 'IFC',  'quote': 'CNY' },
-        'JBC/CNY':  { 'id': 'jbc',  'symbol': 'JBC/CNY',  'base': 'JBC',  'quote': 'CNY' },
-        'KTC/CNY':  { 'id': 'ktc',  'symbol': 'KTC/CNY',  'base': 'KTC',  'quote': 'CNY' },
-        'LKC/CNY':  { 'id': 'lkc',  'symbol': 'LKC/CNY',  'base': 'LKC',  'quote': 'CNY' },
-        'LSK/CNY':  { 'id': 'lsk',  'symbol': 'LSK/CNY',  'base': 'LSK',  'quote': 'CNY' },
-        'LTC/CNY':  { 'id': 'ltc',  'symbol': 'LTC/CNY',  'base': 'LTC',  'quote': 'CNY' },
-        'MAX/CNY':  { 'id': 'max',  'symbol': 'MAX/CNY',  'base': 'MAX',  'quote': 'CNY' },
-        'MET/CNY':  { 'id': 'met',  'symbol': 'MET/CNY',  'base': 'MET',  'quote': 'CNY' },
-        'MRYC/CNY': { 'id': 'mryc', 'symbol': 'MRYC/CNY', 'base': 'MRYC', 'quote': 'CNY' },
-        'MTC/CNY':  { 'id': 'mtc',  'symbol': 'MTC/CNY',  'base': 'MTC',  'quote': 'CNY' },
-        'NXT/CNY':  { 'id': 'nxt',  'symbol': 'NXT/CNY',  'base': 'NXT',  'quote': 'CNY' },
-        'PEB/CNY':  { 'id': 'peb',  'symbol': 'PEB/CNY',  'base': 'PEB',  'quote': 'CNY' },
-        'PGC/CNY':  { 'id': 'pgc',  'symbol': 'PGC/CNY',  'base': 'PGC',  'quote': 'CNY' },
-        'PLC/CNY':  { 'id': 'plc',  'symbol': 'PLC/CNY',  'base': 'PLC',  'quote': 'CNY' },
-        'PPC/CNY':  { 'id': 'ppc',  'symbol': 'PPC/CNY',  'base': 'PPC',  'quote': 'CNY' },
-        'QEC/CNY':  { 'id': 'qec',  'symbol': 'QEC/CNY',  'base': 'QEC',  'quote': 'CNY' },
-        'RIO/CNY':  { 'id': 'rio',  'symbol': 'RIO/CNY',  'base': 'RIO',  'quote': 'CNY' },
-        'RSS/CNY':  { 'id': 'rss',  'symbol': 'RSS/CNY',  'base': 'RSS',  'quote': 'CNY' },
-        'SKT/CNY':  { 'id': 'skt',  'symbol': 'SKT/CNY',  'base': 'SKT',  'quote': 'CNY' },
-        'TFC/CNY':  { 'id': 'tfc',  'symbol': 'TFC/CNY',  'base': 'TFC',  'quote': 'CNY' },
-        'VRC/CNY':  { 'id': 'vrc',  'symbol': 'VRC/CNY',  'base': 'VRC',  'quote': 'CNY' },
-        'VTC/CNY':  { 'id': 'vtc',  'symbol': 'VTC/CNY',  'base': 'VTC',  'quote': 'CNY' },
-        'WDC/CNY':  { 'id': 'wdc',  'symbol': 'WDC/CNY',  'base': 'WDC',  'quote': 'CNY' },
-        'XAS/CNY':  { 'id': 'xas',  'symbol': 'XAS/CNY',  'base': 'XAS',  'quote': 'CNY' },
-        'XPM/CNY':  { 'id': 'xpm',  'symbol': 'XPM/CNY',  'base': 'XPM',  'quote': 'CNY' },
-        'XRP/CNY':  { 'id': 'xrp',  'symbol': 'XRP/CNY',  'base': 'XRP',  'quote': 'CNY' },
-        'XSGS/CNY': { 'id': 'xsgs', 'symbol': 'XSGS/CNY', 'base': 'XSGS', 'quote': 'CNY' },
-        'YTC/CNY':  { 'id': 'ytc',  'symbol': 'YTC/CNY',  'base': 'YTC',  'quote': 'CNY' },
-        'ZET/CNY':  { 'id': 'zet',  'symbol': 'ZET/CNY',  'base': 'ZET',  'quote': 'CNY' },
-        'ZCC/CNY':  { 'id': 'zcc',  'symbol': 'ZCC/CNY',  'base': 'ZCC',  'quote': 'CNY' },
+
+    async fetchProducts () {
+        let products = await this.publicGetAllticker ();
+        let keys = Object.keys (products);
+        let result = [];
+        for (let p = 0; p < keys.length; p++) {
+            let id = keys[p];
+            let base = id.toUpperCase ();
+            let quote = 'CNY';
+            let symbol = base + '/' + quote;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': id,
+            });
+        }
+        return result;
     },
 
-    fetchBalance () {
-        return this.privatePostBalance ();
-    },
-
+    async fetchBalance () {
+        let balances = await this.privatePostBalance ();
+        let result = { 'info': balances };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let lowercase = currency.toLowerCase ();
+            if (lowercase == 'dash')
+                lowercase = 'drk';
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            let free = lowercase + '_balance';
+            let used = lowercase + '_lock';
+            if (free in balances)
+                account['free'] = parseFloat (balances[free]);
+            if (used in balances)
+                account['used'] = parseFloat (balances[used]);
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
+    }, 
+         
     async fetchOrderBook (product) {
         let orderbook = await this.publicGetDepth ({
             'coin': this.productId (product),
@@ -8863,7 +9334,8 @@ var kraken = {
                 balance = parseFloat (balances[xcode]);
             if (zcode in balances)
                 balance = parseFloat (balances[zcode]);
-            if (currency in balances)
+            // issue #60
+            if (currency in balances) 
                 balance = parseFloat (balances[currency]);
             let account = {
                 'free': balance,
@@ -8979,8 +9451,22 @@ var lakebtc = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privatePostGetAccountInfo ();
+    async fetchBalance () {
+        let response = await this.privatePostGetAccountInfo ();
+        let balances = response['balance'];
+        let result = { 'info': response };
+        let currencies = Object.keys (balances);
+        for (let c = 0; c < currencies.length; c++) {
+            let currency = currencies[c];
+            let balance = parseFloat (balances[currency]);
+            let account = {
+                'free': balance,
+                'used': undefined,
+                'total': balance,
+            };
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
@@ -9171,8 +9657,30 @@ var livecoin = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privateGetPaymentBalances ();
+    async fetchBalance () {
+        let balances = await this.privateGetPaymentBalances ();
+        let result = { 'info': balances };
+        for (let b = 0; b < this.currencies.length; b++) {
+            let balance = balances[b];
+            let currency = balance['currency'];
+            let account = undefined;
+            if (currency in result)
+                account = result[currency];
+            else
+                account = {
+                    'free': undefined,
+                    'used': undefined,
+                    'total': undefined,
+                };
+            if (balance['type'] == 'total')
+                account['total'] = parseFloat (balance['value']);
+            if (balance['type'] == 'available')
+                account['free'] = parseFloat (balance['value']);
+            if (balance['type'] == 'trade')
+                account['used'] = parseFloat (balance['value']);
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
@@ -9403,8 +9911,24 @@ var luno = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privateGetBalance ();
+    async fetchBalance () {
+        let response = await this.privateGetBalance ();
+        let balances = response['balance'];
+        let result = { 'info': response };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = this.commonCurrencyCode (balance['asset']);
+            let reserved = parseFloat (balance['reserved']);
+            let unconfirmed = parseFloat (balance['unconfirmed']);
+            let account = {
+                'free': parseFloat (balance['balance']),
+                'used': this.sum (reserved, unconfirmed),
+                'total': undefined,
+            };
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
@@ -10086,8 +10610,8 @@ var poloniex = {
         for (let p = 0; p < keys.length; p++) {
             let id = keys[p];
             let product = products[id];
-            let symbol = id.replace ('_', '/');
-            let [ quote, base ] = symbol.split ('/');
+            let [ quote, base ] = id.split ('_');
+            let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -11866,11 +12390,11 @@ var yunbi = {
         let order = {
             'market': this.productId (product),
             'side': side,
-            'volume': amount,
+            'volume': amount.toString (),
             'ord_type': type,
         };
-        if (type == 'market') {
-            order['price'] = price;
+        if (type == 'limit') {
+            order['price'] = price.toString ();
         }
         return this.privatePostOrders (this.extend (order, params));
     },
@@ -12119,6 +12643,7 @@ var markets = {
     'foxbit':        foxbit,
     'fybse':         fybse,
     'fybsg':         fybsg,
+    'gatecoin':      gatecoin,
     'gdax':          gdax,
     'gemini':        gemini,
     'hitbtc':        hitbtc,

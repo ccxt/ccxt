@@ -108,7 +108,7 @@ let testMarketSymbolOrderbook = async (market, symbol) => {
         if (bids[first][0] < bids[last][0])
             log (market.id, symbol, 'bids reversed!'.red.bright, bids[first][0], bids[last][0])
         else if (bids[first][0] > bids[last][0])
-            log (market.id, symbol, 'bids ok')
+            log (market.id.green, symbol.green, 'bids ok')
     }
     let asks = orderbook.asks
     if (asks.length > 1) {
@@ -117,7 +117,7 @@ let testMarketSymbolOrderbook = async (market, symbol) => {
         if (asks[first][0] > asks[last][0])
             log (market.id, symbol, 'asks reversed!'.red.bright, asks[first][0], asks[last][0])
         else if (asks[first][0] < asks[last][0])
-            log (market.id, symbol, 'asks ok')
+            log (market.id.green, symbol.green, 'asks ok')
     }
 
     if (bids.length && asks.length)
@@ -213,6 +213,8 @@ let loadMarket = async market => {
         'LTC/CNY',
         'DASH/BTC',
         'DOGE/BTC',
+        'BTC/AUD',
+        'BTC/PLN',
     ]
     let result = market.symbols.filter (symbol => symbols.indexOf (symbol) >= 0)
     if (result.length > 0)

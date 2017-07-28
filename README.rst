@@ -13,6 +13,8 @@ CCXT – CryptoCurrency eXchange Trading Library
     :target: https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master
 .. image:: https://badge.runkitcdn.com/ccxt.svg
     :target: https://npm.runkit.com/ccxt
+.. image:: https://img.shields.io/badge/exchanges-70-blue.svg
+    :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
@@ -31,7 +33,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 69 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 70 cryptocurrency exchange markets and trading APIs:
 
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id              | name                                                      | ver   | doc                                                                                              | countries                                  |
@@ -115,6 +117,8 @@ The ccxt library currently supports the following 69 cryptocurrency exchange mar
 | fybse           | `FYB-SE <https://www.fybse.se>`__                         | \*    | `API <http://docs.fyb.apiary.io>`__                                                              | Sweden                                     |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | fybsg           | `FYB-SG <https://www.fybsg.com>`__                        | \*    | `API <http://docs.fyb.apiary.io>`__                                                              | Singapore                                  |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| gatecoin        | `Gatecoin <https://gatecoin.com>`__                       | \*    | `API <https://gatecoin.com/api>`__                                                               | Hong Kong                                  |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | gdax            | `GDAX <https://www.gdax.com>`__                           | \*    | `API <https://docs.gdax.com>`__                                                                  | US                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+

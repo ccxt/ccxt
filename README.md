@@ -1,6 +1,6 @@
 # CCXT – CryptoCurrency eXchange Trading Library
 
-[![Build Status](https://travis-ci.org/kroitor/ccxt.svg?branch=master)](https://travis-ci.org/kroitor/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Scrutinizer Code Quality](https://img.shields.io/scrutinizer/g/kroitor/ccxt.svg)](https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master) [![Try ccxt on RunKit](https://badge.runkitcdn.com/ccxt.svg)](https://npm.runkit.com/ccxt)
+[![Build Status](https://travis-ci.org/kroitor/ccxt.svg?branch=master)](https://travis-ci.org/kroitor/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Scrutinizer Code Quality](https://img.shields.io/scrutinizer/g/kroitor/ccxt.svg)](https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master) [![Try ccxt on RunKit](https://badge.runkitcdn.com/ccxt.svg)](https://npm.runkit.com/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-70-blue.svg)](https://github.com/kroitor/ccxt/wiki/Exchange-Markets)
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
@@ -18,7 +18,7 @@ Current featurelist:
 
 ## Supported Cryptocurrency Exchange Markets
 
-The ccxt library currently supports the following 69 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 70 cryptocurrency exchange markets and trading APIs:
 
 |                                                                                                                      | id            | name                                                 | ver | doc                                                                                         | countries                               |
 |----------------------------------------------------------------------------------------------------------------------|---------------|------------------------------------------------------|:---:|:-------------------------------------------------------------------------------------------:|-----------------------------------------|
@@ -62,6 +62,7 @@ The ccxt library currently supports the following 69 cryptocurrency exchange mar
 |![foxbit](https://user-images.githubusercontent.com/1294454/27991413-11b40d42-647f-11e7-91ee-78ced874dd09.jpg)        | foxbit        | [FoxBit](https://foxbit.exchange)                    | 1   | [API](https://blinktrade.com/docs)                                                          | Brazil                                  |
 |![fybse](https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg)         | fybse         | [FYB-SE](https://www.fybse.se)                       | *   | [API](http://docs.fyb.apiary.io)                                                            | Sweden                                  |
 |![fybsg](https://user-images.githubusercontent.com/1294454/27766513-3364d56a-5edb-11e7-9e6b-d5898bb89c81.jpg)         | fybsg         | [FYB-SG](https://www.fybsg.com)                      | *   | [API](http://docs.fyb.apiary.io)                                                            | Singapore                               |
+|![gatecoin](https://user-images.githubusercontent.com/1294454/28646817-508457f2-726c-11e7-9eeb-3528d2413a58.jpg)      | gatecoin      | [Gatecoin](https://gatecoin.com)                     | *   | [API](https://gatecoin.com/api)                                                             | Hong Kong                               |
 |![gdax](https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg)          | gdax          | [GDAX](https://www.gdax.com)                         | *   | [API](https://docs.gdax.com)                                                                | US                                      |
 |![gemini](https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg)        | gemini        | [Gemini](https://gemini.com)                         | 1   | [API](https://docs.gemini.com/rest-api)                                                     | US                                      |
 |![hitbtc](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)        | hitbtc        | [HitBTC](https://hitbtc.com)                         | 1   | [API](https://hitbtc.com/api)                                                               | Hong Kong                               |

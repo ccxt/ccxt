@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.92';
+$version = '1.1.115';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -144,6 +144,7 @@ class Market {
         'foxbit',
         'fybse',
         'fybsg',
+        'gatecoin',
         'gdax',
         'gemini',
         'hitbtc',
@@ -538,6 +539,7 @@ class Market {
 
             $details = '(possible reasons: ' . implode (', ', array (
                 'invalid API keys',
+                'bad or old nonce',
                 'market down or offline', 
                 'on maintenance',
                 'DDoS protection',
@@ -548,7 +550,7 @@ class Market {
                 'check your API keys', $details);
         }
 
-        if (in_array ($http_status_code, array (400, 403, 405, 503))) {
+        if (in_array ($http_status_code, array (400, 403, 405, 503, 525))) {
 
             if (preg_match ('#cloudflare|incapsula#i', $result)) {
         
@@ -559,6 +561,7 @@ class Market {
         
                 $details = '(possible reasons: ' . implode (', ', array (
                     'invalid API keys',
+                    'bad or old nonce',
                     'market down or offline', 
                     'on maintenance',
                     'DDoS protection',
@@ -577,7 +580,7 @@ class Market {
             if (preg_match ('#offline|unavailable|busy|maintenance|maintenancing#i', $result)) {
 
                 $details = '(possible reasons: ' . implode (', ', array (
-                    'market down or offline', 
+                    'market down or offline',
                     'on maintenance',
                     'DDoS protection',
                     'rate-limiting in effect',
@@ -5976,9 +5979,10 @@ class chbtc extends Market {
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
-        $paramString = 'price=' . $price;
-        $paramString .= '&$amount=' . $amount;
-        $paramString .= '&tradeType=' . ($side == 'buy') ? '1' : '0';
+        $paramString = '&$price=' . (string) $price;
+        $paramString .= '&$amount=' . (string) $amount;
+        $tradeType = ($side == 'buy') ? '1' : '0';
+        $paramString .= '&$tradeType=' . $tradeType;
         $paramString .= '&currency=' . $this->product_id ($product);
         return $this->privatePostOrder ($paramString);
     }
@@ -7092,7 +7096,26 @@ class coinspot extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostMyBalances ();
+        $response = $this->privatePostMyBalances ();
+        if (array_key_exists ('balance', $response)) {
+            $balances = $response['balance'];
+            $currencies = array_keys ($balances);
+            $result = array ( 'info' => $balances );
+            for ($c = 0; $c < count ($currencies); $c++) {
+                $currency = $currencies[$c];
+                $uppercase = strtoupper ($currency);
+                $account = array (
+                    'free' => $balances[$currency],
+                    'used' => null,
+                    'total' => $balances[$currency],
+                );
+                if ($uppercase == 'DRK')
+                    $uppercase = 'DASH';
+                $result[$uppercase] = $account;
+            }
+            return $result;
+        }
+        return $response;
     }
 
     public function fetch_order_book ($product) {
@@ -7279,7 +7302,21 @@ class dsx extends Market {
     }
 
     public function fetch_balance () {
-        return $this->tapiPostGetInfo ();
+        $response = $this->tapiPostGetInfo ();
+        $balances = $response['return'];
+        $result = array ( 'info' => $balances );
+        $currencies = array_keys ($balances['total']);
+        for ($c = 0; $c < count ($currencies); $c++) {
+            $currency = $currencies[$c];
+            $account = array (
+                'free' => $balances['funds'][$currency],
+                'used' => null,
+                'total' => $balances['total'][$currency],
+            );
+            $account['used'] = $account['total'] - $account['free'];
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -7372,6 +7409,7 @@ class dsx extends Market {
             $method = $path;
             $body = $this->urlencode (array_merge (array (
                 'method' => $path,
+                'nonce' => $nonce,
             ), $query));
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
@@ -7457,7 +7495,23 @@ class exmo extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostUserInfo ();
+        $response = $this->privatePostUserInfo ();
+        $result = array ( 'info' => $response );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            if (array_key_exists ($currency, $response['balances']))
+                $account['free'] = floatval ($response['balances'][$currency]);
+            if (array_key_exists ($currency, $response['reserved']))
+                $account['used'] = floatval ($response['reserved'][$currency]);
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -7634,7 +7688,21 @@ class flowbtc extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostUserInfo ();
+        $response = $this->privatePostGetAccountInfo ();
+        $balances = $response['currencies'];
+        $result = array ( 'info' => $response );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
+            $currency = $balance['name'];
+            $account = array (
+                'free' => $balance['balance'],
+                'used' => $balance['hold'],
+                'total' => null,
+            );
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -7709,9 +7777,12 @@ class flowbtc extends Market {
     }
 
     public function cancel_order ($id, $params = array ()) {
-        return $this->privatePostCancelOrder (array_merge (array (
-            'serverOrderId' => $id,
-        ), $params));
+        if (array_key_exists ('ins', $params)) {
+            return $this->privatePostCancelOrder (array_merge (array (
+                'serverOrderId' => $id,
+            ), $params));            
+        }
+        throw new \Exception ($this->id . ' required `ins` symbol parameter for cancelling an order');
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -7724,9 +7795,9 @@ class flowbtc extends Market {
             if (!$this->uid)
                 throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication');
             $nonce = $this->nonce ();
-            $auth = $nonce . $this->uid . $this->apiKey;
-            $signature = $this->hmac ($this->encode ($auth), $this->secret);
-            $body = $this->urlencode (array_merge (array (
+            $auth = (string) $nonce . $this->uid . $this->apiKey;
+            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
+            $body = $this->json (array_merge (array (
                 'apiKey' => $this->apiKey,
                 'apiNonce' => $nonce,
                 'apiSig' => strtoupper ($signature),
@@ -7798,7 +7869,25 @@ class fyb extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostGetaccinfo ();
+        $balance = $this->privatePostGetaccinfo ();
+        $btc = floatval ($balance['btcBal']);
+        $symbol = $this->symbols[0];
+        $quote = $this->products[$symbol]['quote'];
+        $lowercase = strtolower ($quote) . 'Bal';
+        $fiat = floatval ($balance[$lowercase]);
+        $crypto = array (
+            'free' => $btc,
+            'used' => null,
+            'total' => $btc,
+        );
+        $accounts = array ( 'BTC' => $crypto );
+        $accounts[$quote] = array (
+            'free' => $fiat,
+            'used' => null,
+            'total' => $fiat,
+        );
+        $accounts['info'] = $balance;
+        return $accounts;
     }
 
     public function fetch_order_book ($product) {
@@ -7933,6 +8022,319 @@ class fybsg extends fyb {
 
 //-----------------------------------------------------------------------------
 
+class gatecoin extends Market {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'gatecoin',
+            'name' => 'Gatecoin',
+            'rateLimit' => 2000,
+            'countries' => 'HK', // Hong Kong
+            'comment' => 'a regulated/licensed exchange',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/28646817-508457f2-726c-11e7-9eeb-3528d2413a58.jpg',
+                'api' => 'https://api.gatecoin.com',
+                'www' => 'https://gatecoin.com',
+                'doc' => array (
+                    'https://gatecoin.com/api',
+                    'https://github.com/Gatecoin/RESTful-API-Implementation',
+                    'https://api.gatecoin.com/swagger-ui/index.html',
+                ),
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'Public/ExchangeRate', // Get the exchange rates
+                        'Public/LiveTicker', // Get live ticker for all currency
+                        'Public/LiveTicker/{CurrencyPair}', // Get live ticker by currency
+                        'Public/LiveTickers', // Get live ticker for all currency
+                        'Public/MarketDepth/{CurrencyPair}', // Gets prices and market depth for the currency pair.
+                        'Public/NetworkStatistics/{DigiCurrency}', // Get the network status of a specific digital currency
+                        'Public/StatisticHistory/{DigiCurrency}/{Typeofdata}', // Get the historical data of a specific digital currency
+                        'Public/TickerHistory/{CurrencyPair}/{Timeframe}', // Get ticker history
+                        'Public/Transactions/{CurrencyPair}', // Gets recent transactions
+                        'Public/TransactionsHistory/{CurrencyPair}', // Gets all transactions
+                        'Reference/BusinessNatureList', // Get the business nature list.
+                        'Reference/Countries', // Get the country list.
+                        'Reference/Currencies', // Get the currency list.
+                        'Reference/CurrencyPairs', // Get the currency pair list.
+                        'Reference/CurrentStatusList', // Get the current status list.
+                        'Reference/IdentydocumentTypes', // Get the different types of identity documents possible.
+                        'Reference/IncomeRangeList', // Get the income range list.
+                        'Reference/IncomeSourceList', // Get the income source list.
+                        'Reference/VerificationLevelList', // Get the verif level list.
+                        'Stream/PublicChannel', // Get the public pubnub channel list
+                    ),
+                    'post' => array (
+                        'Export/Transactions', // Request a export of all trades from based on currencypair, start date and end date
+                        'Ping', // Post a string, then get it back.
+                        'Public/Unsubscribe/{EmailCode}', // Lets the user unsubscribe from emails
+                        'RegisterUser', // Initial trader registration.
+                    ),
+                ),
+                'private' => array (
+                    'get' => array (
+                        'Account/CorporateData', // Get corporate account data
+                        'Account/DocumentAddress', // Check if residence proof uploaded
+                        'Account/DocumentCorporation', // Check if registered document uploaded
+                        'Account/DocumentID', // Check if ID document copy uploaded
+                        'Account/DocumentInformation', // Get Step3 Data
+                        'Account/Email', // Get user email
+                        'Account/FeeRate', // Get fee rate of logged in user
+                        'Account/Level', // Get verif level of logged in user
+                        'Account/PersonalInformation', // Get Step1 Data
+                        'Account/Phone', // Get user phone number
+                        'Account/Profile', // Get trader profile
+                        'Account/Questionnaire', // Fill the questionnaire
+                        'Account/Referral', // Get referral information
+                        'Account/ReferralCode', // Get the referral code of the logged in user
+                        'Account/ReferralNames', // Get names of referred traders
+                        'Account/ReferralReward', // Get referral reward information
+                        'Account/ReferredCode', // Get referral code
+                        'Account/ResidentInformation', // Get Step2 Data
+                        'Account/SecuritySettings', // Get verif details of logged in user
+                        'Account/User', // Get all user info
+                        'APIKey/APIKey', // Get API Key for logged in user
+                        'Auth/ConnectionHistory', // Gets connection history of logged in user
+                        'Balance/Balances', // Gets the available balance for each currency for the logged in account.
+                        'Balance/Balances/{Currency}', // Gets the available balance for s currency for the logged in account.
+                        'Balance/Deposits', // Get all account deposits, including wire and digital currency, of the logged in user
+                        'Balance/Withdrawals', // Get all account withdrawals, including wire and digital currency, of the logged in user
+                        'Bank/Accounts/{Currency}/{Location}', // Get internal bank account for deposit
+                        'Bank/Transactions', // Get all account transactions of the logged in user
+                        'Bank/UserAccounts', // Gets all the bank accounts related to the logged in user.
+                        'Bank/UserAccounts/{Currency}', // Gets all the bank accounts related to the logged in user.
+                        'ElectronicWallet/DepositWallets', // Gets all crypto currency addresses related deposits to the logged in user.
+                        'ElectronicWallet/DepositWallets/{DigiCurrency}', // Gets all crypto currency addresses related deposits to the logged in user by currency.
+                        'ElectronicWallet/Transactions', // Get all digital currency transactions of the logged in user
+                        'ElectronicWallet/Transactions/{DigiCurrency}', // Get all digital currency transactions of the logged in user
+                        'ElectronicWallet/UserWallets', // Gets all external digital currency addresses related to the logged in user.
+                        'ElectronicWallet/UserWallets/{DigiCurrency}', // Gets all external digital currency addresses related to the logged in user by currency.
+                        'Info/ReferenceCurrency', // Get user's reference currency
+                        'Info/ReferenceLanguage', // Get user's reference language
+                        'Notification/Messages', // Get from oldest unread + 3 read message to newest messages
+                        'Trade/Orders', // Gets open orders for the logged in trader.
+                        'Trade/Orders/{OrderID}', // Gets an order for the logged in trader.
+                        'Trade/StopOrders', // Gets all stop orders for the logged in trader. Max 1000 record.
+                        'Trade/StopOrdersHistory', // Gets all stop orders for the logged in trader. Max 1000 record.
+                        'Trade/Trades', // Gets all transactions of logged in user
+                        'Trade/UserTrades', // Gets all transactions of logged in user            
+                    ),
+                    'post' => array (
+                        'Account/DocumentAddress', // Upload address proof document
+                        'Account/DocumentCorporation', // Upload registered document document
+                        'Account/DocumentID', // Upload ID document copy
+                        'Account/Email/RequestVerify', // Request for verification email
+                        'Account/Email/Verify', // Verification email
+                        'Account/GoogleAuth', // Enable google auth
+                        'Account/Level', // Request verif level of logged in user
+                        'Account/Questionnaire', // Fill the questionnaire
+                        'Account/Referral', // Post a referral email
+                        'APIKey/APIKey', // Create a new API key for logged in user
+                        'Auth/ChangePassword', // Change password.
+                        'Auth/ForgotPassword', // Request reset password
+                        'Auth/ForgotUserID', // Request user id
+                        'Auth/Login', // Trader session log in.
+                        'Auth/Logout', // Logout from the current session.
+                        'Auth/LogoutOtherSessions', // Logout other sessions.
+                        'Auth/ResetPassword', // Reset password
+                        'Bank/Transactions', // Request a transfer from the traders account of the logged in user. This is only available for bank account
+                        'Bank/UserAccounts', // Add an account the logged in user
+                        'ElectronicWallet/DepositWallets/{DigiCurrency}', // Add an digital currency addresses to the logged in user.
+                        'ElectronicWallet/Transactions/Deposits/{DigiCurrency}', // Get all internal digital currency transactions of the logged in user
+                        'ElectronicWallet/Transactions/Withdrawals/{DigiCurrency}', // Get all external digital currency transactions of the logged in user
+                        'ElectronicWallet/UserWallets/{DigiCurrency}', // Add an external digital currency addresses to the logged in user.
+                        'ElectronicWallet/Withdrawals/{DigiCurrency}', // Request a transfer from the traders account to an external address. This is only available for crypto currencies.
+                        'Notification/Messages', // Mark all as read
+                        'Notification/Messages/{ID}', // Mark as read
+                        'Trade/Orders', // Place an order at the exchange.
+                        'Trade/StopOrders', // Place a stop order at the exchange.
+                    ),
+                    'put' => array (
+                        'Account/CorporateData', // Update user company data for corporate account
+                        'Account/DocumentID', // Update ID document meta data
+                        'Account/DocumentInformation', // Update Step3 Data
+                        'Account/Email', // Update user email
+                        'Account/PersonalInformation', // Update Step1 Data
+                        'Account/Phone', // Update user phone number
+                        'Account/Questionnaire', // update the questionnaire
+                        'Account/ReferredCode', // Update referral code
+                        'Account/ResidentInformation', // Update Step2 Data
+                        'Account/SecuritySettings', // Update verif details of logged in user
+                        'Account/User', // Update all user info
+                        'Bank/UserAccounts', // Update the label of existing user bank accounnt
+                        'ElectronicWallet/DepositWallets/{DigiCurrency}/{AddressName}', // Update the name of an address
+                        'ElectronicWallet/UserWallets/{DigiCurrency}', // Update the name of an external address
+                        'Info/ReferenceCurrency', // User's reference currency
+                        'Info/ReferenceLanguage', // Update user's reference language
+                    ),
+                    'delete' => array (
+                        'APIKey/APIKey/{PublicKey}', // Remove an API key
+                        'Bank/Transactions/{RequestID}', // Delete pending account withdraw of the logged in user
+                        'Bank/UserAccounts/{Currency}/{Label}', // Delete an account of the logged in user
+                        'ElectronicWallet/DepositWallets/{DigiCurrency}/{AddressName}', // Delete an digital currency addresses related to the logged in user.
+                        'ElectronicWallet/UserWallets/{DigiCurrency}/{AddressName}', // Delete an external digital currency addresses related to the logged in user.
+                        'Trade/Orders', // Cancels all existing order
+                        'Trade/Orders/{OrderID}', // Cancels an existing order
+                        'Trade/StopOrders', // Cancels all existing stop orders
+                        'Trade/StopOrders/{ID}', // Cancels an existing stop order
+                    ),
+                ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_products () {
+        $response = $this->publicGetPublicLiveTickers ();
+        $products = $response['tickers'];
+        $result = array ();
+        for ($p = 0; $p < count ($products); $p++) {
+            $product = $products[$p];
+            $id = $product['currencyPair'];
+            $base = mb_substr ($id, 0, 3);
+            $quote = mb_substr ($id, 3, 6);
+            $symbol = $base . '/' . $quote;
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $product,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_balance () {
+        $response = $this->privateGetBalanceBalances ();
+        $balances = $response['balances'];
+        $result = array ( 'info' => $balances );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
+            $currency = $balance['currency'];
+            $account = array (
+                'free' => $balance['availableBalance'],
+                'used' => $this->sum (
+                    $balance['pendingIncoming'], 
+                    $balance['pendingOutgoing'],
+                    $balance['openOrder']),
+                'total' => $balance['balance'],
+            );
+            $result[$currency] = $account;
+        }
+        return $result;
+    }
+
+    public function fetch_order_book ($product) {
+        $p = $this->product ($product);
+        $orderbook = $this->publicGetPublicMarketDepthCurrencyPair (array (
+            'CurrencyPair' => $p['id'],
+        ));
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['volume']);
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $p = $this->product ($product);
+        $response = $this->publicGetPublicLiveTickerCurrencyPair (array (
+            'CurrencyPair' => $p['id'],
+        ));
+        $ticker = $response['ticker'];
+        $timestamp = intval ($ticker['createDateTime']) * 1000;
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => floatval ($ticker['vwap']),
+            'open' => floatval ($ticker['open']),
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['volume']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetPublicTransactionsCurrencyPair (array (
+            'CurrencyPair' => $this->product_id ($product),
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
+        $order = array (
+            'Code' => $this->product_id ($product),
+            'Way' => ($side == 'buy') ? 'Bid' : 'Ask',
+            'Amount' => $amount,
+        );
+        if ($type == 'limit')
+            $order['Price'] = $price;
+        if ($this->twofa) {
+            if (array_key_exists ('ValidationCode', $params))
+                $order['ValidationCode'] = $params['ValidationCode'];
+            else
+                throw new AuthenticationError ($this->id . ' two-factor authentication requires a missing ValidationCode parameter');
+        }
+        return $this->privatePostTradeOrders (array_merge ($order, $params));
+    }
+
+    public function cancel_order ($id) {
+        return $this->privateDeleteTradeOrdersOrderID (array ( 'OrderID' => $id ));
+    }
+
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
+        $query = $this->omit ($params, $this->extract_params ($path));
+        if ($type == 'public') {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
+        } else {
+
+            $nonce = $this->nonce ();
+            $contentType = ($method == 'GET') ? '' : 'application/json';
+            $auth = $method . $url . $contentType . (string) $nonce;
+            $auth = strtolower ($auth);
+
+            $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $params));
+            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256', 'base64');
+            $headers = array (
+                'API_PUBLIC_KEY' => $this->apiKey,
+                'API_REQUEST_SIGNATURE' => $signature,
+                'API_REQUEST_DATE' => $nonce,
+            );
+            if ($method != 'GET')
+                $headers['Content-Type'] = $contentType;
+        }
+        return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 class gdax extends Market {
 
     public function __construct ($options = array ()) {
@@ -8019,7 +8421,19 @@ class gdax extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privateGetAccounts ();
+        $balances = $this->privateGetAccounts ();
+        $result = array ( 'info' => $balances );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
+            $currency = $balance['currency'];
+            $account = array (
+                'free' => floatval ($balance['available']),
+                'used' => floatval ($balance['hold']),
+                'total' => floatval ($balance['balance']),
+            );
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -8270,7 +8684,20 @@ class gemini extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostBalances ();
+        $balances = $this->privatePostBalances ();
+        $result = array ( 'info' => $balances );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
+            $currency = $balance['currency'];
+            $account = array (
+                'free' => floatval ($balance['available']),
+                'used' => null,
+                'total' => floatval ($balance['amount']),
+            );
+            $account['used'] = $account['total'] - $account['free'];
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
@@ -8410,7 +8837,21 @@ class hitbtc extends Market {
     }
 
     public function fetch_balance () {
-        return $this->tradingGetBalance ();
+        $response = $this->tradingGetBalance ();
+        $balances = $response['balance'];
+        $result = array ( 'info' => $balances );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
+            $currency = $balance['currency_code'];
+            $account = array (
+                'free' => floatval ($balance['cash']),
+                'used' => floatval ($balance['reserved']),
+                'total' => null,
+            );
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -8582,7 +9023,29 @@ class huobi extends Market {
     }
 
     public function fetch_balance () {
-        return $this->tradePostGetAccountInfo ();
+        $balances = $this->tradePostGetAccountInfo ();
+        $result = array ( 'info' => $balances );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $lowercase = strtolower ($currency);
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            $available = 'available_' . $lowercase . '_display';
+            $frozen = 'frozen_' . $lowercase . '_display';
+            $loan = 'loan_' . $lowercase . '_display';
+            if (array_key_exists ($available, $balances))
+                $account['free'] = floatval ($balances[$available]);
+            if (array_key_exists ($frozen, $balances))
+                $account['used'] = floatval ($balances[$frozen]);
+            if (array_key_exists ($loan, $balances))
+                $account['used'] = $this->sum ($account['used'], floatval ($balances[$loan]));
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -8795,6 +9258,24 @@ class itbit extends Market {
     }
 
     public function fetch_balance () {
+        $response = $this->privateGetBalances ();
+        $balances = $response['balances'];
+        $result = array ( 'info' => $response );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
+            $currency = $balance['currency'];
+            $account = array (
+                'free' => floatval ($balance['availableBalance']),
+                'used' => null,
+                'total' => floatval ($balance['totalBalance']),
+            );
+            $account['used'] = $account['total'] - $account['free'];
+            $result[$currency] = $account;
+        }
+        return $result;
+    }
+
+    public function fetchWallets () {
         return $this->privateGetWallets ();
     }
 
@@ -8877,6 +9358,7 @@ class jubi extends Market {
                         'depth',
                         'orders',
                         'ticker',
+                        'allticker',
                     ),
                 ),
                 'private' => array (
@@ -8890,55 +9372,52 @@ class jubi extends Market {
                     ),
                 ),
             ),
-            'products' => array (
-                'BTC/CNY' =>  array ( 'id' => 'btc',  'symbol' => 'BTC/CNY',  'base' => 'BTC',  'quote' => 'CNY' ),
-                'ETH/CNY' =>  array ( 'id' => 'eth',  'symbol' => 'ETH/CNY',  'base' => 'ETH',  'quote' => 'CNY' ),
-                'ANS/CNY' =>  array ( 'id' => 'ans',  'symbol' => 'ANS/CNY',  'base' => 'ANS',  'quote' => 'CNY' ),
-                'BLK/CNY' =>  array ( 'id' => 'blk',  'symbol' => 'BLK/CNY',  'base' => 'BLK',  'quote' => 'CNY' ),
-                'DNC/CNY' =>  array ( 'id' => 'dnc',  'symbol' => 'DNC/CNY',  'base' => 'DNC',  'quote' => 'CNY' ),
-                'DOGE/CNY' => array ( 'id' => 'doge', 'symbol' => 'DOGE/CNY', 'base' => 'DOGE', 'quote' => 'CNY' ),
-                'EAC/CNY' =>  array ( 'id' => 'eac',  'symbol' => 'EAC/CNY',  'base' => 'EAC',  'quote' => 'CNY' ),
-                'ETC/CNY' =>  array ( 'id' => 'etc',  'symbol' => 'ETC/CNY',  'base' => 'ETC',  'quote' => 'CNY' ),
-                'FZ/CNY' =>   array ( 'id' => 'fz',   'symbol' => 'FZ/CNY',   'base' => 'FZ',   'quote' => 'CNY' ),
-                'GOOC/CNY' => array ( 'id' => 'gooc', 'symbol' => 'GOOC/CNY', 'base' => 'GOOC', 'quote' => 'CNY' ),
-                'GAME/CNY' => array ( 'id' => 'game', 'symbol' => 'GAME/CNY', 'base' => 'GAME', 'quote' => 'CNY' ),
-                'HLB/CNY' =>  array ( 'id' => 'hlb',  'symbol' => 'HLB/CNY',  'base' => 'HLB',  'quote' => 'CNY' ),
-                'IFC/CNY' =>  array ( 'id' => 'ifc',  'symbol' => 'IFC/CNY',  'base' => 'IFC',  'quote' => 'CNY' ),
-                'JBC/CNY' =>  array ( 'id' => 'jbc',  'symbol' => 'JBC/CNY',  'base' => 'JBC',  'quote' => 'CNY' ),
-                'KTC/CNY' =>  array ( 'id' => 'ktc',  'symbol' => 'KTC/CNY',  'base' => 'KTC',  'quote' => 'CNY' ),
-                'LKC/CNY' =>  array ( 'id' => 'lkc',  'symbol' => 'LKC/CNY',  'base' => 'LKC',  'quote' => 'CNY' ),
-                'LSK/CNY' =>  array ( 'id' => 'lsk',  'symbol' => 'LSK/CNY',  'base' => 'LSK',  'quote' => 'CNY' ),
-                'LTC/CNY' =>  array ( 'id' => 'ltc',  'symbol' => 'LTC/CNY',  'base' => 'LTC',  'quote' => 'CNY' ),
-                'MAX/CNY' =>  array ( 'id' => 'max',  'symbol' => 'MAX/CNY',  'base' => 'MAX',  'quote' => 'CNY' ),
-                'MET/CNY' =>  array ( 'id' => 'met',  'symbol' => 'MET/CNY',  'base' => 'MET',  'quote' => 'CNY' ),
-                'MRYC/CNY' => array ( 'id' => 'mryc', 'symbol' => 'MRYC/CNY', 'base' => 'MRYC', 'quote' => 'CNY' ),
-                'MTC/CNY' =>  array ( 'id' => 'mtc',  'symbol' => 'MTC/CNY',  'base' => 'MTC',  'quote' => 'CNY' ),
-                'NXT/CNY' =>  array ( 'id' => 'nxt',  'symbol' => 'NXT/CNY',  'base' => 'NXT',  'quote' => 'CNY' ),
-                'PEB/CNY' =>  array ( 'id' => 'peb',  'symbol' => 'PEB/CNY',  'base' => 'PEB',  'quote' => 'CNY' ),
-                'PGC/CNY' =>  array ( 'id' => 'pgc',  'symbol' => 'PGC/CNY',  'base' => 'PGC',  'quote' => 'CNY' ),
-                'PLC/CNY' =>  array ( 'id' => 'plc',  'symbol' => 'PLC/CNY',  'base' => 'PLC',  'quote' => 'CNY' ),
-                'PPC/CNY' =>  array ( 'id' => 'ppc',  'symbol' => 'PPC/CNY',  'base' => 'PPC',  'quote' => 'CNY' ),
-                'QEC/CNY' =>  array ( 'id' => 'qec',  'symbol' => 'QEC/CNY',  'base' => 'QEC',  'quote' => 'CNY' ),
-                'RIO/CNY' =>  array ( 'id' => 'rio',  'symbol' => 'RIO/CNY',  'base' => 'RIO',  'quote' => 'CNY' ),
-                'RSS/CNY' =>  array ( 'id' => 'rss',  'symbol' => 'RSS/CNY',  'base' => 'RSS',  'quote' => 'CNY' ),
-                'SKT/CNY' =>  array ( 'id' => 'skt',  'symbol' => 'SKT/CNY',  'base' => 'SKT',  'quote' => 'CNY' ),
-                'TFC/CNY' =>  array ( 'id' => 'tfc',  'symbol' => 'TFC/CNY',  'base' => 'TFC',  'quote' => 'CNY' ),
-                'VRC/CNY' =>  array ( 'id' => 'vrc',  'symbol' => 'VRC/CNY',  'base' => 'VRC',  'quote' => 'CNY' ),
-                'VTC/CNY' =>  array ( 'id' => 'vtc',  'symbol' => 'VTC/CNY',  'base' => 'VTC',  'quote' => 'CNY' ),
-                'WDC/CNY' =>  array ( 'id' => 'wdc',  'symbol' => 'WDC/CNY',  'base' => 'WDC',  'quote' => 'CNY' ),
-                'XAS/CNY' =>  array ( 'id' => 'xas',  'symbol' => 'XAS/CNY',  'base' => 'XAS',  'quote' => 'CNY' ),
-                'XPM/CNY' =>  array ( 'id' => 'xpm',  'symbol' => 'XPM/CNY',  'base' => 'XPM',  'quote' => 'CNY' ),
-                'XRP/CNY' =>  array ( 'id' => 'xrp',  'symbol' => 'XRP/CNY',  'base' => 'XRP',  'quote' => 'CNY' ),
-                'XSGS/CNY' => array ( 'id' => 'xsgs', 'symbol' => 'XSGS/CNY', 'base' => 'XSGS', 'quote' => 'CNY' ),
-                'YTC/CNY' =>  array ( 'id' => 'ytc',  'symbol' => 'YTC/CNY',  'base' => 'YTC',  'quote' => 'CNY' ),
-                'ZET/CNY' =>  array ( 'id' => 'zet',  'symbol' => 'ZET/CNY',  'base' => 'ZET',  'quote' => 'CNY' ),
-                'ZCC/CNY' =>  array ( 'id' => 'zcc',  'symbol' => 'ZCC/CNY',  'base' => 'ZCC',  'quote' => 'CNY' ),
-            ),
         ), $options));
     }
 
+    public function fetch_products () {
+        $products = $this->publicGetAllticker ();
+        $keys = array_keys ($products);
+        $result = array ();
+        for ($p = 0; $p < count ($keys); $p++) {
+            $id = $keys[$p];
+            $base = strtoupper ($id);
+            $quote = 'CNY';
+            $symbol = $base . '/' . $quote;
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $id,
+            );
+        }
+        return $result;
+    }
+
     public function fetch_balance () {
-        return $this->privatePostBalance ();
+        $balances = $this->privatePostBalance ();
+        $result = array ( 'info' => $balances );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $lowercase = strtolower ($currency);
+            if ($lowercase == 'dash')
+                $lowercase = 'drk';
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            $free = $lowercase . '_balance';
+            $used = $lowercase . '_lock';
+            if (array_key_exists ($free, $balances))
+                $account['free'] = floatval ($balances[$free]);
+            if (array_key_exists ($used, $balances))
+                $account['used'] = floatval ($balances[$used]);
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -9197,7 +9676,8 @@ class kraken extends Market {
                 $balance = floatval ($balances[$xcode]);
             if (array_key_exists ($zcode, $balances))
                 $balance = floatval ($balances[$zcode]);
-            if (array_key_exists ($currency, $balances))
+            // issue #60
+            if (array_key_exists ($currency, $balances)) 
                 $balance = floatval ($balances[$currency]);
             $account = array (
                 'free' => $balance,
@@ -9318,7 +9798,21 @@ class lakebtc extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostGetAccountInfo ();
+        $response = $this->privatePostGetAccountInfo ();
+        $balances = $response['balance'];
+        $result = array ( 'info' => $response );
+        $currencies = array_keys ($balances);
+        for ($c = 0; $c < count ($currencies); $c++) {
+            $currency = $currencies[$c];
+            $balance = floatval ($balances[$currency]);
+            $account = array (
+                'free' => $balance,
+                'used' => null,
+                'total' => $balance,
+            );
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -9514,7 +10008,29 @@ class livecoin extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privateGetPaymentBalances ();
+        $balances = $this->privateGetPaymentBalances ();
+        $result = array ( 'info' => $balances );
+        for ($b = 0; $b < count ($this->currencies); $b++) {
+            $balance = $balances[$b];
+            $currency = $balance['currency'];
+            $account = null;
+            if (array_key_exists ($currency, $result))
+                $account = $result[$currency];
+            else
+                $account = array (
+                    'free' => null,
+                    'used' => null,
+                    'total' => null,
+                );
+            if ($balance['type'] == 'total')
+                $account['total'] = floatval ($balance['value']);
+            if ($balance['type'] == 'available')
+                $account['free'] = floatval ($balance['value']);
+            if ($balance['type'] == 'trade')
+                $account['used'] = floatval ($balance['value']);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -9755,7 +10271,23 @@ class luno extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privateGetBalance ();
+        $response = $this->privateGetBalance ();
+        $balances = $response['balance'];
+        $result = array ( 'info' => $response );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
+            $currency = $this->commonCurrencyCode ($balance['asset']);
+            $reserved = floatval ($balance['reserved']);
+            $unconfirmed = floatval ($balance['unconfirmed']);
+            $account = array (
+                'free' => floatval ($balance['balance']),
+                'used' => $this->sum ($reserved, $unconfirmed),
+                'total' => null,
+            );
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -10455,8 +10987,8 @@ class poloniex extends Market {
         for ($p = 0; $p < count ($keys); $p++) {
             $id = $keys[$p];
             $product = $products[$id];
-            $symbol = str_replace ('_', '/', $id);
-            list ($quote, $base) = explode ('/', $symbol);
+            list ($quote, $base) = explode ('_', $id);
+            $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -12285,11 +12817,11 @@ class yunbi extends Market {
         $order = array (
             'market' => $this->product_id ($product),
             'side' => $side,
-            'volume' => $amount,
+            'volume' => (string) $amount,
             'ord_type' => $type,
         );
-        if ($type == 'market') {
-            $order['price'] = $price;
+        if ($type == 'limit') {
+            $order['price'] = (string) $price;
         }
         return $this->privatePostOrders (array_merge ($order, $params));
     }

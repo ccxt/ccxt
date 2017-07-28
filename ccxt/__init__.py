@@ -41,6 +41,7 @@ markets = [
     'foxbit',
     'fybse',
     'fybsg',
+    'gatecoin',
     'gdax',
     'gemini',
     'hitbtc',
@@ -85,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.92'
+__version__ = '1.1.115'
 
 # Python 2 & 3
 import base64
@@ -233,10 +234,12 @@ class Market (object):
         request = _urllib.Request (url, body, headers)
         request.get_method = lambda: method
         response = None
+        test = None
         try: # send request and load response
             handler = _urllib.HTTPHandler if url.startswith ('http://') else _urllib.HTTPSHandler
             opener = _urllib.build_opener (handler)
             response = opener.open (request, timeout = int (self.timeout / 1000))
+            text = response.read ()
         except socket.timeout as e:
             raise TimeoutError (' '.join ([ self.id, method, url, 'request timeout' ]))
         except ssl.SSLError as e:
@@ -246,7 +249,7 @@ class Market (object):
             details = None
             if e.code == 429:
                 error = DDoSProtectionError
-            elif e.code in [500, 501, 502, 404]:
+            elif e.code in [500, 501, 502, 404, 525]:
                 details = e.read ().decode ('utf-8') if e else None
                 error = MarketNotAvailableError
             elif e.code in [400, 403, 405, 503]:
@@ -257,14 +260,15 @@ class Market (object):
                     error = DDoSProtectionError
                 else:
                     error = MarketNotAvailableError
-                    details = 'Possible reasons: ' + ', '.join ([
+                    details = '(possible reasons: ' + ', '.join ([
                         'invalid API keys',
+                        'bad or old nonce',
                         'market down or offline', 
                         'on maintenance',
                         'DDoS protection',
                         'rate-limiting in effect',
                         reason,
-                    ])
+                    ]) + ')'
             elif e.code in [408, 504]:
                 error = TimeoutError
             elif e.code in [401, 422, 511]:
@@ -272,7 +276,6 @@ class Market (object):
             self.raise_error (error, url, method, e, details)
         except _urllib.URLError as e:
             self.raise_error (MarketNotAvailableError, url, method, e)        
-        text = response.read ()
         encoding = response.info ().get ('Content-Encoding')
         if encoding in ('gzip', 'x-gzip', 'deflate'):
             if encoding == 'deflate':
@@ -5511,9 +5514,10 @@ class chbtc (Market):
         })
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
-        paramString = 'price=' + price
-        paramString += '&amount=' + amount
-        paramString += '&tradeType=' + '1' if (side == 'buy') else '0'
+        paramString = '&price=' + str (price)
+        paramString += '&amount=' + str (amount)
+        tradeType = '1' if (side == 'buy') else '0'
+        paramString += '&tradeType=' + tradeType
         paramString += '&currency=' + self.product_id (product)
         return self.privatePostOrder (paramString)
 
@@ -6560,7 +6564,24 @@ class coinspot (Market):
         super (coinspot, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostMyBalances ()
+        response = self.privatePostMyBalances ()
+        if 'balance' in response:
+            balances = response['balance']
+            currencies = list (balances.keys ())
+            result = { 'info': balances }
+            for c in range (0, len (currencies)):
+                currency = currencies[c]
+                uppercase = currency.upper ()
+                account = {
+                    'free': balances[currency],
+                    'used': None,
+                    'total': balances[currency],
+                }
+                if uppercase == 'DRK':
+                    uppercase = 'DASH'
+                result[uppercase] = account
+            return result
+        return response
 
     def fetch_order_book (self, product):
         p = self.product (product)
@@ -6735,7 +6756,20 @@ class dsx (Market):
         return result
 
     def fetch_balance (self):
-        return self.tapiPostGetInfo ()
+        response = self.tapiPostGetInfo ()
+        balances = response['return']
+        result = { 'info': balances }
+        currencies = list (balances['total'].keys ())
+        for c in range (0, len (currencies)):
+            currency = currencies[c]
+            account = {
+                'free': balances['funds'][currency],
+                'used': None,
+                'total': balances['total'][currency],
+            }
+            account['used'] = account['total'] - account['free']
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         p = self.product (product)
@@ -6820,6 +6854,7 @@ class dsx (Market):
             method = path
             body = _urlencode.urlencode (self.extend ({
                 'method': path,
+                'nonce': nonce,
             }, query))
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -6901,7 +6936,22 @@ class exmo (Market):
         return result
 
     def fetch_balance (self):
-        return self.privatePostUserInfo ()
+        response = self.privatePostUserInfo ()
+        result = { 'info': response }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in response['balances']:
+                account['free'] = float (response['balances'][currency])
+            if currency in response['reserved']:
+                account['used'] = float (response['reserved'][currency])
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         p = self.product (product)
@@ -7064,7 +7114,20 @@ class flowbtc (Market):
         return result
 
     def fetch_balance (self):
-        return self.privatePostUserInfo ()
+        response = self.privatePostGetAccountInfo ()
+        balances = response['currencies']
+        result = { 'info': response }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = balance['name']
+            account = {
+                'free': balance['balance'],
+                'used': balance['hold'],
+                'total': None,
+            }
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         p = self.product (product)
@@ -7132,9 +7195,11 @@ class flowbtc (Market):
         return self.privatePostCreateOrder (self.extend (order, params))
 
     def cancel_order (self, id, params = {}):
-        return self.privatePostCancelOrder (self.extend ({
-            'serverOrderId': id,
-        }, params))
+        if 'ins' in params:
+            return self.privatePostCancelOrder (self.extend ({
+                'serverOrderId': id,
+            }, params))            
+        raise Error (self.id + ' required `ins` symbol parameter for cancelling an order')
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
@@ -7145,9 +7210,9 @@ class flowbtc (Market):
             if not self.uid:
                 raise AuthenticationError (self.id + ' requires `' + self.id + '.uid` property for authentication')
             nonce = self.nonce ()
-            auth = nonce + self.uid + self.apiKey
-            signature = self.hmac (self.encode (auth), self.secret)
-            body = _urlencode.urlencode (self.extend ({
+            auth = str (nonce) + self.uid + self.apiKey
+            signature = self.hmac (self.encode (auth), self.encode (self.secret))
+            body = self.json (self.extend ({
                 'apiKey': self.apiKey,
                 'apiNonce': nonce,
                 'apiSig': signature.upper (),
@@ -7217,7 +7282,25 @@ class fyb (Market):
         super (fyb, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostGetaccinfo ()
+        balance = self.privatePostGetaccinfo ()
+        btc = float (balance['btcBal'])
+        symbol = self.symbols[0]
+        quote = self.products[symbol]['quote']
+        lowercase = quote.lower () + 'Bal'
+        fiat = float (balance[lowercase])
+        crypto = {
+            'free': btc,
+            'used': None,
+            'total': btc,
+        }
+        accounts = { 'BTC': crypto }
+        accounts[quote] = {
+            'free': fiat,
+            'used': None,
+            'total': fiat,
+        }
+        accounts['info'] = balance
+        return accounts
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetOrderbook ()
@@ -7341,6 +7424,305 @@ class fybsg (fyb):
 
 #------------------------------------------------------------------------------
 
+class gatecoin (Market):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'gatecoin',
+            'name': 'Gatecoin',
+            'rateLimit': 2000,
+            'countries': 'HK', # Hong Kong
+            'comment': 'a regulated/licensed exchange',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28646817-508457f2-726c-11e7-9eeb-3528d2413a58.jpg',
+                'api': 'https://api.gatecoin.com',
+                'www': 'https://gatecoin.com',
+                'doc': [
+                    'https://gatecoin.com/api',
+                    'https://github.com/Gatecoin/RESTful-API-Implementation',
+                    'https://api.gatecoin.com/swagger-ui/index.html',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'Public/ExchangeRate', # Get the exchange rates
+                        'Public/LiveTicker', # Get live ticker for all currency
+                        'Public/LiveTicker/{CurrencyPair}', # Get live ticker by currency
+                        'Public/LiveTickers', # Get live ticker for all currency
+                        'Public/MarketDepth/{CurrencyPair}', # Gets prices and market depth for the currency pair.
+                        'Public/NetworkStatistics/{DigiCurrency}', # Get the network status of a specific digital currency
+                        'Public/StatisticHistory/{DigiCurrency}/{Typeofdata}', # Get the historical data of a specific digital currency
+                        'Public/TickerHistory/{CurrencyPair}/{Timeframe}', # Get ticker history
+                        'Public/Transactions/{CurrencyPair}', # Gets recent transactions
+                        'Public/TransactionsHistory/{CurrencyPair}', # Gets all transactions
+                        'Reference/BusinessNatureList', # Get the business nature list.
+                        'Reference/Countries', # Get the country list.
+                        'Reference/Currencies', # Get the currency list.
+                        'Reference/CurrencyPairs', # Get the currency pair list.
+                        'Reference/CurrentStatusList', # Get the current status list.
+                        'Reference/IdentydocumentTypes', # Get the different types of identity documents possible.
+                        'Reference/IncomeRangeList', # Get the income range list.
+                        'Reference/IncomeSourceList', # Get the income source list.
+                        'Reference/VerificationLevelList', # Get the verif level list.
+                        'Stream/PublicChannel', # Get the public pubnub channel list
+                    ],
+                    'post': [
+                        'Export/Transactions', # Request a export of all trades from based on currencypair, start date and end date
+                        'Ping', # Post a string, then get it back.
+                        'Public/Unsubscribe/{EmailCode}', # Lets the user unsubscribe from emails
+                        'RegisterUser', # Initial trader registration.
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'Account/CorporateData', # Get corporate account data
+                        'Account/DocumentAddress', # Check if residence proof uploaded
+                        'Account/DocumentCorporation', # Check if registered document uploaded
+                        'Account/DocumentID', # Check if ID document copy uploaded
+                        'Account/DocumentInformation', # Get Step3 Data
+                        'Account/Email', # Get user email
+                        'Account/FeeRate', # Get fee rate of logged in user
+                        'Account/Level', # Get verif level of logged in user
+                        'Account/PersonalInformation', # Get Step1 Data
+                        'Account/Phone', # Get user phone number
+                        'Account/Profile', # Get trader profile
+                        'Account/Questionnaire', # Fill the questionnaire
+                        'Account/Referral', # Get referral information
+                        'Account/ReferralCode', # Get the referral code of the logged in user
+                        'Account/ReferralNames', # Get names of referred traders
+                        'Account/ReferralReward', # Get referral reward information
+                        'Account/ReferredCode', # Get referral code
+                        'Account/ResidentInformation', # Get Step2 Data
+                        'Account/SecuritySettings', # Get verif details of logged in user
+                        'Account/User', # Get all user info
+                        'APIKey/APIKey', # Get API Key for logged in user
+                        'Auth/ConnectionHistory', # Gets connection history of logged in user
+                        'Balance/Balances', # Gets the available balance for each currency for the logged in account.
+                        'Balance/Balances/{Currency}', # Gets the available balance for s currency for the logged in account.
+                        'Balance/Deposits', # Get all account deposits, including wire and digital currency, of the logged in user
+                        'Balance/Withdrawals', # Get all account withdrawals, including wire and digital currency, of the logged in user
+                        'Bank/Accounts/{Currency}/{Location}', # Get internal bank account for deposit
+                        'Bank/Transactions', # Get all account transactions of the logged in user
+                        'Bank/UserAccounts', # Gets all the bank accounts related to the logged in user.
+                        'Bank/UserAccounts/{Currency}', # Gets all the bank accounts related to the logged in user.
+                        'ElectronicWallet/DepositWallets', # Gets all crypto currency addresses related deposits to the logged in user.
+                        'ElectronicWallet/DepositWallets/{DigiCurrency}', # Gets all crypto currency addresses related deposits to the logged in user by currency.
+                        'ElectronicWallet/Transactions', # Get all digital currency transactions of the logged in user
+                        'ElectronicWallet/Transactions/{DigiCurrency}', # Get all digital currency transactions of the logged in user
+                        'ElectronicWallet/UserWallets', # Gets all external digital currency addresses related to the logged in user.
+                        'ElectronicWallet/UserWallets/{DigiCurrency}', # Gets all external digital currency addresses related to the logged in user by currency.
+                        'Info/ReferenceCurrency', # Get user's reference currency
+                        'Info/ReferenceLanguage', # Get user's reference language
+                        'Notification/Messages', # Get from oldest unread + 3 read message to newest messages
+                        'Trade/Orders', # Gets open orders for the logged in trader.
+                        'Trade/Orders/{OrderID}', # Gets an order for the logged in trader.
+                        'Trade/StopOrders', # Gets all stop orders for the logged in trader. Max 1000 record.
+                        'Trade/StopOrdersHistory', # Gets all stop orders for the logged in trader. Max 1000 record.
+                        'Trade/Trades', # Gets all transactions of logged in user
+                        'Trade/UserTrades', # Gets all transactions of logged in user            
+                    ],
+                    'post': [
+                        'Account/DocumentAddress', # Upload address proof document
+                        'Account/DocumentCorporation', # Upload registered document document
+                        'Account/DocumentID', # Upload ID document copy
+                        'Account/Email/RequestVerify', # Request for verification email
+                        'Account/Email/Verify', # Verification email
+                        'Account/GoogleAuth', # Enable google auth
+                        'Account/Level', # Request verif level of logged in user
+                        'Account/Questionnaire', # Fill the questionnaire
+                        'Account/Referral', # Post a referral email
+                        'APIKey/APIKey', # Create a new API key for logged in user
+                        'Auth/ChangePassword', # Change password.
+                        'Auth/ForgotPassword', # Request reset password
+                        'Auth/ForgotUserID', # Request user id
+                        'Auth/Login', # Trader session log in.
+                        'Auth/Logout', # Logout from the current session.
+                        'Auth/LogoutOtherSessions', # Logout other sessions.
+                        'Auth/ResetPassword', # Reset password
+                        'Bank/Transactions', # Request a transfer from the traders account of the logged in user. This is only available for bank account
+                        'Bank/UserAccounts', # Add an account the logged in user
+                        'ElectronicWallet/DepositWallets/{DigiCurrency}', # Add an digital currency addresses to the logged in user.
+                        'ElectronicWallet/Transactions/Deposits/{DigiCurrency}', # Get all internal digital currency transactions of the logged in user
+                        'ElectronicWallet/Transactions/Withdrawals/{DigiCurrency}', # Get all external digital currency transactions of the logged in user
+                        'ElectronicWallet/UserWallets/{DigiCurrency}', # Add an external digital currency addresses to the logged in user.
+                        'ElectronicWallet/Withdrawals/{DigiCurrency}', # Request a transfer from the traders account to an external address. This is only available for crypto currencies.
+                        'Notification/Messages', # Mark all as read
+                        'Notification/Messages/{ID}', # Mark as read
+                        'Trade/Orders', # Place an order at the exchange.
+                        'Trade/StopOrders', # Place a stop order at the exchange.
+                    ],
+                    'put': [
+                        'Account/CorporateData', # Update user company data for corporate account
+                        'Account/DocumentID', # Update ID document meta data
+                        'Account/DocumentInformation', # Update Step3 Data
+                        'Account/Email', # Update user email
+                        'Account/PersonalInformation', # Update Step1 Data
+                        'Account/Phone', # Update user phone number
+                        'Account/Questionnaire', # update the questionnaire
+                        'Account/ReferredCode', # Update referral code
+                        'Account/ResidentInformation', # Update Step2 Data
+                        'Account/SecuritySettings', # Update verif details of logged in user
+                        'Account/User', # Update all user info
+                        'Bank/UserAccounts', # Update the label of existing user bank accounnt
+                        'ElectronicWallet/DepositWallets/{DigiCurrency}/{AddressName}', # Update the name of an address
+                        'ElectronicWallet/UserWallets/{DigiCurrency}', # Update the name of an external address
+                        'Info/ReferenceCurrency', # User's reference currency
+                        'Info/ReferenceLanguage', # Update user's reference language
+                    ],
+                    'delete': [
+                        'APIKey/APIKey/{PublicKey}', # Remove an API key
+                        'Bank/Transactions/{RequestID}', # Delete pending account withdraw of the logged in user
+                        'Bank/UserAccounts/{Currency}/{Label}', # Delete an account of the logged in user
+                        'ElectronicWallet/DepositWallets/{DigiCurrency}/{AddressName}', # Delete an digital currency addresses related to the logged in user.
+                        'ElectronicWallet/UserWallets/{DigiCurrency}/{AddressName}', # Delete an external digital currency addresses related to the logged in user.
+                        'Trade/Orders', # Cancels all existing order
+                        'Trade/Orders/{OrderID}', # Cancels an existing order
+                        'Trade/StopOrders', # Cancels all existing stop orders
+                        'Trade/StopOrders/{ID}', # Cancels an existing stop order
+                    ],
+                },
+            },
+        }
+        params.update (config)
+        super (gatecoin, self).__init__ (params)
+
+    def fetch_products (self):
+        response = self.publicGetPublicLiveTickers ()
+        products = response['tickers']
+        result = []
+        for p in range (0, len (products)):
+            product = products[p]
+            id = product['currencyPair']
+            base = id[0:3]
+            quote = id[3:6]
+            symbol = base + '/' + quote
+            result.append ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': product,
+            })
+        return result
+
+    def fetch_balance (self):
+        response = self.privateGetBalanceBalances ()
+        balances = response['balances']
+        result = { 'info': balances }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = balance['currency']
+            account = {
+                'free': balance['availableBalance'],
+                'used': self.sum (
+                    balance['pendingIncoming'], 
+                    balance['pendingOutgoing'],
+                    balance['openOrder']),
+                'total': balance['balance'],
+            }
+            result[currency] = account
+        return result
+
+    def fetch_order_book (self, product):
+        p = self.product (product)
+        orderbook = self.publicGetPublicMarketDepthCurrencyPair ({
+            'CurrencyPair': p['id'],
+        })
+        timestamp = self.milliseconds ()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range (0, len (orders)):
+                order = orders[i]
+                price = float (order['price'])
+                amount = float (order['volume'])
+                result[side].append ([ price, amount ])
+        return result
+
+    def fetch_ticker (self, product):
+        p = self.product (product)
+        response = self.publicGetPublicLiveTickerCurrencyPair ({
+            'CurrencyPair': p['id'],
+        })
+        ticker = response['ticker']
+        timestamp = int (ticker['createDateTime']) * 1000
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': float (ticker['high']),
+            'low': float (ticker['low']),
+            'bid': float (ticker['bid']),
+            'ask': float (ticker['ask']),
+            'vwap': float (ticker['vwap']),
+            'open': float (ticker['open']),
+            'close': None,
+            'first': None,
+            'last': float (ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['volume']),
+            'info': ticker,
+        }
+
+    def fetch_trades (self, product):
+        return self.publicGetPublicTransactionsCurrencyPair ({
+            'CurrencyPair': self.product_id (product),
+        })
+
+    def create_order (self, product, type, side, amount, price = None, params = {}):
+        order = {
+            'Code': self.product_id (product),
+            'Way': 'Bid' if (side == 'buy') else 'Ask',
+            'Amount': amount,
+        }
+        if type == 'limit':
+            order['Price'] = price
+        if self.twofa:
+            if 'ValidationCode' in params:
+                order['ValidationCode'] = params['ValidationCode']
+            else:
+                raise AuthenticationError (self.id + ' two-factor authentication requires a missing ValidationCode parameter')
+        return self.privatePostTradeOrders (self.extend (order, params))
+
+    def cancel_order (self, id):
+        return self.privateDeleteTradeOrdersOrderID ({ 'OrderID': id })
+
+    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'] + '/' + self.implode_params (path, params)
+        query = self.omit (params, self.extract_params (path))
+        if type == 'public':
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
+
+            nonce = self.nonce ()
+            contentType = '' if (method == 'GET') else 'application/json'
+            auth = method + url + contentType + str (nonce)
+            auth = auth.lower ()
+
+            body = _urlencode.urlencode (self.extend ({ 'nonce': nonce }, params))
+            signature = self.hmac (self.encode (auth), self.encode (self.secret), hashlib.sha256, 'base64')
+            headers = {
+                'API_PUBLIC_KEY': self.apiKey,
+                'API_REQUEST_SIGNATURE': signature,
+                'API_REQUEST_DATE': nonce,
+            }
+            if method != 'GET':
+                headers['Content-Type'] = contentType
+        return self.fetch (url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
 class gdax (Market):
 
     def __init__ (self, config = {}):
@@ -7426,7 +7808,18 @@ class gdax (Market):
         return result
 
     def fetch_balance (self):
-        return self.privateGetAccounts ()
+        balances = self.privateGetAccounts ()
+        result = { 'info': balances }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = balance['currency']
+            account = {
+                'free': float (balance['available']),
+                'used': float (balance['hold']),
+                'total': float (balance['balance']),
+            }
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetProductsIdBook ({
@@ -7660,7 +8053,19 @@ class gemini (Market):
         })
 
     def fetch_balance (self):
-        return self.privatePostBalances ()
+        balances = self.privatePostBalances ()
+        result = { 'info': balances }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = balance['currency']
+            account = {
+                'free': float (balance['available']),
+                'used': None,
+                'total': float (balance['amount']),
+            }
+            account['used'] = account['total'] - account['free']
+            result[currency] = account
+        return result
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         if type == 'market':
@@ -7793,7 +8198,20 @@ class hitbtc (Market):
         return result
 
     def fetch_balance (self):
-        return self.tradingGetBalance ()
+        response = self.tradingGetBalance ()
+        balances = response['balance']
+        result = { 'info': balances }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = balance['currency_code']
+            account = {
+                'free': float (balance['cash']),
+                'used': float (balance['reserved']),
+                'total': None,
+            }
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetSymbolOrderbook ({
@@ -7955,7 +8373,28 @@ class huobi (Market):
         super (huobi, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.tradePostGetAccountInfo ()
+        balances = self.tradePostGetAccountInfo ()
+        result = { 'info': balances }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            lowercase = currency.lower ()
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            available = 'available_' + lowercase + '_display'
+            frozen = 'frozen_' + lowercase + '_display'
+            loan = 'loan_' + lowercase + '_display'
+            if available in balances:
+                account['free'] = float (balances[available])
+            if frozen in balances:
+                account['used'] = float (balances[frozen])
+            if loan in balances:
+                account['used'] = self.sum (account['used'], float (balances[loan]))
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         p = self.product (product)
@@ -8155,6 +8594,22 @@ class itbit (Market):
         })
 
     def fetch_balance (self):
+        response = self.privateGetBalances ()
+        balances = response['balances']
+        result = { 'info': response }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = balance['currency']
+            account = {
+                'free': float (balance['availableBalance']),
+                'used': None,
+                'total': float (balance['totalBalance']),
+            }
+            account['used'] = account['total'] - account['free']
+            result[currency] = account
+        return result
+
+    def fetchWallets (self):
         return self.privateGetWallets ()
 
     def nonce (self):
@@ -8230,6 +8685,7 @@ class jubi (Market):
                         'depth',
                         'orders',
                         'ticker',
+                        'allticker',
                     ],
                 },
                 'private': {
@@ -8243,56 +8699,50 @@ class jubi (Market):
                     ],
                 },
             },
-            'products': {
-                'BTC/CNY':  { 'id': 'btc',  'symbol': 'BTC/CNY',  'base': 'BTC',  'quote': 'CNY' },
-                'ETH/CNY':  { 'id': 'eth',  'symbol': 'ETH/CNY',  'base': 'ETH',  'quote': 'CNY' },
-                'ANS/CNY':  { 'id': 'ans',  'symbol': 'ANS/CNY',  'base': 'ANS',  'quote': 'CNY' },
-                'BLK/CNY':  { 'id': 'blk',  'symbol': 'BLK/CNY',  'base': 'BLK',  'quote': 'CNY' },
-                'DNC/CNY':  { 'id': 'dnc',  'symbol': 'DNC/CNY',  'base': 'DNC',  'quote': 'CNY' },
-                'DOGE/CNY': { 'id': 'doge', 'symbol': 'DOGE/CNY', 'base': 'DOGE', 'quote': 'CNY' },
-                'EAC/CNY':  { 'id': 'eac',  'symbol': 'EAC/CNY',  'base': 'EAC',  'quote': 'CNY' },
-                'ETC/CNY':  { 'id': 'etc',  'symbol': 'ETC/CNY',  'base': 'ETC',  'quote': 'CNY' },
-                'FZ/CNY':   { 'id': 'fz',   'symbol': 'FZ/CNY',   'base': 'FZ',   'quote': 'CNY' },
-                'GOOC/CNY': { 'id': 'gooc', 'symbol': 'GOOC/CNY', 'base': 'GOOC', 'quote': 'CNY' },
-                'GAME/CNY': { 'id': 'game', 'symbol': 'GAME/CNY', 'base': 'GAME', 'quote': 'CNY' },
-                'HLB/CNY':  { 'id': 'hlb',  'symbol': 'HLB/CNY',  'base': 'HLB',  'quote': 'CNY' },
-                'IFC/CNY':  { 'id': 'ifc',  'symbol': 'IFC/CNY',  'base': 'IFC',  'quote': 'CNY' },
-                'JBC/CNY':  { 'id': 'jbc',  'symbol': 'JBC/CNY',  'base': 'JBC',  'quote': 'CNY' },
-                'KTC/CNY':  { 'id': 'ktc',  'symbol': 'KTC/CNY',  'base': 'KTC',  'quote': 'CNY' },
-                'LKC/CNY':  { 'id': 'lkc',  'symbol': 'LKC/CNY',  'base': 'LKC',  'quote': 'CNY' },
-                'LSK/CNY':  { 'id': 'lsk',  'symbol': 'LSK/CNY',  'base': 'LSK',  'quote': 'CNY' },
-                'LTC/CNY':  { 'id': 'ltc',  'symbol': 'LTC/CNY',  'base': 'LTC',  'quote': 'CNY' },
-                'MAX/CNY':  { 'id': 'max',  'symbol': 'MAX/CNY',  'base': 'MAX',  'quote': 'CNY' },
-                'MET/CNY':  { 'id': 'met',  'symbol': 'MET/CNY',  'base': 'MET',  'quote': 'CNY' },
-                'MRYC/CNY': { 'id': 'mryc', 'symbol': 'MRYC/CNY', 'base': 'MRYC', 'quote': 'CNY' },
-                'MTC/CNY':  { 'id': 'mtc',  'symbol': 'MTC/CNY',  'base': 'MTC',  'quote': 'CNY' },
-                'NXT/CNY':  { 'id': 'nxt',  'symbol': 'NXT/CNY',  'base': 'NXT',  'quote': 'CNY' },
-                'PEB/CNY':  { 'id': 'peb',  'symbol': 'PEB/CNY',  'base': 'PEB',  'quote': 'CNY' },
-                'PGC/CNY':  { 'id': 'pgc',  'symbol': 'PGC/CNY',  'base': 'PGC',  'quote': 'CNY' },
-                'PLC/CNY':  { 'id': 'plc',  'symbol': 'PLC/CNY',  'base': 'PLC',  'quote': 'CNY' },
-                'PPC/CNY':  { 'id': 'ppc',  'symbol': 'PPC/CNY',  'base': 'PPC',  'quote': 'CNY' },
-                'QEC/CNY':  { 'id': 'qec',  'symbol': 'QEC/CNY',  'base': 'QEC',  'quote': 'CNY' },
-                'RIO/CNY':  { 'id': 'rio',  'symbol': 'RIO/CNY',  'base': 'RIO',  'quote': 'CNY' },
-                'RSS/CNY':  { 'id': 'rss',  'symbol': 'RSS/CNY',  'base': 'RSS',  'quote': 'CNY' },
-                'SKT/CNY':  { 'id': 'skt',  'symbol': 'SKT/CNY',  'base': 'SKT',  'quote': 'CNY' },
-                'TFC/CNY':  { 'id': 'tfc',  'symbol': 'TFC/CNY',  'base': 'TFC',  'quote': 'CNY' },
-                'VRC/CNY':  { 'id': 'vrc',  'symbol': 'VRC/CNY',  'base': 'VRC',  'quote': 'CNY' },
-                'VTC/CNY':  { 'id': 'vtc',  'symbol': 'VTC/CNY',  'base': 'VTC',  'quote': 'CNY' },
-                'WDC/CNY':  { 'id': 'wdc',  'symbol': 'WDC/CNY',  'base': 'WDC',  'quote': 'CNY' },
-                'XAS/CNY':  { 'id': 'xas',  'symbol': 'XAS/CNY',  'base': 'XAS',  'quote': 'CNY' },
-                'XPM/CNY':  { 'id': 'xpm',  'symbol': 'XPM/CNY',  'base': 'XPM',  'quote': 'CNY' },
-                'XRP/CNY':  { 'id': 'xrp',  'symbol': 'XRP/CNY',  'base': 'XRP',  'quote': 'CNY' },
-                'XSGS/CNY': { 'id': 'xsgs', 'symbol': 'XSGS/CNY', 'base': 'XSGS', 'quote': 'CNY' },
-                'YTC/CNY':  { 'id': 'ytc',  'symbol': 'YTC/CNY',  'base': 'YTC',  'quote': 'CNY' },
-                'ZET/CNY':  { 'id': 'zet',  'symbol': 'ZET/CNY',  'base': 'ZET',  'quote': 'CNY' },
-                'ZCC/CNY':  { 'id': 'zcc',  'symbol': 'ZCC/CNY',  'base': 'ZCC',  'quote': 'CNY' },
-            },
         }
         params.update (config)
         super (jubi, self).__init__ (params)
 
+    def fetch_products (self):
+        products = self.publicGetAllticker ()
+        keys = list (products.keys ())
+        result = []
+        for p in range (0, len (keys)):
+            id = keys[p]
+            base = id.upper ()
+            quote = 'CNY'
+            symbol = base + '/' + quote
+            result.append ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': id,
+            })
+        return result
+
     def fetch_balance (self):
-        return self.privatePostBalance ()
+        balances = self.privatePostBalance ()
+        result = { 'info': balances }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            lowercase = currency.lower ()
+            if lowercase == 'dash':
+                lowercase = 'drk'
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            free = lowercase + '_balance'
+            used = lowercase + '_lock'
+            if free in balances:
+                account['free'] = float (balances[free])
+            if used in balances:
+                account['used'] = float (balances[used])
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetDepth ({
@@ -8536,6 +8986,7 @@ class kraken (Market):
                 balance = float (balances[xcode])
             if zcode in balances:
                 balance = float (balances[zcode])
+            # issue #60
             if currency in balances:
                 balance = float (balances[currency])
             account = {
@@ -8649,7 +9100,20 @@ class lakebtc (Market):
         return result
 
     def fetch_balance (self):
-        return self.privatePostGetAccountInfo ()
+        response = self.privatePostGetAccountInfo ()
+        balances = response['balance']
+        result = { 'info': response }
+        currencies = list (balances.keys ())
+        for c in range (0, len (currencies)):
+            currency = currencies[c]
+            balance = float (balances[currency])
+            account = {
+                'free': balance,
+                'used': None,
+                'total': balance,
+            }
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetBcorderbook ({
@@ -8833,7 +9297,28 @@ class livecoin (Market):
         return result
 
     def fetch_balance (self):
-        return self.privateGetPaymentBalances ()
+        balances = self.privateGetPaymentBalances ()
+        result = { 'info': balances }
+        for b in range (0, len (self.currencies)):
+            balance = balances[b]
+            currency = balance['currency']
+            account = None
+            if currency in result:
+                account = result[currency]
+            else:
+                account = {
+                    'free': None,
+                    'used': None,
+                    'total': None,
+                }
+            if balance['type'] == 'total':
+                account['total'] = float (balance['value'])
+            if balance['type'] == 'available':
+                account['free'] = float (balance['value'])
+            if balance['type'] == 'trade':
+                account['used'] = float (balance['value'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetExchangeOrderBook ({
@@ -9059,7 +9544,22 @@ class luno (Market):
         return result
 
     def fetch_balance (self):
-        return self.privateGetBalance ()
+        response = self.privateGetBalance ()
+        balances = response['balance']
+        result = { 'info': response }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = self.commonCurrencyCode (balance['asset'])
+            reserved = float (balance['reserved'])
+            unconfirmed = float (balance['unconfirmed'])
+            account = {
+                'free': float (balance['balance']),
+                'used': self.sum (reserved, unconfirmed),
+                'total': None,
+            }
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetOrderbook ({
@@ -9722,8 +10222,8 @@ class poloniex (Market):
         for p in range (0, len (keys)):
             id = keys[p]
             product = products[id]
-            symbol = id.replace ('_', '/')
-            quote, base = symbol.split ('/')
+            quote, base = id.split ('_')
+            symbol = base + '/' + quote
             result.append ({
                 'id': id,
                 'symbol': symbol,
@@ -11435,11 +11935,11 @@ class yunbi (Market):
         order = {
             'market': self.product_id (product),
             'side': side,
-            'volume': amount,
+            'volume': str (amount),
             'ord_type': type,
         }
-        if type == 'market':
-            order['price'] = price
+        if type == 'limit':
+            order['price'] = str (price)
         return self.privatePostOrders (self.extend (order, params))
 
     def cancel_order (self, id):
