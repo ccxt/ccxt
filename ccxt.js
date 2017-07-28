@@ -8363,7 +8363,7 @@ var gemini = {
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
-            let currency = balance['currency']
+            let currency = balance['currency'];
             let account = {
                 'free': parseFloat (balance['available']),
                 'used': undefined,
@@ -8513,7 +8513,7 @@ var hitbtc = {
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
-            let currency = balance['currency_code']
+            let currency = balance['currency_code'];
             let account = {
                 'free': parseFloat (balance['cash']),
                 'used': parseFloat (balance['reserved']),

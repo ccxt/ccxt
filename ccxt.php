@@ -8684,7 +8684,7 @@ class gemini extends Market {
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
-            $currency = $balance['currency']
+            $currency = $balance['currency'];
             $account = array (
                 'free' => floatval ($balance['available']),
                 'used' => null,
@@ -8838,7 +8838,7 @@ class hitbtc extends Market {
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
-            $currency = $balance['currency_code']
+            $currency = $balance['currency_code'];
             $account = array (
                 'free' => floatval ($balance['cash']),
                 'used' => floatval ($balance['reserved']),
@@ -9254,6 +9254,24 @@ class itbit extends Market {
     }
 
     public function fetch_balance () {
+        $response = $this->privateGetBalances ();
+        $balances = $response['balances'];
+        $result = array ( 'info' => $response );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
+            $currency = $balance['currency'];
+            $account = array (
+                'free' => floatval ($balance['availableBalance']),
+                'used' => null,
+                'total' => floatval ($balance['totalBalance']),
+            );
+            $account['used'] = $account['total'] - $account['free'];
+            $result[$currency] = $account;
+        }
+        return $result;
+    }
+
+    public function fetchWallets () {
         return $this->privateGetWallets ();
     }
 

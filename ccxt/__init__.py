@@ -8591,6 +8591,22 @@ class itbit (Market):
         })
 
     def fetch_balance (self):
+        response = self.privateGetBalances ()
+        balances = response['balances']
+        result = { 'info': response }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = balance['currency']
+            account = {
+                'free': float (balance['availableBalance']),
+                'used': None,
+                'total': float (balance['totalBalance']),
+            }
+            account['used'] = account['total'] - account['free']
+            result[currency] = account
+        return result
+
+    def fetchWallets (self):
         return self.privateGetWallets ()
 
     def nonce (self):
