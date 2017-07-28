@@ -9449,8 +9449,22 @@ var lakebtc = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privatePostGetAccountInfo ();
+    async fetchBalance () {
+        let response = await this.privatePostGetAccountInfo ();
+        let balances = response['balance'];
+        let result = { 'info': response };
+        let currencies = Object.keys (balances);
+        for (let c = 0; c < currencies.length; c++) {
+            let currency = currencies[c];
+            let balance = parseFloat (balances[currency]);
+            let account = {
+                'free': balance,
+                'used': undefined,
+                'total': balance,
+            };
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
