@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.102';
+$version = '1.1.103';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7684,7 +7684,21 @@ class flowbtc extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostUserInfo ();
+        $response = $this->privatePostGetAccountInfo ();
+        $balances = $response['currencies'];
+        $result = array ( 'info' => $response );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
+            $currency = $balance['name'];
+            $account = array (
+                'free' => $balance['balance'],
+                'used' => $balance['hold'],
+                'total' => null,
+            );
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -7759,9 +7773,12 @@ class flowbtc extends Market {
     }
 
     public function cancel_order ($id, $params = array ()) {
-        return $this->privatePostCancelOrder (array_merge (array (
-            'serverOrderId' => $id,
-        ), $params));
+        if (array_key_exists ('ins', $params)) {
+            return $this->privatePostCancelOrder (array_merge (array (
+                'serverOrderId' => $id,
+            ), $params));            
+        }
+        throw new \Exception ($this->id . ' required `ins` symbol parameter for cancelling an order');
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -7774,9 +7791,9 @@ class flowbtc extends Market {
             if (!$this->uid)
                 throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication');
             $nonce = $this->nonce ();
-            $auth = $nonce . $this->uid . $this->apiKey;
-            $signature = $this->hmac ($this->encode ($auth), $this->secret);
-            $body = $this->urlencode (array_merge (array (
+            $auth = (string) $nonce . $this->uid . $this->apiKey;
+            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
+            $body = $this->json (array_merge (array (
                 'apiKey' => $this->apiKey,
                 'apiNonce' => $nonce,
                 'apiSig' => strtoupper ($signature),
