@@ -8507,8 +8507,22 @@ var hitbtc = {
         return result;
     },
 
-    fetchBalance () {
-        return this.tradingGetBalance ();
+    async fetchBalance () {
+        let response = await this.tradingGetBalance ();
+        let balances = response['balance'];
+        let result = { 'info': balances };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = balance['currency_code']
+            let account = {
+                'free': parseFloat (balance['cash']),
+                'used': parseFloat (balance['reserved']),
+                'total': undefined,
+            };
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
