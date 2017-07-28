@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.98'
+__version__ = '1.1.99'
 
 # Python 2 & 3
 import base64
@@ -6562,7 +6562,22 @@ class coinspot (Market):
         super (coinspot, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privatePostMyBalances ()
+        response = self.privatePostMyBalances ()
+        balances = response['balance']
+        currencies = list (balances.keys ())
+        result = { 'info': balances }
+        for c in range (0, len (currencies)):
+            currency = currencies[c]
+            uppercase = currency.upper ()
+            account = {
+                'free': balances[currency],
+                'used': None,
+                'total': balances[currency],
+            }
+            if uppercase == 'DRK':
+                uppercase = 'DASH'
+            result[uppercase] = account
+        return result
 
     def fetch_order_book (self, product):
         p = self.product (product)
