@@ -9911,8 +9911,24 @@ var luno = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privateGetBalance ();
+    async fetchBalance () {
+        let response = await this.privateGetBalance ();
+        let balances = response['balance'];
+        let result = { 'info': response };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = this.commonCurrencyCode (balance['asset']);
+            let reserved = parseFloat (balance['reserved']);
+            let unconfirmed = parseFloat (balance['unconfirmed']);
+            let account = {
+                'free': parseFloat (balance['balance']),
+                'used': this.sum (reserved, unconfirmed),
+                'total': undefined,
+            };
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
