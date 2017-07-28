@@ -410,7 +410,7 @@ var Market = function (config) {
                     if (response.status == 200)
                         return text
                     let error = undefined
-                    let details = undefined
+                    let details = text
                     if ([ 429 ].indexOf (response.status) >= 0) {
                         error = DDoSProtectionError
                     } else if ([ 500, 501, 502, 404, 525 ].indexOf (response.status) >= 0) {
@@ -421,23 +421,21 @@ var Market = function (config) {
                             error = DDoSProtectionError
                         } else {
                             error = MarketNotAvailableError
-                            details = '(possible reasons: ' + [
+                            details = text + ' (possible reasons: ' + [
                                 'invalid API keys',
                                 'bad or old nonce',
                                 'market down or offline', 
                                 'on maintenance',
                                 'DDoS protection',
                                 'rate-limiting in effect',
-                            ].join (', ') + ')'                       
+                            ].join (', ') + ')'
                         }
                     } else if ([ 408, 504 ].indexOf (response.status) >= 0) {
                         error = TimeoutError
                     } else if ([ 401, 422, 511 ].indexOf (response.status) >= 0) {
                         error = AuthenticationError
-                        details = text
                     } else {
                         error = Error
-                        details = 'Unknown Error'
                     }
                     throw new error ([ this.id, method, url, response.status, response.statusText, details ].join (' '))
                 })                
@@ -12354,11 +12352,11 @@ var yunbi = {
         let order = {
             'market': this.productId (product),
             'side': side,
-            'volume': amount,
+            'volume': amount.toString (),
             'ord_type': type,
         };
-        if (type == 'market') {
-            order['price'] = price;
+        if (type == 'limit') {
+            order['price'] = price.toString ();
         }
         return this.privatePostOrders (this.extend (order, params));
     },
