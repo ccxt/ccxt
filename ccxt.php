@@ -7097,7 +7097,7 @@ class coinspot extends Market {
     public function fetch_balance () {
         $response = $this->privatePostMyBalances ();
         $balances = $response['balance'];
-        $currencies = array_keys ($balances)
+        $currencies = array_keys ($balances);
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
@@ -7871,13 +7871,12 @@ class fyb extends Market {
         $quote = $this->products[$symbol]['quote'];
         $lowercase = strtolower ($quote) . 'Bal';
         $fiat = floatval ($balance[$lowercase]);
-        $accounts = {
-            'BTC' => array (
-                'free' => $btc,
-                'used' => null,
-                'total' => $btc,
-            ),
-        };
+        $crypto = array (
+            'free' => $btc,
+            'used' => null,
+            'total' => $btc,
+        );
+        $accounts = array ( 'BTC' => $crypto );
         $accounts[$quote] = array (
             'free' => $fiat,
             'used' => null,
@@ -8418,7 +8417,27 @@ class gdax extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privateGetAccounts ();
+        $response = $this->privateGetAccounts ();
+        console.log ($response);
+        $balances = $response['result'];
+        $result = array ( 'info' => $balances );
+        $indexed = $this->index_by ($balances, 'Currency');
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            if (array_key_exists ($currency, $indexed)) {
+                $balance = $indexed[$currency];
+                $account['free'] = $balance['Available'];
+                $account['used'] = $balance['Pending'];
+                $account['total'] = $balance['Balance'];
+            }
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {

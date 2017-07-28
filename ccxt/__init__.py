@@ -7285,13 +7285,12 @@ class fyb (Market):
         quote = self.products[symbol]['quote']
         lowercase = quote.lower () + 'Bal'
         fiat = float (balance[lowercase])
-        accounts = {
-            'BTC': {
-                'free': btc,
-                'used': None,
-                'total': btc,
-            },
+        crypto = {
+            'free': btc,
+            'used': None,
+            'total': btc,
         }
+        accounts = { 'BTC': crypto }
         accounts[quote] = {
             'free': fiat,
             'used': None,
@@ -7806,7 +7805,25 @@ class gdax (Market):
         return result
 
     def fetch_balance (self):
-        return self.privateGetAccounts ()
+        response = self.privateGetAccounts ()
+        console.log (response)
+        balances = response['result']
+        result = { 'info': balances }
+        indexed = self.index_by (balances, 'Currency')
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in indexed:
+                balance = indexed[currency]
+                account['free'] = balance['Available']
+                account['used'] = balance['Pending']
+                account['total'] = balance['Balance']
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetProductsIdBook ({

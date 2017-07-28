@@ -7574,13 +7574,12 @@ var fyb = {
         let quote = this.products[symbol]['quote'];
         let lowercase = quote.toLowerCase () + 'Bal';
         let fiat = parseFloat (balance[lowercase]);
-        let accounts = {
-            'BTC': {
-                'free': btc,
-                'used': undefined,
-                'total': btc,
-            },
+        let crypto = {
+            'free': btc,
+            'used': undefined,
+            'total': btc,
         };
+        let accounts = { 'BTC': crypto };
         accounts[quote] = {
             'free': fiat,
             'used': undefined,
