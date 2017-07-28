@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.110'
+__version__ = '1.1.111'
 
 # Python 2 & 3
 import base64
@@ -5514,9 +5514,10 @@ class chbtc (Market):
         })
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
-        paramString = 'price=' + price
-        paramString += '&amount=' + amount
-        paramString += '&tradeType=' + '1' if (side == 'buy') else '0'
+        paramString = '&price=' + str (price)
+        paramString += '&amount=' + str (amount)
+        tradeType = '1' if (side == 'buy') else '0'
+        paramString += '&tradeType=' + tradeType
         paramString += '&currency=' + self.product_id (product)
         return self.privatePostOrder (paramString)
 
@@ -6564,21 +6565,23 @@ class coinspot (Market):
 
     def fetch_balance (self):
         response = self.privatePostMyBalances ()
-        balances = response['balance']
-        currencies = list (balances.keys ())
-        result = { 'info': balances }
-        for c in range (0, len (currencies)):
-            currency = currencies[c]
-            uppercase = currency.upper ()
-            account = {
-                'free': balances[currency],
-                'used': None,
-                'total': balances[currency],
-            }
-            if uppercase == 'DRK':
-                uppercase = 'DASH'
-            result[uppercase] = account
-        return result
+        if 'balance' in response:
+            balances = response['balance']
+            currencies = list (balances.keys ())
+            result = { 'info': balances }
+            for c in range (0, len (currencies)):
+                currency = currencies[c]
+                uppercase = currency.upper ()
+                account = {
+                    'free': balances[currency],
+                    'used': None,
+                    'total': balances[currency],
+                }
+                if uppercase == 'DRK':
+                    uppercase = 'DASH'
+                result[uppercase] = account
+            return result
+        return response
 
     def fetch_order_book (self, product):
         p = self.product (product)
@@ -8983,6 +8986,7 @@ class kraken (Market):
                 balance = float (balances[xcode])
             if zcode in balances:
                 balance = float (balances[zcode])
+            # issue #60
             if currency in balances:
                 balance = float (balances[currency])
             account = {
@@ -9096,7 +9100,20 @@ class lakebtc (Market):
         return result
 
     def fetch_balance (self):
-        return self.privatePostGetAccountInfo ()
+        response = self.privatePostGetAccountInfo ()
+        balances = response['balance']
+        result = { 'info': response }
+        currencies = list (balances.keys ())
+        for c in range (0, len (currencies)):
+            currency = currencies[c]
+            balance = float (balances[currency])
+            account = {
+                'free': balance,
+                'used': None,
+                'total': balance,
+            }
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetBcorderbook ({

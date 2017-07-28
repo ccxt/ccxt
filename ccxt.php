@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.110';
+$version = '1.1.111';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5979,9 +5979,10 @@ class chbtc extends Market {
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
-        $paramString = 'price=' . $price;
-        $paramString .= '&$amount=' . $amount;
-        $paramString .= '&tradeType=' . ($side == 'buy') ? '1' : '0';
+        $paramString = '&$price=' . (string) $price;
+        $paramString .= '&$amount=' . (string) $amount;
+        $tradeType = ($side == 'buy') ? '1' : '0';
+        $paramString .= '&$tradeType=' . $tradeType;
         $paramString .= '&currency=' . $this->product_id ($product);
         return $this->privatePostOrder ($paramString);
     }
@@ -7096,22 +7097,25 @@ class coinspot extends Market {
 
     public function fetch_balance () {
         $response = $this->privatePostMyBalances ();
-        $balances = $response['balance'];
-        $currencies = array_keys ($balances);
-        $result = array ( 'info' => $balances );
-        for ($c = 0; $c < count ($currencies); $c++) {
-            $currency = $currencies[$c];
-            $uppercase = strtoupper ($currency);
-            $account = array (
-                'free' => $balances[$currency],
-                'used' => null,
-                'total' => $balances[$currency],
-            );
-            if ($uppercase == 'DRK')
-                $uppercase = 'DASH';
-            $result[$uppercase] = $account;
+        if (array_key_exists ('balance', $response)) {
+            $balances = $response['balance'];
+            $currencies = array_keys ($balances);
+            $result = array ( 'info' => $balances );
+            for ($c = 0; $c < count ($currencies); $c++) {
+                $currency = $currencies[$c];
+                $uppercase = strtoupper ($currency);
+                $account = array (
+                    'free' => $balances[$currency],
+                    'used' => null,
+                    'total' => $balances[$currency],
+                );
+                if ($uppercase == 'DRK')
+                    $uppercase = 'DASH';
+                $result[$uppercase] = $account;
+            }
+            return $result;
         }
-        return $result;
+        return $response;
     }
 
     public function fetch_order_book ($product) {
@@ -9672,7 +9676,8 @@ class kraken extends Market {
                 $balance = floatval ($balances[$xcode]);
             if (array_key_exists ($zcode, $balances))
                 $balance = floatval ($balances[$zcode]);
-            if (array_key_exists ($currency, $balances))
+            // issue #60
+            if (array_key_exists ($currency, $balances)) 
                 $balance = floatval ($balances[$currency]);
             $account = array (
                 'free' => $balance,
@@ -9793,7 +9798,21 @@ class lakebtc extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostGetAccountInfo ();
+        $response = $this->privatePostGetAccountInfo ();
+        $balances = $response['balance'];
+        $result = array ( 'info' => $response );
+        $currencies = array_keys ($balances);
+        for ($c = 0; $c < count ($currencies); $c++) {
+            $currency = $currencies[$c];
+            $balance = floatval ($balances[$currency]);
+            $account = array (
+                'free' => $balance,
+                'used' => null,
+                'total' => $balance,
+            );
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
