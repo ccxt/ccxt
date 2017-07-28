@@ -9333,7 +9333,8 @@ var kraken = {
                 balance = parseFloat (balances[xcode]);
             if (zcode in balances)
                 balance = parseFloat (balances[zcode]);
-            if (currency in balances) // issue #60
+            // issue #60
+            if (currency in balances) 
                 balance = parseFloat (balances[currency]);
             let account = {
                 'free': balance,
