@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.115'
+__version__ = '1.1.116'
 
 # Python 2 & 3
 import base64
@@ -9752,7 +9752,23 @@ class mercado (Market):
         return getattr (self, method) ()
 
     def fetch_balance (self):
-        return self.privatePostGetAccountInfo ()
+        response = self.privatePostGetAccountInfo ()
+        balances = response['balance']
+        result = { 'info': response }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            lowercase = currency.lower ()
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if lowercase in balances:
+                account['free'] = float (balances[lowercase]['available'])
+                account['total'] = float (balances[lowercase]['total'])
+                account['used'] = account['total'] - account['free']
+            result[currency] = account
+        return result
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         if type == 'market':
@@ -9907,7 +9923,24 @@ class okcoin (Market):
         })
 
     def fetch_balance (self):
-        return self.privatePostUserinfo ()
+        response = self.privatePostUserinfo ()
+        balances = response['info']['funds']
+        result = { 'info': response }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            lowercase = currency.lower ()
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if lowercase in balances['free']:
+                account['free'] = float (balances['free'][lowercase])
+            if lowercase in balances['freezed']:
+                account['used'] = float (balances['freezed'][lowercase])
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         order = {

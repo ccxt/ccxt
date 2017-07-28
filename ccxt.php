@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.115';
+$version = '1.1.116';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10494,7 +10494,25 @@ class mercado extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostGetAccountInfo ();
+        $response = $this->privatePostGetAccountInfo ();
+        $balances = $response['balance'];
+        $result = array ( 'info' => $response );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $lowercase = strtolower ($currency);
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            if (array_key_exists ($lowercase, $balances)) {
+                $account['free'] = floatval ($balances[$lowercase]['available']);
+                $account['total'] = floatval ($balances[$lowercase]['total']);
+                $account['used'] = $account['total'] - $account['free'];
+            }           
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
@@ -10657,7 +10675,25 @@ class okcoin extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostUserinfo ();
+        $response = $this->privatePostUserinfo ();
+        $balances = $response['info']['funds'];
+        $result = array ( 'info' => $response );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $lowercase = strtolower ($currency);
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            if (array_key_exists ($lowercase, $balances['free']))
+                $account['free'] = floatval ($balances['free'][$lowercase]);
+            if (array_key_exists ($lowercase, $balances['freezed']))
+                $account['used'] = floatval ($balances['freezed'][$lowercase]);
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
