@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.100';
+$version = '1.1.101';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7491,7 +7491,23 @@ class exmo extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostUserInfo ();
+        $response = $this->privatePostUserInfo ();
+        $result = array ( 'info' => $response );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            if (array_key_exists ($currency, $response['balances']))
+                $account['free'] = floatval ($response['balances'][$currency]);
+            if (array_key_exists ($currency, $response['reserved']))
+                $account['used'] = floatval ($response['reserved'][$currency]);
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {

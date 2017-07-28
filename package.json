@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.1.100",
+  "version": "1.1.101",
   "description": "A library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs",
   "main": "ccxt.es5.js",
   "repository": {
@@ -20,14 +20,14 @@
     "babel": "babel ccxt.js --source-maps inline --out-file ccxt.es5.js"
   },
   "dependencies": {
-    "crypto": "*",
+    "crypto": "0.0.3",
     "crypto-js": "3.1.9-1",
-    "node-fetch": "^1.7.1",
+    "node-fetch": "2.0.0-alpha.8",
     "qs": "6.5.0"
   },
   "devDependencies": {
-    "ansicolor": "^1.0.64",
-    "as-table": "^1.0.12",
+    "ansicolor": "^1.0.68",
+    "as-table": "^1.0.22",
     "babel-cli": "^6.24.1",
     "babel-plugin-async-to-promises": "^1.0.5",
     "babel-plugin-transform-es2017-object-entries": "0.0.4",
@@ -35,7 +35,7 @@
     "coveralls": "^2.13.1",
     "istanbul": "^0.4.5",
     "nyc": "^11.0.3",
-    "ololog": "^1.0.6"
+    "ololog": "^1.0.11"
   },
   "author": {
     "name": "Igor Kroitor",
@@ -47,7 +47,7 @@
     "url": "https://github.com/kroitor/ccxt/issues"
   },
   "runkitExampleFilename": "example.js",
-  "homepage": "https://github.com/kroitor/ccxt",
+  "homepage": "https://kroitor.github.io/ccxt/",
   "keywords": [
     "algotrading",
     "altcoin",

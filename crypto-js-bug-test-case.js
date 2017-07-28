@@ -3,30 +3,45 @@
 var crypto = require ('crypto')
 var CryptoJS = require ('crypto-js')
 
+var log = require ('ololog')
+
 let apiKey = 'CGAra4mIwKxgV3uYB4XZI4nVVmjXyIpER+5bFUuXGlIQ4MJFKLQfTJWK'
 let secret = 'wrkstzsrwdj9pJlUGjj+wOTQgYAaO8MankKJPhASNGEY7hbFAtumQ45C7K/2SwCSgL8WcusUuTgarP5mmqo1uQ=='
 let nonce = '1501027285'
-let body = 'nonce=' + nonce
-let url = '/0/private/Balance'
+let request = 'nonce=' + nonce
+let path = '/0/private/Balance'
 
-var correct = function (path, request, secret64, nonce) {
-    const secret        = new Buffer (secret64, 'base64');                              // decode secret64 → secret
-    const hash          = new crypto.createHash ('sha256');                             // create a hash from secret
-    const hmac          = new crypto.createHmac ('sha512', secret);                     // create a hmac signer with secret64 as private key
-    const hash_digest   = hash.update (nonce + request).digest ('binary');              // sha256 hash of nonce+request, results in binary hash
-    const hmac_digest   = hmac.update (path + hash_digest, 'binary').digest ('base64'); // hmac-sign path+hash (binary), encode output in base64
-    return hmac_digest;
+var crypto_sig = function (path, request, secret64, nonce) {
+
+    const msg = path + new crypto.createHash ('sha256')
+                                 .update (nonce + request)
+                                 .digest ('binary')
+
+    return new crypto.createHmac ('sha512', new Buffer (secret64, 'base64'))
+                     .update (msg, 'binary')
+                     .digest ('base64')
 }
 
-var incorrect = function (path, request, secret64, nonce) {
-    let secret      = CryptoJS.enc.Base64.parse (secret64);                                            // decode secret64 → secret
-    let hash_digest = CryptoJS.SHA256 (nonce + request).toString (CryptoJS.enc.Latin1);                // sha256 hash of nonce+request, latin1 for binary
-    let hmac_digest = CryptoJS.HmacSHA512 (path + hash_digest, secret).toString (CryptoJS.enc.Base64); // hmac-sign path+hash (binary), encode output in base64
-    return hmac_digest;
+function ASCIIStringToUint8Array (str) {
+
+    const arr = new Uint8Array (str.length)
+
+    for (let i = 0; i < str.length; i++) { arr[i] = str.charCodeAt(i); }
+
+    return arr;
 }
 
-let good = correct (url, body, secret, nonce);
-let bad = incorrect (url, body, secret, nonce);
-console.log ('good:', correct (url, body, secret, nonce));
-console.log ('bad:', incorrect (url, body, secret, nonce));
-console.log ('(good == bad) ==', good == bad)
+var WordArray = CryptoJS.lib.WordArray
+
+var cryptojs_sig = function (path, request, secret64, nonce) {
+
+    const msg = WordArray.create (ASCIIStringToUint8Array (path))
+                         .concat (CryptoJS.SHA256 (nonce + request))
+
+    return CryptoJS.HmacSHA512 (msg, CryptoJS.enc.Base64.parse (secret64))
+                   .toString (CryptoJS.enc.Base64)
+}
+
+console.log ('good:', crypto_sig   (path, request, secret, nonce));
+console.log ('bad:',  cryptojs_sig (path, request, secret, nonce));
+
