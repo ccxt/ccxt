@@ -9662,8 +9662,8 @@ var livecoin = {
         let result = { 'info': balances };
         for (let b = 0; b < this.currencies.length; b++) {
             let balance = balances[b];
-            let currency = balance[b];
-            let account = undefined
+            let currency = balance['currency'];
+            let account = undefined;
             if (currency in result)
                 account = result[currency];
             else
