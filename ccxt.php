@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.109';
+$version = '1.1.110';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9354,6 +9354,7 @@ class jubi extends Market {
                         'depth',
                         'orders',
                         'ticker',
+                        'allticker',
                     ),
                 ),
                 'private' => array (
@@ -9367,55 +9368,52 @@ class jubi extends Market {
                     ),
                 ),
             ),
-            'products' => array (
-                'BTC/CNY' =>  array ( 'id' => 'btc',  'symbol' => 'BTC/CNY',  'base' => 'BTC',  'quote' => 'CNY' ),
-                'ETH/CNY' =>  array ( 'id' => 'eth',  'symbol' => 'ETH/CNY',  'base' => 'ETH',  'quote' => 'CNY' ),
-                'ANS/CNY' =>  array ( 'id' => 'ans',  'symbol' => 'ANS/CNY',  'base' => 'ANS',  'quote' => 'CNY' ),
-                'BLK/CNY' =>  array ( 'id' => 'blk',  'symbol' => 'BLK/CNY',  'base' => 'BLK',  'quote' => 'CNY' ),
-                'DNC/CNY' =>  array ( 'id' => 'dnc',  'symbol' => 'DNC/CNY',  'base' => 'DNC',  'quote' => 'CNY' ),
-                'DOGE/CNY' => array ( 'id' => 'doge', 'symbol' => 'DOGE/CNY', 'base' => 'DOGE', 'quote' => 'CNY' ),
-                'EAC/CNY' =>  array ( 'id' => 'eac',  'symbol' => 'EAC/CNY',  'base' => 'EAC',  'quote' => 'CNY' ),
-                'ETC/CNY' =>  array ( 'id' => 'etc',  'symbol' => 'ETC/CNY',  'base' => 'ETC',  'quote' => 'CNY' ),
-                'FZ/CNY' =>   array ( 'id' => 'fz',   'symbol' => 'FZ/CNY',   'base' => 'FZ',   'quote' => 'CNY' ),
-                'GOOC/CNY' => array ( 'id' => 'gooc', 'symbol' => 'GOOC/CNY', 'base' => 'GOOC', 'quote' => 'CNY' ),
-                'GAME/CNY' => array ( 'id' => 'game', 'symbol' => 'GAME/CNY', 'base' => 'GAME', 'quote' => 'CNY' ),
-                'HLB/CNY' =>  array ( 'id' => 'hlb',  'symbol' => 'HLB/CNY',  'base' => 'HLB',  'quote' => 'CNY' ),
-                'IFC/CNY' =>  array ( 'id' => 'ifc',  'symbol' => 'IFC/CNY',  'base' => 'IFC',  'quote' => 'CNY' ),
-                'JBC/CNY' =>  array ( 'id' => 'jbc',  'symbol' => 'JBC/CNY',  'base' => 'JBC',  'quote' => 'CNY' ),
-                'KTC/CNY' =>  array ( 'id' => 'ktc',  'symbol' => 'KTC/CNY',  'base' => 'KTC',  'quote' => 'CNY' ),
-                'LKC/CNY' =>  array ( 'id' => 'lkc',  'symbol' => 'LKC/CNY',  'base' => 'LKC',  'quote' => 'CNY' ),
-                'LSK/CNY' =>  array ( 'id' => 'lsk',  'symbol' => 'LSK/CNY',  'base' => 'LSK',  'quote' => 'CNY' ),
-                'LTC/CNY' =>  array ( 'id' => 'ltc',  'symbol' => 'LTC/CNY',  'base' => 'LTC',  'quote' => 'CNY' ),
-                'MAX/CNY' =>  array ( 'id' => 'max',  'symbol' => 'MAX/CNY',  'base' => 'MAX',  'quote' => 'CNY' ),
-                'MET/CNY' =>  array ( 'id' => 'met',  'symbol' => 'MET/CNY',  'base' => 'MET',  'quote' => 'CNY' ),
-                'MRYC/CNY' => array ( 'id' => 'mryc', 'symbol' => 'MRYC/CNY', 'base' => 'MRYC', 'quote' => 'CNY' ),
-                'MTC/CNY' =>  array ( 'id' => 'mtc',  'symbol' => 'MTC/CNY',  'base' => 'MTC',  'quote' => 'CNY' ),
-                'NXT/CNY' =>  array ( 'id' => 'nxt',  'symbol' => 'NXT/CNY',  'base' => 'NXT',  'quote' => 'CNY' ),
-                'PEB/CNY' =>  array ( 'id' => 'peb',  'symbol' => 'PEB/CNY',  'base' => 'PEB',  'quote' => 'CNY' ),
-                'PGC/CNY' =>  array ( 'id' => 'pgc',  'symbol' => 'PGC/CNY',  'base' => 'PGC',  'quote' => 'CNY' ),
-                'PLC/CNY' =>  array ( 'id' => 'plc',  'symbol' => 'PLC/CNY',  'base' => 'PLC',  'quote' => 'CNY' ),
-                'PPC/CNY' =>  array ( 'id' => 'ppc',  'symbol' => 'PPC/CNY',  'base' => 'PPC',  'quote' => 'CNY' ),
-                'QEC/CNY' =>  array ( 'id' => 'qec',  'symbol' => 'QEC/CNY',  'base' => 'QEC',  'quote' => 'CNY' ),
-                'RIO/CNY' =>  array ( 'id' => 'rio',  'symbol' => 'RIO/CNY',  'base' => 'RIO',  'quote' => 'CNY' ),
-                'RSS/CNY' =>  array ( 'id' => 'rss',  'symbol' => 'RSS/CNY',  'base' => 'RSS',  'quote' => 'CNY' ),
-                'SKT/CNY' =>  array ( 'id' => 'skt',  'symbol' => 'SKT/CNY',  'base' => 'SKT',  'quote' => 'CNY' ),
-                'TFC/CNY' =>  array ( 'id' => 'tfc',  'symbol' => 'TFC/CNY',  'base' => 'TFC',  'quote' => 'CNY' ),
-                'VRC/CNY' =>  array ( 'id' => 'vrc',  'symbol' => 'VRC/CNY',  'base' => 'VRC',  'quote' => 'CNY' ),
-                'VTC/CNY' =>  array ( 'id' => 'vtc',  'symbol' => 'VTC/CNY',  'base' => 'VTC',  'quote' => 'CNY' ),
-                'WDC/CNY' =>  array ( 'id' => 'wdc',  'symbol' => 'WDC/CNY',  'base' => 'WDC',  'quote' => 'CNY' ),
-                'XAS/CNY' =>  array ( 'id' => 'xas',  'symbol' => 'XAS/CNY',  'base' => 'XAS',  'quote' => 'CNY' ),
-                'XPM/CNY' =>  array ( 'id' => 'xpm',  'symbol' => 'XPM/CNY',  'base' => 'XPM',  'quote' => 'CNY' ),
-                'XRP/CNY' =>  array ( 'id' => 'xrp',  'symbol' => 'XRP/CNY',  'base' => 'XRP',  'quote' => 'CNY' ),
-                'XSGS/CNY' => array ( 'id' => 'xsgs', 'symbol' => 'XSGS/CNY', 'base' => 'XSGS', 'quote' => 'CNY' ),
-                'YTC/CNY' =>  array ( 'id' => 'ytc',  'symbol' => 'YTC/CNY',  'base' => 'YTC',  'quote' => 'CNY' ),
-                'ZET/CNY' =>  array ( 'id' => 'zet',  'symbol' => 'ZET/CNY',  'base' => 'ZET',  'quote' => 'CNY' ),
-                'ZCC/CNY' =>  array ( 'id' => 'zcc',  'symbol' => 'ZCC/CNY',  'base' => 'ZCC',  'quote' => 'CNY' ),
-            ),
         ), $options));
     }
 
+    public function fetch_products () {
+        $products = $this->publicGetAllticker ();
+        $keys = array_keys ($products);
+        $result = array ();
+        for ($p = 0; $p < count ($keys); $p++) {
+            $id = $keys[$p];
+            $base = strtoupper ($id);
+            $quote = 'CNY';
+            $symbol = $base . '/' . $quote;
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $id,
+            );
+        }
+        return $result;
+    }
+
     public function fetch_balance () {
-        return $this->privatePostBalance ();
+        $balances = $this->privatePostBalance ();
+        $result = array ( 'info' => $balances );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $lowercase = strtolower ($currency);
+            if ($lowercase == 'dash')
+                $lowercase = 'drk';
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            $free = $lowercase . '_balance';
+            $used = $lowercase . '_lock';
+            if (array_key_exists ($free, $balances))
+                $account['free'] = floatval ($balances[$free]);
+            if (array_key_exists ($used, $balances))
+                $account['used'] = floatval ($balances[$used]);
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
