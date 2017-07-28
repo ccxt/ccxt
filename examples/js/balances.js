@@ -59,7 +59,7 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
             log.bright.yellow ('[Timeout Error] ' + e.message)
         } else if (e instanceof ccxt.AuthenticationError) {
             log.bright.yellow ('[Authentication Error] ' + e.message)
-        } else if (e instanceof ccxt.MarketNotAvailaibleError) {
+        } else if (e instanceof ccxt.MarketNotAvailableError) {
             log.bright.yellow ('[Market Not Available Error] ' + e.message)
         } else {
             throw e;
