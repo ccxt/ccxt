@@ -407,7 +407,7 @@ var Market = function (config) {
                 if (typeof response == 'string')
                     return response
                 return response.text ().then (text => {
-                    if (response.status == 200)
+                    if ((response.status >= 200) && (response.status <= 300))
                         return text
                     let error = undefined
                     let details = text
