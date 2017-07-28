@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.114';
+$version = '1.1.115';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10008,7 +10008,29 @@ class livecoin extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privateGetPaymentBalances ();
+        $balances = $this->privateGetPaymentBalances ();
+        $result = array ( 'info' => $balances );
+        for ($b = 0; $b < count ($this->currencies); $b++) {
+            $balance = $balances[$b];
+            $currency = $balance['currency'];
+            $account = null;
+            if (array_key_exists ($currency, $result))
+                $account = $result[$currency];
+            else
+                $account = array (
+                    'free' => null,
+                    'used' => null,
+                    'total' => null,
+                );
+            if ($balance['type'] == 'total')
+                $account['total'] = floatval ($balance['value']);
+            if ($balance['type'] == 'available')
+                $account['free'] = floatval ($balance['value']);
+            if ($balance['type'] == 'trade')
+                $account['used'] = floatval ($balance['value']);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -10249,7 +10271,23 @@ class luno extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privateGetBalance ();
+        $response = $this->privateGetBalance ();
+        $balances = $response['balance'];
+        $result = array ( 'info' => $response );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
+            $currency = $this->commonCurrencyCode ($balance['asset']);
+            $reserved = floatval ($balance['reserved']);
+            $unconfirmed = floatval ($balance['unconfirmed']);
+            $account = array (
+                'free' => floatval ($balance['balance']),
+                'used' => $this->sum ($reserved, $unconfirmed),
+                'total' => null,
+            );
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {

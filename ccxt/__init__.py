@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.114'
+__version__ = '1.1.115'
 
 # Python 2 & 3
 import base64
@@ -9297,7 +9297,28 @@ class livecoin (Market):
         return result
 
     def fetch_balance (self):
-        return self.privateGetPaymentBalances ()
+        balances = self.privateGetPaymentBalances ()
+        result = { 'info': balances }
+        for b in range (0, len (self.currencies)):
+            balance = balances[b]
+            currency = balance['currency']
+            account = None
+            if currency in result:
+                account = result[currency]
+            else:
+                account = {
+                    'free': None,
+                    'used': None,
+                    'total': None,
+                }
+            if balance['type'] == 'total':
+                account['total'] = float (balance['value'])
+            if balance['type'] == 'available':
+                account['free'] = float (balance['value'])
+            if balance['type'] == 'trade':
+                account['used'] = float (balance['value'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetExchangeOrderBook ({
@@ -9523,7 +9544,22 @@ class luno (Market):
         return result
 
     def fetch_balance (self):
-        return self.privateGetBalance ()
+        response = self.privateGetBalance ()
+        balances = response['balance']
+        result = { 'info': response }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = self.commonCurrencyCode (balance['asset'])
+            reserved = float (balance['reserved'])
+            unconfirmed = float (balance['unconfirmed'])
+            account = {
+                'free': float (balance['balance']),
+                'used': self.sum (reserved, unconfirmed),
+                'total': None,
+            }
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetOrderbook ({
