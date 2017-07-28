@@ -8101,24 +8101,16 @@ var gdax = {
     },
 
     async fetchBalance () {
-        let response = await this.privateGetAccounts ();
-        console.log (response);
-        let balances = response['result'];
+        let balances = await this.privateGetAccounts ();
         let result = { 'info': balances };
-        let indexed = this.indexBy (balances, 'Currency');
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = balance['currency'];
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': parseFloat (balance['available']),
+                'used': parseFloat (balance['hold']),
+                'total': parseFloat (balance['balance']),
             };
-            if (currency in indexed) {
-                let balance = indexed[currency];
-                account['free'] = balance['Available'];
-                account['used'] = balance['Pending'];
-                account['total'] = balance['Balance'];
-            }
             result[currency] = account;
         }
         return result;
