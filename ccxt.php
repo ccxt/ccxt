@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.106';
+$version = '1.1.107';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8680,7 +8680,20 @@ class gemini extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostBalances ();
+        $balances = $this->privatePostBalances ();
+        $result = array ( 'info' => $balances );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
+            $currency = $balance['currency']
+            $account = array (
+                'free' => floatval ($balance['available']),
+                'used' => null,
+                'total' => floatval ($balance['amount']),
+            );
+            $account['used'] = $account['total'] - $account['free'];
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
@@ -8820,7 +8833,21 @@ class hitbtc extends Market {
     }
 
     public function fetch_balance () {
-        return $this->tradingGetBalance ();
+        $response = $this->tradingGetBalance ();
+        $balances = $response['balance'];
+        $result = array ( 'info' => $balances );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
+            $currency = $balance['currency_code']
+            $account = array (
+                'free' => floatval ($balance['cash']),
+                'used' => floatval ($balance['reserved']),
+                'total' => null,
+            );
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {

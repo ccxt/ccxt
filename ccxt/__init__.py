@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.106'
+__version__ = '1.1.107'
 
 # Python 2 & 3
 import base64
@@ -8050,7 +8050,19 @@ class gemini (Market):
         })
 
     def fetch_balance (self):
-        return self.privatePostBalances ()
+        balances = self.privatePostBalances ()
+        result = { 'info': balances }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = balance['currency']
+            account = {
+                'free': float (balance['available']),
+                'used': None,
+                'total': float (balance['amount']),
+            }
+            account['used'] = account['total'] - account['free']
+            result[currency] = account
+        return result
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         if type == 'market':
@@ -8183,7 +8195,20 @@ class hitbtc (Market):
         return result
 
     def fetch_balance (self):
-        return self.tradingGetBalance ()
+        response = self.tradingGetBalance ()
+        balances = response['balance']
+        result = { 'info': balances }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = balance['currency_code']
+            account = {
+                'free': float (balance['cash']),
+                'used': float (balance['reserved']),
+                'total': None,
+            }
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetSymbolOrderbook ({
