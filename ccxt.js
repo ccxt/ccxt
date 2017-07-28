@@ -7567,8 +7567,27 @@ var fyb = {
         },
     },
 
-    fetchBalance () {
-        return this.privatePostGetaccinfo ();
+    async fetchBalance () {
+        let balance = await this.privatePostGetaccinfo ();
+        let btc = parseFloat (balance['btcBal']);
+        let symbol = this.symbols[0];
+        let quote = this.products[symbol]['quote'];
+        let lowercase = quote.toLowerCase () + 'Bal';
+        let fiat = parseFloat (balance[lowercase]);
+        let accounts = {
+            'BTC': {
+                'free': btc,
+                'used': undefined,
+                'total': btc,
+            },
+        };
+        accounts[quote] = {
+            'free': fiat,
+            'used': undefined,
+            'total': fiat,
+        };
+        accounts['info'] = balance;
+        return accounts;
     },
 
     async fetchOrderBook (product) {
