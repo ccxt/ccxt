@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.104';
+$version = '1.1.105';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7865,7 +7865,26 @@ class fyb extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostGetaccinfo ();
+        $balance = $this->privatePostGetaccinfo ();
+        $btc = floatval ($balance['btcBal']);
+        $symbol = $this->symbols[0];
+        $quote = $this->products[$symbol]['quote'];
+        $lowercase = strtolower ($quote) . 'Bal';
+        $fiat = floatval ($balance[$lowercase]);
+        $accounts = {
+            'BTC' => array (
+                'free' => $btc,
+                'used' => null,
+                'total' => $btc,
+            ),
+        };
+        $accounts[$quote] = array (
+            'free' => $fiat,
+            'used' => null,
+            'total' => $fiat,
+        );
+        $accounts['info'] = $balance;
+        return $accounts;
     }
 
     public function fetch_order_book ($product) {
