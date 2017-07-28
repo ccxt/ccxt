@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.105'
+__version__ = '1.1.106'
 
 # Python 2 & 3
 import base64
@@ -7805,23 +7805,16 @@ class gdax (Market):
         return result
 
     def fetch_balance (self):
-        response = self.privateGetAccounts ()
-        console.log (response)
-        balances = response['result']
+        balances = self.privateGetAccounts ()
         result = { 'info': balances }
-        indexed = self.index_by (balances, 'Currency')
-        for c in range (0, len (self.currencies)):
-            currency = self.currencies[c]
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = balance['currency']
             account = {
-                'free': None,
-                'used': None,
-                'total': None,
+                'free': float (balance['available']),
+                'used': float (balance['hold']),
+                'total': float (balance['balance']),
             }
-            if currency in indexed:
-                balance = indexed[currency]
-                account['free'] = balance['Available']
-                account['used'] = balance['Pending']
-                account['total'] = balance['Balance']
             result[currency] = account
         return result
 
