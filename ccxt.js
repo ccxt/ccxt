@@ -5732,8 +5732,8 @@ var chbtc = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-        let paramString = '&price=' + price;
-        paramString += '&amount=' + amount;
+        let paramString = '&price=' + price.toString ();
+        paramString += '&amount=' + amount.toString ();
         paramString += '&tradeType=' + ((side == 'buy') ? '1' : '0');
         paramString += '&currency=' + this.productId (product);
         return this.privatePostOrder (paramString);
