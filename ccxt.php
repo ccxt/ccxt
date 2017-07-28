@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.98';
+$version = '1.1.99';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7095,7 +7095,23 @@ class coinspot extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostMyBalances ();
+        $response = $this->privatePostMyBalances ();
+        $balances = $response['balance'];
+        $currencies = array_keys ($balances)
+        $result = array ( 'info' => $balances );
+        for ($c = 0; $c < count ($currencies); $c++) {
+            $currency = $currencies[$c];
+            $uppercase = strtoupper ($currency);
+            $account = array (
+                'free' => $balances[$currency],
+                'used' => null,
+                'total' => $balances[$currency],
+            );
+            if ($uppercase == 'DRK')
+                $uppercase = 'DASH';
+            $result[$uppercase] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
