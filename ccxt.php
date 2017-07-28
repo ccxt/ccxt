@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.111';
+$version = '1.1.112';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12779,11 +12779,11 @@ class yunbi extends Market {
         $order = array (
             'market' => $this->product_id ($product),
             'side' => $side,
-            'volume' => $amount,
+            'volume' => (string) $amount,
             'ord_type' => $type,
         );
-        if ($type == 'market') {
-            $order['price'] = $price;
+        if ($type == 'limit') {
+            $order['price'] = (string) $price;
         }
         return $this->privatePostOrders (array_merge ($order, $params));
     }
