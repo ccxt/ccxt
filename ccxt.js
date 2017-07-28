@@ -8234,7 +8234,6 @@ var gdax = {
 }
 
 //-----------------------------------------------------------------------------
-// TBD REQUIRES 2FA VIA AUTHY, A BANK ACCOUNT, IDENTITY VERIFICATION TO START
 
 var gemini = {
     'id': 'gemini',
@@ -8359,8 +8358,21 @@ var gemini = {
         });
     },
 
-    fetchBalance () {
-        return this.privatePostBalances ();
+    async fetchBalance () {
+        let balances = await this.privatePostBalances ();
+        let result = { 'info': balances };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = balance['currency']
+            let account = {
+                'free': parseFloat (balance['available']),
+                'used': undefined,
+                'total': parseFloat (balance['amount']),
+            };
+            account['used'] = account['total'] - account['free'];
+            result[currency] = account;
+        }
+        return result;
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
