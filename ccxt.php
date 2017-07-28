@@ -539,6 +539,7 @@ class Market {
 
             $details = '(possible reasons: ' . implode (', ', array (
                 'invalid API keys',
+                'bad or old nonce',
                 'market down or offline', 
                 'on maintenance',
                 'DDoS protection',
@@ -560,6 +561,7 @@ class Market {
         
                 $details = '(possible reasons: ' . implode (', ', array (
                     'invalid API keys',
+                    'bad or old nonce',
                     'market down or offline', 
                     'on maintenance',
                     'DDoS protection',
@@ -578,7 +580,7 @@ class Market {
             if (preg_match ('#offline|unavailable|busy|maintenance|maintenancing#i', $result)) {
 
                 $details = '(possible reasons: ' . implode (', ', array (
-                    'market down or offline', 
+                    'market down or offline',
                     'on maintenance',
                     'DDoS protection',
                     'rate-limiting in effect',

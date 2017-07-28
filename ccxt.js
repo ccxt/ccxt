@@ -421,13 +421,14 @@ var Market = function (config) {
                             error = DDoSProtectionError
                         } else {
                             error = MarketNotAvailableError
-                            details = 'Possible reasons: ' + [
+                            details = '(possible reasons: ' + [
                                 'invalid API keys',
+                                'bad or old nonce',
                                 'market down or offline', 
                                 'on maintenance',
                                 'DDoS protection',
                                 'rate-limiting in effect',
-                            ].join (', ')                            
+                            ].join (', ') + ')'                       
                         }
                     } else if ([ 408, 504 ].indexOf (response.status) >= 0) {
                         error = TimeoutError
@@ -7015,9 +7016,23 @@ var dsx = {
         }
         return result;
     },
-
-    fetchBalance () {
-        return this.tapiPostGetInfo ();
+  
+    async fetchBalance () {
+        let response = await this.tapiPostGetInfo ();
+        let balances = response['return'];
+        let result = { 'info': balances };
+        let currencies = Object.keys (balances['total']);
+        for (let c = 0; c < currencies.length; c++) {
+            let currency = currencies[c];
+            let account = {
+                'free': balances['funds'][currency],
+                'used': undefined,
+                'total': balances['total'][currency],
+            };
+            account['used'] = account['total'] - account['free'];
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
@@ -7110,6 +7125,7 @@ var dsx = {
             let method = path;
             body = this.urlencode (this.extend ({
                 'method': path,
+                'nonce': nonce,
             }, query));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

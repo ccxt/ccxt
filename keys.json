@@ -23,6 +23,7 @@
     "coinmate":    { "apiKey": "bxiwQvVltTBUtLKpTxr8XShv8ZFqqnbvMdULciJja3Q", "secret": "CdzqS50f3fzpb99FYQVGccn6krx00bmv3svJ_lpnTS8", "uid": "12092" },
     "coinsecure":  { "apiKey": "gzrm0fP6BGMilMzmsoJFPMpWjDvCLThyrVanX0yu" },
     "coinspot":    { "apiKey": "dcc45f8d3155a5826d861af93781331b", "secret": "138G4KY0KCF2NNAM5WY8R76F9XEFJ1JRQN79M1X14VMH1A8G66WCEG33C37QWEEC56CYV0RML4GV6MXT3" },
+    "dsx":         { "apiKey": "368fbfbe-e74f-418c-821a-2e978b966960", "secret": "XQMU6Z5JJ5SX94LD3AQ03QAHT3W99X7V1GFL8AZQIEOS" },
     "fybse":       { "apiKey": "gY7y57RlYqKN5ZI50O5C", "secret": "1qm63Ojf5a" },
     "gdax":        { "apiKey": "99d78d0c59405c7b0b01b9f74a19ccdc", "secret": "v2na2PrytFhCVZx5n6mSbj8Orrh2XUegTvTFDDyn9B5DPtEtbCXL2RrpgbEb269kkxFUhNrGpGPcSegY4vPn/w==", "password": "kx7sx0hnikm" },
     "kraken":      { "apiKey": "CGAra4mIwKxgV3uYB4XZI4nVVmjXyIpER+5bFUuXGlIQ4MJFKLQfTJWK", "secret": "wrkstzsrwdj9pJlUGjj+wOTQgYAaO8MankKJPhASNGEY7hbFAtumQ45C7K/2SwCSgL8WcusUuTgarP5mmqo1uQ==" },

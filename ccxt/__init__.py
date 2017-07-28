@@ -260,14 +260,15 @@ class Market (object):
                     error = DDoSProtectionError
                 else:
                     error = MarketNotAvailableError
-                    details = 'Possible reasons: ' + ', '.join ([
+                    details = '(possible reasons: ' + ', '.join ([
                         'invalid API keys',
+                        'bad or old nonce',
                         'market down or offline', 
                         'on maintenance',
                         'DDoS protection',
                         'rate-limiting in effect',
                         reason,
-                    ])
+                    ]) + ')'
             elif e.code in [408, 504]:
                 error = TimeoutError
             elif e.code in [401, 422, 511]:
