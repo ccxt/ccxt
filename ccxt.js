@@ -5732,9 +5732,9 @@ var chbtc = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-        let paramString = 'price=' + price;
+        let paramString = '&price=' + price;
         paramString += '&amount=' + amount;
-        paramString += '&tradeType=' + (side == 'buy') ? '1' : '0';
+        paramString += '&tradeType=' + ((side == 'buy') ? '1' : '0');
         paramString += '&currency=' + this.productId (product);
         return this.privatePostOrder (paramString);
     },
@@ -9332,7 +9332,7 @@ var kraken = {
                 balance = parseFloat (balances[xcode]);
             if (zcode in balances)
                 balance = parseFloat (balances[zcode]);
-            if (currency in balances)
+            if (currency in balances) // issue #60
                 balance = parseFloat (balances[currency]);
             let account = {
                 'free': balance,
