@@ -10152,10 +10152,6 @@ var mercado = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privatePostGetAccountInfo ();
-    },
-
     createOrder (product, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
             throw new Error (this.id + ' allows limit orders only');
@@ -10319,8 +10315,26 @@ var okcoin = {
         });
     },
 
-    fetchBalance () {
-        return this.privatePostUserinfo ();
+    async fetchBalance () {
+        let response = await this.privatePostUserinfo ();
+        let balances = response['funds'];
+        let result = { 'info': response };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let lowercase = currency.toLowerCase ();
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if (lowercase in balances['free'])
+                account['free'] = parseFloat (balances['free'][lowercase]);
+            if (lowercase in balances['freezed'])
+                account['used'] = parseFloat (balances['freezed'][lowercase]);
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
