@@ -8920,7 +8920,25 @@ var itbit = {
         });
     },
 
-    fetchBalance () {
+    async fetchBalance () {
+        let response = await this.privateGetBalances ();
+        let balances = response['balances'];
+        let result = { 'info': response };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = balance['currency'];
+            let account = {
+                'free': parseFloat (balance['availableBalance']),
+                'used': undefined,
+                'total': parseFloat (balance['totalBalance']),
+            };
+            account['used'] = account['total'] - account['free'];
+            result[currency] = account;
+        }
+        return result;
+    },
+
+    fetchWallets () {
         return this.privateGetWallets ();
     },
 
