@@ -8688,10 +8688,32 @@ var huobi = {
         'LTC/CNY': { 'id': 'ltc', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', 'type': 'staticmarket', 'coinType': 2, },
         'BTC/USD': { 'id': 'btc', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'usdmarket',    'coinType': 1, },
     },
-
-    fetchBalance () {
-        return this.tradePostGetAccountInfo ();
-    },
+    
+    async fetchBalance () {
+        let balances = await this.tradePostGetAccountInfo ();
+        let result = { 'info': balances };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let lowercase = currency.toLowerCase ();
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            let available = 'available_' + lowercase + '_display';
+            let frozen = 'frozen_' + lowercase + '_display';
+            let loan = 'loan_' + lowercase + '_display';
+            if (available in balances)
+                account['free'] = parseFloat (balances[available]);
+            if (frozen in balances)
+                account['used'] = parseFloat (balances[frozen]);
+            if (loan in balances)
+                account['used'] = this.sum (account['used'], parseFloat (balances[loan]));
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
+    }, 
 
     async fetchOrderBook (product) {
         let p = this.product (product);
