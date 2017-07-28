@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.102'
+__version__ = '1.1.103'
 
 # Python 2 & 3
 import base64
@@ -7111,7 +7111,20 @@ class flowbtc (Market):
         return result
 
     def fetch_balance (self):
-        return self.privatePostUserInfo ()
+        response = self.privatePostGetAccountInfo ()
+        balances = response['currencies']
+        result = { 'info': response }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = balance['name']
+            account = {
+                'free': balance['balance'],
+                'used': balance['hold'],
+                'total': None,
+            }
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         p = self.product (product)
@@ -7179,9 +7192,11 @@ class flowbtc (Market):
         return self.privatePostCreateOrder (self.extend (order, params))
 
     def cancel_order (self, id, params = {}):
-        return self.privatePostCancelOrder (self.extend ({
-            'serverOrderId': id,
-        }, params))
+        if 'ins' in params:
+            return self.privatePostCancelOrder (self.extend ({
+                'serverOrderId': id,
+            }, params))            
+        raise Error (self.id + ' required `ins` symbol parameter for cancelling an order')
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
@@ -7192,9 +7207,9 @@ class flowbtc (Market):
             if not self.uid:
                 raise AuthenticationError (self.id + ' requires `' + self.id + '.uid` property for authentication')
             nonce = self.nonce ()
-            auth = nonce + self.uid + self.apiKey
-            signature = self.hmac (self.encode (auth), self.secret)
-            body = _urlencode.urlencode (self.extend ({
+            auth = str (nonce) + self.uid + self.apiKey
+            signature = self.hmac (self.encode (auth), self.encode (self.secret))
+            body = self.json (self.extend ({
                 'apiKey': self.apiKey,
                 'apiNonce': nonce,
                 'apiSig': signature.upper (),
