@@ -6821,7 +6821,7 @@ var coinspot = {
     async fetchBalance () {
         let response = await this.privatePostMyBalances ();
         let balances = response['balance'];
-        let currencies = Object.keys (balances)
+        let currencies = Object.keys (balances);
         let result = { 'info': balances };
         for (let c = 0; c < currencies.length; c++) {
             let currency = currencies[c];
@@ -8101,8 +8101,28 @@ var gdax = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privateGetAccounts ();
+    async fetchBalance () {
+        let response = await this.privateGetAccounts ();
+        console.log (response);
+        let balances = response['result'];
+        let result = { 'info': balances };
+        let indexed = this.indexBy (balances, 'Currency');
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if (currency in indexed) {
+                let balance = indexed[currency];
+                account['free'] = balance['Available'];
+                account['used'] = balance['Pending'];
+                account['total'] = balance['Balance'];
+            }
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
