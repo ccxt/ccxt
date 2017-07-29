@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.120';
+$version = '1.1.121';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12031,7 +12031,24 @@ class vaultoro extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privateGetBalance ();
+        $response = $this->privateGetBalance ();
+        $balances = $response['data'];
+        $result = array ( 'info' => $balances );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];            
+            $currency = $balance['currency_code'];
+            $uppercase = strtoupper ($currency);
+            $free = $balance['cash'];
+            $used = $balance['reserved'];
+            $total = $this->sum ($free, $used);
+            $account = array (
+                'free' => $free,
+                'used' => $used,
+                'total' => $total,
+            );
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
