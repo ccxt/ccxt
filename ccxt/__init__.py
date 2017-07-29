@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.122'
+__version__ = '1.1.123'
 
 # Python 2 & 3
 import base64
@@ -11826,7 +11826,28 @@ class yobit (Market):
         return result
 
     def fetch_balance (self):
-        return self.tapiPostGetInfo ()
+        response = self.tapiPostGetInfo ()
+        balances = response['return']
+        result = { 'info': balances }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            lowercase = currency.lower ()
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if 'funds' in balances:
+                if lowercase in balances['funds']:
+                    account['free'] = balances['funds'][lowercase]
+            if 'funds_incl_orders' in balances:
+                if lowercase in balances['funds_incl_orders']:
+                    account['total'] = balances['funds_incl_orders'][lowercase]
+            if account['total'] and account['free']:
+                account['used'] = account['total'] - account['free']
+            if account['total'] or account['free'] or account['used']:
+                result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         p = self.product (product)
