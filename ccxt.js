@@ -11421,8 +11421,24 @@ var therock = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privateGetBalances ();
+    async fetchBalance () {
+        let response = await this.privateGetBalances ();
+        let balances = response['balances'];
+        let result = { 'info': response };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];            
+            let currency = balance['currency'];
+            let free = balance['trading_balance'];
+            let total = balance['balance'];
+            let used = total - free;            
+            let account = {
+                'free': free,
+                'used': used,
+                'total': total,
+            };
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
