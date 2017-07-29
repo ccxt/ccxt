@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.117'
+__version__ = '1.1.118'
 
 # Python 2 & 3
 import base64
@@ -10285,9 +10285,22 @@ class poloniex (Market):
         return result
 
     def fetch_balance (self):
-        return self.privatePostReturnCompleteBalances ({
+        balances = self.privatePostReturnCompleteBalances ({
             'account': 'all',
         })
+        result = { 'info': balances }
+        currencies = list (balances.keys ())
+        for c in range (0, len (currencies)):
+            currency = currencies[c]
+            balance = balances[currency]
+            account = {
+                'free': float (balance['available']),
+                'used': float (balance['onOrders']),
+                'total': None,
+            }
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetReturnOrderBook ({
