@@ -10678,10 +10678,24 @@ var poloniex = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privatePostReturnCompleteBalances ({
+    async fetchBalance () {
+        let balances = await this.privatePostReturnCompleteBalances ({
             'account': 'all',
         });
+        let result = { 'info': balances };
+        let currencies = Object.keys (balances);
+        for (let c = 0; c < currencies.length; c++) {
+            let currency = currencies[c];
+            let balance = balances[currency];
+            let account = {
+                'free': parseFloat (balance['available']),
+                'used': parseFloat (balance['onOrders']),
+                'total': undefined,
+            };
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {

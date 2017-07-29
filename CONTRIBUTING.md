@@ -54,11 +54,11 @@ The contents of the repository are structured as follows:
 
 The ccxt library is available in three different languages (more to come). One of the primary objectives for developers is to design *portable* code, so that a single-language user can read code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
-At first, all language-specific version were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *master/slave* process. There is now a single master version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the master version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the master version as well.
+At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *master/slave* process. There is now a single master version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the master version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the master version as well.
 
 ### Continuous Integration
 
-Builds are automated by [travis-ci]. Code coverage is analyzed with [coveralls.io](https://coveralls.io). All build steps are described in the [`.travis.yml`](https://github.com/kroitor/ccxt/blob/master/.travis.yml) file. A build consists of the following:
+Builds are automated by [travis-ci](https://travis-ci.org/kroitor/ccxt/builds). Code coverage is analyzed with [coveralls.io](https://coveralls.io). All build steps are described in the [`.travis.yml`](https://github.com/kroitor/ccxt/blob/master/.travis.yml) file. A build consists of the following:
 
 1. Install dependencies
 2. Increment version number _(not triggered by pull requests)_
@@ -126,35 +126,35 @@ Slave files and docs are partially-generated from the master `ccxt.js` file by t
 The structure of the master/slave file can be outlined like this:
 
 ```
-      +--------------------------+ ← beginning of file
-h  /  |                          |
-e  |  |  common stuff            |
-a  |  |                          |  
-d <   //-------------------------+ ← thin horizontal ruler comment is used to separate code blocks 
-e  |  |                          |
-r  |  |  base market class       |   above this first bold line all code is language-specific
-   \  |                          |                    ↑
-      //=========================+ ← first 'bold' horizontal ruler comment
-   /  |                          |                    ↓
-   |  |  derived market class A  |   below this line all code can be ported to other languages
-   |  |                          |
-b  |  //-------------------------+ ← thin horizontal ruler used to separate derived classes
-o  |  |                          |
-d <   |  derived market class B  |
-y  |  |                          |
-   |  //-------------------------+
-   |  |                          |
-   |  | ...                      |   above this line all code is transpileable
-   \  |                          |                    ↑
-      //=========================+ ← second 'bold' horizontal ruler comment
-f  /  |                          |                    ↓
-o  |  |  other code              |   below this second bold line all code is language-specific
-o  |  |                          |
-t <   //-------------------------+ ← thin horizontal ruler comment is used to separate code blocks 
-e  |  |                          |   
-r  |  |  other code              |   
-   \  |                          |
-      //-------------------------+ ← end of file
+        +--------------------------+ ← beginning of file
+h   ╭   |                          |
+e   │   |  common stuff            |
+a   │   |                          |  
+d  ─┤   //-------------------------+ ← thin horizontal ruler comment is used to separate code blocks 
+e   │   |                          |
+r   │   |  base market class       |   above this first bold line all code is language-specific
+    ╰   |                          |                    ↑
+        //=========================+ ← first 'bold' horizontal ruler comment
+    ╭   |                          |                    ↓
+    │   |  derived market class A  |   below this line all code can be ported to other languages
+    │   |                          |
+b   │   //-------------------------+ ← thin horizontal ruler used to separate derived classes
+o   │   |                          |
+d  ─┤   |  derived market class B  |
+y   │   |                          |
+    │   //-------------------------+
+    │   |                          |
+    │   | ...                      |   above this line all code is transpileable
+    ╰   |                          |                    ↑
+        //=========================+ ← second 'bold' horizontal ruler comment
+f   ╭   |                          |                    ↓
+o   │   |  other code              |   below this second bold line all code is language-specific
+o   │   |                          |
+t  ─┤   //-------------------------+ ← thin horizontal ruler comment is used to separate code blocks 
+e   │   |                          |   
+r   │   |  other code              |   
+    ╰   |                          |
+        //-------------------------+ ← end of file
 ```
 
 Key notes on the structure of the library file:
