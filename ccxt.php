@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.126';
+$version = '1.1.127';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10102,7 +10102,7 @@ class livecoin extends Market {
     }
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
-        $method = 'privatePost' . $this->capitalize ($side) . $type;
+        $method = 'privatePostExchange' . $this->capitalize ($side) . $type;
         $order = array (
             'currencyPair' => $this->product_id ($product),
             'quantity' => $amount,

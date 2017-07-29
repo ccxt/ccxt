@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.126'
+__version__ = '1.1.127'
 
 # Python 2 & 3
 import base64
@@ -9374,7 +9374,7 @@ class livecoin (Market):
         })
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
-        method = 'privatePost' + self.capitalize (side) + type
+        method = 'privatePostExchange' + self.capitalize (side) + type
         order = {
             'currencyPair': self.product_id (product),
             'quantity': amount,
