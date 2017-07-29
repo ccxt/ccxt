@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.121'
+__version__ = '1.1.122'
 
 # Python 2 & 3
 import base64
@@ -11412,7 +11412,20 @@ class virwox (Market):
         return result
 
     def fetch_balance (self):
-        return self.privatePostGetBalances ()
+        response = self.privatePostGetBalances ()
+        balances = response['result']['accountList']
+        result = { 'info': balances }
+        for b in range (0, len (balances)):
+            balance = balances[b]            
+            currency = balance['currency']
+            total = balance['balance']
+            account = {
+                'free': total,
+                'used': None,
+                'total': total,
+            }
+            result[currency] = account
+        return result
 
     def fetchBestPrices (self, product):
         return self.publicPostGetBestPrices ({

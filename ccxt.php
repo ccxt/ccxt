@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.121';
+$version = '1.1.122';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12266,7 +12266,21 @@ class virwox extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostGetBalances ();
+        $response = $this->privatePostGetBalances ();
+        $balances = $response['result']['accountList'];
+        $result = array ( 'info' => $balances );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];            
+            $currency = $balance['currency'];
+            $total = $balance['balance'];
+            $account = array (
+                'free' => $total,
+                'used' => null,
+                'total' => $total,
+            );
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetchBestPrices ($product) {
