@@ -9766,13 +9766,12 @@ var livecoin = {
                 url += '?' + this.urlencode (params);
         } else {
             let length = 0;
-            if (Object.keys (params).length) {
-                let query = this.keysort (params);
-                body = this.urlencode (query);
-                length = body.length;
-            }
-            body = this.encode (body || '');
-            let signature = this.hmac (body, this.encode (this.secret), 'sha256');
+            let query = this.urlencode (this.keysort (params));
+            if (method == 'GET')
+                url += '?' + query;
+            else
+                body = query;
+            let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');            
             headers = {
                 'Api-Key': this.apiKey,
                 'Sign': signature.toUpperCase (),
@@ -11028,8 +11027,21 @@ var quoine = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privateGetAccountsBalance ();
+    async fetchBalance () {
+        let balances = await this.privateGetAccountsBalance ();
+        let result = { 'info': balances };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];            
+            let currency = balance['currency'];
+            let total = parseFloat (balance['balance']);
+            let account = {
+                'free': total,
+                'used': undefined,
+                'total': total,
+            };
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
