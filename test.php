@@ -185,9 +185,6 @@ if (count ($argv) > 1) {
 } else {
 
     foreach ($markets as $id => $market) {
-
-        if ($id == 'virwox')
-            continue;
     
         try_all_proxies ($market, $proxies);
     }

@@ -11850,8 +11850,22 @@ var virwox = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privatePostGetBalances ();
+    async fetchBalance () {
+        let response = await this.privatePostGetBalances ();
+        let balances = response['result']['accountList'];
+        let result = { 'info': balances };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];            
+            let currency = balance['currency'];
+            let total = balance['balance'];
+            let account = {
+                'free': total,
+                'used': undefined,
+                'total': total,
+            };
+            result[currency] = account;
+        }
+        return result;
     },
 
     fetchBestPrices (product) {
