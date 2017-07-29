@@ -10471,8 +10471,27 @@ var paymium = {
         'BTC/EUR': { 'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
     },
 
-    fetchBalance () {
-        return this.privateGetUser ();
+    async fetchBalance () {
+        let balances = await this.privateGetUser ();
+        let result = { 'info': balances };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let lowercase = currency.toLowerCase ();
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            let balance = 'balance_' + lowercase;
+            let locked = 'locked_' + lowercase;
+            if (balance in balances)
+                account['free'] = balances[balance];
+            if (locked in balances)
+                account['used'] = balances[locked];
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
