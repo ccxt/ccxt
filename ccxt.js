@@ -378,13 +378,11 @@ var Market = function (config) {
 
     this.fetch = function (url, method = 'GET', headers = undefined, body = undefined) {
 
-        if (isNode) {
-            headers = extend ({
-                'User-Agent': 'ccxt/' + version + 
-                    ' (+https://github.com/kroitor/ccxt)' + 
-                    ' Node.js/' + this.nodeVersion + ' (JavaScript)'
-            }, headers)
-        }
+        if (isNode && this.userAgent)
+            if (typeof this.userAgent == 'string')
+                headers = extend ({ 'User-Agent': this.userAgent }, headers)
+            else if ((typeof this.userAgent == 'object') && ('User-Agent' in this.userAgent))
+                headers = extend (this.userAgent, headers)
 
         if (this.proxy.length)
             headers = extend ({ 'Origin': '*' }, headers)
@@ -570,6 +568,7 @@ var Market = function (config) {
     this.rateLimit      = 2000  // milliseconds = seconds * 1000
     this.timeout        = 10000 // milliseconds = seconds * 1000
     this.verbose        = false
+    this.userAgent      = false
     this.twofa          = false // two-factor authentication
     this.yyyymmddhhmmss = timestamp => {
         let date = new Date (timestamp)
@@ -586,6 +585,13 @@ var Market = function (config) {
         ss = ss < 10 ? ('0' + ss) : ss
         return yyyy + '-' + MM + '-' + dd + ' ' + hh + ':' + mm + ':' + ss
     }
+
+    if (isNode)
+        this.userAgent = {
+            'User-Agent': 'ccxt/' + version + 
+                ' (+https://github.com/kroitor/ccxt)' + 
+                ' Node.js/' + this.nodeVersion + ' (JavaScript)'
+        }
 
     // prepended to URL, like https://proxy.com/https://exchange.com/api...
     this.proxy = '' 

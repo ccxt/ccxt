@@ -341,6 +341,9 @@ class Market {
     }
 
     public function __construct ($options) {
+
+        global $version;
+
         $this->curl      = curl_init ();
         $this->id        = null;
         $this->rateLimit = 2000;
@@ -355,6 +358,7 @@ class Market {
         $this->twofa     = false;
         $this->productsById = null;
         $this->products_by_id = null;
+        $this->userAgent = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -439,9 +443,7 @@ class Market {
     }
 
     public function fetch ($url, $method = 'GET', $headers = null, $body = null) {
-        
-        global $version;
-        
+                
         if (strlen ($this->proxy))
             $headers['Origin'] = '*';
 
@@ -456,8 +458,7 @@ class Market {
 
         $url = $this->proxy . $url;
 
-        if ($this->verbose)
-            var_dump ($url, $method, $headers, $body);
+        $verbose_headers = $headers;
 
         curl_setopt ($this->curl, CURLOPT_URL, $url);
 
@@ -470,8 +471,14 @@ class Market {
         curl_setopt ($this->curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt ($this->curl, CURLOPT_SSL_VERIFYPEER, false);
 
-        $userAgent = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
-        curl_setopt ($this->curl, CURLOPT_USERAGENT, $userAgent);
+        if ($this->userAgent)
+            if (gettype ($this->userAgent) == 'string') {
+                curl_setopt ($this->curl, CURLOPT_USERAGENT, $this->userAgent);
+                $verbose_headers = array_merge ($verbose_headers, array ('User-Agent' => $this->userAgent));
+            } else if ((gettype ($this->userAgent) == 'array') && array_key_exists ('User-Agent', $this->userAgent)) {
+                curl_setopt ($this->curl, CURLOPT_USERAGENT, $this->userAgent['User-Agent']);
+                $verbose_headers = array_merge ($verbose_headers, $this->userAgent);
+            }
 
         curl_setopt ($this->curl, CURLOPT_ENCODING, '');
 
@@ -498,6 +505,9 @@ class Market {
 
         if ($headers)
             curl_setopt ($this->curl, CURLOPT_HTTPHEADER, $headers);
+
+        if ($this->verbose)
+            var_dump ($url, $method, $verbose_headers, $body);
 
         $result = curl_exec ($this->curl);
 

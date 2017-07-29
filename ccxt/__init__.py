@@ -151,6 +151,7 @@ class Market (object):
     id         = None
     rateLimit  = 2000  # milliseconds = seconds * 1000
     timeout    = 10000 # milliseconds = seconds * 1000
+    userAgent  = False
     verbose    = False
     products   = None
     symbols    = None
@@ -166,6 +167,11 @@ class Market (object):
     products_by_id = None
 
     def __init__ (self, config = {}):
+
+        version = '.'.join (map (str, sys.version_info[:3]))
+        self.userAgent = {
+            'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/kroitor/ccxt) Python/' + version
+        }
 
         for key in config:
             setattr (self, key, config[key])
@@ -220,10 +226,12 @@ class Market (object):
     
     def fetch (self, url, method = 'GET', headers = None, body = None):
         """Perform a HTTP request and return decoded JSON data"""
-        version = '.'.join (map (str, sys.version_info[:3]))
-        userAgent = 'ccxt/' + __version__ + ' (+https://github.com/kroitor/ccxt) Python/' + version
         headers = headers or {}
-        headers.update ({ 'User-Agent': userAgent })
+        if self.userAgent:
+            if type (self.userAgent) is str:
+                headers.update ({ 'User-Agent': self.userAgent })
+            elif (type (self.userAgent) is dict) and ('User-Agent' in self.userAgent):
+                headers.update (self.userAgent)
         if len (self.proxy):
             headers.update ({ 'Origin': '*' })
         url = self.proxy + url
