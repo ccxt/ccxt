@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.117';
+$version = '1.1.118';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -11056,9 +11056,23 @@ class poloniex extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostReturnCompleteBalances (array (
+        $balances = $this->privatePostReturnCompleteBalances (array (
             'account' => 'all',
         ));
+        $result = array ( 'info' => $balances );
+        $currencies = array_keys ($balances);
+        for ($c = 0; $c < count ($currencies); $c++) {
+            $currency = $currencies[$c];
+            $balance = $balances[$currency];
+            $account = array (
+                'free' => floatval ($balance['available']),
+                'used' => floatval ($balance['onOrders']),
+                'total' => null,
+            );
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
