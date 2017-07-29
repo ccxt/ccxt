@@ -435,6 +435,10 @@ class Market (object):
             .strftime ('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z')
 
     @staticmethod
+    def yyyymmddhhmmss (timestamp):
+        return datetime.datetime.fromtimestamp (int (round (timestamp / 1000))).strftime ('%Y-%m-%d %H:%M:%S')
+
+    @staticmethod
     def parse8601 (timestamp):
         yyyy = '([0-9]{4})-?'
         mm   = '([0-9]{2})-?'
@@ -467,20 +471,8 @@ class Market (object):
             return base64.b64encode (h.digest ())
         return h.digest ()
 
-    # @staticmethod
-    # def hmac (request, secret, algorithm = hashlib.sha256, digest = 'hex'):
-    #     h = hmac.new (secret.encode (), request.encode (), algorithm)
-    #     # h = hmac.new (secret, request, algorithm)
-    #     if digest == 'hex':
-    #         return h.hexdigest ()
-    #     elif digest == 'base64':
-    #         return base64.b64encode (h.digest ())
-    #     return h.digest ().decode ()
-
     @staticmethod
     def hmac (request, secret, algorithm = hashlib.sha256, digest = 'hex'):
-        # h = hmac.new (secret.encode (), request.encode (), algorithm)
-        # secret = secret if type (secret) is bytes else secret.encode ()
         h = hmac.new (secret, request, algorithm)
         if digest == 'hex':
             return h.hexdigest ()
@@ -11198,7 +11190,23 @@ class vaultoro (Market):
         return result
 
     def fetch_balance (self):
-        return self.privateGetBalance ()
+        response = self.privateGetBalance ()
+        balances = response['data']
+        result = { 'info': balances }
+        for b in range (0, len (balances)):
+            balance = balances[b]            
+            currency = balance['currency_code']
+            uppercase = currency.upper ()
+            free = balance['cash']
+            used = balance['reserved']
+            total = self.sum (free, used)
+            account = {
+                'free': free,
+                'used': used,
+                'total': total,
+            }
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         response = self.publicGetOrderbook ()
@@ -11497,7 +11505,7 @@ class virwox (Market):
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][type]
         auth = {}
-        if type == 'public':
+        if type == 'private':
             auth['key'] = self.apiKey
             auth['user'] = self.login
             auth['pass'] = self.password

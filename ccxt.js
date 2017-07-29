@@ -11953,7 +11953,7 @@ var virwox = {
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][type];
         let auth = {};
-        if (type == 'public') {
+        if (type == 'private') {
             auth['key'] = this.apiKey;
             auth['user'] = this.login;
             auth['pass'] = this.password;
