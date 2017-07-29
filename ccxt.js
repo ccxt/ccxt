@@ -12284,8 +12284,30 @@ var yobit = {
         return result;
     },
 
-    fetchBalance () {
-        return this.tapiPostGetInfo ();
+    async fetchBalance () {
+        let response = await this.tapiPostGetInfo ();
+        let balances = response['return'];
+        let result = { 'info': balances };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let lowercase = currency.toLowerCase ();
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if ('funds' in balances)
+                if (lowercase in balances['funds'])
+                    account['free'] = balances['funds'][lowercase];
+            if ('funds_incl_orders' in balances)
+                if (lowercase in balances['funds_incl_orders'])
+                    account['total'] = balances['funds_incl_orders'][lowercase];
+            if (account['total'] && account['free'])
+                account['used'] = account['total'] - account['free'];
+            if (account['total'] || account['free'] || account['used'])
+                result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
