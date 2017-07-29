@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.1.123'
+var version = '1.1.124'
 var isNode  = (typeof window === 'undefined')
 var isReactNative = false
 
