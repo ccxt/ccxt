@@ -11206,8 +11206,24 @@ var southxchange = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privatePostListBalances ();
+    async fetchBalance () {
+        let balances = await this.privatePostListBalances ();
+        let result = { 'info': balances };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];            
+            let currency = balance['Currency'];
+            let uppercase = currency.uppercase;
+            let free = parseFloat (balance['Available']);
+            let used = parseFloat (balance['Unconfirmed']);
+            let total = this.sum (free, used);
+            let account = {
+                'free': free,
+                'used': used,
+                'total': total,
+            };
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
