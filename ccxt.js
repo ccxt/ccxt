@@ -11623,8 +11623,25 @@ var vaultoro = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privateGetBalance ();
+    async fetchBalance () {
+        let response = await this.privateGetBalance ();
+        let balances = response['data'];
+        let result = { 'info': balances };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];            
+            let currency = balance['currency_code'];
+            let uppercase = currency.toUpperCase ();
+            let free = balance['cash'];
+            let used = balance['reserved'];
+            let total = this.sum (free, used);
+            let account = {
+                'free': free,
+                'used': used,
+                'total': total,
+            };
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
