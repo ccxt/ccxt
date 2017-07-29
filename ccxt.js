@@ -6819,10 +6819,10 @@ var coinspot = {
 
     async fetchBalance () {
         let response = await this.privatePostMyBalances ();
+        let result = { 'info': response };
         if ('balance' in response) {
             let balances = response['balance'];
             let currencies = Object.keys (balances);
-            let result = { 'info': balances };
             for (let c = 0; c < currencies.length; c++) {
                 let currency = currencies[c];
                 let uppercase = currency.toUpperCase ();
@@ -6835,9 +6835,8 @@ var coinspot = {
                     uppercase = 'DASH';
                 result[uppercase] = account;
             }
-            return result;
         }
-        return response;
+       return result;
     },
 
     async fetchOrderBook (product) {
@@ -12099,8 +12098,25 @@ var xbtce = {
         return result;
     },
 
-    fetchBalance () {
-        return this.privateGetAsset ();
+    async fetchBalance () {
+        let balances = await this.privateGetAsset ();
+        let result = { 'info': balances };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];            
+            let currency = balance['Currency'];
+            let uppercase = currency.toUpperCase ();
+            // xbtce names DASH incorrectly as DSH
+            if (uppercase == 'DSH')
+                uppercase = 'DASH';
+            let total = balance['balance'];
+            let account = {
+                'free': balance['FreeAmount'],
+                'used': balance['LockedAmount'],
+                'total': balance['Amount'],
+            };
+            result[uppercase] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (product) {
@@ -12207,20 +12223,22 @@ var xbtce = {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            headers = { 'Accept-Encoding': 'gzip, deflate' };
             let nonce = this.nonce ().toString ();
-            if (Object.keys (query).length)
-                body = this.json (query);
-            else
-                body = '';
-            let auth = nonce + this.uid + this.apiKey + method + url + body;
+            if (method == 'POST') {
+                if (Object.keys (query).length) {
+                    headers['Content-Type'] = 'application/json';
+                    body = this.json (query);
+                }
+                else
+                    url += '?' + this.urlencode (query);                
+            }
+            let auth = nonce + this.uid + this.apiKey + method + url;
+            if (body)
+                auth += body;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
             let credentials = [ this.uid, this.apiKey, nonce, signature ].join (':');
-            headers = {
-                'Accept-Encoding': 'gzip, deflate',
-                'Authorization': 'HMAC ' + credentials,
-                'Content-Type': 'application/json',
-                'Content-Length': body.length,
-            };
+            headers['Authorization'] = 'HMAC ' + credentials;
         }
         return this.fetch (url, method, headers, body);
     },

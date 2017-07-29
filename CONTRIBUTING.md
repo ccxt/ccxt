@@ -199,7 +199,9 @@ Below are key notes on how to keep the JS code transpileable:
 - do not use heavy ternary conditionals
 - put an empty line between each of your methods
 - don't put empty lines in schema in the beginning of each market
+- don't put empty lines inside your methods
 - avoid mixed comment styles, use double-slash `//` in JS for line comments
+- avoid multi-line comments
 - ...
 
 **If you want to add (support for) another market or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn by example, take a look at how same things are implemented in other markets and try to copy the code flow and style.**
