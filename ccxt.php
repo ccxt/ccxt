@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.123';
+$version = '1.1.124';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12727,8 +12727,7 @@ class yobit extends Market {
                     $account['total'] = $balances['funds_incl_orders'][$lowercase];
             if ($account['total'] && $account['free'])
                 $account['used'] = $account['total'] - $account['free'];
-            if ($account['total'] || $account['free'] || $account['used'])
-                $result[$currency] = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -13109,7 +13108,28 @@ class zaif extends Market {
     }
 
     public function fetch_balance () {
-        return $this->tapiPostGetInfo ();
+        $response = $this->tapiPostGetInfo ();
+        $balances = $response['return'];
+        $result = array ( 'info' => $balances );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $lowercase = strtolower ($currency);
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            if (array_key_exists ('funds', $balances))
+                if (array_key_exists ($lowercase, $balances['funds']))
+                    $account['free'] = $balances['funds'][$lowercase];
+            if (array_key_exists ('funds_incl_orders', $balances))
+                if (array_key_exists ($lowercase, $balances['funds_incl_orders']))
+                    $account['total'] = $balances['funds_incl_orders'][$lowercase];
+            if ($account['total'] && $account['free'])
+                $account['used'] = $account['total'] - $account['free'];
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
