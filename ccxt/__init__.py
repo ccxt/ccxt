@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.124'
+__version__ = '1.1.125'
 
 # Python 2 & 3
 import base64
@@ -6557,10 +6557,10 @@ class coinspot (Market):
 
     def fetch_balance (self):
         response = self.privatePostMyBalances ()
+        result = { 'info': response }
         if 'balance' in response:
             balances = response['balance']
             currencies = list (balances.keys ())
-            result = { 'info': balances }
             for c in range (0, len (currencies)):
                 currency = currencies[c]
                 uppercase = currency.upper ()
@@ -6572,8 +6572,7 @@ class coinspot (Market):
                 if uppercase == 'DRK':
                     uppercase = 'DASH'
                 result[uppercase] = account
-            return result
-        return response
+        return result
 
     def fetch_order_book (self, product):
         p = self.product (product)
@@ -11650,7 +11649,23 @@ class xbtce (Market):
         return result
 
     def fetch_balance (self):
-        return self.privateGetAsset ()
+        balances = self.privateGetAsset ()
+        result = { 'info': balances }
+        for b in range (0, len (balances)):
+            balance = balances[b]            
+            currency = balance['Currency']
+            uppercase = currency.upper ()
+            # xbtce names DASH incorrectly as DSH
+            if uppercase == 'DSH':
+                uppercase = 'DASH'
+            total = balance['balance']
+            account = {
+                'free': balance['FreeAmount'],
+                'used': balance['LockedAmount'],
+                'total': balance['Amount'],
+            }
+            result[uppercase] = account
+        return result
 
     def fetch_order_book (self, product):
         p = self.product (product)
@@ -11748,20 +11763,20 @@ class xbtce (Market):
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
+            headers = { 'Accept-Encoding': 'gzip, deflate' }
             nonce = str (self.nonce ())
-            if query:
-                body = self.json (query)
-            else:
-                body = ''
-            auth = nonce + self.uid + self.apiKey + method + url + body
+            if method == 'POST':
+                if query:
+                    headers['Content-Type'] = 'application/json'
+                    body = self.json (query)
+                else:
+                    url += '?' + _urlencode.urlencode (query)                
+            auth = nonce + self.uid + self.apiKey + method + url
+            if body:
+                auth += body
             signature = self.hmac (self.encode (auth), self.encode (self.secret), hashlib.sha256, 'base64')
             credentials = ':'.join ([ self.uid, self.apiKey, nonce, signature ])
-            headers = {
-                'Accept-Encoding': 'gzip, deflate',
-                'Authorization': 'HMAC ' + credentials,
-                'Content-Type': 'application/json',
-                'Content-Length': len (body),
-            }
+            headers['Authorization'] = 'HMAC ' + credentials
         return self.fetch (url, method, headers, body)
 
 #------------------------------------------------------------------------------

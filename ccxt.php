@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.124';
+$version = '1.1.125';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7097,10 +7097,10 @@ class coinspot extends Market {
 
     public function fetch_balance () {
         $response = $this->privatePostMyBalances ();
+        $result = array ( 'info' => $response );
         if (array_key_exists ('balance', $response)) {
             $balances = $response['balance'];
             $currencies = array_keys ($balances);
-            $result = array ( 'info' => $balances );
             for ($c = 0; $c < count ($currencies); $c++) {
                 $currency = $currencies[$c];
                 $uppercase = strtoupper ($currency);
@@ -7113,9 +7113,8 @@ class coinspot extends Market {
                     $uppercase = 'DASH';
                 $result[$uppercase] = $account;
             }
-            return $result;
         }
-        return $response;
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -12519,7 +12518,24 @@ class xbtce extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privateGetAsset ();
+        $balances = $this->privateGetAsset ();
+        $result = array ( 'info' => $balances );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];            
+            $currency = $balance['Currency'];
+            $uppercase = strtoupper ($currency);
+            // xbtce names DASH incorrectly as DSH
+            if ($uppercase == 'DSH')
+                $uppercase = 'DASH';
+            $total = $balance['balance'];
+            $account = array (
+                'free' => $balance['FreeAmount'],
+                'used' => $balance['LockedAmount'],
+                'total' => $balance['Amount'],
+            );
+            $result[$uppercase] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -12626,20 +12642,22 @@ class xbtce extends Market {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
+            $headers = array ( 'Accept-Encoding' => 'gzip, deflate' );
             $nonce = (string) $this->nonce ();
-            if ($query)
-                $body = $this->json ($query);
-            else
-                $body = '';
-            $auth = $nonce . $this->uid . $this->apiKey . $method . $url . $body;
+            if ($method == 'POST') {
+                if ($query) {
+                    $headers['Content-Type'] = 'application/json';
+                    $body = $this->json ($query);
+                }
+                else
+                    $url .= '?' . $this->urlencode ($query);                
+            }
+            $auth = $nonce . $this->uid . $this->apiKey . $method . $url;
+            if ($body)
+                $auth .= $body;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256', 'base64');
             $credentials = implode (':', array ($this->uid, $this->apiKey, $nonce, $signature));
-            $headers = array (
-                'Accept-Encoding' => 'gzip, deflate',
-                'Authorization' => 'HMAC ' . $credentials,
-                'Content-Type' => 'application/json',
-                'Content-Length' => strlen ($body),
-            );
+            $headers['Authorization'] = 'HMAC ' . $credentials;
         }
         return $this->fetch ($url, $method, $headers, $body);
     }
