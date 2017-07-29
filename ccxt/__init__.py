@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.116'
+__version__ = '1.1.117'
 
 # Python 2 & 3
 import base64
@@ -10087,7 +10087,25 @@ class paymium (Market):
         super (paymium, self).__init__ (params)
 
     def fetch_balance (self):
-        return self.privateGetUser ()
+        balances = self.privateGetUser ()
+        result = { 'info': balances }
+        for c in range (0, len (self.currencies)):
+            currency = self.currencies[c]
+            lowercase = currency.lower ()
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            balance = 'balance_' + lowercase
+            locked = 'locked_' + lowercase
+            if balance in balances:
+                account['free'] = balances[balance]
+            if locked in balances:
+                account['used'] = balances[locked]
+            account['total'] = self.sum (account['free'], account['used'])
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetDataIdDepth  ({
