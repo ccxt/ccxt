@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.116';
+$version = '1.1.117';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10845,7 +10845,26 @@ class paymium extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privateGetUser ();
+        $balances = $this->privateGetUser ();
+        $result = array ( 'info' => $balances );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $lowercase = strtolower ($currency);
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            $balance = 'balance_' . $lowercase;
+            $locked = 'locked_' . $lowercase;
+            if (array_key_exists ($balance, $balances))
+                $account['free'] = $balances[$balance];
+            if (array_key_exists ($locked, $balances))
+                $account['used'] = $balances[$locked];
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
