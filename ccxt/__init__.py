@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.119'
+__version__ = '1.1.120'
 
 # Python 2 & 3
 import base64
@@ -11000,7 +11000,22 @@ class therock (Market):
         return result
 
     def fetch_balance (self):
-        return self.privateGetBalances ()
+        response = self.privateGetBalances ()
+        balances = response['balances']
+        result = { 'info': response }
+        for b in range (0, len (balances)):
+            balance = balances[b]            
+            currency = balance['currency']
+            free = balance['trading_balance']
+            total = balance['balance']
+            used = total - free            
+            account = {
+                'free': free,
+                'used': used,
+                'total': total,
+            }
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetFundsIdOrderbook ({

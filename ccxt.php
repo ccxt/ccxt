@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.119';
+$version = '1.1.120';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -11820,7 +11820,23 @@ class therock extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privateGetBalances ();
+        $response = $this->privateGetBalances ();
+        $balances = $response['balances'];
+        $result = array ( 'info' => $response );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];            
+            $currency = $balance['currency'];
+            $free = $balance['trading_balance'];
+            $total = $balance['balance'];
+            $used = $total - $free;            
+            $account = array (
+                'free' => $free,
+                'used' => $used,
+                'total' => $total,
+            );
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
