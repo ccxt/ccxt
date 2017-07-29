@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.127'
+__version__ = '1.1.128'
 
 # Python 2 & 3
 import base64
@@ -6053,7 +6053,6 @@ class coinmarketcap (Market):
         raise Error ('Fetching order books is not supported by the API of ' + self.id)
 
     def fetch_products (self):
-        self.loadProducts ()
         products = self.publicGetTicker ()
         result = []
         for p in range (0, len (products)):

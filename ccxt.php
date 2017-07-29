@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.127';
+$version = '1.1.128';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -6559,7 +6559,6 @@ class coinmarketcap extends Market {
     }
 
     public function fetch_products () {
-        $this->loadProducts ();
         $products = $this->publicGetTicker ();
         $result = array ();
         for ($p = 0; $p < count ($products); $p++) {
