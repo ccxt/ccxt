@@ -321,7 +321,7 @@ class Market {
     }
 
     public static function yyyymmddhhmmss ($timestamp) {
-        return gmdate ('YmdHis', (int) round ($timestamp / 1000));
+        return gmdate ('Y-m-d H:i:s', (int) round ($timestamp / 1000));
     }
 
     public static function json ($input) {
@@ -12368,7 +12368,7 @@ class virwox extends Market {
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$type];
         $auth = array ();
-        if ($type == 'public') {
+        if ($type == 'private') {
             $auth['key'] = $this->apiKey;
             $auth['user'] = $this->login;
             $auth['pass'] = $this->password;
