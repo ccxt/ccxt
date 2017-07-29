@@ -9748,7 +9748,7 @@ var livecoin = {
     },
 
     createOrder (product, type, side, amount, price = undefined, params = {}) {
-        let method = 'privatePost' + this.capitalize (side) + type;
+        let method = 'privatePostExchange' + this.capitalize (side) + type;
         let order = {
             'currencyPair': this.productId (product),
             'quantity': amount,
