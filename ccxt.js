@@ -6289,7 +6289,6 @@ var coinmarketcap = {
     },
 
     async fetchProducts () {
-        await this.loadProducts ();
         let products = await this.publicGetTicker ();
         let result = [];
         for (let p = 0; p < products.length; p++) {
