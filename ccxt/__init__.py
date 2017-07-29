@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.120'
+__version__ = '1.1.121'
 
 # Python 2 & 3
 import base64
@@ -11198,7 +11198,23 @@ class vaultoro (Market):
         return result
 
     def fetch_balance (self):
-        return self.privateGetBalance ()
+        response = self.privateGetBalance ()
+        balances = response['data']
+        result = { 'info': balances }
+        for b in range (0, len (balances)):
+            balance = balances[b]            
+            currency = balance['currency_code']
+            uppercase = currency.upper ()
+            free = balance['cash']
+            used = balance['reserved']
+            total = self.sum (free, used)
+            account = {
+                'free': free,
+                'used': used,
+                'total': total,
+            }
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         response = self.publicGetOrderbook ()
