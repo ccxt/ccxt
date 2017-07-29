@@ -6836,7 +6836,7 @@ var coinspot = {
                 result[uppercase] = account;
             }
         }
-       return result;
+        return result;
     },
 
     async fetchOrderBook (product) {
