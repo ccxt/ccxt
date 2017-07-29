@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.118';
+$version = '1.1.119';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10116,13 +10116,12 @@ class livecoin extends Market {
                 $url .= '?' . $this->urlencode ($params);
         } else {
             $length = 0;
-            if ($params) {
-                $query = $this->keysort ($params);
-                $body = $this->urlencode ($query);
-                $length = count ($body);
-            }
-            $body = $this->encode ($body || '');
-            $signature = $this->hmac ($body, $this->encode ($this->secret), 'sha256');
+            $query = $this->urlencode ($this->keysort ($params));
+            if ($method == 'GET')
+                $url .= '?' . $query;
+            else
+                $body = $query;
+            $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha256');            
             $headers = array (
                 'Api-Key' => $this->apiKey,
                 'Sign' => strtoupper ($signature),
@@ -11414,7 +11413,20 @@ class quoine extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privateGetAccountsBalance ();
+        $balances = $this->privateGetAccountsBalance ();
+        $result = array ( 'info' => $balances );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];            
+            $currency = $balance['currency'];
+            $total = floatval ($balance['balance']);
+            $account = array (
+                'free' => $total,
+                'used' => null,
+                'total' => $total,
+            );
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -11584,7 +11596,23 @@ class southxchange extends Market {
     }
 
     public function fetch_balance () {
-        return $this->privatePostListBalances ();
+        $balances = $this->privatePostListBalances ();
+        $result = array ( 'info' => $balances );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];            
+            $currency = $balance['Currency'];
+            $uppercase = $currency.uppercase;
+            $free = floatval ($balance['Available']);
+            $used = floatval ($balance['Unconfirmed']);
+            $total = $this->sum ($free, $used);
+            $account = array (
+                'free' => $free,
+                'used' => $used,
+                'total' => $total,
+            );
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -11677,7 +11705,7 @@ class southxchange extends Market {
             $body = $this->json ($query);
             $headers = array (
                 'Content-Type' => 'application/json',
-                'Hash' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
+                'Hash' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);

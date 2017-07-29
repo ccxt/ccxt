@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.118'
+__version__ = '1.1.119'
 
 # Python 2 & 3
 import base64
@@ -9396,12 +9396,12 @@ class livecoin (Market):
                 url += '?' + _urlencode.urlencode (params)
         else:
             length = 0
-            if params:
-                query = self.keysort (params)
-                body = _urlencode.urlencode (query)
-                length = len (body)
-            body = self.encode (body or '')
-            signature = self.hmac (body, self.encode (self.secret), hashlib.sha256)
+            query = _urlencode.urlencode (self.keysort (params))
+            if method == 'GET':
+                url += '?' + query
+            else:
+                body = query
+            signature = self.hmac (self.encode (query), self.encode (self.secret), hashlib.sha256)            
             headers = {
                 'Api-Key': self.apiKey,
                 'Sign': signature.upper (),
@@ -10619,7 +10619,19 @@ class quoine (Market):
         return result
 
     def fetch_balance (self):
-        return self.privateGetAccountsBalance ()
+        balances = self.privateGetAccountsBalance ()
+        result = { 'info': balances }
+        for b in range (0, len (balances)):
+            balance = balances[b]            
+            currency = balance['currency']
+            total = float (balance['balance'])
+            account = {
+                'free': total,
+                'used': None,
+                'total': total,
+            }
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetProductsIdPriceLevels ({
@@ -10777,7 +10789,22 @@ class southxchange (Market):
         return result
 
     def fetch_balance (self):
-        return self.privatePostListBalances ()
+        balances = self.privatePostListBalances ()
+        result = { 'info': balances }
+        for b in range (0, len (balances)):
+            balance = balances[b]            
+            currency = balance['Currency']
+            uppercase = currency.uppercase
+            free = float (balance['Available'])
+            used = float (balance['Unconfirmed'])
+            total = self.sum (free, used)
+            account = {
+                'free': free,
+                'used': used,
+                'total': total,
+            }
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         orderbook = self.publicGetBookSymbol ({
@@ -10862,7 +10889,7 @@ class southxchange (Market):
             body = self.json (query)
             headers = {
                 'Content-Type': 'application/json',
-                'Hash': self.hmac (self.encode (body), self.secret, hashlib.sha512),
+                'Hash': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512),
             }
         return self.fetch (url, method, headers, body)
 
