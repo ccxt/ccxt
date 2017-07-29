@@ -11316,7 +11316,7 @@ var southxchange = {
             body = this.json (query);
             headers = {
                 'Content-Type': 'application/json',
-                'Hash': this.hmac (this.encode (body), this.secret, 'sha512'),
+                'Hash': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
         return this.fetch (url, method, headers, body);
