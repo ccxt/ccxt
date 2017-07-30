@@ -87,7 +87,7 @@ try:
             print (type (e).__name__, e.args, 'DDoS Protection Error (ignoring)')
         except ccxt.TimeoutError as e:
             print (type (e).__name__, e.args, 'Timeout Error, request timed out (ignoring)')
-        except ccxt.MarketNotAvailaibleError as e:
+        except ccxt.MarketNotAvailableError as e:
             print (type (e).__name__, e.args, 'Market Not Available Error due to downtime or maintenance (ignoring)')
         except ccxt.AuthenticationError as e:
             print (type (e).__name__, e.args, 'Authentication Error (missing API keys, ignoring)')
