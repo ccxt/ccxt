@@ -197,7 +197,7 @@ if argv.market:
                 nonce = self.previous_nonce
                 previous_nonce = self.previous_nonce + 1
                 return nonce
-        market = CustomNonceMarket (config[id])
+        market = CustomNonceMarket (config[id] if id in config else {})
     else:
         market = markets[argv.market]
 

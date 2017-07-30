@@ -18,6 +18,15 @@ function dump ($s) { echo implode (' ', func_get_args ()) . "\n"; }
 
 $markets = null;
 
+// $shortopts = '';
+// $longopts = array (
+//     "nonce::", // '::' means optional, ':' means required
+// );
+
+// $options = getopt ($shortopts, $longopts);
+// var_dump ($options);
+// exit ();
+
 //-----------------------------------------------------------------------------
 
 foreach (\ccxt\Market::$markets as $id) {
