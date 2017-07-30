@@ -7048,11 +7048,7 @@ class exmo (Market):
                 result[key].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        response = self.publicGetTicker ()
-        p = self.product (product)
-        ticker = response[p['id']]
+    def parseTicker (self, ticker, product):
         timestamp = ticker['updated'] * 1000
         return {
             'timestamp': timestamp,
@@ -7073,6 +7069,28 @@ class exmo (Market):
             'quoteVolume': float (ticker['vol_curr']),
             'info': ticker,
         }
+
+    def fetch_tickers (self, currency = 'USD'):
+        self.loadProducts ()
+        request = {}
+        if currency:
+            request['convert'] = currency
+        response = self.publicGetTicker (request)
+        result = {}
+        ids = list (response.keys ())
+        for i in range (0, len (ids)):
+            id = ids[i]
+            product = self.products_by_id[id]
+            symbol = product['symbol']
+            ticker = response[id]
+            result[symbol] = self.parseTicker (ticker, product)
+        return result
+
+    def fetch_ticker (self, product):
+        self.loadProducts ()
+        response = self.publicGetTicker ()
+        p = self.product (product)
+        return self.parseTicker (response[p['id']], p)
 
     def fetch_trades (self, product):
         self.loadProducts ()

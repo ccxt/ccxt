@@ -7620,11 +7620,7 @@ class exmo extends Market {
         return $result;
     }
 
-    public function fetch_ticker ($product) {
-        $this->loadProducts ();
-        $response = $this->publicGetTicker ();
-        $p = $this->product ($product);
-        $ticker = $response[$p['id']];
+    public function parseTicker ($ticker, $product) {
         $timestamp = $ticker['updated'] * 1000;
         return array (
             'timestamp' => $timestamp,
@@ -7645,6 +7641,31 @@ class exmo extends Market {
             'quoteVolume' => floatval ($ticker['vol_curr']),
             'info' => $ticker,
         );
+    }
+
+    public function fetch_tickers ($currency = 'USD') {
+        $this->loadProducts ();
+        $request = array ();
+        if ($currency) 
+            $request['convert'] = $currency;
+        $response = $this->publicGetTicker ($request);
+        $result = array ();
+        $ids = array_keys ($response);
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $product = $this->products_by_id[$id];
+            $symbol = $product['symbol'];
+            $ticker = $response[$id];
+            $result[$symbol] = $this->parseTicker ($ticker, $product);
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $this->loadProducts ();
+        $response = $this->publicGetTicker ();
+        $p = $this->product ($product);
+        return $this->parseTicker ($response[$p['id']], $p);
     }
 
     public function fetch_trades ($product) {

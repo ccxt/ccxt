@@ -7330,11 +7330,7 @@ var exmo = {
         return result;
     },
 
-    async fetchTicker (product) {
-        await this.loadProducts ();
-        let response = await this.publicGetTicker ();
-        let p = this.product (product);
-        let ticker = response[p['id']];
+    parseTicker (ticker, product) {
         let timestamp = ticker['updated'] * 1000;
         return {
             'timestamp': timestamp,
@@ -7355,6 +7351,31 @@ var exmo = {
             'quoteVolume': parseFloat (ticker['vol_curr']),
             'info': ticker,
         };
+    },
+
+    async fetchTickers (currency = 'USD') { 
+        await this.loadProducts ();
+        let request = {};
+        if (currency) 
+            request['convert'] = currency;
+        let response = await this.publicGetTicker (request);
+        let result = {};
+        let ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let product = this.products_by_id[id];
+            let symbol = product['symbol'];
+            let ticker = response[id];
+            result[symbol] = this.parseTicker (ticker, product);
+        }
+        return result;
+    },
+
+    async fetchTicker (product) {
+        await this.loadProducts ();
+        let response = await this.publicGetTicker ();
+        let p = this.product (product);
+        return this.parseTicker (response[p['id']], p);
     },
 
     async fetchTrades (product) {
