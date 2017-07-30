@@ -12,7 +12,7 @@ class EndpointNotAvailableError  extends NotAvailableError {}
 class OrderBookNotAvailableError extends NotAvailableError {}
 class TickerNotAvailableError    extends NotAvailableError {}
 
-$version = '1.1.138';
+$version = '1.1.139';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9449,8 +9449,9 @@ class itbit extends Market {
             $timestamp = $nonce;
             $auth = array ($method, $url, $body, $nonce, $timestamp);
             $message = $nonce . $this->json ($auth);
-            $hashedMessage = $this->hash ($message, 'sha256', 'binary');
-            $signature = $this->hmac ($this->encode ($url . $hashedMessage), $this->encode ($this->secret), 'sha512', 'base64');
+            $hash = $this->hash ($this->encode ($message), 'sha256', 'binary');
+            $binhash = $this->binary_concat ($url, $hash);
+            $signature = $this->hmac ($binhash, $this->encode ($this->secret), 'sha512', 'base64');
             $headers = array (
                 'Authorization' => self.apiKey . ':' . $signature,
                 'Content-Type' => 'application/json',
