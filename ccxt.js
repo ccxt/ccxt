@@ -771,10 +771,10 @@ var _1broker = {
         let response = await this.fetch (url, method);
         if ('warning' in response)
             if (response['warning'])
-                throw MarketError (this.id + ' Warning: ' + response['warning_message']);
+                throw new MarketError (this.id + ' Warning: ' + response['warning_message']);
         if ('error' in response)
             if (response['error'])
-                throw MarketError (this.id + ' Error: ' + response['error_code'] + response['error_message']);
+                throw new MarketError (this.id + ' Error: ' + response['error_code'] + response['error_message']);
         return response;
     },
 }
