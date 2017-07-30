@@ -762,13 +762,20 @@ var _1broker = {
         return this.privatePostOrderCancel ({ 'order_id': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (!this.apiKey)
             throw new AuthenticationError (this.id + ' requires apiKey for all requests');
         let url = this.urls['api'] + '/' + this.version + '/' + path + '.php';
         let query = this.extend ({ 'token': this.apiKey }, params);
         url += '?' + this.urlencode (query);
-        return this.fetch (url, method);        
+        let response = this.fetch (url, method);
+        if ('warning' in response)
+            if (response['warning'])
+                throw EnpointError (this.id + ' Warning: ' + response['warning_message']);
+        if ('error' in response)
+            if (response['error'])
+                throw EnpointError (this.id + ' Error: ' + response['error_code'] + response['error_message']);
+        return response;
     },
 }
 
