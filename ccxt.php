@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.1.140';
+$version = '1.1.141';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -919,7 +919,14 @@ class _1broker extends Market {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path . '.php';
         $query = array_merge (array ( 'token' => $this->apiKey ), $params);
         $url .= '?' . $this->urlencode ($query);
-        return $this->fetch ($url, $method);        
+        $response = $this->fetch ($url, $method);
+        if (array_key_exists ('warning', $response))
+            if ($response['warning'])
+                throw new MarketError ($this->id . ' Warning => ' . $response['warning_message']);
+        if (array_key_exists ('error', $response))
+            if ($response['error'])
+                throw new MarketError ($this->id . ' Error => ' . $response['error_code'] . $response['error_message']);
+        return $response;
     }
 }
 
@@ -1081,6 +1088,16 @@ class cryptocapital extends Market {
             $query['signature'] = $this->hmac ($this->encode ($request), $this->encode ($this->secret));
             $body = $this->json ($query);
             $headers = array ( 'Content-Type' => 'application/json' );
+        }
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('errors', $response)) {
+            $errors = array ();
+            for ($e = 0; $e < count ($response['errors']); $e++) {
+                $error = $response['errors'][$e];
+                $errors[] = $error['code'] . ' => ' . $error['message'];
+            }
+            $errors = implode (' ', $errors);
+            throw new MarketError ($this->id . ' ' . $errors);
         }
         return $this->fetch ($url, $method, $headers, $body);
     }
