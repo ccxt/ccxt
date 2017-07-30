@@ -7,7 +7,7 @@ before_install:
 - sudo dpkg -i pandoc-1.19.2.1-1-amd64.deb
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
-- npm test
+- npm test --js --python
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./push.sh; fi
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./push-wiki.sh; fi
 deploy:
