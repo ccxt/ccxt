@@ -9,9 +9,8 @@
   },
   "scripts": {
     "build": "npm run export-markets && npm run mdrst && npm run transpile && npm run update-badges && npm run vss && npm run babel",
-    "test": "npm run build && nyc --reporter=html --reporter=text ./test.sh",
-    "fasttest": "node test --es6",
-    "coveralls": "nyc report --reporter=text-lcov | coveralls",
+    "test": "npm run build && node run-tests",
+    "fasttest": "node run-tests --js --es6",
     "export-markets": "node export-markets",
     "update-badges": "node update-badges",
     "mdrst": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=README.rst README.md",

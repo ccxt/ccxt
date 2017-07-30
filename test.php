@@ -3,7 +3,6 @@
 date_default_timezone_set ('UTC');
 
 include 'ccxt.php';
-include 'Console/Table.php';
 
 date_default_timezone_set ('UTC');
 
