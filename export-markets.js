@@ -6,6 +6,8 @@ const countries = require ('./countries')
 const asTable   = require ('as-table')
 const util      = require ('util')
 const execSync  = require ('child_process').execSync
+const log       = require ('ololog')
+const ansi      = require ('ansicolor').nice
 
 let markets
 let verbose = false
@@ -14,7 +16,7 @@ let wikiPath = 'ccxt.wiki'
 
 if (!fs.existsSync (wikiPath)) {
 
-    console.log ('Checking out ccxt.wiki...')
+    log.bright.cyan ('Checking out ccxt.wiki...')
     execSync ('git clone https://github.com/kroitor/ccxt.wiki.git')
 }
 
@@ -103,7 +105,7 @@ lines[1] = headerLine.join ('|')
 lines = lines.map (line => '|' + line + '|').join ("\n")
 
 let changeInFile = (filename) => {
-    console.log (filename)
+    log.bright ('Exporting markets to'.cyan, filename.yellow, '...')
     let oldContent = fs.readFileSync (filename, 'utf8')
     let beginning = "The ccxt library currently supports the following "
     let ending = " cryptocurrency exchange markets and trading APIs:\n\n"
@@ -196,6 +198,7 @@ marketsByCountries = marketsByCountries.sort ((a, b) => {
 // console.log (marketsByCountries)
 // console.log (asTable.configure ({ delimiter: ' | ' }) (marketsByCountries))
 
+log.bright ('Exporting market IDs to'.cyan, 'markets.json'.yellow)
 fs.writeFileSync ('markets.json', JSON.stringify ({ ids: Object.keys (markets) }, null, 4))
 
-console.log ('Markets exported successfully.')
+log.bright.green ('Markets exported successfully.')

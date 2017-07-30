@@ -21,6 +21,10 @@ const fs        = require ('fs')
 
 /*  ------------------------------------------------------------------------ */
 
+const warn = log.bright.yellow.error // .error goes to stderr
+
+/*  ------------------------------------------------------------------------ */
+
 process.on ('uncaughtException',  e => { log.bright.red.error (e); process.exit (1) })
 process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit (1) })
 
@@ -338,15 +342,15 @@ let tryAllProxies = async function (market, proxies) {
 
             currentProxy = ++currentProxy % proxies.length
             if (e instanceof ccxt.DDoSProtectionError) {
-                log.bright.yellow (market.id, '[DDoS Protection Error] ' + e.message)
+                warn (market.id, '[DDoS Protection Error] ' + e.message)
             } else if (e instanceof ccxt.TimeoutError) {
-                log.bright.yellow (market.id, '[Timeout Error] ' + e.message)
+                warn (market.id, '[Timeout Error] ' + e.message)
             } else if (e instanceof ccxt.AuthenticationError) {
-                log.bright.yellow (market.id, '[Authentication Error] ' + e.message)
+                warn (market.id, '[Authentication Error] ' + e.message)
             } else if (e instanceof ccxt.MarketNotAvailableError) {
-                log.bright.yellow (market.id, '[Market Not Available Error] ' + e.message)
+                warn (market.id, '[Market Not Available Error] ' + e.message)
             } else if (e instanceof ccxt.EndpointNotAvailableError) {
-                log.bright.yellow (market.id, '[Endpoint Not Available Error] ' + e.message)
+                warn (market.id, '[Endpoint Not Available Error] ' + e.message)
             } else {
                 throw e;
             }
