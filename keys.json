@@ -36,7 +36,7 @@
     "luno":          { "apiKey": "nrpzg7rkd8pnf", "secret": "Ps0DXw0TpTzdJ2Yek8V5TzFDfTWzyU5vfLdCiBP6vsI" },
     "okcoinusd":     { "apiKey": "da83cf1b-6fdc-495a-af55-f809bec64e2b", "secret": "614D2E6D3428C2C5E54C81139A500BE0" },
     "poloniex":      { "apiKey": "OUD0TQLA-WP7RQAO6-V4J2HYTY-W8J27FSL", "secret": "9fbc0039f62032aeb4ca962e89690ebaf0ac73d5e59ec6c04ccb967fa67ec157d2675a09a96c308b9af1f8d10f57e833186fd388d8857ff3cc964985087b075c" },
-    "quadrigacx":    { "apiKey": "jKvWkMqrOj", "secret": "f65a2e3bf3c73171ee14e389314b2f78", "uid": "395037" },
+    "quadrigacx":    { "apiKey": "QwxLbyUbzO", "secret": "ed88da90963dbdd8f609c26b257f681c", "uid": "395037" },
     "quoine":        { "apiKey": "85626", "secret": "i7yxQvToODd6h9BqMyGODUHBiZRL13Fn1nfJRifgfnha43HuHop9NuBGZOfj7ydf04hp6PMRRiPyOB5Hmm1WoA==" },
     "southxchange":  { "apiKey": "OWSEIrJrtGtqDhBXoMIjpiyvQnVfoj", "secret": "xKyYfjiSMdMvQNXDTwEjTsLiHLedsAUkCqNjwEiWvvfLvarkws" },
     "therock":       { "apiKey": "a521b8c93466ccf5fdcd2dcad1bb1b287e41ec2b", "secret": "4b9c88b0a6f0688464542f9a74548edf85375134" },
