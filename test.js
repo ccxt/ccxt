@@ -2,9 +2,14 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const keys = ['--es6']
-const [processPath, , marketId = null, marketSymbol = null] = process.argv.filter (x => !keys.includes (x))
+const [processPath, , marketId = null, marketSymbol = null] = process.argv.filter (x => !x.startsWith ('--'))
+
 const ccxtFile = process.argv.includes ('--es6') ? 'ccxt.js' : 'ccxt.es5.js'
+
+const nonceRegex = /--nonce=(\d+)/
+    , nonceArg = process.argv.find (x => nonceRegex.test (x))
+
+let nonce = nonceArg && Number (nonceArg.match (nonceRegex)[1])
 
 /*  ------------------------------------------------------------------------ */
 
@@ -30,7 +35,7 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit 
 
 /*  ------------------------------------------------------------------------ */
 
-log.bright ('\nTESTING', ccxtFile.magenta, { market: marketId || 'all', symbol: marketSymbol || 'all' }, '\n')
+log.bright ('\nTESTING', ccxtFile.magenta, { market: marketId || 'all', symbol: marketSymbol || 'all', nonce: nonce || 'default' }, '\n')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -44,7 +49,7 @@ let proxies = [
 
 // instantiate all markets
 ccxt.markets.forEach (id => {
-    markets[id] = new (ccxt)[id] ({ verbose: true })
+    markets[id] = new (ccxt)[id] (Object.assign ({ verbose: true }, nonce ? { nonce: () => nonce++ } : {}))
 })
 
 // load api keys from config
