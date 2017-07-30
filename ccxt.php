@@ -417,6 +417,10 @@ class Market {
         return $hmac;
     }
 
+    public function binary_concat () {
+        return implode ('', func_get_args ())
+    } 
+
     // this is a special case workaround for Kraken, see issues #52 and #23
     public function signForKraken ($path, $request, $secret, $nonce) {
         $auth = $this->encode ($nonce . $request);

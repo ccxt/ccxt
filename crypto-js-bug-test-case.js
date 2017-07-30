@@ -20,20 +20,19 @@ var crypto_sig = function (path, secret, nonceRequest) {
 }
 
 function stringToBinary (str) {
-
     const arr = new Uint8Array (str.length)
     for (let i = 0; i < str.length; i++) { arr[i] = str.charCodeAt(i); }
-    return CryptoJS.lib.WordArray.create (str)
+    return CryptoJS.lib.WordArray.create (arr)
 }
 
-function binaryConcat (... args) {
-
+function binaryConcat (first, ... args) {
+    for (let arg of args)
+        first = first.concat (arg);
+    return first
 }
 
 var cryptojs_sig = function (path, secret, nonceRequest) {
-
-    let msg = stringToBinary (path).concat (CryptoJS.SHA256 (nonceRequest))
-
+    let msg = binaryConcat (stringToBinary (path), CryptoJS.SHA256 (nonceRequest));
     return CryptoJS.HmacSHA512 (msg, secret).toString (CryptoJS.enc.Base64)
 }
 
@@ -56,18 +55,12 @@ let kraken = new ccxt.kraken ({
         } else {
             let nonce = this.nonce ().toString ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
-
             let auth = this.encode (nonce + body);
             let hash = this.hash (auth, 'sha256', 'binary');
-
-            // a workaround for Kraken to replace the old CryptoJS block below, see issues #52 and #23
-            let signature = this.signForKraken (url, body, this.secret, nonce);
-            
-            // an old CryptoJS block that does not want to work properly under Node
-            // let auth = this.encode (nonce + body);
-            // let query = this.encode (url) + this.hash (auth, 'sha256', 'binary');
-            // let secret = this.base64ToBinary (this.secret);
-            // let signature = this.hmac (query, secret, 'sha512', 'base64');
+            let binary = this.stringToBinary (this.encode (url));
+            let binhash = this.binaryConcat (binary, hash);
+            let secret = this.base64ToBinary (this.secret);
+            let signature = this.hmac (binhash, secret, 'sha512', 'base64');
             headers = {
                 'API-Key': this.apiKey,
                 'API-Sign': signature,
@@ -80,22 +73,10 @@ let kraken = new ccxt.kraken ({
 
 })
 
-body = kraken.urlencode (kraken.extend ({ 'nonce': nonce }, params));
+async function test () {
+    console.log (await kraken.fetchBalance ())
+}
 
-// a workaround for Kraken to replace the old CryptoJS block below, see issues #52 and #23
-let signature = this.signForKraken (url, body, this.secret, nonce);
-
-// an old CryptoJS block that does not want to work properly under Node
-
-// let auth = this.encode (nonce + body);
-// let query = this.encode (url) + this.hash (auth, 'sha256', 'binary');
-// let secret = this.base64ToBinary (this.secret);
-// let signature = this.hmac (query, secret, 'sha512', 'base64');
-headers = {
-    'API-Key': this.apiKey,
-    'API-Sign': signature,
-    'Content-type': 'application/x-www-form-urlencoded',
-};
-
+test ()
 // console.log ('check:', )
 

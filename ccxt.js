@@ -246,8 +246,10 @@ if (isNode) {
 //-----------------------------------------------------------------------------
 // string ←→ binary ←→ base64 conversion routines
 
-var stringToBinary = function (string) {
-    return CryptoJS.enc.Latin1.parse (string)
+var stringToBinary = function (str) {
+    const arr = new Uint8Array (str.length)
+    for (let i = 0; i < str.length; i++) { arr[i] = str.charCodeAt(i); }
+    return CryptoJS.lib.WordArray.create (arr)
 }
 
 var stringToBase64 = function (string) {
@@ -266,6 +268,12 @@ var base64ToString = function (string) {
     return CryptoJS.enc.Base64.parse (string).toString (CryptoJS.enc.Utf8)
 }
 
+var binaryConcat = function (first, ... args) {
+    for (let arg of args)
+        first = first.concat (arg);
+    return first
+}
+
 // url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
 var urlencodeBase64 = function (base64string) {
     return base64string.replace (/[=]+$/, '').replace (/\+/g, '-').replace (/\//g, '_')
@@ -275,12 +283,12 @@ var urlencodeBase64 = function (base64string) {
 // cryptography
 
 var hash = function (request, hash = 'md5', digest = 'hex') {
-    var encoding = (digest === 'binary') ? 'Latin1' : capitalize (digest)
-    return CryptoJS[hash.toUpperCase ()] (request).toString (CryptoJS.enc[encoding])
+    let result = CryptoJS[hash.toUpperCase ()] (request)
+    return (digest == 'binary') ? result : result.toString (CryptoJS.enc[capitalize (digest)])
 }
 
 var hmac = function (request, secret, hash = 'sha256', digest = 'hex') {
-    var encoding = (digest === 'binary') ? 'Latin1' : capitalize (digest)
+    let encoding = (digest == 'binary') ? 'Latin1' : capitalize (digest)
     return CryptoJS['Hmac' + hash.toUpperCase ()] (request, secret).toString (CryptoJS.enc[capitalize (encoding)])
 }
 
@@ -318,6 +326,7 @@ var Market = function (config) {
     // a special case until we find a better workaround, see issues #52 and #23
     this.signForKraken = signForKraken 
     this.jwt = jwt // JSON Web Token
+    this.binaryConcat = binaryConcat
     this.stringToBinary = stringToBinary
     this.stringToBase64 = stringToBase64
     this.base64ToBinary = base64ToBinary
@@ -13152,6 +13161,7 @@ if (isNode || isReactNative) {
 
         // crypto functions
 
+        binaryConcat,
         stringToBinary,
         stringToBase64,
         utf16ToBase64,

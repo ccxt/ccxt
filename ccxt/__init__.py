@@ -501,6 +501,10 @@ class Market (object):
         return signature
 
     @staticmethod
+    def binary_concat (*args):
+        return ''.join (args)
+
+    @staticmethod
     def base64urlencode (s):
         return Market.decode (base64.urlsafe_b64encode (s)).replace ('=', '')
 
