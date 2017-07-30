@@ -6,7 +6,8 @@
 
 var version = '1.1.143'
 var isNode  = (typeof window === 'undefined')
-var isReactNative = navigator && navigator.product && navigator.product == 'ReactNative'
+var isReactNative = (typeof navigator !== 'undefined') && navigator &&
+    navigator.product && navigator.product == 'ReactNative' || false
 
 //-----------------------------------------------------------------------------
 
