@@ -6,17 +6,8 @@
 
 var version = '1.1.143'
 var isNode  = (typeof window === 'undefined')
-var isReactNative = false
-
-try {
-
-    let reactNative = require ('react-native')
-    isReactNative = reactNative != undefined
-
-} catch (e) {
-
-    isReactNative = false
-}
+var isReactNative = (typeof navigator !== 'undefined') && navigator &&
+    navigator.product && navigator.product == 'ReactNative' || false
 
 //-----------------------------------------------------------------------------
 

@@ -14,4 +14,8 @@ coverage
 .nyc_output
 travis-keys.sh
 ccxt.wiki/
+<<<<<<< HEAD
+package-lock.json
+=======
 markets.json
+>>>>>>> 362184e975687dd82677e6889d9a8b41b97e96b8
