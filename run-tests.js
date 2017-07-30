@@ -10,7 +10,7 @@
     --------------------------------------------------------------------------- */
 
 const fs = require ('fs')
-const log = require ('ololog').configure ({ indent: { pattern: '  ' }})
+const log = require ('ololog')//.configure ({ indent: { pattern: '  ' }})
 const ansi = require ('ansicolor').nice
 
 /*  --------------------------------------------------------------------------- */
@@ -82,28 +82,30 @@ const exec = (bin, ...args) =>
 
 const testMarket = async (market) => {
 
-/*  Run tests for all languages (in parallel)     */
+/*  Run tests for all/selected languages (in parallel)     */
 
-    const tests = await Promise.all ([
+    const args = [market, ...symbol === 'all' ? [] : symbol]
+        , allTests = [
 
-                            { language: 'JavaScript', exec: ['node',      'test.js',  market] },
-                            { language: 'Python',     exec: ['python',    'test.py',  market] },
-                            { language: 'PHP',        exec: ['php', '-f', 'test.php', market] }
-
-                        ].map (test => exec (...test.exec)
-                                      .then (result => Object.assign (test, result))))
-
-    const anyFailed = tests.find (test => test.failed)
+            { language: 'JavaScript', key: '--js',      exec: ['node',      'test.js',  ...args, ...keys['--es6'] ? ['--es6'] : []] },
+            { language: 'Python',     key: '--python',  exec: ['python',    'test.py',  ...args]                                    },
+            { language: 'PHP',        key: '--php',     exec: ['php', '-f', 'test.php', ...args]                                    }
+        ]
+        , selectedTests  = allTests.filter (t => keys[t.key])
+        , scheduledTests = selectedTests.length ? selectedTests : allTests
+        , completeTests  = await Promise.all (scheduledTests.map (test => exec (...test.exec)
+                                                                         .then (result => Object.assign (test, result))))
+        , anyFailed = completeTests.find (test => test.failed)
 
 /*  Print log output    */
 
     log.bright ('Testing', market.cyan, anyFailed ? 'FAILED'.bgBrightRed : 'OK'.green)
 
-    for (const { language, failed, output, hasErrorOutput } of tests) {
+    for (const { language, failed, output, hasErrorOutput } of completeTests) {
 
         if (failed || hasErrorOutput) {
 
-            log.indent (1) ('\n', language.bright[failed ? 'bgBrightRed' : 'bgBrightYellow'], '\n')
+            log.indent (1) ('\n', failed ? language.bright.bgBrightRed : language.bright.yellow, '\n')
             log.indent (2) (output)
         }
     }
