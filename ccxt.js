@@ -768,13 +768,13 @@ var _1broker = {
         let url = this.urls['api'] + '/' + this.version + '/' + path + '.php';
         let query = this.extend ({ 'token': this.apiKey }, params);
         url += '?' + this.urlencode (query);
-        let response = this.fetch (url, method);
+        let response = await this.fetch (url, method);
         if ('warning' in response)
             if (response['warning'])
-                throw EnpointError (this.id + ' Warning: ' + response['warning_message']);
+                throw MarketError (this.id + ' Warning: ' + response['warning_message']);
         if ('error' in response)
             if (response['error'])
-                throw EnpointError (this.id + ' Error: ' + response['error_code'] + response['error_message']);
+                throw MarketError (this.id + ' Error: ' + response['error_code'] + response['error_message']);
         return response;
     },
 }
@@ -917,7 +917,7 @@ var cryptocapital = {
         return this.privatePostOrdersCancel ({ 'id': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (this.id == 'cryptocapital')
             throw new MarketError (this.id + ' is an abstract base API for _1btcxe');
         let url = this.urls['api'] + '/' + path;
@@ -933,6 +933,16 @@ var cryptocapital = {
             query['signature'] = this.hmac (this.encode (request), this.encode (this.secret));
             body = this.json (query);
             headers = { 'Content-Type': 'application/json' };
+        }
+        let response = await this.fetch (url, method, headers, body);
+        if ('errors' in response) {
+            let errors = [];
+            for (let e = 0; e < response['errors'].length; e++) {
+                let error = response['errors'][e];
+                errors.push (error['code'] + ': ' + error['message']);
+            }
+            errors = errors.join (' ');
+            throw new MarketError (this.id + ' ' + errors);
         }
         return this.fetch (url, method, headers, body);
     },
