@@ -85,6 +85,15 @@ let numMarketsTested = 0
 
 /*  ------------------------------------------------------------------------ */
 
+const sequentialMap = async (input, fn) => {
+
+    const result = []
+    for (const item of input) { result.push (await fn (item)) }
+    return result
+}
+
+/*  ------------------------------------------------------------------------ */
+
 const testMarket = async (market) => {
 
     const nonce = Date.now ()
@@ -94,14 +103,13 @@ const testMarket = async (market) => {
     const args = [market, ...symbol === 'all' ? [] : symbol]
         , allTests = [
 
-            { language: 'JavaScript', key: '--js',      exec: ['node',      'test.js',  '--nonce=' + (nonce + 1000), ...args, ...keys['--es6'] ? ['--es6'] : []] },
-            { language: 'Python',     key: '--python',  exec: ['python',    'test.py',  '--nonce=' + (nonce + 2000), ...args]                                    },
-            { language: 'PHP',        key: '--php',     exec: ['php', '-f', 'test.php', '--nonce=' + (nonce + 3000), ...args]                                    }
+            { language: 'JavaScript', key: '--js',      exec: ['node',      'test.js',  ...args, ...keys['--es6'] ? ['--es6'] : []] },
+            { language: 'Python',     key: '--python',  exec: ['python',    'test.py',  ...args]                                    },
+            { language: 'PHP',        key: '--php',     exec: ['php', '-f', 'test.php', ...args]                                    }
         ]
         , selectedTests  = allTests.filter (t => keys[t.key])
         , scheduledTests = selectedTests.length ? selectedTests : allTests
-        , completeTests  = await Promise.all (scheduledTests.map (test => exec (...test.exec)
-                                                                         .then (result => Object.assign (test, result))))
+        , completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await exec (...test.exec)))
         , failed      = completeTests.find (test => test.failed)
         , hasWarnings = completeTests.find (test => test.hasWarnings)
 
