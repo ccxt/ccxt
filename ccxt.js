@@ -339,10 +339,10 @@ var Market = function (config) {
     this.encode = string => string
     this.decode = string => string
 
-    this.init = function () {
+    if (isNode)
+        this.nodeVersion = process.version.match (/\d+\.\d+.\d+/) [0]
 
-        if (isNode)
-            this.nodeVersion = process.version.match (/\d+\.\d+.\d+/) [0]
+    this.init = function () {
 
         if (this.api)
             Object.keys (this.api).forEach (type => {
