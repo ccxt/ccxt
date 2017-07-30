@@ -9522,13 +9522,12 @@ var kraken = {
         } else {
             let nonce = this.nonce ().toString ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
-            // a workaround for Kraken to replace the old CryptoJS block below, see issues #52 and #23
-            let signature = this.signForKraken (url, body, this.secret, nonce);
-            // an old CryptoJS block that does not want to work properly under Node
-            // let auth = this.encode (nonce + body);
-            // let query = this.encode (url) + this.hash (auth, 'sha256', 'binary');
-            // let secret = this.base64ToBinary (this.secret);
-            // let signature = this.hmac (query, secret, 'sha512', 'base64');
+            let auth = this.encode (nonce + body);
+            let hash = this.hash (auth, 'sha256', 'binary');
+            let binary = this.stringToBinary (this.encode (url));
+            let binhash = this.binaryConcat (binary, hash);
+            let secret = this.base64ToBinary (this.secret);
+            let signature = this.hmac (binhash, secret, 'sha512', 'base64');
             headers = {
                 'API-Key': this.apiKey,
                 'API-Sign': signature,
@@ -9538,6 +9537,31 @@ var kraken = {
         url = this.urls['api'] + url;
         return this.fetch (url, method, headers, body);
     },
+
+    // request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    //     let url = '/' + this.version + '/' + type + '/' + path;
+    //     if (type == 'public') {
+    //         if (Object.keys (params).length)
+    //             url += '?' + this.urlencode (params);
+    //     } else {
+    //         let nonce = this.nonce ().toString ();
+    //         body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
+    //         // a workaround for Kraken to replace the old CryptoJS block below, see issues #52 and #23
+    //         let signature = this.signForKraken (url, body, this.secret, nonce);
+    //         // an old CryptoJS block that does not want to work properly under Node
+    //         // let auth = this.encode (nonce + body);
+    //         // let query = this.encode (url) + this.hash (auth, 'sha256', 'binary');
+    //         // let secret = this.base64ToBinary (this.secret);
+    //         // let signature = this.hmac (query, secret, 'sha512', 'base64');
+    //         headers = {
+    //             'API-Key': this.apiKey,
+    //             'API-Sign': signature,
+    //             'Content-type': 'application/x-www-form-urlencoded',
+    //         };
+    //     }
+    //     url = this.urls['api'] + url;
+    //     return this.fetch (url, method, headers, body);
+    // },
 }
 
 //-----------------------------------------------------------------------------

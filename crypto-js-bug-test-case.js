@@ -47,29 +47,29 @@ console.log ('good:', crypto_sig   (path, secret2, nonceRequest))
 let kraken = new ccxt.kraken ({
     "apiKey": "hEvQNMDIeoCJbr7W/ZBb5CGOrx3G0lWF5B3zqa1JBxdZlEaL8EK+D0Mw",
     "secret": "JaE9wI6Nwgh5oRxiHcVxurwzwBxwc05W/qv/k1srGg4s3EYuXPpNkLLM5NYbbWpM8rCyijIeDavRuqWbU0ZV9A==",
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = '/' + this.version + '/' + type + '/' + path;
-        if (type == 'public') {
-            if (Object.keys (params).length)
-                url += '?' + this.urlencode (params);
-        } else {
-            let nonce = this.nonce ().toString ();
-            body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
-            let auth = this.encode (nonce + body);
-            let hash = this.hash (auth, 'sha256', 'binary');
-            let binary = this.stringToBinary (this.encode (url));
-            let binhash = this.binaryConcat (binary, hash);
-            let secret = this.base64ToBinary (this.secret);
-            let signature = this.hmac (binhash, secret, 'sha512', 'base64');
-            headers = {
-                'API-Key': this.apiKey,
-                'API-Sign': signature,
-                'Content-type': 'application/x-www-form-urlencoded',
-            };
-        }
-        url = this.urls['api'] + url;
-        return this.fetch (url, method, headers, body);
-    },
+    // request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    //     let url = '/' + this.version + '/' + type + '/' + path;
+    //     if (type == 'public') {
+    //         if (Object.keys (params).length)
+    //             url += '?' + this.urlencode (params);
+    //     } else {
+    //         let nonce = this.nonce ().toString ();
+    //         body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
+    //         let auth = this.encode (nonce + body);
+    //         let hash = this.hash (auth, 'sha256', 'binary');
+    //         let binary = this.stringToBinary (this.encode (url));
+    //         let binhash = this.binaryConcat (binary, hash);
+    //         let secret = this.base64ToBinary (this.secret);
+    //         let signature = this.hmac (binhash, secret, 'sha512', 'base64');
+    //         headers = {
+    //             'API-Key': this.apiKey,
+    //             'API-Sign': signature,
+    //             'Content-type': 'application/x-www-form-urlencoded',
+    //         };
+    //     }
+    //     url = this.urls['api'] + url;
+    //     return this.fetch (url, method, headers, body);
+    // },
 
 })
 
