@@ -196,4 +196,6 @@ marketsByCountries = marketsByCountries.sort ((a, b) => {
 // console.log (marketsByCountries)
 // console.log (asTable.configure ({ delimiter: ' | ' }) (marketsByCountries))
 
+fs.writeFileSync ('markets.json', JSON.stringify ({ ids: Object.keys (markets) }, null, 4))
+
 console.log ('Markets exported successfully.')
