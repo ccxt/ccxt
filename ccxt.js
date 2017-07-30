@@ -9109,8 +9109,9 @@ var itbit = {
             let timestamp = nonce;
             let auth = [ method, url, body, nonce, timestamp ];
             let message = nonce + this.json (auth);
-            let hashedMessage = this.hash (message, 'sha256', 'binary');
-            let signature = this.hmac (this.encode (url + hashedMessage), this.encode (this.secret), 'sha512', 'base64');
+            let hash = this.hash (this.encode (message), 'sha256', 'binary');
+            let binhash = this.binaryConcat (url, hash);
+            let signature = this.hmac (binhash, this.encode (this.secret), 'sha512', 'base64');
             headers = {
                 'Authorization': self.apiKey + ':' + signature,
                 'Content-Type': 'application/json',
