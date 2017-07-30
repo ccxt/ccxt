@@ -173,39 +173,22 @@ with open ('./keys.json') as file:
 
 # instantiate all markets
 for id in ccxt.markets:
-    class MillisecondsNonceMarket (getattr (ccxt, id)):
-        verbose = False
-        def nonce (self):
-            return self.milliseconds ()
-    markets[id] = MillisecondsNonceMarket (config[id] if id in config else {})
-    # market = getattr (ccxt, id)
-    # markets[id] = market ({ 'verbose': True })
+    market = getattr (ccxt, id)
+    markets[id] = market ({ 'verbose': True })
 
-# # set up api keys appropriately
-# tuples = list (ccxt.Market.keysort (config).items ())
-# for (id, params) in tuples:
-#     options = list (params.items ())
-#     for key in params:
-#         setattr (markets[id], key, params[key])
+# set up api keys appropriately
+tuples = list (ccxt.Market.keysort (config).items ())
+for (id, params) in tuples:
+    options = list (params.items ())
+    for key in params:
+        setattr (markets[id], key, params[key])
 
 # move gdax to sandbox
 markets['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
 
 if argv.market:
 
-    if argv.nonce:
-        id = argv.market
-        class CustomNonceMarket (getattr (ccxt, id)):
-            previous_nonce = argv.nonce
-            verbose = True
-            def nonce (self):
-                nonce = self.previous_nonce
-                previous_nonce = self.previous_nonce + 1
-                return nonce
-        market = CustomNonceMarket (config[id] if id in config else {})
-    else:
-        market = markets[argv.market]
-
+    market = markets[argv.market]
     symbol = argv.symbol
         
     if symbol:
