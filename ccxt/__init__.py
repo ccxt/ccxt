@@ -289,6 +289,8 @@ class Market (object):
                 data = gzip.GzipFile ('', 'rb', 9, io.BytesIO (text))
                 text = data.read ()
         body = text.decode ('utf-8')
+        if self.verbose:
+            print (method, url, "\nResponse:", headers, body)
         return self.handle_response (url, method, headers, body)
 
     def handle_response (self, url, method = 'GET', headers = None, body = None):

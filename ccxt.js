@@ -1008,7 +1008,10 @@ var anxpro = {
         'logo': 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
         'api': 'https://anxpro.com/api',
         'www': 'https://anxpro.com',
-        'doc': 'https://anxpro.com/pages/api',
+        'doc': [
+            'http://docs.anxv2.apiary.io',
+            'https://anxpro.com/pages/api',
+        ],
     },
     'api': {
         'public': {
@@ -1153,7 +1156,7 @@ var anxpro = {
         return this.milliseconds ();
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + '/' + this.version + '/' + request;
@@ -1171,7 +1174,10 @@ var anxpro = {
                 'Rest-Sign': this.hmac (this.encode (auth), secret, 'sha512', 'base64'),
             };
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if (('result' in response) && (response['result'] == 'success'))
+            return response;
+        throw new MarketError (this.id + ' ' + this.json (response));
     },
 }
 
