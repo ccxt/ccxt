@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.1.142';
+$version = '1.1.143';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -1169,7 +1169,10 @@ class anxpro extends Market {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
                 'api' => 'https://anxpro.com/api',
                 'www' => 'https://anxpro.com',
-                'doc' => 'https://anxpro.com/pages/api',
+                'doc' => array (
+                    'http://docs.anxv2.apiary.io',
+                    'https://anxpro.com/pages/api',
+                ),
             ),
             'api' => array (
                 'public' => array (
@@ -1334,7 +1337,10 @@ class anxpro extends Market {
                 'Rest-Sign' => $this->hmac ($this->encode ($auth), $secret, 'sha512', 'base64'),
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists (('result', $response)) && ($response['result'] == 'success'))
+            return $response;
+        throw new MarketError ($this->id . ' ' . $this->json ($response));
     }
 }
 

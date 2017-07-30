@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.142'
+__version__ = '1.1.143'
 
 # Python 2 & 3
 import base64
@@ -1013,7 +1013,10 @@ class anxpro (Market):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
                 'api': 'https://anxpro.com/api',
                 'www': 'https://anxpro.com',
-                'doc': 'https://anxpro.com/pages/api',
+                'doc': [
+                    'http://docs.anxv2.apiary.io',
+                    'https://anxpro.com/pages/api',
+                ],
             },
             'api': {
                 'public': {
@@ -1167,7 +1170,10 @@ class anxpro (Market):
                 'Rest-Key': self.apiKey,
                 'Rest-Sign': self.hmac (self.encode (auth), secret, hashlib.sha512, 'base64'),
             }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if ('result' in list (response.keys ())) and (response['result'] == 'success'):
+            return response
+        raise MarketError (self.id + ' ' + self.json (response))
 
 #------------------------------------------------------------------------------
 
