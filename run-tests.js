@@ -134,8 +134,8 @@ const testMarket = async (market) => {
             for (const { language, failed, output, hasWarnings } of completeTests) {
                 if (failed || hasWarnings) {
 
-                    if (failed) { log.bright ('\nFAILED'.bgBrightRed.white, market.red, '(' + language + '):\n') }
-                    else        { log.bright ('\nWARN'.bgYellow.yellow, market.yellow, '(' + language + '):\n') }
+                    if (failed) { log.bright ('\nFAILED'.bgBrightRed.white, market.red,    '(' + language + '):\n') }
+                    else        { log.bright ('\nWARN'.yellow.inverse,      market.yellow, '(' + language + '):\n') }
 
                     log.indent (1) (output)
                 }
@@ -162,10 +162,13 @@ const testMarket = async (market) => {
     }
 
     failed.forEach (t => t.explain ())
+
+    if (failed.length)   { log.noPretty.bright.red    ('FAIL'.bgBrightRed.white,    failed  .map (t => t.market)) }
+    if (warnings.length) { log.noPretty.bright.yellow ('WARN'.inverse, warnings.map (t => t.market)) }
     
-    log.bright ('All done,', [failed.length    && (failed.length    + ' failed')   .red,
-                              succeeded.length && (succeeded.length + ' succeeded').green,
-                              warnings.length  && (warnings.length  + ' warnings') .yellow].filter (s => s).join (', '))
+    log.bright ('\nAll done,', [failed.length    && (failed.length    + ' failed')   .red,
+                                succeeded.length && (succeeded.length + ' succeeded').green,
+                                warnings.length  && (warnings.length  + ' warnings') .yellow].filter (s => s).join (', '))
 
     if (failed.length) {
         process.exit (1)
