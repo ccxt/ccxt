@@ -25,17 +25,20 @@ function ASCIIStringToUint8Array (str) {
     return arr
 }
 
-var WordArray = CryptoJS.lib.WordArray
-
 var cryptojs_sig = function (path, secret, nonceRequest) {
 
-    let msg = WordArray.create (ASCIIStringToUint8Array (path)).concat (CryptoJS.SHA256 (nonceRequest))
+    let msg = CryptoJS.lib.WordArray.create (ASCIIStringToUint8Array (path)).concat (CryptoJS.SHA256 (nonceRequest))
 
     return CryptoJS.HmacSHA512 (msg, secret).toString (CryptoJS.enc.Base64)
 }
 
 let nonceRequest = nonce + request
-let secret = CryptoJS.enc.Base64.parse (secret64).toString ()
-console.log ('good:', crypto_sig   (path, secret, nonceRequest))
-console.log ('bad:',  cryptojs_sig (path, secret, nonceRequest))
+let secret1 = CryptoJS.enc.Base64.parse (secret64)
+let secret2 = new Buffer (secret64, 'base64')
+console.log (secret1, secret2)
+
+console.log ('bad:',  cryptojs_sig (path, secret1, nonceRequest))
+console.log ('good:', crypto_sig   (path, secret2, nonceRequest))
+
+// console.log ('check:', )
 
