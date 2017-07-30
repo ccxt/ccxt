@@ -71,12 +71,20 @@ const exec = (bin, ...args) =>
         const ps = require ('child_process').spawn (bin, args)
 
         let output = ''
+        let stderr = ''
         let hasWarnings = false
 
         ps.stdout.on ('data', data => { output += data.toString () })
-        ps.stderr.on ('data', data => { output += data.toString (); hasWarnings = true })
+        ps.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); hasWarnings = true })
 
-        ps.on ('exit', code => { return_ ({ failed: code !== 0, output, hasWarnings }) })
+        ps.on ('exit', code => {
+            return_ ({
+                failed: code !== 0,
+                output,
+                hasWarnings,
+                warnings: ansi.strip (stderr).match (/\[[^\]]+Error\]/g) || []
+            })
+        })
     })
 
 /*  ------------------------------------------------------------------------ */
@@ -112,6 +120,7 @@ const testMarket = async (market) => {
         , completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await exec (...test.exec)))
         , failed      = completeTests.find (test => test.failed)
         , hasWarnings = completeTests.find (test => test.hasWarnings)
+        , warnings    = completeTests.reduce ((total, { warnings }) => total.concat (warnings), [])
 
 /*  Print interactive log output    */
 
@@ -120,7 +129,7 @@ const testMarket = async (market) => {
     const percentsDone = ((numMarketsTested / markets.length) * 100).toFixed (0) + '%'
 
     log.bright (('[' + percentsDone + ']').dim, 'Testing', market.cyan, (failed      ? 'FAIL'.red :
-                                                                        (hasWarnings ? 'WARN'.yellow
+                                                                        (hasWarnings ? (warnings.length ? warnings.join (' ') : 'WARN').yellow
                                                                                      : 'OK'.green)))
 
 /*  Return collected data to main loop     */
