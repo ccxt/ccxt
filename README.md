@@ -131,7 +131,7 @@ Node version of the ccxt library requires [crypto-js](https://www.npmjs.com/pack
 
 ```JavaScript
 var ccxt = require ('ccxt')
-console.log (ccxt.market) // print all available markets
+console.log (ccxt.markets) // print all available markets
 ```
 
 ### Python
