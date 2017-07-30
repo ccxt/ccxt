@@ -167,14 +167,14 @@ proxies = [
     # 'http://cors-proxy.htmldriven.com/?url=', # we don't want this for now
 ]
 
+# load the api keys from config
+with open ('./keys.json') as file:    
+    config = json.load (file)
+
 # instantiate all markets
 for id in ccxt.markets:
     market = getattr (ccxt, id)
     markets[id] = market ({ 'verbose': True })
-
-# load the api keys from config
-with open ('./keys.json') as file:    
-    config = json.load (file)
 
 # set up api keys appropriately
 tuples = list (ccxt.Market.keysort (config).items ())
@@ -188,19 +188,7 @@ markets['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
 
 if argv.market:
 
-    if argv.nonce:
-        id = argv.market
-        class CustomNonceMarket (getattr (ccxt, id)):
-            previous_nonce = argv.nonce
-            verbose = True
-            def nonce (self):
-                nonce = self.previous_nonce
-                previous_nonce = self.previous_nonce + 1
-                return nonce
-        market = CustomNonceMarket (config[id] if id in config else {})
-    else:
-        market = markets[argv.market]
-
+    market = markets[argv.market]
     symbol = argv.symbol
         
     if symbol:
