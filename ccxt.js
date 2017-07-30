@@ -409,7 +409,7 @@ var Market = function (config) {
                     return response
                 return response.text ().then (text => {
                     if (this.verbose)
-                        console.log (this.id, method, url, text ? ("\n" + text.substr (0, Math.max (100, text.length))) : '')
+                        console.log (this.id, method, url, text ? ("\n" + text.slice (0, Math.min (100, text.length))) : '')
                     if ((response.status >= 200) && (response.status <= 300))
                         return text
                     let error = undefined
