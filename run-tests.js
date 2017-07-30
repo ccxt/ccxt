@@ -110,9 +110,7 @@ const testMarket = async (market) => {
         }
     }
 
-    if (anyFailed) {
-        process.exit (1)
-    }
+    return { market, failed: anyFailed }
 }
 
 /*  ------------------------------------------------------------------------ */
@@ -121,9 +119,19 @@ const testMarket = async (market) => {
 
     log.bright.magenta.noPretty ('Testing'.white, { markets, symbol, keys })
 
-    await Promise.all (markets.map (testMarket))
+    const failed = (await Promise.all (markets.map (testMarket))).filter (t => t.failed)
+                                                                 .map (t => t.market)
 
-    log.bright.bgGreen ('\nALL OK')
+    if (failed.length) {
+
+        log.bright.red ('\nFAILED:'.bgBrightRed.white, failed, '\n')
+        process.exit (1)
+
+    } else {
+
+        log.bright.bgGreen ('\nALL OK')
+        process.exit (0)
+    }
 
 }) ();
 
