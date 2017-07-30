@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.143'
+__version__ = '1.1.144'
 
 # Python 2 & 3
 import base64
@@ -5437,10 +5437,7 @@ class cex (Market):
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
-        if type == 'public':
-            if query:
-                url += '?' + _urlencode.urlencode (query)
-        else:
+        if type != 'public':
             if not self.uid:
                 raise AuthenticationError (self.id + ' requires `' + self.id + '.uid` property for authentication')
             nonce = str (self.nonce ())
