@@ -160,7 +160,7 @@ function test_market ($market) {
     usleep ($delay);
 
     $balance = $market->fetch_balance ();
-    var_dump ($balance);
+    print_r ($balance);
 }
 
 $proxies = array (
