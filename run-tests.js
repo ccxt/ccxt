@@ -5,7 +5,7 @@
     A tests launcher. Runs tests for all languages and all markets, in
     parallel, with a humanized error reporting.
 
-    Usage: node run-tests [--php] [--js] [--python] [--es6] [--no-warns] [market] [symbol]
+    Usage: node run-tests [--php] [--js] [--python] [--es6] [market] [symbol]
 
     --------------------------------------------------------------------------- */
 
@@ -28,7 +28,6 @@ const keys = {
     '--php': false,     // run PHP tests only
     '--python': false,  // run Python tests only
     '--es6': false,     // run JS tests against ccxt.js instead of ccxt.es5.js (no need to `npm run build` before)
-    '--no-warns': false // supress warnings output
 }
 
 let markets = []
@@ -166,20 +165,23 @@ const testMarket = async (market) => {
 
     log.newline ()
 
-    if (!keys['--no-warns']) {
-        warnings.forEach (t => t.explain ())
-    }
-
+    warnings.forEach (t => t.explain ())
     failed.forEach (t => t.explain ())
+
+    log.newline ()
 
     if (failed.length)   { log.noPretty.bright.red    ('FAIL'.bgBrightRed.white,    failed  .map (t => t.market)) }
     if (warnings.length) { log.noPretty.bright.yellow ('WARN'.inverse, warnings.map (t => t.market)) }
     
-    log.bright ('\nAll done,', [failed.length    && (failed.length    + ' failed')   .red,
-                                succeeded.length && (succeeded.length + ' succeeded').green,
-                                warnings.length  && (warnings.length  + ' warnings') .yellow].filter (s => s).join (', '))
+    log.newline ()
+
+    log.bright ('All done,', [failed.length    && (failed.length    + ' failed')   .red,
+                              succeeded.length && (succeeded.length + ' succeeded').green,
+                              warnings.length  && (warnings.length  + ' warnings') .yellow].filter (s => s).join (', '))
 
     if (failed.length) {
+
+        await sleep (2000)
         process.exit (1)
     }
 
