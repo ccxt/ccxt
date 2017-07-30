@@ -1,6 +1,7 @@
 "use strict";
 
 const fs = require ('fs')
+const log = require ('ololog')
 
 function regexAll (text, array) {
     for (let i in array) {
@@ -272,4 +273,4 @@ fs.truncateSync (oldNamePHP)
 fs.writeFileSync (oldNamePy, ccxtpy)
 fs.writeFileSync (oldNamePHP, ccxtphp)
 
-console.log ('Transpiled successfully.')
+log.bright.green ('Transpiled successfully.')

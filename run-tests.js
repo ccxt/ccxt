@@ -87,14 +87,16 @@ let numMarketsTested = 0
 
 const testMarket = async (market) => {
 
+    const nonce = Date.now ()
+
 /*  Run tests for all/selected languages (in parallel)     */
 
     const args = [market, ...symbol === 'all' ? [] : symbol]
         , allTests = [
 
-            { language: 'JavaScript', key: '--js',      exec: ['node',      'test.js',  ...args, ...keys['--es6'] ? ['--es6'] : []] },
-            { language: 'Python',     key: '--python',  exec: ['python',    'test.py',  ...args]                                    },
-            { language: 'PHP',        key: '--php',     exec: ['php', '-f', 'test.php', ...args]                                    }
+            { language: 'JavaScript', key: '--js',      exec: ['node',      'test.js',  '--nonce=' + (nonce + 1000), ...args, ...keys['--es6'] ? ['--es6'] : []] },
+            { language: 'Python',     key: '--python',  exec: ['python',    'test.py',  '--nonce=' + (nonce + 2000), ...args]                                    },
+            { language: 'PHP',        key: '--php',     exec: ['php', '-f', 'test.php', '--nonce=' + (nonce + 3000), ...args]                                    }
         ]
         , selectedTests  = allTests.filter (t => keys[t.key])
         , scheduledTests = selectedTests.length ? selectedTests : allTests
