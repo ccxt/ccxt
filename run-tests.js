@@ -124,7 +124,7 @@ const testMarket = async (market) => {
                 if (failed || hasWarnings) {
 
                     if (failed) { log.bright ('\nFAILED'.bgBrightRed.white, market.red, '(' + language + '):\n') }
-                    else        { log.bright.yellow (market, '(' + language + '):\n') }
+                    else        { log.bright ('\nWARN'.bgYellow.yellow, market.yellow, '(' + language + '):\n') }
 
                     log.indent (1) (output)
                 }
@@ -139,14 +139,14 @@ const testMarket = async (market) => {
 
     log.bright.magenta.noPretty ('Testing'.white, { markets, symbol, keys })
 
-    const tested      = await Promise.all (markets.map (testMarket))
-        , hasWarnings = tested.filter (t => t.hasWarnings)
-        , failed      = tested.filter (t => t.failed)
+    const tested   = await Promise.all (markets.map (testMarket))
+        , warnings = tested.filter (t => !t.failed && t.hasWarnings)
+        , failed   = tested.filter (t =>  t.failed)
 
     log.newline ()
 
-    hasWarnings.forEach (t => t.explain ())
-    failed     .forEach (t => t.explain ())
+    warnings.forEach (t => t.explain ())
+    failed  .forEach (t => t.explain ())
 
     if (failed.length) {
 
