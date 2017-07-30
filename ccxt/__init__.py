@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.138'
+__version__ = '1.1.139'
 
 # Python 2 & 3
 import base64
@@ -8762,8 +8762,9 @@ class itbit (Market):
             timestamp = nonce
             auth = [ method, url, body, nonce, timestamp ]
             message = nonce + self.json (auth)
-            hashedMessage = self.hash (message, 'sha256', 'binary')
-            signature = self.hmac (self.encode (url + hashedMessage), self.encode (self.secret), hashlib.sha512, 'base64')
+            hash = self.hash (self.encode (message), 'sha256', 'binary')
+            binhash = self.binary_concat (url, hash)
+            signature = self.hmac (binhash, self.encode (self.secret), hashlib.sha512, 'base64')
             headers = {
                 'Authorization': self.apiKey + ':' + signature,
                 'Content-Type': 'application/json',
