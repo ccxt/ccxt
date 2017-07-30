@@ -5907,10 +5907,7 @@ class cex extends Market {
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'public') {
-            if ($query)
-                $url .= '?' . $this->urlencode ($query);
-        } else {
+        if ($type != 'public') {
             if (!$this->uid)
                 throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.uid` property for authentication');
             $nonce = (string) $this->nonce ();

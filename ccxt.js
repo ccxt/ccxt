@@ -105,7 +105,7 @@ const extend = (...args) => {
     return result
 }
 
-const omit = object => {
+const omit = function (object) {
     const result = extend (object)
     for (let i = 1; i < arguments.length; i++)
         if (typeof arguments[i] === 'string')
@@ -5611,7 +5611,10 @@ var cex = {
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (type != 'public') {
+        if (type == 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
             if (!this.uid)
                 throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication');
             let nonce = this.nonce ().toString ();
