@@ -8,7 +8,7 @@ Below are the rules for contributing to the ccxt library codebase.
 
 ## What You Need To Have
 
-- Node.js
+- Node.js (version 8 or higher)
 - Python 2/3
 - PHP 5.3+
 
