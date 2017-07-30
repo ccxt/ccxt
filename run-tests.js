@@ -70,13 +70,17 @@ const exec = (bin, ...args) =>
         const ps = require ('child_process').spawn (bin, args)
 
         let output = ''
-        let hasErrorOutput = false
+        let hasWarnings = false
 
         ps.stdout.on ('data', data => { output += data.toString () })
-        ps.stderr.on ('data', data => { output += data.toString (); hasErrorOutput = true })
+        ps.stderr.on ('data', data => { output += data.toString (); hasWarnings = true })
 
-        ps.on ('exit', code => { return_ ({ failed: code !== 0, output, hasErrorOutput }) })
+        ps.on ('exit', code => { return_ ({ failed: code !== 0, output, hasWarnings }) })
     })
+
+/*  ------------------------------------------------------------------------ */
+
+let numMarketsTested = 0
 
 /*  ------------------------------------------------------------------------ */
 
@@ -95,22 +99,38 @@ const testMarket = async (market) => {
         , scheduledTests = selectedTests.length ? selectedTests : allTests
         , completeTests  = await Promise.all (scheduledTests.map (test => exec (...test.exec)
                                                                          .then (result => Object.assign (test, result))))
-        , anyFailed = completeTests.find (test => test.failed)
+        , failed      = completeTests.find (test => test.failed)
+        , hasWarnings = completeTests.find (test => test.hasWarnings)
 
-/*  Print log output    */
+/*  Print interactive log output    */
 
-    log.bright ('Testing', market.cyan, anyFailed ? 'FAILED'.bgBrightRed : 'OK'.green)
+    numMarketsTested++
 
-    for (const { language, failed, output, hasErrorOutput } of completeTests) {
+    const percentsDone = ((numMarketsTested / markets.length) * 100).toFixed (0) + '%'
 
-        if (failed || hasErrorOutput) {
+    log.bright (('[' + percentsDone + ']').dim, 'Testing', market.cyan, (failed      ? 'FAIL'.red :
+                                                                        (hasWarnings ? 'WARN'.yellow
+                                                                                     : 'OK'.green)))
 
-            log.indent (1) ('\n', failed ? language.bright.bgBrightRed : language.bright.yellow, '\n')
-            log.indent (2) (output)
+/*  Return collected data to main loop     */
+
+    return {
+
+        market,
+        failed,
+        hasWarnings,
+        explain () {
+            for (const { language, failed, output, hasWarnings } of completeTests) {
+                if (failed || hasWarnings) {
+
+                    if (failed) { log.bright ('\nFAILED'.bgBrightRed.white, market.red, '(' + language + '):\n') }
+                    else        { log.bright.yellow (market, '(' + language + '):\n') }
+
+                    log.indent (1) (output)
+                }
+            }
         }
     }
-
-    return { market, failed: anyFailed }
 }
 
 /*  ------------------------------------------------------------------------ */
@@ -119,12 +139,18 @@ const testMarket = async (market) => {
 
     log.bright.magenta.noPretty ('Testing'.white, { markets, symbol, keys })
 
-    const failed = (await Promise.all (markets.map (testMarket))).filter (t => t.failed)
-                                                                 .map (t => t.market)
+    const tested      = await Promise.all (markets.map (testMarket))
+        , hasWarnings = tested.filter (t => t.hasWarnings)
+        , failed      = tested.filter (t => t.failed)
+
+    log.newline ()
+
+    hasWarnings.forEach (t => t.explain ())
+    failed     .forEach (t => t.explain ())
 
     if (failed.length) {
 
-        log.bright.red ('\nFAILED:'.bgBrightRed.white, failed, '\n')
+        log.bright.red ('\nFAILED:'.bgBrightRed.white, failed.map (t => t.market), '\n')
         process.exit (1)
 
     } else {
