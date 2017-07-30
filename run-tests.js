@@ -5,7 +5,7 @@
     A tests launcher. Runs tests for all languages and all markets, in
     parallel, with a humanized error reporting.
 
-    Usage: node run-tests [--php] [--js] [--python] [--es6] [market] [symbol]
+    Usage: node run-tests [--php] [--js] [--python] [--es6] [--no-warns] [market] [symbol]
 
     --------------------------------------------------------------------------- */
 
@@ -28,6 +28,7 @@ const keys = {
     '--php': false,     // run PHP tests only
     '--python': false,  // run Python tests only
     '--es6': false,     // run JS tests against ccxt.js instead of ccxt.es5.js (no need to `npm run build` before)
+    '--no-warns': false // supress warnings output
 }
 
 let markets = []
@@ -124,7 +125,7 @@ const testMarket = async (market) => {
                 if (failed || hasWarnings) {
 
                     if (failed) { log.bright ('\nFAILED'.bgBrightRed.white, market.red, '(' + language + '):\n') }
-                    else        { log.bright.yellow (market, '(' + language + '):\n') }
+                    else        { log.bright ('\nWARN'.bgYellow.yellow, market.yellow, '(' + language + '):\n') }
 
                     log.indent (1) (output)
                 }
@@ -139,24 +140,25 @@ const testMarket = async (market) => {
 
     log.bright.magenta.noPretty ('Testing'.white, { markets, symbol, keys })
 
-    const tested      = await Promise.all (markets.map (testMarket))
-        , hasWarnings = tested.filter (t => t.hasWarnings)
-        , failed      = tested.filter (t => t.failed)
+    const tested   = await Promise.all (markets.map (testMarket))
+        , warnings = tested.filter  (t => !t.failed && t.hasWarnings)
+        , failed   = tested.filter  (t =>  t.failed)
+        , succeeded = tested.filter (t => !t.failed && !t.hasWarnings)
 
     log.newline ()
 
-    hasWarnings.forEach (t => t.explain ())
-    failed     .forEach (t => t.explain ())
+    if (!keys['--no-warns']) {
+        warnings.forEach (t => t.explain ())
+    }
+
+    failed.forEach (t => t.explain ())
+    
+    log.bright ('All done,', [failed.length    && (failed.length    + ' failed')   .red,
+                              succeeded.length && (succeeded.length + ' succeeded').green,
+                              warnings.length  && (warnings.length  + ' warnings') .yellow].filter (s => s).join (', '))
 
     if (failed.length) {
-
-        log.bright.red ('\nFAILED:'.bgBrightRed.white, failed.map (t => t.market), '\n')
         process.exit (1)
-
-    } else {
-
-        log.bright.bgGreen ('\nALL OK')
-        process.exit (0)
     }
 
 }) ();
