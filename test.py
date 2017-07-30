@@ -178,7 +178,7 @@ with open ('./keys.json') as file:
 # instantiate all markets
 for id in ccxt.markets:
     market = getattr (ccxt, id)
-    markets[id] = market ({ 'verbose': True })
+    markets[id] = market ({ 'verbose': False })
 
 # set up api keys appropriately
 tuples = list (ccxt.Market.keysort (config).items ())
