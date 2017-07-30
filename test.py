@@ -167,21 +167,26 @@ proxies = [
     # 'http://cors-proxy.htmldriven.com/?url=', # we don't want this for now
 ]
 
-# instantiate all markets
-for id in ccxt.markets:
-    market = getattr (ccxt, id)
-    markets[id] = market ({ 'verbose': True })
-
 # load the api keys from config
 with open ('./keys.json') as file:    
     config = json.load (file)
 
-# set up api keys appropriately
-tuples = list (ccxt.Market.keysort (config).items ())
-for (id, params) in tuples:
-    options = list (params.items ())
-    for key in params:
-        setattr (markets[id], key, params[key])
+# instantiate all markets
+for id in ccxt.markets:
+    class MillisecondsNonceMarket (getattr (ccxt, id)):
+        verbose = False
+        def nonce (self):
+            return self.milliseconds ()
+    markets[id] = MillisecondsNonceMarket (config[id] if id in config else {})
+    # market = getattr (ccxt, id)
+    # markets[id] = market ({ 'verbose': True })
+
+# # set up api keys appropriately
+# tuples = list (ccxt.Market.keysort (config).items ())
+# for (id, params) in tuples:
+#     options = list (params.items ())
+#     for key in params:
+#         setattr (markets[id], key, params[key])
 
 # move gdax to sandbox
 markets['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
