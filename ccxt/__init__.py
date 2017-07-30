@@ -5437,7 +5437,10 @@ class cex (Market):
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
-        if type != 'public':
+        if type == 'public':
+            if query:
+                url += '?' + _urlencode.urlencode (query)
+        else:
             if not self.uid:
                 raise AuthenticationError (self.id + ' requires `' + self.id + '.uid` property for authentication')
             nonce = str (self.nonce ())
