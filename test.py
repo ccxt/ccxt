@@ -5,6 +5,20 @@ import time
 import sys
 import json
 
+import argparse
+
+
+class Argv (object):
+    pass
+
+argv = Argv ()
+
+parser = argparse.ArgumentParser ()
+parser.add_argument ('--nonce', type = int, help = 'integer')
+parser.add_argument ('market', type = str, help = 'market id in lowercase', nargs = '?')
+parser.add_argument ('symbol', type = str, help = 'symbol in uppercase', nargs = '?')
+parser.parse_args (namespace = argv)
+
 markets = {}
 
 #------------------------------------------------------------------------------
@@ -156,7 +170,7 @@ proxies = [
 # instantiate all markets
 for id in ccxt.markets:
     market = getattr (ccxt, id)
-    markets[id] = market ({ 'verbose': False })
+    markets[id] = market ({ 'verbose': True })
 
 # load the api keys from config
 with open ('./keys.json') as file:    
@@ -172,22 +186,23 @@ for (id, params) in tuples:
 # move gdax to sandbox
 markets['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
 
-id = None
-try:
-    id = sys.argv[1]
-except:
-    id = None
+if argv.market:
 
-if id:
-    
-    market = markets[id]
-    symbol = None
-    
-    try:
-        symbol = sys.argv[2]
-    except:
-        symbol = None
-    
+    if argv.nonce:
+        id = argv.market
+        class CustomNonceMarket (getattr (ccxt, id)):
+            previous_nonce = argv.nonce
+            verbose = True
+            def nonce (self):
+                nonce = self.previous_nonce
+                previous_nonce = self.previous_nonce + 1
+                return nonce
+        market = CustomNonceMarket (config[id])
+    else:
+        market = markets[argv.market]
+
+    symbol = argv.symbol
+        
     if symbol:
         load_market (market)
         test_market_symbol (market, symbol)
