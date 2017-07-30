@@ -395,7 +395,7 @@ var Market = function (config) {
         url = this.proxy + url
 
         if (this.verbose)
-            console.log (this.id, url, options)
+            console.log (this.id, method, url, options)
 
         return timeout (this.timeout, fetch (url, options)
             .catch (e => {
@@ -408,6 +408,8 @@ var Market = function (config) {
                 if (typeof response == 'string')
                     return response
                 return response.text ().then (text => {
+                    if (this.verbose)
+                        console.log (this.id, method, url, text ? ("\n" + text.substr (0, Math.max (numMaxSymbols = 100, test.length))) : '')
                     if ((response.status >= 200) && (response.status <= 300))
                         return text
                     let error = undefined
