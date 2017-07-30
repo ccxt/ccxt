@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.140'
+__version__ = '1.1.141'
 
 # Python 2 & 3
 import base64
@@ -776,7 +776,14 @@ class _1broker (Market):
         url = self.urls['api'] + '/' + self.version + '/' + path + '.php'
         query = self.extend ({ 'token': self.apiKey }, params)
         url += '?' + _urlencode.urlencode (query)
-        return self.fetch (url, method)        
+        response = self.fetch (url, method)
+        if 'warning' in response:
+            if response['warning']:
+                raise MarketError (self.id + ' Warning: ' + response['warning_message'])
+        if 'error' in response:
+            if response['error']:
+                raise MarketError (self.id + ' Error: ' + response['error_code'] + response['error_message'])
+        return response
 
 #------------------------------------------------------------------------------
 
@@ -928,6 +935,14 @@ class cryptocapital (Market):
             query['signature'] = self.hmac (self.encode (request), self.encode (self.secret))
             body = self.json (query)
             headers = { 'Content-Type': 'application/json' }
+        response = self.fetch (url, method, headers, body)
+        if 'errors' in response:
+            errors = []
+            for e in range (0, len (response['errors'])):
+                error = response['errors'][e]
+                errors.append (error['code'] + ': ' + error['message'])
+            errors = ' '.join (errors)
+            raise MarketError (self.id + ' ' + errors)
         return self.fetch (url, method, headers, body)
 
 #------------------------------------------------------------------------------
