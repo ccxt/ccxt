@@ -155,6 +155,10 @@ def try_all_proxies (market, proxies):
             dump (yellow (type (e).__name__), str (e))
         except ccxt.MarketNotAvailableError as e:
             dump (yellow (type (e).__name__), e.args)
+        except ccxt.EndpointError as e:
+            dump (yellow (type (e).__name__), e.args)
+        except ccxt.MarketError as e:
+            dump (yellow (type (e).__name__), e.args)
         except ccxt.AuthenticationError as e:
             dump (yellow (type (e).__name__), str (e))
 

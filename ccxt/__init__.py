@@ -131,19 +131,13 @@ class TimeoutError (socket.timeout):
 class AuthenticationError (CCXTError):
     pass
 
-class NotAvailableError (CCXTError):
+class MarketError (CCXTError):
     pass
 
-class MarketNotAvailableError (NotAvailableError):
+class MarketNotAvailableError (MarketError):
     pass
 
-class EndpointNotAvailableError (NotAvailableError):
-    pass
-
-class OrderBookNotAvailableError (NotAvailableError):
-    pass
-
-class TickerNotAvailableError (NotAvailableError):
+class EndpointError (MarketError):
     pass
 
 class Market (object):

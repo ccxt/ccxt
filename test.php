@@ -111,6 +111,10 @@ function try_all_proxies ($market, $proxies) {
             dump (yellow ('[Authentication Error] ' . $e->getMessage () . ' (ignoring)'));
         } catch (\ccxt\MarketNotAvailableError $e) {
             dump (yellow ('[Market Not Available Error] ' . $e->getMessage () . ' (ignoring)'));
+        } catch (\ccxt\EndpointError $e) {
+            dump (yellow ('[EndpointError] ' . $e->getMessage () . ' (ignoring)'));
+        } catch (\ccxt\MarketError $e) {
+            dump (yellow ('[MarketError] ' . $e->getMessage () . ' (ignoring)'));
         } catch (Exception $e) {
             dump (red ('[Error] ' . $e->getMessage ()));
         }
