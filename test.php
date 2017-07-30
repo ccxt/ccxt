@@ -3,7 +3,6 @@
 date_default_timezone_set ('UTC');
 
 include 'ccxt.php';
-include 'Console/Table.php';
 
 date_default_timezone_set ('UTC');
 
@@ -18,6 +17,15 @@ function underline ($s) { return style ($s, "\033[4m"); }
 function dump ($s) { echo implode (' ', func_get_args ()) . "\n"; }
 
 $markets = null;
+
+// $shortopts = '';
+// $longopts = array (
+//     "nonce::", // '::' means optional, ':' means required
+// );
+
+// $options = getopt ($shortopts, $longopts);
+// var_dump ($options);
+// exit ();
 
 //-----------------------------------------------------------------------------
 
@@ -103,6 +111,10 @@ function try_all_proxies ($market, $proxies) {
             dump (yellow ('[Authentication Error] ' . $e->getMessage () . ' (ignoring)'));
         } catch (\ccxt\MarketNotAvailableError $e) {
             dump (yellow ('[Market Not Available Error] ' . $e->getMessage () . ' (ignoring)'));
+        } catch (\ccxt\EndpointError $e) {
+            dump (yellow ('[EndpointError] ' . $e->getMessage () . ' (ignoring)'));
+        } catch (\ccxt\MarketError $e) {
+            dump (yellow ('[MarketError] ' . $e->getMessage () . ' (ignoring)'));
         } catch (Exception $e) {
             dump (red ('[Error] ' . $e->getMessage ()));
         }
@@ -148,7 +160,7 @@ function test_market ($market) {
     usleep ($delay);
 
     $balance = $market->fetch_balance ();
-    var_dump ($balance);
+    print_r ($balance);
 }
 
 $proxies = array (
@@ -185,9 +197,6 @@ if (count ($argv) > 1) {
 } else {
 
     foreach ($markets as $id => $market) {
-
-        if ($id == 'virwox')
-            continue;
     
         try_all_proxies ($market, $proxies);
     }

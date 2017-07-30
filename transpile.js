@@ -1,6 +1,7 @@
 "use strict";
 
 const fs = require ('fs')
+const log = require ('ololog')
 
 function regexAll (text, array) {
     for (let i in array) {
@@ -99,6 +100,7 @@ while (markets = regex.exec (contents)) {
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64/g, 'base64.b64encode' ],
             [ /this\.base64ToBinary/g, 'base64.b64decode' ],
+            [ /\.binaryConcat/g, '.binary_concat'],
             [ /\.implodeParams/g, '.implode_params'],
             [ /\.extractParams/g, '.extract_params'],
             [ /\.indexBy/g, '.index_by'],
@@ -159,6 +161,7 @@ while (markets = regex.exec (contents)) {
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64/g, 'base64_encode' ],
             [ /this\.base64ToBinary/g, 'base64_decode' ],
+            [ /\.binaryConcat/g, '.binary_concat'],
             [ /\.implodeParams/g, '.implode_params'],
             [ /\.extractParams/g, '.extract_params'],
             [ /\.indexBy/g, '.index_by'],
@@ -272,4 +275,4 @@ fs.truncateSync (oldNamePHP)
 fs.writeFileSync (oldNamePy, ccxtpy)
 fs.writeFileSync (oldNamePHP, ccxtphp)
 
-console.log ('Transpiled successfully.')
+log.bright.green ('Transpiled successfully.')

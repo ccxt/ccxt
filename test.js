@@ -2,8 +2,7 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const keys = ['--es6']
-const [processPath, , marketId = null, marketSymbol = null] = process.argv.filter (x => !keys.includes (x))
+const [processPath, , marketId = null, marketSymbol = null] = process.argv.filter (x => !x.startsWith ('--'))
 const ccxtFile = process.argv.includes ('--es6') ? 'ccxt.js' : 'ccxt.es5.js'
 
 /*  ------------------------------------------------------------------------ */
@@ -18,6 +17,10 @@ const util      = require ('util')
 const log       = require ('ololog')
 const ansi      = require ('ansicolor').nice;
 const fs        = require ('fs')
+
+/*  ------------------------------------------------------------------------ */
+
+const warn = log.bright.yellow.error // .error goes to stderr
 
 /*  ------------------------------------------------------------------------ */
 
@@ -40,7 +43,7 @@ let proxies = [
 
 // instantiate all markets
 ccxt.markets.forEach (id => {
-    markets[id] = new (ccxt)[id] ({ verbose: false })
+    markets[id] = new (ccxt)[id] ({ verbose: true })
 })
 
 // load api keys from config
@@ -338,15 +341,19 @@ let tryAllProxies = async function (market, proxies) {
 
             currentProxy = ++currentProxy % proxies.length
             if (e instanceof ccxt.DDoSProtectionError) {
-                log.bright.yellow (market.id, '[DDoS Protection Error] ' + e.message)
+                warn (market.id, '[DDoS Protection Error] ' + e.message)
             } else if (e instanceof ccxt.TimeoutError) {
-                log.bright.yellow (market.id, '[Timeout Error] ' + e.message)
+                warn (market.id, '[Timeout Error] ' + e.message)
             } else if (e instanceof ccxt.AuthenticationError) {
-                log.bright.yellow (market.id, '[Authentication Error] ' + e.message)
+                warn (market.id, '[Authentication Error] ' + e.message)
             } else if (e instanceof ccxt.MarketNotAvailableError) {
-                log.bright.yellow (market.id, '[Market Not Available Error] ' + e.message)
+                warn (market.id, '[Market Not Available Error] ' + e.message)
+            } else if (e instanceof ccxt.EndpointError) {
+                warn (market.id, '[Endpoint Error] ' + e.message)
+            } else if (e instanceof ccxt.MarketError) {
+                warn (market.id, '[Market Error] ' + e.message)
             } else if (e instanceof ccxt.EndpointNotAvailableError) {
-                log.bright.yellow (market.id, '[Endpoint Not Available Error] ' + e.message)
+                warn (market.id, '[Endpoint Not Available Error] ' + e.message)
             } else {
                 throw e;
             }

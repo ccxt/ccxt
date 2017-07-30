@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.1.115",
+  "version": "1.1.143",
   "description": "A library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs",
   "main": "ccxt.es5.js",
   "repository": {
@@ -9,9 +9,8 @@
   },
   "scripts": {
     "build": "npm run export-markets && npm run mdrst && npm run transpile && npm run update-badges && npm run vss && npm run babel",
-    "test": "npm run build && nyc --reporter=html --reporter=text ./test.sh",
-    "fasttest": "node test --es6",
-    "coveralls": "nyc report --reporter=text-lcov | coveralls",
+    "test": "npm run build && node run-tests",
+    "fasttest": "node run-tests --js --es6",
     "export-markets": "node export-markets",
     "update-badges": "node update-badges",
     "mdrst": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=README.rst README.md",
@@ -20,7 +19,6 @@
     "babel": "babel ccxt.js --source-maps inline --out-file ccxt.es5.js"
   },
   "dependencies": {
-    "crypto": "0.0.3",
     "crypto-js": "3.1.9-1",
     "node-fetch": "2.0.0-alpha.8",
     "qs": "6.5.0"
@@ -116,6 +114,7 @@
     "Bit2C",
     "BitBay",
     "BitBays",
+    "bitcoincoid",
     "Bitcoin.co.id",
     "Bitfinex",
     "bitFLyer",

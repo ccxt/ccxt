@@ -8,7 +8,7 @@ Below are the rules for contributing to the ccxt library codebase.
 
 ## What You Need To Have
 
-- Node.js
+- Node.js (version 8 or higher)
 - Python 2/3
 - PHP 5.3+
 
@@ -54,11 +54,11 @@ The contents of the repository are structured as follows:
 
 The ccxt library is available in three different languages (more to come). One of the primary objectives for developers is to design *portable* code, so that a single-language user can read code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
-At first, all language-specific version were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *master/slave* process. There is now a single master version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the master version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the master version as well.
+At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *master/slave* process. There is now a single master version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the master version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the master version as well.
 
 ### Continuous Integration
 
-Builds are automated by [travis-ci]. Code coverage is analyzed with [coveralls.io](https://coveralls.io). All build steps are described in the [`.travis.yml`](https://github.com/kroitor/ccxt/blob/master/.travis.yml) file. A build consists of the following:
+Builds are automated by [travis-ci](https://travis-ci.org/kroitor/ccxt/builds). Code coverage is analyzed with [coveralls.io](https://coveralls.io). All build steps are described in the [`.travis.yml`](https://github.com/kroitor/ccxt/blob/master/.travis.yml) file. A build consists of the following:
 
 1. Install dependencies
 2. Increment version number _(not triggered by pull requests)_
@@ -126,35 +126,35 @@ Slave files and docs are partially-generated from the master `ccxt.js` file by t
 The structure of the master/slave file can be outlined like this:
 
 ```
-      +--------------------------+ ← beginning of file
-h  /  |                          |
-e  |  |  common stuff            |
-a  |  |                          |  
-d <   //-------------------------+ ← thin horizontal ruler comment is used to separate code blocks 
-e  |  |                          |
-r  |  |  base market class       |   above this first bold line all code is language-specific
-   \  |                          |                    ↑
-      //=========================+ ← first 'bold' horizontal ruler comment
-   /  |                          |                    ↓
-   |  |  derived market class A  |   below this line all code can be ported to other languages
-   |  |                          |
-b  |  //-------------------------+ ← thin horizontal ruler used to separate derived classes
-o  |  |                          |
-d <   |  derived market class B  |
-y  |  |                          |
-   |  //-------------------------+
-   |  |                          |
-   |  | ...                      |   above this line all code is transpileable
-   \  |                          |                    ↑
-      //=========================+ ← second 'bold' horizontal ruler comment
-f  /  |                          |                    ↓
-o  |  |  other code              |   below this second bold line all code is language-specific
-o  |  |                          |
-t <   //-------------------------+ ← thin horizontal ruler comment is used to separate code blocks 
-e  |  |                          |   
-r  |  |  other code              |   
-   \  |                          |
-      //-------------------------+ ← end of file
+        +--------------------------+ ← beginning of file
+h   ╭   |                          |
+e   │   |  common stuff            |
+a   │   |                          |  
+d  ─┤   //-------------------------+ ← thin horizontal ruler comment is used to separate code blocks 
+e   │   |                          |
+r   │   |  base market class       |   above this first bold line all code is language-specific
+    ╰   |                          |                    ↑
+        //=========================+ ← first 'bold' horizontal ruler comment
+    ╭   |                          |                    ↓
+    │   |  derived market class A  |   below this line all code can be ported to other languages
+    │   |                          |
+b   │   //-------------------------+ ← thin horizontal ruler used to separate derived classes
+o   │   |                          |
+d  ─┤   |  derived market class B  |
+y   │   |                          |
+    │   //-------------------------+
+    │   |                          |
+    │   | ...                      |   above this line all code is transpileable
+    ╰   |                          |                    ↑
+        //=========================+ ← second 'bold' horizontal ruler comment
+f   ╭   |                          |                    ↓
+o   │   |  other code              |   below this second bold line all code is language-specific
+o   │   |                          |
+t  ─┤   //-------------------------+ ← thin horizontal ruler comment is used to separate code blocks 
+e   │   |                          |   
+r   │   |  other code              |   
+    ╰   |                          |
+        //-------------------------+ ← end of file
 ```
 
 Key notes on the structure of the library file:
@@ -197,6 +197,11 @@ Below are key notes on how to keep the JS code transpileable:
 - multiple lines are ok, but you should avoid deep nesting with lots of brackets
 - do not use conditional statements that are too complex (heavy if-bracketing)
 - do not use heavy ternary conditionals
+- put an empty line between each of your methods
+- don't put empty lines in schema in the beginning of each market
+- don't put empty lines inside your methods
+- avoid mixed comment styles, use double-slash `//` in JS for line comments
+- avoid multi-line comments
 - ...
 
 **If you want to add (support for) another market or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn by example, take a look at how same things are implemented in other markets and try to copy the code flow and style.**

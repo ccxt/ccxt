@@ -2,23 +2,26 @@
 
 const fs = require ('fs')
 const ccxt = require ('./ccxt')
+const log  = require ('ololog')
+const ansi = require ('ansicolor').nice
 
 //-----------------------------------------------------------------------------
 
-console.log ('Updating badges → ./README.rst')
-
 let readmeRst = 'README.rst'
+
+log.bright.cyan ('Updating badges →', readmeRst.yellow)
+
 let rst = fs.readFileSync (readmeRst, 'utf8')
 let rstNew = 
-    rst.replace (/\`([^\`]+)\s\<\#[^\`]+\>\`\_\_/g, '$1')
-        .replace (/\\\|/g, '|')
+    rst.replace (/\`([^\`]+)\s\<\#[^\`]+\>\`\_\_/g, '$1') // PyPI doesn't like urls containing anchor hash symbol '#', strip it off to plain text
+        .replace (/\\\|/g, '|') // PyPI doesn't like escaped vertical bars
 
 let rstMarketTableRegex = /([\s\S]+?)APIs:[\n][\n](\+\-\-[\s\S]+\-\-\+)[\n][\n]([\s\S]+)/
 let match = rstMarketTableRegex.exec (rstNew)
 let rstMarketTableLines = match[2].split ("\n")
 
 let newRstMarketTable = rstMarketTableLines.map (line => {
-    return line.replace (/(\||\+)(.).+?(\s|\=|\-)(\||\+)/, '$1')
+    return line.replace (/(\||\+)(.).+?(\s|\=|\-)(\||\+)/, '$1') // replace ascii table graphics
 }).join ("\n")
 
 let travisBadgeImage    = ".. image:: https://travis-ci.org/kroitor/ccxt.svg?branch=master\n"
@@ -67,9 +70,10 @@ fs.writeFileSync (readmeRst, rstNew)
 
 //-----------------------------------------------------------------------------
 
-console.log ('Updating badges → ./README.md')
-
 let readmeMd = 'README.md'
+
+log.bright.cyan ('Updating badges →', readmeMd.yellow)
+
 let md = fs.readFileSync (readmeMd, 'utf8')
 let mdNew = 
     md.replace (/shields\.io\/badge\/exchanges\-[0-9]+\-blue/g, 'shields.io/badge/exchanges-' + ccxt.markets.length + '-blue')
@@ -77,4 +81,4 @@ let mdNew =
 fs.truncateSync (readmeMd)
 fs.writeFileSync (readmeMd, mdNew)
 
-console.log ('Badges updated successfully.')
+log.bright.green ('Badges updated successfully.')

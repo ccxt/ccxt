@@ -5,6 +5,20 @@ import time
 import sys
 import json
 
+import argparse
+
+
+class Argv (object):
+    pass
+
+argv = Argv ()
+
+parser = argparse.ArgumentParser ()
+parser.add_argument ('--nonce', type = int, help = 'integer')
+parser.add_argument ('market', type = str, help = 'market id in lowercase', nargs = '?')
+parser.add_argument ('symbol', type = str, help = 'symbol in uppercase', nargs = '?')
+parser.parse_args (namespace = argv)
+
 markets = {}
 
 #------------------------------------------------------------------------------
@@ -141,6 +155,10 @@ def try_all_proxies (market, proxies):
             dump (yellow (type (e).__name__), str (e))
         except ccxt.MarketNotAvailableError as e:
             dump (yellow (type (e).__name__), e.args)
+        except ccxt.EndpointError as e:
+            dump (yellow (type (e).__name__), e.args)
+        except ccxt.MarketError as e:
+            dump (yellow (type (e).__name__), e.args)
         except ccxt.AuthenticationError as e:
             dump (yellow (type (e).__name__), str (e))
 
@@ -153,14 +171,14 @@ proxies = [
     # 'http://cors-proxy.htmldriven.com/?url=', # we don't want this for now
 ]
 
+# load the api keys from config
+with open ('./keys.json') as file:    
+    config = json.load (file)
+
 # instantiate all markets
 for id in ccxt.markets:
     market = getattr (ccxt, id)
     markets[id] = market ({ 'verbose': False })
-
-# load the api keys from config
-with open ('./keys.json') as file:    
-    config = json.load (file)
 
 # set up api keys appropriately
 tuples = list (ccxt.Market.keysort (config).items ())
@@ -172,22 +190,11 @@ for (id, params) in tuples:
 # move gdax to sandbox
 markets['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
 
-id = None
-try:
-    id = sys.argv[1]
-except:
-    id = None
+if argv.market:
 
-if id:
-    
-    market = markets[id]
-    symbol = None
-    
-    try:
-        symbol = sys.argv[2]
-    except:
-        symbol = None
-    
+    market = markets[argv.market]
+    symbol = argv.symbol
+        
     if symbol:
         load_market (market)
         test_market_symbol (market, symbol)
@@ -198,6 +205,5 @@ else:
 
     tuples = list (ccxt.Market.keysort (markets).items ())
     for (id, params) in tuples:
-        if id is not 'virwox':
-            market = markets[id]
-            try_all_proxies (market, proxies)
+        market = markets[id]
+        try_all_proxies (market, proxies)

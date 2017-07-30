@@ -42,7 +42,7 @@ The ccxt library currently supports the following 70 cryptocurrency exchange mar
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | \_1btcxe        | `1BTCXE <https://1btcxe.com>`__                           | \*    | `API <https://1btcxe.com/api-docs.php>`__                                                        | Panama                                     |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| anxpro          | `ANXPro <https://anxpro.com>`__                           | 2     | `API <https://anxpro.com/pages/api>`__                                                           | Japan, Singapore, Hong Kong, New Zealand   |
+| anxpro          | `ANXPro <https://anxpro.com>`__                           | 2     | `API <http://docs.anxv2.apiary.io>`__                                                            | Japan, Singapore, Hong Kong, New Zealand   |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bit2c           | `Bit2C <https://www.bit2c.co.il>`__                       | \*    | `API <https://www.bit2c.co.il/home/api>`__                                                       | Israel                                     |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -220,7 +220,7 @@ Node version of the ccxt library requires `crypto-js <https://www.npmjs.com/pack
 .. code:: javascript
 
     var ccxt = require ('ccxt')
-    console.log (ccxt.market) // print all available markets
+    console.log (ccxt.markets) // print all available markets
 
 Python
 ~~~~~~
