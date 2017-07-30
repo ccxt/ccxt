@@ -418,17 +418,8 @@ class Market {
     }
 
     public function binary_concat () {
-        return implode ('', func_get_args ())
+        return implode ('', func_get_args ());
     } 
-
-    // this is a special case workaround for Kraken, see issues #52 and #23
-    public function signForKraken ($path, $request, $secret, $nonce) {
-        $auth = $this->encode ($nonce . $request);
-        $query = $this->encode ($path) . $this->hash ($auth, 'sha256', 'binary');
-        $secret = base64_decode ($secret);
-        $signature = $this->hmac ($query, $secret, 'sha512', 'base64');
-        return $signature;
-    }
     
     public function jwt ($request, $secret, $alg = 'HS256', $hash = 'sha256') {
         $encodedHeader = $this->urlencodeBase64 (json_encode (array ('alg' => $alg, 'typ' => 'JWT')));
@@ -9861,13 +9852,12 @@ class kraken extends Market {
         } else {
             $nonce = (string) $this->nonce ();
             $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $params));
-            // a workaround for Kraken to replace the old CryptoJS block below, see issues #52 and #23
-            $signature = $this->signForKraken ($url, $body, $this->secret, $nonce);
-            // an old CryptoJS block that does not want to work properly under Node
-            // $auth = $this->encode ($nonce . $body);
-            // $query = $this->encode ($url) . $this->hash ($auth, 'sha256', 'binary');
-            // $secret = base64_decode ($this->secret);
-            // $signature = $this->hmac ($query, $secret, 'sha512', 'base64');
+            $auth = $this->encode ($nonce . $body);
+            $hash = $this->hash ($auth, 'sha256', 'binary');
+            $binary = $this->encode ($url);
+            $binhash = $this->binary_concat ($binary, $hash);
+            $secret = base64_decode ($this->secret);
+            $signature = $this->hmac ($binhash, $secret, 'sha512', 'base64');
             $headers = array (
                 'API-Key' => $this->apiKey,
                 'API-Sign' => $signature,

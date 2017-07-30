@@ -197,14 +197,12 @@ var sum = function (... args) {
 
 if (isNode) {
 
-    var crypto   = module.require ('crypto')
     var CryptoJS = module.require ('crypto-js')
     var fetch    = module.require ('node-fetch')
     var qs       = module.require ('qs')
 
 } else if (isReactNative) {
 
-    var crypto   = require ('crypto')
     var CryptoJS = require ('crypto-js')    
     var fetch    = window.fetch
     var qs       = require ('qs')
@@ -293,19 +291,6 @@ var hmac = function (request, secret, hash = 'sha256', digest = 'hex') {
 }
 
 //-----------------------------------------------------------------------------
-// a special case for Kraken, until we find a better workaround
-// this breaks down the support for browsers, see issues #52 and #23
-
-var signForKraken = function (path, request, secret, nonce) {
-    const secret_buffer = new Buffer (secret, 'base64');
-    const hash          = new crypto.createHash ('sha256');
-    const hmac          = new crypto.createHmac ('sha512', secret_buffer);
-    const hash_digest   = hash.update (nonce + request).digest ('binary');
-    const hmac_digest   = hmac.update (path + hash_digest, 'binary').digest ('base64');
-    return hmac_digest;
-}
-
-//-----------------------------------------------------------------------------
 // a JSON Web Token authentication method
 
 var jwt = function (request, secret, alg = 'HS256', hash = 'sha256') {
@@ -323,8 +308,6 @@ var Market = function (config) {
 
     this.hash = hash
     this.hmac = hmac
-    // a special case until we find a better workaround, see issues #52 and #23
-    this.signForKraken = signForKraken 
     this.jwt = jwt // JSON Web Token
     this.binaryConcat = binaryConcat
     this.stringToBinary = stringToBinary
@@ -9537,31 +9520,6 @@ var kraken = {
         url = this.urls['api'] + url;
         return this.fetch (url, method, headers, body);
     },
-
-    // request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-    //     let url = '/' + this.version + '/' + type + '/' + path;
-    //     if (type == 'public') {
-    //         if (Object.keys (params).length)
-    //             url += '?' + this.urlencode (params);
-    //     } else {
-    //         let nonce = this.nonce ().toString ();
-    //         body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
-    //         // a workaround for Kraken to replace the old CryptoJS block below, see issues #52 and #23
-    //         let signature = this.signForKraken (url, body, this.secret, nonce);
-    //         // an old CryptoJS block that does not want to work properly under Node
-    //         // let auth = this.encode (nonce + body);
-    //         // let query = this.encode (url) + this.hash (auth, 'sha256', 'binary');
-    //         // let secret = this.base64ToBinary (this.secret);
-    //         // let signature = this.hmac (query, secret, 'sha512', 'base64');
-    //         headers = {
-    //             'API-Key': this.apiKey,
-    //             'API-Sign': signature,
-    //             'Content-type': 'application/x-www-form-urlencoded',
-    //         };
-    //     }
-    //     url = this.urls['api'] + url;
-    //     return this.fetch (url, method, headers, body);
-    // },
 }
 
 //-----------------------------------------------------------------------------

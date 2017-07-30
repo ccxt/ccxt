@@ -491,15 +491,6 @@ class Market (object):
             return base64.b64encode (h.digest ())
         return h.digest ()
 
-    # this is a special case workaround for Kraken, see issues #52 and #23
-    @staticmethod
-    def signForKraken (path, request, secret, nonce):
-        auth = Market.encode (nonce + request)
-        query = Market.encode (path) + Market.hash (auth, 'sha256', 'binary')
-        secret = base64.b64decode (secret)
-        signature = Market.hmac (query, secret, hashlib.sha512, 'base64')
-        return signature
-
     @staticmethod
     def binary_concat (*args):
         return ''.join (args)
@@ -9156,13 +9147,12 @@ class kraken (Market):
         else:
             nonce = str (self.nonce ())
             body = _urlencode.urlencode (self.extend ({ 'nonce': nonce }, params))
-            # a workaround for Kraken to replace the old CryptoJS block below, see issues #52 and #23
-            signature = self.signForKraken (url, body, self.secret, nonce)
-            # an old CryptoJS block that does not want to work properly under Node
-            # auth = self.encode (nonce + body)
-            # query = self.encode (url) + self.hash (auth, 'sha256', 'binary')
-            # secret = base64.b64decode (self.secret)
-            # signature = self.hmac (query, secret, hashlib.sha512, 'base64')
+            auth = self.encode (nonce + body)
+            hash = self.hash (auth, 'sha256', 'binary')
+            binary = self.encode (url)
+            binhash = self.binary_concat (binary, hash)
+            secret = base64.b64decode (self.secret)
+            signature = self.hmac (binhash, secret, hashlib.sha512, 'base64')
             headers = {
                 'API-Key': self.apiKey,
                 'API-Sign': signature,
