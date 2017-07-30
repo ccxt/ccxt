@@ -89,36 +89,34 @@ class EndpointError extends MarketError {
 //-----------------------------------------------------------------------------
 // utility helpers
 
-let sleep = ms => new Promise (resolve => setTimeout (resolve, ms));
+const sleep = ms => new Promise (resolve => setTimeout (resolve, ms));
 
-var timeout = (ms, promise) =>
+const timeout = (ms, promise) =>
         Promise.race ([
             promise,
             sleep (ms).then (() => { throw new TimeoutError ('request timed out') })
         ])
 
-var capitalize = function (string) {
-    return string.length ? (string.charAt (0).toUpperCase () + string.slice (1)) : string
-}
+const capitalize = string => string.length ? (string.charAt (0).toUpperCase () + string.slice (1)) : string
 
-var keysort = function (object) {
+const keysort = object => {
     const result = {}
     Object.keys (object).sort ().forEach (key => result[key] = object[key])
     return result
 }
 
-var extend = function () {
+const extend = (...args) => {
     const result = {}
-    for (var i = 0; i < arguments.length; i++)
-        if (typeof arguments[i] === 'object')
-            Object.keys (arguments[i]).forEach (key =>
-                (result[key] = arguments[i][key]))
+    for (let i = 0; i < args.length; i++)
+        if (typeof args[i] === 'object')
+            Object.keys (args[i]).forEach (key =>
+                (result[key] = args[i][key]))
     return result
 }
 
-var omit = function (object) {
-    var result = extend (object)
-    for (var i = 1; i < arguments.length; i++)
+const omit = object => {
+    const result = extend (object)
+    for (let i = 1; i < arguments.length; i++)
         if (typeof arguments[i] === 'string')
             delete result[arguments[i]]
         else if (Array.isArray (arguments[i]))
@@ -127,7 +125,7 @@ var omit = function (object) {
     return result
 }
 
-var indexBy = function (array, key) {
+const indexBy = (array, key) => {
     const result = {}
     for (var i = 0; i < array.length; i++) {
         let element = array[i]
@@ -138,12 +136,12 @@ var indexBy = function (array, key) {
     return result
 }
 
-var sortBy = function (array, key, descending = false) {
+const sortBy = (array, key, descending = false) => {
     descending = descending ? -1 : 1
     return array.sort ((a, b) => ((a[key] < b[key]) ? -descending : ((a[key] > b[key]) ? descending : 0)))
 }
 
-var flatten = function (array, result = []) {
+const flatten = (array, result = []) => {
     for (let i = 0, length = array.length; i < length; i++) {
         const value = array[i]
         if (Array.isArray (value)) {
@@ -155,23 +153,16 @@ var flatten = function (array, result = []) {
     return result
 }
 
-var unique = function (array) {
-    return array.filter ((value, index, self) => (self.indexOf (value) == index))
-}
+const unique = array => array.filter ((value, index, self) => (self.indexOf (value) == index))
 
-var pluck = function (array, key) {
-    return (array
-        .filter (element => (typeof element[key] != 'undefined'))
-        .map (element => element[key]))
-}
+const pluck = (array, key) => array
+                                .filter (element => (typeof element[key] != 'undefined'))
+                                .map (element => element[key])
 
-var urlencode = function (object) {
-    // this is related to the Kraken workaround, see issues #52 and #23
-    return qs.stringify (object)
-}
+const urlencode = object => qs.stringify (object) // this is related to the Kraken workaround, see issues #52 and #23
 
-var sum = function (... args) {
-    let result = args.filter (arg => typeof arg != 'undefined')
+const sum = (...args) => {
+    const result = args.filter (arg => typeof arg != 'undefined')
     return (result.length > 0) ? 
         result.reduce ((sum, value) => sum + value, 0) : undefined
 }
@@ -228,67 +219,52 @@ if (isNode) {
 //-----------------------------------------------------------------------------
 // string ←→ binary ←→ base64 conversion routines
 
-var stringToBinary = function (str) {
+const stringToBinary = str => {
     const arr = new Uint8Array (str.length)
     for (let i = 0; i < str.length; i++) { arr[i] = str.charCodeAt(i); }
     return CryptoJS.lib.WordArray.create (arr)
 }
 
-var stringToBase64 = function (string) {
-    return CryptoJS.enc.Latin1.parse (string).toString (CryptoJS.enc.Base64)
-}
+const stringToBase64 = string => CryptoJS.enc.Latin1.parse (string).toString (CryptoJS.enc.Base64)
+    , utf16ToBase64  = string => CryptoJS.enc.Utf16 .parse (string).toString (CryptoJS.enc.Base64)
+    , base64ToBinary = string => CryptoJS.enc.Base64.parse (string)
+    , base64ToString = string => CryptoJS.enc.Base64.parse (string).toString (CryptoJS.enc.Utf8)
 
-var utf16ToBase64  = function (string) {
-    return CryptoJS.enc.Utf16.parse (string).toString (CryptoJS.enc.Base64)
-}
-
-var base64ToBinary = function (string) {
-    return CryptoJS.enc.Base64.parse (string)
-}
-
-var base64ToString = function (string) {
-    return CryptoJS.enc.Base64.parse (string).toString (CryptoJS.enc.Utf8)
-}
-
-var binaryConcat = function (first, ... args) {
-    for (let arg of args)
-        first = first.concat (arg);
-    return first
-}
+const binaryConcat = (...args) => args.reduce ((a, b) => a.concat (b))
 
 // url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
-var urlencodeBase64 = function (base64string) {
-    return base64string.replace (/[=]+$/, '').replace (/\+/g, '-').replace (/\//g, '_')
-}
+const urlencodeBase64 = base64string => base64string.replace (/[=]+$/, '')
+                                                    .replace (/\+/g, '-')
+                                                    .replace (/\//g, '_')
 
 //-----------------------------------------------------------------------------
 // cryptography
 
-var hash = function (request, hash = 'md5', digest = 'hex') {
-    let result = CryptoJS[hash.toUpperCase ()] (request)
+const hash = (request, hash = 'md5', digest = 'hex') => {
+    const result = CryptoJS[hash.toUpperCase ()] (request)
     return (digest == 'binary') ? result : result.toString (CryptoJS.enc[capitalize (digest)])
 }
 
-var hmac = function (request, secret, hash = 'sha256', digest = 'hex') {
-    let encoding = (digest == 'binary') ? 'Latin1' : capitalize (digest)
+const hmac = (request, secret, hash = 'sha256', digest = 'hex') => {
+    const encoding = (digest == 'binary') ? 'Latin1' : capitalize (digest)
     return CryptoJS['Hmac' + hash.toUpperCase ()] (request, secret).toString (CryptoJS.enc[capitalize (encoding)])
 }
 
 //-----------------------------------------------------------------------------
 // a JSON Web Token authentication method
 
-var jwt = function (request, secret, alg = 'HS256', hash = 'sha256') {
-    var encodedHeader = urlencodeBase64 (stringToBase64 (JSON.stringify ({ 'alg': alg, 'typ': 'JWT' })))
-    var encodedData = urlencodeBase64 (stringToBase64 (JSON.stringify (request)))
-    var token = [ encodedHeader, encodedData ].join ('.')
-    var signature = urlencodeBase64 (utf16ToBase64 (hmac (token, secret, hash, 'utf16')))
+const jwt = (request, secret, alg = 'HS256', hash = 'sha256') => {
+    const encodedHeader = urlencodeBase64 (stringToBase64 (JSON.stringify ({ 'alg': alg, 'typ': 'JWT' })))
+        , encodedData = urlencodeBase64 (stringToBase64 (JSON.stringify (request)))
+        , token = [ encodedHeader, encodedData ].join ('.')
+        , signature = urlencodeBase64 (utf16ToBase64 (hmac (token, secret, hash, 'utf16')))
     return [ token, signature ].join ('.')
 }
 
 //-----------------------------------------------------------------------------
 // the base class
 
-var Market = function (config) {
+const Market = function (config) {
 
     this.hash = hash
     this.hmac = hmac
