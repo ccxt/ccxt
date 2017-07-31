@@ -8097,21 +8097,20 @@ var gatecoin = {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
-
             let nonce = this.nonce ();
             let contentType = (method == 'GET') ? '' : 'application/json';
             let auth = method + url + contentType + nonce.toString ();
             auth = auth.toLowerCase ();
-
-            body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
             headers = {
                 'API_PUBLIC_KEY': this.apiKey,
                 'API_REQUEST_SIGNATURE': signature,
                 'API_REQUEST_DATE': nonce,
             };
-            if (method != 'GET')
+            if (method != 'GET') {
                 headers['Content-Type'] = contentType;
+                body = this.json (this.extend ({ 'nonce': nonce }, params));
+            }
         }
         return this.fetch (url, method, headers, body);
     },
