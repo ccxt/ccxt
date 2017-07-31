@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.145'
+__version__ = '1.1.146'
 
 # Python 2 & 3
 import base64
@@ -5593,7 +5593,18 @@ class chbtc (Market):
         return self.privatePostOrder (paramString)
 
     def cancel_order (self, id, params = {}):
-        return self.privatePostCancelOrder (self.extend ({ 'id': id }, params))
+        paramString = '&id=' + str (id)
+        if 'currency' in params:
+            paramString += '&currency=' + params['currency']
+            query = self.omit (params, 'currency')
+        return self.privatePostCancelOrder (paramString)
+
+    def getOrder (self, id, params = {}):
+        paramString = '&id=' + str (id)
+        if 'currency' in params:
+            paramString += '&currency=' + params['currency']
+            query = self.omit (params, 'currency')
+        return self.privatePostGetOrder (paramString)
 
     def nonce (self):
         return self.milliseconds ()
