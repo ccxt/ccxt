@@ -1,5 +1,7 @@
 # Сhangelog
 
+## Version 1.2.0 2017-08-01
+
 - Added optional `userAgent` property, [issue #67](https://github.com/kroitor/ccxt/issues/67)
 - Balance APIs unified, [issue #36](https://github.com/kroitor/ccxt/issues/36)
 - Added auto product loading, users forget to preload them manually, [issue #57](https://github.com/kroitor/ccxt/issues/57), [issue #68](https://github.com/kroitor/ccxt/issues/68), [issue #69](https://github.com/kroitor/ccxt/issues/69)

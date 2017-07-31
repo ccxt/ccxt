@@ -5725,14 +5725,22 @@ var chbtc = {
             'currency': p['id'],
         });
         let timestamp = this.milliseconds ();
+        let bids = undefined;
+        let asks = undefined;
+        if ('bids' in orderbook)
+            bids = orderbook['bids'];
+        if ('asks' in orderbook)
+            asks = orderbook['asks'];
         let result = {
-            'bids': orderbook['bids'],
-            'asks': orderbook['asks'],
+            'bids': bids,
+            'asks': asks,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        result['asks'] = this.sortBy (result['asks'], 0);
+        if (result['bids'])
+            result['bids'] = this.sortBy (result['bids'], 0, true);
+        if (result['asks'])
+            result['asks'] = this.sortBy (result['asks'], 0);
         return result;
     },
 
