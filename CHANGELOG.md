@@ -11,3 +11,5 @@
 - Bter exchange support added
 - Livecoin exchange support added
 - BL3P exchange support added
+- Orderbook APIs unified
+- Ticker APIs unified
