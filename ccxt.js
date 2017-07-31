@@ -5770,7 +5770,21 @@ var chbtc = {
     },
 
     async cancelOrder (id, params = {}) {
-        return this.privatePostCancelOrder (this.extend ({ 'id': id }, params));
+        let paramString = '&id=' + id.toString ();
+        if ('currency' in params) {
+            paramString += '&currency=' + params['currency'];
+            query = this.omit (params, 'currency');
+        }
+        return this.privatePostCancelOrder (paramString);
+    },
+
+    async getOrder (id, params = {}) {
+        let paramString = '&id=' + id.toString ();
+        if ('currency' in params) {
+            paramString += '&currency=' + params['currency'];
+            query = this.omit (params, 'currency');
+        }
+        return this.privatePostGetOrder (paramString);
     },
 
     nonce () {
