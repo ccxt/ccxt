@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.1.149';
+$version = '1.1.150';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
