@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.1.150';
+$version = '1.1.151';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8462,21 +8462,20 @@ class gatecoin extends Market {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
-
             $nonce = $this->nonce ();
             $contentType = ($method == 'GET') ? '' : 'application/json';
             $auth = $method . $url . $contentType . (string) $nonce;
             $auth = strtolower ($auth);
-
-            $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $params));
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256', 'base64');
             $headers = array (
                 'API_PUBLIC_KEY' => $this->apiKey,
                 'API_REQUEST_SIGNATURE' => $signature,
                 'API_REQUEST_DATE' => $nonce,
             );
-            if ($method != 'GET')
+            if ($method != 'GET') {
                 $headers['Content-Type'] = $contentType;
+                $body = $this->json (array_merge (array ( 'nonce' => $nonce ), $params));
+            }
         }
         return $this->fetch ($url, $method, $headers, $body);
     }

@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.150'
+__version__ = '1.1.151'
 
 # Python 2 & 3
 import base64
@@ -7835,13 +7835,10 @@ class gatecoin (Market):
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
-
             nonce = self.nonce ()
             contentType = '' if (method == 'GET') else 'application/json'
             auth = method + url + contentType + str (nonce)
             auth = auth.lower ()
-
-            body = _urlencode.urlencode (self.extend ({ 'nonce': nonce }, params))
             signature = self.hmac (self.encode (auth), self.encode (self.secret), hashlib.sha256, 'base64')
             headers = {
                 'API_PUBLIC_KEY': self.apiKey,
@@ -7850,6 +7847,7 @@ class gatecoin (Market):
             }
             if method != 'GET':
                 headers['Content-Type'] = contentType
+                body = self.json (self.extend ({ 'nonce': nonce }, params))
         return self.fetch (url, method, headers, body)
 
 #------------------------------------------------------------------------------
