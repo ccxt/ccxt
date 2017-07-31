@@ -10877,7 +10877,7 @@ var poloniex = {
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': undefined,
+            'last': parseFloat (ticker['last']),
             'change': parseFloat (ticker['percentChange']),
             'percentage': undefined,
             'average': undefined,
