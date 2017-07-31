@@ -5778,7 +5778,7 @@ var chbtc = {
         return this.privatePostCancelOrder (paramString);
     },
 
-    async getOrder (id, params = {}) {
+    async fetchOrder (id, params = {}) {
         let paramString = '&id=' + id.toString ();
         if ('currency' in params) {
             paramString += '&currency=' + params['currency'];
