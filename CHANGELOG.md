@@ -5,6 +5,7 @@
 - Removed obsolete `crypto` dependency (switched to `crypto-js` completely)
 - BTC-e shutdown
 
+<img width="949" alt="screen shot 2017-08-01 at 01 20 21" src="https://user-images.githubusercontent.com/1294454/28800889-9d03c61e-7657-11e7-881c-c4becb03903d.png">
 
 - Fixed Kraken EOrder:Trading agreement required, fixed support for custom order params
 - Coingi exchange support added
