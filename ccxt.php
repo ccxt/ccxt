@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.1.148';
+$version = '1.1.149';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -11306,7 +11306,7 @@ class poloniex extends Market {
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => null,
+            'last' => floatval ($ticker['last']),
             'change' => floatval ($ticker['percentChange']),
             'percentage' => null,
             'average' => null,

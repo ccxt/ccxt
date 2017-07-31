@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.148'
+__version__ = '1.1.149'
 
 # Python 2 & 3
 import base64
@@ -10515,7 +10515,7 @@ class poloniex (Market):
             'open': None,
             'close': None,
             'first': None,
-            'last': None,
+            'last': float (ticker['last']),
             'change': float (ticker['percentChange']),
             'percentage': None,
             'average': None,
