@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.1.147';
+$version = '1.1.148';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -6072,19 +6072,15 @@ class chbtc extends Market {
 
     public function cancel_order ($id, $params = array ()) {
         $paramString = '&$id=' . (string) $id;
-        if (array_key_exists ('currency', $params)) {
+        if (array_key_exists ('currency', $params))
             $paramString .= '&currency=' . $params['currency'];
-            query = $this->omit ($params, 'currency');
-        }
         return $this->privatePostCancelOrder ($paramString);
     }
 
     public function fetchOrder ($id, $params = array ()) {
         $paramString = '&$id=' . (string) $id;
-        if (array_key_exists ('currency', $params)) {
+        if (array_key_exists ('currency', $params))
             $paramString .= '&currency=' . $params['currency'];
-            query = $this->omit ($params, 'currency');
-        }
         return $this->privatePostGetOrder ($paramString);
     }
 

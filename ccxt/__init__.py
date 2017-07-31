@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.1.147'
+__version__ = '1.1.148'
 
 # Python 2 & 3
 import base64
@@ -5596,14 +5596,12 @@ class chbtc (Market):
         paramString = '&id=' + str (id)
         if 'currency' in params:
             paramString += '&currency=' + params['currency']
-            query = self.omit (params, 'currency')
         return self.privatePostCancelOrder (paramString)
 
     def fetchOrder (self, id, params = {}):
         paramString = '&id=' + str (id)
         if 'currency' in params:
             paramString += '&currency=' + params['currency']
-            query = self.omit (params, 'currency')
         return self.privatePostGetOrder (paramString)
 
     def nonce (self):
