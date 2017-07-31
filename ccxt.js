@@ -1142,8 +1142,9 @@ var anxpro = {
             };
         }
         let response = await this.fetch (url, method, headers, body);
-        if (('result' in response) && (response['result'] == 'success'))
-            return response;
+        if ('result' in response)
+            if (response['result'] == 'success')
+                return response;
         throw new MarketError (this.id + ' ' + this.json (response));
     },
 }
@@ -5330,19 +5331,27 @@ var ccex = {
     async fetchBalance () {
         await this.loadProducts ();
         let response = await this.privateGetBalances ();
-        let balances = response['result'];
-        let result = { 'info': balances };
-        for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];
-            let currency = balance['Currency'];
-            let account = {
-                'free': balance['Available'],
-                'used': balance['Pending'],
-                'total': balance['Balance'],
-            };
-            result[currency] = account;
+        if ('success' in response) {
+            if (response['success']) {
+                let balances = response['result'];
+                let result = { 'info': balances };
+                for (let b = 0; b < balances.length; b++) {
+                    let balance = balances[b];
+                    let currency = balance['Currency'];
+                    let account = {
+                        'free': balance['Available'],
+                        'used': balance['Pending'],
+                        'total': balance['Balance'],
+                    };
+                    result[currency] = account;
+                }
+                return result;                            
+            }
         }
-        return result;
+        let message = ('message' in response) ? response['message'] : '';
+        if (message == 'APIKEY_INVALID')
+            throw new AuthenticationError (this.id + ' ' + message);
+        throw new EndpointError (this.id + ' ' + message);
     },
 
     async fetchOrderBook (product) {
@@ -5428,7 +5437,7 @@ var ccex = {
         return this.privateGetCancel ({ 'uuid': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][type];
         if (type == 'private') {
             let nonce = this.nonce ().toString ();

@@ -1171,8 +1171,9 @@ class anxpro (Market):
                 'Rest-Sign': self.hmac (self.encode (auth), secret, hashlib.sha512, 'base64'),
             }
         response = self.fetch (url, method, headers, body)
-        if ('result' in list (response.keys ())) and (response['result'] == 'success'):
-            return response
+        if 'result' in response:
+            if response['result'] == 'success':
+                return response
         raise MarketError (self.id + ' ' + self.json (response))
 
 #------------------------------------------------------------------------------
@@ -5172,18 +5173,24 @@ class ccex (Market):
     def fetch_balance (self):
         self.loadProducts ()
         response = self.privateGetBalances ()
-        balances = response['result']
-        result = { 'info': balances }
-        for b in range (0, len (balances)):
-            balance = balances[b]
-            currency = balance['Currency']
-            account = {
-                'free': balance['Available'],
-                'used': balance['Pending'],
-                'total': balance['Balance'],
-            }
-            result[currency] = account
-        return result
+        if 'success' in response:
+            if response['success']:
+                balances = response['result']
+                result = { 'info': balances }
+                for b in range (0, len (balances)):
+                    balance = balances[b]
+                    currency = balance['Currency']
+                    account = {
+                        'free': balance['Available'],
+                        'used': balance['Pending'],
+                        'total': balance['Balance'],
+                    }
+                    result[currency] = account
+                return result                            
+        message = response['message'] if ('message' in list (response.keys ())) else ''
+        if message == 'APIKEY_INVALID':
+            raise AuthenticationError (self.id + ' ' + message)
+        raise EndpointError (self.id + ' ' + message)
 
     def fetch_order_book (self, product):
         self.loadProducts ()
@@ -10515,7 +10522,7 @@ class poloniex (Market):
             'open': None,
             'close': None,
             'first': None,
-            'last': None,
+            'last': float (ticker['last']),
             'change': float (ticker['percentChange']),
             'percentage': None,
             'average': None,

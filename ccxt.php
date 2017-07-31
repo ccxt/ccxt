@@ -1338,8 +1338,9 @@ class anxpro extends Market {
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
-        if (array_key_exists (('result', $response)) && ($response['result'] == 'success'))
-            return $response;
+        if (array_key_exists ('result', $response))
+            if ($response['result'] == 'success')
+                return $response;
         throw new MarketError ($this->id . ' ' . $this->json ($response));
     }
 }
@@ -5622,19 +5623,27 @@ class ccex extends Market {
     public function fetch_balance () {
         $this->loadProducts ();
         $response = $this->privateGetBalances ();
-        $balances = $response['result'];
-        $result = array ( 'info' => $balances );
-        for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];
-            $currency = $balance['Currency'];
-            $account = array (
-                'free' => $balance['Available'],
-                'used' => $balance['Pending'],
-                'total' => $balance['Balance'],
-            );
-            $result[$currency] = $account;
+        if (array_key_exists ('success', $response)) {
+            if ($response['success']) {
+                $balances = $response['result'];
+                $result = array ( 'info' => $balances );
+                for ($b = 0; $b < count ($balances); $b++) {
+                    $balance = $balances[$b];
+                    $currency = $balance['Currency'];
+                    $account = array (
+                        'free' => $balance['Available'],
+                        'used' => $balance['Pending'],
+                        'total' => $balance['Balance'],
+                    );
+                    $result[$currency] = $account;
+                }
+                return $result;                            
+            }
         }
-        return $result;
+        $message = (array_key_exists ('message', $response)) ? $response['message'] : '';
+        if ($message == 'APIKEY_INVALID')
+            throw new AuthenticationError ($this->id . ' ' . $message);
+        throw new EndpointError ($this->id . ' ' . $message);
     }
 
     public function fetch_order_book ($product) {
@@ -11306,7 +11315,7 @@ class poloniex extends Market {
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => null,
+            'last' => floatval ($ticker['last']),
             'change' => floatval ($ticker['percentChange']),
             'percentage' => null,
             'average' => null,
