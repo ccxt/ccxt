@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.1';
+$version = '1.2.2';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -6026,14 +6026,22 @@ class chbtc extends Market {
             'currency' => $p['id'],
         ));
         $timestamp = $this->milliseconds ();
+        $bids = null;
+        $asks = null;
+        if (array_key_exists ('bids', $orderbook))
+            $bids = $orderbook['bids'];
+        if (array_key_exists ('asks', $orderbook))
+            $asks = $orderbook['asks'];
         $result = array (
-            'bids' => $orderbook['bids'],
-            'asks' => $orderbook['asks'],
+            'bids' => $bids,
+            'asks' => $asks,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        $result['bids'] = $this->sort_by ($result['bids'], 0, true);
-        $result['asks'] = $this->sort_by ($result['asks'], 0);
+        if ($result['bids'])
+            $result['bids'] = $this->sort_by ($result['bids'], 0, true);
+        if ($result['asks'])
+            $result['asks'] = $this->sort_by ($result['asks'], 0);
         return $result;
     }
 

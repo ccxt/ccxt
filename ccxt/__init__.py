@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.1'
+__version__ = '1.2.2'
 
 # Python 2 & 3
 import base64
@@ -5550,14 +5550,22 @@ class chbtc (Market):
             'currency': p['id'],
         })
         timestamp = self.milliseconds ()
+        bids = None
+        asks = None
+        if 'bids' in orderbook:
+            bids = orderbook['bids']
+        if 'asks' in orderbook:
+            asks = orderbook['asks']
         result = {
-            'bids': orderbook['bids'],
-            'asks': orderbook['asks'],
+            'bids': bids,
+            'asks': asks,
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),
         }
-        result['bids'] = self.sort_by (result['bids'], 0, True)
-        result['asks'] = self.sort_by (result['asks'], 0)
+        if result['bids']:
+            result['bids'] = self.sort_by (result['bids'], 0, True)
+        if result['asks']:
+            result['asks'] = self.sort_by (result['asks'], 0)
         return result
 
     def fetch_ticker (self, product):
