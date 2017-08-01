@@ -5668,10 +5668,13 @@ var cex = {
             };
         }
         let response = await this.fetch (url, method, headers, body);
-        if ('ok' in response)
-            if (response['ok'] == 'ok')
-                return response;
-        throw new MarketError (this.id + ' ' + this.json (response));
+        if ('e' in response) {
+            if ('ok' in response)
+                if (response['ok'] == 'ok')
+                    return response;
+            throw new MarketError (this.id + ' ' + this.json (response));
+        }
+        return response;
     },
 }
 
