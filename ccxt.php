@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.24';
+$version = '1.2.25';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9398,7 +9398,11 @@ class huobi extends Market {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('status', $response))
+            if ($response['status'] == 'error')
+                throw new MarketError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 
