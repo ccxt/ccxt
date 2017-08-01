@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.22'
+__version__ = '1.2.23'
 
 # Python 2 & 3
 import base64
@@ -8327,8 +8327,8 @@ class gemini (Market):
                 'nonce': nonce,
             }, query)
             payload = self.json (request)
-            payload = self.encode (payload)
             payload = base64.b64encode (payload)
+            payload = self.encode (payload)
             signature = self.hmac (payload, self.encode (self.secret), hashlib.sha384)
             headers = {
                 'Content-Type': 'text/plain',
@@ -8539,7 +8539,10 @@ class hitbtc (Market):
                 'X-Signature': self.hmac (self.encode (auth), self.encode (self.secret), hashlib.sha512).lower (),
             }
         url = self.urls['api'] + url
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if 'code' in response:
+            raise MarketError (self.id + ' ' + self.json (response))
+        return response
 
 #------------------------------------------------------------------------------
 

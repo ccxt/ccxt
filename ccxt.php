@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.22';
+$version = '1.2.23';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8978,8 +8978,8 @@ class gemini extends Market {
                 'nonce' => $nonce,
             ), $query);
             $payload = $this->json ($request);
-            $payload = $this->encode ($payload);
             $payload = base64_encode ($payload);
+            $payload = $this->encode ($payload);
             $signature = $this->hmac ($payload, $this->encode ($this->secret), 'sha384');
             $headers = array (
                 'Content-Type' => 'text/plain',
@@ -9204,7 +9204,10 @@ class hitbtc extends Market {
             );
         }
         $url = $this->urls['api'] . $url;
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('code', $response))
+            throw new MarketError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 
