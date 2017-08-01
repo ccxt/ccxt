@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.4';
+$version = '1.2.5';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -1851,12 +1851,7 @@ class bitbays extends Market {
         if (array_key_exists ('status', $response))
             if ($response['status'] == 200)
                 return $response;
-        $error = null;
-        if (array_key_exists ('message', $response))
-            $error = $response['message'];
-        else
-            $error = $this->json ($response);
-        throw new MarketError ($this->id . ' ' . $error);
+        throw new MarketError ($this->id . ' ' . $this->json ($response));
     }
 }
 
@@ -3382,7 +3377,11 @@ class bitso extends Market {
             $auth = $this->apiKey . ':' . $nonce . ':' . $signature;
             $headers = array ( 'Authorization' => "Bitso " . $auth );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('success', $response))
+            if ($response['success'])
+                return $response;
+        throw new MarketError ($this->id . ' ' . $this->json ($response));
     }
 }
 
