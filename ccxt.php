@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.30';
+$version = '1.2.31';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10234,7 +10234,10 @@ class lakebtc extends Market {
                 'Content-Type' => 'application/json',
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('error', $response))
+            throw new MarketError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 
@@ -10433,7 +10436,6 @@ class livecoin extends Market {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
-            $length = 0;
             $query = $this->urlencode ($this->keysort ($params));
             if ($method == 'GET')
                 $url .= '?' . $query;
@@ -10444,7 +10446,6 @@ class livecoin extends Market {
                 'Api-Key' => $this->apiKey,
                 'Sign' => strtoupper ($signature),
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'Content-Length' => $length,
             );
         }
         return $this->fetch ($url, $method, $headers, $body);

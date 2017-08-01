@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.30'
+__version__ = '1.2.31'
 
 # Python 2 & 3
 import base64
@@ -9513,7 +9513,10 @@ class lakebtc (Market):
                 'Content-Length': len (body),
                 'Content-Type': 'application/json',
             }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if 'error' in response:
+            raise MarketError (self.id + ' ' + self.json (response))
+        return response
 
 #------------------------------------------------------------------------------
 
@@ -9700,7 +9703,6 @@ class livecoin (Market):
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
-            length = 0
             query = _urlencode.urlencode (self.keysort (params))
             if method == 'GET':
                 url += '?' + query
@@ -9711,7 +9713,6 @@ class livecoin (Market):
                 'Api-Key': self.apiKey,
                 'Sign': signature.upper (),
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': length,
             }
         return self.fetch (url, method, headers, body)
 
