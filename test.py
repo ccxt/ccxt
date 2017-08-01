@@ -7,7 +7,6 @@ import json
 
 import argparse
 
-
 class Argv (object):
     pass
 

@@ -1639,13 +1639,15 @@ var bitbays = {
                 'Sign': this.hmac (this.encode (body), this.secret, 'sha512'),
             };
         }
-        let response = await this.fetch (url, method, headers, body);
         if ('status' in response)
             if (response['status'] == 200)
                 return response;
+        let error = undefined;
         if ('message' in response)
-            throw new MarketError (this.id + ' ' + response['message']);
-        throw new MarketError (this.id + ' ' + this.json (response));
+            error = response['message'];
+        else
+            error = this.json (response);
+        throw new MarketError (this.id + ' ' + error);
     },
 }
 
@@ -1806,7 +1808,7 @@ var bitcoincoid = {
         }, params));
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][type];
         if (type == 'public') {
             url += '/' + this.implodeParams (path, params);
@@ -1822,7 +1824,16 @@ var bitcoincoid = {
                 'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('success' in response)
+            if (response['success'] == 1)
+                return response;
+        let error = undefined;
+        if ('error' in response)
+            error = response['error'];
+        else
+            error = this.json (response);
+        throw new MarketError (this.id + ' ' + error);
     },
 }
 
