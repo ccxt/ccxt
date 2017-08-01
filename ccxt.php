@@ -10029,7 +10029,11 @@ class kraken extends Market {
             );
         }
         $url = $this->urls['api'] . $url;
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('error', $response))
+            if strlen (($response['error']))
+                throw new MarketError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 

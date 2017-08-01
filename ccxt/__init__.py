@@ -9318,7 +9318,11 @@ class kraken (Market):
                 'Content-type': 'application/x-www-form-urlencoded',
             }
         url = self.urls['api'] + url
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if 'error' in response:
+            if len (response['error']):
+                raise MarketError (self.id + ' ' + self.json (response))
+        return response
 
 #------------------------------------------------------------------------------
 
