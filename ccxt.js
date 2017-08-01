@@ -8991,7 +8991,7 @@ var huobi = {
         return this.tradePostCancelOrder ({ 'id': id });
     },
 
-    request (path, type = 'trade', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'trade', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'];
         if (type == 'trade') {
             url += '/api' + this.version;
@@ -9015,7 +9015,11 @@ var huobi = {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('status' in response)
+            if (response['status'] == 'error')
+                throw new MarketError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 
