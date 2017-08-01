@@ -7236,7 +7236,7 @@ var dsx = {
         return this.tapiPostCancelOrder ({ 'orderId': id });
     },
 
-    request (path, type = 'mapi', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'mapi', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][type];
         if ((type == 'mapi') || (type == 'dwapi'))
             url += '/' + this.implodeParams (path, params);
@@ -7258,7 +7258,13 @@ var dsx = {
                 'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512', 'base64'),
             };
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if (type == 'public')
+            return response;
+        if ('success' in response)
+            if (response['success'])
+                return response;
+        throw new MarketError (this.id + ' ' + this.json (response)); 
     },
 }
 
