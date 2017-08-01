@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.6';
+$version = '1.2.7';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5093,8 +5093,8 @@ class btcx extends Market {
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['buy']),
-            'ask' => floatval ($ticker['sell']),
+            'bid' => floatval ($ticker['sell']),
+            'ask' => floatval ($ticker['buy']),
             'vwap' => null,
             'open' => null,
             'close' => null,
@@ -5146,7 +5146,10 @@ class btcx extends Market {
                 'Signature' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('error', $response))
+            throw new MarketError ($this->id . ' ' . $this->json ($response['error']));
+        return $response;
     }
 }
 
