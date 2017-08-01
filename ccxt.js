@@ -4814,8 +4814,8 @@ var btcx = {
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy']),
-            'ask': parseFloat (ticker['sell']),
+            'bid': parseFloat (ticker['sell']),
+            'ask': parseFloat (ticker['buy']),
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
@@ -4850,7 +4850,7 @@ var btcx = {
         return this.privatePostCancel ({ 'order': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/';
         if (type == 'public') {
             url += this.implodeParams (path, params);
@@ -4867,7 +4867,10 @@ var btcx = {
                 'Signature': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('error' in response)
+            throw new MarketError (this.id + ' ' + this.json (response['error']));
+        return response;
     },
 }
 
