@@ -9186,7 +9186,7 @@ var itbit = {
         }, params));
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (type == 'public') {
@@ -9211,7 +9211,10 @@ var itbit = {
                 'X-Auth-Nonce': nonce,
             };
         }
-        return this.fetch (url, method, headers, body);
+        let response = this.fetch (url, method, headers, body);
+        if ('code' in response)
+            throw new MarketError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 
