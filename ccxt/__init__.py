@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.16'
+__version__ = '1.2.17'
 
 # Python 2 & 3
 import base64
@@ -7022,7 +7022,13 @@ class dsx (Market):
                 'Key': self.apiKey,
                 'Sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512, 'base64'),
             }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if type == 'public':
+            return response
+        if 'success' in response:
+            if response['success']:
+                return response
+        raise MarketError (self.id + ' ' + self.json (response)) 
 
 #------------------------------------------------------------------------------
 
