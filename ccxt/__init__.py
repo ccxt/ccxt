@@ -489,7 +489,10 @@ class Market (object):
 
     @staticmethod
     def binary_concat (*args):
-        return ''.join (args)
+        result = bytes ()
+        for arg in args:
+            result = result + arg
+        return result
 
     @staticmethod
     def base64urlencode (s):
