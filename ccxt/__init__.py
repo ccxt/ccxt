@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.23'
+__version__ = '1.2.24'
 
 # Python 2 & 3
 import base64
@@ -8338,7 +8338,11 @@ class gemini (Market):
                 'X-GEMINI-SIGNATURE': signature,
             }
         url = self.urls['api'] + url
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if 'result' in response:
+            if response['result'] == 'error':
+                raise MarketError (self.id + ' ' + self.json (response))
+        return response
 
 #------------------------------------------------------------------------------
 
