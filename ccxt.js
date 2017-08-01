@@ -2269,7 +2269,7 @@ var bitflyer = {
         }, params));
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.version + '/' + path;
         if (type == 'private')
             request = '/me' + request;
