@@ -5482,6 +5482,7 @@ var ccex = {
             return response;
         if ('success' in response)
             if (response['success'])
+                return response;
         throw new MarketError (this.id + ' ' + this.json (response));
     },
 }
