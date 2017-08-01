@@ -5047,7 +5047,7 @@ var bter = {
         return this.privatePostCancelOrder ({ 'orderNumber': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let prefix = (type == 'private') ? (type + '/') : '';
         let url = this.urls['api'][type] + this.version + '/1/' + prefix + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
@@ -5065,7 +5065,11 @@ var bter = {
                 'Content-Length': body.length,
             };
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('result' in response)
+            if (response['result'] == 'true')
+                return response;
+        throw new MarketError (this.id + ' ' + this.json (response));
     },
 }
 
