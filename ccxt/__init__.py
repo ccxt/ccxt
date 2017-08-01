@@ -1644,7 +1644,16 @@ class bitbays (Market):
                 'Key': self.apiKey,
                 'Sign': self.hmac (self.encode (body), self.secret, hashlib.sha512),
             }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if 'status' in response:
+            if response['status'] == 200:
+                return response
+        error = None
+        if 'message' in response:
+            error = response['message']
+        else:
+            error = self.json (response)
+        raise MarketError (self.id + ' ' + error)
 
 #------------------------------------------------------------------------------
 
@@ -1812,7 +1821,10 @@ class bitcoincoid (Market):
                 'Key': self.apiKey,
                 'Sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512),
             }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if 'error' in response:
+            raise MarketError (self.id + ' ' + response['error'])
+        return response        
 
 #------------------------------------------------------------------------------
 

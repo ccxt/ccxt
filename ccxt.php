@@ -1847,7 +1847,16 @@ class bitbays extends Market {
                 'Sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('status', $response))
+            if ($response['status'] == 200)
+                return $response;
+        $error = null;
+        if (array_key_exists ('message', $response))
+            $error = $response['message'];
+        else
+            $error = $this->json ($response);
+        throw new MarketError ($this->id . ' ' . $error);
     }
 }
 
@@ -2028,7 +2037,10 @@ class bitcoincoid extends Market {
                 'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('error', $response))
+            throw new MarketError ($this->id . ' ' . $response['error']);
+        return $response;        
     }
 }
 

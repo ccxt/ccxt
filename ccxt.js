@@ -1639,6 +1639,7 @@ var bitbays = {
                 'Sign': this.hmac (this.encode (body), this.secret, 'sha512'),
             };
         }
+        let response = await this.fetch (url, method, headers, body);
         if ('status' in response)
             if (response['status'] == 200)
                 return response;
@@ -1825,15 +1826,9 @@ var bitcoincoid = {
             };
         }
         let response = await this.fetch (url, method, headers, body);
-        if ('success' in response)
-            if (response['success'] == 1)
-                return response;
-        let error = undefined;
         if ('error' in response)
-            error = response['error'];
-        else
-            error = this.json (response);
-        throw new MarketError (this.id + ' ' + error);
+            throw new MarketError (this.id + ' ' + response['error']);
+        return response;        
     },
 }
 
