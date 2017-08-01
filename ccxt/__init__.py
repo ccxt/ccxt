@@ -9705,9 +9705,11 @@ class livecoin (Market):
         else:
             query = _urlencode.urlencode (self.keysort (params))
             if method == 'GET':
-                url += '?' + query
+                if query:
+                    url += '?' + query
             else:
-                body = query
+                if query:
+                    body = query
             signature = self.hmac (self.encode (query), self.encode (self.secret), hashlib.sha256)            
             headers = {
                 'Api-Key': self.apiKey,

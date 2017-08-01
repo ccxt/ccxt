@@ -10039,7 +10039,8 @@ var livecoin = {
                 if (query)
                     url += '?' + query;
             else
-                body = query;
+                if (query)
+                    body = query;
             let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');            
             headers = {
                 'Api-Key': this.apiKey,

@@ -10438,9 +10438,11 @@ class livecoin extends Market {
         } else {
             $query = $this->urlencode ($this->keysort ($params));
             if ($method == 'GET')
-                $url .= '?' . $query;
+                if ($query)
+                    $url .= '?' . $query;
             else
-                $body = $query;
+                if ($query)
+                    $body = $query;
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha256');            
             $headers = array (
                 'Api-Key' => $this->apiKey,
