@@ -7825,7 +7825,7 @@ var fyb = {
         return this.privatePostCancelpendingorder ({ 'orderNo': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
         if (type == 'public') {
             url += '.json';
@@ -7838,7 +7838,12 @@ var fyb = {
                 'sig': this.hmac (this.encode (body), this.encode (this.secret), 'sha1')
             };
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if (type == 'private')
+            if ('error' in response)
+                if (response['error'])
+                    throw new MarketError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 
