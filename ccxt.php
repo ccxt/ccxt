@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.13';
+$version = '1.2.14';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -6592,7 +6592,10 @@ class coingi extends Market {
                 'Content-Length' => strlen ($body),
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('errors', $response))
+            throw new MarketError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 

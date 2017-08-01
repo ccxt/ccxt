@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.13'
+__version__ = '1.2.14'
 
 # Python 2 & 3
 import base64
@@ -6082,7 +6082,10 @@ class coingi (Market):
                 'Content-Type': 'application/json',
                 'Content-Length': len (body),
             }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if 'errors' in response:
+            raise MarketError (self.id + ' ' + self.json (response))
+        return response
 
 #------------------------------------------------------------------------------
 
