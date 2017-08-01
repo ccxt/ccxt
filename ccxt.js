@@ -3519,7 +3519,7 @@ var bittrex = {
         return this.marketGetCancel ({ 'uuid': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/';
         if (type == 'public') {
             url += type + '/' + method.toLowerCase () + path;
@@ -3537,7 +3537,11 @@ var bittrex = {
             let signature = this.hmac (this.encode (url), this.encode (this.secret), 'sha512');
             headers = { 'apisign': signature };
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('success' in response)
+            if (response['success'])
+                return response;
+        throw new MarketError (this.id + ' ' + this.json (response));
     },
 }
 
