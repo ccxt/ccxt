@@ -8603,8 +8603,8 @@ var gemini = {
                 'nonce': nonce,
             }, query);
             let payload = this.json (request);
-            payload = this.encode (payload);
             payload = this.stringToBase64 (payload);
+            payload = this.encode (payload);
             let signature = this.hmac (payload, this.encode (this.secret), 'sha384');
             headers = {
                 'Content-Type': 'text/plain',
