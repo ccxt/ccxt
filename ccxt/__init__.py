@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.20'
+__version__ = '1.2.21'
 
 # Python 2 & 3
 import base64
@@ -7930,7 +7930,12 @@ class gatecoin (Market):
             if method != 'GET':
                 headers['Content-Type'] = contentType
                 body = self.json (self.extend ({ 'nonce': nonce }, params))
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if 'responseStatus' in response:
+            if 'message' in response['responseStatus']:
+                if response['responseStatus']['message'] == 'OK':
+                    return response
+        raise MarketError (self.id + ' ' + self.json (response))
 
 #------------------------------------------------------------------------------
 

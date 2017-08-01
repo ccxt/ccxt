@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.20';
+$version = '1.2.21';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8556,7 +8556,12 @@ class gatecoin extends Market {
                 $body = $this->json (array_merge (array ( 'nonce' => $nonce ), $params));
             }
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('responseStatus', $response))
+            if (array_key_exists ('message', $response['responseStatus']))
+                if ($response['responseStatus']['message'] == 'OK')
+                    return $response;
+        throw new MarketError ($this->id . ' ' . $this->json ($response));
     }
 }
 
