@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.14';
+$version = '1.2.15';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -6932,7 +6932,11 @@ class coinmate extends Market {
                 'Content-Type' =>  'application/x-www-form-urlencoded',
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('error', $response))
+            if ($response['error'])
+                throw new MarketError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 

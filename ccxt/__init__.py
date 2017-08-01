@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.14'
+__version__ = '1.2.15'
 
 # Python 2 & 3
 import base64
@@ -6399,7 +6399,11 @@ class coinmate (Market):
             headers = {
                 'Content-Type':  'application/x-www-form-urlencoded',
             }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if 'error' in response:
+            if response['error']:
+                raise MarketError (self.id + ' ' + self.json (response))
+        return response
 
 #------------------------------------------------------------------------------
 

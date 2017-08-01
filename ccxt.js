@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.2.14'
+var version = '1.2.15'
 var isNode  = (typeof window === 'undefined')
 var isReactNative = (typeof navigator !== 'undefined') && navigator &&
     navigator.product && navigator.product == 'ReactNative' || false
