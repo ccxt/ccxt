@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.26'
+__version__ = '1.2.27'
 
 # Python 2 & 3
 import base64
@@ -8911,7 +8911,10 @@ class itbit (Market):
                 'X-Auth-Timestamp': timestamp,
                 'X-Auth-Nonce': nonce,
             }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if 'code' in response:
+            raise MarketError (self.id + ' ' + self.json (response))
+        return response
 
 #------------------------------------------------------------------------------
 
