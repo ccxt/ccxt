@@ -5,14 +5,15 @@
 ```
 
 If you want to submit an issue and you want your issue to be resolved quickly, here's a basic checklist for you:
+
 1. Read the [Manual](https://github.com/kroitor/ccxt/wiki/Manual).
 2. Read the [Troubleshooting](https://github.com/kroitor/ccxt/wiki/Manual#troubleshooting) section and follow  troubleshooting steps.
 3. Search for similar issues first to avoid duplicates
 4. If your issue is unique, along with a basic description of the failure, provide the following:
-  - your language version, ccxt library version
-  - which exchange it is and which method you're trying to call
-  - a code snippet you're having difficulties with
-  - the output of that snippet in verbose mode
+    - your language version, ccxt library version
+    - which exchange it is and which method you're trying to call
+    - a code snippet you're having difficulties with
+    - the output of that snippet in verbose mode
 
 Below are the rules for contributing to the ccxt library codebase.
 
