@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.9';
+$version = '1.2.10';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5653,27 +5653,19 @@ class ccex extends Market {
     public function fetch_balance () {
         $this->loadProducts ();
         $response = $this->privateGetBalances ();
-        if (array_key_exists ('success', $response)) {
-            if ($response['success']) {
-                $balances = $response['result'];
-                $result = array ( 'info' => $balances );
-                for ($b = 0; $b < count ($balances); $b++) {
-                    $balance = $balances[$b];
-                    $currency = $balance['Currency'];
-                    $account = array (
-                        'free' => $balance['Available'],
-                        'used' => $balance['Pending'],
-                        'total' => $balance['Balance'],
-                    );
-                    $result[$currency] = $account;
-                }
-                return $result;                            
-            }
+        $balances = $response['result'];
+        $result = array ( 'info' => $balances );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
+            $currency = $balance['Currency'];
+            $account = array (
+                'free' => $balance['Available'],
+                'used' => $balance['Pending'],
+                'total' => $balance['Balance'],
+            );
+            $result[$currency] = $account;
         }
-        $message = (array_key_exists ('message', $response)) ? $response['message'] : '';
-        if ($message == 'APIKEY_INVALID')
-            throw new AuthenticationError ($this->id . ' ' . $message);
-        throw new EndpointError ($this->id . ' ' . $message);
+        return $result;
     }
 
     public function fetch_order_book ($product) {
@@ -5777,7 +5769,13 @@ class ccex extends Market {
         } else {
             $url .= '/' . $this->implode_params ($path, $params) . '.json';
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if ($type == 'tickers')
+            return $response;
+        if (array_key_exists ('success', $response))
+            if ($response['success'])
+                return $response;
+        throw new MarketError ($this->id . ' ' . $this->json ($response));
     }
 }
 

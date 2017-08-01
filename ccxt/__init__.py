@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.9'
+__version__ = '1.2.10'
 
 # Python 2 & 3
 import base64
@@ -5203,24 +5203,18 @@ class ccex (Market):
     def fetch_balance (self):
         self.loadProducts ()
         response = self.privateGetBalances ()
-        if 'success' in response:
-            if response['success']:
-                balances = response['result']
-                result = { 'info': balances }
-                for b in range (0, len (balances)):
-                    balance = balances[b]
-                    currency = balance['Currency']
-                    account = {
-                        'free': balance['Available'],
-                        'used': balance['Pending'],
-                        'total': balance['Balance'],
-                    }
-                    result[currency] = account
-                return result                            
-        message = response['message'] if ('message' in list (response.keys ())) else ''
-        if message == 'APIKEY_INVALID':
-            raise AuthenticationError (self.id + ' ' + message)
-        raise EndpointError (self.id + ' ' + message)
+        balances = response['result']
+        result = { 'info': balances }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = balance['Currency']
+            account = {
+                'free': balance['Available'],
+                'used': balance['Pending'],
+                'total': balance['Balance'],
+            }
+            result[currency] = account
+        return result
 
     def fetch_order_book (self, product):
         self.loadProducts ()
@@ -5315,7 +5309,13 @@ class ccex (Market):
             }, params))
         else:
             url += '/' + self.implode_params (path, params) + '.json'
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if type == 'tickers':
+            return response
+        if 'success' in response:
+            if response['success']:
+                return response
+        raise MarketError (self.id + ' ' + self.json (response))
 
 #------------------------------------------------------------------------------
 
