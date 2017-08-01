@@ -8590,7 +8590,7 @@ var gemini = {
         return this.privatePostCancelOrder ({ 'order_id': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (type == 'public') {
@@ -8615,7 +8615,11 @@ var gemini = {
             };
         }
         url = this.urls['api'] + url;
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('result' in response)
+            if (response['result'] == 'error')
+                throw new MarketError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 
