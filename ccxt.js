@@ -9614,7 +9614,7 @@ var kraken = {
         return this.privatePostCancelOrder ({ 'txid': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.version + '/' + type + '/' + path;
         if (type == 'public') {
             if (Object.keys (params).length)
@@ -9635,7 +9635,11 @@ var kraken = {
             };
         }
         url = this.urls['api'] + url;
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('error' in response)
+            if (response['error'].length)
+                throw new MarketError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 
