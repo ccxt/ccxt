@@ -9367,7 +9367,7 @@ var jubi = {
         }, params));
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (type == 'public') {
             if (Object.keys (params).length)
@@ -9387,7 +9387,11 @@ var jubi = {
                 'Content-Length': body.length,
             };
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('result' in response)
+            if (!response['result'])
+                throw new MarketError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 

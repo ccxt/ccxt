@@ -29,7 +29,7 @@
     "gdax":          { "apiKey": "99d78d0c59405c7b0b01b9f74a19ccdc", "secret": "v2na2PrytFhCVZx5n6mSbj8Orrh2XUegTvTFDDyn9B5DPtEtbCXL2RrpgbEb269kkxFUhNrGpGPcSegY4vPn/w==", "password": "kx7sx0hnikm" },
     "hitbtc":        { "apiKey": "18339694544745d9357f9e7c0f7c41bb", "secret": "8340a60fb4e9fc73a169c26c7a7926f5" },
     "huobi":         { "apiKey": "09bdde40-cc179779-1941272a-433a7", "secret": "ce6487f4-f078c39f-018ea6ce-01922" },
-    "jubi":          { "apiKey": "4edas-tn7jn-cpr8a-1er4k-r8h8i-cp6kj-jpzyz", "secret": "YYO(r-mp$2G-m4&1b-EYu~$-%tS4&-jNNhI-L!pg^" },
+    "jubi":          { "apiKey": "icbh6-v163t-6ravj-7ezbg-1yab2-pun37-qmj25", "secret": "W&b%~-(5Xi(-pytmY-.nVaO-X,Cx^-RaHhd-S(6;." },
     "kraken":        { "apiKey": "hEvQNMDIeoCJbr7W/ZBb5CGOrx3G0lWF5B3zqa1JBxdZlEaL8EK+D0Mw", "secret": "JaE9wI6Nwgh5oRxiHcVxurwzwBxwc05W/qv/k1srGg4s3EYuXPpNkLLM5NYbbWpM8rCyijIeDavRuqWbU0ZV9A==" },
     "liqui":         { "apiKey": "3CCPNOH2-7W0SYD8F-UNEVV304-NDU3MVJE-Z43H2I05", "secret": "9c6aad97f1e0b97b58fc3a69ac88b57483215f9b4037c668151d946871e177f4" },
     "livecoin":      { "apiKey": "W5z7bvQM2pEShvGmqq1bXZkb1MR32GKw", "secret": "n8FrknvqwsRnTpGeNAbC51waYdE4xxSB" },
