@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.17';
+$version = '1.2.18';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7814,13 +7814,13 @@ class exmo extends Market {
                 'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
-        $result = $this->fetch ($url, $method, $headers, $body);
-        if (array_key_exists ('result', $result)) {
-            if (!$result['result']) {
-                throw new MarketNotAvailableError ($this->id . ' ' . $result['error']);
-            }
-        }
-        return $result;
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if ($type == 'public')
+            return $response;
+        if (array_key_exists ('result', $response))
+            if ($response['result'])
+                return $response;
+        throw new MarketError ($this->id . ' ' . $this->json ($response));
     }
 }
 
