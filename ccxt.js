@@ -8389,7 +8389,7 @@ var gdax = {
         return this.privateDeleteOrdersId ({ 'id': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         let url = this.urls['api'] + request;
         let query = this.omit (params, this.extractParams (path));
@@ -8417,7 +8417,10 @@ var gdax = {
                 'Content-Type': 'application/json',
             };
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('message' in response)
+            throw new MarketError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 
