@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.8'
+__version__ = '1.2.9'
 
 # Python 2 & 3
 import base64
@@ -5098,7 +5098,9 @@ class bxinth (Market):
         })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        url = self.urls['api'] + '/' + path + '/'
+        url = self.urls['api'] + '/'
+        if path:
+            url += path + '/'
         if params:
             url += '?' + _urlencode.urlencode (params)
         if type == 'private':
@@ -5115,7 +5117,13 @@ class bxinth (Market):
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len (body),
             }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if type == 'public':
+            return response
+        if 'success' in response:
+            if response['success']:
+                return response
+        raise MarketError (self.id + ' ' + self.json (response))
 
 #------------------------------------------------------------------------------
 
