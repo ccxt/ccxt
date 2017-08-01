@@ -1643,12 +1643,7 @@ var bitbays = {
         if ('status' in response)
             if (response['status'] == 200)
                 return response;
-        let error = undefined;
-        if ('message' in response)
-            error = response['message'];
-        else
-            error = this.json (response);
-        throw new MarketError (this.id + ' ' + error);
+        throw new MarketError (this.id + ' ' + this.json (response));
     },
 }
 
@@ -3132,7 +3127,7 @@ var bitso = {
         return this.privateDeleteOrders ({ 'oid': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'] + query;
         if (type == 'public') {
@@ -3147,7 +3142,11 @@ var bitso = {
             let auth = this.apiKey + ':' + nonce + ':' + signature;
             headers = { 'Authorization': "Bitso " + auth };
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('success' in response)
+            if (response['success'])
+                return response;
+        throw new MarketError (this.id + ' ' + this.json (response));
     },
 }
 
