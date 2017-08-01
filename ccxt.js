@@ -5836,7 +5836,7 @@ var chbtc = {
         return this.milliseconds ();
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][type]; 
         if (type == 'public') {
             url += '/' + this.version + '/' + path;
@@ -5853,7 +5853,11 @@ var chbtc = {
             let suffix = 'sign=' + signature + '&reqTime=' + nonce.toString ();
             url += '/' + path + '?' + auth + '&' + suffix;
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if (type == 'private')
+            if ('code' in response)
+                throw new MarketError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 
