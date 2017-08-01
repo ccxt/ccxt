@@ -8169,7 +8169,7 @@ var gatecoin = {
         return this.privateDeleteTradeOrdersOrderID ({ 'OrderID': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (type == 'public') {
@@ -8191,7 +8191,12 @@ var gatecoin = {
                 body = this.json (this.extend ({ 'nonce': nonce }, params));
             }
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('responseStatus' in response)
+            if ('message' in response['responseStatus'])
+                if (response['responseStatus']['message'] == 'OK')
+                    return response;
+        throw new MarketError (this.id + ' ' + this.json (response));
     },
 }
 
