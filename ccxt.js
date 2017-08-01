@@ -10036,7 +10036,8 @@ var livecoin = {
         } else {
             let query = this.urlencode (this.keysort (params));
             if (method == 'GET')
-                url += '?' + query;
+                if (query)
+                    url += '?' + query;
             else
                 body = query;
             let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');            
