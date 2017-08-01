@@ -7259,7 +7259,7 @@ var dsx = {
             };
         }
         let response = await this.fetch (url, method, headers, body);
-        if (type == 'public')
+        if (type == 'mapi')
             return response;
         if ('success' in response)
             if (response['success'])
