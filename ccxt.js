@@ -5255,8 +5255,10 @@ var bxinth = {
         });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + path + '/';
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/';
+        if (path)
+            url += path + '/';
         if (Object.keys (params).length)
             url += '?' + this.urlencode (params);
         if (type == 'private') {
@@ -5274,7 +5276,13 @@ var bxinth = {
                 'Content-Length': body.length,
             };
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if (type == 'public')
+            return response;
+        if ('success' in response)
+            if (response['success'])
+                return response;
+        throw new MarketError (this.id + ' ' + this.json (response));
     },
 }
 
