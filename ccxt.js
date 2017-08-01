@@ -9112,15 +9112,21 @@ var itbit = {
             'symbol': this.productId (product),
         });
         let timestamp = this.parse8601 (ticker['serverTimeUTC']);
-        let bid = ticker['bid'] ? parseFloat (ticker['bid']) : undefined;
-        let ask = ticker['ask'] ? parseFloat (ticker['ask']) : undefined;
+        let bid = undefined;
+        let ask = undefined;
+        if ('bid' in ticker)
+            if (ticker['bid'])
+                bid = parseFloat (ticker['bid']);
+        if ('ask' in ticker)
+            if (ticker['ask'])
+                ask = parseFloat (ticker['ask']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high24h']),
             'low': parseFloat (ticker['low24h']),
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
+            'bid': bid,
+            'ask': ask,
             'vwap': parseFloat (ticker['vwap24h']),
             'open': parseFloat (ticker['openToday']),
             'close': undefined,
