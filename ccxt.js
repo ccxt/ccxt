@@ -5645,7 +5645,7 @@ var cex = {
         return this.privatePostCancelOrder ({ 'id': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (type == 'public') {
@@ -5667,7 +5667,11 @@ var cex = {
                 'Content-Length': body.length,
             };
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('ok' in response)
+            if (response['ok'] == 'ok')
+                return response;
+        throw new MarketError (this.id + ' ' + this.json (response));
     },
 }
 
