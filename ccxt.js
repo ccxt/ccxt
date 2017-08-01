@@ -8804,7 +8804,7 @@ var hitbtc = {
         return this.tradingPostCancelOrder ({ 'clientOrderId': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/api/' + this.version + '/' + type + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (type == 'public') {
@@ -8825,7 +8825,10 @@ var hitbtc = {
             };
         }
         url = this.urls['api'] + url;
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('code' in response)
+            throw new MarketError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 
