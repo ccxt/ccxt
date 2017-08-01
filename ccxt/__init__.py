@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.12'
+__version__ = '1.2.13'
 
 # Python 2 & 3
 import base64
@@ -5493,10 +5493,12 @@ class cex (Market):
                 'Content-Length': len (body),
             }
         response = self.fetch (url, method, headers, body)
-        if 'ok' in response:
-            if response['ok'] == 'ok':
-                return response
-        raise MarketError (self.id + ' ' + self.json (response))
+        if 'e' in response:
+            if 'ok' in response:
+                if response['ok'] == 'ok':
+                    return response
+            raise MarketError (self.id + ' ' + self.json (response))
+        return response
 
 #------------------------------------------------------------------------------
 
@@ -5898,7 +5900,13 @@ class coincheck (Market):
                 'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': self.hmac (self.encode (auth), self.encode (self.secret)),
             }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if type == 'public':
+            return response
+        if 'success' in response:
+            if response['success']:
+                return response
+        raise MarketError (self.id + ' ' + self.json (response))
 
 #------------------------------------------------------------------------------
 

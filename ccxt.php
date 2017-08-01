@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.12';
+$version = '1.2.13';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5964,10 +5964,13 @@ class cex extends Market {
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
-        if (array_key_exists ('ok', $response))
-            if ($response['ok'] == 'ok')
-                return $response;
-        throw new MarketError ($this->id . ' ' . $this->json ($response));
+        if (array_key_exists ('e', $response)) {
+            if (array_key_exists ('ok', $response))
+                if ($response['ok'] == 'ok')
+                    return $response;
+            throw new MarketError ($this->id . ' ' . $this->json ($response));
+        }
+        return $response;
     }
 }
 
@@ -6393,7 +6396,13 @@ class coincheck extends Market {
                 'ACCESS-SIGNATURE' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret)),
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if ($type == 'public')
+            return $response;
+        if (array_key_exists ('success', $response))
+            if ($response['success'])
+                return $response;
+        throw new MarketError ($this->id . ' ' . $this->json ($response));
     }
 }
 
