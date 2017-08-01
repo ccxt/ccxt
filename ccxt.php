@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.23';
+$version = '1.2.24';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8990,7 +8990,11 @@ class gemini extends Market {
             );
         }
         $url = $this->urls['api'] . $url;
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('result', $response))
+            if ($response['result'] == 'error')
+                throw new MarketError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 
