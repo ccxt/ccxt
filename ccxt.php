@@ -1272,13 +1272,19 @@ class anxpro extends Market {
         $ticker = $response['data'];
         $t = intval ($ticker['dataUpdateTime']);
         $timestamp = intval ($t / 1000);
+        $bid = null;
+        $ask = null;
+        if ($ticker['buy']['value'])
+            $bid = floatval ($ticker['buy']['value']);
+        if ($ticker['sell']['value'])
+            $ask = floatval ($ticker['sell']['value']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['high']['value']),
             'low' => floatval ($ticker['low']['value']),
-            'bid' => floatval ($ticker['buy']['value']),
-            'ask' => floatval ($ticker['sell']['value']),
+            'bid' => $bid,
+            'ask' => $ask,
             'vwap' => floatval ($ticker['vwap']['value']),
             'open' => null,
             'close' => null,
@@ -9499,15 +9505,21 @@ class itbit extends Market {
             'symbol' => $this->product_id ($product),
         ));
         $timestamp = $this->parse8601 ($ticker['serverTimeUTC']);
-        $bid = $ticker['bid'] ? floatval ($ticker['bid']) : null;
-        $ask = $ticker['ask'] ? floatval ($ticker['ask']) : null;
+        $bid = null;
+        $ask = null;
+        if (array_key_exists ('bid', $ticker))
+            if ($ticker['bid'])
+                $bid = floatval ($ticker['bid']);
+        if (array_key_exists ('ask', $ticker))
+            if ($ticker['ask'])
+                $ask = floatval ($ticker['ask']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['high24h']),
             'low' => floatval ($ticker['low24h']),
-            'bid' => floatval ($ticker['bid']),
-            'ask' => floatval ($ticker['ask']),
+            'bid' => $bid,
+            'ask' => $ask,
             'vwap' => floatval ($ticker['vwap24h']),
             'open' => floatval ($ticker['openToday']),
             'close' => null,

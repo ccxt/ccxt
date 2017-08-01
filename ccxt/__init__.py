@@ -1111,13 +1111,19 @@ class anxpro (Market):
         ticker = response['data']
         t = int (ticker['dataUpdateTime'])
         timestamp = int (t / 1000)
+        bid = None
+        ask = None
+        if ticker['buy']['value']:
+            bid = float (ticker['buy']['value'])
+        if ticker['sell']['value']:
+            ask = float (ticker['sell']['value'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),
             'high': float (ticker['high']['value']),
             'low': float (ticker['low']['value']),
-            'bid': float (ticker['buy']['value']),
-            'ask': float (ticker['sell']['value']),
+            'bid': bid,
+            'ask': ask,
             'vwap': float (ticker['vwap']['value']),
             'open': None,
             'close': None,
@@ -8821,15 +8827,21 @@ class itbit (Market):
             'symbol': self.product_id (product),
         })
         timestamp = self.parse8601 (ticker['serverTimeUTC'])
-        bid = ticker['bid'] ? float (ticker['bid']) : None
-        ask = ticker['ask'] ? float (ticker['ask']) : None
+        bid = None
+        ask = None
+        if 'bid' in ticker:
+            if ticker['bid']:
+                bid = float (ticker['bid'])
+        if 'ask' in ticker:
+            if ticker['ask']:
+                ask = float (ticker['ask'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),
             'high': float (ticker['high24h']),
             'low': float (ticker['low24h']),
-            'bid': float (ticker['bid']),
-            'ask': float (ticker['ask']),
+            'bid': bid,
+            'ask': ask,
             'vwap': float (ticker['vwap24h']),
             'open': float (ticker['openToday']),
             'close': None,

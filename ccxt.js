@@ -1076,13 +1076,19 @@ var anxpro = {
         let ticker = response['data'];
         let t = parseInt (ticker['dataUpdateTime']);
         let timestamp = parseInt (t / 1000);
+        let bid = undefined;
+        let ask = undefined;
+        if (ticker['buy']['value'])
+            bid = parseFloat (ticker['buy']['value']);
+        if (ticker['sell']['value'])
+            ask = parseFloat (ticker['sell']['value']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']['value']),
             'low': parseFloat (ticker['low']['value']),
-            'bid': parseFloat (ticker['buy']['value']),
-            'ask': parseFloat (ticker['sell']['value']),
+            'bid': bid,
+            'ask': ask,
             'vwap': parseFloat (ticker['vwap']['value']),
             'open': undefined,
             'close': undefined,
