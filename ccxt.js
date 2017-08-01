@@ -5361,27 +5361,19 @@ var ccex = {
     async fetchBalance () {
         await this.loadProducts ();
         let response = await this.privateGetBalances ();
-        if ('success' in response) {
-            if (response['success']) {
-                let balances = response['result'];
-                let result = { 'info': balances };
-                for (let b = 0; b < balances.length; b++) {
-                    let balance = balances[b];
-                    let currency = balance['Currency'];
-                    let account = {
-                        'free': balance['Available'],
-                        'used': balance['Pending'],
-                        'total': balance['Balance'],
-                    };
-                    result[currency] = account;
-                }
-                return result;                            
-            }
+        let balances = response['result'];
+        let result = { 'info': balances };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = balance['Currency'];
+            let account = {
+                'free': balance['Available'],
+                'used': balance['Pending'],
+                'total': balance['Balance'],
+            };
+            result[currency] = account;
         }
-        let message = ('message' in response) ? response['message'] : '';
-        if (message == 'APIKEY_INVALID')
-            throw new AuthenticationError (this.id + ' ' + message);
-        throw new EndpointError (this.id + ' ' + message);
+        return result;
     },
 
     async fetchOrderBook (product) {
@@ -5485,7 +5477,12 @@ var ccex = {
         } else {
             url += '/' + this.implodeParams (path, params) + '.json';
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if (type == 'tickers')
+            return response;
+        if ('success' in response)
+            if (response['success'])
+        throw new MarketError (this.id + ' ' + this.json (response));
     },
 }
 
