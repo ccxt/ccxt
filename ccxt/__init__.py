@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.17'
+__version__ = '1.2.18'
 
 # Python 2 & 3
 import base64
@@ -7228,11 +7228,13 @@ class exmo (Market):
                 'Key': self.apiKey,
                 'Sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512),
             }
-        result = self.fetch (url, method, headers, body)
-        if 'result' in result:
-            if not result['result']:
-                raise MarketNotAvailableError (self.id + ' ' + result['error'])
-        return result
+        response = self.fetch (url, method, headers, body)
+        if type == 'public':
+            return response
+        if 'result' in response:
+            if response['result']:
+                return response
+        raise MarketError (self.id + ' ' + self.json (response))
 
 #------------------------------------------------------------------------------
 
