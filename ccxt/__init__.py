@@ -2052,7 +2052,10 @@ class bitfinex (Market):
                 'X-BFX-PAYLOAD': payload,
                 'X-BFX-SIGNATURE': self.hmac (payload, secret, hashlib.sha384),
             }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if 'message' in response:
+            raise MarketError (self.id + ' ' + self.json (response))
+        return response
 
 #------------------------------------------------------------------------------
 
@@ -8818,6 +8821,8 @@ class itbit (Market):
             'symbol': self.product_id (product),
         })
         timestamp = self.parse8601 (ticker['serverTimeUTC'])
+        bid = ticker['bid'] ? float (ticker['bid']) : None
+        ask = ticker['ask'] ? float (ticker['ask']) : None
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),

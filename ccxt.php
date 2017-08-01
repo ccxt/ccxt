@@ -2286,7 +2286,10 @@ class bitfinex extends Market {
                 'X-BFX-SIGNATURE' => $this->hmac ($payload, $secret, 'sha384'),
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('message', $response))
+            throw new MarketError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 
@@ -9496,6 +9499,8 @@ class itbit extends Market {
             'symbol' => $this->product_id ($product),
         ));
         $timestamp = $this->parse8601 ($ticker['serverTimeUTC']);
+        $bid = $ticker['bid'] ? floatval ($ticker['bid']) : null;
+        $ask = $ticker['ask'] ? floatval ($ticker['ask']) : null;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),

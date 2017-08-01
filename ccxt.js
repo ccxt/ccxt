@@ -9112,6 +9112,8 @@ var itbit = {
             'symbol': this.productId (product),
         });
         let timestamp = this.parse8601 (ticker['serverTimeUTC']);
+        let bid = ticker['bid'] ? parseFloat (ticker['bid']) : undefined;
+        let ask = ticker['ask'] ? parseFloat (ticker['ask']) : undefined;
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
