@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.18';
+$version = '1.2.19';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7593,7 +7593,7 @@ class dsx extends Market {
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
-        if ($type == 'public')
+        if ($type == 'mapi')
             return $response;
         if (array_key_exists ('success', $response))
             if ($response['success'])
@@ -8020,7 +8020,11 @@ class flowbtc extends Market {
                 'Content-Length' => strlen ($body),
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('isAccepted', $response))
+            if ($response['isAccepted'])
+                return $response;
+        throw new MarketError ($this->id . ' ' . $this->json ($response));
     }
 }
 
@@ -8185,7 +8189,12 @@ class fyb extends Market {
                 'sig' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha1')
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if ($type == 'private')
+            if (array_key_exists ('error', $response))
+                if ($response['error'])
+                    throw new MarketError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 
