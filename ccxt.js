@@ -9019,6 +9019,8 @@ var huobi = {
         if ('status' in response)
             if (response['status'] == 'error')
                 throw new MarketError (this.id + ' ' + this.json (response));
+        if ('code' in response)
+            throw new MarketError (this.id + ' ' + this.json (response));
         return response;
     },
 }
