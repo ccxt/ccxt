@@ -9803,7 +9803,7 @@ var lakebtc = {
         return this.privatePostCancelOrder ({ 'params': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version;
         if (type == 'public') {
             url += '/' + path;
@@ -9836,7 +9836,10 @@ var lakebtc = {
                 'Content-Type': 'application/json',
             };
         }
-        return this.fetch (url, method, headers, body);
+        let response = this.fetch (url, method, headers, body);
+        if ('error' in response)
+            throw new MarketError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 
@@ -10031,7 +10034,6 @@ var livecoin = {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
-            let length = 0;
             let query = this.urlencode (this.keysort (params));
             if (method == 'GET')
                 url += '?' + query;
@@ -10042,7 +10044,6 @@ var livecoin = {
                 'Api-Key': this.apiKey,
                 'Sign': signature.toUpperCase (),
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': length,
             };
         }
         return this.fetch (url, method, headers, body);
