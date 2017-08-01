@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.5'
+__version__ = '1.2.6'
 
 # Python 2 & 3
 import base64
@@ -3454,7 +3454,11 @@ class bittrex (Market):
             }, params))
             signature = self.hmac (self.encode (url), self.encode (self.secret), hashlib.sha512)
             headers = { 'apisign': signature }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if 'success' in response:
+            if response['success']:
+                return response
+        raise MarketError (self.id + ' ' + self.json (response))
 
 #------------------------------------------------------------------------------
 
