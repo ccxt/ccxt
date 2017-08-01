@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.8';
+$version = '1.2.9';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5544,7 +5544,9 @@ class bxinth extends Market {
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $path . '/';
+        $url = $this->urls['api'] . '/';
+        if ($path)
+            $url .= $path . '/';
         if ($params)
             $url .= '?' . $this->urlencode ($params);
         if ($type == 'private') {
@@ -5562,7 +5564,13 @@ class bxinth extends Market {
                 'Content-Length' => strlen ($body),
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if ($type == 'public')
+            return $response;
+        if (array_key_exists ('success', $response))
+            if ($response['success'])
+                return $response;
+        throw new MarketError ($this->id . ' ' . $this->json ($response));
     }
 }
 
