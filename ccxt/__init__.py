@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.18'
+__version__ = '1.2.19'
 
 # Python 2 & 3
 import base64
@@ -7023,7 +7023,7 @@ class dsx (Market):
                 'Sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512, 'base64'),
             }
         response = self.fetch (url, method, headers, body)
-        if type == 'public':
+        if type == 'mapi':
             return response
         if 'success' in response:
             if response['success']:
@@ -7419,7 +7419,11 @@ class flowbtc (Market):
                 'Content-Type': 'application/json',
                 'Content-Length': len (body),
             }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if 'isAccepted' in response:
+            if response['isAccepted']:
+                return response
+        raise MarketError (self.id + ' ' + self.json (response))
 
 #------------------------------------------------------------------------------
 
@@ -7574,7 +7578,12 @@ class fyb (Market):
                 'key': self.apiKey,
                 'sig': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha1)
             }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if type == 'private':
+            if 'error' in response:
+                if response['error']:
+                    raise MarketError (self.id + ' ' + self.json (response))
+        return response
 
 #------------------------------------------------------------------------------
 
