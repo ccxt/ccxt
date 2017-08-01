@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.31';
+$version = '1.2.32';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10438,7 +10438,8 @@ class livecoin extends Market {
         } else {
             $query = $this->urlencode ($this->keysort ($params));
             if ($method == 'GET')
-                $url .= '?' . $query;
+                if ($query)
+                    $url .= '?' . $query;
             else
                 $body = $query;
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha256');            
