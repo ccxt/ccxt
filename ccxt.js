@@ -9584,20 +9584,20 @@ var kraken = {
         let result = { 'info': balances };
         let currencies = Object.keys (balances);
         for (let c = 0; c < currencies.length; c++) {
-            let code = currencies[c];
-            let currency = code;
-            if (currency[0] == 'X') // X-ISO4217-A3 standard currency codes
-                currency = currency.slice (1);
-            else if (currency[0] == 'Z')
-                currency = currency.slice (1);
-            currency = this.commonCurrencyCode (currency);
+            let currency = currencies[c];
+            let code = currency;
+            if (code[0] == 'X') // X-ISO4217-A3 standard currency codes
+                code = code.slice (1);
+            else if (code[0] == 'Z')
+                code = code.slice (1);
+            code = this.commonCurrencyCode (code);
             let balance = parseFloat (balances[code]);
             let account = {
                 'free': balance,
                 'used': undefined,
                 'total': balance,
             };
-            result[currency] = account;
+            result[code] = account;
         }
         return result;
     },
