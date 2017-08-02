@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.44'
+__version__ = '1.2.45'
 
 # Python 2 & 3
 import base64
@@ -11265,7 +11265,10 @@ class southxchange (Market):
                 'Content-Type': 'application/json',
                 'Hash': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512),
             }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if not response:
+            raise MarketError (self.id + ' ' + self.json (response))
+        return response
 
 #------------------------------------------------------------------------------
 
