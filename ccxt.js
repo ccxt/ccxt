@@ -8702,6 +8702,7 @@ var hitbtc = {
             let id = product['symbol'];
             let base = product['commodity'];
             let quote = product['currency'];
+            let lot = parseFloat (product['lot']);
             // looks like they now have it correct
             // if (base == 'DSH')
                 // base = 'DASH';
@@ -8711,6 +8712,7 @@ var hitbtc = {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'lot': lot,
                 'info': product,
             });
         }
@@ -8800,11 +8802,17 @@ var hitbtc = {
 
     async createOrder (product, type, side, amount, price = undefined, params = {}) {
         await this.loadProducts ();
+        let p = this.product (product);
+        // check if amount can be evenly divided into lots
+        // they want integer quantity in lot units
+        if (amount % product['lot'])
+            throw new MarketError (this.id + ' order amount should be evenly divisible by lot unit size of ' + product['lot']);
+        let quantity = Math.round (amount / product['lot']);
         let order = {
             'clientOrderId': this.nonce (),
-            'symbol': this.productId (product),
+            'symbol': p['id'],
             'side': side,
-            'quantity': amount.toString (),
+            'quantity': quantity.toString (), // quantity in integer lot units
             'type': type,
         };
         if (type == 'limit')

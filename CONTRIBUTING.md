@@ -8,7 +8,8 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 
 - Read the [Manual](https://github.com/kroitor/ccxt/wiki/Manual).
 - Read the [Troubleshooting](https://github.com/kroitor/ccxt/wiki/Manual#troubleshooting) section and follow  troubleshooting steps.
-- Search for similar issues first to avoid duplicates
+- Read the [API docs](https://github.com/kroitor/ccxt/wiki/Exchange-Markets) for your exchange.
+- Search for similar issues first to avoid duplicates.
 - If your issue is unique, along with a basic description of the failure, please, provide the following information:
   - your language version, ccxt library version
   - which exchange it is and which method you're trying to call

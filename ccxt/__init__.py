@@ -8431,6 +8431,7 @@ class hitbtc (Market):
             id = product['symbol']
             base = product['commodity']
             quote = product['currency']
+            lot = float (product['lot'])
             # looks like they now have it correct
             # if base == 'DSH':
                 # base = 'DASH'
@@ -8440,6 +8441,7 @@ class hitbtc (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'lot': lot,
                 'info': product,
             })
         return result
@@ -8520,11 +8522,17 @@ class hitbtc (Market):
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         self.loadProducts ()
+        p = self.product (product)
+        # check if amount can be evenly divided into lots
+        # they want integer quantity in lot units
+        if amount % product['lot']:
+            raise MarketError (self.id + ' order amount should be evenly divisible by lot unit size of ' + product['lot'])
+        quantity = int (round (amount / product['lot']))
         order = {
             'clientOrderId': self.nonce (),
-            'symbol': self.product_id (product),
+            'symbol': p['id'],
             'side': side,
-            'quantity': str (amount),
+            'quantity': str (quantity), # quantity in integer lot units
             'type': type,
         }
         if type == 'limit':

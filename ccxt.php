@@ -9081,6 +9081,7 @@ class hitbtc extends Market {
             $id = $product['symbol'];
             $base = $product['commodity'];
             $quote = $product['currency'];
+            $lot = floatval ($product['lot']);
             // looks like they now have it correct
             // if ($base == 'DSH')
                 // $base = 'DASH';
@@ -9090,6 +9091,7 @@ class hitbtc extends Market {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'lot' => $lot,
                 'info' => $product,
             );
         }
@@ -9179,11 +9181,17 @@ class hitbtc extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadProducts ();
+        $p = $this->product ($product);
+        // check if $amount can be evenly divided into lots
+        // they want integer $quantity in lot units
+        if (fmod ($amount, $product['lot']))
+            throw new MarketError ($this->id . ' $order $amount should be evenly divisible by lot unit size of ' . $product['lot']);
+        $quantity = (int) round ($amount / $product['lot']);
         $order = array (
             'clientOrderId' => $this->nonce (),
-            'symbol' => $this->product_id ($product),
+            'symbol' => $p['id'],
             'side' => $side,
-            'quantity' => (string) $amount,
+            'quantity' => (string) $quantity, // $quantity in integer lot units
             'type' => $type,
         );
         if ($type == 'limit')
