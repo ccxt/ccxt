@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.39'
+__version__ = '1.2.40'
 
 # Python 2 & 3
 import base64
@@ -9980,7 +9980,10 @@ class luno (Market):
             auth = self.encode (self.apiKey + ':' + self.secret)
             auth = base64.b64encode (auth)
             headers = { 'Authorization': 'Basic ' + self.decode (auth) }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if 'error' in response:
+            raise MarketError (self.id + ' ' + self.json (response))
+        return response
 
 #------------------------------------------------------------------------------
 
