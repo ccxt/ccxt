@@ -8432,6 +8432,7 @@ class hitbtc (Market):
             base = product['commodity']
             quote = product['currency']
             lot = float (product['lot'])
+            step = float (product['step'])
             # looks like they now have it correct
             # if base == 'DSH':
                 # base = 'DASH'
@@ -8442,6 +8443,7 @@ class hitbtc (Market):
                 'base': base,
                 'quote': quote,
                 'lot': lot,
+                'step': step,
                 'info': product,
             })
         return result
@@ -8525,14 +8527,16 @@ class hitbtc (Market):
         p = self.product (product)
         # check if amount can be evenly divided into lots
         # they want integer quantity in lot units
-        if amount % product['lot']:
-            raise MarketError (self.id + ' order amount should be evenly divisible by lot unit size of ' + product['lot'])
-        quantity = int (round (amount / product['lot']))
+        quantity = amount / p['lot']
+        wholeLots = int (round (quantity))
+        difference = quantity - wholeLots
+        if abs (difference) > p['step']:
+            raise MarketError (self.id + ' order amount should be evenly divisible by lot unit size of ' + str (p['lot']))
         order = {
             'clientOrderId': self.nonce (),
             'symbol': p['id'],
             'side': side,
-            'quantity': str (quantity), # quantity in integer lot units
+            'quantity': str (wholeLots), # quantity in integer lot units
             'type': type,
         }
         if type == 'limit':
@@ -9277,9 +9281,10 @@ class kraken (Market):
         for c in range (0, len (currencies)):
             currency = currencies[c]
             code = currency
-            if (code[0] == 'X') # X-ISO4217-A3 standard currency codes
+            # X-ISO4217-A3 standard currency codes
+            if code[0] == 'X':
                 code = code[1:]
-            else if code[0] == 'Z':
+            elif code[0] == 'Z':
                 code = code[1:]
             code = self.commonCurrencyCode (code)
             balance = float (balances[code])
@@ -9329,7 +9334,8 @@ class kraken (Market):
         url = self.urls['api'] + url
         response = self.fetch (url, method, headers, body)
         if 'error' in response:
-            if response['error']:
+            numErrors = len (response['error'])
+            if numErrors:
                 raise MarketError (self.id + ' ' + self.json (response))
         return response
 

@@ -8703,6 +8703,7 @@ var hitbtc = {
             let base = product['commodity'];
             let quote = product['currency'];
             let lot = parseFloat (product['lot']);
+            let step = parseFloat (product['step']);
             // looks like they now have it correct
             // if (base == 'DSH')
                 // base = 'DASH';
@@ -8713,6 +8714,7 @@ var hitbtc = {
                 'base': base,
                 'quote': quote,
                 'lot': lot,
+                'step': step,
                 'info': product,
             });
         }
@@ -8805,14 +8807,16 @@ var hitbtc = {
         let p = this.product (product);
         // check if amount can be evenly divided into lots
         // they want integer quantity in lot units
-        if (amount % product['lot'])
-            throw new MarketError (this.id + ' order amount should be evenly divisible by lot unit size of ' + product['lot']);
-        let quantity = Math.round (amount / product['lot']);
+        let quantity = amount / p['lot'];
+        let wholeLots = Math.round (quantity);
+        let difference = quantity - wholeLots;
+        if (Math.abs (difference) > p['step'])
+            throw new MarketError (this.id + ' order amount should be evenly divisible by lot unit size of ' + p['lot'].toString ());
         let order = {
             'clientOrderId': this.nonce (),
             'symbol': p['id'],
             'side': side,
-            'quantity': quantity.toString (), // quantity in integer lot units
+            'quantity': wholeLots.toString (), // quantity in integer lot units
             'type': type,
         };
         if (type == 'limit')
@@ -9586,10 +9590,12 @@ var kraken = {
         for (let c = 0; c < currencies.length; c++) {
             let currency = currencies[c];
             let code = currency;
-            if (code[0] == 'X') // X-ISO4217-A3 standard currency codes
+            // X-ISO4217-A3 standard currency codes
+            if (code[0] == 'X') {
                 code = code.slice (1);
-            else if (code[0] == 'Z')
+            } else if (code[0] == 'Z') {
                 code = code.slice (1);
+            }
             code = this.commonCurrencyCode (code);
             let balance = parseFloat (balances[code]);
             let account = {
@@ -9642,9 +9648,11 @@ var kraken = {
         }
         url = this.urls['api'] + url;
         let response = await this.fetch (url, method, headers, body);
-        if ('error' in response) 
-            if (response['error'])
+        if ('error' in response) {
+            let numErrors = response['error'].length;
+            if (numErrors)
                 throw new MarketError (this.id + ' ' + this.json (response));
+        }
         return response;
     },
 }

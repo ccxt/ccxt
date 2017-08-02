@@ -9082,6 +9082,7 @@ class hitbtc extends Market {
             $base = $product['commodity'];
             $quote = $product['currency'];
             $lot = floatval ($product['lot']);
+            $step = floatval ($product['step']);
             // looks like they now have it correct
             // if ($base == 'DSH')
                 // $base = 'DASH';
@@ -9092,6 +9093,7 @@ class hitbtc extends Market {
                 'base' => $base,
                 'quote' => $quote,
                 'lot' => $lot,
+                'step' => $step,
                 'info' => $product,
             );
         }
@@ -9184,14 +9186,16 @@ class hitbtc extends Market {
         $p = $this->product ($product);
         // check if $amount can be evenly divided into lots
         // they want integer $quantity in lot units
-        if (fmod ($amount, $product['lot']))
-            throw new MarketError ($this->id . ' $order $amount should be evenly divisible by lot unit size of ' . $product['lot']);
-        $quantity = (int) round ($amount / $product['lot']);
+        $quantity = $amount / $p['lot'];
+        $wholeLots = (int) round ($quantity);
+        $difference = $quantity - $wholeLots;
+        if (abs ($difference) > $p['step'])
+            throw new MarketError ($this->id . ' $order $amount should be evenly divisible by lot unit size of ' . (string) $p['lot']);
         $order = array (
             'clientOrderId' => $this->nonce (),
             'symbol' => $p['id'],
             'side' => $side,
-            'quantity' => (string) $quantity, // $quantity in integer lot units
+            'quantity' => (string) $wholeLots, // $quantity in integer lot units
             'type' => $type,
         );
         if ($type == 'limit')
@@ -9980,10 +9984,12 @@ class kraken extends Market {
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $code = $currency;
-            if ($code[0] == 'X') // X-ISO4217-A3 standard $currency codes
+            // X-ISO4217-A3 standard $currency codes
+            if ($code[0] == 'X') {
                 $code = mb_substr ($code, 1);
-            else if ($code[0] == 'Z')
+            } else if ($code[0] == 'Z') {
                 $code = mb_substr ($code, 1);
+            }
             $code = $this->commonCurrencyCode ($code);
             $balance = floatval ($balances[$code]);
             $account = array (
@@ -10036,9 +10042,11 @@ class kraken extends Market {
         }
         $url = $this->urls['api'] . $url;
         $response = $this->fetch ($url, $method, $headers, $body);
-        if (array_key_exists ('error', $response)) 
-            if ($response['error'])
+        if (array_key_exists ('error', $response)) {
+            $numErrors = count ($response['error']);
+            if ($numErrors)
                 throw new MarketError ($this->id . ' ' . $this->json ($response));
+        }
         return $response;
     }
 }
