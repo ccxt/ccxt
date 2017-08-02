@@ -4262,8 +4262,8 @@ var btce = {
             'datetime': this.iso8601 (timestamp),
             'high': ticker['high'] ? ticker['high'] : undefined,
             'low': ticker['low'] ? ticker['low'] : undefined,
-            'bid': ticker['sell'] ? ticker['sell'] : undefined,
-            'ask': ticker['buy'] ? ticker['buy'] : undefined,
+            'bid': ticker['sell'] ? ticker['buy'] : undefined,
+            'ask': ticker['buy'] ? ticker['sell'] : undefined,
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
@@ -10074,7 +10074,7 @@ var liqui = extend (btce, {
         'doc': 'https://liqui.io/api',
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][type];
         let query = this.omit (params, this.extractParams (path));
         if (type == 'public') {
@@ -10094,7 +10094,11 @@ var liqui = extend (btce, {
                 'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('success' in response)
+            if (!response['success'])
+                throw new MarketError (this.id + ' ' + this.json (response));
+        return response;
     },
 })
 
