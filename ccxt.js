@@ -13003,7 +13003,7 @@ var yunbi = {
         let response = await this.fetch (url, method, headers, body);
         if ('error' in response)
             throw new MarketError (this.id + ' ' + this.json (response));
-        return 
+        return response;
     },
 }
 
