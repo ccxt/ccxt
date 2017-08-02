@@ -10028,7 +10028,7 @@ var livecoin = {
         }, params));
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
         if (type == 'public') {
             if (Object.keys (params).length)
@@ -10048,7 +10048,11 @@ var livecoin = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('success' in response)
+            if (!response['success'])
+                throw new MarketError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 
