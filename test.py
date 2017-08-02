@@ -148,18 +148,16 @@ def try_all_proxies (market, proxies):
             load_market (market)
             test_market (market)
             break
+        except ccxt.MarketError as e:
+            dump (yellow (type (e).__name__), e.args)
+        except ccxt.AuthenticationError as e:
+            dump (yellow (type (e).__name__), str (e))
         except ccxt.DDoSProtectionError as e:
             dump (yellow (type (e).__name__), e.args)
         except ccxt.TimeoutError as e:
             dump (yellow (type (e).__name__), str (e))
         except ccxt.MarketNotAvailableError as e:
             dump (yellow (type (e).__name__), e.args)
-        except ccxt.EndpointError as e:
-            dump (yellow (type (e).__name__), e.args)
-        except ccxt.MarketError as e:
-            dump (yellow (type (e).__name__), e.args)
-        except ccxt.AuthenticationError as e:
-            dump (yellow (type (e).__name__), str (e))
 
 #------------------------------------------------------------------------------
 
