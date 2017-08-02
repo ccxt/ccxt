@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.40';
+$version = '1.2.41';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10902,7 +10902,10 @@ class mercado extends Market {
                 'TAPI-MAC' => $this->hmac ($this->encode ($auth), $this->secret, 'sha512'),
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('error_message', $response))
+            throw new MarketError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 

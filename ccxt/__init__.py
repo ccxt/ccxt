@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.40'
+__version__ = '1.2.41'
 
 # Python 2 & 3
 import base64
@@ -10140,7 +10140,10 @@ class mercado (Market):
                 'TAPI-ID': self.apiKey,
                 'TAPI-MAC': self.hmac (self.encode (auth), self.secret, hashlib.sha512),
             }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if 'error_message' in response:
+            raise MarketError (self.id + ' ' + self.json (response))
+        return response
 
 #------------------------------------------------------------------------------
 
