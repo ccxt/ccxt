@@ -67,7 +67,9 @@ while (markets = regex.exec (contents)) {
                         // .replace ('fetchCategories', 'fetch_categories')
                         .replace ('fetchProducts', 'fetch_products')
                         .replace ('fetchOrderBook', 'fetch_order_book')
+                        .replace ('fetchTickers', 'fetch_tickers')
                         .replace ('fetchTicker', 'fetch_ticker')
+                        .replace ('parseTicker', 'parse_ticker')
                         .replace ('fetchTrades', 'fetch_trades')
                         .replace ('createOrder', 'create_order')
                         .replace ('cancelOrder', 'cancel_order')
@@ -103,6 +105,7 @@ while (markets = regex.exec (contents)) {
             [ /\.binaryConcat/g, '.binary_concat'],
             [ /\.implodeParams/g, '.implode_params'],
             [ /\.extractParams/g, '.extract_params'],
+            [ /\.parseTicker/g, '.parse_ticker'],
             [ /\.indexBy/g, '.index_by'],
             [ /\.sortBy/g, '.sort_by'],
             [ /\.productId/g, '.product_id'],
@@ -163,6 +166,7 @@ while (markets = regex.exec (contents)) {
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64/g, 'base64_encode' ],
             [ /this\.base64ToBinary/g, 'base64_decode' ],
+            [ /\.parseTicker/g, '.parse_ticker'],
             [ /\.binaryConcat/g, '.binary_concat'],
             [ /\.implodeParams/g, '.implode_params'],
             [ /\.extractParams/g, '.extract_params'],

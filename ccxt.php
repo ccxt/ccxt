@@ -6692,7 +6692,7 @@ class coinmarketcap extends Market {
         return $this->publicGetGlobal ($request);
     }
 
-    public function parseTicker ($ticker, $product) {
+    public function parse_ticker ($ticker, $product) {
         $timestamp = intval ($ticker['last_updated']) * 1000;
         $volume = null;
         $volumeKey = '24h_volume_' . $product['quoteId'];
@@ -6736,7 +6736,7 @@ class coinmarketcap extends Market {
             $id = $ticker['id'] . '/' . $currency;
             $product = $this->products_by_id[$id];
             $symbol = $product['symbol'];
-            $tickers[$symbol] = $this->parseTicker ($ticker, $product);
+            $tickers[$symbol] = $this->parse_ticker ($ticker, $product);
         }
         return $tickers;
     }
@@ -6750,7 +6750,7 @@ class coinmarketcap extends Market {
         );
         $response = $this->publicGetTickerId ($request);
         $ticker = $response[0];
-        return $this->parseTicker ($ticker, $p);
+        return $this->parse_ticker ($ticker, $p);
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -7734,7 +7734,7 @@ class exmo extends Market {
         return $result;
     }
 
-    public function parseTicker ($ticker, $product) {
+    public function parse_ticker ($ticker, $product) {
         $timestamp = $ticker['updated'] * 1000;
         return array (
             'timestamp' => $timestamp,
@@ -7770,7 +7770,7 @@ class exmo extends Market {
             $product = $this->products_by_id[$id];
             $symbol = $product['symbol'];
             $ticker = $response[$id];
-            $result[$symbol] = $this->parseTicker ($ticker, $product);
+            $result[$symbol] = $this->parse_ticker ($ticker, $product);
         }
         return $result;
     }
@@ -7779,7 +7779,7 @@ class exmo extends Market {
         $this->loadProducts ();
         $response = $this->publicGetTicker ();
         $p = $this->product ($product);
-        return $this->parseTicker ($response[$p['id']], $p);
+        return $this->parse_ticker ($response[$p['id']], $p);
     }
 
     public function fetch_trades ($product) {

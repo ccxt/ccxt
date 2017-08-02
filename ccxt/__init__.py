@@ -6179,7 +6179,7 @@ class coinmarketcap (Market):
             request['convert'] = currency
         return self.publicGetGlobal (request)
 
-    def parseTicker (self, ticker, product):
+    def parse_ticker (self, ticker, product):
         timestamp = int (ticker['last_updated']) * 1000
         volume = None
         volumeKey = '24h_volume_' + product['quoteId']
@@ -6222,7 +6222,7 @@ class coinmarketcap (Market):
             id = ticker['id'] + '/' + currency
             product = self.products_by_id[id]
             symbol = product['symbol']
-            tickers[symbol] = self.parseTicker (ticker, product)
+            tickers[symbol] = self.parse_ticker (ticker, product)
         return tickers
 
     def fetch_ticker (self, product):
@@ -6234,7 +6234,7 @@ class coinmarketcap (Market):
         }
         response = self.publicGetTickerId (request)
         ticker = response[0]
-        return self.parseTicker (ticker, p)
+        return self.parse_ticker (ticker, p)
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)
@@ -7159,7 +7159,7 @@ class exmo (Market):
                 result[key].append ([ price, amount ])
         return result
 
-    def parseTicker (self, ticker, product):
+    def parse_ticker (self, ticker, product):
         timestamp = ticker['updated'] * 1000
         return {
             'timestamp': timestamp,
@@ -7194,14 +7194,14 @@ class exmo (Market):
             product = self.products_by_id[id]
             symbol = product['symbol']
             ticker = response[id]
-            result[symbol] = self.parseTicker (ticker, product)
+            result[symbol] = self.parse_ticker (ticker, product)
         return result
 
     def fetch_ticker (self, product):
         self.loadProducts ()
         response = self.publicGetTicker ()
         p = self.product (product)
-        return self.parseTicker (response[p['id']], p)
+        return self.parse_ticker (response[p['id']], p)
 
     def fetch_trades (self, product):
         self.loadProducts ()
