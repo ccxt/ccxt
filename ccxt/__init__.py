@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.41'
+__version__ = '1.2.42'
 
 # Python 2 & 3
 import base64
@@ -10314,7 +10314,11 @@ class okcoin (Market):
             body = _urlencode.urlencode (query)
             headers = { 'Content-type': 'application/x-www-form-urlencoded' }
         url = self.urls['api'] + url
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if 'result' in response:
+            if not response['result']:
+                raise MarketError (self.id + ' ' + self.json (response))
+        return response
 
 #------------------------------------------------------------------------------
 
@@ -10533,7 +10537,10 @@ class paymium (Market):
                 'Api-Nonce': nonce,
                 'Content-Type': 'application/json',
             }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if 'errors' in response:
+            raise MarketError (self.id + ' ' + self.json (response))
+        return response
 
 #------------------------------------------------------------------------------
 
