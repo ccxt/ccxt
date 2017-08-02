@@ -9597,7 +9597,7 @@ var kraken = {
                 code = code.slice (1);
             }
             code = this.commonCurrencyCode (code);
-            let balance = parseFloat (balances[code]);
+            let balance = parseFloat (balances[currency]);
             let account = {
                 'free': balance,
                 'used': undefined,
