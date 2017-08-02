@@ -26,7 +26,10 @@ const keys = {
 
     '--js': false,      // run JavaScript tests only
     '--php': false,     // run PHP tests only
-    '--python': false,  // run Python tests only
+    '--python': false,  // run (all?) Python tests only
+    // reserved for future use
+    // '--python2': false, // run Python 2 tests only
+    // '--python3': false, // run Python 3 tests only
     '--es6': false,     // run JS tests against ccxt.js instead of ccxt.es5.js (no need to `npm run build` before)
 }
 
@@ -112,6 +115,9 @@ const testMarket = async (market) => {
 
             { language: 'JavaScript', key: '--js',      exec: ['node',      'test.js',  ...args, ...keys['--es6'] ? ['--es6'] : []] },
             { language: 'Python',     key: '--python',  exec: ['python',    'test.py',  ...args]                                    },
+            // added for future use (nearest future, I hope)
+            // { language: 'Python 2',   key: '--python2', exec: ['python2',   'test.py',  ...args]                                    },
+            // { language: 'Python 3',   key: '--python3', exec: ['python3',   'test.py',  ...args]                                    },
             { language: 'PHP',        key: '--php',     exec: ['php', '-f', 'test.php', ...args]                                    }
         ]
         , selectedTests  = allTests.filter (t => keys[t.key])

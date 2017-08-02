@@ -11861,7 +11861,7 @@ var therock = {
         }, params));
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (type == 'private') {
@@ -11877,7 +11877,10 @@ var therock = {
                 headers['Content-Type'] = 'application/json';
             }
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('errors' in response)
+            throw new MarketError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 
@@ -12323,7 +12326,7 @@ var virwox = {
         }, params));
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][type];
         let auth = {};
         if (type == 'private') {
@@ -12345,7 +12348,11 @@ var virwox = {
                 'id': nonce,
             });
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('error' in response)
+            if (response['error'])
+                throw new MarketError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 
@@ -12768,7 +12775,7 @@ var yobit = {
         }, params));
     },
 
-    request (path, type = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + type;
         if (type == 'api') {
             url += '/' + this.version + '/' + this.implodeParams (path, params);
@@ -12785,7 +12792,10 @@ var yobit = {
                 'sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('error' in response)
+            throw new MarketError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 
@@ -12964,7 +12974,7 @@ var yunbi = {
         return this.privatePostOrderDelete ({ 'id': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/api/' + this.version + '/' + this.implodeParams (path, params) + '.json';
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + request;
@@ -12990,7 +13000,10 @@ var yunbi = {
                 };
             }
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('error' in response)
+            throw new MarketError (this.id + ' ' + this.json (response));
+        return 
     },
 }
 
