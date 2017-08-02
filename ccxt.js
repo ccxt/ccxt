@@ -8804,11 +8804,11 @@ var hitbtc = {
             'clientOrderId': this.nonce (),
             'symbol': this.productId (product),
             'side': side,
-            'quantity': amount,
+            'quantity': amount.toString (),
             'type': type,
         };
         if (type == 'limit')
-            order['price'] = price;
+            order['price'] = price.toString ();
         return this.tradingPostNewOrder (this.extend (order, params));
     },
 
