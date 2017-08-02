@@ -9582,18 +9582,16 @@ var kraken = {
         let response = await this.privatePostBalance ();
         let balances = response['result'];
         let result = { 'info': balances };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
-            let xcode = 'X' + currency; // X-ISO4217-A3 standard currency codes
-            let zcode = 'Z' + currency;
-            let balance = undefined;
-            if (xcode in balances)
-                balance = parseFloat (balances[xcode]);
-            if (zcode in balances)
-                balance = parseFloat (balances[zcode]);
-            // issue #60
-            if (currency in balances) 
-                balance = parseFloat (balances[currency]);
+        let currencies = Object.keys (balances);
+        for (let c = 0; c < currencies.length; c++) {
+            let code = currencies[c];
+            let currency = code;
+            if (currency[0] == 'X') // X-ISO4217-A3 standard currency codes
+                currency = currency.slice (1);
+            else if (currency[0] == 'Z')
+                currency = currency.slice (1);
+            currency = this.commonCurrencyCode (currency);
+            let balance = parseFloat (balances[code]);
             let account = {
                 'free': balance,
                 'used': undefined,
