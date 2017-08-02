@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.37';
+$version = '1.2.38';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9186,7 +9186,7 @@ class hitbtc extends Market {
         $p = $this->product ($product);
         // check if $amount can be evenly divided into lots
         // they want integer $quantity in lot units
-        $quantity = $amount / $p['lot'];
+        $quantity = floatval ($amount) / $p['lot'];
         $wholeLots = (int) round ($quantity);
         $difference = $quantity - $wholeLots;
         if (abs ($difference) > $p['step'])
