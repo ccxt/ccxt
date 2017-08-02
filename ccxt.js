@@ -8807,7 +8807,7 @@ var hitbtc = {
         let p = this.product (product);
         // check if amount can be evenly divided into lots
         // they want integer quantity in lot units
-        let quantity = amount / p['lot'];
+        let quantity = parseFloat (amount) / p['lot'];
         let wholeLots = Math.round (quantity);
         let difference = quantity - wholeLots;
         if (Math.abs (difference) > p['step'])
