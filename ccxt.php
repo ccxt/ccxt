@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.33';
+$version = '1.2.34';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9183,11 +9183,11 @@ class hitbtc extends Market {
             'clientOrderId' => $this->nonce (),
             'symbol' => $this->product_id ($product),
             'side' => $side,
-            'quantity' => $amount,
+            'quantity' => (string) $amount,
             'type' => $type,
         );
         if ($type == 'limit')
-            $order['price'] = $price;
+            $order['price'] = (string) $price;
         return $this->tradingPostNewOrder (array_merge ($order, $params));
     }
 
