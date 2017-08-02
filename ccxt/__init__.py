@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.33'
+__version__ = '1.2.34'
 
 # Python 2 & 3
 import base64
@@ -8524,11 +8524,11 @@ class hitbtc (Market):
             'clientOrderId': self.nonce (),
             'symbol': self.product_id (product),
             'side': side,
-            'quantity': amount,
+            'quantity': str (amount),
             'type': type,
         }
         if type == 'limit':
-            order['price'] = price
+            order['price'] = str (price)
         return self.tradingPostNewOrder (self.extend (order, params))
 
     def cancel_order (self, id):
