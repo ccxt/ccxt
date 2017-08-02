@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.43';
+$version = '1.2.44';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -11696,7 +11696,10 @@ class quadrigacx extends Market {
                 'Content-Length' => strlen ($body),
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('error', $response))
+            throw new MarketError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 
@@ -11907,7 +11910,10 @@ class quoine extends Market {
                 $body = $this->json ($query);
             $headers['X-Quoine-Auth'] = $this->jwt ($request, $this->secret);
         }
-        return $this->fetch ($this->urls['api'] . $url, $method, $headers, $body);
+        $response = $this->fetch ($this->urls['api'] . $url, $method, $headers, $body);
+        if (array_key_exists ('message', $response))
+            throw new MarketError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 

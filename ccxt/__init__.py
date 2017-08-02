@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.43'
+__version__ = '1.2.44'
 
 # Python 2 & 3
 import base64
@@ -10890,7 +10890,10 @@ class quadrigacx (Market):
                 'Content-Type': 'application/json',
                 'Content-Length': len (body),
             }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if 'error' in response:
+            raise MarketError (self.id + ' ' + self.json (response))
+        return response
 
 #------------------------------------------------------------------------------
 
@@ -11088,7 +11091,10 @@ class quoine (Market):
             if query:
                 body = self.json (query)
             headers['X-Quoine-Auth'] = self.jwt (request, self.secret)
-        return self.fetch (self.urls['api'] + url, method, headers, body)
+        response = self.fetch (self.urls['api'] + url, method, headers, body)
+        if 'message' in response:
+            raise MarketError (self.id + ' ' + self.json (response))
+        return response
 
 #------------------------------------------------------------------------------
 
