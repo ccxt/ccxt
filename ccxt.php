@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.36';
+$version = '1.2.37';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9991,7 +9991,7 @@ class kraken extends Market {
                 $code = mb_substr ($code, 1);
             }
             $code = $this->commonCurrencyCode ($code);
-            $balance = floatval ($balances[$code]);
+            $balance = floatval ($balances[$currency]);
             $account = array (
                 'free' => $balance,
                 'used' => null,
