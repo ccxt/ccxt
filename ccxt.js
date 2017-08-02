@@ -10658,7 +10658,7 @@ var okcoin = {
         }, params));
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/api/' + this.version + '/' + path + '.do';
         if (type == 'public') {
             if (Object.keys (params).length)
@@ -10674,7 +10674,11 @@ var okcoin = {
             headers = { 'Content-type': 'application/x-www-form-urlencoded' };
         }
         url = this.urls['api'] + url;
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('result' in response)
+            if (!response['result'])
+                throw new MarketError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 
