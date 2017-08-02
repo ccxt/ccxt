@@ -11451,7 +11451,7 @@ var quoine = {
         }, params));
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         headers = {
@@ -11473,7 +11473,10 @@ var quoine = {
                 body = this.json (query);
             headers['X-Quoine-Auth'] = this.jwt (request, this.secret);
         }
-        return this.fetch (this.urls['api'] + url, method, headers, body);
+        let response = await this.fetch (this.urls['api'] + url, method, headers, body);
+        if ('message' in response)
+            throw new MarketError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 
