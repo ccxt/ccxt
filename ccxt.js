@@ -21,22 +21,13 @@ class CCXTError extends Error {
     }
 }
 
-class DDoSProtectionError extends CCXTError {
+class MarketError extends CCXTError {
     constructor (message) {
         super (message)
-        this.constructor = DDoSProtectionError 
-        this.__proto__   = DDoSProtectionError.prototype
+        this.constructor = MarketError
+        this.__proto__   = MarketError.prototype
         this.message     = message
-    }
-}
-
-class TimeoutError extends CCXTError {
-    constructor (message) {
-        super (message)
-        this.constructor = TimeoutError 
-        this.__proto__   = TimeoutError.prototype
-        this.message     = message
-    }
+    }    
 }
 
 class AuthenticationError extends CCXTError {
@@ -48,33 +39,40 @@ class AuthenticationError extends CCXTError {
     }    
 }
 
-// class MarketError 
-
-class MarketError extends CCXTError {
+class NetworkError extends CCXTError {
     constructor (message) {
         super (message)
-        this.constructor = MarketError
-        this.__proto__   = MarketError.prototype
+        this.constructor = NetworkError
+        this.__proto__   = NetworkError.prototype
         this.message     = message
     }    
 }
 
-class MarketNotAvailableError extends MarketError {
+class DDoSProtectionError extends NetworkError {
+    constructor (message) {
+        super (message)
+        this.constructor = DDoSProtectionError 
+        this.__proto__   = DDoSProtectionError.prototype
+        this.message     = message
+    }
+}
+
+class TimeoutError extends NetworkError {
+    constructor (message) {
+        super (message)
+        this.constructor = TimeoutError 
+        this.__proto__   = TimeoutError.prototype
+        this.message     = message
+    }
+}
+
+class MarketNotAvailableError extends NetworkError {
     constructor (message) {
         super (message)
         this.constructor = MarketNotAvailableError
         this.__proto__   = MarketNotAvailableError.prototype
         this.message     = message
     }    
-}
-
-class EndpointError extends MarketError {
-    constructor (message) {
-        super (message)
-        this.constructor = EndpointError
-        this.__proto__   = EndpointError.prototype
-        this.message     = message
-    }       
 }
 
 //-----------------------------------------------------------------------------
@@ -1104,7 +1102,7 @@ var anxpro = {
 
     async fetchTrades (product) {
         let error = this.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled';
-        throw new EndpointError (error);
+        throw new MarketError (error);
         return this.publicGetCurrencyPairMoneyTradeFetch ({
             'currency_pair': this.productId (product),
         });
@@ -3677,7 +3675,7 @@ var blinktrade = {
 
     async createOrder (product, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
-            throw new EndpointError (this.id + ' allows limit orders only');
+            throw new MarketError (this.id + ' allows limit orders only');
         let p = this.product (product);
         let order = {
             'ClOrdID': this.nonce (),
@@ -4246,7 +4244,7 @@ var btce = {
             result['asks'] = this.sortBy (result['asks'], 0);
             return result;
         }
-        throw new EndpointError (this.id + ' ' + p['symbol'] + ' order book is empty or not available');
+        throw new MarketError (this.id + ' ' + p['symbol'] + ' order book is empty or not available');
     },
 
     async fetchTicker (product) {
@@ -4671,7 +4669,7 @@ var btctradeua = {
 
     async createOrder (product, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
-            throw new EndpointError (this.id + ' allows limit orders only');
+            throw new MarketError (this.id + ' allows limit orders only');
         let p = this.product (product);
         let method = 'privatePost' + this.capitalize (side) + 'Id';
         let order = {
@@ -6337,7 +6335,7 @@ var coinmarketcap = {
     ],
 
     async fetchOrderBook () {
-        throw new EndpointError ('Fetching order books is not supported by the API of ' + this.id);
+        throw new MarketError ('Fetching order books is not supported by the API of ' + this.id);
     },
 
     async fetchProducts () {
@@ -6874,7 +6872,7 @@ var coinsecure = {
     },
 
     async cancelOrder (id) {
-        throw new EndpointError (this.id + ' cancelOrder () is not fully implemented yet');
+        throw new MarketError (this.id + ' cancelOrder () is not fully implemented yet');
         let method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
         return this[method] ({ 'orderID': id });
     },
@@ -7031,7 +7029,7 @@ var coinspot = {
     async createOrder (product, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePostMy' + this.capitalize (side);
         if (type =='market')
-            throw new EndpointError (this.id + ' allows limit orders only');
+            throw new MarketError (this.id + ' allows limit orders only');
         let order = {
             'cointype': this.productId (product),
             'amount': amount,
@@ -7041,7 +7039,7 @@ var coinspot = {
     },
 
     async cancelOrder (id, params = {}) {
-        throw new EndpointError (this.id + ' cancelOrder () is not fully implemented yet');
+        throw new MarketError (this.id + ' cancelOrder () is not fully implemented yet');
         let method = 'privatePostMyBuy';
         return this[method] ({ 'id': id });
     },
@@ -7230,7 +7228,7 @@ var dsx = {
     async createOrder (product, type, side, amount, price = undefined, params = {}) {
         await this.loadProducts ();
         if (type == 'market')
-            throw new EndpointError (this.id + ' allows limit orders only');
+            throw new MarketError (this.id + ' allows limit orders only');
         let order = {
             'pair': this.productId (product),
             'type': side,
@@ -7662,7 +7660,7 @@ var flowbtc = {
                 'serverOrderId': id,
             }, params));            
         }
-        throw new EndpointError (this.id + ' requires `ins` symbol parameter for cancelling an order');
+        throw new MarketError (this.id + ' requires `ins` symbol parameter for cancelling an order');
     },
 
     async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -8582,7 +8580,7 @@ var gemini = {
     async createOrder (product, type, side, amount, price = undefined, params = {}) {
         await this.loadProducts ();
         if (type == 'market')
-            throw new EndpointError (this.id + ' allows limit orders only');
+            throw new MarketError (this.id + ' allows limit orders only');
         let order = {
             'client_order_id': this.nonce (),
             'symbol': this.productId (product),
@@ -8772,7 +8770,7 @@ var hitbtc = {
             'symbol': this.productId (product),
         });
         if ('message' in ticker)
-            throw new EndpointError (this.id + ' ' + ticker['message']);
+            throw new MarketError (this.id + ' ' + ticker['message']);
         let timestamp = ticker['timestamp'];
         return {
             'timestamp': timestamp,
@@ -9193,7 +9191,7 @@ var itbit = {
 
     async createOrder (product, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
-            throw new EndpointError (this.id + ' allows limit orders only');
+            throw new MarketError (this.id + ' allows limit orders only');
         amount = amount.toString ();
         price = price.toString ();
         let p = this.product (product);
@@ -9514,7 +9512,7 @@ var kraken = {
         await this.loadProducts ();
         let darkpool = product.indexOf ('.d') >= 0;
         if (darkpool)
-            throw new EndpointError (this.id + ' does not provide an order book for darkpool symbol ' + product);
+            throw new MarketError (this.id + ' does not provide an order book for darkpool symbol ' + product);
         let p = this.product (product);
         let response = await this.publicGetDepth  ({
             'pair': p['id'],
@@ -9546,7 +9544,7 @@ var kraken = {
         await this.loadProducts ();
         let darkpool = product.indexOf ('.d') >= 0;
         if (darkpool)
-            throw new EndpointError (this.id + ' does not provide a ticker for darkpool symbol ' + product);
+            throw new MarketError (this.id + ' does not provide a ticker for darkpool symbol ' + product);
         let p = this.product (product);
         let response = await this.publicGetTicker ({
             'pair': p['id'],
@@ -9803,7 +9801,7 @@ var lakebtc = {
     async createOrder (product, type, side, amount, price = undefined, params = {}) {
         await this.loadProducts ();
         if (type == 'market')
-            throw new EndpointError (this.id + ' allows limit orders only');
+            throw new MarketError (this.id + ' allows limit orders only');
         let method = 'privatePost' + this.capitalize (side) + 'Order';
         let productId = this.productId (product);
         let order = {
@@ -10453,7 +10451,7 @@ var mercado = {
 
     async createOrder (product, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
-            throw new EndpointError (this.id + ' allows limit orders only');
+            throw new MarketError (this.id + ' allows limit orders only');
         let method = 'privatePostPlace' + this.capitalize (side) + 'Order';
         let order = {
             'coin_pair': this.productId (product),
@@ -11845,7 +11843,7 @@ var therock = {
     async createOrder (product, type, side, amount, price = undefined, params = {}) {
         await this.loadProducts ();
         if (type == 'market')
-            throw new EndpointError (this.id + ' allows limit orders only');
+            throw new MarketError (this.id + ' allows limit orders only');
         return this.privatePostFundsFundIdOrders (this.extend ({
             'fund_id': this.productId (product),
             'side': side,
@@ -12561,7 +12559,7 @@ var xbtce = {
     async createOrder (product, type, side, amount, price = undefined, params = {}) {
         await this.loadProducts ();
         if (type == 'market')
-            throw new EndpointError (this.id + ' allows limit orders only');
+            throw new MarketError (this.id + ' allows limit orders only');
         return this.tapiPostTrade (this.extend ({
             'pair': this.productId (product),
             'type': side,
@@ -12759,7 +12757,7 @@ var yobit = {
     async createOrder (product, type, side, amount, price = undefined, params = {}) {
         await this.loadProducts ();
         if (type == 'market')
-            throw new EndpointError (this.id + ' allows limit orders only');
+            throw new MarketError (this.id + ' allows limit orders only');
         return this.tapiPostTrade (this.extend ({
             'pair': this.productId (product),
             'type': side,
@@ -13163,7 +13161,7 @@ var zaif = {
     async createOrder (product, type, side, amount, price = undefined, params = {}) {
         await this.loadProducts ();
         if (type == 'market')
-            throw new EndpointError (this.id + ' allows limit orders only');
+            throw new MarketError (this.id + ' allows limit orders only');
         return this.tapiPostTrade (this.extend ({
             'currency_pair': this.productId (product),
             'action': (side == 'buy') ? 'bid' : 'ask',
@@ -13301,12 +13299,13 @@ if (isNode || isReactNative) {
         // exceptions
 
         CCXTError,
-        DDoSProtectionError,
-        TimeoutError,
-        AuthenticationError,
         MarketError,
+        AuthenticationError,
+        NetworkError,
+        DDoSProtectionError,
+        TimeoutError,       
         MarketNotAvailableError,
-        EndpointError,
+        
 
         // common utility functions
 

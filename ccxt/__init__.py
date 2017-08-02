@@ -77,13 +77,12 @@ __all__ = markets + [
     'markets',
     'Market',
     'CCXTError',
+    'MarketError',
+    'AuthenticationError',
+    'NetworkError',
     'DDoSProtectionError',
     'TimeoutError',
-    'NotAvailableError',
     'MarketNotAvailableError',
-    'EndpointNotAvailableError',
-    'OrderBookNotAvailableError',
-    'TickerNotAvailableError',
 ]
 
 __version__ = '1.2.47'
@@ -122,22 +121,22 @@ except NameError:
 class CCXTError (Exception):
     pass
 
-class DDoSProtectionError (CCXTError):
-    pass
-
-class TimeoutError (socket.timeout):
+class MarketError (CCXTError):
     pass
 
 class AuthenticationError (CCXTError):
     pass
 
-class MarketError (CCXTError):
+class NetworkError (CCXTError):
     pass
 
-class MarketNotAvailableError (MarketError):
+class DDoSProtectionError (NetworkError):
     pass
 
-class EndpointError (MarketError):
+class TimeoutError (NetworkError):
+    pass
+
+class MarketNotAvailableError (NetworkError):
     pass
 
 class Market (object):
@@ -1141,7 +1140,7 @@ class anxpro (Market):
 
     def fetch_trades (self, product):
         error = self.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled'
-        raise EndpointError (error)
+        raise MarketError (error)
         return self.publicGetCurrencyPairMoneyTradeFetch ({
             'currency_pair': self.product_id (product),
         })
@@ -3594,7 +3593,7 @@ class blinktrade (Market):
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         if type == 'market':
-            raise EndpointError (self.id + ' allows limit orders only')
+            raise MarketError (self.id + ' allows limit orders only')
         p = self.product (product)
         order = {
             'ClOrdID': self.nonce (),
@@ -4136,7 +4135,7 @@ class btce (Market):
             result['bids'] = self.sort_by (result['bids'], 0, True)
             result['asks'] = self.sort_by (result['asks'], 0)
             return result
-        raise EndpointError (self.id + ' ' + p['symbol'] + ' order book is empty or not available')
+        raise MarketError (self.id + ' ' + p['symbol'] + ' order book is empty or not available')
 
     def fetch_ticker (self, product):
         self.loadProducts ()
@@ -4543,7 +4542,7 @@ class btctradeua (Market):
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         if type == 'market':
-            raise EndpointError (self.id + ' allows limit orders only')
+            raise MarketError (self.id + ' allows limit orders only')
         p = self.product (product)
         method = 'privatePost' + self.capitalize (side) + 'Id'
         order = {
@@ -6147,7 +6146,7 @@ class coinmarketcap (Market):
         super (coinmarketcap, self).__init__ (params)
 
     def fetch_order_book (self):
-        raise EndpointError ('Fetching order books is not supported by the API of ' + self.id)
+        raise MarketError ('Fetching order books is not supported by the API of ' + self.id)
 
     def fetch_products (self):
         products = self.publicGetTicker ()
@@ -6661,7 +6660,7 @@ class coinsecure (Market):
         return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id):
-        raise EndpointError (self.id + ' cancelOrder () is not fully implemented yet')
+        raise MarketError (self.id + ' cancelOrder () is not fully implemented yet')
         method = 'privateDeleteUserExchangeAskCancelOrderId' # TODO fixme, have to specify order side here
         return getattr (self, method) ({ 'orderID': id })
 
@@ -6810,7 +6809,7 @@ class coinspot (Market):
     def create_order (self, product, type, side, amount, price = None, params = {}):
         method = 'privatePostMy' + self.capitalize (side)
         if type =='market':
-            raise EndpointError (self.id + ' allows limit orders only')
+            raise MarketError (self.id + ' allows limit orders only')
         order = {
             'cointype': self.product_id (product),
             'amount': amount,
@@ -6819,7 +6818,7 @@ class coinspot (Market):
         return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id, params = {}):
-        raise EndpointError (self.id + ' cancelOrder () is not fully implemented yet')
+        raise MarketError (self.id + ' cancelOrder () is not fully implemented yet')
         method = 'privatePostMyBuy'
         return getattr (self, method) ({ 'id': id })
 
@@ -7000,7 +6999,7 @@ class dsx (Market):
     def create_order (self, product, type, side, amount, price = None, params = {}):
         self.loadProducts ()
         if type == 'market':
-            raise EndpointError (self.id + ' allows limit orders only')
+            raise MarketError (self.id + ' allows limit orders only')
         order = {
             'pair': self.product_id (product),
             'type': side,
@@ -7409,7 +7408,7 @@ class flowbtc (Market):
             return self.privatePostCancelOrder (self.extend ({
                 'serverOrderId': id,
             }, params))            
-        raise EndpointError (self.id + ' requires `ins` symbol parameter for cancelling an order')
+        raise MarketError (self.id + ' requires `ins` symbol parameter for cancelling an order')
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
@@ -8311,7 +8310,7 @@ class gemini (Market):
     def create_order (self, product, type, side, amount, price = None, params = {}):
         self.loadProducts ()
         if type == 'market':
-            raise EndpointError (self.id + ' allows limit orders only')
+            raise MarketError (self.id + ' allows limit orders only')
         order = {
             'client_order_id': self.nonce (),
             'symbol': self.product_id (product),
@@ -8494,7 +8493,7 @@ class hitbtc (Market):
             'symbol': self.product_id (product),
         })
         if 'message' in ticker:
-            raise EndpointError (self.id + ' ' + ticker['message'])
+            raise MarketError (self.id + ' ' + ticker['message'])
         timestamp = ticker['timestamp']
         return {
             'timestamp': timestamp,
@@ -8899,7 +8898,7 @@ class itbit (Market):
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         if type == 'market':
-            raise EndpointError (self.id + ' allows limit orders only')
+            raise MarketError (self.id + ' allows limit orders only')
         amount = str (amount)
         price = str (price)
         p = self.product (product)
@@ -9210,7 +9209,7 @@ class kraken (Market):
         self.loadProducts ()
         darkpool = product.find ('.d') >= 0
         if darkpool:
-            raise EndpointError (self.id + ' does not provide an order book for darkpool symbol ' + product)
+            raise MarketError (self.id + ' does not provide an order book for darkpool symbol ' + product)
         p = self.product (product)
         response = self.publicGetDepth  ({
             'pair': p['id'],
@@ -9239,7 +9238,7 @@ class kraken (Market):
         self.loadProducts ()
         darkpool = product.find ('.d') >= 0
         if darkpool:
-            raise EndpointError (self.id + ' does not provide a ticker for darkpool symbol ' + product)
+            raise MarketError (self.id + ' does not provide a ticker for darkpool symbol ' + product)
         p = self.product (product)
         response = self.publicGetTicker ({
             'pair': p['id'],
@@ -9481,7 +9480,7 @@ class lakebtc (Market):
     def create_order (self, product, type, side, amount, price = None, params = {}):
         self.loadProducts ()
         if type == 'market':
-            raise EndpointError (self.id + ' allows limit orders only')
+            raise MarketError (self.id + ' allows limit orders only')
         method = 'privatePost' + self.capitalize (side) + 'Order'
         productId = self.product_id (product)
         order = {
@@ -10109,7 +10108,7 @@ class mercado (Market):
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
         if type == 'market':
-            raise EndpointError (self.id + ' allows limit orders only')
+            raise MarketError (self.id + ' allows limit orders only')
         method = 'privatePostPlace' + self.capitalize (side) + 'Order'
         order = {
             'coin_pair': self.product_id (product),
@@ -11453,7 +11452,7 @@ class therock (Market):
     def create_order (self, product, type, side, amount, price = None, params = {}):
         self.loadProducts ()
         if type == 'market':
-            raise EndpointError (self.id + ' allows limit orders only')
+            raise MarketError (self.id + ' allows limit orders only')
         return self.privatePostFundsFundIdOrders (self.extend ({
             'fund_id': self.product_id (product),
             'side': side,
@@ -12149,7 +12148,7 @@ class xbtce (Market):
     def create_order (self, product, type, side, amount, price = None, params = {}):
         self.loadProducts ()
         if type == 'market':
-            raise EndpointError (self.id + ' allows limit orders only')
+            raise MarketError (self.id + ' allows limit orders only')
         return self.tapiPostTrade (self.extend ({
             'pair': self.product_id (product),
             'type': side,
@@ -12337,7 +12336,7 @@ class yobit (Market):
     def create_order (self, product, type, side, amount, price = None, params = {}):
         self.loadProducts ()
         if type == 'market':
-            raise EndpointError (self.id + ' allows limit orders only')
+            raise MarketError (self.id + ' allows limit orders only')
         return self.tapiPostTrade (self.extend ({
             'pair': self.product_id (product),
             'type': side,
@@ -12723,7 +12722,7 @@ class zaif (Market):
     def create_order (self, product, type, side, amount, price = None, params = {}):
         self.loadProducts ()
         if type == 'market':
-            raise EndpointError (self.id + ' allows limit orders only')
+            raise MarketError (self.id + ' allows limit orders only')
         return self.tapiPostTrade (self.extend ({
             'currency_pair': self.product_id (product),
             'action': 'bid' if (side == 'buy') else 'ask',

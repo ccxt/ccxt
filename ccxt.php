@@ -3,12 +3,12 @@
 namespace ccxt;
 
 class CCXTError                  extends \Exception {}
-class DDoSProtectionError        extends CCXTError {}
-class TimeoutError               extends CCXTError {}
-class AuthenticationError        extends CCXTError {}
 class MarketError                extends CCXTError {}
-class MarketNotAvailableError    extends MarketError {}
-class EndpointError              extends MarketError {}
+class AuthenticationError        extends CCXTError {}
+class NetworkError               extends CCXTError {}
+class DDoSProtectionError        extends NetworkError {}
+class TimeoutError               extends NetworkError {}
+class MarketNotAvailableError    extends NetworkError {}
 
 $version = '1.2.47';
 
@@ -1300,7 +1300,7 @@ class anxpro extends Market {
 
     public function fetch_trades ($product) {
         $error = $this->id . ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled';
-        throw new EndpointError ($error);
+        throw new MarketError ($error);
         return $this->publicGetCurrencyPairMoneyTradeFetch (array (
             'currency_pair' => $this->product_id ($product),
         ));
@@ -3924,7 +3924,7 @@ class blinktrade extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
-            throw new EndpointError ($this->id . ' allows limit orders only');
+            throw new MarketError ($this->id . ' allows limit orders only');
         $p = $this->product ($product);
         $order = array (
             'ClOrdID' => $this->nonce (),
@@ -4505,7 +4505,7 @@ class btce extends Market {
             $result['asks'] = $this->sort_by ($result['asks'], 0);
             return $result;
         }
-        throw new EndpointError ($this->id . ' ' . $p['symbol'] . ' order book is empty or not available');
+        throw new MarketError ($this->id . ' ' . $p['symbol'] . ' order book is empty or not available');
     }
 
     public function fetch_ticker ($product) {
@@ -4942,7 +4942,7 @@ class btctradeua extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
-            throw new EndpointError ($this->id . ' allows limit orders only');
+            throw new MarketError ($this->id . ' allows limit orders only');
         $p = $this->product ($product);
         $method = 'privatePost' . $this->capitalize ($side) . 'Id';
         $order = array (
@@ -6655,7 +6655,7 @@ class coinmarketcap extends Market {
     }
 
     public function fetch_order_book () {
-        throw new EndpointError ('Fetching order books is not supported by the API of ' . $this->id);
+        throw new MarketError ('Fetching order books is not supported by the API of ' . $this->id);
     }
 
     public function fetch_products () {
@@ -7200,7 +7200,7 @@ class coinsecure extends Market {
     }
 
     public function cancel_order ($id) {
-        throw new EndpointError ($this->id . ' cancelOrder () is not fully implemented yet');
+        throw new MarketError ($this->id . ' cancelOrder () is not fully implemented yet');
         $method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
         return $this->$method (array ( 'orderID' => $id ));
     }
@@ -7361,7 +7361,7 @@ class coinspot extends Market {
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePostMy' . $this->capitalize ($side);
         if ($type =='market')
-            throw new EndpointError ($this->id . ' allows limit orders only');
+            throw new MarketError ($this->id . ' allows limit orders only');
         $order = array (
             'cointype' => $this->product_id ($product),
             'amount' => $amount,
@@ -7371,7 +7371,7 @@ class coinspot extends Market {
     }
 
     public function cancel_order ($id, $params = array ()) {
-        throw new EndpointError ($this->id . ' cancelOrder () is not fully implemented yet');
+        throw new MarketError ($this->id . ' cancelOrder () is not fully implemented yet');
         $method = 'privatePostMyBuy';
         return $this->$method (array ( 'id' => $id ));
     }
@@ -7564,7 +7564,7 @@ class dsx extends Market {
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadProducts ();
         if ($type == 'market')
-            throw new EndpointError ($this->id . ' allows limit orders only');
+            throw new MarketError ($this->id . ' allows limit orders only');
         $order = array (
             'pair' => $this->product_id ($product),
             'type' => $side,
@@ -8004,7 +8004,7 @@ class flowbtc extends Market {
                 'serverOrderId' => $id,
             ), $params));            
         }
-        throw new EndpointError ($this->id . ' requires `ins` symbol parameter for cancelling an order');
+        throw new MarketError ($this->id . ' requires `ins` symbol parameter for cancelling an order');
     }
 
     public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -8957,7 +8957,7 @@ class gemini extends Market {
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadProducts ();
         if ($type == 'market')
-            throw new EndpointError ($this->id . ' allows limit orders only');
+            throw new MarketError ($this->id . ' allows limit orders only');
         $order = array (
             'client_order_id' => $this->nonce (),
             'symbol' => $this->product_id ($product),
@@ -9151,7 +9151,7 @@ class hitbtc extends Market {
             'symbol' => $this->product_id ($product),
         ));
         if (array_key_exists ('message', $ticker))
-            throw new EndpointError ($this->id . ' ' . $ticker['message']);
+            throw new MarketError ($this->id . ' ' . $ticker['message']);
         $timestamp = $ticker['timestamp'];
         return array (
             'timestamp' => $timestamp,
@@ -9580,7 +9580,7 @@ class itbit extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
-            throw new EndpointError ($this->id . ' allows limit orders only');
+            throw new MarketError ($this->id . ' allows limit orders only');
         $amount = (string) $amount;
         $price = (string) $price;
         $p = $this->product ($product);
@@ -9908,7 +9908,7 @@ class kraken extends Market {
         $this->loadProducts ();
         $darkpool = mb_strpos ($product, '.d') !== false;
         if ($darkpool)
-            throw new EndpointError ($this->id . ' does not provide an $order book for $darkpool symbol ' . $product);
+            throw new MarketError ($this->id . ' does not provide an $order book for $darkpool symbol ' . $product);
         $p = $this->product ($product);
         $response = $this->publicGetDepth  (array (
             'pair' => $p['id'],
@@ -9940,7 +9940,7 @@ class kraken extends Market {
         $this->loadProducts ();
         $darkpool = mb_strpos ($product, '.d') !== false;
         if ($darkpool)
-            throw new EndpointError ($this->id . ' does not provide a $ticker for $darkpool symbol ' . $product);
+            throw new MarketError ($this->id . ' does not provide a $ticker for $darkpool symbol ' . $product);
         $p = $this->product ($product);
         $response = $this->publicGetTicker (array (
             'pair' => $p['id'],
@@ -10201,7 +10201,7 @@ class lakebtc extends Market {
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadProducts ();
         if ($type == 'market')
-            throw new EndpointError ($this->id . ' allows limit orders only');
+            throw new MarketError ($this->id . ' allows limit orders only');
         $method = 'privatePost' . $this->capitalize ($side) . 'Order';
         $productId = $this->product_id ($product);
         $order = array (
@@ -10868,7 +10868,7 @@ class mercado extends Market {
 
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
-            throw new EndpointError ($this->id . ' allows limit orders only');
+            throw new MarketError ($this->id . ' allows limit orders only');
         $method = 'privatePostPlace' . $this->capitalize ($side) . 'Order';
         $order = array (
             'coin_pair' => $this->product_id ($product),
@@ -12295,7 +12295,7 @@ class therock extends Market {
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadProducts ();
         if ($type == 'market')
-            throw new EndpointError ($this->id . ' allows limit orders only');
+            throw new MarketError ($this->id . ' allows limit orders only');
         return $this->privatePostFundsFundIdOrders (array_merge (array (
             'fund_id' => $this->product_id ($product),
             'side' => $side,
@@ -13032,7 +13032,7 @@ class xbtce extends Market {
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadProducts ();
         if ($type == 'market')
-            throw new EndpointError ($this->id . ' allows limit orders only');
+            throw new MarketError ($this->id . ' allows limit orders only');
         return $this->tapiPostTrade (array_merge (array (
             'pair' => $this->product_id ($product),
             'type' => $side,
@@ -13234,7 +13234,7 @@ class yobit extends Market {
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadProducts ();
         if ($type == 'market')
-            throw new EndpointError ($this->id . ' allows limit orders only');
+            throw new MarketError ($this->id . ' allows limit orders only');
         return $this->tapiPostTrade (array_merge (array (
             'pair' => $this->product_id ($product),
             'type' => $side,
@@ -13646,7 +13646,7 @@ class zaif extends Market {
     public function create_order ($product, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadProducts ();
         if ($type == 'market')
-            throw new EndpointError ($this->id . ' allows limit orders only');
+            throw new MarketError ($this->id . ' allows limit orders only');
         return $this->tapiPostTrade (array_merge (array (
             'currency_pair' => $this->product_id ($product),
             'action' => ($side == 'buy') ? 'bid' : 'ask',
