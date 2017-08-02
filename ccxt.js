@@ -10469,7 +10469,7 @@ var mercado = {
         }, params));
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][type] + '/';
         if (type == 'public') {
             url += path;
@@ -10487,7 +10487,10 @@ var mercado = {
                 'TAPI-MAC': this.hmac (this.encode (auth), this.secret, 'sha512'),
             };
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('error_message' in response)
+            throw new MarketError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 
