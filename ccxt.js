@@ -13179,7 +13179,7 @@ var zaif = {
         }, params));
     },
 
-    request (path, type = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, type = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + type;
         if (type == 'api') {
             url += '/' + this.version + '/' + this.implodeParams (path, params);
@@ -13196,7 +13196,13 @@ var zaif = {
                 'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('error' in response)
+            throw new MarketError (this.id + ' ' + response['error']);
+        if ('success' in response)
+            if (!response['success'])
+                throw new MarketError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 
