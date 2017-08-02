@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.45';
+$version = '1.2.46';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12327,7 +12327,10 @@ class therock extends Market {
                 $headers['Content-Type'] = 'application/json';
             }
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('errors', $response))
+            throw new MarketError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 
@@ -12812,7 +12815,11 @@ class virwox extends Market {
                 'id' => $nonce,
             ));
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('error', $response))
+            if ($response['error'])
+                throw new MarketError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 
@@ -13260,7 +13267,10 @@ class yobit extends Market {
                 'sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('error', $response))
+            throw new MarketError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 
@@ -13469,7 +13479,10 @@ class yunbi extends Market {
                 );
             }
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('error', $response))
+            throw new MarketError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 
@@ -13666,7 +13679,13 @@ class zaif extends Market {
                 'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('error', $response))
+            throw new MarketError ($this->id . ' ' . $response['error']);
+        if (array_key_exists ('success', $response))
+            if (!$response['success'])
+                throw new MarketError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 
