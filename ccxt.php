@@ -10,7 +10,7 @@ class MarketError                extends CCXTError {}
 class MarketNotAvailableError    extends MarketError {}
 class EndpointError              extends MarketError {}
 
-$version = '1.2.41';
+$version = '1.2.42';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -11085,7 +11085,11 @@ class okcoin extends Market {
             $headers = array ( 'Content-type' => 'application/x-www-form-urlencoded' );
         }
         $url = $this->urls['api'] . $url;
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('result', $response))
+            if (!$response['result'])
+                throw new MarketError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 
@@ -11315,7 +11319,10 @@ class paymium extends Market {
                 'Content-Type' => 'application/json',
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('errors', $response))
+            throw new MarketError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 
