@@ -9642,8 +9642,8 @@ var kraken = {
         }
         url = this.urls['api'] + url;
         let response = await this.fetch (url, method, headers, body);
-        if ('error' in response)
-            if (response['error'].length)
+        if ('error' in response) 
+            if (response['error'])
                 throw new MarketError (this.id + ' ' + this.json (response));
         return response;
     },

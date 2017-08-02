@@ -9273,24 +9273,22 @@ class kraken (Market):
         response = self.privatePostBalance ()
         balances = response['result']
         result = { 'info': balances }
-        for c in range (0, len (self.currencies)):
-            currency = self.currencies[c]
-            xcode = 'X' + currency # X-ISO4217-A3 standard currency codes
-            zcode = 'Z' + currency
-            balance = None
-            if xcode in balances:
-                balance = float (balances[xcode])
-            if zcode in balances:
-                balance = float (balances[zcode])
-            # issue #60
-            if currency in balances:
-                balance = float (balances[currency])
+        currencies = list (balances.keys ())
+        for c in range (0, len (currencies)):
+            currency = currencies[c]
+            code = currency
+            if (code[0] == 'X') # X-ISO4217-A3 standard currency codes
+                code = code[1:]
+            else if code[0] == 'Z':
+                code = code[1:]
+            code = self.commonCurrencyCode (code)
+            balance = float (balances[code])
             account = {
                 'free': balance,
                 'used': None,
                 'total': balance,
             }
-            result[currency] = account
+            result[code] = account
         return result
 
     def create_order (self, product, type, side, amount, price = None, params = {}):
@@ -9331,7 +9329,7 @@ class kraken (Market):
         url = self.urls['api'] + url
         response = self.fetch (url, method, headers, body)
         if 'error' in response:
-            if len (response['error']):
+            if response['error']:
                 raise MarketError (self.id + ' ' + self.json (response))
         return response
 

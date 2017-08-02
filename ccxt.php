@@ -9976,24 +9976,22 @@ class kraken extends Market {
         $response = $this->privatePostBalance ();
         $balances = $response['result'];
         $result = array ( 'info' => $balances );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
-            $xcode = 'X' . $currency; // X-ISO4217-A3 standard $currency codes
-            $zcode = 'Z' . $currency;
-            $balance = null;
-            if (array_key_exists ($xcode, $balances))
-                $balance = floatval ($balances[$xcode]);
-            if (array_key_exists ($zcode, $balances))
-                $balance = floatval ($balances[$zcode]);
-            // issue #60
-            if (array_key_exists ($currency, $balances)) 
-                $balance = floatval ($balances[$currency]);
+        $currencies = array_keys ($balances);
+        for ($c = 0; $c < count ($currencies); $c++) {
+            $currency = $currencies[$c];
+            $code = $currency;
+            if ($code[0] == 'X') // X-ISO4217-A3 standard $currency codes
+                $code = mb_substr ($code, 1);
+            else if ($code[0] == 'Z')
+                $code = mb_substr ($code, 1);
+            $code = $this->commonCurrencyCode ($code);
+            $balance = floatval ($balances[$code]);
             $account = array (
                 'free' => $balance,
                 'used' => null,
                 'total' => $balance,
             );
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $result;
     }
@@ -10038,8 +10036,8 @@ class kraken extends Market {
         }
         $url = $this->urls['api'] . $url;
         $response = $this->fetch ($url, $method, $headers, $body);
-        if (array_key_exists ('error', $response))
-            if strlen (($response['error']))
+        if (array_key_exists ('error', $response)) 
+            if ($response['error'])
                 throw new MarketError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
