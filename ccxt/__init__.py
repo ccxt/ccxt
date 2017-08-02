@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.35'
+__version__ = '1.2.36'
 
 # Python 2 & 3
 import base64
@@ -4151,8 +4151,8 @@ class btce (Market):
             'datetime': self.iso8601 (timestamp),
             'high': ticker['high'] if ticker['high'] else None,
             'low': ticker['low'] if ticker['low'] else None,
-            'bid': ticker['sell'] if ticker['sell'] else None,
-            'ask': ticker['buy'] if ticker['buy'] else None,
+            'bid': ticker['buy'] if ticker['sell'] else None,
+            'ask': ticker['sell'] if ticker['buy'] else None,
             'vwap': None,
             'open': None,
             'close': None,
@@ -9765,7 +9765,11 @@ class liqui (btce):
                 'Key': self.apiKey,
                 'Sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512),
             }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if 'success' in response:
+            if not response['success']:
+                raise MarketError (self.id + ' ' + self.json (response))
+        return response
 
 #------------------------------------------------------------------------------
 
