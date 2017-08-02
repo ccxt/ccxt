@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.37'
+__version__ = '1.2.38'
 
 # Python 2 & 3
 import base64
@@ -8527,7 +8527,7 @@ class hitbtc (Market):
         p = self.product (product)
         # check if amount can be evenly divided into lots
         # they want integer quantity in lot units
-        quantity = amount / p['lot']
+        quantity = float (amount) / p['lot']
         wholeLots = int (round (quantity))
         difference = quantity - wholeLots
         if abs (difference) > p['step']:
