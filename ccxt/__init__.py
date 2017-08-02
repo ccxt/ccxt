@@ -86,7 +86,7 @@ __all__ = markets + [
     'TickerNotAvailableError',
 ]
 
-__version__ = '1.2.34'
+__version__ = '1.2.35'
 
 # Python 2 & 3
 import base64
@@ -9716,7 +9716,11 @@ class livecoin (Market):
                 'Sign': signature.upper (),
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        return self.fetch (url, method, headers, body)
+        response = self.fetch (url, method, headers, body)
+        if 'success' in response:
+            if not response['success']:
+                raise MarketError (self.id + ' ' + self.json (response))
+        return response
 
 #------------------------------------------------------------------------------
 
