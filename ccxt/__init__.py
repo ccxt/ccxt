@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.47'
+__version__ = '1.2.48'
 
 # Python 2 & 3
 import base64
