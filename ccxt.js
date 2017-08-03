@@ -8134,13 +8134,7 @@ var gatecoin = {
         return result;
     },
 
-    async fetchTicker (product) {
-        await this.loadProducts ();
-        let p = this.product (product);
-        let response = await this.publicGetPublicLiveTickerCurrencyPair ({
-            'CurrencyPair': p['id'],
-        });
-        let ticker = response['ticker'];
+    parseTicker (ticker, product) {
         let timestamp = parseInt (ticker['createDateTime']) * 1000;
         return {
             'timestamp': timestamp,
@@ -8161,6 +8155,31 @@ var gatecoin = {
             'quoteVolume': parseFloat (ticker['volume']),
             'info': ticker,
         };
+    },
+
+    async fetchTickers () {
+        await this.loadProducts ();
+        let response = await this.publicGetPublicLiveTickers ();
+        let tickers = response['tickers'];
+        let result = {};
+        for (let t = 0; t < tickers.length; t++) {
+            let ticker = tickers[t];
+            let id = ticker['currencyPair'];
+            let product = this.products_by_id[id];
+            let symbol = product['symbol'];
+            result[symbol] = this.parseTicker (ticker, product);
+        }
+        return result;
+    },
+
+    async fetchTicker (product) {
+        await this.loadProducts ();
+        let p = this.product (product);
+        let response = await this.publicGetPublicLiveTickerCurrencyPair ({
+            'CurrencyPair': p['id'],
+        });
+        let ticker = response['ticker'];
+        return this.parseTicker (ticker, p);
     },
 
     async fetchTrades (product) {
