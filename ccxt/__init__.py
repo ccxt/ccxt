@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.49'
+__version__ = '1.2.50'
 
 # Python 2 & 3
 import base64
@@ -7881,13 +7881,7 @@ class gatecoin (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
-        response = self.publicGetPublicLiveTickerCurrencyPair ({
-            'CurrencyPair': p['id'],
-        })
-        ticker = response['ticker']
+    def parse_ticker (self, ticker, product):
         timestamp = int (ticker['createDateTime']) * 1000
         return {
             'timestamp': timestamp,
@@ -7908,6 +7902,28 @@ class gatecoin (Market):
             'quoteVolume': float (ticker['volume']),
             'info': ticker,
         }
+
+    def fetch_tickers (self):
+        self.loadProducts ()
+        response = self.publicGetPublicLiveTickers ()
+        tickers = response['tickers']
+        result = {}
+        for t in range (0, len (tickers)):
+            ticker = tickers[t]
+            id = ticker['currencyPair']
+            product = self.products_by_id[id]
+            symbol = product['symbol']
+            result[symbol] = self.parse_ticker (ticker, product)
+        return result
+
+    def fetch_ticker (self, product):
+        self.loadProducts ()
+        p = self.product (product)
+        response = self.publicGetPublicLiveTickerCurrencyPair ({
+            'CurrencyPair': p['id'],
+        })
+        ticker = response['ticker']
+        return self.parse_ticker (ticker, p)
 
     def fetch_trades (self, product):
         self.loadProducts ()

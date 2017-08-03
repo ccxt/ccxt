@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.49';
+$version = '1.2.50';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8501,13 +8501,7 @@ class gatecoin extends Market {
         return $result;
     }
 
-    public function fetch_ticker ($product) {
-        $this->loadProducts ();
-        $p = $this->product ($product);
-        $response = $this->publicGetPublicLiveTickerCurrencyPair (array (
-            'CurrencyPair' => $p['id'],
-        ));
-        $ticker = $response['ticker'];
+    public function parse_ticker ($ticker, $product) {
         $timestamp = intval ($ticker['createDateTime']) * 1000;
         return array (
             'timestamp' => $timestamp,
@@ -8528,6 +8522,31 @@ class gatecoin extends Market {
             'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
+    }
+
+    public function fetch_tickers () {
+        $this->loadProducts ();
+        $response = $this->publicGetPublicLiveTickers ();
+        $tickers = $response['tickers'];
+        $result = array ();
+        for ($t = 0; $t < count ($tickers); $t++) {
+            $ticker = $tickers[$t];
+            $id = $ticker['currencyPair'];
+            $product = $this->products_by_id[$id];
+            $symbol = $product['symbol'];
+            $result[$symbol] = $this->parse_ticker ($ticker, $product);
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $this->loadProducts ();
+        $p = $this->product ($product);
+        $response = $this->publicGetPublicLiveTickerCurrencyPair (array (
+            'CurrencyPair' => $p['id'],
+        ));
+        $ticker = $response['ticker'];
+        return $this->parse_ticker ($ticker, $p);
     }
 
     public function fetch_trades ($product) {
