@@ -642,13 +642,23 @@ class Market {
         return $this->set_products ($products);
     }
 
-    public function fetch_products () {
-        return $this->products; // stub
+    public function fetch_tickers () { // stub
+        $exception = '\\ccxt\\MarketError';
+        throw new $exception ($this->id . ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now');
+    }
+
+    public function fetchTickers () {
+        return $this->fetch_tickers ();
+    }
+
+    public function fetch_products () { // stub
+        return $this->products; 
     }
     
     public function fetchProducts  () {
         return $this->fetch_products ();
     }
+
     public function fetchBalance () {
         return $this->fetch_balance ();
     }
@@ -720,8 +730,7 @@ class Market {
         return (is_array ($product = $this->product ($product))) ? $product['symbol'] : $product;
     }
 
-    public function request ($path, $type, $method, $params, $headers = null, $body = null) {
-        /* stub */
+    public function request ($path, $type, $method, $params, $headers = null, $body = null) { // stub
     }
 
     function __call ($function, $params) {
