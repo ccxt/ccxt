@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Reworked exception hierarchy and error handling for unification
 - Fixed CHBTC missing bid/ask handling in order books for certain symbols
 
 ## Version 1.2.0 2017-08-01
