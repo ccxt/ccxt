@@ -441,7 +441,18 @@ const Market = function (config) {
         })
     }
 
-    this.fetch_products =
+    this.fetch_tickers = function () {
+        return this.fetchTickers ()
+    }
+
+    this.fetchTickers = function () {
+        throw new MarketError (this.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
+    }
+
+    this.fetch_products = function () {
+        return this.fetchProducts ()
+    }
+
     this.fetchProducts = function () {
         return new Promise ((resolve, reject) => resolve (this.products))
     }
