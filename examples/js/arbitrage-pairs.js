@@ -75,8 +75,8 @@ let proxies = [
                         log.bright.yellow ('[Authentication Error] ' + e.message)
                     } else if (e instanceof ccxt.MarketNotAvailableError) {
                         log.bright.yellow ('[Market Not Available Error] ' + e.message)
-                    } else if (e instanceof ccxt.EndpointNotAvailableError) {
-                        log.bright.yellow ('[Endpoint Not Available Error] ' + e.message)
+                    } else if (e instanceof ccxt.MarketError) {
+                        log.bright.yellow ('[Market Error] ' + e.message)
                     } else {
                         throw e; // rethrow all other exceptions
                     }
@@ -86,7 +86,7 @@ let proxies = [
                 }
             }
 
-            log (id.green, 'products loaded')
+            log (id.green, 'loaded', market.symbols.length.green, 'products')
         }
 
         log ('Loaded all products'.green)
@@ -95,8 +95,11 @@ let proxies = [
         let uniqueSymbols = ccxt.unique (ccxt.flatten (ids.map (id => markets[id].symbols)))
 
         // filter out symbols that are not present on at least two exchanges
-        let arbitrableSymbols = uniqueSymbols.filter (symbol => 
-            ids.filter (id => (markets[id].symbols.indexOf (symbol) >= 0)).length > 1)
+        let arbitrableSymbols = uniqueSymbols
+            .filter (symbol => 
+                ids.filter (id => 
+                    (markets[id].symbols.indexOf (symbol) >= 0)).length > 1)
+            .sort ((id1, id2) => (id1 > id2) ? 1 : ((id2 > id1) ? -1 : 0))
 
         // print a table of arbitrable symbols
         let table = arbitrableSymbols.map (symbol => {

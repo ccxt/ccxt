@@ -75,7 +75,7 @@ if len (sys.argv) > 2:
             except Exception as e: # reraise all other exceptions
                 raise 
 
-        dump (green (id), 'products loaded')
+        dump (green (id), 'loaded', green (str (len (market.symbols))), 'products')
 
     dump (green ('Loaded all products'))
 
@@ -85,7 +85,7 @@ if len (sys.argv) > 2:
     uniqueSymbols = list (set (allSymbols))
    
     # filter out symbols that are not present on at least two exchanges
-    arbitrableSymbols = [symbol for symbol in uniqueSymbols if allSymbols.count (symbol) > 1]
+    arbitrableSymbols = sorted ([symbol for symbol in uniqueSymbols if allSymbols.count (symbol) > 1])
 
     # print a table of arbitrable symbols
     table = []
