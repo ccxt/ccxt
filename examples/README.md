@@ -33,8 +33,10 @@ php -f path/to/example.php # substitute for actual filename here
 
 ## See Also )
 
-- [bitcoin-chart-cli](https://github.com/madnight/bitcoin-chart-cli) by [madnight](https://github.com/madnight) – a command-line console util that draws Bitcoin, Ether and Litecoin charts right in the terminal! It uses the [asciichart](https://github.com/kroitor/asciichart) JavaScript module by [kroitor](https://github.com/kroitor) for nice-looking lightweight ASCII line charting )) Both are available in npm!
+- [bitcoin-chart-cli](https://github.com/madnight/bitcoin-chart-cli) by [madnight](https://github.com/madnight) – a command-line console util that draws Bitcoin, Ether and Litecoin charts right in the terminal! 
   
   ![bitcoin-chart-cli](https://camo.githubusercontent.com/494806efd925c4cd56d8370c1d4e8b751812030a/68747470733a2f2f692e696d6775722e636f6d2f635474467879362e706e67)
+  
+  It uses the [asciichart](https://github.com/kroitor/asciichart) JavaScript module by [kroitor](https://github.com/kroitor) for nice-looking lightweight ASCII line charting )) Both packages are available in npm!
 
   ![asciichart](https://user-images.githubusercontent.com/1294454/28936500-9cab0f34-7890-11e7-8a23-224b82b59978.jpg)
