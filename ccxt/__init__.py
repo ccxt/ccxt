@@ -553,6 +553,12 @@ class Market (object):
     def fetchProducts (self):
         return self.fetch_products ()
 
+    def fetch_tickers (self):
+        raise MarketError (self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
+
+    def fetchTickers (self):
+        return self.fetch_tickers ()
+
     def product (self, product):
         isString = isinstance (product, basestring)
         if isString and self.products and (product in self.products):
