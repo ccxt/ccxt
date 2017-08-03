@@ -37,3 +37,4 @@ php -f path/to/example.php # substitute for actual filename here
   
   ![bitcoin-chart-cli](https://camo.githubusercontent.com/494806efd925c4cd56d8370c1d4e8b751812030a/68747470733a2f2f692e696d6775722e636f6d2f635474467879362e706e67)
 
+  ![asciichart](https://user-images.githubusercontent.com/1294454/28936500-9cab0f34-7890-11e7-8a23-224b82b59978.jpg)
