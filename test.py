@@ -94,6 +94,7 @@ def test_market (market):
         'ETH/BTC',
         'BTC/JPY',
         'LTC/BTC',
+        'USD/SLL',
     ]
 
     for s in symbols:
