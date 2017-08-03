@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.48'
+__version__ = '1.2.49'
 
 # Python 2 & 3
 import base64
@@ -2350,11 +2350,7 @@ class bitlish (Market):
             })
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
-        tickers = self.publicGetTickers ()
-        ticker = tickers[p['id']]
+    def parse_ticker (self, ticker, product):
         timestamp = self.milliseconds ()
         return {
             'timestamp': timestamp,
@@ -2375,6 +2371,27 @@ class bitlish (Market):
             'quoteVolume': None,
             'info': ticker,
         }
+
+    def fetch_tickers (self):
+        self.loadProducts ()
+        p = self.product (product)
+        tickers = self.publicGetTickers ()
+        ids = list (tickers.keys ())
+        result = {}
+        for i in range (0, len (ids)):
+            id = ids[i]
+            product = self.products_by_id[id]
+            symbol = product['symbol']
+            ticker = tickers[id]
+            result[symbol] = self.parse_ticker (ticker, product)
+        return result
+
+    def fetch_ticker (self, product):
+        self.loadProducts ()
+        p = self.product (product)
+        tickers = self.publicGetTickers ()
+        ticker = tickers[p['id']]
+        return self.parse_ticker (ticker, p)
 
     def fetch_order_book (self, product):
         self.loadProducts ()
@@ -7182,10 +7199,7 @@ class exmo (Market):
 
     def fetch_tickers (self, currency = 'USD'):
         self.loadProducts ()
-        request = {}
-        if currency:
-            request['convert'] = currency
-        response = self.publicGetTicker (request)
+        response = self.publicGetTicker ()
         result = {}
         ids = list (response.keys ())
         for i in range (0, len (ids)):

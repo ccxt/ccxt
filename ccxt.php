@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.48';
+$version = '1.2.49';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2601,11 +2601,7 @@ class bitlish extends Market {
         return $result;
     }
 
-    public function fetch_ticker ($product) {
-        $this->loadProducts ();
-        $p = $this->product ($product);
-        $tickers = $this->publicGetTickers ();
-        $ticker = $tickers[$p['id']];
+    public function parse_ticker ($ticker, $product) {
         $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
@@ -2626,6 +2622,30 @@ class bitlish extends Market {
             'quoteVolume' => null,
             'info' => $ticker,
         );
+    }
+
+    public function fetch_tickers () {
+        $this->loadProducts ();
+        $p = $this->product ($product);
+        $tickers = $this->publicGetTickers ();
+        $ids = array_keys ($tickers);
+        $result = array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $product = $this->products_by_id[$id];
+            $symbol = $product['symbol'];
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker ($ticker, $product);
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $this->loadProducts ();
+        $p = $this->product ($product);
+        $tickers = $this->publicGetTickers ();
+        $ticker = $tickers[$p['id']];
+        return $this->parse_ticker ($ticker, $p);
     }
 
     public function fetch_order_book ($product) {
@@ -7759,10 +7779,7 @@ class exmo extends Market {
 
     public function fetch_tickers ($currency = 'USD') {
         $this->loadProducts ();
-        $request = array ();
-        if ($currency) 
-            $request['convert'] = $currency;
-        $response = $this->publicGetTicker ($request);
+        $response = $this->publicGetTicker ();
         $result = array ();
         $ids = array_keys ($response);
         for ($i = 0; $i < count ($ids); $i++) {
