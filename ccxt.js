@@ -2375,11 +2375,7 @@ var bitlish = {
         return result;
     },
 
-    async fetchTicker (product) {
-        await this.loadProducts ();
-        let p = this.product (product);
-        let tickers = await this.publicGetTickers ();
-        let ticker = tickers[p['id']];
+    parseTicker (ticker, product) {
         let timestamp = this.milliseconds ();
         return {
             'timestamp': timestamp,
@@ -2400,6 +2396,30 @@ var bitlish = {
             'quoteVolume': undefined,
             'info': ticker,
         };
+    },
+
+    async fetchTickers () {
+        await this.loadProducts ();
+        let p = this.product (product);
+        let tickers = await this.publicGetTickers ();
+        let ids = Object.keys (tickers);
+        let result = {};
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let product = this.products_by_id[id];
+            let symbol = product['symbol'];
+            let ticker = tickers[id];
+            result[symbol] = this.parseTicker (ticker, product);
+        }
+        return result;
+    },
+
+    async fetchTicker (product) {
+        await this.loadProducts ();
+        let p = this.product (product);
+        let tickers = await this.publicGetTickers ();
+        let ticker = tickers[p['id']];
+        return this.parseTicker (ticker, p);
     },
 
     async fetchOrderBook (product) {
@@ -7419,10 +7439,7 @@ var exmo = {
 
     async fetchTickers (currency = 'USD') { 
         await this.loadProducts ();
-        let request = {};
-        if (currency) 
-            request['convert'] = currency;
-        let response = await this.publicGetTicker (request);
+        let response = await this.publicGetTicker ();
         let result = {};
         let ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
