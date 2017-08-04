@@ -12561,38 +12561,61 @@ var xbtce = {
     },
 
     parseTicker (ticker, product) {
-        let timestamp = ticker['Timestamp'];
-        let bid = undefined;
-        let ask = undefined;
-        if ('BestBid' in ticker)
-            bid = ticker['BestBid']['Price'];
-        if ('BestAsk' in ticker)
-            ask = ticker['BestAsk']['Price'];
+        let timestamp = 0;
+        let last = undefined;
+        if ('LastBuyTimestamp' in ticker)
+            if (timestamp < ticker['LastBuyTimestamp']) {
+                timestamp = ticker['LastBuyTimestamp'];
+                last = ticker['LastBuyPrice'];
+            }
+        if ('LastSellTimestamp' in ticker)
+            if (timestamp < ticker['LastSellTimestamp']) {
+                timestamp = ticker['LastSellTimestamp'];
+                last = ticker['LastSellPrice'];
+            }
+        if (!timestamp)
+            timestamp = this.milliseconds ();
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
-            'bid': bid,
-            'ask': ask,
+            'high': ticker['DailyBestBuyPrice'],
+            'low': ticker['DailyBestSellPrice'],
+            'bid': ticker['BestBid'],
+            'ask': ticker['BestAsk'],
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': undefined,
+            'last': last,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': undefined,
+            'quoteVolume': ticker['DailyTradedTotalVolume'],
             'info': ticker,
         };
+    },
+
+    async fetchTickers () {
+        await this.loadProducts ();
+        let tickers = await this.publicGetTicker ();
+        tickers = this.indexBy (tickers, 'Symbol');
+        let ids = Object.keys (tickers);
+        let result = {};
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let product = this.products_by_id[id];
+            let symbol = product['symbol'];
+            let ticker = tickers[id];
+            result[symbol] = this.parseTicker (ticker, product);
+        }
+        return result;
     },
 
     async fetchTicker (product) {
         await this.loadProducts ();
         let p = this.product (product);
-        let tickers = await this.privateGetTickFilter ({
+        let tickers = await this.publicGetTickerFilter ({
             'filter': p['id'],
         });
         tickers = this.indexBy (tickers, 'Symbol');

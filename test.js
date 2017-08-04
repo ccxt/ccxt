@@ -358,8 +358,6 @@ let tryAllProxies = async function (market, proxies) {
                 warn (market.id, '[Authentication Error] ' + e.message)
             } else if (e instanceof ccxt.MarketNotAvailableError) {
                 warn (market.id, '[Market Not Available Error] ' + e.message)
-            } else if (e instanceof ccxt.EndpointError) {
-                warn (market.id, '[Endpoint Error] ' + e.message)
             } else if (e instanceof ccxt.MarketError) {
                 warn (market.id, '[Market Error] ' + e.message)
             } else {
