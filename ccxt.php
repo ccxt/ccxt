@@ -852,11 +852,11 @@ class _1broker extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $response = $this->privateGetMarketQuotes (array (
+        $response = $this->privateGetMarketQuotes (array_merge (array (
             'symbols' => $this->product_id ($product),
-        ));
+        ), $params));
         $orderbook = $response['response'][0];
         $timestamp = $this->parse8601 ($orderbook['updated']);
         $bidPrice = floatval ($orderbook['bid']);
@@ -1004,10 +1004,10 @@ class cryptocapital extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
-        $response = $this->publicGetOrderBook (array (
+    public function fetch_order_book ($product, $params = array ()) {
+        $response = $this->publicGetOrderBook (array_merge (array (
             'currency' => $this->product_id ($product),
-        ));
+        ), $params));
         $orderbook = $response['order-book'];
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -1247,10 +1247,10 @@ class anxpro extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
-        $response = $this->publicGetCurrencyPairMoneyDepthFull (array (
+    public function fetch_order_book ($product, $params = array ()) {
+        $response = $this->publicGetCurrencyPairMoneyDepthFull (array_merge (array (
             'currency_pair' => $this->product_id ($product),
-        ));
+        ), $params));
         $orderbook = $response['data'];
         $t = intval ($orderbook['dataUpdateTime']);
         $timestamp = intval ($t / 1000);
@@ -1434,10 +1434,10 @@ class bit2c extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
-        $orderbook = $this->publicGetExchangesPairOrderbook (array (
+    public function fetch_order_book ($product, $params = array ()) {
+        $orderbook = $this->publicGetExchangesPairOrderbook (array_merge (array (
             'pair' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -1618,10 +1618,10 @@ class bitbay extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
-        $orderbook = $this->publicGetIdOrderbook (array (
+    public function fetch_order_book ($product, $params = array ()) {
+        $orderbook = $this->publicGetIdOrderbook (array_merge (array (
             'id' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => $orderbook['bids'],
@@ -1767,10 +1767,10 @@ class bitbays extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
-        $response = $this->publicGetDepth (array (
+    public function fetch_order_book ($product, $params = array ()) {
+        $response = $this->publicGetDepth (array_merge (array (
             'market' => $this->product_id ($product),
-        ));
+        ), $params));
         $orderbook = $response['result'];
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -1950,10 +1950,10 @@ class bitcoincoid extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
-        $orderbook = $this->publicGetPairDepth (array (
+    public function fetch_order_book ($product, $params = array ()) {
+        $orderbook = $this->publicGetPairDepth (array_merge (array (
             'pair' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -2189,11 +2189,11 @@ class bitfinex extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $orderbook = $this->publicGetBookSymbol (array (
+        $orderbook = $this->publicGetBookSymbol (array_merge (array (
             'symbol' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -2423,11 +2423,11 @@ class bitflyer extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $orderbook = $this->publicGetBoard (array (
+        $orderbook = $this->publicGetBoard (array_merge (array (
             'product_code' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -2657,11 +2657,11 @@ class bitlish extends Market {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $orderbook = $this->publicGetTradesDepth (array (
+        $orderbook = $this->publicGetTradesDepth (array_merge (array (
             'pair_id' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = intval (intval ($orderbook['last']) / 1000);
         $result = array (
             'bids' => array (),
@@ -2873,10 +2873,10 @@ class bitmarket extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
-        $orderbook = $this->publicGetJsonMarketOrderbook (array (
+    public function fetch_order_book ($product, $params = array ()) {
+        $orderbook = $this->publicGetJsonMarketOrderbook (array_merge (array (
             'market' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => $orderbook['bids'],
@@ -3108,11 +3108,11 @@ class bitmex extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $orderbook = $this->publicGetOrderBookL2 (array (
+        $orderbook = $this->publicGetOrderBookL2 (array_merge (array (
             'symbol' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -3320,11 +3320,11 @@ class bitso extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $response = $this->publicGetOrderBook (array (
+        $response = $this->publicGetOrderBook (array_merge (array (
             'book' => $this->product_id ($product),
-        ));
+        ), $params));
         $orderbook = $response['payload'];
         $timestamp = $this->parse8601 ($orderbook['updated_at']);
         $result = array (
@@ -3488,10 +3488,10 @@ class bitstamp extends Market {
         ), $options));
     }
 
-    public function fetch_order_book ($product) {
-        $orderbook = $this->publicGetOrderBookId (array (
+    public function fetch_order_book ($product, $params = array ()) {
+        $orderbook = $this->publicGetOrderBookId (array_merge (array (
             'id' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = intval ($orderbook['timestamp']) * 1000;
         $result = array (
             'bids' => array (),
@@ -3717,13 +3717,13 @@ class bittrex extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $response = $this->publicGetOrderbook (array (
+        $response = $this->publicGetOrderbook (array_merge (array (
             'market' => $this->product_id ($product),
             'type' => 'both',
             'depth' => 50,
-        ));
+        ), $params));
         $orderbook = $response['result'];
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -3886,12 +3886,12 @@ class blinktrade extends Market {
         ));
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $p = $this->product ($product);
-        $orderbook = $this->publicGetCurrencyOrderbook (array (
+        $orderbook = $this->publicGetCurrencyOrderbook (array_merge (array (
             'currency' => $p['quote'],
             'crypto_currency' => $p['base'],
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -4083,11 +4083,11 @@ class bl3p extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $p = $this->product ($product);
-        $response = $this->publicGetMarketOrderbook (array (
+        $response = $this->publicGetMarketOrderbook (array_merge (array (
             'market' => $p['id'],
-        ));
+        ), $params));
         $orderbook = $response['data'];
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -4298,11 +4298,11 @@ class btcchina extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $orderbook = $this->publicGetOrderbook (array (
+        $orderbook = $this->publicGetOrderbook (array_merge (array (
             'market' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $orderbook['date'] * 1000;;
         $result = array (
             'bids' => $orderbook['bids'],
@@ -4515,12 +4515,12 @@ class btce extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
         $p = $this->product ($product);
-        $response = $this->publicGetDepthPair (array (
+        $response = $this->publicGetDepthPair (array_merge (array (
             'pair' => $p['id'],
-        ));
+        ), $params));
         if (array_key_exists ($p['id'], $response)) {
             $orderbook = $response[$p['id']];
             $timestamp = $this->milliseconds ();
@@ -4675,8 +4675,8 @@ class btctrader extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
-        $orderbook = $this->publicGetOrderbook ();
+    public function fetch_order_book ($product, $params = array ()) {
+        $orderbook = $this->publicGetOrderbook ($params);
         $timestamp = intval ($orderbook['timestamp'] * 1000);
         $result = array (
             'bids' => array (),
@@ -4874,14 +4874,14 @@ class btctradeua extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $p = $this->product ($product);
-        $bids = $this->publicGetTradesBuySymbol (array (
+        $bids = $this->publicGetTradesBuySymbol (array_merge (array (
             'symbol' => $p['id'],
-        ));
-        $asks = $this->publicGetTradesSellSymbol (array (
+        ), $params));
+        $asks = $this->publicGetTradesSellSymbol (array_merge (array (
             'symbol' => $p['id'],
-        ));
+        ), $params));
         $orderbook = array (
             'bids' => array (),
             'asks' => array (),
@@ -5095,11 +5095,11 @@ class btcx extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
-        $orderbook = $this->publicGetDepthIdLimit (array (
+    public function fetch_order_book ($product, $params = array ()) {
+        $orderbook = $this->publicGetDepthIdLimit (array_merge (array (
             'id' => $this->product_id ($product),
             'limit' => 1000,
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -5292,11 +5292,11 @@ class bter extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $orderbook = $this->publicGetOrderBookId (array (
+        $orderbook = $this->publicGetOrderBookId (array_merge (array (
             'id' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -5501,11 +5501,11 @@ class bxinth extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $orderbook = $this->publicGetOrderbook (array (
+        $orderbook = $this->publicGetOrderbook (array_merge (array (
             'pairing' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -5706,13 +5706,13 @@ class ccex extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $response = $this->publicGetOrderbook (array (
+        $response = $this->publicGetOrderbook (array_merge (array (
             'market' => $this->product_id ($product),
             'type' => 'both',
             'depth' => 100,
-        ));
+        ), $params));
         $orderbook = $response['result'];
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -5911,11 +5911,11 @@ class cex extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $orderbook =  $this->publicGetOrderBookPair (array (
+        $orderbook =  $this->publicGetOrderBookPair (array_merge (array (
             'pair' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $orderbook['timestamp'] * 1000;
         $result = array (
             'bids' => $orderbook['bids'],
@@ -6093,11 +6093,11 @@ class chbtc extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $p = $this->product ($product);
-        $orderbook = $this->publicGetDepth (array (
+        $orderbook = $this->publicGetDepth (array_merge (array (
             'currency' => $p['id'],
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $bids = null;
         $asks = null;
@@ -6339,8 +6339,8 @@ class coincheck extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
-        $orderbook =  $this->publicGetOrderBooks ();
+    public function fetch_order_book ($product, $params = array ()) {
+        $orderbook =  $this->publicGetOrderBooks ($params);
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -6516,14 +6516,14 @@ class coingi extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $p = $this->product ($product);
-        $orderbook = $this->currentGetOrderBookPairAskCountBidCountDepth (array (
+        $orderbook = $this->currentGetOrderBookPairAskCountBidCountDepth (array_merge (array (
             'pair' => $p['id'],
             'askCount' => 512, // maximum returned number of asks 1-512
             'bidCount' => 512, // maximum returned number of bids 1-512
             'depth' => 32, // maximum number of depth range steps 1-32
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -6683,7 +6683,7 @@ class coinmarketcap extends Market {
         ), $options));
     }
 
-    public function fetch_order_book () {
+    public function fetch_order_book ($product, $params = array ()) {
         throw new MarketError ('Fetching order books is not supported by the API of ' . $this->id);
     }
 
@@ -6865,11 +6865,11 @@ class coinmate extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
-        $response = $this->publicGetOrderBook (array (
+    public function fetch_order_book ($product, $params = array ()) {
+        $response = $this->publicGetOrderBook (array_merge (array (
             'currencyPair' => $this->product_id ($product),
             'groupByPriceLimit' => 'False',
-        ));
+        ), $params));
         $orderbook = $response['data'];
         $timestamp = $orderbook['timestamp'] * 1000;
         $result = array (
@@ -7153,9 +7153,9 @@ class coinsecure extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
-        $bids = $this->publicGetExchangeBidOrders ();
-        $asks = $this->publicGetExchangeAskOrders ();
+    public function fetch_order_book ($product, $params = array ()) {
+        $bids = $this->publicGetExchangeBidOrders ($params);
+        $asks = $this->publicGetExchangeAskOrders ($params);
         $orderbook = array (
             'bids' => $bids['message'],
             'asks' => $asks['message'],
@@ -7324,11 +7324,11 @@ class coinspot extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $p = $this->product ($product);
-        $orderbook = $this->privatePostOrders (array (
+        $orderbook = $this->privatePostOrders (array_merge (array (
             'cointype' => $p['id'],
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -7526,12 +7526,12 @@ class dsx extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
         $p = $this->product ($product);
-        $response = $this->mapiGetDepthId (array (
+        $response = $this->mapiGetDepthId (array_merge (array (
             'id' => $p['id'],
-        ));
+        ), $params));
         $orderbook = $response[$p['id']];
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -7733,12 +7733,12 @@ class exmo extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
         $p = $this->product ($product);
-        $response = $this->publicGetOrderBook (array (
+        $response = $this->publicGetOrderBook (array_merge (array (
             'pair' => $p['id'],
-        ));
+        ), $params));
         $orderbook = $response[$p['id']];
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -7948,12 +7948,12 @@ class flowbtc extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
         $p = $this->product ($product);
-        $orderbook = $this->publicPostGetOrderBook (array (
+        $orderbook = $this->publicPostGetOrderBook (array_merge (array (
             'productPair' => $p['id'],
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -8142,8 +8142,8 @@ class fyb extends Market {
         return $accounts;
     }
 
-    public function fetch_order_book ($product) {
-        $orderbook = $this->publicGetOrderbook ();
+    public function fetch_order_book ($product, $params = array ()) {
+        $orderbook = $this->publicGetOrderbook ($params);
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -8483,12 +8483,12 @@ class gatecoin extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
         $p = $this->product ($product);
-        $orderbook = $this->publicGetPublicMarketDepthCurrencyPair (array (
+        $orderbook = $this->publicGetPublicMarketDepthCurrencyPair (array_merge (array (
             'CurrencyPair' => $p['id'],
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -8723,12 +8723,12 @@ class gdax extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $orderbook = $this->publicGetProductsIdBook (array (
+        $orderbook = $this->publicGetProductsIdBook (array_merge (array (
             'id' => $this->product_id ($product),
             'level' => 2, // 1 best bidask, 2 aggregated, 3 full
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -8917,11 +8917,11 @@ class gemini extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $orderbook = $this->publicGetBookSymbol (array (
+        $orderbook = $this->publicGetBookSymbol (array_merge (array (
             'symbol' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -9164,11 +9164,11 @@ class hitbtc extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $orderbook = $this->publicGetSymbolOrderbook (array (
+        $orderbook = $this->publicGetSymbolOrderbook (array_merge (array (
             'symbol' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -9374,10 +9374,10 @@ class huobi extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $p = $this->product ($product);
         $method = $p['type'] . 'GetDepthId';
-        $orderbook = $this->$method (array ( 'id' => $p['id'] ));
+        $orderbook = $this->$method (array_merge (array ( 'id' => $p['id'] ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => $orderbook['bids'],
@@ -9532,10 +9532,10 @@ class itbit extends Market {
         ), $options));
     }
 
-    public function fetch_order_book ($product) {
-        $orderbook = $this->publicGetMarketsSymbolOrderBook (array (
+    public function fetch_order_book ($product, $params = array ()) {
+        $orderbook = $this->publicGetMarketsSymbolOrderBook (array_merge (array (
             'symbol' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -9765,11 +9765,11 @@ class jubi extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $orderbook = $this->publicGetDepth (array (
+        $orderbook = $this->publicGetDepth (array_merge (array (
             'coin' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => $orderbook['bids'],
@@ -9949,15 +9949,15 @@ class kraken extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
         $darkpool = mb_strpos ($product, '.d') !== false;
         if ($darkpool)
             throw new MarketError ($this->id . ' does not provide an $order book for $darkpool symbol ' . $product);
         $p = $this->product ($product);
-        $response = $this->publicGetDepth  (array (
+        $response = $this->publicGetDepth  (array_merge (array (
             'pair' => $p['id'],
-        ));
+        ), $params));
         $orderbook = $response['result'][$p['id']];
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -10181,11 +10181,11 @@ class lakebtc extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $orderbook = $this->publicGetBcorderbook (array (
+        $orderbook = $this->publicGetBcorderbook (array_merge (array (
             'symbol' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -10408,13 +10408,13 @@ class livecoin extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $orderbook = $this->publicGetExchangeOrderBook (array (
+        $orderbook = $this->publicGetExchangeOrderBook (array_merge (array (
             'currencyPair' => $this->product_id ($product),
             'groupByPrice' => 'false',
             'depth' => 100,
-        ));
+        ), $params));
         $timestamp = $orderbook['timestamp'];
         $result = array (
             'bids' => array (),
@@ -10678,11 +10678,11 @@ class luno extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $orderbook = $this->publicGetOrderbook (array (
+        $orderbook = $this->publicGetOrderbook (array_merge (array (
             'pair' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $orderbook['timestamp'];
         $result = array (
             'bids' => array (),
@@ -10842,10 +10842,10 @@ class mercado extends Market {
         ), $options));
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $p = $this->product ($product);
         $method = 'publicGetOrderbook' . $this->capitalize ($p['suffix']);
-        $orderbook = $this->$method ();
+        $orderbook = $this->$method ($params);
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => $orderbook['bids'],
@@ -11026,10 +11026,10 @@ class okcoin extends Market {
         ), $options));
     }
 
-    public function fetch_order_book ($product) {
-        $orderbook = $this->publicGetDepth (array (
+    public function fetch_order_book ($product, $params = array ()) {
+        $orderbook = $this->publicGetDepth (array_merge (array (
             'symbol' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => $orderbook['bids'],
@@ -11270,10 +11270,10 @@ class paymium extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
-        $orderbook = $this->publicGetDataIdDepth  (array (
+    public function fetch_order_book ($product, $params = array ()) {
+        $orderbook = $this->publicGetDataIdDepth  (array_merge (array (
             'id' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -11482,11 +11482,11 @@ class poloniex extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $orderbook = $this->publicGetReturnOrderBook (array (
+        $orderbook = $this->publicGetReturnOrderBook (array_merge (array (
             'currencyPair' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -11646,10 +11646,10 @@ class quadrigacx extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
-        $orderbook = $this->publicGetOrderBook (array (
+    public function fetch_order_book ($product, $params = array ()) {
+        $orderbook = $this->publicGetOrderBook (array_merge (array (
             'book' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = intval ($orderbook['timestamp']) * 1000;
         $result = array (
             'bids' => array (),
@@ -11849,11 +11849,11 @@ class quoine extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $orderbook = $this->publicGetProductsIdPriceLevels (array (
+        $orderbook = $this->publicGetProductsIdPriceLevels (array_merge (array (
             'id' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -12044,11 +12044,11 @@ class southxchange extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $orderbook = $this->publicGetBookSymbol (array (
+        $orderbook = $this->publicGetBookSymbol (array_merge (array (
             'symbol' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -12277,11 +12277,11 @@ class therock extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $orderbook = $this->publicGetFundsIdOrderbook (array (
+        $orderbook = $this->publicGetFundsIdOrderbook (array_merge (array (
             'id' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->parse8601 ($orderbook['date']);
         $result = array (
             'bids' => array (),
@@ -12498,9 +12498,9 @@ class vaultoro extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $response = $this->publicGetOrderbook ();
+        $response = $this->publicGetOrderbook ($params);
         $orderbook = array (
             'bids' => $response['data'][0]['b'],
             'asks' => $response['data'][1]['s'],
@@ -12743,13 +12743,13 @@ class virwox extends Market {
         ));
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $response = $this->publicPostGetMarketDepth (array (
+        $response = $this->publicPostGetMarketDepth (array_merge (array (
             'symbols' => array ($this->symbol ($product)),
             'buyDepth' => 100,
             'sellDepth' => 100,
-        ));
+        ), $params));
         $orderbook = $response['result'][0];
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -13003,12 +13003,12 @@ class xbtce extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
         $p = $this->product ($product);
-        $orderbook = $this->privateGetLevel2Filter (array (
+        $orderbook = $this->privateGetLevel2Filter (array_merge (array (
             'filter' => $p['id'],
-        ));
+        ), $params));
         $orderbook = $orderbook[0];
         $timestamp = $orderbook['Timestamp'];
         $result = array (
@@ -13221,12 +13221,12 @@ class yobit extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
         $p = $this->product ($product);
-        $response = $this->apiGetDepthPairs (array (
+        $response = $this->apiGetDepthPairs (array_merge (array (
             'pairs' => $p['id'],
-        ));
+        ), $params));
         $orderbook = $response[$p['id']];
         $timestamp = $this->milliseconds ();
         $bids = (array_key_exists ('bids', $orderbook)) ? $orderbook['bids'] : array ();
@@ -13415,12 +13415,13 @@ class yunbi extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
         $p = $this->product ($product);
-        $orderbook = $this->publicGetDepth (array (
+        $orderbook = $this->publicGetDepth (array_merge (array (
             'market' => $p['id'],
-        ));
+            'limit' => 300,
+        ), $params));
         $timestamp = $orderbook['timestamp'] * 1000;
         $result = array (
             'bids' => array (),
@@ -13639,11 +13640,11 @@ class zaif extends Market {
         return $result;
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($product, $params = array ()) {
         $this->loadProducts ();
-        $orderbook = $this->apiGetDepthPair  (array (
+        $orderbook = $this->apiGetDepthPair  (array_merge (array (
             'pair' => $this->product_id ($product),
-        ));
+        ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => $orderbook['bids'],

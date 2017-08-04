@@ -668,11 +668,11 @@ var _1broker = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let response = await this.privateGetMarketQuotes ({
+        let response = await this.privateGetMarketQuotes (this.extend ({
             'symbols': this.productId (product),
-        });
+        }, params));
         let orderbook = response['response'][0];
         let timestamp = this.parse8601 (orderbook['updated']);
         let bidPrice = parseFloat (orderbook['bid']);
@@ -816,10 +816,10 @@ var cryptocapital = {
         return result;
     },
 
-    async fetchOrderBook (product) {
-        let response = await this.publicGetOrderBook ({
+    async fetchOrderBook (product, params = {}) {
+        let response = await this.publicGetOrderBook (this.extend ({
             'currency': this.productId (product),
-        });
+        }, params));
         let orderbook = response['order-book'];
         let timestamp = this.milliseconds ();
         let result = {
@@ -1051,10 +1051,10 @@ var anxpro = {
         return result;
     },
 
-    async fetchOrderBook (product) {
-        let response = await this.publicGetCurrencyPairMoneyDepthFull ({
+    async fetchOrderBook (product, params = {}) {
+        let response = await this.publicGetCurrencyPairMoneyDepthFull (this.extend ({
             'currency_pair': this.productId (product),
-        });
+        }, params));
         let orderbook = response['data'];
         let t = parseInt (orderbook['dataUpdateTime']);
         let timestamp = parseInt (t / 1000);
@@ -1234,10 +1234,10 @@ var bit2c = {
         return result;
     },
 
-    async fetchOrderBook (product) {
-        let orderbook = await this.publicGetExchangesPairOrderbook ({
+    async fetchOrderBook (product, params = {}) {
+        let orderbook = await this.publicGetExchangesPairOrderbook (this.extend ({
             'pair': this.productId (product),
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -1414,10 +1414,10 @@ var bitbay = {
         return result;
     },
 
-    async fetchOrderBook (product) {
-        let orderbook = await this.publicGetIdOrderbook ({
+    async fetchOrderBook (product, params = {}) {
+        let orderbook = await this.publicGetIdOrderbook (this.extend ({
             'id': this.productId (product),
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': orderbook['bids'],
@@ -1559,10 +1559,10 @@ var bitbays = {
         return result;
     },
 
-    async fetchOrderBook (product) {
-        let response = await this.publicGetDepth ({
+    async fetchOrderBook (product, params = {}) {
+        let response = await this.publicGetDepth (this.extend ({
             'market': this.productId (product),
-        });
+        }, params));
         let orderbook = response['result'];
         let timestamp = this.milliseconds ();
         let result = {
@@ -1738,10 +1738,10 @@ var bitcoincoid = {
         return result;
     },
 
-    async fetchOrderBook (product) {
-        let orderbook = await this.publicGetPairDepth ({
+    async fetchOrderBook (product, params = {}) {
+        let orderbook = await this.publicGetPairDepth (this.extend ({
             'pair': this.productId (product),
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -1973,11 +1973,11 @@ var bitfinex = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let orderbook = await this.publicGetBookSymbol ({
+        let orderbook = await this.publicGetBookSymbol (this.extend ({
             'symbol': this.productId (product),
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -2203,11 +2203,11 @@ var bitflyer = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let orderbook = await this.publicGetBoard ({
+        let orderbook = await this.publicGetBoard (this.extend ({
             'product_code': this.productId (product),
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -2433,11 +2433,11 @@ var bitlish = {
         return this.parseTicker (ticker, p);
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let orderbook = await this.publicGetTradesDepth ({
+        let orderbook = await this.publicGetTradesDepth (this.extend ({
             'pair_id': this.productId (product),
-        });
+        }, params));
         let timestamp = parseInt (parseInt (orderbook['last']) / 1000);
         let result = {
             'bids': [],
@@ -2645,10 +2645,10 @@ var bitmarket = {
         return result;
     },
 
-    async fetchOrderBook (product) {
-        let orderbook = await this.publicGetJsonMarketOrderbook ({
+    async fetchOrderBook (product, params = {}) {
+        let orderbook = await this.publicGetJsonMarketOrderbook (this.extend ({
             'market': this.productId (product),
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': orderbook['bids'],
@@ -2876,11 +2876,11 @@ var bitmex = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let orderbook = await this.publicGetOrderBookL2 ({
+        let orderbook = await this.publicGetOrderBookL2 (this.extend ({
             'symbol': this.productId (product),
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -3084,11 +3084,11 @@ var bitso = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let response = await this.publicGetOrderBook ({
+        let response = await this.publicGetOrderBook (this.extend ({
             'book': this.productId (product),
-        });
+        }, params));
         let orderbook = response['payload'];
         let timestamp = this.parse8601 (orderbook['updated_at']);
         let result = {
@@ -3249,10 +3249,10 @@ var bitstamp = {
         'LTC/BTC': { 'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
     },
 
-    async fetchOrderBook (product) {
-        let orderbook = await this.publicGetOrderBookId ({
+    async fetchOrderBook (product, params = {}) {
+        let orderbook = await this.publicGetOrderBookId (this.extend ({
             'id': this.productId (product),
-        });
+        }, params));
         let timestamp = parseInt (orderbook['timestamp']) * 1000;
         let result = {
             'bids': [],
@@ -3474,13 +3474,13 @@ var bittrex = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let response = await this.publicGetOrderbook ({
+        let response = await this.publicGetOrderbook (this.extend ({
             'market': this.productId (product),
             'type': 'both',
             'depth': 50,
-        });
+        }, params));
         let orderbook = response['result'];
         let timestamp = this.milliseconds ();
         let result = {
@@ -3639,12 +3639,12 @@ var blinktrade = {
         });
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         let p = this.product (product);
-        let orderbook = await this.publicGetCurrencyOrderbook ({
+        let orderbook = await this.publicGetCurrencyOrderbook (this.extend ({
             'currency': p['quote'],
             'crypto_currency': p['base'],
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -3832,11 +3832,11 @@ var bl3p = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         let p = this.product (product);
-        let response = await this.publicGetMarketOrderbook ({
+        let response = await this.publicGetMarketOrderbook (this.extend ({
             'market': p['id'],
-        });
+        }, params));
         let orderbook = response['data'];
         let timestamp = this.milliseconds ();
         let result = {
@@ -4043,11 +4043,11 @@ var btcchina = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let orderbook = await this.publicGetOrderbook ({
+        let orderbook = await this.publicGetOrderbook (this.extend ({
             'market': this.productId (product),
-        });
+        }, params));
         let timestamp = orderbook['date'] * 1000;;
         let result = {
             'bids': orderbook['bids'],
@@ -4256,12 +4256,12 @@ var btce = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
         let p = this.product (product);
-        let response = await this.publicGetDepthPair ({
+        let response = await this.publicGetDepthPair (this.extend ({
             'pair': p['id'],
-        });
+        }, params));
         if (p['id'] in response) {
             let orderbook = response[p['id']];
             let timestamp = this.milliseconds ();
@@ -4412,8 +4412,8 @@ var btctrader = {
         return result;
     },
 
-    async fetchOrderBook (product) {
-        let orderbook = await this.publicGetOrderbook ();
+    async fetchOrderBook (product, params = {}) {
+        let orderbook = await this.publicGetOrderbook (params);
         let timestamp = parseInt (orderbook['timestamp'] * 1000);
         let result = {
             'bids': [],
@@ -4603,14 +4603,14 @@ var btctradeua = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         let p = this.product (product);
-        let bids = await this.publicGetTradesBuySymbol ({
+        let bids = await this.publicGetTradesBuySymbol (this.extend ({
             'symbol': p['id'],
-        });
-        let asks = await this.publicGetTradesSellSymbol ({
+        }, params));
+        let asks = await this.publicGetTradesSellSymbol (this.extend ({
             'symbol': p['id'],
-        });
+        }, params));
         let orderbook = {
             'bids': [],
             'asks': [],
@@ -4816,11 +4816,11 @@ var btcx = {
         return result;
     },
 
-    async fetchOrderBook (product) {
-        let orderbook = await this.publicGetDepthIdLimit ({
+    async fetchOrderBook (product, params = {}) {
+        let orderbook = await this.publicGetDepthIdLimit (this.extend ({
             'id': this.productId (product),
             'limit': 1000,
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -5008,11 +5008,11 @@ var bter = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let orderbook = await this.publicGetOrderBookId ({
+        let orderbook = await this.publicGetOrderBookId (this.extend ({
             'id': this.productId (product),
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -5213,11 +5213,11 @@ var bxinth = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let orderbook = await this.publicGetOrderbook ({
+        let orderbook = await this.publicGetOrderbook (this.extend ({
             'pairing': this.productId (product),
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -5414,13 +5414,13 @@ var ccex = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let response = await this.publicGetOrderbook ({
+        let response = await this.publicGetOrderbook (this.extend ({
             'market': this.productId (product),
             'type': 'both',
             'depth': 100,
-        });
+        }, params));
         let orderbook = response['result'];
         let timestamp = this.milliseconds ();
         let result = {
@@ -5615,11 +5615,11 @@ var cex = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let orderbook = await  this.publicGetOrderBookPair ({
+        let orderbook = await  this.publicGetOrderBookPair (this.extend ({
             'pair': this.productId (product),
-        });
+        }, params));
         let timestamp = orderbook['timestamp'] * 1000;
         let result = {
             'bids': orderbook['bids'],
@@ -5792,11 +5792,11 @@ var chbtc = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         let p = this.product (product);
-        let orderbook = await this.publicGetDepth ({
+        let orderbook = await this.publicGetDepth (this.extend ({
             'currency': p['id'],
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let bids = undefined;
         let asks = undefined;
@@ -6029,8 +6029,8 @@ var coincheck = {
         return result;
     },
 
-    async fetchOrderBook (product) {
-        let orderbook = await  this.publicGetOrderBooks ();
+    async fetchOrderBook (product, params = {}) {
+        let orderbook = await  this.publicGetOrderBooks (params);
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -6202,14 +6202,14 @@ var coingi = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         let p = this.product (product);
-        let orderbook = await this.currentGetOrderBookPairAskCountBidCountDepth ({
+        let orderbook = await this.currentGetOrderBookPairAskCountBidCountDepth (this.extend ({
             'pair': p['id'],
             'askCount': 512, // maximum returned number of asks 1-512
             'bidCount': 512, // maximum returned number of bids 1-512
             'depth': 32, // maximum number of depth range steps 1-32
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -6365,7 +6365,7 @@ var coinmarketcap = {
         'USD',
     ],
 
-    async fetchOrderBook () {
+    async fetchOrderBook (product, params = {}) {
         throw new MarketError ('Fetching order books is not supported by the API of ' + this.id);
     },
 
@@ -6543,11 +6543,11 @@ var coinmate = {
         return result;
     },
 
-    async fetchOrderBook (product) {
-        let response = await this.publicGetOrderBook ({
+    async fetchOrderBook (product, params = {}) {
+        let response = await this.publicGetOrderBook (this.extend ({
             'currencyPair': this.productId (product),
             'groupByPriceLimit': 'False',
-        });
+        }, params));
         let orderbook = response['data'];
         let timestamp = orderbook['timestamp'] * 1000;
         let result = {
@@ -6827,9 +6827,9 @@ var coinsecure = {
         return result;
     },
 
-    async fetchOrderBook (product) {
-        let bids = await this.publicGetExchangeBidOrders ();
-        let asks = await this.publicGetExchangeAskOrders ();
+    async fetchOrderBook (product, params = {}) {
+        let bids = await this.publicGetExchangeBidOrders (params);
+        let asks = await this.publicGetExchangeAskOrders (params);
         let orderbook = {
             'bids': bids['message'],
             'asks': asks['message'],
@@ -6994,11 +6994,11 @@ var coinspot = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         let p = this.product (product);
-        let orderbook = await this.privatePostOrders ({
+        let orderbook = await this.privatePostOrders (this.extend ({
             'cointype': p['id'],
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -7192,12 +7192,12 @@ var dsx = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
         let p = this.product (product);
-        let response = await this.mapiGetDepthId ({
+        let response = await this.mapiGetDepthId (this.extend ({
             'id': p['id'],
-        });
+        }, params));
         let orderbook = response[p['id']];
         let timestamp = this.milliseconds ();
         let result = {
@@ -7395,12 +7395,12 @@ var exmo = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
         let p = this.product (product);
-        let response = await this.publicGetOrderBook ({
+        let response = await this.publicGetOrderBook (this.extend ({
             'pair': p['id'],
-        });
+        }, params));
         let orderbook = response[p['id']];
         let timestamp = this.milliseconds ();
         let result = {
@@ -7606,12 +7606,12 @@ var flowbtc = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
         let p = this.product (product);
-        let orderbook = await this.publicPostGetOrderBook ({
+        let orderbook = await this.publicPostGetOrderBook (this.extend ({
             'productPair': p['id'],
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -7791,8 +7791,8 @@ var fyb = {
         return accounts;
     },
 
-    async fetchOrderBook (product) {
-        let orderbook = await this.publicGetOrderbook ();
+    async fetchOrderBook (product, params = {}) {
+        let orderbook = await this.publicGetOrderbook (params);
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -8118,12 +8118,12 @@ var gatecoin = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
         let p = this.product (product);
-        let orderbook = await this.publicGetPublicMarketDepthCurrencyPair ({
+        let orderbook = await this.publicGetPublicMarketDepthCurrencyPair (this.extend ({
             'CurrencyPair': p['id'],
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -8353,12 +8353,12 @@ var gdax = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let orderbook = await this.publicGetProductsIdBook ({
+        let orderbook = await this.publicGetProductsIdBook (this.extend ({
             'id': this.productId (product),
             'level': 2, // 1 best bidask, 2 aggregated, 3 full
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -8542,11 +8542,11 @@ var gemini = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let orderbook = await this.publicGetBookSymbol ({
+        let orderbook = await this.publicGetBookSymbol (this.extend ({
             'symbol': this.productId (product),
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -8785,11 +8785,11 @@ var hitbtc = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let orderbook = await this.publicGetSymbolOrderbook ({
+        let orderbook = await this.publicGetSymbolOrderbook (this.extend ({
             'symbol': this.productId (product),
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -8991,10 +8991,10 @@ var huobi = {
         return result;
     }, 
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         let p = this.product (product);
         let method = p['type'] + 'GetDepthId';
-        let orderbook = await this[method] ({ 'id': p['id'] });
+        let orderbook = await this[method] (this.extend ({ 'id': p['id'] }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': orderbook['bids'],
@@ -9145,10 +9145,10 @@ var itbit = {
         'BTC/EUR': { 'id': 'XBTEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
     },
 
-    async fetchOrderBook (product) {
-        let orderbook = await this.publicGetMarketsSymbolOrderBook ({
+    async fetchOrderBook (product, params = {}) {
+        let orderbook = await this.publicGetMarketsSymbolOrderBook (this.extend ({
             'symbol': this.productId (product),
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -9374,11 +9374,11 @@ var jubi = {
         return result;
     }, 
          
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let orderbook = await this.publicGetDepth ({
+        let orderbook = await this.publicGetDepth (this.extend ({
             'coin': this.productId (product),
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': orderbook['bids'],
@@ -9555,15 +9555,15 @@ var kraken = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
         let darkpool = product.indexOf ('.d') >= 0;
         if (darkpool)
             throw new MarketError (this.id + ' does not provide an order book for darkpool symbol ' + product);
         let p = this.product (product);
-        let response = await this.publicGetDepth  ({
+        let response = await this.publicGetDepth  (this.extend ({
             'pair': p['id'],
-        });
+        }, params));
         let orderbook = response['result'][p['id']];
         let timestamp = this.milliseconds ();
         let result = {
@@ -9783,11 +9783,11 @@ var lakebtc = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let orderbook = await this.publicGetBcorderbook ({
+        let orderbook = await this.publicGetBcorderbook (this.extend ({
             'symbol': this.productId (product),
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -10006,13 +10006,13 @@ var livecoin = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let orderbook = await this.publicGetExchangeOrderBook ({
+        let orderbook = await this.publicGetExchangeOrderBook (this.extend ({
             'currencyPair': this.productId (product),
             'groupByPrice': 'false',
             'depth': 100,
-        });
+        }, params));
         let timestamp = orderbook['timestamp'];
         let result = {
             'bids': [],
@@ -10267,11 +10267,11 @@ var luno = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let orderbook = await this.publicGetOrderbook ({
+        let orderbook = await this.publicGetOrderbook (this.extend ({
             'pair': this.productId (product),
-        });
+        }, params));
         let timestamp = orderbook['timestamp'];
         let result = {
             'bids': [],
@@ -10427,10 +10427,10 @@ var mercado = {
         'LTC/BRL': { 'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin' },
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         let p = this.product (product);
         let method = 'publicGetOrderbook' + this.capitalize (p['suffix']);
-        let orderbook = await this[method] ();
+        let orderbook = await this[method] (params);
         let timestamp = this.milliseconds ();
         let result = {
             'bids': orderbook['bids'],
@@ -10615,10 +10615,10 @@ var okcoin = {
         },
     },
 
-    async fetchOrderBook (product) {
-        let orderbook = await this.publicGetDepth ({
+    async fetchOrderBook (product, params = {}) {
+        let orderbook = await this.publicGetDepth (this.extend ({
             'symbol': this.productId (product),
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': orderbook['bids'],
@@ -10845,10 +10845,10 @@ var paymium = {
         return result;
     },
 
-    async fetchOrderBook (product) {
-        let orderbook = await this.publicGetDataIdDepth  ({
+    async fetchOrderBook (product, params = {}) {
+        let orderbook = await this.publicGetDataIdDepth  (this.extend ({
             'id': this.productId (product),
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -11053,11 +11053,11 @@ var poloniex = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let orderbook = await this.publicGetReturnOrderBook ({
+        let orderbook = await this.publicGetReturnOrderBook (this.extend ({
             'currencyPair': this.productId (product),
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -11213,10 +11213,10 @@ var quadrigacx = {
         return result;
     },
 
-    async fetchOrderBook (product) {
-        let orderbook = await this.publicGetOrderBook ({
+    async fetchOrderBook (product, params = {}) {
+        let orderbook = await this.publicGetOrderBook (this.extend ({
             'book': this.productId (product),
-        });
+        }, params));
         let timestamp = parseInt (orderbook['timestamp']) * 1000;
         let result = {
             'bids': [],
@@ -11412,11 +11412,11 @@ var quoine = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let orderbook = await this.publicGetProductsIdPriceLevels ({
+        let orderbook = await this.publicGetProductsIdPriceLevels (this.extend ({
             'id': this.productId (product),
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -11603,11 +11603,11 @@ var southxchange = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let orderbook = await this.publicGetBookSymbol ({
+        let orderbook = await this.publicGetBookSymbol (this.extend ({
             'symbol': this.productId (product),
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -11827,11 +11827,11 @@ var therock = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let orderbook = await this.publicGetFundsIdOrderbook ({
+        let orderbook = await this.publicGetFundsIdOrderbook (this.extend ({
             'id': this.productId (product),
-        });
+        }, params));
         let timestamp = this.parse8601 (orderbook['date']);
         let result = {
             'bids': [],
@@ -12039,9 +12039,9 @@ var vaultoro = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let response = await this.publicGetOrderbook ();
+        let response = await this.publicGetOrderbook (params);
         let orderbook = {
             'bids': response['data'][0]['b'],
             'asks': response['data'][1]['s'],
@@ -12276,13 +12276,13 @@ var virwox = {
         });
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let response = await this.publicPostGetMarketDepth ({
+        let response = await this.publicPostGetMarketDepth (this.extend ({
             'symbols': [ this.symbol (product) ],
             'buyDepth': 100,
             'sellDepth': 100,
-        });
+        }, params));
         let orderbook = response['result'][0];
         let timestamp = this.milliseconds ();
         let result = {
@@ -12532,12 +12532,12 @@ var xbtce = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
         let p = this.product (product);
-        let orderbook = await this.privateGetLevel2Filter ({
+        let orderbook = await this.privateGetLevel2Filter (this.extend ({
             'filter': p['id'],
-        });
+        }, params));
         orderbook = orderbook[0];
         let timestamp = orderbook['Timestamp'];
         let result = {
@@ -12746,12 +12746,12 @@ var yobit = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
         let p = this.product (product);
-        let response = await this.apiGetDepthPairs ({
+        let response = await this.apiGetDepthPairs (this.extend ({
             'pairs': p['id'],
-        });
+        }, params));
         let orderbook = response[p['id']];
         let timestamp = this.milliseconds ();
         let bids = ('bids' in orderbook) ? orderbook['bids'] : [];
@@ -12936,12 +12936,13 @@ var yunbi = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
         let p = this.product (product);
-        let orderbook = await this.publicGetDepth ({
+        let orderbook = await this.publicGetDepth (this.extend ({
             'market': p['id'],
-        });
+            'limit': 300,
+        }, params));
         let timestamp = orderbook['timestamp'] * 1000;
         let result = {
             'bids': [],
@@ -13156,11 +13157,11 @@ var zaif = {
         return result;
     },
 
-    async fetchOrderBook (product) {
+    async fetchOrderBook (product, params = {}) {
         await this.loadProducts ();
-        let orderbook = await this.apiGetDepthPair  ({
+        let orderbook = await this.apiGetDepthPair  (this.extend ({
             'pair': this.productId (product),
-        });
+        }, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': orderbook['bids'],

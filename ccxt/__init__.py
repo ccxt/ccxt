@@ -714,11 +714,11 @@ class _1broker (Market):
         result['BTC']['total'] = result['BTC']['free']
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        response = self.privateGetMarketQuotes ({
+        response = self.privateGetMarketQuotes (self.extend ({
             'symbols': self.product_id (product),
-        })
+        }, params))
         orderbook = response['response'][0]
         timestamp = self.parse8601 (orderbook['updated'])
         bidPrice = float (orderbook['bid'])
@@ -859,10 +859,10 @@ class cryptocapital (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
-        response = self.publicGetOrderBook ({
+    def fetch_order_book (self, product, params = {}):
+        response = self.publicGetOrderBook (self.extend ({
             'currency': self.product_id (product),
-        })
+        }, params))
         orderbook = response['order-book']
         timestamp = self.milliseconds ()
         result = {
@@ -1088,10 +1088,10 @@ class anxpro (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
-        response = self.publicGetCurrencyPairMoneyDepthFull ({
+    def fetch_order_book (self, product, params = {}):
+        response = self.publicGetCurrencyPairMoneyDepthFull (self.extend ({
             'currency_pair': self.product_id (product),
-        })
+        }, params))
         orderbook = response['data']
         t = int (orderbook['dataUpdateTime'])
         timestamp = int (t / 1000)
@@ -1262,10 +1262,10 @@ class bit2c (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
-        orderbook = self.publicGetExchangesPairOrderbook ({
+    def fetch_order_book (self, product, params = {}):
+        orderbook = self.publicGetExchangesPairOrderbook (self.extend ({
             'pair': self.product_id (product),
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -1433,10 +1433,10 @@ class bitbay (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
-        orderbook = self.publicGetIdOrderbook ({
+    def fetch_order_book (self, product, params = {}):
+        orderbook = self.publicGetIdOrderbook (self.extend ({
             'id': self.product_id (product),
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': orderbook['bids'],
@@ -1572,10 +1572,10 @@ class bitbays (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
-        response = self.publicGetDepth ({
+    def fetch_order_book (self, product, params = {}):
+        response = self.publicGetDepth (self.extend ({
             'market': self.product_id (product),
-        })
+        }, params))
         orderbook = response['result']
         timestamp = self.milliseconds ()
         result = {
@@ -1741,10 +1741,10 @@ class bitcoincoid (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
-        orderbook = self.publicGetPairDepth ({
+    def fetch_order_book (self, product, params = {}):
+        orderbook = self.publicGetPairDepth (self.extend ({
             'pair': self.product_id (product),
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -1964,11 +1964,11 @@ class bitfinex (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        orderbook = self.publicGetBookSymbol ({
+        orderbook = self.publicGetBookSymbol (self.extend ({
             'symbol': self.product_id (product),
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -2180,11 +2180,11 @@ class bitflyer (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        orderbook = self.publicGetBoard ({
+        orderbook = self.publicGetBoard (self.extend ({
             'product_code': self.product_id (product),
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -2399,11 +2399,11 @@ class bitlish (Market):
         ticker = tickers[p['id']]
         return self.parse_ticker (ticker, p)
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        orderbook = self.publicGetTradesDepth ({
+        orderbook = self.publicGetTradesDepth (self.extend ({
             'pair_id': self.product_id (product),
-        })
+        }, params))
         timestamp = int (int (orderbook['last']) / 1000)
         result = {
             'bids': [],
@@ -2600,10 +2600,10 @@ class bitmarket (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
-        orderbook = self.publicGetJsonMarketOrderbook ({
+    def fetch_order_book (self, product, params = {}):
+        orderbook = self.publicGetJsonMarketOrderbook (self.extend ({
             'market': self.product_id (product),
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': orderbook['bids'],
@@ -2823,11 +2823,11 @@ class bitmex (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        orderbook = self.publicGetOrderBookL2 ({
+        orderbook = self.publicGetOrderBookL2 (self.extend ({
             'symbol': self.product_id (product),
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -3023,11 +3023,11 @@ class bitso (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        response = self.publicGetOrderBook ({
+        response = self.publicGetOrderBook (self.extend ({
             'book': self.product_id (product),
-        })
+        }, params))
         orderbook = response['payload']
         timestamp = self.parse8601 (orderbook['updated_at'])
         result = {
@@ -3182,10 +3182,10 @@ class bitstamp (Market):
         params.update (config)
         super (bitstamp, self).__init__ (params)
 
-    def fetch_order_book (self, product):
-        orderbook = self.publicGetOrderBookId ({
+    def fetch_order_book (self, product, params = {}):
+        orderbook = self.publicGetOrderBookId (self.extend ({
             'id': self.product_id (product),
-        })
+        }, params))
         timestamp = int (orderbook['timestamp']) * 1000
         result = {
             'bids': [],
@@ -3395,13 +3395,13 @@ class bittrex (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        response = self.publicGetOrderbook ({
+        response = self.publicGetOrderbook (self.extend ({
             'market': self.product_id (product),
             'type': 'both',
             'depth': 50,
-        })
+        }, params))
         orderbook = response['result']
         timestamp = self.milliseconds ()
         result = {
@@ -3554,12 +3554,12 @@ class blinktrade (Market):
             'BalanceReqID': self.nonce (),
         })
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         p = self.product (product)
-        orderbook = self.publicGetCurrencyOrderbook ({
+        orderbook = self.publicGetCurrencyOrderbook (self.extend ({
             'currency': p['quote'],
             'crypto_currency': p['base'],
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -3734,11 +3734,11 @@ class bl3p (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         p = self.product (product)
-        response = self.publicGetMarketOrderbook ({
+        response = self.publicGetMarketOrderbook (self.extend ({
             'market': p['id'],
-        })
+        }, params))
         orderbook = response['data']
         timestamp = self.milliseconds ()
         result = {
@@ -3936,11 +3936,11 @@ class btcchina (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        orderbook = self.publicGetOrderbook ({
+        orderbook = self.publicGetOrderbook (self.extend ({
             'market': self.product_id (product),
-        })
+        }, params))
         timestamp = orderbook['date'] * 1000
         result = {
             'bids': orderbook['bids'],
@@ -4140,12 +4140,12 @@ class btce (Market):
             result[uppercase] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
         p = self.product (product)
-        response = self.publicGetDepthPair ({
+        response = self.publicGetDepthPair (self.extend ({
             'pair': p['id'],
-        })
+        }, params))
         if p['id'] in response:
             orderbook = response[p['id']]
             timestamp = self.milliseconds ()
@@ -4291,8 +4291,8 @@ class btctrader (Market):
         result[product['quote']] = quote
         return result
 
-    def fetch_order_book (self, product):
-        orderbook = self.publicGetOrderbook ()
+    def fetch_order_book (self, product, params = {}):
+        orderbook = self.publicGetOrderbook (params)
         timestamp = int (orderbook['timestamp'] * 1000)
         result = {
             'bids': [],
@@ -4477,14 +4477,14 @@ class btctradeua (Market):
             }
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         p = self.product (product)
-        bids = self.publicGetTradesBuySymbol ({
+        bids = self.publicGetTradesBuySymbol (self.extend ({
             'symbol': p['id'],
-        })
-        asks = self.publicGetTradesSellSymbol ({
+        }, params))
+        asks = self.publicGetTradesSellSymbol (self.extend ({
             'symbol': p['id'],
-        })
+        }, params))
         orderbook = {
             'bids': [],
             'asks': [],
@@ -4683,11 +4683,11 @@ class btcx (Market):
             result[uppercase] = account
         return result
 
-    def fetch_order_book (self, product):
-        orderbook = self.publicGetDepthIdLimit ({
+    def fetch_order_book (self, product, params = {}):
+        orderbook = self.publicGetDepthIdLimit (self.extend ({
             'id': self.product_id (product),
             'limit': 1000,
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -4863,11 +4863,11 @@ class bter (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        orderbook = self.publicGetOrderBookId ({
+        orderbook = self.publicGetOrderBookId (self.extend ({
             'id': self.product_id (product),
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -5058,11 +5058,11 @@ class bxinth (Market):
             result[code] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        orderbook = self.publicGetOrderbook ({
+        orderbook = self.publicGetOrderbook (self.extend ({
             'pairing': self.product_id (product),
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -5250,13 +5250,13 @@ class ccex (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        response = self.publicGetOrderbook ({
+        response = self.publicGetOrderbook (self.extend ({
             'market': self.product_id (product),
             'type': 'both',
             'depth': 100,
-        })
+        }, params))
         orderbook = response['result']
         timestamp = self.milliseconds ()
         result = {
@@ -5442,11 +5442,11 @@ class cex (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        orderbook =  self.publicGetOrderBookPair ({
+        orderbook =  self.publicGetOrderBookPair (self.extend ({
             'pair': self.product_id (product),
-        })
+        }, params))
         timestamp = orderbook['timestamp'] * 1000
         result = {
             'bids': orderbook['bids'],
@@ -5614,11 +5614,11 @@ class chbtc (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         p = self.product (product)
-        orderbook = self.publicGetDepth ({
+        orderbook = self.publicGetDepth (self.extend ({
             'currency': p['id'],
-        })
+        }, params))
         timestamp = self.milliseconds ()
         bids = None
         asks = None
@@ -5849,8 +5849,8 @@ class coincheck (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
-        orderbook =  self.publicGetOrderBooks ()
+    def fetch_order_book (self, product, params = {}):
+        orderbook =  self.publicGetOrderBooks (params)
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -6012,14 +6012,14 @@ class coingi (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         p = self.product (product)
-        orderbook = self.currentGetOrderBookPairAskCountBidCountDepth ({
+        orderbook = self.currentGetOrderBookPairAskCountBidCountDepth (self.extend ({
             'pair': p['id'],
             'askCount': 512, # maximum returned number of asks 1-512
             'bidCount': 512, # maximum returned number of bids 1-512
             'depth': 32, # maximum number of depth range steps 1-32
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -6168,7 +6168,7 @@ class coinmarketcap (Market):
         params.update (config)
         super (coinmarketcap, self).__init__ (params)
 
-    def fetch_order_book (self):
+    def fetch_order_book (self, product, params = {}):
         raise MarketError ('Fetching order books is not supported by the API of ' + self.id)
 
     def fetch_products (self):
@@ -6337,11 +6337,11 @@ class coinmate (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
-        response = self.publicGetOrderBook ({
+    def fetch_order_book (self, product, params = {}):
+        response = self.publicGetOrderBook (self.extend ({
             'currencyPair': self.product_id (product),
             'groupByPriceLimit': 'False',
-        })
+        }, params))
         orderbook = response['data']
         timestamp = orderbook['timestamp'] * 1000
         result = {
@@ -6614,9 +6614,9 @@ class coinsecure (Market):
         }
         return result
 
-    def fetch_order_book (self, product):
-        bids = self.publicGetExchangeBidOrders ()
-        asks = self.publicGetExchangeAskOrders ()
+    def fetch_order_book (self, product, params = {}):
+        bids = self.publicGetExchangeBidOrders (params)
+        asks = self.publicGetExchangeAskOrders (params)
         orderbook = {
             'bids': bids['message'],
             'asks': asks['message'],
@@ -6771,11 +6771,11 @@ class coinspot (Market):
                 result[uppercase] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         p = self.product (product)
-        orderbook = self.privatePostOrders ({
+        orderbook = self.privatePostOrders (self.extend ({
             'cointype': p['id'],
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -6960,12 +6960,12 @@ class dsx (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
         p = self.product (product)
-        response = self.mapiGetDepthId ({
+        response = self.mapiGetDepthId (self.extend ({
             'id': p['id'],
-        })
+        }, params))
         orderbook = response[p['id']]
         timestamp = self.milliseconds ()
         result = {
@@ -7154,12 +7154,12 @@ class exmo (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
         p = self.product (product)
-        response = self.publicGetOrderBook ({
+        response = self.publicGetOrderBook (self.extend ({
             'pair': p['id'],
-        })
+        }, params))
         orderbook = response[p['id']]
         timestamp = self.milliseconds ()
         result = {
@@ -7353,12 +7353,12 @@ class flowbtc (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
         p = self.product (product)
-        orderbook = self.publicPostGetOrderBook ({
+        orderbook = self.publicPostGetOrderBook (self.extend ({
             'productPair': p['id'],
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -7535,8 +7535,8 @@ class fyb (Market):
         accounts['info'] = balance
         return accounts
 
-    def fetch_order_book (self, product):
-        orderbook = self.publicGetOrderbook ()
+    def fetch_order_book (self, product, params = {}):
+        orderbook = self.publicGetOrderbook (params)
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -7863,12 +7863,12 @@ class gatecoin (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
         p = self.product (product)
-        orderbook = self.publicGetPublicMarketDepthCurrencyPair ({
+        orderbook = self.publicGetPublicMarketDepthCurrencyPair (self.extend ({
             'CurrencyPair': p['id'],
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -8085,12 +8085,12 @@ class gdax (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        orderbook = self.publicGetProductsIdBook ({
+        orderbook = self.publicGetProductsIdBook (self.extend ({
             'id': self.product_id (product),
             'level': 2, # 1 best bidask, 2 aggregated, 3 full
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -8268,11 +8268,11 @@ class gemini (Market):
             })
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        orderbook = self.publicGetBookSymbol ({
+        orderbook = self.publicGetBookSymbol (self.extend ({
             'symbol': self.product_id (product),
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -8500,11 +8500,11 @@ class hitbtc (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        orderbook = self.publicGetSymbolOrderbook ({
+        orderbook = self.publicGetSymbolOrderbook (self.extend ({
             'symbol': self.product_id (product),
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -8699,10 +8699,10 @@ class huobi (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         p = self.product (product)
         method = p['type'] + 'GetDepthId'
-        orderbook = getattr (self, method) ({ 'id': p['id'] })
+        orderbook = getattr (self, method) (self.extend ({ 'id': p['id'] }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': orderbook['bids'],
@@ -8850,10 +8850,10 @@ class itbit (Market):
         params.update (config)
         super (itbit, self).__init__ (params)
 
-    def fetch_order_book (self, product):
-        orderbook = self.publicGetMarketsSymbolOrderBook ({
+    def fetch_order_book (self, product, params = {}):
+        orderbook = self.publicGetMarketsSymbolOrderBook (self.extend ({
             'symbol': self.product_id (product),
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -9066,11 +9066,11 @@ class jubi (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        orderbook = self.publicGetDepth ({
+        orderbook = self.publicGetDepth (self.extend ({
             'coin': self.product_id (product),
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': orderbook['bids'],
@@ -9241,15 +9241,15 @@ class kraken (Market):
             })
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
         darkpool = product.find ('.d') >= 0
         if darkpool:
             raise MarketError (self.id + ' does not provide an order book for darkpool symbol ' + product)
         p = self.product (product)
-        response = self.publicGetDepth  ({
+        response = self.publicGetDepth  (self.extend ({
             'pair': p['id'],
-        })
+        }, params))
         orderbook = response['result'][p['id']]
         timestamp = self.milliseconds ()
         result = {
@@ -9456,11 +9456,11 @@ class lakebtc (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        orderbook = self.publicGetBcorderbook ({
+        orderbook = self.publicGetBcorderbook (self.extend ({
             'symbol': self.product_id (product),
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -9670,13 +9670,13 @@ class livecoin (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        orderbook = self.publicGetExchangeOrderBook ({
+        orderbook = self.publicGetExchangeOrderBook (self.extend ({
             'currencyPair': self.product_id (product),
             'groupByPrice': 'false',
             'depth': 100,
-        })
+        }, params))
         timestamp = orderbook['timestamp']
         result = {
             'bids': [],
@@ -9925,11 +9925,11 @@ class luno (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        orderbook = self.publicGetOrderbook ({
+        orderbook = self.publicGetOrderbook (self.extend ({
             'pair': self.product_id (product),
-        })
+        }, params))
         timestamp = orderbook['timestamp']
         result = {
             'bids': [],
@@ -10079,10 +10079,10 @@ class mercado (Market):
         params.update (config)
         super (mercado, self).__init__ (params)
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         p = self.product (product)
         method = 'publicGetOrderbook' + self.capitalize (p['suffix'])
-        orderbook = getattr (self, method) ()
+        orderbook = getattr (self, method) (params)
         timestamp = self.milliseconds ()
         result = {
             'bids': orderbook['bids'],
@@ -10253,10 +10253,10 @@ class okcoin (Market):
         params.update (config)
         super (okcoin, self).__init__ (params)
 
-    def fetch_order_book (self, product):
-        orderbook = self.publicGetDepth ({
+    def fetch_order_book (self, product, params = {}):
+        orderbook = self.publicGetDepth (self.extend ({
             'symbol': self.product_id (product),
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': orderbook['bids'],
@@ -10486,10 +10486,10 @@ class paymium (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
-        orderbook = self.publicGetDataIdDepth  ({
+    def fetch_order_book (self, product, params = {}):
+        orderbook = self.publicGetDataIdDepth  (self.extend ({
             'id': self.product_id (product),
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -10685,11 +10685,11 @@ class poloniex (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        orderbook = self.publicGetReturnOrderBook ({
+        orderbook = self.publicGetReturnOrderBook (self.extend ({
             'currencyPair': self.product_id (product),
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -10838,10 +10838,10 @@ class quadrigacx (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
-        orderbook = self.publicGetOrderBook ({
+    def fetch_order_book (self, product, params = {}):
+        orderbook = self.publicGetOrderBook (self.extend ({
             'book': self.product_id (product),
-        })
+        }, params))
         timestamp = int (orderbook['timestamp']) * 1000
         result = {
             'bids': [],
@@ -11028,11 +11028,11 @@ class quoine (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        orderbook = self.publicGetProductsIdPriceLevels ({
+        orderbook = self.publicGetProductsIdPriceLevels (self.extend ({
             'id': self.product_id (product),
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -11210,11 +11210,11 @@ class southxchange (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        orderbook = self.publicGetBookSymbol ({
+        orderbook = self.publicGetBookSymbol (self.extend ({
             'symbol': self.product_id (product),
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': [],
@@ -11430,11 +11430,11 @@ class therock (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        orderbook = self.publicGetFundsIdOrderbook ({
+        orderbook = self.publicGetFundsIdOrderbook (self.extend ({
             'id': self.product_id (product),
-        })
+        }, params))
         timestamp = self.parse8601 (orderbook['date'])
         result = {
             'bids': [],
@@ -11638,9 +11638,9 @@ class vaultoro (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        response = self.publicGetOrderbook ()
+        response = self.publicGetOrderbook (params)
         orderbook = {
             'bids': response['data'][0]['b'],
             'asks': response['data'][1]['s'],
@@ -11869,13 +11869,13 @@ class virwox (Market):
             'symbols': [ self.symbol (product) ],
         })
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        response = self.publicPostGetMarketDepth ({
+        response = self.publicPostGetMarketDepth (self.extend ({
             'symbols': [ self.symbol (product) ],
             'buyDepth': 100,
             'sellDepth': 100,
-        })
+        }, params))
         orderbook = response['result'][0]
         timestamp = self.milliseconds ()
         result = {
@@ -12115,12 +12115,12 @@ class xbtce (Market):
             result[uppercase] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
         p = self.product (product)
-        orderbook = self.privateGetLevel2Filter ({
+        orderbook = self.privateGetLevel2Filter (self.extend ({
             'filter': p['id'],
-        })
+        }, params))
         orderbook = orderbook[0]
         timestamp = orderbook['Timestamp']
         result = {
@@ -12317,12 +12317,12 @@ class yobit (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
         p = self.product (product)
-        response = self.apiGetDepthPairs ({
+        response = self.apiGetDepthPairs (self.extend ({
             'pairs': p['id'],
-        })
+        }, params))
         orderbook = response[p['id']]
         timestamp = self.milliseconds ()
         bids = orderbook['bids'] if ('bids' in list (orderbook.keys ())) else []
@@ -12500,12 +12500,13 @@ class yunbi (Market):
             result[uppercase] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
         p = self.product (product)
-        orderbook = self.publicGetDepth ({
+        orderbook = self.publicGetDepth (self.extend ({
             'market': p['id'],
-        })
+            'limit': 300,
+        }, params))
         timestamp = orderbook['timestamp'] * 1000
         result = {
             'bids': [],
@@ -12709,11 +12710,11 @@ class zaif (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product):
+    def fetch_order_book (self, product, params = {}):
         self.loadProducts ()
-        orderbook = self.apiGetDepthPair  ({
+        orderbook = self.apiGetDepthPair  (self.extend ({
             'pair': self.product_id (product),
-        })
+        }, params))
         timestamp = self.milliseconds ()
         result = {
             'bids': orderbook['bids'],
