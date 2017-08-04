@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.53';
+$version = '1.2.54';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2635,7 +2635,6 @@ class bitlish extends Market {
 
     public function fetch_tickers () {
         $this->loadProducts ();
-        $p = $this->product ($product);
         $tickers = $this->publicGetTickers ();
         $ids = array_keys ($tickers);
         $result = array ();
