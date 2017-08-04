@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Added additional extra params to fetchOrderBook to control the level of order book aggregation detail
 - Reworked exception hierarchy and error handling for unification
 - Fixed CHBTC missing bid/ask handling in order books for certain symbols
 
