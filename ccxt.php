@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.55';
+$version = '1.2.56';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -13031,14 +13031,7 @@ class xbtce extends Market {
         return $result;
     }
 
-    public function fetch_ticker ($product) {
-        $this->loadProducts ();
-        $p = $this->product ($product);
-        $tickers = $this->privateGetTickFilter (array (
-            'filter' => $p['id'],
-        ));
-        $tickers = $this->index_by ($tickers, 'Symbol');
-        $ticker = $tickers[$p['id']];
+    public function parse_ticker ($ticker, $product) {
         $timestamp = $ticker['Timestamp'];
         $bid = null;
         $ask = null;
@@ -13065,6 +13058,17 @@ class xbtce extends Market {
             'quoteVolume' => null,
             'info' => $ticker,
         );
+    }
+
+    public function fetch_ticker ($product) {
+        $this->loadProducts ();
+        $p = $this->product ($product);
+        $tickers = $this->privateGetTickFilter (array (
+            'filter' => $p['id'],
+        ));
+        $tickers = $this->index_by ($tickers, 'Symbol');
+        $ticker = $tickers[$p['id']];
+        return $this->parse_ticker ($ticker, $p);
     }
 
     public function fetch_trades ($product) {

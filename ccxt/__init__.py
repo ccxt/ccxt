@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.55'
+__version__ = '1.2.56'
 
 # Python 2 & 3
 import base64
@@ -12140,14 +12140,7 @@ class xbtce (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
-        tickers = self.privateGetTickFilter ({
-            'filter': p['id'],
-        })
-        tickers = self.index_by (tickers, 'Symbol')
-        ticker = tickers[p['id']]
+    def parse_ticker (self, ticker, product):
         timestamp = ticker['Timestamp']
         bid = None
         ask = None
@@ -12174,6 +12167,16 @@ class xbtce (Market):
             'quoteVolume': None,
             'info': ticker,
         }
+
+    def fetch_ticker (self, product):
+        self.loadProducts ()
+        p = self.product (product)
+        tickers = self.privateGetTickFilter ({
+            'filter': p['id'],
+        })
+        tickers = self.index_by (tickers, 'Symbol')
+        ticker = tickers[p['id']]
+        return self.parse_ticker (ticker, p)
 
     def fetch_trades (self, product):
         self.loadProducts ()
