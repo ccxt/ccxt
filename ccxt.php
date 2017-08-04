@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.54';
+$version = '1.2.55';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -13444,13 +13444,9 @@ class yunbi extends Market {
         return $result;
     }
 
-    public function fetch_ticker ($product) {
-        $this->loadProducts ();
-        $response = $this->publicGetTickersMarket (array (
-            'market' => $this->product_id ($product),
-        ));
-        $ticker = $response['ticker'];
-        $timestamp = $response['at'] * 1000;
+    public function parse_ticker ($ticker, $product) {
+        $timestamp = $ticker['at'] * 1000;
+        $ticker = $ticker['ticker'];
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -13469,7 +13465,31 @@ class yunbi extends Market {
             'baseVolume' => null,
             'quoteVolume' => floatval ($ticker['vol']),
             'info' => $ticker,
-        );
+        );        
+    }
+
+    public function fetch_tickers () {
+        $this->loadProducts ();
+        $tickers = $this->publicGetTickers ();
+        $ids = array_keys ($tickers);
+        $result = array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $product = $this->products_by_id[$id];
+            $symbol = $product['symbol'];
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker ($ticker, $product);
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $this->loadProducts ();
+        $p = $this->product ($product);
+        $response = $this->publicGetTickersMarket (array (
+            'market' => $p['id'],
+        ));
+        return $this->parse_ticker ($response, $p);
     }
 
     public function fetch_trades ($product) {

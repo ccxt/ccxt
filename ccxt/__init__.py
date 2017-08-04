@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.54'
+__version__ = '1.2.55'
 
 # Python 2 & 3
 import base64
@@ -12526,13 +12526,9 @@ class yunbi (Market):
         result['asks'] = self.sort_by (result['asks'], 0)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        response = self.publicGetTickersMarket ({
-            'market': self.product_id (product),
-        })
-        ticker = response['ticker']
-        timestamp = response['at'] * 1000
+    def parse_ticker (self, ticker, product):
+        timestamp = ticker['at'] * 1000
+        ticker = ticker['ticker']
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),
@@ -12551,7 +12547,28 @@ class yunbi (Market):
             'baseVolume': None,
             'quoteVolume': float (ticker['vol']),
             'info': ticker,
-        }
+        }        
+
+    def fetch_tickers (self):
+        self.loadProducts ()
+        tickers = self.publicGetTickers ()
+        ids = list (tickers.keys ())
+        result = {}
+        for i in range (0, len (ids)):
+            id = ids[i]
+            product = self.products_by_id[id]
+            symbol = product['symbol']
+            ticker = tickers[id]
+            result[symbol] = self.parse_ticker (ticker, product)
+        return result
+
+    def fetch_ticker (self, product):
+        self.loadProducts ()
+        p = self.product (product)
+        response = self.publicGetTickersMarket ({
+            'market': p['id'],
+        })
+        return self.parse_ticker (response, p)
 
     def fetch_trades (self, product):
         self.loadProducts ()
