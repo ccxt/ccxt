@@ -13010,7 +13010,7 @@ var yunbi = {
         let response = await this.publicGetTickersMarket ({
             'market': p['id'],
         });
-        return this.parseTicker (response['ticker'], p);
+        return this.parseTicker (response, p);
     },
 
     async fetchTrades (product) {
