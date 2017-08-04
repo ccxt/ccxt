@@ -12965,13 +12965,9 @@ var yunbi = {
         return result;
     },
 
-    async fetchTicker (product) {
-        await this.loadProducts ();
-        let response = await this.publicGetTickersMarket ({
-            'market': this.productId (product),
-        });
-        let ticker = response['ticker'];
-        let timestamp = response['at'] * 1000;
+    parseTicker (ticker, product) {
+        let timestamp = ticker['at'] * 1000;
+        ticker = ticker['ticker'];
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -12990,7 +12986,16 @@ var yunbi = {
             'baseVolume': undefined,
             'quoteVolume': parseFloat (ticker['vol']),
             'info': ticker,
-        };
+        };        
+    },
+
+    async fetchTicker (product) {
+        await this.loadProducts ();
+        let p = this.product (product);
+        let response = await this.publicGetTickersMarket ({
+            'market': p['id'],
+        });
+        return this.parseTicker (response['ticker'], p);
     },
 
     async fetchTrades (product) {
