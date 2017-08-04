@@ -12587,7 +12587,6 @@ var xbtce = {
             'quoteVolume': undefined,
             'info': ticker,
         };
-
     },
 
     async fetchTicker (product) {
