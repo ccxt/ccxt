@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.56';
+$version = '1.2.57';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -13032,38 +13032,61 @@ class xbtce extends Market {
     }
 
     public function parse_ticker ($ticker, $product) {
-        $timestamp = $ticker['Timestamp'];
-        $bid = null;
-        $ask = null;
-        if (array_key_exists ('BestBid', $ticker))
-            $bid = $ticker['BestBid']['Price'];
-        if (array_key_exists ('BestAsk', $ticker))
-            $ask = $ticker['BestAsk']['Price'];
+        $timestamp = 0;
+        $last = null;
+        if (array_key_exists ('LastBuyTimestamp', $ticker))
+            if ($timestamp < $ticker['LastBuyTimestamp']) {
+                $timestamp = $ticker['LastBuyTimestamp'];
+                $last = $ticker['LastBuyPrice'];
+            }
+        if (array_key_exists ('LastSellTimestamp', $ticker))
+            if ($timestamp < $ticker['LastSellTimestamp']) {
+                $timestamp = $ticker['LastSellTimestamp'];
+                $last = $ticker['LastSellPrice'];
+            }
+        if (!$timestamp)
+            $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => null,
-            'low' => null,
-            'bid' => $bid,
-            'ask' => $ask,
+            'high' => $ticker['DailyBestBuyPrice'],
+            'low' => $ticker['DailyBestSellPrice'],
+            'bid' => $ticker['BestBid'],
+            'ask' => $ticker['BestAsk'],
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => null,
+            'last' => $last,
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => null,
+            'quoteVolume' => $ticker['DailyTradedTotalVolume'],
             'info' => $ticker,
         );
+    }
+
+    public function fetch_tickers () {
+        $this->loadProducts ();
+        $tickers = $this->publicGetTicker ();
+        $tickers = $this->index_by ($tickers, 'Symbol');
+        $ids = array_keys ($tickers);
+        $result = array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $product = $this->products_by_id[$id];
+            $symbol = $product['symbol'];
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker ($ticker, $product);
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {
         $this->loadProducts ();
         $p = $this->product ($product);
-        $tickers = $this->privateGetTickFilter (array (
+        $tickers = $this->publicGetTickerFilter (array (
             'filter' => $p['id'],
         ));
         $tickers = $this->index_by ($tickers, 'Symbol');

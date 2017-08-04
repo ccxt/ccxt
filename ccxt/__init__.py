@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.56'
+__version__ = '1.2.57'
 
 # Python 2 & 3
 import base64
@@ -12141,37 +12141,56 @@ class xbtce (Market):
         return result
 
     def parse_ticker (self, ticker, product):
-        timestamp = ticker['Timestamp']
-        bid = None
-        ask = None
-        if 'BestBid' in ticker:
-            bid = ticker['BestBid']['Price']
-        if 'BestAsk' in ticker:
-            ask = ticker['BestAsk']['Price']
+        timestamp = 0
+        last = None
+        if 'LastBuyTimestamp' in ticker:
+            if timestamp < ticker['LastBuyTimestamp']:
+                timestamp = ticker['LastBuyTimestamp']
+                last = ticker['LastBuyPrice']
+        if 'LastSellTimestamp' in ticker:
+            if timestamp < ticker['LastSellTimestamp']:
+                timestamp = ticker['LastSellTimestamp']
+                last = ticker['LastSellPrice']
+        if not timestamp:
+            timestamp = self.milliseconds ()
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),
-            'high': None,
-            'low': None,
-            'bid': bid,
-            'ask': ask,
+            'high': ticker['DailyBestBuyPrice'],
+            'low': ticker['DailyBestSellPrice'],
+            'bid': ticker['BestBid'],
+            'ask': ticker['BestAsk'],
             'vwap': None,
             'open': None,
             'close': None,
             'first': None,
-            'last': None,
+            'last': last,
             'change': None,
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': None,
+            'quoteVolume': ticker['DailyTradedTotalVolume'],
             'info': ticker,
         }
+
+    def fetch_tickers (self):
+        self.loadProducts ()
+        tickers = self.publicGetTicker ()
+        tickers = self.index_by (tickers, 'Symbol')
+        ids = list (tickers.keys ())
+        result = {}
+        for i in range (0, len (ids)):
+            id = ids[i]
+            product = self.products_by_id[id]
+            symbol = product['symbol']
+            ticker = tickers[id]
+            result[symbol] = self.parse_ticker (ticker, product)
+        return result
 
     def fetch_ticker (self, product):
         self.loadProducts ()
         p = self.product (product)
-        tickers = self.privateGetTickFilter ({
+        tickers = self.publicGetTickerFilter ({
             'filter': p['id'],
         })
         tickers = self.index_by (tickers, 'Symbol')
