@@ -151,6 +151,15 @@ let testMarketSymbol = async (market, symbol) => {
         await testMarketSymbolOrderbook (market, symbol)
         // await testMarketSymbolTrades (market, symbol)
     }
+    try {
+        let tickers = market.fetchTickers ()
+    } catch (e) {
+        if (e instanceof ccxt.MarketError) {
+            // do nothing
+        } else {
+            throw e // rethrow
+        }
+    }
 }
 
 //-----------------------------------------------------------------------------
