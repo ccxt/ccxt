@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.53'
+__version__ = '1.2.54'
 
 # Python 2 & 3
 import base64
@@ -2380,7 +2380,6 @@ class bitlish (Market):
 
     def fetch_tickers (self):
         self.loadProducts ()
-        p = self.product (product)
         tickers = self.publicGetTickers ()
         ids = list (tickers.keys ())
         result = {}
