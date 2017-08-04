@@ -2411,7 +2411,6 @@ var bitlish = {
 
     async fetchTickers () {
         await this.loadProducts ();
-        let p = this.product (product);
         let tickers = await this.publicGetTickers ();
         let ids = Object.keys (tickers);
         let result = {};
