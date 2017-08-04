@@ -12560,14 +12560,7 @@ var xbtce = {
         return result;
     },
 
-    async fetchTicker (product) {
-        await this.loadProducts ();
-        let p = this.product (product);
-        let tickers = await this.privateGetTickFilter ({
-            'filter': p['id'],
-        });
-        tickers = this.indexBy (tickers, 'Symbol');
-        let ticker = tickers[p['id']];
+    parseTicker (ticker, product) {
         let timestamp = ticker['Timestamp'];
         let bid = undefined;
         let ask = undefined;
@@ -12594,6 +12587,18 @@ var xbtce = {
             'quoteVolume': undefined,
             'info': ticker,
         };
+
+    },
+
+    async fetchTicker (product) {
+        await this.loadProducts ();
+        let p = this.product (product);
+        let tickers = await this.privateGetTickFilter ({
+            'filter': p['id'],
+        });
+        tickers = this.indexBy (tickers, 'Symbol');
+        let ticker = tickers[p['id']];
+        return this.parseTicker (ticker, p);
     },
 
     async fetchTrades (product) {
