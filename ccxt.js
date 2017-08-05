@@ -11852,11 +11852,7 @@ var therock = {
         return result;
     },
 
-    async fetchTicker (product) {
-        await this.loadProducts ();
-        let ticker = await this.publicGetFundsIdTicker ({
-            'id': this.productId (product),
-        });
+    parseTicker (ticker, product) {
         let timestamp = this.parse8601 (ticker['date']);
         return {
             'timestamp': timestamp,
@@ -11877,6 +11873,15 @@ var therock = {
             'quoteVolume': parseFloat (ticker['volume']),
             'info': ticker,
         };
+    },
+
+    async fetchTicker (product) {
+        await this.loadProducts ();
+        let p = this.product (product);
+        let ticker = await this.publicGetFundsIdTicker ({
+            'id': p['id'],
+        });
+        return this.parseTicker (ticker, p);
     },
 
     async fetchTrades (product) {
