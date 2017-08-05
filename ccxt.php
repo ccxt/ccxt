@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.76';
+$version = '1.2.77';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5736,12 +5736,7 @@ class ccex extends Market {
         return $result;
     }
 
-    public function fetch_ticker ($product) {
-        $this->loadProducts ();
-        $response = $this->tickersGetMarket (array (
-            'market' => strtolower ($this->product_id ($product)),
-        ));
-        $ticker = $response['ticker'];
+    public function parse_ticker ($ticker, $product) {
         $timestamp = $ticker['updated'] * 1000;
         return array (
             'timestamp' => $timestamp,
@@ -5762,6 +5757,16 @@ class ccex extends Market {
             'quoteVolume' => floatval ($ticker['buysupport']),
             'info' => $ticker,
         );
+    }
+
+    public function fetch_ticker ($product) {
+        $this->loadProducts ();
+        $p = $this->product ($product);
+        $response = $this->tickersGetMarket (array (
+            'market' => strtolower ($p['id']),
+        ));
+        $ticker = $response['ticker'];
+        return $this->parse_ticker ($ticker, $p);
     }
 
     public function fetch_trades ($product) {
@@ -5925,11 +5930,7 @@ class cex extends Market {
         return $result;
     }
 
-    public function fetch_ticker ($product) {
-        $this->loadProducts ();
-        $ticker = $this->publicGetTickerPair (array (
-            'pair' => $this->product_id ($product),
-        ));
+    public function parse_ticker ($ticker, $product) {
         $timestamp = intval ($ticker['timestamp']) * 1000;
         return array (
             'timestamp' => $timestamp,
@@ -5950,6 +5951,32 @@ class cex extends Market {
             'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
+    }
+
+    public function fetch_tickers () {
+        $this->loadProducts ();
+        $currencies = implode ('/', $this->currencies);
+        $response = $this->publicGetTickersCurrencies (array (
+            'currencies' => $currencies,
+        ));
+        $tickers = $response['data'];
+        $result = array ();
+        for ($t = 0; $t < count ($tickers); $t++) {
+            $ticker = $tickers[$t];
+            $symbol = str_replace (':', '/', $ticker['pair']);
+            $product = $this->products[$symbol];            
+            $result[$symbol] = $this->parse_ticker ($ticker, $product);
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $this->loadProducts ();
+        $p = $this->product ($product);
+        $ticker = $this->publicGetTickerPair (array (
+            'pair' => $p['id'],
+        ));
+        return $this->parse_ticker ($ticker, $p);
     }
 
     public function fetch_trades ($product) {
