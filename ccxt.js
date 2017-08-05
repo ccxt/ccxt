@@ -11630,11 +11630,7 @@ var southxchange = {
         return result;
     },
 
-    async fetchTicker (product) {
-        await this.loadProducts ();
-        let ticker = await this.publicGetPriceSymbol ({
-            'symbol': this.productId (product),
-        });
+    parseTicker (ticker, product) {
         let timestamp = this.milliseconds ();
         return {
             'timestamp': timestamp,
@@ -11655,6 +11651,15 @@ var southxchange = {
             'quoteVolume': parseFloat (ticker['Volume24Hr']),
             'info': ticker,
         };
+    },
+
+    async fetchTicker (product) {
+        await this.loadProducts ();
+        let p = this.product (product);
+        let ticker = await this.publicGetPriceSymbol ({
+            'symbol': this.productId (product),
+        });
+        return this.parseTicker (ticker, p);
     },
 
     async fetchTrades (product) {
