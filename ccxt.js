@@ -6255,6 +6255,20 @@ var coingi = {
 
     },
 
+    async fetchTickers () {
+        let response = await this.currentGet24hourRollingAggregation ();
+        let result = {};
+        for (let t = 0; t < response.length; t++) {
+            let ticker = response[t];
+            let base = ticker['currencyPair']['base'].toUpperCase ();
+            let quote = ticker['currencyPair']['counter'].toUpperCase ();
+            let symbol = base + '/' + quote;
+            let product = this.products[symbol];
+            result[symbol] = this.parseTicker (ticker, product);
+        }
+        return result;
+    },
+
     async fetchTicker (product) {
         let response = await this.currentGet24hourRollingAggregation ();
         let tickers = {};
