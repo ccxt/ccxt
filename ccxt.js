@@ -11439,11 +11439,7 @@ var quoine = {
         return result;
     },
 
-    async fetchTicker (product) {
-        await this.loadProducts ();
-        let ticker = await this.publicGetProductsId ({
-            'id': this.productId (product),
-        });
+    parseTicker (ticker, product) {
         let timestamp = this.milliseconds ();
         return {
             'timestamp': timestamp,
@@ -11464,6 +11460,15 @@ var quoine = {
             'quoteVolume': undefined,
             'info': ticker,
         };
+    },
+
+    async fetchTicker (product) {
+        await this.loadProducts ();
+        let p = this.product (product);
+        let ticker = await this.publicGetProductsId ({
+            'id': p['id'],
+        });
+        return this.parseTicker (ticker, p);
     },
 
     async fetchTrades (product) {
