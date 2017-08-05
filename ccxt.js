@@ -6328,7 +6328,9 @@ var coingi = {
         let p = this.product (product);
         let symbol = p['symbol'];
         let ticker = tickers[symbol];
-        return this.parseTicker (ticker, product);
+        if (symbol in ticker)
+            return this.parseTicker (ticker, p);
+        throw new MarketError (this.id + ' ' + symbol + ' ticker not found')
     },
 
     async fetchTrades (product) {
