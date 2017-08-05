@@ -6298,7 +6298,6 @@ var coingi = {
             'info': ticker,
         };
         return ticker;
-
     },
 
     async fetchTickers () {
