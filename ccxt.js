@@ -9549,7 +9549,7 @@ var jubi = {
             }, params);
             let request = this.urlencode (query);
             let secret = this.hash (this.encode (this.secret));
-            query['signature'] = this.hmac (this.encode (request), secret);
+            query['signature'] = this.hmac (this.encode (request), this.encode (secret));
             body = this.urlencode (query);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
