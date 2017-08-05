@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.74'
+__version__ = '1.2.75'
 
 # Python 2 & 3
 import base64
@@ -6037,6 +6037,30 @@ class coingi (Market):
                 result[side].append ([ price, amount ])
         return result
 
+    def parse_ticker (self, ticker, product):
+        timestamp = self.milliseconds ()
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': ticker['high'],
+            'low': ticker['low'],
+            'bid': ticker['highestBid'],
+            'ask': ticker['lowestAsk'],
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': ticker['baseVolume'],
+            'quoteVolume': ticker['counterVolume'],
+            'info': ticker,
+        }
+        return ticker
+
+
     def fetch_ticker (self, product):
         response = self.currentGet24hourRollingAggregation ()
         tickers = {}
@@ -6046,38 +6070,10 @@ class coingi (Market):
             quote = ticker['currencyPair']['counter'].upper ()
             symbol = base + '/' + quote
             tickers[symbol] = ticker
-        timestamp = self.milliseconds ()
         p = self.product (product)
-        ticker = {
-            'timestamp': timestamp,
-            'datetime': self.iso8601 (timestamp),
-            'high': None,
-            'low': None,
-            'bid': None,
-            'ask': None,
-            'vwap': None,
-            'open': None,
-            'close': None,
-            'first': None,
-            'last': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': None,
-            'quoteVolume': None,
-            'info': None,
-        }
-        if p['symbol'] in tickers:
-            aggregation = tickers[p['symbol']]
-            ticker['high'] = aggregation['high']
-            ticker['low'] = aggregation['low']
-            ticker['bid'] = aggregation['highestBid']
-            ticker['ask'] = aggregation['lowestAsk']
-            ticker['baseVolume'] = aggregation['baseVolume']
-            ticker['quoteVolume'] = aggregation['counterVolume']
-            ticker['high'] = aggregation['high']
-            ticker['info'] = aggregation
-        return ticker
+        symbol = p['symbol']
+        ticker = tickers[symbol]
+        return self.parse_ticker (ticker, product)
 
     def fetch_trades (self, product):
         return self.publicGetTransactionsPairMaxCount ({
