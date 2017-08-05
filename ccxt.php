@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.78';
+$version = '1.2.79';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5549,12 +5549,27 @@ class bxinth extends Market {
         );
     }
 
+    public function fetch_tickers () {
+        $this->loadProducts ();
+        $tickers = $this->publicGet ();
+        $result = array ();
+        $ids = array_keys ($tickers);
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $ticker = $tickers[$id];
+            $product = $this->products_by_id[$id];
+            $symbol = $product['symbol'];
+            $result[$symbol] = $this->parse_ticker ($ticker, $product);
+        }
+        return $result;
+    }
+
     public function fetch_ticker ($product) {
         $this->loadProducts ();
         $p = $this->product ($product);
         $tickers = $this->publicGet (array ( 'pairing' => $p['id'] ));
-        $key = (string) $p['id'];
-        $ticker = $tickers[$key];
+        $id = (string) $p['id'];
+        $ticker = $tickers[$id];
         return $this->parse_ticker ($ticker, $p);
     }
 
