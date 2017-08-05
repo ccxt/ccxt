@@ -5261,12 +5261,27 @@ var bxinth = {
         };
     },
 
+    async fetchTickers () {
+        await this.loadProducts ();
+        let tickers = await this.publicGet ({ 'pairing': p['id'] });
+        let result = {};
+        let ids = Object.keys (tickers);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let ticker = tickers[id];
+            let product = this.products_by_id[id];
+            let symbol = product['symbol'];
+            result[symbol] = this.parseTicker (ticker, product);
+        }
+        return result;
+    },
+
     async fetchTicker (product) {
         await this.loadProducts ();
         let p = this.product (product);
         let tickers = await this.publicGet ({ 'pairing': p['id'] });
-        let key = p['id'].toString ();
-        let ticker = tickers[key];
+        let id = p['id'].toString ();
+        let ticker = tickers[id];
         return this.parseTicker (ticker, p);
     },
 
