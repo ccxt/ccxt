@@ -6127,7 +6127,9 @@ class coingi (Market):
         p = self.product (product)
         symbol = p['symbol']
         ticker = tickers[symbol]
-        return self.parse_ticker (ticker, product)
+        if symbol in tickers:
+            return self.parse_ticker (ticker, p)
+        raise MarketError (self.id + ' ' + symbol + ' ticker not found')
 
     def fetch_trades (self, product):
         return self.publicGetTransactionsPairMaxCount ({
@@ -9224,7 +9226,7 @@ class jubi (Market):
             }, params)
             request = _urlencode.urlencode (query)
             secret = self.hash (self.encode (self.secret))
-            query['signature'] = self.hmac (self.encode (request), secret)
+            query['signature'] = self.hmac (self.encode (request), self.encode (secret))
             body = _urlencode.urlencode (query)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

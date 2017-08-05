@@ -6642,7 +6642,9 @@ class coingi extends Market {
         $p = $this->product ($product);
         $symbol = $p['symbol'];
         $ticker = $tickers[$symbol];
-        return $this->parse_ticker ($ticker, $product);
+        if (array_key_exists ($symbol, $tickers))
+            return $this->parse_ticker ($ticker, $p);
+        throw new MarketError ($this->id . ' ' . $symbol . ' $ticker not found')
     }
 
     public function fetch_trades ($product) {
@@ -9940,7 +9942,7 @@ class jubi extends Market {
             ), $params);
             $request = $this->urlencode ($query);
             $secret = $this->hash ($this->encode ($this->secret));
-            $query['signature'] = $this->hmac ($this->encode ($request), $secret);
+            $query['signature'] = $this->hmac ($this->encode ($request), $this->encode ($secret));
             $body = $this->urlencode ($query);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
