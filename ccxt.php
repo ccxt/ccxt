@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.58';
+$version = '1.2.59';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12323,6 +12323,22 @@ class therock extends Market {
             'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
+    }
+
+    public function fetch_tickers () {
+        $this->loadProducts ();
+        $response = $this->publicGetFundsTickers ();
+        $tickers = $this->index_by ($response['tickers'], 'fund_id');
+        $ids = array_keys ($tickers);
+        $result = array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $product = $this->products_by_id[$id];
+            $symbol = $product['symbol'];
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker ($ticker, $product);
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {
