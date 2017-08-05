@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.62';
+$version = '1.2.63';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10704,11 +10704,7 @@ class luno extends Market {
         return $result;
     }
 
-    public function fetch_ticker ($product) {
-        $this->loadProducts ();
-        $ticker = $this->publicGetTicker (array (
-            'pair' => $this->product_id ($product),
-        ));
+    public function parse_ticker ($ticker, $product) {
         $timestamp = $ticker['timestamp'];
         return array (
             'timestamp' => $timestamp,
@@ -10728,7 +10724,16 @@ class luno extends Market {
             'baseVolume' => null,
             'quoteVolume' => floatval ($ticker['rolling_24_hour_volume']),
             'info' => $ticker,
-        );
+        );        
+    }
+
+    public function fetch_ticker ($product) {
+        $this->loadProducts ();
+        $p = $this->product ($product);
+        $ticker = $this->publicGetTicker (array (
+            'pair' => $p['id'],
+        ));
+        return $this->parse_ticker ($ticker, $p);
     }
 
     public function fetch_trades ($product) {
