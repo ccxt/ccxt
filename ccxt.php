@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.61';
+$version = '1.2.62';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -11897,6 +11897,21 @@ class quoine extends Market {
             'quoteVolume' => null,
             'info' => $ticker,
         );
+    }
+
+    public function fetch_tickers () {
+        $this->loadProducts ();
+        $tickers = $this->publicGetProducts ();
+        $result = array ();
+        for ($t = 0; $t < count ($tickers); $t++) {
+            $ticker = $tickers[$t];
+            $base = $ticker['base_currency'];
+            $quote = $ticker['quoted_currency'];
+            $symbol = $base . '/' . $quote;
+            $product = $this->products[$symbol];
+            $result[$symbol] = $this->parse_ticker ($ticker, $product);
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {
