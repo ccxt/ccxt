@@ -9548,6 +9548,7 @@ var kraken = {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'darkpool': darkpool,
                 'info': product,
             });
         }
