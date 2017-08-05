@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.62'
+__version__ = '1.2.63'
 
 # Python 2 & 3
 import base64
@@ -9948,11 +9948,7 @@ class luno (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        ticker = self.publicGetTicker ({
-            'pair': self.product_id (product),
-        })
+    def parse_ticker (self, ticker, product):
         timestamp = ticker['timestamp']
         return {
             'timestamp': timestamp,
@@ -9972,7 +9968,15 @@ class luno (Market):
             'baseVolume': None,
             'quoteVolume': float (ticker['rolling_24_hour_volume']),
             'info': ticker,
-        }
+        }        
+
+    def fetch_ticker (self, product):
+        self.loadProducts ()
+        p = self.product (product)
+        ticker = self.publicGetTicker ({
+            'pair': p['id'],
+        })
+        return self.parse_ticker (ticker, p)
 
     def fetch_trades (self, product):
         self.loadProducts ()
