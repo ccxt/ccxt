@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.74';
+$version = '1.2.75';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -6544,6 +6544,31 @@ class coingi extends Market {
         return $result;
     }
 
+    public function parse_ticker ($ticker, $product) {
+        $timestamp = $this->milliseconds ();
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => $ticker['high'],
+            'low' => $ticker['low'],
+            'bid' => $ticker['highestBid'],
+            'ask' => $ticker['lowestAsk'],
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => $ticker['baseVolume'],
+            'quoteVolume' => $ticker['counterVolume'],
+            'info' => $ticker,
+        );
+        return $ticker;
+
+    }
+
     public function fetch_ticker ($product) {
         $response = $this->currentGet24hourRollingAggregation ();
         $tickers = array ();
@@ -6553,40 +6578,11 @@ class coingi extends Market {
             $quote = strtoupper ($ticker['currencyPair']['counter']);
             $symbol = $base . '/' . $quote;
             $tickers[$symbol] = $ticker;
-        }
-        $timestamp = $this->milliseconds ();
+        }        
         $p = $this->product ($product);
-        $ticker = array (
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'high' => null,
-            'low' => null,
-            'bid' => null,
-            'ask' => null,
-            'vwap' => null,
-            'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => null,
-            'change' => null,
-            'percentage' => null,
-            'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => null,
-            'info' => null,
-        );
-        if (array_key_exists ($p['symbol'], $tickers)) {
-            $aggregation = $tickers[$p['symbol']];
-            $ticker['high'] = $aggregation['high'];
-            $ticker['low'] = $aggregation['low'];
-            $ticker['bid'] = $aggregation['highestBid'];
-            $ticker['ask'] = $aggregation['lowestAsk'];
-            $ticker['baseVolume'] = $aggregation['baseVolume'];
-            $ticker['quoteVolume'] = $aggregation['counterVolume'];
-            $ticker['high'] = $aggregation['high'];
-            $ticker['info'] = $aggregation;
-        }
-        return $ticker;
+        $symbol = $p['symbol'];
+        $ticker = $tickers[$symbol];
+        return $this->parse_ticker ($ticker, $product);
     }
 
     public function fetch_trades ($product) {
