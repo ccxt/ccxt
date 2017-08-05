@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.76'
+__version__ = '1.2.77'
 
 # Python 2 & 3
 import base64
@@ -5277,12 +5277,7 @@ class ccex (Market):
                 result[key].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        response = self.tickersGetMarket ({
-            'market': self.product_id (product).lower (),
-        })
-        ticker = response['ticker']
+    def parse_ticker (self, ticker, product):
         timestamp = ticker['updated'] * 1000
         return {
             'timestamp': timestamp,
@@ -5303,6 +5298,15 @@ class ccex (Market):
             'quoteVolume': float (ticker['buysupport']),
             'info': ticker,
         }
+
+    def fetch_ticker (self, product):
+        self.loadProducts ()
+        p = self.product (product)
+        response = self.tickersGetMarket ({
+            'market': p['id'].lower (),
+        })
+        ticker = response['ticker']
+        return self.parse_ticker (ticker, p)
 
     def fetch_trades (self, product):
         self.loadProducts ()
@@ -5455,11 +5459,7 @@ class cex (Market):
         }
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        ticker = self.publicGetTickerPair ({
-            'pair': self.product_id (product),
-        })
+    def parse_ticker (self, ticker, product):
         timestamp = int (ticker['timestamp']) * 1000
         return {
             'timestamp': timestamp,
@@ -5480,6 +5480,29 @@ class cex (Market):
             'quoteVolume': float (ticker['volume']),
             'info': ticker,
         }
+
+    def fetch_tickers (self):
+        self.loadProducts ()
+        currencies = '/'.join (self.currencies)
+        response = self.publicGetTickersCurrencies ({
+            'currencies': currencies,
+        })
+        tickers = response['data']
+        result = {}
+        for t in range (0, len (tickers)):
+            ticker = tickers[t]
+            symbol = ticker['pair'].replace (':', '/')
+            product = self.products[symbol]            
+            result[symbol] = self.parse_ticker (ticker, product)
+        return result
+
+    def fetch_ticker (self, product):
+        self.loadProducts ()
+        p = self.product (product)
+        ticker = self.publicGetTickerPair ({
+            'pair': p['id'],
+        })
+        return self.parse_ticker (ticker, p)
 
     def fetch_trades (self, product):
         self.loadProducts ()
