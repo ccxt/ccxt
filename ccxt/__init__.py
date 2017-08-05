@@ -544,11 +544,14 @@ class Market (object):
                 if not self.products_by_id:
                     return self.set_products (self.products)
                 return self.products
-        products = self.fetchProducts ()
+        products = self.fetch_products ()
         return self.set_products (products)
 
     def loadProducts  (self, reload = False):
         return self.load_products  ()
+
+    def fetch_products (self):
+        return self.products
     
     def fetchProducts (self):
         return self.fetch_products ()
