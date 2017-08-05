@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.59'
+__version__ = '1.2.60'
 
 # Python 2 & 3
 import base64
@@ -11234,11 +11234,7 @@ class southxchange (Market):
                 result[key].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        ticker = self.publicGetPriceSymbol ({
-            'symbol': self.product_id (product),
-        })
+    def parse_ticker (self, ticker, product):
         timestamp = self.milliseconds ()
         return {
             'timestamp': timestamp,
@@ -11259,6 +11255,14 @@ class southxchange (Market):
             'quoteVolume': float (ticker['Volume24Hr']),
             'info': ticker,
         }
+
+    def fetch_ticker (self, product):
+        self.loadProducts ()
+        p = self.product (product)
+        ticker = self.publicGetPriceSymbol ({
+            'symbol': self.product_id (product),
+        })
+        return self.parse_ticker (ticker, p)
 
     def fetch_trades (self, product):
         self.loadProducts ()
