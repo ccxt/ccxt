@@ -8810,13 +8810,7 @@ var hitbtc = {
         return result;
     },
 
-    async fetchTicker (product) {
-        await this.loadProducts ();
-        let ticker = await this.publicGetSymbolTicker ({
-            'symbol': this.productId (product),
-        });
-        if ('message' in ticker)
-            throw new MarketError (this.id + ' ' + ticker['message']);
+    parseTicker (ticker, product) {
         let timestamp = ticker['timestamp'];
         return {
             'timestamp': timestamp,
@@ -8837,6 +8831,17 @@ var hitbtc = {
             'quoteVolume': parseFloat (ticker['volume_quote']),
             'info': ticker,
         };
+    },
+
+    async fetchTicker (product) {
+        await this.loadProducts ();
+        let p = this.product (product);
+        let ticker = await this.publicGetSymbolTicker ({
+            'symbol': p['id'],
+        });
+        if ('message' in ticker)
+            throw new MarketError (this.id + ' ' + ticker['message']);
+        return this.parseTicker (ticker, p);
     },
 
     async fetchTrades (product) {
