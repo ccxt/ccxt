@@ -5263,7 +5263,7 @@ var bxinth = {
 
     async fetchTickers () {
         await this.loadProducts ();
-        let tickers = await this.publicGet ({ 'pairing': p['id'] });
+        let tickers = await this.publicGet ();
         let result = {};
         let ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
