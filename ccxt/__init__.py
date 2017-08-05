@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.70'
+__version__ = '1.2.71'
 
 # Python 2 & 3
 import base64
@@ -9101,6 +9101,19 @@ class jubi (Market):
             'quoteVolume': float (ticker['volume']),
             'info': ticker,
         }
+
+    def fetch_tickers (self):
+        self.loadProducts ()
+        tickers = self.publicGetAllticker ()
+        ids = list (tickers.keys ())
+        result = {}
+        for i in range (0, len (ids)):
+            id = ids[i]
+            product = self.products_by_id[id]
+            symbol = product['symbol']
+            ticker = tickers[id]
+            result[symbol] = self.parse_ticker (ticker, product)
+        return result
 
     def fetch_ticker (self, product):
         self.loadProducts ()
