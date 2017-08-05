@@ -5665,7 +5665,7 @@ var cex = {
         });
         let tickers = response['data'];
         let result = {};
-        for (let t = 0; t < ticker.length; t++) {
+        for (let t = 0; t < tickers.length; t++) {
             let ticker = tickers[t];
             let symbol = ticker['pair'].replace (':', '/');
             let product = this.products[symbol];            
