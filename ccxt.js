@@ -9587,16 +9587,7 @@ var kraken = {
         return result;
     },
 
-    async fetchTicker (product) {
-        await this.loadProducts ();
-        let darkpool = product.indexOf ('.d') >= 0;
-        if (darkpool)
-            throw new MarketError (this.id + ' does not provide a ticker for darkpool symbol ' + product);
-        let p = this.product (product);
-        let response = await this.publicGetTicker ({
-            'pair': p['id'],
-        });
-        let ticker = response['result'][p['id']];
+    parseTicker (ticker, product) {
         let timestamp = this.milliseconds ();
         return {
             'timestamp': timestamp,
@@ -9617,6 +9608,19 @@ var kraken = {
             'quoteVolume': parseFloat (ticker['v'][1]),
             'info': ticker,
         };
+    },
+
+    async fetchTicker (product) {
+        await this.loadProducts ();
+        let darkpool = product.indexOf ('.d') >= 0;
+        if (darkpool)
+            throw new MarketError (this.id + ' does not provide a ticker for darkpool symbol ' + product);
+        let p = this.product (product);
+        let response = await this.publicGetTicker ({
+            'pair': p['id'],
+        });
+        let ticker = response['result'][p['id']];
+        return this.parseTicker (ticker, p);
     },
 
     async fetchTrades (product) {
