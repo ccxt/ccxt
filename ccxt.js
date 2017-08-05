@@ -5652,6 +5652,23 @@ var cex = {
         };
     },
 
+    async fetchTickers () {
+        await this.loadProducts ();
+        let currencies = this.currencies.join ('/');
+        let response = await this.publicGetTicker ({
+            'currencies': currencies,
+        });
+        let tickers = response['data'];
+        let result = {};
+        for (let t = 0; t < ticker.length; t++) {
+            let ticker = tickers[t];
+            let symbol = ticker['pair'].replace (':', '/');
+            let product = this.products[symbol];            
+            result[symbol] = this.parseTicker (ticker, product);
+        }
+        return result;
+    },
+
     async fetchTicker (product) {
         await this.loadProducts ();
         let p = this.product (product);
