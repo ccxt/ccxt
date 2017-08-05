@@ -23,7 +23,7 @@ markets = {}
 #------------------------------------------------------------------------------
 # string coloring functions
 
-def style     (s, style): return style + str (s) + '\033[0m'
+def style     (s, style): return str (s) # style + str (s) + '\033[0m'
 def green     (s): return style (s, '\033[92m')
 def blue      (s): return style (s, '\033[94m')
 def yellow    (s): return style (s, '\033[93m')
