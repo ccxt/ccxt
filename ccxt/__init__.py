@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.78'
+__version__ = '1.2.79'
 
 # Python 2 & 3
 import base64
@@ -5105,12 +5105,25 @@ class bxinth (Market):
             'info': ticker,
         }
 
+    def fetch_tickers (self):
+        self.loadProducts ()
+        tickers = self.publicGet ()
+        result = {}
+        ids = list (tickers.keys ())
+        for i in range (0, len (ids)):
+            id = ids[i]
+            ticker = tickers[id]
+            product = self.products_by_id[id]
+            symbol = product['symbol']
+            result[symbol] = self.parse_ticker (ticker, product)
+        return result
+
     def fetch_ticker (self, product):
         self.loadProducts ()
         p = self.product (product)
         tickers = self.publicGet ({ 'pairing': p['id'] })
-        key = str (p['id'])
-        ticker = tickers[key]
+        id = str (p['id'])
+        ticker = tickers[id]
         return self.parse_ticker (ticker, p)
 
     def fetch_trades (self, product):
