@@ -5265,7 +5265,7 @@ var bxinth = {
         await this.loadProducts ();
         let p = this.product (product);
         let tickers = await this.publicGet ({ 'pairing': p['id'] });
-        let key = id.toString ();
+        let key = p['id'].toString ();
         let ticker = tickers[key];
         return this.parseTicker (ticker, p);
     },
