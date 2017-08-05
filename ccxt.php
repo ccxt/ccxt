@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.60';
+$version = '1.2.61';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -11876,11 +11876,7 @@ class quoine extends Market {
         return $result;
     }
 
-    public function fetch_ticker ($product) {
-        $this->loadProducts ();
-        $ticker = $this->publicGetProductsId (array (
-            'id' => $this->product_id ($product),
-        ));
+    public function parse_ticker ($ticker, $product) {
         $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
@@ -11901,6 +11897,15 @@ class quoine extends Market {
             'quoteVolume' => null,
             'info' => $ticker,
         );
+    }
+
+    public function fetch_ticker ($product) {
+        $this->loadProducts ();
+        $p = $this->product ($product);
+        $ticker = $this->publicGetProductsId (array (
+            'id' => $p['id'],
+        ));
+        return $this->parse_ticker ($ticker, $p);
     }
 
     public function fetch_trades ($product) {
@@ -12092,6 +12097,22 @@ class southxchange extends Market {
             'quoteVolume' => floatval ($ticker['Volume24Hr']),
             'info' => $ticker,
         );
+    }
+
+    public function fetch_tickers () {
+        $this->loadProducts ();
+        $response = $this->publicGetPrices ();
+        $tickers = $this->index_by ($response, 'Market');
+        $ids = array_keys ($tickers);
+        $result = array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $product = $this->products_by_id[$id];
+            $symbol = $product['symbol'];
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker ($ticker, $product);
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {
