@@ -5238,12 +5238,7 @@ var bxinth = {
         return result;
     },
 
-    async fetchTicker (product) {
-        await this.loadProducts ();
-        let id = this.productId (product);
-        let tickers = await this.publicGet ({ 'pairing': id });
-        let key = id.toString ();
-        let ticker = tickers[key];
+    parseTicker (ticker, product) {
         let timestamp = this.milliseconds ();
         return {
             'timestamp': timestamp,
@@ -5264,6 +5259,15 @@ var bxinth = {
             'quoteVolume': parseFloat (ticker['volume_24hours']),
             'info': ticker,
         };
+    },
+
+    async fetchTicker (product) {
+        await this.loadProducts ();
+        let p = this.product (product);
+        let tickers = await this.publicGet ({ 'pairing': p['id'] });
+        let key = id.toString ();
+        let ticker = tickers[key];
+        return this.parseTicker (ticker, p);
     },
 
     async fetchTrades (product) {
