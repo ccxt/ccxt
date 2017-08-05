@@ -10293,11 +10293,7 @@ var luno = {
         return result;
     },
 
-    async fetchTicker (product) {
-        await this.loadProducts ();
-        let ticker = await this.publicGetTicker ({
-            'pair': this.productId (product),
-        });
+    parseTicker (ticker, product) {
         let timestamp = ticker['timestamp'];
         return {
             'timestamp': timestamp,
@@ -10317,7 +10313,16 @@ var luno = {
             'baseVolume': undefined,
             'quoteVolume': parseFloat (ticker['rolling_24_hour_volume']),
             'info': ticker,
-        };
+        };        
+    },
+
+    async fetchTicker (product) {
+        await this.loadProducts ();
+        let p = this.product (product);
+        let ticker = await this.publicGetTicker ({
+            'pair': p['id'],
+        });
+        return this.parseTicker (ticker, p);
     },
 
     async fetchTrades (product) {
