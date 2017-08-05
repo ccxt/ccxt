@@ -39,4 +39,4 @@ php -f path/to/example.php # substitute for actual filename here
   
   It uses the [asciichart](https://github.com/kroitor/asciichart) JavaScript module by [kroitor](https://github.com/kroitor) for nice-looking lightweight ASCII line charting )) Both packages are available in npm!
 
-  ![asciichart](https://user-images.githubusercontent.com/1294454/28936500-9cab0f34-7890-11e7-8a23-224b82b59978.jpg)
+  ![asciichart](https://cloud.githubusercontent.com/assets/1294454/22818709/9f14e1c2-ef7f-11e6-978f-34b5b595fb63.png)
