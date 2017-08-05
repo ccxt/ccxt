@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.61'
+__version__ = '1.2.62'
 
 # Python 2 & 3
 import base64
@@ -11073,6 +11073,19 @@ class quoine (Market):
             'quoteVolume': None,
             'info': ticker,
         }
+
+    def fetch_tickers (self):
+        self.loadProducts ()
+        tickers = self.publicGetProducts ()
+        result = {}
+        for t in range (0, len (tickers)):
+            ticker = tickers[t]
+            base = ticker['base_currency']
+            quote = ticker['quoted_currency']
+            symbol = base + '/' + quote
+            product = self.products[symbol]
+            result[symbol] = self.parse_ticker (ticker, product)
+        return result
 
     def fetch_ticker (self, product):
         self.loadProducts ()
