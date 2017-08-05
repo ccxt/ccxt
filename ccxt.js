@@ -8848,7 +8848,6 @@ var hitbtc = {
         return result;
     },
 
-
     async fetchTicker (product) {
         await this.loadProducts ();
         let p = this.product (product);
