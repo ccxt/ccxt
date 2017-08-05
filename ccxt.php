@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.64';
+$version = '1.2.65';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10435,11 +10435,7 @@ class livecoin extends Market {
         return $result;
     }
 
-    public function fetch_ticker ($product) {
-        $this->loadProducts ();
-        $ticker = $this->publicGetExchangeTicker (array (
-            'currencyPair' => $this->product_id ($product),
-        ));
+    public function parse_ticker ($ticker, $product) {
         $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
@@ -10460,6 +10456,15 @@ class livecoin extends Market {
             'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
+    }
+
+    public function fetch_ticker ($product) {
+        $this->loadProducts ();
+        $p = $this->product ($product);
+        $ticker = $this->publicGetExchangeTicker (array (
+            'currencyPair' => $p['id'],
+        ));
+        return $this->parse_ticker ($ticker, $p);
     }
 
     public function fetch_trades ($product) {
