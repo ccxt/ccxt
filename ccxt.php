@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.66';
+$version = '1.2.67';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9942,6 +9942,7 @@ class kraken extends Market {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'darkpool' => $darkpool,
                 'info' => $product,
             );
         }

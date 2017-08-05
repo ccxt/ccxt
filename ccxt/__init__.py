@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.66'
+__version__ = '1.2.67'
 
 # Python 2 & 3
 import base64
@@ -9236,6 +9236,7 @@ class kraken (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'darkpool': darkpool,
                 'info': product,
             })
         return result
