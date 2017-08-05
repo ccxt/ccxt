@@ -5660,7 +5660,7 @@ var cex = {
     async fetchTickers () {
         await this.loadProducts ();
         let currencies = this.currencies.join ('/');
-        let response = await this.publicGetTickerCurrencies ({
+        let response = await this.publicGetTickersCurrencies ({
             'currencies': currencies,
         });
         let tickers = response['data'];
