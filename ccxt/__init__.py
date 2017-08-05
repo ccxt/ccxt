@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.69'
+__version__ = '1.2.70'
 
 # Python 2 & 3
 import base64
@@ -9080,11 +9080,7 @@ class jubi (Market):
         result['asks'] = self.sort_by (result['asks'], 0)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        ticker = self.publicGetTicker ({
-            'coin': self.product_id (product),
-        })
+    def parse_ticker (self, ticker, product):
         timestamp = self.milliseconds ()
         return {
             'timestamp': timestamp,
@@ -9105,6 +9101,14 @@ class jubi (Market):
             'quoteVolume': float (ticker['volume']),
             'info': ticker,
         }
+
+    def fetch_ticker (self, product):
+        self.loadProducts ()
+        p = self.product (product)
+        ticker = self.publicGetTicker ({
+            'coin': p['id'],
+        })
+        return self.parse_ticker (ticker, p)
 
     def fetch_trades (self, product):
         self.loadProducts ()

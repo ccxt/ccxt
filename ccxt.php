@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.69';
+$version = '1.2.70';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9780,11 +9780,7 @@ class jubi extends Market {
         return $result;
     }
 
-    public function fetch_ticker ($product) {
-        $this->loadProducts ();
-        $ticker = $this->publicGetTicker (array (
-            'coin' => $this->product_id ($product),
-        ));
+    public function parse_ticker ($ticker, $product) {
         $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
@@ -9805,6 +9801,15 @@ class jubi extends Market {
             'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
+    }
+
+    public function fetch_ticker ($product) {
+        $this->loadProducts ();
+        $p = $this->product ($product);
+        $ticker = $this->publicGetTicker (array (
+            'coin' => $p['id'],
+        ));
+        return $this->parse_ticker ($ticker, $p);
     }
 
     public function fetch_trades ($product) {
