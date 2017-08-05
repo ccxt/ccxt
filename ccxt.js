@@ -5444,12 +5444,7 @@ var ccex = {
         return result;
     },
 
-    async fetchTicker (product) {
-        await this.loadProducts ();
-        let response = await this.tickersGetMarket ({
-            'market': this.productId (product).toLowerCase (),
-        });
-        let ticker = response['ticker'];
+    parseTicker (ticker, product) {
         let timestamp = ticker['updated'] * 1000;
         return {
             'timestamp': timestamp,
@@ -5470,6 +5465,16 @@ var ccex = {
             'quoteVolume': parseFloat (ticker['buysupport']),
             'info': ticker,
         };
+    },
+
+    async fetchTicker (product) {
+        await this.loadProducts ();
+        let p = this.product (product);
+        let response = await this.tickersGetMarket ({
+            'market': p['id'].toLowerCase (),
+        });
+        let ticker = response['ticker'];
+        return this.parseTicker (ticker, p);
     },
 
     async fetchTrades (product) {
@@ -5655,7 +5660,7 @@ var cex = {
     async fetchTickers () {
         await this.loadProducts ();
         let currencies = this.currencies.join ('/');
-        let response = await this.publicGetTicker ({
+        let response = await this.publicGetTickerCurrencies ({
             'currencies': currencies,
         });
         let tickers = response['data'];
