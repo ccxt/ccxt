@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.68';
+$version = '1.2.69';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9981,16 +9981,7 @@ class kraken extends Market {
         return $result;
     }
 
-    public function fetch_ticker ($product) {
-        $this->loadProducts ();
-        $darkpool = mb_strpos ($product, '.d') !== false;
-        if ($darkpool)
-            throw new MarketError ($this->id . ' does not provide a $ticker for $darkpool symbol ' . $product);
-        $p = $this->product ($product);
-        $response = $this->publicGetTicker (array (
-            'pair' => $p['id'],
-        ));
-        $ticker = $response['result'][$p['id']];
+    public function parse_ticker ($ticker, $product) {
         $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
@@ -10011,6 +10002,45 @@ class kraken extends Market {
             'quoteVolume' => floatval ($ticker['v'][1]),
             'info' => $ticker,
         );
+    }
+
+    public function fetch_tickers () {
+        $this->loadProducts ();
+        $pairs = array ();
+        for ($s = 0; $s < count ($this->symbols); $s++) {
+            $symbol = $this->symbols[$s];
+            $product = $this->products[$symbol];
+            if (!$product['darkpool'])
+                $pairs[] = $product['id'];
+        }
+        $filter = implode (',', $pairs);
+        $response = $this->publicGetTicker (array (
+            'pair' => $filter,
+        ));
+        $tickers = $response['result'];
+        $ids = array_keys ($tickers);
+        $result = array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $product = $this->products_by_id[$id];
+            $symbol = $product['symbol'];
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker ($ticker, $product);
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $this->loadProducts ();
+        $darkpool = mb_strpos ($product, '.d') !== false;
+        if ($darkpool)
+            throw new MarketError ($this->id . ' does not provide a $ticker for $darkpool symbol ' . $product);
+        $p = $this->product ($product);
+        $response = $this->publicGetTicker (array (
+            'pair' => $p['id'],
+        ));
+        $ticker = $response['result'][$p['id']];
+        return $this->parse_ticker ($ticker, $p);
     }
 
     public function fetch_trades ($product) {

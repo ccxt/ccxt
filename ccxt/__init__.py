@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.68'
+__version__ = '1.2.69'
 
 # Python 2 & 3
 import base64
@@ -9270,16 +9270,7 @@ class kraken (Market):
                 result[side].append ([ price, amount, timestamp ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        darkpool = product.find ('.d') >= 0
-        if darkpool:
-            raise MarketError (self.id + ' does not provide a ticker for darkpool symbol ' + product)
-        p = self.product (product)
-        response = self.publicGetTicker ({
-            'pair': p['id'],
-        })
-        ticker = response['result'][p['id']]
+    def parse_ticker (self, ticker, product):
         timestamp = self.milliseconds ()
         return {
             'timestamp': timestamp,
@@ -9300,6 +9291,41 @@ class kraken (Market):
             'quoteVolume': float (ticker['v'][1]),
             'info': ticker,
         }
+
+    def fetch_tickers (self):
+        self.loadProducts ()
+        pairs = []
+        for s in range (0, len (self.symbols)):
+            symbol = self.symbols[s]
+            product = self.products[symbol]
+            if not product['darkpool']:
+                pairs.append (product['id'])
+        filter = ','.join (pairs)
+        response = self.publicGetTicker ({
+            'pair': filter,
+        })
+        tickers = response['result']
+        ids = list (tickers.keys ())
+        result = {}
+        for i in range (0, len (ids)):
+            id = ids[i]
+            product = self.products_by_id[id]
+            symbol = product['symbol']
+            ticker = tickers[id]
+            result[symbol] = self.parse_ticker (ticker, product)
+        return result
+
+    def fetch_ticker (self, product):
+        self.loadProducts ()
+        darkpool = product.find ('.d') >= 0
+        if darkpool:
+            raise MarketError (self.id + ' does not provide a ticker for darkpool symbol ' + product)
+        p = self.product (product)
+        response = self.publicGetTicker ({
+            'pair': p['id'],
+        })
+        ticker = response['result'][p['id']]
+        return self.parse_ticker (ticker, p)
 
     def fetch_trades (self, product):
         self.loadProducts ()
