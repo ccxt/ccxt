@@ -10033,11 +10033,7 @@ var livecoin = {
         return result;
     },
 
-    async fetchTicker (product) {
-        await this.loadProducts ();
-        let ticker = await this.publicGetExchangeTicker ({
-            'currencyPair': this.productId (product),
-        });
+    parseTicker (ticker, product) {
         let timestamp = this.milliseconds ();
         return {
             'timestamp': timestamp,
@@ -10058,6 +10054,15 @@ var livecoin = {
             'quoteVolume': parseFloat (ticker['volume']),
             'info': ticker,
         };
+    },
+
+    async fetchTicker (product) {
+        await this.loadProducts ();
+        let p = this.product (product);
+        let ticker = await this.publicGetExchangeTicker ({
+            'currencyPair': p['id'],
+        });
+        return this.parseTicker (ticker, p);
     },
 
     async fetchTrades (product) {
