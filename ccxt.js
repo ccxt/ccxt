@@ -6230,6 +6230,31 @@ var coingi = {
         return result;
     },
 
+    parseTicker (ticker, product) {
+        let timestamp = this.milliseconds ();
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': ticker['high'],
+            'low': ticker['low'],
+            'bid': ticker['highestBid'],
+            'ask': ticker['lowestAsk'],
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': ticker['baseVolume'],
+            'quoteVolume': ticker['counterVolume'],
+            'info': ticker,
+        };
+        return ticker;
+
+    },
+
     async fetchTicker (product) {
         let response = await this.currentGet24hourRollingAggregation ();
         let tickers = {};
@@ -6239,40 +6264,11 @@ var coingi = {
             let quote = ticker['currencyPair']['counter'].toUpperCase ();
             let symbol = base + '/' + quote;
             tickers[symbol] = ticker;
-        }
-        let timestamp = this.milliseconds ();
+        }        
         let p = this.product (product);
-        let ticker = {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
-            'bid': undefined,
-            'ask': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': undefined,
-            'info': undefined,
-        };
-        if (p['symbol'] in tickers) {
-            let aggregation = tickers[p['symbol']];
-            ticker['high'] = aggregation['high'];
-            ticker['low'] = aggregation['low'];
-            ticker['bid'] = aggregation['highestBid'];
-            ticker['ask'] = aggregation['lowestAsk'];
-            ticker['baseVolume'] = aggregation['baseVolume'];
-            ticker['quoteVolume'] = aggregation['counterVolume'];
-            ticker['high'] = aggregation['high'];
-            ticker['info'] = aggregation;
-        }
-        return ticker;
+        let symbol = p['symbol'];
+        let ticker = tickers[symbol];
+        return this.parseTicker (ticker, product);
     },
 
     async fetchTrades (product) {
