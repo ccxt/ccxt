@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.77';
+$version = '1.2.78';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5526,12 +5526,7 @@ class bxinth extends Market {
         return $result;
     }
 
-    public function fetch_ticker ($product) {
-        $this->loadProducts ();
-        $id = $this->product_id ($product);
-        $tickers = $this->publicGet (array ( 'pairing' => $id ));
-        $key = (string) $id;
-        $ticker = $tickers[$key];
+    public function parse_ticker ($ticker, $product) {
         $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
@@ -5552,6 +5547,15 @@ class bxinth extends Market {
             'quoteVolume' => floatval ($ticker['volume_24hours']),
             'info' => $ticker,
         );
+    }
+
+    public function fetch_ticker ($product) {
+        $this->loadProducts ();
+        $p = $this->product ($product);
+        $tickers = $this->publicGet (array ( 'pairing' => $p['id'] ));
+        $key = (string) $p['id'];
+        $ticker = $tickers[$key];
+        return $this->parse_ticker ($ticker, $p);
     }
 
     public function fetch_trades ($product) {
