@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.60'
+__version__ = '1.2.61'
 
 # Python 2 & 3
 import base64
@@ -11052,11 +11052,7 @@ class quoine (Market):
                 result[key].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        ticker = self.publicGetProductsId ({
-            'id': self.product_id (product),
-        })
+    def parse_ticker (self, ticker, product):
         timestamp = self.milliseconds ()
         return {
             'timestamp': timestamp,
@@ -11077,6 +11073,14 @@ class quoine (Market):
             'quoteVolume': None,
             'info': ticker,
         }
+
+    def fetch_ticker (self, product):
+        self.loadProducts ()
+        p = self.product (product)
+        ticker = self.publicGetProductsId ({
+            'id': p['id'],
+        })
+        return self.parse_ticker (ticker, p)
 
     def fetch_trades (self, product):
         self.loadProducts ()
@@ -11255,6 +11259,20 @@ class southxchange (Market):
             'quoteVolume': float (ticker['Volume24Hr']),
             'info': ticker,
         }
+
+    def fetch_tickers (self):
+        self.loadProducts ()
+        response = self.publicGetPrices ()
+        tickers = self.index_by (response, 'Market')
+        ids = list (tickers.keys ())
+        result = {}
+        for i in range (0, len (ids)):
+            id = ids[i]
+            product = self.products_by_id[id]
+            symbol = product['symbol']
+            ticker = tickers[id]
+            result[symbol] = self.parse_ticker (ticker, product)
+        return result
 
     def fetch_ticker (self, product):
         self.loadProducts ()
