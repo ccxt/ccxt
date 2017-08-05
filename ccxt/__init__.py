@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.77'
+__version__ = '1.2.78'
 
 # Python 2 & 3
 import base64
@@ -5083,12 +5083,7 @@ class bxinth (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        id = self.product_id (product)
-        tickers = self.publicGet ({ 'pairing': id })
-        key = str (id)
-        ticker = tickers[key]
+    def parse_ticker (self, ticker, product):
         timestamp = self.milliseconds ()
         return {
             'timestamp': timestamp,
@@ -5109,6 +5104,14 @@ class bxinth (Market):
             'quoteVolume': float (ticker['volume_24hours']),
             'info': ticker,
         }
+
+    def fetch_ticker (self, product):
+        self.loadProducts ()
+        p = self.product (product)
+        tickers = self.publicGet ({ 'pairing': p['id'] })
+        key = str (p['id'])
+        ticker = tickers[key]
+        return self.parse_ticker (ticker, p)
 
     def fetch_trades (self, product):
         self.loadProducts ()
