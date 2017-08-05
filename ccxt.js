@@ -11462,6 +11462,21 @@ var quoine = {
         };
     },
 
+    async fetchTickers () {
+        await this.loadProducts ();
+        let tickers = await this.publicGetPrices ();
+        let result = {};
+        for (let t = 0; t < tickers.length; t++) {
+            let ticker = tickers[t];
+            let base = ticker['base_currency'];
+            let quote = ticker['quoted_currency'];
+            let symbol = base + '/' + quote;
+            let product = this.products[symbol];
+            result[symbol] = this.parseTicker (ticker, product);
+        }
+        return result;
+    },
+
     async fetchTicker (product) {
         await this.loadProducts ();
         let p = this.product (product);
