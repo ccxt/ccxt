@@ -9389,11 +9389,7 @@ var jubi = {
         return result;
     },
 
-    async fetchTicker (product) {
-        await this.loadProducts ();
-        let ticker = await this.publicGetTicker ({
-            'coin': this.productId (product),
-        });
+    parseTicker (ticker, product) {
         let timestamp = this.milliseconds ();
         return {
             'timestamp': timestamp,
@@ -9414,6 +9410,15 @@ var jubi = {
             'quoteVolume': parseFloat (ticker['volume']),
             'info': ticker,
         };
+    },
+
+    async fetchTicker (product) {
+        await this.loadProducts ();
+        let p = this.product (product);
+        let ticker = await this.publicGetTicker ({
+            'coin': p['id'],
+        });
+        return this.parseTicker (ticker, p);
     },
 
     async fetchTrades (product) {
