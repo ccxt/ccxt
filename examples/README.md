@@ -31,7 +31,7 @@ php -f path/to/example.php # substitute for actual filename here
 
 -------------------------------------------------------------------------------
 
-## See Also )
+## See Also
 
 - [bitcoin-chart-cli](https://github.com/madnight/bitcoin-chart-cli) by [madnight](https://github.com/madnight) – a command-line console util that draws Bitcoin, Ether, Litecoin and many altcoin charts right in the terminal! 
   
