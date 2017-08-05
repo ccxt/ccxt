@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.75'
+__version__ = '1.2.76'
 
 # Python 2 & 3
 import base64
@@ -6060,6 +6060,18 @@ class coingi (Market):
         }
         return ticker
 
+
+    def fetch_tickers (self):
+        response = self.currentGet24hourRollingAggregation ()
+        result = {}
+        for t in range (0, len (response)):
+            ticker = response[t]
+            base = ticker['currencyPair']['base'].upper ()
+            quote = ticker['currencyPair']['counter'].upper ()
+            symbol = base + '/' + quote
+            product = self.products[symbol]
+            result[symbol] = self.parse_ticker (ticker, product)
+        return result
 
     def fetch_ticker (self, product):
         response = self.currentGet24hourRollingAggregation ()

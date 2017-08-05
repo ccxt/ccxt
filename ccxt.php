@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.75';
+$version = '1.2.76';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -6567,6 +6567,20 @@ class coingi extends Market {
         );
         return $ticker;
 
+    }
+
+    public function fetch_tickers () {
+        $response = $this->currentGet24hourRollingAggregation ();
+        $result = array ();
+        for ($t = 0; $t < count ($response); $t++) {
+            $ticker = $response[$t];
+            $base = strtoupper ($ticker['currencyPair']['base']);
+            $quote = strtoupper ($ticker['currencyPair']['counter']);
+            $symbol = $base . '/' . $quote;
+            $product = $this->products[$symbol];
+            $result[$symbol] = $this->parse_ticker ($ticker, $product);
+        }
+        return $result;
     }
 
     public function fetch_ticker ($product) {
