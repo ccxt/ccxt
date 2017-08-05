@@ -148,7 +148,7 @@ const pluck = (array, key) => array
                                 .filter (element => (typeof element[key] != 'undefined'))
                                 .map (element => element[key])
 
-const urlencode = object => qs.stringify (object) // this is related to the Kraken workaround, see issues #52 and #23
+const urlencode = object => qs.stringify (object)
 
 const sum = (...args) => {
     const result = args.filter (arg => typeof arg != 'undefined')
@@ -9608,6 +9608,32 @@ var kraken = {
             'quoteVolume': parseFloat (ticker['v'][1]),
             'info': ticker,
         };
+    },
+
+    async fetchTickers () {
+        await this.loadProducts ();
+        let pairs = [];
+        for (let s = 0; s < this.symbols.length; s++) {
+            let symbol = this.symbols[s];
+            let product = this.products[symbol];
+            if (!product['darkpool'])
+                pairs.push (product['id']);
+        }
+        let filter = pairs.join (',');
+        let response = await this.publicGetTicker ({
+            'pair': filter,
+        });
+        let tickers = response['result'];
+        let ids = Object.keys (tickers);
+        let result = {};
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let product = this.products_by_id[id];
+            let symbol = product['symbol'];
+            let ticker = tickers[id];
+            result[symbol] = this.parseTicker (ticker, product);
+        }
+        return result;
     },
 
     async fetchTicker (product) {
