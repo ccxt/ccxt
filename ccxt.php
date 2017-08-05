@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.71';
+$version = '1.2.72';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9189,13 +9189,7 @@ class hitbtc extends Market {
         return $result;
     }
 
-    public function fetch_ticker ($product) {
-        $this->loadProducts ();
-        $ticker = $this->publicGetSymbolTicker (array (
-            'symbol' => $this->product_id ($product),
-        ));
-        if (array_key_exists ('message', $ticker))
-            throw new MarketError ($this->id . ' ' . $ticker['message']);
+    public function parse_ticker ($ticker, $product) {
         $timestamp = $ticker['timestamp'];
         return array (
             'timestamp' => $timestamp,
@@ -9216,6 +9210,17 @@ class hitbtc extends Market {
             'quoteVolume' => floatval ($ticker['volume_quote']),
             'info' => $ticker,
         );
+    }
+
+    public function fetch_ticker ($product) {
+        $this->loadProducts ();
+        $p = $this->product ($product);
+        $ticker = $this->publicGetSymbolTicker (array (
+            'symbol' => $p['id'],
+        ));
+        if (array_key_exists ('message', $ticker))
+            throw new MarketError ($this->id . ' ' . $ticker['message']);
+        return $this->parse_ticker ($ticker, $p);
     }
 
     public function fetch_trades ($product) {

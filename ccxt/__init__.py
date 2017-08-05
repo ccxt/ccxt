@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.71'
+__version__ = '1.2.72'
 
 # Python 2 & 3
 import base64
@@ -8522,13 +8522,7 @@ class hitbtc (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        ticker = self.publicGetSymbolTicker ({
-            'symbol': self.product_id (product),
-        })
-        if 'message' in ticker:
-            raise MarketError (self.id + ' ' + ticker['message'])
+    def parse_ticker (self, ticker, product):
         timestamp = ticker['timestamp']
         return {
             'timestamp': timestamp,
@@ -8549,6 +8543,16 @@ class hitbtc (Market):
             'quoteVolume': float (ticker['volume_quote']),
             'info': ticker,
         }
+
+    def fetch_ticker (self, product):
+        self.loadProducts ()
+        p = self.product (product)
+        ticker = self.publicGetSymbolTicker ({
+            'symbol': p['id'],
+        })
+        if 'message' in ticker:
+            raise MarketError (self.id + ' ' + ticker['message'])
+        return self.parse_ticker (ticker, p)
 
     def fetch_trades (self, product):
         self.loadProducts ()
