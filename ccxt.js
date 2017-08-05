@@ -5629,11 +5629,7 @@ var cex = {
         return result;
     },
 
-    async fetchTicker (product) {
-        await this.loadProducts ();
-        let ticker = await this.publicGetTickerPair ({
-            'pair': this.productId (product),
-        });
+    parseTicker (ticker, product) {
         let timestamp = parseInt (ticker['timestamp']) * 1000;
         return {
             'timestamp': timestamp,
@@ -5654,6 +5650,15 @@ var cex = {
             'quoteVolume': parseFloat (ticker['volume']),
             'info': ticker,
         };
+    },
+
+    async fetchTicker (product) {
+        await this.loadProducts ();
+        let p = this.product (product);
+        let ticker = await this.publicGetTickerPair ({
+            'pair': p['id'],
+        });
+        return this.parseTicker (ticker, p);
     },
 
     async fetchTrades (product) {
