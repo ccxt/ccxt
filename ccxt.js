@@ -11661,7 +11661,7 @@ var southxchange = {
     async fetchTickers () {
         await this.loadProducts ();
         let response = await this.publicGetPrices ();
-        let tickers = this.indexBy (response['tickers'], 'Market');
+        let tickers = this.indexBy (response, 'Market');
         let ids = Object.keys (tickers);
         let result = {};
         for (let i = 0; i < ids.length; i++) {
