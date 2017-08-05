@@ -11464,7 +11464,7 @@ var quoine = {
 
     async fetchTickers () {
         await this.loadProducts ();
-        let tickers = await this.publicGetPrices ();
+        let tickers = await this.publicGetProducts ();
         let result = {};
         for (let t = 0; t < tickers.length; t++) {
             let ticker = tickers[t];
