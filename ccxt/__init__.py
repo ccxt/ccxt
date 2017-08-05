@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.57'
+__version__ = '1.2.58'
 
 # Python 2 & 3
 import base64
@@ -11452,11 +11452,7 @@ class therock (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        ticker = self.publicGetFundsIdTicker ({
-            'id': self.product_id (product),
-        })
+    def parse_ticker (self, ticker, product):
         timestamp = self.parse8601 (ticker['date'])
         return {
             'timestamp': timestamp,
@@ -11477,6 +11473,14 @@ class therock (Market):
             'quoteVolume': float (ticker['volume']),
             'info': ticker,
         }
+
+    def fetch_ticker (self, product):
+        self.loadProducts ()
+        p = self.product (product)
+        ticker = self.publicGetFundsIdTicker ({
+            'id': p['id'],
+        })
+        return self.parse_ticker (ticker, p)
 
     def fetch_trades (self, product):
         self.loadProducts ()
