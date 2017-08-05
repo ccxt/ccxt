@@ -11653,6 +11653,22 @@ var southxchange = {
         };
     },
 
+    async fetchTickers () {
+        await this.loadProducts ();
+        let response = await this.publicGetPrices ();
+        let tickers = this.indexBy (response['tickers'], 'Market');
+        let ids = Object.keys (tickers);
+        let result = {};
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let product = this.products_by_id[id];
+            let symbol = product['symbol'];
+            let ticker = tickers[id];
+            result[symbol] = this.parseTicker (ticker, product);
+        }
+        return result;
+    },
+
     async fetchTicker (product) {
         await this.loadProducts ();
         let p = this.product (product);
