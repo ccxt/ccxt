@@ -4889,11 +4889,7 @@ class bter (Market):
         result['asks'] = self.sort_by (result['asks'], 0)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        ticker = self.publicGetTickerId ({
-            'id': self.product_id (product),
-        })
+    def parse_ticker (self, ticker, product):
         timestamp = self.milliseconds ()
         return {
             'timestamp': timestamp,
@@ -4914,6 +4910,32 @@ class bter (Market):
             'quoteVolume': float (ticker['quoteVolume']),
             'info': ticker,
         }
+
+    def fetch_tickers (self):
+        self.loadProducts ()
+        tickers = self.publicGetTickers ()
+        result = {}
+        ids = list (tickers.keys ())
+        for i in range (0, len (ids)):
+            id = ids[i]
+            baseId, quoteId = id.split ('_')
+            base = baseId.upper ()
+            quote = quoteId.upper ()
+            symbol = base + '/' + quote
+            ticker = tickers[id]
+            product = self.products[symbol]
+            result[symbol] = self.parse_ticker (ticker, product)
+            console.log (id, 'done')
+        console.log (result)
+        return result
+
+    def fetch_ticker (self, product):
+        self.loadProducts ()
+        p = self.product (product)
+        ticker = self.publicGetTickerId ({
+            'id': p['id'],
+        })
+        return self.parse_ticker (ticker, p)
 
     def fetch_trades (self, product):
         self.loadProducts ()
@@ -4954,9 +4976,9 @@ class bter (Market):
             }
         response = self.fetch (url, method, headers, body)
         if 'result' in response:
-            if response['result'] == 'true':
-                return response
-        raise MarketError (self.id + ' ' + self.json (response))
+            if response['result'] != 'true':
+                raise MarketError (self.id + ' ' + self.json (response))
+        return response        
 
 #------------------------------------------------------------------------------
 

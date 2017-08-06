@@ -5318,11 +5318,7 @@ class bter extends Market {
         return $result;
     }
 
-    public function fetch_ticker ($product) {
-        $this->loadProducts ();
-        $ticker = $this->publicGetTickerId (array (
-            'id' => $this->product_id ($product),
-        ));
+    public function parse_ticker ($ticker, $product) {
         $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
@@ -5343,6 +5339,35 @@ class bter extends Market {
             'quoteVolume' => floatval ($ticker['quoteVolume']),
             'info' => $ticker,
         );
+    }
+
+    public function fetch_tickers () {
+        $this->loadProducts ();
+        $tickers = $this->publicGetTickers ();
+        $result = array ();
+        $ids = array_keys ($tickers);
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            list ($baseId, $quoteId) = explode ('_', $id)
+            $base = strtoupper ($baseId);
+            $quote = strtoupper ($quoteId);
+            $symbol = $base . '/' . $quote;
+            $ticker = $tickers[$id];
+            $product = $this->products[$symbol];
+            $result[$symbol] = $this->parse_ticker ($ticker, $product);
+            console.log ($id, 'done');
+        }
+        console.log ($result);
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $this->loadProducts ();
+        $p = $this->product ($product);
+        $ticker = $this->publicGetTickerId (array (
+            'id' => $p['id'],
+        ));
+        return $this->parse_ticker ($ticker, $p);
     }
 
     public function fetch_trades ($product) {
@@ -5388,9 +5413,9 @@ class bter extends Market {
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('result', $response))
-            if ($response['result'] == 'true')
-                return $response;
-        throw new MarketError ($this->id . ' ' . $this->json ($response));
+            if ($response['result'] != 'true')
+                throw new MarketError ($this->id . ' ' . $this->json ($response));
+        return $response;        
     }
 }
 

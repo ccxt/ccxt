@@ -5057,6 +5057,24 @@ var bter = {
         };
     },
 
+    async fetchTickers () {
+        await this.loadProducts ();
+        let tickers = await this.publicGetTickers ();
+        let result = {};
+        let ids = Object.keys (tickers);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let [ baseId, quoteId ] = id.split ('_')
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
+            let symbol = base + '/' + quote;
+            let ticker = tickers[id];
+            let product = this.products[symbol];
+            result[symbol] = this.parseTicker (ticker, product);
+        }
+        return result;
+    },
+
     async fetchTicker (product) {
         await this.loadProducts ();
         let p = this.product (product);
@@ -5109,9 +5127,9 @@ var bter = {
         }
         let response = await this.fetch (url, method, headers, body);
         if ('result' in response)
-            if (response['result'] == 'true')
-                return response;
-        throw new MarketError (this.id + ' ' + this.json (response));
+            if (response['result'] != 'true')
+                throw new MarketError (this.id + ' ' + this.json (response));
+        return response;        
     },
 }
 
