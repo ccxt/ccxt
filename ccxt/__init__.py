@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.84'
+__version__ = '1.2.85'
 
 # Python 2 & 3
 import base64
@@ -4925,8 +4925,6 @@ class bter (Market):
             ticker = tickers[id]
             product = self.products[symbol]
             result[symbol] = self.parse_ticker (ticker, product)
-            console.log (id, 'done')
-        console.log (result)
         return result
 
     def fetch_ticker (self, product):
