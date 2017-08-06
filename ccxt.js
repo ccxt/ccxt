@@ -5034,11 +5034,7 @@ var bter = {
         return result;
     },
 
-    async fetchTicker (product) {
-        await this.loadProducts ();
-        let ticker = await this.publicGetTickerId ({
-            'id': this.productId (product),
-        });
+    parseTicker (ticker, product) {
         let timestamp = this.milliseconds ();
         return {
             'timestamp': timestamp,
@@ -5059,6 +5055,15 @@ var bter = {
             'quoteVolume': parseFloat (ticker['quoteVolume']),
             'info': ticker,
         };
+    },
+
+    async fetchTicker (product) {
+        await this.loadProducts ();
+        let p = this.product (product);
+        let ticker = await this.publicGetTickerId ({
+            'id': p['id'],
+        });
+        return this.parseTicker (ticker, p);
     },
 
     async fetchTrades (product) {
