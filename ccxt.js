@@ -80,6 +80,8 @@ class MarketNotAvailableError extends NetworkError {
 
 const sleep = ms => new Promise (resolve => setTimeout (resolve, ms));
 
+const decimal = float => parseFloat (float).toString ()
+
 const timeout = (ms, promise) =>
         Promise.race ([
             promise,
@@ -273,6 +275,7 @@ const Market = function (config) {
     this.indexBy = indexBy
     this.sortBy = sortBy
     this.keysort = keysort
+    this.decimal = decimal
     this.capitalize = capitalize
     this.json = JSON.stringify
     this.sum = sum
@@ -8973,7 +8976,7 @@ var hitbtc = {
             'type': type,
         };
         if (type == 'limit')
-            order['price'] = price.toString ();
+            order['price'] = this.decimal (price);
         return this.tradingPostNewOrder (this.extend (order, params));
     },
 
@@ -13664,7 +13667,6 @@ if (isNode || isReactNative) {
         TimeoutError,       
         MarketNotAvailableError,
         
-
         // common utility functions
 
         sleep,
@@ -13680,6 +13682,7 @@ if (isNode || isReactNative) {
         pluck,
         urlencode,
         sum,
+        decimal,
 
         // underscore aliases
 

@@ -312,6 +312,10 @@ class Market (object):
             raise
 
     @staticmethod
+    def decimal (number):
+        return str (decimal.Decimal (str (number)))
+
+    @staticmethod
     def capitalize (string): # first character only, rest characters unchanged
         if len (string) > 1:
             return "%s%s" % (string[0].upper (), string[1:])
