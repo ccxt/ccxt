@@ -708,7 +708,13 @@ class Market {
     }
 
     public function commonCurrencyCode ($currency) { 
-        return ($currency === 'XBT') ? 'BTC' : $currency;
+        if ($currency == 'XBT')
+            return 'BTC';
+        if ($currency == 'BCC')
+            return 'BCH';
+        if ($currency == 'DRK')
+            return 'DASH';
+        return $currency;
     }
 
     public function product ($product) {

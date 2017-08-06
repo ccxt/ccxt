@@ -354,7 +354,13 @@ class Market (object):
 
     @staticmethod
     def commonCurrencyCode (currency):
-        return 'BTC' if currency == 'XBT' else currency
+        if currency == 'XBT':
+            return 'BTC'
+        if currency == 'BCC':
+            return 'BCH'
+        if currency == 'DRK':
+            return 'DASH'
+        return currency
 
     @staticmethod
     def extract_params (string):

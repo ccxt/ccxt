@@ -458,7 +458,13 @@ const Market = function (config) {
     }
 
     this.commonCurrencyCode = function (currency) {
-        return (currency === 'XBT') ? 'BTC' : currency
+        if (currency == 'XBT')
+            return 'BTC'
+        if (currency == 'BCC')
+            return 'BCH'
+        if (currency == 'DRK')
+            return 'DASH'
+        return currency
     }
 
     this.product = function (product) {
