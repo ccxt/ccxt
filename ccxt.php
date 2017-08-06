@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.84';
+$version = '1.2.85';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5361,9 +5361,7 @@ class bter extends Market {
             $ticker = $tickers[$id];
             $product = $this->products[$symbol];
             $result[$symbol] = $this->parse_ticker ($ticker, $product);
-            console.log ($id, 'done');
         }
-        console.log ($result);
         return $result;
     }
 
