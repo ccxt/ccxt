@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.86'
+__version__ = '1.2.87'
 
 # Python 2 & 3
 import base64
@@ -8674,7 +8674,7 @@ class hitbtc (Market):
             'type': type,
         }
         if type == 'limit':
-            order['price'] = str (price)
+            order['price'] = self.decimal (price)
         return self.tradingPostNewOrder (self.extend (order, params))
 
     def cancel_order (self, id):

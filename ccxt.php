@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.86';
+$version = '1.2.87';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9356,7 +9356,7 @@ class hitbtc extends Market {
             'type' => $type,
         );
         if ($type == 'limit')
-            $order['price'] = (string) $price;
+            $order['price'] = $this->decimal ($price);
         return $this->tradingPostNewOrder (array_merge ($order, $params));
     }
 
