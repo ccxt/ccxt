@@ -698,6 +698,8 @@ class _1broker (Market):
                     base = id
                     quote = 'USD'
                     symbol = base + '/' + quote
+                base = self_.commonCurrencyCode (base)
+                quote = self_.commonCurrencyCode (quote)
                 result.append ({
                     'id': id,
                     'symbol': symbol,

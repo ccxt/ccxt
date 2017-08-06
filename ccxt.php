@@ -828,6 +828,8 @@ class _1broker extends Market {
                     $quote = 'USD';
                     $symbol = $base . '/' . $quote;
                 }
+                $base = $this_->commonCurrencyCode ($base);
+                $quote = $this_->commonCurrencyCode ($quote);
                 $result[] = array (
                     'id' => $id,
                     'symbol' => $symbol,

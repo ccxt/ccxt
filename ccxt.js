@@ -644,8 +644,8 @@ var _1broker = {
                     quote = 'USD';
                     symbol = base + '/' + quote;
                 }
-                base = this.commonCurrencyCode (base);
-                quote = this.commonCurrencyCode (quote);
+                base = this_.commonCurrencyCode (base);
+                quote = this_.commonCurrencyCode (quote);
                 result.push ({
                     'id': id,
                     'symbol': symbol,
