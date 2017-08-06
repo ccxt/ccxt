@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.85';
+$version = '1.2.86';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
