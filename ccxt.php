@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.83';
+$version = '1.2.84';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -6612,7 +6612,6 @@ class coingi extends Market {
             'info' => $ticker,
         );
         return $ticker;
-
     }
 
     public function fetch_tickers () {
@@ -6641,10 +6640,11 @@ class coingi extends Market {
         }        
         $p = $this->product ($product);
         $symbol = $p['symbol'];
-        $ticker = $tickers[$symbol];
-        if (array_key_exists ($symbol, $tickers))
+        if (array_key_exists ($symbol, $tickers)) {
+            $ticker = $tickers[$symbol];
             return $this->parse_ticker ($ticker, $p);
-        throw new MarketError ($this->id . ' ' . $symbol . ' $ticker not found')
+        }
+        throw new MarketError ($this->id . ' ' . $symbol . ' $ticker not found');
     }
 
     public function fetch_trades ($product) {

@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.83'
+__version__ = '1.2.84'
 
 # Python 2 & 3
 import base64
@@ -6102,7 +6102,6 @@ class coingi (Market):
         }
         return ticker
 
-
     def fetch_tickers (self):
         response = self.currentGet24hourRollingAggregation ()
         result = {}
@@ -6126,8 +6125,8 @@ class coingi (Market):
             tickers[symbol] = ticker
         p = self.product (product)
         symbol = p['symbol']
-        ticker = tickers[symbol]
         if symbol in tickers:
+            ticker = tickers[symbol]
             return self.parse_ticker (ticker, p)
         raise MarketError (self.id + ' ' + symbol + ' ticker not found')
 
