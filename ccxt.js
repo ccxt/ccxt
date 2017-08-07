@@ -3448,6 +3448,8 @@ var bittrex = {
             let id = product['MarketName'];
             let base = product['MarketCurrency'];
             let quote = product['BaseCurrency'];
+            let base = this.commonCurrencyCode (base);
+            let quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
