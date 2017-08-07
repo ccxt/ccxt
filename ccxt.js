@@ -4235,6 +4235,8 @@ var btce = {
             quote = quote.toUpperCase ();
             if (base == 'DSH')
                 base = 'DASH';
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
