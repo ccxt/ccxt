@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.92'
+__version__ = '1.2.93'
 
 # Python 2 & 3
 import base64
@@ -4126,6 +4126,8 @@ class btce (Market):
             quote = quote.upper ()
             if base == 'DSH':
                 base = 'DASH'
+            base = self.commonCurrencyCode (base)
+            quote = self.commonCurrencyCode (quote)
             symbol = base + '/' + quote
             result.append ({
                 'id': id,
@@ -9139,6 +9141,8 @@ class jubi (Market):
             base = id.upper ()
             quote = 'CNY'
             symbol = base + '/' + quote
+            base = self.commonCurrencyCode (base)
+            quote = self.commonCurrencyCode (quote)
             result.append ({
                 'id': id,
                 'symbol': symbol,

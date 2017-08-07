@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.92';
+$version = '1.2.93';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -4493,6 +4493,8 @@ class btce extends Market {
             $quote = strtoupper ($quote);
             if ($base == 'DSH')
                 $base = 'DASH';
+            $base = $this->commonCurrencyCode ($base);
+            $quote = $this->commonCurrencyCode ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -9846,6 +9848,8 @@ class jubi extends Market {
             $base = strtoupper ($id);
             $quote = 'CNY';
             $symbol = $base . '/' . $quote;
+            $base = $this->commonCurrencyCode ($base);
+            $quote = $this->commonCurrencyCode ($quote);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
