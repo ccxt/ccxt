@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.91'
+__version__ = '1.2.92'
 
 # Python 2 & 3
 import base64
@@ -8555,9 +8555,11 @@ class hitbtc (Market):
             quote = product['currency']
             lot = float (product['lot'])
             step = float (product['step'])
+            base = self.commonCurrencyCode (base)
+            quote = self.commonCurrencyCode (quote)
             # looks like they now have it correct
             # if base == 'DSH':
-                # base = 'DASH'
+            #     base = 'DASH'
             symbol = base + '/' + quote
             result.append ({
                 'id': id,

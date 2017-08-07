@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.91';
+$version = '1.2.92';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9224,9 +9224,11 @@ class hitbtc extends Market {
             $quote = $product['currency'];
             $lot = floatval ($product['lot']);
             $step = floatval ($product['step']);
+            $base = $this->commonCurrencyCode ($base);
+            $quote = $this->commonCurrencyCode ($quote);
             // looks like they now have it correct
             // if ($base == 'DSH')
-                // $base = 'DASH';
+            //     $base = 'DASH';
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
