@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.89'
+__version__ = '1.2.90'
 
 # Python 2 & 3
 import base64
@@ -3379,6 +3379,8 @@ class bittrex (Market):
             id = product['MarketName']
             base = product['MarketCurrency']
             quote = product['BaseCurrency']
+            base = self.commonCurrencyCode (base)
+            quote = self.commonCurrencyCode (quote)
             symbol = base + '/' + quote
             result.append ({
                 'id': id,
