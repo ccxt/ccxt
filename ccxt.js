@@ -9456,6 +9456,8 @@ var jubi = {
             let base = id.toUpperCase ();
             let quote = 'CNY';
             let symbol = base + '/' + quote;
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
             result.push ({
                 'id': id,
                 'symbol': symbol,
