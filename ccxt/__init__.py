@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.93'
+__version__ = '1.2.94'
 
 # Python 2 & 3
 import base64
@@ -12549,6 +12549,8 @@ class yobit (Market):
             product = products['pairs'][id]
             symbol = id.upper ().replace ('_', '/')
             base, quote = symbol.split ('/')
+            base = self.commonCurrencyCode (base)
+            quote = self.commonCurrencyCode (quote)
             result.append ({
                 'id': id,
                 'symbol': symbol,
@@ -12738,6 +12740,8 @@ class yunbi (Market):
             id = product['id']
             symbol = product['name']
             base, quote = symbol.split ('/')
+            base = self.commonCurrencyCode (base)
+            quote = self.commonCurrencyCode (quote)
             result.append ({
                 'id': id,
                 'symbol': symbol,

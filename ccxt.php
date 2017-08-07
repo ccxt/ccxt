@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.93';
+$version = '1.2.94';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -13488,6 +13488,8 @@ class yobit extends Market {
             $product = $products['pairs'][$id];
             $symbol = str_replace ('_', '/', strtoupper ($id));
             list ($base, $quote) = explode ('/', $symbol);
+            $base = $this->commonCurrencyCode ($base);
+            $quote = $this->commonCurrencyCode ($quote);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -13688,6 +13690,8 @@ class yunbi extends Market {
             $id = $product['id'];
             $symbol = $product['name'];
             list ($base, $quote) = explode ('/', $symbol);
+            $base = $this->commonCurrencyCode ($base);
+            $quote = $this->commonCurrencyCode ($quote);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
