@@ -26,9 +26,6 @@ let proxies = [
         markets[id] = new (ccxt)[id] ({ verbose: false })
     })
 
-    // // move gdax to sandbox
-    // markets['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
-
     // load api keys from config
     let config = JSON.parse (fs.readFileSync ('./keys.json', 'utf8'))
 
