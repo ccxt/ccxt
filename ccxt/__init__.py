@@ -159,6 +159,7 @@ class Market (object):
     twofa      = False
     productsById = None
     products_by_id = None
+    substituteCommonCurrencyCodes = True
 
     def __init__ (self, config = {}):
 
@@ -359,6 +360,8 @@ class Market (object):
 
     @staticmethod
     def commonCurrencyCode (currency):
+        if not self.substituteCommonCurrencyCodes:
+            return currency
         if currency == 'XBT':
             return 'BTC'
         if currency == 'BCC':

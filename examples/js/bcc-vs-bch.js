@@ -23,7 +23,10 @@ let proxies = [
 
     // instantiate all markets
     ccxt.markets.forEach (id => {
-        markets[id] = new (ccxt)[id] ({ verbose: false })
+        markets[id] = new (ccxt)[id] ({
+            verbose: false,
+            substituteCommonCurrencyCodes: true,
+        })
     })
 
     // load api keys from config

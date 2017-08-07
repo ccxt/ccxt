@@ -463,6 +463,8 @@ const Market = function (config) {
     }
 
     this.commonCurrencyCode = function (currency) {
+        if (!this.substituteCommonCurrencyCodes)
+            return currency
         if (currency == 'XBT')
             return 'BTC'
         if (currency == 'BCC')
@@ -538,6 +540,7 @@ const Market = function (config) {
     this.verbose        = false
     this.userAgent      = false
     this.twofa          = false // two-factor authentication
+    this.substituteCommonCurrencyCodes = true
     this.yyyymmddhhmmss = timestamp => {
         let date = new Date (timestamp)
         let yyyy = date.getUTCFullYear ()

@@ -361,6 +361,7 @@ class Market {
         $this->productsById = null;
         $this->products_by_id = null;
         $this->userAgent = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
+        $this->substituteCommonCurrencyCodes = true;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -711,7 +712,9 @@ class Market {
         return $this->create_market_sell_order ($product, $amount, $params);
     }
 
-    public function commonCurrencyCode ($currency) { 
+    public function commonCurrencyCode ($currency) {
+        if (!$this->substituteCommonCurrencyCodes)
+            return $currency;
         if ($currency == 'XBT')
             return 'BTC';
         if ($currency == 'BCC')
