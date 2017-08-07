@@ -85,7 +85,7 @@ __all__ = markets + [
     'MarketNotAvailableError',
 ]
 
-__version__ = '1.2.90'
+__version__ = '1.2.91'
 
 # Python 2 & 3
 import base64
@@ -4849,6 +4849,8 @@ class bter (Market):
             id = product['pair']
             base = product['curr_a']
             quote = product['curr_b']
+            base = self.commonCurrencyCode (base)
+            quote = self.commonCurrencyCode (quote)
             symbol = base + '/' + quote
             result.append ({
                 'id': id,

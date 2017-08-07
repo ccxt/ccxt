@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.90';
+$version = '1.2.91';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5266,6 +5266,8 @@ class bter extends Market {
             $id = $product['pair'];
             $base = $product['curr_a'];
             $quote = $product['curr_b'];
+            $base = $this->commonCurrencyCode ($base);
+            $quote = $this->commonCurrencyCode ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
