@@ -359,18 +359,6 @@ class Market (object):
         return Market.sort_by (l, key, descending)
 
     @staticmethod
-    def commonCurrencyCode (currency):
-        if not self.substituteCommonCurrencyCodes:
-            return currency
-        if currency == 'XBT':
-            return 'BTC'
-        if currency == 'BCC':
-            return 'BCH'
-        if currency == 'DRK':
-            return 'DASH'
-        return currency
-
-    @staticmethod
     def extract_params (string):
         return re.findall (r'{([a-zA-Z0-9_]+?)}', string)
 
@@ -535,6 +523,17 @@ class Market (object):
 
     def nonce (self):
         return Market.seconds ()
+
+    def commonCurrencyCode (currency):
+        if not self.substituteCommonCurrencyCodes:
+            return currency
+        if currency == 'XBT':
+            return 'BTC'
+        if currency == 'BCC':
+            return 'BCH'
+        if currency == 'DRK':
+            return 'DASH'
+        return currency
 
     def set_products (self, products):
         values = products
