@@ -10,7 +10,7 @@ class DDoSProtectionError        extends NetworkError {}
 class TimeoutError               extends NetworkError {}
 class MarketNotAvailableError    extends NetworkError {}
 
-$version = '1.2.88';
+$version = '1.2.89';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5360,7 +5360,7 @@ class bter extends Market {
         $ids = array_keys ($tickers);
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            list ($baseId, $quoteId) = explode ('_', $id)
+            list ($baseId, $quoteId) = explode ('_', $id);
             $base = strtoupper ($baseId);
             $quote = strtoupper ($quoteId);
             $symbol = $base . '/' . $quote;
