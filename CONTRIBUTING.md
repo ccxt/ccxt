@@ -31,35 +31,36 @@ Below are the rules for contributing to the ccxt library codebase.
 The contents of the repository are structured as follows:
 
 ```shell
-/                  # root directory aka npm module/package folder for Node.js
-/.babelrc          # babel config used for making the ES5 version of the library
-/.eslintrc         # linter
-/.gitignore        # ignore it
-/.travis.yml       # a YAML config for travis-ci (continuous integration)
-/CONTRIBUTING.md   # this file
-/LICENSE.txt       # MIT
-/MANIFEST.in       # a PyPI-package file listing extra package files (license, configs, etc...)
-/README.md         # master markdown for GitHub, npmjs.com, npms.io, yarn and others
-/README.rst        # slave reStructuredText for PyPI
-/ccxt/             # Python ccxt module/package folder for PyPI
-/ccxt/__init__.py  # slave Python-version of the ccxt library
-/ccxt.es5.js       # slave JavaScript ES5 version of the ccxt library
-/ccxt.js           # master JS ES6 version of the ccxt library
-/ccxt.php          # slave PHP version of the ccxt library
-/countries.js      # a list of ISO 2-letter country codes in JS for testing, not very important
-/examples/         # self-descripting
-/examples/js       # ...
-/examples/php      # ...
-/examples/py       # ...
-/export-markets.js # used to create tables of markets in the docs during the build
-/package.json      # npm package file, also used in setup.py for version single-sourcing
-/setup.cfg         # wheels config file for the Python package
-/test.js           # a test in JavaScript that runs through all markets and calls basic APIs
-/test.php          # same in PHP
-/test.py           # same in Python
-/tox.ini           # tox config for Python
-/transpile.js      # the transpilation script
-/vss.js            # reads single-sourced version from package.json and writes it everywhere
+/                    # root directory aka npm module/package folder for Node.js
+/.babelrc            # babel config used for making the ES5 version of the library
+/.eslintrc           # linter
+/.gitignore          # ignore it
+/.npmignore          # ignore it npm-style
+/.travis.yml         # a YAML config for travis-ci (continuous integration)
+/CONTRIBUTING.md     # this file
+/LICENSE.txt         # MIT
+/MANIFEST.in         # a PyPI-package file listing extra package files (license, configs, etc...)
+/README.md           # master markdown for GitHub, npmjs.com, npms.io, yarn and others
+/README.rst          # slave reStructuredText for PyPI
+/ccxt/               # Python ccxt module/package folder for PyPI
+/ccxt/__init__.py    # slave Python-version of the ccxt library
+/ccxt.es5.js         # slave JavaScript ES5 version of the ccxt library
+/ccxt.js             # master JS ES6 version of the ccxt library
+/ccxt.php            # slave PHP version of the ccxt library
+/countries.js        # a list of ISO 2-letter country codes in JS for testing, not very important
+/examples/           # self-descripting
+/examples/js         # ...
+/examples/php        # ...
+/examples/py         # ...
+/export-exchanges.js # used to create tables of exchanges in the docs during the build
+/package.json        # npm package file, also used in setup.py for version single-sourcing
+/setup.cfg           # wheels config file for the Python package
+/test.js             # a test in JavaScript that runs through all exchanges and calls basic APIs
+/test.php            # same in PHP
+/test.py             # same in Python
+/tox.ini             # tox config for Python
+/transpile.js        # the transpilation script
+/vss.js              # reads single-sourced version from package.json and writes it everywhere
 ```
 
 ### Multilanguage Support
@@ -100,7 +101,7 @@ Read [Master/Slave Code](https://github.com/kroitor/ccxt/blob/master/CONTRIBUTIN
 
 Run the standard `npm test` command to see test results and code coverage analytics. The coverage analysis is also available in HTML (see the generated `coverage` folder). A transpilation is triggered automatically by the `npm test` command, so there is no need to execute the `npm run build` manually before.
 
-To speed up test execution you can use the `npm run fasttest` command. It will only test the master `ccxt.js` file, and thus does not require the `npm run build` to be executed first. You can also pass a market name and an symbol (optional), to test a part of code or a single market. A partial test is usually many times faster than the full test:
+To speed up test execution you can use the `npm run fasttest` command. It will only test the master `ccxt.js` file, and thus does not require the `npm run build` to be executed first. You can also pass an exchange name and an symbol (optional), to test a part of code or a single exchange. A partial test is usually many times faster than the full test:
 
 ```bash
 npm test                         # runs the full test
@@ -144,15 +145,15 @@ e   │   |  common stuff            |
 a   │   |                          |  
 d  ─┤   //-------------------------+ ← thin horizontal ruler comment is used to separate code blocks 
 e   │   |                          |
-r   │   |  base market class       |   above this first bold line all code is language-specific
+r   │   |  base exchange class     |   above this first bold line all code is language-specific
     ╰   |                          |                    ↑
         //=========================+ ← first 'bold' horizontal ruler comment
     ╭   |                          |                    ↓
-    │   |  derived market class A  |   below this line all code can be ported to other languages
+    │   | derived exchange class A |   below this line all code can be ported to other languages
     │   |                          |
 b   │   //-------------------------+ ← thin horizontal ruler used to separate derived classes
 o   │   |                          |
-d  ─┤   |  derived market class B  |
+d  ─┤   | derived exchange class B |
 y   │   |                          |
     │   //-------------------------+
     │   |                          |
@@ -193,7 +194,7 @@ Key notes on the structure of the library file:
 
 ```UNDER CONSTRUCTION```
 
-### Derived Market Classes
+### Derived Exchange Classes
 
 Below are key notes on how to keep the JS code transpileable:
 
@@ -210,15 +211,15 @@ Below are key notes on how to keep the JS code transpileable:
 - do not use conditional statements that are too complex (heavy if-bracketing)
 - do not use heavy ternary conditionals
 - put an empty line between each of your methods
-- don't put empty lines in schema in the beginning of each market
+- don't put empty lines in schema in the beginning of each exchange
 - don't put empty lines inside your methods
 - avoid mixed comment styles, use double-slash `//` in JS for line comments
 - avoid multi-line comments
 - ...
 
-**If you want to add (support for) another market or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn by example, take a look at how same things are implemented in other markets and try to copy the code flow and style.**
+**If you want to add (support for) another exchange or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn by example, take a look at how same things are implemented in other exchanges and try to copy the code flow and style.**
 
-The basic JSON-skeleton for a new market integration is as follows:
+The basic JSON-skeleton for a new exchange integration is as follows:
 
 ```JSON
 {

@@ -1,5 +1,14 @@
 # Сhangelog
 
+## Version 1.3.0 2017-08-08
+
+```diff
+- Version 1.3.x is backward incompatible with previous versions due to a major renaming and refactoring of the code base
+```
+
+- Renamed basic elements for consistency, this change is backward-incompatible! [issue #89](https://github.com/kroitor/ccxt/issues/89)
+  - renamed (M|m)arket[s] → (E|e)xchange[s] everywhere in code, tests, examples and docs
+  - renamed (P|p)roduct[s] → (M|m)arket[s] everywhere as well
 - Added optional `substituteCommonCurrencyCodes` exchange parameter (true by default)
 - Initial Bitcoin Cash support (preferred BCH to BCC), [issue #83](https://github.com/kroitor/ccxt/issues/80)
 - Added additional extra params to fetchOrderBook to control the level of order book aggregation detail

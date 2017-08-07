@@ -25,7 +25,7 @@ Current featurelist:
 -  support for many exchange markets, even more upcoming soon
 -  fully implemented public and private APIs for all exchanges
 -  all currencies, altcoins and symbols, prices, order books, trades, tickers, etc...
--  optional normalised data for cross-market or cross-currency analytics and arbitrage
+-  optional normalised data for cross-exchange or cross-currency analytics and arbitrage
 -  an out-of-the box unified all-in-one API extremely easy to integrate
 
 `ccxt on GitHub <https://github.com/kroitor/ccxt>`__ | Install | Usage | `Manual <https://github.com/kroitor/ccxt/wiki>`__ | `Examples <https://github.com/kroitor/ccxt/tree/master/examples>`__ | Contributing | **Public Offer**
@@ -179,7 +179,7 @@ The ccxt library currently supports the following 70 cryptocurrency exchange mar
 | zaif            | `Zaif <https://zaif.jp>`__                                | 1     | `API <http://techbureau-api-document.readthedocs.io/ja/latest/index.html>`__                     | Japan                                      |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 
-The list above is updated frequently, new crypto markets, altcoin exchanges, bug fixes, API endpoints are introduced and added on regular basis. See the `Manual <https://github.com/kroitor/ccxt/wiki>`__ for details. If you don't find a cryptocurrency exchange market in the list above and/or want another market to be added, post or send us a link to it by opening an issue here on GitHub or via email.
+The list above is updated frequently, new crypto markets, altcoin exchanges, bug fixes, API endpoints are introduced and added on regular basis. See the `Manual <https://github.com/kroitor/ccxt/wiki>`__ for details. If you don't find a cryptocurrency exchange market in the list above and/or want another exchange to be added, post or send us a link to it by opening an issue here on GitHub or via email.
 
 The library is under MIT license, that means it's absolutely free for any developer to build commercial and opensource software on top of it, but use it at your own risk with no warranties, as is.
 
@@ -220,7 +220,7 @@ Node version of the ccxt library requires `crypto-js <https://www.npmjs.com/pack
 .. code:: javascript
 
     var ccxt = require ('ccxt')
-    console.log (ccxt.markets) // print all available markets
+    console.log (ccxt.exchanges) // print all available exchanges
 
 Python
 ~~~~~~
@@ -236,7 +236,7 @@ Python version of the ccxt library does not require any additional dependencies 
 .. code:: python
 
     import ccxt
-    print (ccxt.markets) # print a list of all available market classes
+    print (ccxt.exchanges) # print a list of all available exchange classes
 
 PHP
 ~~~
@@ -254,7 +254,7 @@ The ccxt library in PHP requires common PHP modules:
 .. code:: php
 
     include "ccxt.php";
-    var_dump (\cxxt\Market::$markets); // print a list of all available market classes
+    var_dump (\cxxt\Exchange::$exchanges); // print a list of all available exchange classes
 
 Web Browsers
 ~~~~~~~~~~~~
@@ -283,7 +283,7 @@ Finally, add links to CryptoJS components and ccxt to your HTML page code:
 
     <script type="text/javascript" src="ccxt.js"></script>
     <script type="text/javascript">
-        // print all available markets
+        // print all available exchanges
         document.addEventListener ('DOMContentLoaded', () => console.log (ccxt))
     </script>
 
@@ -306,7 +306,7 @@ Public APIs include the following:
 -  OHLC(V) for charting
 -  other public endpoints
 
-For trading with private APIs you need to obtain API keys from/to exchange markets. It often means registering with exchange markets and creating API keys with your account. Most exchanges require personal info or identification. Some kind of verification may be necessary as well. If you want to trade you need to register yourself, this library will not create accounts or API keys for you. Some exchange APIs expose interface methods for registering an account from within the code itself, but most of exchanges don't. You have to sign up and create API keys with their websites.
+For trading with private APIs you need to obtain API keys from/to exchange markets. It often means registering with exchanges and creating API keys with your account. Most exchanges require personal info or identification. Some kind of verification may be necessary as well. If you want to trade you need to register yourself, this library will not create accounts or API keys for you. Some exchange APIs expose interface methods for registering an account from within the code itself, but most of exchanges don't. You have to sign up and create API keys with their websites.
 
 Private APIs allow the following:
 
@@ -326,8 +326,8 @@ The ccxt library supports both camelcase notation (preferred in JavaScript) and 
 ::
 
     // both of these notations work in JavaScript/Python/PHP
-    market.methodName ()  // camelcase pseudocode
-    market.method_name () // underscore pseudocode
+    exchange.methodName ()  // camelcase pseudocode
+    exchange.method_name () // underscore pseudocode
 
 See the `Manual <https://github.com/kroitor/ccxt/wiki>`__ for more details.
 
@@ -349,11 +349,11 @@ JavaScript
             secret: 'YOUR_SECRET_PRIVATE_KEY',
         })
 
-        let krakenProducts = await kraken.loadProducts ()
+        let krakenMarkets = await kraken.loadMarkets ()
 
-        console.log (kraken.id,    krakenProducts)
-        console.log (bitfinex.id,  await bitfinex.loadProducts  ())
-        console.log (huobi.id,     await huobi.loadProducts ())
+        console.log (kraken.id,    krakenMarkets)
+        console.log (bitfinex.id,  await bitfinex.loadMarkets  ())
+        console.log (huobi.id,     await huobi.loadMarkets ())
 
         console.log (kraken.id,    await kraken.fetchOrderBook (kraken.symbols[0]))
         console.log (bitfinex.id,  await bitfinex.fetchTicker ('BTC/USD'))
@@ -386,11 +386,11 @@ Python
         'secret': 'YOUR_SECRET_PRIVATE_KEY',
     })
 
-    hitbtc_products = hitbtc.load_products ()
+    hitbtc_markets = hitbtc.load_markets ()
 
-    print (hitbtc.id, hitbtc_products)
-    print (bitmex.id, bitmex.load_products ())
-    print (huobi.id,  huobi.load_products ())
+    print (hitbtc.id, hitbtc_markets)
+    print (bitmex.id, bitmex.load_markets ())
+    print (huobi.id,  huobi.load_markets ())
 
     print (hitbtc.fetch_order_book (hitbtc.symbols[0]))
     print (bitmex.fetch_ticker ('BTC/USD'))
@@ -419,11 +419,11 @@ PHP
         'secret' => 'YOUR_SECRET_PRIVATE_KEY',
     ));
 
-    $poloniex_products = $poloniex->load_products ();
+    $poloniex_markets = $poloniex->load_markets ();
 
-    var_dump ($poloniex_products);
-    var_dump ($bittrex->load_products ());
-    var_dump ($quoine->load_products ());
+    var_dump ($poloniex_markets);
+    var_dump ($bittrex->load_markets ());
+    var_dump ($quoine->load_markets ());
 
     var_dump ($poloniex->fetch_order_book ($poloniex->symbols[0]));
     var_dump ($bittrex->fetch_trades ('BTC/USD'));

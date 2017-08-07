@@ -1,6 +1,6 @@
 # coding=utf-8
 
-markets = [
+exchanges = [
     '_1broker',
     '_1btcxe',
     'anxpro',
@@ -73,16 +73,16 @@ markets = [
     'zaif',
 ]
 
-__all__ = markets + [
-    'markets',
-    'Market',
+__all__ = exchanges + [
+    'exchanges',
+    'Exchange',
     'CCXTError',
-    'MarketError',
+    'ExchangeError',
     'AuthenticationError',
     'NetworkError',
     'DDoSProtectionError',
     'TimeoutError',
-    'MarketNotAvailableError',
+    'ExchangeNotAvailableError',
 ]
 
 __version__ = '1.2.95'
@@ -122,7 +122,7 @@ except NameError:
 class CCXTError (Exception):
     pass
 
-class MarketError (CCXTError):
+class ExchangeError (CCXTError):
     pass
 
 class AuthenticationError (CCXTError):
@@ -137,17 +137,17 @@ class DDoSProtectionError (NetworkError):
 class TimeoutError (NetworkError):
     pass
 
-class MarketNotAvailableError (NetworkError):
+class ExchangeNotAvailableError (NetworkError):
     pass
 
-class Market (object):
+class Exchange (object):
 
     id         = None
     rateLimit  = 2000  # milliseconds = seconds * 1000
     timeout    = 10000 # milliseconds = seconds * 1000
     userAgent  = False
     verbose    = False
-    products   = None
+    markets   = None
     symbols    = None
     currencies = None
     tickers    = None
@@ -157,8 +157,8 @@ class Market (object):
     password   = ''
     uid        = ''
     twofa      = False
-    productsById = None
-    products_by_id = None
+    marketsById = None
+    markets_by_id = None
     substituteCommonCurrencyCodes = True
 
     def __init__ (self, config = {}):
@@ -181,7 +181,7 @@ class Market (object):
                         uppercaseMethod  = method.upper ()
                         lowercaseMethod  = method.lower ()
                         camelcaseMethod  = lowercaseMethod.capitalize ()
-                        camelcaseSuffix  = ''.join ([ Market.capitalize (x) for x in splitPath ])
+                        camelcaseSuffix  = ''.join ([ Exchange.capitalize (x) for x in splitPath ])
                         lowercasePath    = [ x.strip ().lower () for x in splitPath ]
                         underscoreSuffix = '_'.join ([ k for k in lowercasePath if len (k) ])
 
@@ -191,15 +191,15 @@ class Market (object):
                         if underscoreSuffix.find (lowercaseMethod) == 0:
                             underscoreSuffix = underscoreSuffix[len (lowercaseMethod):]
 
-                        camelcase  = apiType + camelcaseMethod + Market.capitalize (camelcaseSuffix)
+                        camelcase  = apiType + camelcaseMethod + Exchange.capitalize (camelcaseSuffix)
                         underscore = apiType + '_' + lowercaseMethod + '_' + underscoreSuffix.lower ()
 
                         f = functools.partial (self.request, url, apiType, uppercaseMethod)
                         setattr (self, camelcase,  f)
                         setattr (self, underscore, f)
 
-        if self.products:
-            self.set_products (self.products)
+        if self.markets:
+            self.set_markets (self.markets)
 
     def raise_error (self, exception_type, url, method = 'GET', error = None, details = None):
         details = details if details else ''
@@ -249,7 +249,7 @@ class Market (object):
         except socket.timeout as e:
             raise TimeoutError (' '.join ([ self.id, method, url, 'request timeout' ]))
         except ssl.SSLError as e:
-            self.raise_error (MarketNotAvailableError, url, method, e)
+            self.raise_error (ExchangeNotAvailableError, url, method, e)
         except _urllib.HTTPError as e:
             error = None
             details = text if text else None
@@ -257,7 +257,7 @@ class Market (object):
                 error = DDoSProtectionError
             elif e.code in [500, 501, 502, 404, 525]:
                 details = e.read ().decode ('utf-8') if e else None
-                error = MarketNotAvailableError
+                error = ExchangeNotAvailableError
             elif e.code in [400, 403, 405, 503]:
                 # special case to detect ddos protection
                 reason = e.read ().decode ('utf-8')
@@ -265,14 +265,14 @@ class Market (object):
                 if ddos_protection:
                     error = DDoSProtectionError
                 else:
-                    error = MarketNotAvailableError
+                    error = ExchangeNotAvailableError
                     details = '(possible reasons: ' + ', '.join ([
                         'invalid API keys',
                         'bad or old nonce',
-                        'market down or offline', 
+                        'exchange is down or offline', 
                         'on maintenance',
                         'DDoS protection',
-                        'rate-limiting in effect',
+                        'rate-limiting',
                         reason,
                     ]) + ')'
             elif e.code in [408, 504]:
@@ -281,7 +281,7 @@ class Market (object):
                 error = AuthenticationError
             self.raise_error (error, url, method, e, details)
         except _urllib.URLError as e:
-            self.raise_error (MarketNotAvailableError, url, method, e)        
+            self.raise_error (ExchangeNotAvailableError, url, method, e)        
         encoding = response.info ().get ('Content-Encoding')
         if encoding in ('gzip', 'x-gzip', 'deflate'):
             if encoding == 'deflate':
@@ -299,12 +299,12 @@ class Market (object):
             return json.loads (body)
         except Exception as e:
             ddos_protection = re.search ('(cloudflare|incapsula)', body, flags = re.IGNORECASE)
-            market_not_available = re.search ('(offline|unavailable|busy|maintenance|maintenancing)', body, flags = re.IGNORECASE)
+            exchange_not_available = re.search ('(offline|unavailable|busy|maintenance|maintenancing)', body, flags = re.IGNORECASE)
             if ddos_protection:
                 raise DDoSProtectionError (' '.join ([ self.id, method, url, body ]))
-            if market_not_available:
-                message = 'market downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
-                raise MarketNotAvailableError (' '.join ([
+            if exchange_not_available:
+                message = 'exchange downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
+                raise ExchangeNotAvailableError (' '.join ([
                     self.id,
                     method,
                     url,                
@@ -339,7 +339,7 @@ class Market (object):
     def index_by (array, key):
         result = {}    
         if type (array) is dict:
-            array = list (Market.keysort (array).items ())
+            array = list (Exchange.keysort (array).items ())
         for element in array:
             if (key in element) and (element[key] is not None):
                 k = element[key]
@@ -348,7 +348,7 @@ class Market (object):
 
     @staticmethod
     def indexBy (l, key):
-        return Market.index_by (l, key)
+        return Exchange.index_by (l, key)
 
     @staticmethod
     def sort_by (l, key, descending = False):
@@ -356,7 +356,7 @@ class Market (object):
 
     @staticmethod
     def sortBy (l, key, descending = False):
-        return Market.sort_by (l, key, descending)
+        return Exchange.sort_by (l, key, descending)
 
     @staticmethod
     def extract_params (string):
@@ -370,11 +370,11 @@ class Market (object):
 
     @staticmethod
     def extractParams (string):
-        return Market.extract_params (string)
+        return Exchange.extract_params (string)
 
     @staticmethod
     def implodeParams (string, params):
-        return Market.implode_params (string, params)
+        return Exchange.implode_params (string, params)
 
     @staticmethod
     def omit (d, *args):
@@ -401,27 +401,27 @@ class Market (object):
 
     @staticmethod
     def s ():
-        return Market.seconds ()
+        return Exchange.seconds ()
     
     @staticmethod
     def sec ():
-        return Market.seconds ()
+        return Exchange.seconds ()
     
     @staticmethod
     def ms ():
-        return Market.milliseconds ()
+        return Exchange.milliseconds ()
     
     @staticmethod
     def msec ():
-        return Market.milliseconds ()
+        return Exchange.milliseconds ()
     
     @staticmethod
     def us ():
-        return Market.microseconds ()
+        return Exchange.microseconds ()
     
     @staticmethod
     def usec ():
-        return Market.microseconds ()
+        return Exchange.microseconds ()
     
     @staticmethod
     def seconds ():
@@ -497,16 +497,16 @@ class Market (object):
 
     @staticmethod
     def base64urlencode (s):
-        return Market.decode (base64.urlsafe_b64encode (s)).replace ('=', '')
+        return Exchange.decode (base64.urlsafe_b64encode (s)).replace ('=', '')
 
     @staticmethod
     def jwt (request, secret, algorithm = hashlib.sha256, alg = 'HS256'):
-        header = Market.encode (Market.json ({ 'alg': alg, 'typ': 'JWT' }))
-        encodedHeader = Market.base64urlencode (header)
-        encodedData = Market.base64urlencode (Market.encode (Market.json (request)))
+        header = Exchange.encode (Exchange.json ({ 'alg': alg, 'typ': 'JWT' }))
+        encodedHeader = Exchange.base64urlencode (header)
+        encodedData = Exchange.base64urlencode (Exchange.encode (Exchange.json (request)))
         token = encodedHeader + '.' + encodedData
-        hmac = Market.hmac (Market.encode (token), Market.encode (secret), algorithm, 'binary')
-        signature = Market.base64urlencode (hmac)
+        hmac = Exchange.hmac (Exchange.encode (token), Exchange.encode (secret), algorithm, 'binary')
+        signature = Exchange.base64urlencode (hmac)
         return token + '.' + signature
 
     @staticmethod
@@ -522,7 +522,7 @@ class Market (object):
         return string.decode ()
 
     def nonce (self):
-        return Market.seconds ()
+        return Exchange.seconds ()
 
     def commonCurrencyCode (self, currency):
         if not self.substituteCommonCurrencyCodes:
@@ -535,102 +535,102 @@ class Market (object):
             return 'DASH'
         return currency
 
-    def set_products (self, products):
-        values = products
+    def set_markets (self, markets):
+        values = markets
         if type (values) is dict:
-            values = list (products.values ())
-        self.products = self.indexBy (values, 'symbol')
-        self.products_by_id = Market.indexBy (values, 'id')
-        self.productsById = self.products_by_id
-        self.symbols = sorted (list (self.products.keys ()))
-        base = self.pluck ([product for product in values if 'base' in product], 'base')
-        quote = self.pluck ([product for product in values if 'quote' in product], 'quote')
+            values = list (markets.values ())
+        self.markets = self.indexBy (values, 'symbol')
+        self.markets_by_id = Exchange.indexBy (values, 'id')
+        self.marketsById = self.markets_by_id
+        self.symbols = sorted (list (self.markets.keys ()))
+        base = self.pluck ([market for market in values if 'base' in market], 'base')
+        quote = self.pluck ([market for market in values if 'quote' in market], 'quote')
         self.currencies = sorted (self.unique (base + quote))
-        return self.products
+        return self.markets
 
-    def setProducts (self, products):
-        return self.set_products  (products)
+    def setMarkets (self, markets):
+        return self.set_markets  (markets)
 
-    def load_products (self, reload = False):
+    def load_markets (self, reload = False):
         if not reload:
-            if self.products:
-                if not self.products_by_id:
-                    return self.set_products (self.products)
-                return self.products
-        products = self.fetch_products ()
-        return self.set_products (products)
+            if self.markets:
+                if not self.markets_by_id:
+                    return self.set_markets (self.markets)
+                return self.markets
+        markets = self.fetch_markets ()
+        return self.set_markets (markets)
 
-    def loadProducts  (self, reload = False):
-        return self.load_products  ()
+    def loadMarkets  (self, reload = False):
+        return self.load_markets  ()
 
-    def fetch_products (self):
-        return self.products
+    def fetch_markets (self):
+        return self.markets
     
-    def fetchProducts (self):
-        return self.fetch_products ()
+    def fetchMarkets (self):
+        return self.fetch_markets ()
 
     def fetch_tickers (self):
-        raise MarketError (self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
+        raise ExchangeError (self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
 
     def fetchTickers (self):
         return self.fetch_tickers ()
 
-    def product (self, product):
-        isString = isinstance (product, basestring)
-        if isString and self.products and (product in self.products):
-            return self.products [product]
-        return product
+    def market (self, market):
+        isString = isinstance (market, basestring)
+        if isString and self.markets and (market in self.markets):
+            return self.markets [market]
+        return market
 
-    def product_id (self, product):
-        p = self.product (product)
-        return p['id'] if type (p) is dict else product
+    def market_id (self, market):
+        p = self.market (market)
+        return p['id'] if type (p) is dict else market
 
-    def productId  (self, product):
-        return self.product_id (product)
+    def marketId  (self, market):
+        return self.market_id (market)
 
-    def symbol (self, product):
-        p = self.product (product)
-        return p['symbol'] if type (p) is dict else product
+    def symbol (self, market):
+        p = self.market (market)
+        return p['symbol'] if type (p) is dict else market
 
     def fetchBalance (self):
         return self.fetch_balance ()
     
-    def fetchOrderBook (self, product): 
-        return self.fetch_order_book (product)
+    def fetchOrderBook (self, market): 
+        return self.fetch_order_book (market)
     
-    def fetchTicker (self, product):
-        return self.fetch_ticker (product)
+    def fetchTicker (self, market):
+        return self.fetch_ticker (market)
     
-    def fetchTrades (self, product): 
-        return self.fetch_trades (product)
+    def fetchTrades (self, market): 
+        return self.fetch_trades (market)
 
-    def create_limit_buy_order (self, product, amount, price, params = {}):
-        return self.create_order (product, 'limit', 'buy', amount, price, params)
+    def create_limit_buy_order (self, market, amount, price, params = {}):
+        return self.create_order (market, 'limit', 'buy', amount, price, params)
 
-    def create_limit_sell_order (self, product, amount, price, params = {}):
-        return self.create_order (product, 'limit', 'sell', amount, price, params)
+    def create_limit_sell_order (self, market, amount, price, params = {}):
+        return self.create_order (market, 'limit', 'sell', amount, price, params)
 
-    def create_market_buy_order (self, product, amount, params = {}):
-        return self.create_order (product, 'market', 'buy', amount, None, params)
+    def create_market_buy_order (self, market, amount, params = {}):
+        return self.create_order (market, 'market', 'buy', amount, None, params)
 
-    def create_market_sell_order (self, product, amount, params = {}):
-        return self.create_order (product, 'market', 'sell', amount, None, params)
+    def create_market_sell_order (self, market, amount, params = {}):
+        return self.create_order (market, 'market', 'sell', amount, None, params)
 
-    def createLimitBuyOrder (self, product, amount, price, params = {}):
-        return self.create_limit_buy_order (product, amount, price, params)
+    def createLimitBuyOrder (self, market, amount, price, params = {}):
+        return self.create_limit_buy_order (market, amount, price, params)
 
-    def createLimitSellOrder (self, product, amount, price, params = {}):
-        return self.create_limit_sell_order (product, amount, price, params)
+    def createLimitSellOrder (self, market, amount, price, params = {}):
+        return self.create_limit_sell_order (market, amount, price, params)
 
-    def createMarketBuyOrder (self, product, amount, params = {}): 
-        return self.create_market_buy_order (product, amount, params)
+    def createMarketBuyOrder (self, market, amount, params = {}): 
+        return self.create_market_buy_order (market, amount, params)
 
-    def createMarketSellOrder (self, product, amount, params = {}):
-        return self.create_market_sell_order (product, amount, params)
+    def createMarketSellOrder (self, market, amount, params = {}):
+        return self.create_market_sell_order (market, amount, params)
 
 #==============================================================================
 
-class _1broker (Market):
+class _1broker (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -681,23 +681,23 @@ class _1broker (Market):
         categories = self.privateGetMarketCategories ()
         return categories['response']
 
-    def fetch_products (self):
+    def fetch_markets (self):
         self_ = self # workaround for Babel bug (not passing `self` to _recursive() call)
         categories = self.fetchCategories ()
         result = []
         for c in range (0, len (categories)):
             category = categories[c]
-            products = self_.privateGetMarketList ({
+            markets = self_.privateGetMarketList ({
                 'category': category.lower (),
             })
-            for p in range (0, len (products['response'])):
-                product = products['response'][p]
-                id = product['symbol']
+            for p in range (0, len (markets['response'])):
+                market = markets['response'][p]
+                id = market['symbol']
                 symbol = None
                 base = None
                 quote = None
                 if (category == 'FOREX') or (category == 'CRYPTO'):
-                    symbol = product['name']
+                    symbol = market['name']
                     parts = symbol.split ('/')
                     base = parts[0]
                     quote = parts[1]
@@ -712,12 +712,12 @@ class _1broker (Market):
                     'symbol': symbol,
                     'base': base,
                     'quote': quote,
-                    'info': product,
+                    'info': market,
                 })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         balance = self.privateGetUserOverview ()
         response = balance['response']
         result = { 'info': response }
@@ -732,10 +732,10 @@ class _1broker (Market):
         result['BTC']['total'] = result['BTC']['free']
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         response = self.privateGetMarketQuotes (self.extend ({
-            'symbols': self.product_id (product),
+            'symbols': self.market_id (market),
         }, params))
         orderbook = response['response'][0]
         timestamp = self.parse8601 (orderbook['updated'])
@@ -750,14 +750,14 @@ class _1broker (Market):
             'asks': [ ask ],
         }
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
         result = self.privateGetMarketBars ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
             'resolution': 60,
             'limit': 1,
         })
-        orderbook = self.fetchOrderBook (product)
+        orderbook = self.fetchOrderBook (market)
         ticker = result['response'][0]
         timestamp = self.parse8601 (ticker['date'])
         return {
@@ -779,10 +779,10 @@ class _1broker (Market):
             'quoteVolume': None,
         }
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         order = {
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
             'margin': amount,
             'direction': 'short' if (side == 'sell') else 'long',
             'leverage': 1,
@@ -795,7 +795,7 @@ class _1broker (Market):
         return self.privateGetOrderCreate (self.extend (order, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privatePostOrderCancel ({ 'order_id': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
@@ -807,15 +807,15 @@ class _1broker (Market):
         response = self.fetch (url, method)
         if 'warning' in response:
             if response['warning']:
-                raise MarketError (self.id + ' Warning: ' + response['warning_message'])
+                raise ExchangeError (self.id + ' Warning: ' + response['warning_message'])
         if 'error' in response:
             if response['error']:
-                raise MarketError (self.id + ' Error: ' + response['error_code'] + response['error_message'])
+                raise ExchangeError (self.id + ' Error: ' + response['error_code'] + response['error_message'])
         return response
 
 #------------------------------------------------------------------------------
 
-class cryptocapital (Market):
+class cryptocapital (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -877,9 +877,9 @@ class cryptocapital (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
+    def fetch_order_book (self, market, params = {}):
         response = self.publicGetOrderBook (self.extend ({
-            'currency': self.product_id (product),
+            'currency': self.market_id (market),
         }, params))
         orderbook = response['order-book']
         timestamp = self.milliseconds ()
@@ -903,9 +903,9 @@ class cryptocapital (Market):
                 result[key].append ([ price, amount, timestamp ])
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         response = self.publicGetStats ({
-            'currency': self.product_id (product),
+            'currency': self.market_id (market),
         })
         ticker = response['stats']
         timestamp = self.milliseconds ()
@@ -928,16 +928,16 @@ class cryptocapital (Market):
             'quoteVolume': float (ticker['total_btc_traded']),
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.publicGetTransactions ({
-            'currency': self.product_id (product),
+            'currency': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         order = {
             'side': side,
             'type': type,
-            'currency': self.product_id (product),
+            'currency': self.market_id (market),
             'amount': amount,
         }
         if type == 'limit':
@@ -949,7 +949,7 @@ class cryptocapital (Market):
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         if self.id == 'cryptocapital':
-            raise MarketError (self.id + ' is an abstract base API for _1btcxe')
+            raise ExchangeError (self.id + ' is an abstract base API for _1btcxe')
         url = self.urls['api'] + '/' + path
         if type == 'public':
             if params:
@@ -970,7 +970,7 @@ class cryptocapital (Market):
                 error = response['errors'][e]
                 errors.append (error['code'] + ': ' + error['message'])
             errors = ' '.join (errors)
-            raise MarketError (self.id + ' ' + errors)
+            raise ExchangeError (self.id + ' ' + errors)
         return self.fetch (url, method, headers, body)
 
 #------------------------------------------------------------------------------
@@ -989,7 +989,7 @@ class _1btcxe (cryptocapital):
                 'www': 'https://1btcxe.com',
                 'doc': 'https://1btcxe.com/api-docs.php',
             },
-            'products': {
+            'markets': {
                 'BTC/USD': { 'id': 'USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', },
                 'BTC/EUR': { 'id': 'EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', },
                 'BTC/CNY': { 'id': 'CNY', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', },
@@ -1026,7 +1026,7 @@ class _1btcxe (cryptocapital):
 
 #------------------------------------------------------------------------------
 
-class anxpro (Market):
+class anxpro (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -1067,7 +1067,7 @@ class anxpro (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/USD': { 'id': 'BTCUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
                 'BTC/HKD': { 'id': 'BTCHKD', 'symbol': 'BTC/HKD', 'base': 'BTC', 'quote': 'HKD' },
                 'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
@@ -1106,9 +1106,9 @@ class anxpro (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
+    def fetch_order_book (self, market, params = {}):
         response = self.publicGetCurrencyPairMoneyDepthFull (self.extend ({
-            'currency_pair': self.product_id (product),
+            'currency_pair': self.market_id (market),
         }, params))
         orderbook = response['data']
         t = int (orderbook['dataUpdateTime'])
@@ -1130,9 +1130,9 @@ class anxpro (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         response = self.publicGetCurrencyPairMoneyTicker ({
-            'currency_pair': self.product_id (product),
+            'currency_pair': self.market_id (market),
         })
         ticker = response['data']
         t = int (ticker['dataUpdateTime'])
@@ -1162,16 +1162,16 @@ class anxpro (Market):
             'quoteVolume': float (ticker['vol']['value']),
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         error = self.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled'
-        raise MarketError (error)
+        raise ExchangeError (error)
         return self.publicGetCurrencyPairMoneyTradeFetch ({
-            'currency_pair': self.product_id (product),
+            'currency_pair': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         order = {
-            'currency_pair': self.product_id (product),
+            'currency_pair': self.market_id (market),
             'amount_int': amount,
             'type': side,
         }
@@ -1206,11 +1206,11 @@ class anxpro (Market):
         if 'result' in response:
             if response['result'] == 'success':
                 return response
-        raise MarketError (self.id + ' ' + self.json (response))
+        raise ExchangeError (self.id + ' ' + self.json (response))
 
 #------------------------------------------------------------------------------
 
-class bit2c (Market):
+class bit2c (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -1253,7 +1253,7 @@ class bit2c (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/NIS': { 'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS' },
                 'LTC/BTC': { 'id': 'LtcBtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
                 'LTC/NIS': { 'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS' },
@@ -1280,9 +1280,9 @@ class bit2c (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
+    def fetch_order_book (self, market, params = {}):
         orderbook = self.publicGetExchangesPairOrderbook (self.extend ({
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
         }, params))
         timestamp = self.milliseconds ()
         result = {
@@ -1303,9 +1303,9 @@ class bit2c (Market):
                 result[side].append ([ price, amount, timestamp ])
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         ticker = self.publicGetExchangesPairTicker ({
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
         })
         timestamp = self.milliseconds ()
         return {
@@ -1327,16 +1327,16 @@ class bit2c (Market):
             'quoteVolume': float (ticker['a']),
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.publicGetExchangesPairTrades ({
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         method = 'privatePostOrderAddOrder'
         order = {
             'Amount': amount,
-            'Pair': self.product_id (product),
+            'Pair': self.market_id (market),
         }
         if type == 'market':
             method += 'MarketPrice' + self.capitalize (side)
@@ -1367,7 +1367,7 @@ class bit2c (Market):
 
 #------------------------------------------------------------------------------
 
-class bitbay (Market):
+class bitbay (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -1412,7 +1412,7 @@ class bitbay (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/USD': { 'id': 'BTCUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
                 'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
                 'BTC/PLN': { 'id': 'BTCPLN', 'symbol': 'BTC/PLN', 'base': 'BTC', 'quote': 'PLN' },
@@ -1451,9 +1451,9 @@ class bitbay (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
+    def fetch_order_book (self, market, params = {}):
         orderbook = self.publicGetIdOrderbook (self.extend ({
-            'id': self.product_id (product),
+            'id': self.market_id (market),
         }, params))
         timestamp = self.milliseconds ()
         result = {
@@ -1464,9 +1464,9 @@ class bitbay (Market):
         }
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         ticker = self.publicGetIdTicker ({
-            'id': self.product_id (product),
+            'id': self.market_id (market),
         })
         timestamp = self.milliseconds ()
         return {
@@ -1489,13 +1489,13 @@ class bitbay (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.publicGetIdTrades ({
-            'id': self.product_id (product),
+            'id': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        p = self.product (product)
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        p = self.market (market)
         return self.privatePostTrade (self.extend ({
             'type': side,
             'currency': p['base'],
@@ -1526,7 +1526,7 @@ class bitbay (Market):
 
 #------------------------------------------------------------------------------
 
-class bitbays (Market):
+class bitbays (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -1560,7 +1560,7 @@ class bitbays (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/USD': { 'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
                 'BTC/CNY': { 'id': 'btc_cny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY' },
                 'ODS/BTC': { 'id': 'ods_btc', 'symbol': 'ODS/BTC', 'base': 'ODS', 'quote': 'BTC' },
@@ -1590,9 +1590,9 @@ class bitbays (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
+    def fetch_order_book (self, market, params = {}):
         response = self.publicGetDepth (self.extend ({
-            'market': self.product_id (product),
+            'market': self.market_id (market),
         }, params))
         orderbook = response['result']
         timestamp = self.milliseconds ()
@@ -1613,9 +1613,9 @@ class bitbays (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         response = self.publicGetTicker ({
-            'market': self.product_id (product),
+            'market': self.market_id (market),
         })
         ticker = response['result']
         timestamp = self.milliseconds ()
@@ -1639,14 +1639,14 @@ class bitbays (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.publicGetTrades ({
-            'market': self.product_id (product),
+            'market': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         order = {
-            'market': self.product_id (product),
+            'market': self.market_id (market),
             'op': side,
             'amount': amount,
         }
@@ -1680,11 +1680,11 @@ class bitbays (Market):
         if 'status' in response:
             if response['status'] == 200:
                 return response
-        raise MarketError (self.id + ' ' + self.json (response))
+        raise ExchangeError (self.id + ' ' + self.json (response))
 
 #------------------------------------------------------------------------------
 
-class bitcoincoid (Market):
+class bitcoincoid (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -1722,7 +1722,7 @@ class bitcoincoid (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/IDR':  { 'id': 'btc_idr', 'symbol': 'BTC/IDR', 'base': 'BTC', 'quote': 'IDR', 'baseId': 'btc', 'quoteId': 'idr' },
                 'BTS/BTC':  { 'id': 'bts_btc', 'symbol': 'BTS/BTC', 'base': 'BTS', 'quote': 'BTC', 'baseId': 'bts', 'quoteId': 'btc' },
                 'DASH/BTC': { 'id': 'drk_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'drk', 'quoteId': 'btc' },
@@ -1759,9 +1759,9 @@ class bitcoincoid (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
+    def fetch_order_book (self, market, params = {}):
         orderbook = self.publicGetPairDepth (self.extend ({
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
         }, params))
         timestamp = self.milliseconds ()
         result = {
@@ -1783,8 +1783,8 @@ class bitcoincoid (Market):
                 result[key].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        pair = self.product (product)
+    def fetch_ticker (self, market):
+        pair = self.market (market)
         response = self.publicGetPairTicker ({
             'pair': pair['id'],
         })
@@ -1812,13 +1812,13 @@ class bitcoincoid (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.publicGetPairTrades ({
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        p = self.product (product)
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        p = self.market (market)
         order = {
             'pair': p['id'],
             'type': side,
@@ -1850,12 +1850,12 @@ class bitcoincoid (Market):
             }
         response = self.fetch (url, method, headers, body)
         if 'error' in response:
-            raise MarketError (self.id + ' ' + response['error'])
+            raise ExchangeError (self.id + ' ' + response['error'])
         return response        
 
 #------------------------------------------------------------------------------
 
-class bitfinex (Market):
+class bitfinex (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -1929,12 +1929,12 @@ class bitfinex (Market):
         params.update (config)
         super (bitfinex, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetSymbolsDetails ()
+    def fetch_markets (self):
+        markets = self.publicGetSymbolsDetails ()
         result = []
-        for p in range (0, len (products)):
-            product = products[p]
-            id = product['pair'].upper ()
+        for p in range (0, len (markets)):
+            market = markets[p]
+            id = market['pair'].upper ()
             baseId = id[0:3]
             quoteId = id[3:6]
             base = baseId
@@ -1950,12 +1950,12 @@ class bitfinex (Market):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.privatePostBalances ()
         balances = {}
         for b in range (0, len (response)):
@@ -1982,10 +1982,10 @@ class bitfinex (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         orderbook = self.publicGetBookSymbol (self.extend ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         }, params))
         timestamp = self.milliseconds ()
         result = {
@@ -2006,10 +2006,10 @@ class bitfinex (Market):
                 result[side].append ([ price, amount, timestamp ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
         ticker = self.publicGetPubtickerSymbol ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         })
         timestamp = float (ticker['timestamp']) * 1000
         return {
@@ -2032,16 +2032,16 @@ class bitfinex (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetTradesSymbol ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         order = {
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
             'amount': str (amount),
             'side': side,
             'type': 'exchange ' + type,
@@ -2056,7 +2056,7 @@ class bitfinex (Market):
         return self.privatePostOrderNew (self.extend (order, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privatePostOrderCancel ({ 'order_id': id })
 
     def nonce (self):
@@ -2086,12 +2086,12 @@ class bitfinex (Market):
             }
         response = self.fetch (url, method, headers, body)
         if 'message' in response:
-            raise MarketError (self.id + ' ' + self.json (response))
+            raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class bitflyer (Market):
+class bitflyer (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -2151,12 +2151,12 @@ class bitflyer (Market):
         params.update (config)
         super (bitflyer, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetMarkets ()
+    def fetch_markets (self):
+        markets = self.publicGetMarkets ()
         result = []
-        for p in range (0, len (products)):
-            product = products[p]
-            id = product['product_code']
+        for p in range (0, len (markets)):
+            market = markets[p]
+            id = market['product_code']
             currencies = id.split ('_')
             base = None
             quote = None
@@ -2171,12 +2171,12 @@ class bitflyer (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.privateGetBalance ()
         balances = {}
         for b in range (0, len (response)):
@@ -2198,10 +2198,10 @@ class bitflyer (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         orderbook = self.publicGetBoard (self.extend ({
-            'product_code': self.product_id (product),
+            'product_code': self.market_id (market),
         }, params))
         timestamp = self.milliseconds ()
         result = {
@@ -2221,10 +2221,10 @@ class bitflyer (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
         ticker = self.publicGetTicker ({
-            'product_code': self.product_id (product),
+            'product_code': self.market_id (market),
         })
         timestamp = self.parse8601 (ticker['timestamp'])
         return {
@@ -2247,16 +2247,16 @@ class bitflyer (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetExecutions ({
-            'product_code': self.product_id (product),
+            'product_code': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         order = {
-            'product_code': self.product_id (product),
+            'product_code': self.market_id (market),
             'child_order_type': type.upper (),
             'side': side.upper (),
             'price': price,
@@ -2265,7 +2265,7 @@ class bitflyer (Market):
         return self.privatePostSendparentorder (self.extend (order, params))
 
     def cancel_order (self, id, params = {}):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privatePostCancelparentorder (self.extend ({
             'parent_order_id': id,
         }, params))
@@ -2292,7 +2292,7 @@ class bitflyer (Market):
 
 #------------------------------------------------------------------------------
 
-class bitlish (Market):
+class bitlish (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -2352,14 +2352,14 @@ class bitlish (Market):
         params.update (config)
         super (bitlish, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetPairs ()
+    def fetch_markets (self):
+        markets = self.publicGetPairs ()
         result = []
-        keys = list (products.keys ())
+        keys = list (markets.keys ())
         for p in range (0, len (keys)):
-            product = products[keys[p]]
-            id = product['id']
-            symbol = product['name']
+            market = markets[keys[p]]
+            id = market['id']
+            symbol = market['name']
             base, quote = symbol.split ('/')
             # issue #4 bitlish names Dash as DSH, instead of DASH
             if base == 'DSH':
@@ -2370,11 +2370,11 @@ class bitlish (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
-    def parse_ticker (self, ticker, product):
+    def parse_ticker (self, ticker, market):
         timestamp = self.milliseconds ()
         return {
             'timestamp': timestamp,
@@ -2397,29 +2397,29 @@ class bitlish (Market):
         }
 
     def fetch_tickers (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         tickers = self.publicGetTickers ()
         ids = list (tickers.keys ())
         result = {}
         for i in range (0, len (ids)):
             id = ids[i]
-            product = self.products_by_id[id]
-            symbol = product['symbol']
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
             ticker = tickers[id]
-            result[symbol] = self.parse_ticker (ticker, product)
+            result[symbol] = self.parse_ticker (ticker, market)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         tickers = self.publicGetTickers ()
         ticker = tickers[p['id']]
         return self.parse_ticker (ticker, p)
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         orderbook = self.publicGetTradesDepth (self.extend ({
-            'pair_id': self.product_id (product),
+            'pair_id': self.market_id (market),
         }, params))
         timestamp = int (int (orderbook['last']) / 1000)
         result = {
@@ -2441,14 +2441,14 @@ class bitlish (Market):
                 result[key].append ([ price, amount ])
         return result
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetTradesHistory ({
-            'pair_id': self.product_id (product),
+            'pair_id': self.market_id (market),
         })
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.privatePostBalance ()
         result = { 'info': response }
         currencies = list (response.keys ())
@@ -2481,10 +2481,10 @@ class bitlish (Market):
             'passwd': self.password,
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         order = {
-            'pair_id': self.product_id (product),
+            'pair_id': self.market_id (market),
             'dir': 'bid' if (side == 'buy') else 'ask',
             'amount': amount,
         }
@@ -2493,7 +2493,7 @@ class bitlish (Market):
         return self.privatePostCreateTrade (self.extend (order, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privatePostCancelTrade ({ 'id': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
@@ -2508,7 +2508,7 @@ class bitlish (Market):
 
 #------------------------------------------------------------------------------
 
-class bitmarket (Market):
+class bitmarket (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -2584,7 +2584,7 @@ class bitmarket (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/PLN': { 'id': 'BTCPLN', 'symbol': 'BTC/PLN', 'base': 'BTC', 'quote': 'PLN' },
                 'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
                 'LTC/PLN': { 'id': 'LTCPLN', 'symbol': 'LTC/PLN', 'base': 'LTC', 'quote': 'PLN' },
@@ -2597,7 +2597,7 @@ class bitmarket (Market):
         super (bitmarket, self).__init__ (params)
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.privatePostInfo ()
         data = response['data']
         balance = data['balances']
@@ -2617,9 +2617,9 @@ class bitmarket (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
+    def fetch_order_book (self, market, params = {}):
         orderbook = self.publicGetJsonMarketOrderbook (self.extend ({
-            'market': self.product_id (product),
+            'market': self.market_id (market),
         }, params))
         timestamp = self.milliseconds ()
         result = {
@@ -2631,9 +2631,9 @@ class bitmarket (Market):
         return result
 
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         ticker = self.publicGetJsonMarketTicker ({
-            'market': self.product_id (product),
+            'market': self.market_id (market),
         })
         timestamp = self.milliseconds ()
         return {
@@ -2656,14 +2656,14 @@ class bitmarket (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.publicGetJsonMarketTrades ({
-            'market': self.product_id (product),
+            'market': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         return self.privatePostTrade (self.extend ({
-            'market': self.product_id (product),
+            'market': self.market_id (market),
             'type': side,
             'amount': amount,
             'rate': price,
@@ -2691,7 +2691,7 @@ class bitmarket (Market):
 
 #------------------------------------------------------------------------------
 
-class bitmex (Market):
+class bitmex (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -2799,14 +2799,14 @@ class bitmex (Market):
         params.update (config)
         super (bitmex, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetInstrumentActive ()
+    def fetch_markets (self):
+        markets = self.publicGetInstrumentActive ()
         result = []
-        for p in range (0, len (products)):
-            product = products[p]
-            id = product['symbol']
-            base = product['underlying']
-            quote = product['quoteCurrency']
+        for p in range (0, len (markets)):
+            market = markets[p]
+            id = market['symbol']
+            base = market['underlying']
+            quote = market['quoteCurrency']
             isFuturesContract = id != (base + quote)
             base = self.commonCurrencyCode (base)
             quote = self.commonCurrencyCode (quote)
@@ -2816,12 +2816,12 @@ class bitmex (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.privateGetUserMargin ({ 'currency': 'all' })
         result = { 'info': response }
         for b in range (0, len (response)):
@@ -2840,10 +2840,10 @@ class bitmex (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         orderbook = self.publicGetOrderBookL2 (self.extend ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         }, params))
         timestamp = self.milliseconds ()
         result = {
@@ -2862,10 +2862,10 @@ class bitmex (Market):
         result['asks'] = self.sort_by (result['asks'], 0)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
         request = {
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
             'binSize': '1d',
             'partial': True,
             'count': 1,
@@ -2897,16 +2897,16 @@ class bitmex (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetTrade ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         order = {
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
             'side': self.capitalize (side),
             'orderQty': amount,
             'ordType': self.capitalize (type),
@@ -2916,7 +2916,7 @@ class bitmex (Market):
         return self.privatePostOrder (self.extend (order, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privateDeleteOrder ({ 'orderID': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
@@ -2940,7 +2940,7 @@ class bitmex (Market):
 
 #------------------------------------------------------------------------------
 
-class bitso (Market):
+class bitso (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -3007,12 +3007,12 @@ class bitso (Market):
         params.update (config)
         super (bitso, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetAvailableBooks ()
+    def fetch_markets (self):
+        markets = self.publicGetAvailableBooks ()
         result = []
-        for p in range (0, len (products['payload'])):
-            product = products['payload'][p]
-            id = product['book']
+        for p in range (0, len (markets['payload'])):
+            market = markets['payload'][p]
+            id = market['book']
             symbol = id.upper ().replace ('_', '/')
             base, quote = symbol.split ('/')
             result.append ({
@@ -3020,12 +3020,12 @@ class bitso (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.privateGetBalance ()
         balances = response['payload']['balances']
         result = { 'info': response }
@@ -3040,10 +3040,10 @@ class bitso (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         response = self.publicGetOrderBook (self.extend ({
-            'book': self.product_id (product),
+            'book': self.market_id (market),
         }, params))
         orderbook = response['payload']
         timestamp = self.parse8601 (orderbook['updated_at'])
@@ -3064,10 +3064,10 @@ class bitso (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
         response = self.publicGetTicker ({
-            'book': self.product_id (product),
+            'book': self.market_id (market),
         })
         ticker = response['payload']
         timestamp = self.parse8601 (ticker['created_at'])
@@ -3091,16 +3091,16 @@ class bitso (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetTrades ({
-            'book': self.product_id (product),
+            'book': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         order = {
-            'book': self.product_id (product),
+            'book': self.market_id (market),
             'side': side,
             'type': type,
             'major': amount,
@@ -3110,7 +3110,7 @@ class bitso (Market):
         return self.privatePostOrders (self.extend (order, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privateDeleteOrders ({ 'oid': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
@@ -3131,11 +3131,11 @@ class bitso (Market):
         if 'success' in response:
             if response['success']:
                 return response
-        raise MarketError (self.id + ' ' + self.json (response))
+        raise ExchangeError (self.id + ' ' + self.json (response))
 
 #------------------------------------------------------------------------------
 
-class bitstamp (Market):
+class bitstamp (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -3184,7 +3184,7 @@ class bitstamp (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/USD': { 'id': 'btcusd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
                 'BTC/EUR': { 'id': 'btceur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
                 'EUR/USD': { 'id': 'eurusd', 'symbol': 'EUR/USD', 'base': 'EUR', 'quote': 'USD' },
@@ -3199,9 +3199,9 @@ class bitstamp (Market):
         params.update (config)
         super (bitstamp, self).__init__ (params)
 
-    def fetch_order_book (self, product, params = {}):
+    def fetch_order_book (self, market, params = {}):
         orderbook = self.publicGetOrderBookId (self.extend ({
-            'id': self.product_id (product),
+            'id': self.market_id (market),
         }, params))
         timestamp = int (orderbook['timestamp']) * 1000
         result = {
@@ -3221,9 +3221,9 @@ class bitstamp (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         ticker = self.publicGetTickerId ({
-            'id': self.product_id (product),
+            'id': self.market_id (market),
         })
         timestamp = int (ticker['timestamp']) * 1000
         return {
@@ -3246,9 +3246,9 @@ class bitstamp (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.publicGetTransactionsId ({
-            'id': self.product_id (product),
+            'id': self.market_id (market),
         })
 
     def fetch_balance (self):
@@ -3274,10 +3274,10 @@ class bitstamp (Market):
             result[currency] = account
         return result
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         method = 'privatePost' + self.capitalize (side)
         order = {
-            'id': self.product_id (product),
+            'id': self.market_id (market),
             'amount': amount,
         }
         if type == 'market':
@@ -3316,7 +3316,7 @@ class bitstamp (Market):
 
 #------------------------------------------------------------------------------
 
-class bittrex (Market):
+class bittrex (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -3373,14 +3373,14 @@ class bittrex (Market):
         params.update (config)
         super (bittrex, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetMarkets ()
+    def fetch_markets (self):
+        markets = self.publicGetMarkets ()
         result = []
-        for p in range (0, len (products['result'])):
-            product = products['result'][p]
-            id = product['MarketName']
-            base = product['MarketCurrency']
-            quote = product['BaseCurrency']
+        for p in range (0, len (markets['result'])):
+            market = markets['result'][p]
+            id = market['MarketName']
+            base = market['MarketCurrency']
+            quote = market['BaseCurrency']
             base = self.commonCurrencyCode (base)
             quote = self.commonCurrencyCode (quote)
             symbol = base + '/' + quote
@@ -3389,12 +3389,12 @@ class bittrex (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.accountGetBalances ()
         balances = response['result']
         result = { 'info': balances }
@@ -3414,10 +3414,10 @@ class bittrex (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         response = self.publicGetOrderbook (self.extend ({
-            'market': self.product_id (product),
+            'market': self.market_id (market),
             'type': 'both',
             'depth': 50,
         }, params))
@@ -3442,10 +3442,10 @@ class bittrex (Market):
                 result[key].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
         response = self.publicGetMarketsummary ({
-            'market': self.product_id (product),
+            'market': self.market_id (market),
         })
         ticker = response['result'][0]
         timestamp = self.parse8601 (ticker['TimeStamp'])
@@ -3469,17 +3469,17 @@ class bittrex (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetMarkethistory ({
-            'market': self.product_id (product),
+            'market': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         method = 'marketGet' + self.capitalize (side) + type
         order = {
-            'market': self.product_id (product),
+            'market': self.market_id (market),
             'quantity': amount,
         }
         if type == 'limit':
@@ -3487,7 +3487,7 @@ class bittrex (Market):
         return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.marketGetCancel ({ 'uuid': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
@@ -3511,11 +3511,11 @@ class bittrex (Market):
         if 'success' in response:
             if response['success']:
                 return response
-        raise MarketError (self.id + ' ' + self.json (response))
+        raise ExchangeError (self.id + ' ' + self.json (response))
 
 #------------------------------------------------------------------------------
 
-class blinktrade (Market):
+class blinktrade (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -3557,7 +3557,7 @@ class blinktrade (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/VEF': { 'id': 'BTCVEF', 'symbol': 'BTC/VEF', 'base': 'BTC', 'quote': 'VEF', 'brokerId': 1, 'broker': 'SurBitcoin', },
                 'BTC/VND': { 'id': 'BTCVND', 'symbol': 'BTC/VND', 'base': 'BTC', 'quote': 'VND', 'brokerId': 3, 'broker': 'VBTC', },
                 'BTC/BRL': { 'id': 'BTCBRL', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'brokerId': 4, 'broker': 'FoxBit', },
@@ -3573,8 +3573,8 @@ class blinktrade (Market):
             'BalanceReqID': self.nonce (),
         })
 
-    def fetch_order_book (self, product, params = {}):
-        p = self.product (product)
+    def fetch_order_book (self, market, params = {}):
+        p = self.market (market)
         orderbook = self.publicGetCurrencyOrderbook (self.extend ({
             'currency': p['quote'],
             'crypto_currency': p['base'],
@@ -3597,8 +3597,8 @@ class blinktrade (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        p = self.market (market)
         ticker = self.publicGetCurrencyTicker ({
             'currency': p['quote'],
             'crypto_currency': p['base'],
@@ -3626,17 +3626,17 @@ class blinktrade (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
-        p = self.product (product)
+    def fetch_trades (self, market):
+        p = self.market (market)
         return self.publicGetCurrencyTrades ({
             'currency': p['quote'],
             'crypto_currency': p['base'],
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         if type == 'market':
-            raise MarketError (self.id + ' allows limit orders only')
-        p = self.product (product)
+            raise ExchangeError (self.id + ' allows limit orders only')
+        p = self.market (market)
         order = {
             'ClOrdID': self.nonce (),
             'Symbol': p['id'],
@@ -3673,7 +3673,7 @@ class blinktrade (Market):
 
 #------------------------------------------------------------------------------
 
-class bl3p (Market):
+class bl3p (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -3721,7 +3721,7 @@ class bl3p (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
                 'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
             },
@@ -3753,8 +3753,8 @@ class bl3p (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        p = self.product (product)
+    def fetch_order_book (self, market, params = {}):
+        p = self.market (market)
         response = self.publicGetMarketOrderbook (self.extend ({
             'market': p['id'],
         }, params))
@@ -3777,9 +3777,9 @@ class bl3p (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         ticker = self.publicGetMarketTicker ({
-            'market': self.product_id (product),
+            'market': self.market_id (market),
         })        
         timestamp = ticker['timestamp'] * 1000
         return {
@@ -3802,13 +3802,13 @@ class bl3p (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.publicGetMarketTrades ({
-            'market': self.product_id (product),
+            'market': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        p = self.product (product)
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        p = self.market (market)
         order = {
             'market': p['id'],
             'amount_int': amount,
@@ -3845,7 +3845,7 @@ class bl3p (Market):
 
 #------------------------------------------------------------------------------
 
-class btcchina (Market):
+class btcchina (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -3908,15 +3908,15 @@ class btcchina (Market):
         params.update (config)
         super (btcchina, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetTicker ({
+    def fetch_markets (self):
+        markets = self.publicGetTicker ({
             'market': 'all',
         })
         result = []
-        keys = list (products.keys ())
+        keys = list (markets.keys ())
         for p in range (0, len (keys)):
             key = keys[p]
-            product = products[key]
+            market = markets[key]
             parts = key.split ('_')
             id = parts[1]
             base = id[0:3]
@@ -3929,12 +3929,12 @@ class btcchina (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.privatePostGetAccountInfo ()
         balances = response['result']
         result = { 'info': balances }
@@ -3955,10 +3955,10 @@ class btcchina (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         orderbook = self.publicGetOrderbook (self.extend ({
-            'market': self.product_id (product),
+            'market': self.market_id (market),
         }, params))
         timestamp = orderbook['date'] * 1000
         result = {
@@ -3970,9 +3970,9 @@ class btcchina (Market):
         result['asks'] = self.sort_by (result['asks'], 0)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         tickers = self.publicGetTicker ({
             'market': p['id'],
         })
@@ -3998,15 +3998,15 @@ class btcchina (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetTrades ({
-            'market': self.product_id (product),
+            'market': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
-        p = self.product (product)
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
+        p = self.market (market)
         method = 'privatePost' + self.capitalize (side) + 'Order2'
         order = {}
         id = p['id'].upper ()
@@ -4017,7 +4017,7 @@ class btcchina (Market):
         return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id, params = {}):
-        self.loadProducts ()
+        self.loadMarkets ()
         market = params['market'] # TODO fixme
         return self.privatePostCancelOrder (self.extend ({
             'params': [ id, market ], 
@@ -4066,7 +4066,7 @@ class btcchina (Market):
 
 #------------------------------------------------------------------------------
 
-class btce (Market):
+class btce (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -4115,14 +4115,14 @@ class btce (Market):
         params.update (config)
         super (btce, self).__init__ (params)
 
-    def fetch_products (self):
+    def fetch_markets (self):
         response = self.publicGetInfo ()
-        products = response['pairs']
-        keys = list (products.keys ())
+        markets = response['pairs']
+        keys = list (markets.keys ())
         result = []
         for p in range (0, len (keys)):
             id = keys[p]
-            product = products[id]
+            market = markets[id]
             base, quote = id.split ('_')
             base = base.upper ()
             quote = quote.upper ()
@@ -4136,12 +4136,12 @@ class btce (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.privatePostGetInfo ()
         balances = response['return']
         result = { 'info': balances }
@@ -4161,9 +4161,9 @@ class btce (Market):
             result[uppercase] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
+        p = self.market (market)
         response = self.publicGetDepthPair (self.extend ({
             'pair': p['id'],
         }, params))
@@ -4179,11 +4179,11 @@ class btce (Market):
             result['bids'] = self.sort_by (result['bids'], 0, True)
             result['asks'] = self.sort_by (result['asks'], 0)
             return result
-        raise MarketError (self.id + ' ' + p['symbol'] + ' order book is empty or not available')
+        raise ExchangeError (self.id + ' ' + p['symbol'] + ' order book is empty or not available')
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         tickers = self.publicGetTickerPair ({
             'pair': p['id'],
         })
@@ -4209,16 +4209,16 @@ class btce (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetTradesPair ({
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         order = {
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
             'type': side,
             'amount': amount,
             'rate': price,
@@ -4226,7 +4226,7 @@ class btce (Market):
         return self.privatePostTrade (self.extend (order, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privatePostCancelOrder ({ 'order_id': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
@@ -4251,7 +4251,7 @@ class btce (Market):
 
 #------------------------------------------------------------------------------
 
-class btctrader (Market):
+class btctrader (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -4307,12 +4307,12 @@ class btctrader (Market):
             'total': response['money_balance'],
         }
         symbol = self.symbols[0]
-        product = self.products[symbol]
-        result[product['base']] = base
-        result[product['quote']] = quote
+        market = self.markets[symbol]
+        result[market['base']] = base
+        result[market['quote']] = quote
         return result
 
-    def fetch_order_book (self, product, params = {}):
+    def fetch_order_book (self, market, params = {}):
         orderbook = self.publicGetOrderbook (params)
         timestamp = int (orderbook['timestamp'] * 1000)
         result = {
@@ -4332,7 +4332,7 @@ class btctrader (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         ticker = self.publicGetTicker ()
         timestamp = int (ticker['timestamp'] * 1000)
         return {
@@ -4355,11 +4355,11 @@ class btctrader (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         maxCount = 50
         return self.publicGetTrades ()
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         method = 'privatePost' + self.capitalize (side)
         order = {
             'Type': 'BuyBtc' if (side == 'buy') else 'SelBtc',
@@ -4380,7 +4380,7 @@ class btctrader (Market):
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         if self.id == 'btctrader':
-            raise MarketError (self.id + ' is an abstract base API for BTCExchange, BTCTurk')
+            raise ExchangeError (self.id + ' is an abstract base API for BTCExchange, BTCTurk')
         url = self.urls['api'] + '/' + path
         if type == 'public':
             if params:
@@ -4415,7 +4415,7 @@ class btcexchange (btctrader):
                 'www': 'https://www.btcexchange.ph',
                 'doc': 'https://github.com/BTCTrader/broker-api-docs',
             },
-            'products': {
+            'markets': {
                 'BTC/PHP': { 'id': 'BTC/PHP', 'symbol': 'BTC/PHP', 'base': 'BTC', 'quote': 'PHP' },
             },
         }
@@ -4424,7 +4424,7 @@ class btcexchange (btctrader):
 
 #------------------------------------------------------------------------------
 
-class btctradeua (Market):
+class btctradeua (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -4461,7 +4461,7 @@ class btctradeua (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/UAH': { 'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH' },
                 'ETH/UAH': { 'id': 'eth_uah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH' },
                 'LTC/UAH': { 'id': 'ltc_uah', 'symbol': 'LTC/UAH', 'base': 'LTC', 'quote': 'UAH' },
@@ -4498,8 +4498,8 @@ class btctradeua (Market):
             }
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        p = self.product (product)
+    def fetch_order_book (self, market, params = {}):
+        p = self.market (market)
         bids = self.publicGetTradesBuySymbol (self.extend ({
             'symbol': p['id'],
         }, params))
@@ -4534,9 +4534,9 @@ class btctradeua (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         response = self.publicGetJapanStatHighSymbol ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         })
         ticker = response['trades']
         timestamp = self.milliseconds ()
@@ -4579,15 +4579,15 @@ class btctradeua (Market):
             result['quoteVolume'] = -1 * result['quoteVolume']
         return result
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.publicGetDealsSymbol ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         if type == 'market':
-            raise MarketError (self.id + ' allows limit orders only')
-        p = self.product (product)
+            raise ExchangeError (self.id + ' allows limit orders only')
+        p = self.market (market)
         method = 'privatePost' + self.capitalize (side) + 'Id'
         order = {
             'count': amount,
@@ -4637,7 +4637,7 @@ class btcturk (btctrader):
                 'www': 'https://www.btcturk.com',
                 'doc': 'https://github.com/BTCTrader/broker-api-docs',
             },
-            'products': {
+            'markets': {
                 'BTC/TRY': { 'id': 'BTC/TRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY' },
             },
         }
@@ -4646,7 +4646,7 @@ class btcturk (btctrader):
 
 #------------------------------------------------------------------------------
 
-class btcx (Market):
+class btcx (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -4681,7 +4681,7 @@ class btcx (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/USD': { 'id': 'btc/usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
                 'BTC/EUR': { 'id': 'btc/eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
             },
@@ -4704,9 +4704,9 @@ class btcx (Market):
             result[uppercase] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
+    def fetch_order_book (self, market, params = {}):
         orderbook = self.publicGetDepthIdLimit (self.extend ({
-            'id': self.product_id (product),
+            'id': self.market_id (market),
             'limit': 1000,
         }, params))
         timestamp = self.milliseconds ()
@@ -4727,9 +4727,9 @@ class btcx (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         ticker = self.publicGetTickerId ({
-            'id': self.product_id (product),
+            'id': self.market_id (market),
         })
         timestamp = ticker['time'] * 1000
         return {
@@ -4752,16 +4752,16 @@ class btcx (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.publicGetTradeIdLimit ({
-            'id': self.product_id (product),
+            'id': self.market_id (market),
             'limit': 100,
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         return self.privatePostTrade (self.extend ({
             'type': side.upper (),
-            'market': self.product_id (product),
+            'market': self.market_id (market),
             'amount': amount,
             'price': price,
         }, params))
@@ -4787,12 +4787,12 @@ class btcx (Market):
             }
         response = self.fetch (url, method, headers, body)
         if 'error' in response:
-            raise MarketError (self.id + ' ' + self.json (response['error']))
+            raise ExchangeError (self.id + ' ' + self.json (response['error']))
         return response
 
 #------------------------------------------------------------------------------
 
-class bter (Market):
+class bter (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -4844,15 +4844,15 @@ class bter (Market):
         params.update (config)
         super (bter, self).__init__ (params)
 
-    def fetch_products (self):
+    def fetch_markets (self):
         response = self.publicGetMarketlist ()
-        products = response['data']
+        markets = response['data']
         result = []
-        for p in range (0, len (products)):
-            product = products[p]
-            id = product['pair']
-            base = product['curr_a']
-            quote = product['curr_b']
+        for p in range (0, len (markets)):
+            market = markets[p]
+            id = market['pair']
+            base = market['curr_a']
+            quote = market['curr_b']
             base = self.commonCurrencyCode (base)
             quote = self.commonCurrencyCode (quote)
             symbol = base + '/' + quote
@@ -4861,12 +4861,12 @@ class bter (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         balance = self.privatePostBalances ()
         result = { 'info': balance }
         for c in range (0, len (self.currencies)):
@@ -4886,10 +4886,10 @@ class bter (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         orderbook = self.publicGetOrderBookId (self.extend ({
-            'id': self.product_id (product),
+            'id': self.market_id (market),
         }, params))
         timestamp = self.milliseconds ()
         result = {
@@ -4910,7 +4910,7 @@ class bter (Market):
         result['asks'] = self.sort_by (result['asks'], 0)
         return result
 
-    def parse_ticker (self, ticker, product):
+    def parse_ticker (self, ticker, market):
         timestamp = self.milliseconds ()
         return {
             'timestamp': timestamp,
@@ -4933,7 +4933,7 @@ class bter (Market):
         }
 
     def fetch_tickers (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         tickers = self.publicGetTickers ()
         result = {}
         ids = list (tickers.keys ())
@@ -4944,36 +4944,36 @@ class bter (Market):
             quote = quoteId.upper ()
             symbol = base + '/' + quote
             ticker = tickers[id]
-            product = self.products[symbol]
-            result[symbol] = self.parse_ticker (ticker, product)
+            market = self.markets[symbol]
+            result[symbol] = self.parse_ticker (ticker, market)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         ticker = self.publicGetTickerId ({
             'id': p['id'],
         })
         return self.parse_ticker (ticker, p)
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetTradeHistoryId ({
-            'id': self.product_id (product),
+            'id': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         method = 'privatePost' + self.capitalize (side)
         order = {
-            'currencyPair': self.symbol (product),
+            'currencyPair': self.symbol (market),
             'rate': price,
             'amount': amount,
         }
         return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privatePostCancelOrder ({ 'orderNumber': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
@@ -4996,12 +4996,12 @@ class bter (Market):
         response = self.fetch (url, method, headers, body)
         if 'result' in response:
             if response['result'] != 'true':
-                raise MarketError (self.id + ' ' + self.json (response))
+                raise ExchangeError (self.id + ' ' + self.json (response))
         return response        
 
 #------------------------------------------------------------------------------
 
-class bxinth (Market):
+class bxinth (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -5056,22 +5056,22 @@ class bxinth (Market):
         params.update (config)
         super (bxinth, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetPairing ()
-        keys = list (products.keys ())
+    def fetch_markets (self):
+        markets = self.publicGetPairing ()
+        keys = list (markets.keys ())
         result = []
         for p in range (0, len (keys)):
-            product = products[keys[p]]
-            id = product['pairing_id']
-            base = product['primary_currency']
-            quote = product['secondary_currency']
+            market = markets[keys[p]]
+            id = market['pairing_id']
+            base = market['primary_currency']
+            quote = market['secondary_currency']
             symbol = base + '/' + quote
             result.append ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
@@ -5084,7 +5084,7 @@ class bxinth (Market):
         return currency
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.privatePostBalance ()
         balance = response['balance']
         result = { 'info': balance }
@@ -5101,10 +5101,10 @@ class bxinth (Market):
             result[code] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         orderbook = self.publicGetOrderbook (self.extend ({
-            'pairing': self.product_id (product),
+            'pairing': self.market_id (market),
         }, params))
         timestamp = self.milliseconds ()
         result = {
@@ -5124,7 +5124,7 @@ class bxinth (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def parse_ticker (self, ticker, product):
+    def parse_ticker (self, ticker, market):
         timestamp = self.milliseconds ()
         return {
             'timestamp': timestamp,
@@ -5147,43 +5147,43 @@ class bxinth (Market):
         }
 
     def fetch_tickers (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         tickers = self.publicGet ()
         result = {}
         ids = list (tickers.keys ())
         for i in range (0, len (ids)):
             id = ids[i]
             ticker = tickers[id]
-            product = self.products_by_id[id]
-            symbol = product['symbol']
-            result[symbol] = self.parse_ticker (ticker, product)
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
+            result[symbol] = self.parse_ticker (ticker, market)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         tickers = self.publicGet ({ 'pairing': p['id'] })
         id = str (p['id'])
         ticker = tickers[id]
         return self.parse_ticker (ticker, p)
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetTrade ({
-            'pairing': self.product_id (product),
+            'pairing': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         return self.privatePostOrder (self.extend ({
-            'pairing': self.product_id (product),
+            'pairing': self.market_id (market),
             'type': side,
             'amount': amount,
             'rate': price,
         }, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         pairing = None # TODO fixme
         return self.privatePostCancel ({
             'order_id': id,
@@ -5216,11 +5216,11 @@ class bxinth (Market):
         if 'success' in response:
             if response['success']:
                 return response
-        raise MarketError (self.id + ' ' + self.json (response))
+        raise ExchangeError (self.id + ' ' + self.json (response))
 
 #------------------------------------------------------------------------------
 
-class ccex (Market):
+class ccex (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -5275,26 +5275,26 @@ class ccex (Market):
         params.update (config)
         super (ccex, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetMarkets ()
+    def fetch_markets (self):
+        markets = self.publicGetMarkets ()
         result = []
-        for p in range (0, len (products['result'])):
-            product = products['result'][p]
-            id = product['MarketName']
-            base = product['MarketCurrency']
-            quote = product['BaseCurrency']
+        for p in range (0, len (markets['result'])):
+            market = markets['result'][p]
+            id = market['MarketName']
+            base = market['MarketCurrency']
+            quote = market['BaseCurrency']
             symbol = base + '/' + quote
             result.append ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.privateGetBalances ()
         balances = response['result']
         result = { 'info': balances }
@@ -5309,10 +5309,10 @@ class ccex (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         response = self.publicGetOrderbook (self.extend ({
-            'market': self.product_id (product),
+            'market': self.market_id (market),
             'type': 'both',
             'depth': 100,
         }, params))
@@ -5337,7 +5337,7 @@ class ccex (Market):
                 result[key].append ([ price, amount ])
         return result
 
-    def parse_ticker (self, ticker, product):
+    def parse_ticker (self, ticker, market):
         timestamp = ticker['updated'] * 1000
         return {
             'timestamp': timestamp,
@@ -5359,34 +5359,34 @@ class ccex (Market):
             'info': ticker,
         }
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         response = self.tickersGetMarket ({
             'market': p['id'].lower (),
         })
         ticker = response['ticker']
         return self.parse_ticker (ticker, p)
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetMarkethistory ({
-            'market': self.product_id (product),
+            'market': self.market_id (market),
             'type': 'both',
             'depth': 100,
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         method = 'privateGet' + self.capitalize (side) + type
         return getattr (self, method) (self.extend ({
-            'market': self.product_id (product),
+            'market': self.market_id (market),
             'quantity': amount,
             'rate': price,
         }, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privateGetCancel ({ 'uuid': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
@@ -5412,11 +5412,11 @@ class ccex (Market):
         if 'success' in response:
             if response['success']:
                 return response
-        raise MarketError (self.id + ' ' + self.json (response))
+        raise ExchangeError (self.id + ' ' + self.json (response))
 
 #------------------------------------------------------------------------------
 
-class cex (Market):
+class cex (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -5473,12 +5473,12 @@ class cex (Market):
         params.update (config)
         super (cex, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetCurrencyLimits ()
+    def fetch_markets (self):
+        markets = self.publicGetCurrencyLimits ()
         result = []
-        for p in range (0, len (products['data']['pairs'])):
-            product = products['data']['pairs'][p]
-            id = product['symbol1'] + '/' + product['symbol2']
+        for p in range (0, len (markets['data']['pairs'])):
+            market = markets['data']['pairs'][p]
+            id = market['symbol1'] + '/' + market['symbol2']
             symbol = id
             base, quote = symbol.split ('/')
             result.append ({
@@ -5486,12 +5486,12 @@ class cex (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         balances = self.privatePostBalance ()
         result = { 'info': balances }
         for c in range (0, len (self.currencies)):
@@ -5505,10 +5505,10 @@ class cex (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         orderbook =  self.publicGetOrderBookPair (self.extend ({
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
         }, params))
         timestamp = orderbook['timestamp'] * 1000
         result = {
@@ -5519,7 +5519,7 @@ class cex (Market):
         }
         return result
 
-    def parse_ticker (self, ticker, product):
+    def parse_ticker (self, ticker, market):
         timestamp = int (ticker['timestamp']) * 1000
         return {
             'timestamp': timestamp,
@@ -5542,7 +5542,7 @@ class cex (Market):
         }
 
     def fetch_tickers (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         currencies = '/'.join (self.currencies)
         response = self.publicGetTickersCurrencies ({
             'currencies': currencies,
@@ -5552,28 +5552,28 @@ class cex (Market):
         for t in range (0, len (tickers)):
             ticker = tickers[t]
             symbol = ticker['pair'].replace (':', '/')
-            product = self.products[symbol]            
-            result[symbol] = self.parse_ticker (ticker, product)
+            market = self.markets[symbol]            
+            result[symbol] = self.parse_ticker (ticker, market)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         ticker = self.publicGetTickerPair ({
             'pair': p['id'],
         })
         return self.parse_ticker (ticker, p)
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetTradeHistoryPair ({
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         order = {
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
             'type': side,
             'amount': amount,
         }
@@ -5584,7 +5584,7 @@ class cex (Market):
         return self.privatePostPlaceOrderPair (self.extend (order, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privatePostCancelOrder ({ 'id': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
@@ -5613,12 +5613,12 @@ class cex (Market):
             if 'ok' in response:
                 if response['ok'] == 'ok':
                     return response
-            raise MarketError (self.id + ' ' + self.json (response))
+            raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class chbtc (Market):
+class chbtc (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -5665,7 +5665,7 @@ class chbtc (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/CNY': { 'id': 'btc_cny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', },
                 'LTC/CNY': { 'id': 'ltc_cny', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', },
                 'ETH/CNY': { 'id': 'eth_cny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY', },
@@ -5696,8 +5696,8 @@ class chbtc (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        p = self.product (product)
+    def fetch_order_book (self, market, params = {}):
+        p = self.market (market)
         orderbook = self.publicGetDepth (self.extend ({
             'currency': p['id'],
         }, params))
@@ -5720,9 +5720,9 @@ class chbtc (Market):
             result['asks'] = self.sort_by (result['asks'], 0)
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         response = self.publicGetTicker ({
-            'currency': self.product_id (product),
+            'currency': self.market_id (market),
         })
         ticker = response['ticker']
         timestamp = self.milliseconds ()
@@ -5746,17 +5746,17 @@ class chbtc (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.publicGetTrades ({
-            'currency': self.product_id (product),
+            'currency': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         paramString = '&price=' + str (price)
         paramString += '&amount=' + str (amount)
         tradeType = '1' if (side == 'buy') else '0'
         paramString += '&tradeType=' + tradeType
-        paramString += '&currency=' + self.product_id (product)
+        paramString += '&currency=' + self.market_id (market)
         return self.privatePostOrder (paramString)
 
     def cancel_order (self, id, params = {}):
@@ -5793,7 +5793,7 @@ class chbtc (Market):
         response = self.fetch (url, method, headers, body)
         if type == 'private':
             if 'code' in response:
-                raise MarketError (self.id + ' ' + self.json (response))
+                raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
@@ -5815,7 +5815,7 @@ class chilebit (blinktrade):
                 'doc': 'https://blinktrade.com/docs',
             },
             'comment': 'Blinktrade API',
-            'products': {
+            'markets': {
                 'BTC/CLP': { 'id': 'BTCCLP', 'symbol': 'BTC/CLP', 'base': 'BTC', 'quote': 'CLP', 'brokerId': 9, 'broker': 'ChileBit', },
             },
         }
@@ -5824,7 +5824,7 @@ class chilebit (blinktrade):
 
 #------------------------------------------------------------------------------
 
-class coincheck (Market):
+class coincheck (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -5881,7 +5881,7 @@ class coincheck (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/JPY':  { 'id': 'btc_jpy',  'symbol': 'BTC/JPY',  'base': 'BTC',  'quote': 'JPY' }, # the only real pair
                 'ETH/JPY':  { 'id': 'eth_jpy',  'symbol': 'ETH/JPY',  'base': 'ETH',  'quote': 'JPY' },
                 'ETC/JPY':  { 'id': 'etc_jpy',  'symbol': 'ETC/JPY',  'base': 'ETC',  'quote': 'JPY' },
@@ -5931,7 +5931,7 @@ class coincheck (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
+    def fetch_order_book (self, market, params = {}):
         orderbook =  self.publicGetOrderBooks (params)
         timestamp = self.milliseconds ()
         result = {
@@ -5951,7 +5951,7 @@ class coincheck (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         ticker = self.publicGetTicker ()
         timestamp = ticker['timestamp'] * 1000
         return {
@@ -5974,13 +5974,13 @@ class coincheck (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.publicGetTrades ()
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         prefix = ''
         order = {
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
         }
         if type == 'market':
             order_type = type + '_' + side
@@ -6022,11 +6022,11 @@ class coincheck (Market):
         if 'success' in response:
             if response['success']:
                 return response
-        raise MarketError (self.id + ' ' + self.json (response))
+        raise ExchangeError (self.id + ' ' + self.json (response))
 
 #------------------------------------------------------------------------------
 
-class coingi (Market):
+class coingi (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -6059,7 +6059,7 @@ class coingi (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'LTC/BTC': { 'id': 'ltc-btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
                 'PPC/BTC': { 'id': 'ppc-btc', 'symbol': 'PPC/BTC', 'base': 'PPC', 'quote': 'BTC' },
                 'DOGE/BTC': { 'id': 'doge-btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC' },
@@ -6094,8 +6094,8 @@ class coingi (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        p = self.product (product)
+    def fetch_order_book (self, market, params = {}):
+        p = self.market (market)
         orderbook = self.currentGetOrderBookPairAskCountBidCountDepth (self.extend ({
             'pair': p['id'],
             'askCount': 512, # maximum returned number of asks 1-512
@@ -6120,7 +6120,7 @@ class coingi (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def parse_ticker (self, ticker, product):
+    def parse_ticker (self, ticker, market):
         timestamp = self.milliseconds ()
         return {
             'timestamp': timestamp,
@@ -6151,11 +6151,11 @@ class coingi (Market):
             base = ticker['currencyPair']['base'].upper ()
             quote = ticker['currencyPair']['counter'].upper ()
             symbol = base + '/' + quote
-            product = self.products[symbol]
-            result[symbol] = self.parse_ticker (ticker, product)
+            market = self.markets[symbol]
+            result[symbol] = self.parse_ticker (ticker, market)
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         response = self.currentGet24hourRollingAggregation ()
         tickers = {}
         for t in range (0, len (response)):
@@ -6164,21 +6164,21 @@ class coingi (Market):
             quote = ticker['currencyPair']['counter'].upper ()
             symbol = base + '/' + quote
             tickers[symbol] = ticker
-        p = self.product (product)
+        p = self.market (market)
         symbol = p['symbol']
         if symbol in tickers:
             ticker = tickers[symbol]
             return self.parse_ticker (ticker, p)
-        raise MarketError (self.id + ' ' + symbol + ' ticker not found')
+        raise ExchangeError (self.id + ' ' + symbol + ' ticker not found')
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.publicGetTransactionsPairMaxCount ({
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         order = {
-            'currencyPair': self.product_id (product),
+            'currencyPair': self.market_id (market),
             'volume': amount,
             'price': price,
             'orderType': 0 if (side == 'buy') else 1,
@@ -6209,12 +6209,12 @@ class coingi (Market):
             }
         response = self.fetch (url, method, headers, body)
         if 'errors' in response:
-            raise MarketError (self.id + ' ' + self.json (response))
+            raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class coinmarketcap (Market):
+class coinmarketcap (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -6259,17 +6259,17 @@ class coinmarketcap (Market):
         params.update (config)
         super (coinmarketcap, self).__init__ (params)
 
-    def fetch_order_book (self, product, params = {}):
-        raise MarketError ('Fetching order books is not supported by the API of ' + self.id)
+    def fetch_order_book (self, market, params = {}):
+        raise ExchangeError ('Fetching order books is not supported by the API of ' + self.id)
 
-    def fetch_products (self):
-        products = self.publicGetTicker ()
+    def fetch_markets (self):
+        markets = self.publicGetTicker ()
         result = []
-        for p in range (0, len (products)):
-            product = products[p]
+        for p in range (0, len (markets)):
+            market = markets[p]
             for c in range (0, len (self.currencies)):
-                base = product['symbol']                
-                baseId = product['id']
+                base = market['symbol']                
+                baseId = market['id']
                 quote = self.currencies[c]
                 quoteId = quote.lower ()
                 symbol = base + '/' + quote
@@ -6281,24 +6281,24 @@ class coinmarketcap (Market):
                     'quote': quote,
                     'baseId': baseId,
                     'quoteId': quoteId,
-                    'info': product,
+                    'info': market,
                 })
         return result
 
     def fetchGlobal (self, currency = 'USD'):
-        self.loadProducts ()
+        self.loadMarkets ()
         request = {}
         if currency:
             request['convert'] = currency
         return self.publicGetGlobal (request)
 
-    def parse_ticker (self, ticker, product):
+    def parse_ticker (self, ticker, market):
         timestamp = int (ticker['last_updated']) * 1000
         volume = None
-        volumeKey = '24h_volume_' + product['quoteId']
+        volumeKey = '24h_volume_' + market['quoteId']
         if ticker[volumeKey]:
             volume = float (ticker[volumeKey])
-        price = 'price_' + product['quoteId']
+        price = 'price_' + market['quoteId']
         change = None
         changeKey = 'percent_change_24h'
         if ticker[changeKey]:
@@ -6324,7 +6324,7 @@ class coinmarketcap (Market):
         }
 
     def fetch_tickers (self, currency = 'USD'):
-        self.loadProducts ()
+        self.loadMarkets ()
         request = {}
         if currency:
             request['convert'] = currency
@@ -6333,14 +6333,14 @@ class coinmarketcap (Market):
         for t in range (0, len (response)):
             ticker = response[t]
             id = ticker['id'] + '/' + currency
-            product = self.products_by_id[id]
-            symbol = product['symbol']
-            tickers[symbol] = self.parse_ticker (ticker, product)
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
+            tickers[symbol] = self.parse_ticker (ticker, market)
         return tickers
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         request = {
             'convert': p['quote'],
             'id': p['baseId'],
@@ -6358,7 +6358,7 @@ class coinmarketcap (Market):
 
 #------------------------------------------------------------------------------
 
-class coinmate (Market):
+class coinmate (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -6402,7 +6402,7 @@ class coinmate (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/EUR': { 'id': 'BTC_EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'  },
                 'BTC/CZK': { 'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK'  },
             },
@@ -6428,9 +6428,9 @@ class coinmate (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
+    def fetch_order_book (self, market, params = {}):
         response = self.publicGetOrderBook (self.extend ({
-            'currencyPair': self.product_id (product),
+            'currencyPair': self.market_id (market),
             'groupByPriceLimit': 'False',
         }, params))
         orderbook = response['data']
@@ -6452,9 +6452,9 @@ class coinmate (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         response = self.publicGetTicker ({
-            'currencyPair': self.product_id (product),
+            'currencyPair': self.market_id (market),
         })
         ticker = response['data']
         timestamp = ticker['timestamp'] * 1000
@@ -6478,16 +6478,16 @@ class coinmate (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.publicGetTransactions ({
-            'currencyPair': self.product_id (product),
+            'currencyPair': self.market_id (market),
             'minutesIntoHistory': 10,
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         method = 'privatePost' + self.capitalize (side)
         order = {
-            'currencyPair': self.product_id (product),
+            'currencyPair': self.market_id (market),
         }
         if type == 'market':
             if side == 'buy':
@@ -6527,12 +6527,12 @@ class coinmate (Market):
         response = self.fetch (url, method, headers, body)
         if 'error' in response:
             if response['error']:
-                raise MarketError (self.id + ' ' + self.json (response))
+                raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class coinsecure (Market):
+class coinsecure (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -6678,7 +6678,7 @@ class coinsecure (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/INR': { 'id': 'BTC/INR', 'symbol': 'BTC/INR', 'base': 'BTC', 'quote': 'INR' },
             },
         }
@@ -6705,7 +6705,7 @@ class coinsecure (Market):
         }
         return result
 
-    def fetch_order_book (self, product, params = {}):
+    def fetch_order_book (self, market, params = {}):
         bids = self.publicGetExchangeBidOrders (params)
         asks = self.publicGetExchangeAskOrders (params)
         orderbook = {
@@ -6730,7 +6730,7 @@ class coinsecure (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         response = self.publicGetExchangeTicker ()
         ticker = response['message']
         timestamp = ticker['timestamp']
@@ -6754,10 +6754,10 @@ class coinsecure (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.publicGetExchangeTrades ()
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         method = 'privatePutUserExchange'
         order = {}
         if type == 'market':
@@ -6774,7 +6774,7 @@ class coinsecure (Market):
         return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id):
-        raise MarketError (self.id + ' cancelOrder () is not fully implemented yet')
+        raise ExchangeError (self.id + ' cancelOrder () is not fully implemented yet')
         method = 'privateDeleteUserExchangeAskCancelOrderId' # TODO fixme, have to specify order side here
         return getattr (self, method) ({ 'orderID': id })
 
@@ -6790,11 +6790,11 @@ class coinsecure (Market):
         if 'success' in response:
             if response['success']:
                 return response
-        raise MarketError (self.id + ' ' + self.json (response))
+        raise ExchangeError (self.id + ' ' + self.json (response))
 
 #------------------------------------------------------------------------------
 
-class coinspot (Market):
+class coinspot (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -6834,7 +6834,7 @@ class coinspot (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/AUD': { 'id': 'BTC', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', },
                 'LTC/AUD': { 'id': 'LTC', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', },
                 'DOGE/AUD': { 'id': 'DOGE', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD', },
@@ -6862,8 +6862,8 @@ class coinspot (Market):
                 result[uppercase] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        p = self.product (product)
+    def fetch_order_book (self, market, params = {}):
+        p = self.market (market)
         orderbook = self.privatePostOrders (self.extend ({
             'cointype': p['id'],
         }, params))
@@ -6889,9 +6889,9 @@ class coinspot (Market):
         result['asks'] = self.sort_by (result['asks'], 0)
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         response = self.publicGetLatest ()
-        id = self.product_id (product)
+        id = self.market_id (market)
         id = id.lower ()
         ticker = response['prices'][id]
         timestamp = self.milliseconds ()
@@ -6915,24 +6915,24 @@ class coinspot (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.privatePostOrdersHistory ({
-            'cointype': self.product_id (product),
+            'cointype': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         method = 'privatePostMy' + self.capitalize (side)
         if type =='market':
-            raise MarketError (self.id + ' allows limit orders only')
+            raise ExchangeError (self.id + ' allows limit orders only')
         order = {
-            'cointype': self.product_id (product),
+            'cointype': self.market_id (market),
             'amount': amount,
             'rate': price,
         }
         return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id, params = {}):
-        raise MarketError (self.id + ' cancelOrder () is not fully implemented yet')
+        raise ExchangeError (self.id + ' cancelOrder () is not fully implemented yet')
         method = 'privatePostMyBuy'
         return getattr (self, method) ({ 'id': id })
 
@@ -6953,7 +6953,7 @@ class coinspot (Market):
 
 #------------------------------------------------------------------------------
 
-class dsx (Market):
+class dsx (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -7013,13 +7013,13 @@ class dsx (Market):
         params.update (config)
         super (dsx, self).__init__ (params)
 
-    def fetch_products (self):
+    def fetch_markets (self):
         response = self.mapiGetInfo ()
         keys = list (response['pairs'].keys ())
         result = []
         for p in range (0, len (keys)):
             id = keys[p]
-            product = response['pairs'][id]
+            market = response['pairs'][id]
             base = id[0:3]
             quote = id[3:6]
             base = base.upper ()
@@ -7030,12 +7030,12 @@ class dsx (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.tapiPostGetInfo ()
         balances = response['return']
         result = { 'info': balances }
@@ -7051,9 +7051,9 @@ class dsx (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
+        p = self.market (market)
         response = self.mapiGetDepthId (self.extend ({
             'id': p['id'],
         }, params))
@@ -7076,9 +7076,9 @@ class dsx (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         response = self.mapiGetTickerId ({
             'id': p['id'],
         })
@@ -7104,18 +7104,18 @@ class dsx (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.mapiGetTradesId ({
-            'id': self.product_id (product),
+            'id': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         if type == 'market':
-            raise MarketError (self.id + ' allows limit orders only')
+            raise ExchangeError (self.id + ' allows limit orders only')
         order = {
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
             'type': side,
             'rate': price,
             'amount': amount,
@@ -7123,7 +7123,7 @@ class dsx (Market):
         return self.tapiPostTrade (self.extend (order, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.tapiPostCancelOrder ({ 'orderId': id })
 
     def request (self, path, type = 'mapi', method = 'GET', params = {}, headers = None, body = None):
@@ -7153,11 +7153,11 @@ class dsx (Market):
         if 'success' in response:
             if response['success']:
                 return response
-        raise MarketError (self.id + ' ' + self.json (response)) 
+        raise ExchangeError (self.id + ' ' + self.json (response)) 
 
 #------------------------------------------------------------------------------
 
-class exmo (Market):
+class exmo (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -7208,13 +7208,13 @@ class exmo (Market):
         params.update (config)
         super (exmo, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetPairSettings ()
-        keys = list (products.keys ())
+    def fetch_markets (self):
+        markets = self.publicGetPairSettings ()
+        keys = list (markets.keys ())
         result = []
         for p in range (0, len (keys)):
             id = keys[p]
-            product = products[id]
+            market = markets[id]
             symbol = id.replace ('_', '/')
             base, quote = symbol.split ('/')
             result.append ({
@@ -7222,12 +7222,12 @@ class exmo (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.privatePostUserInfo ()
         result = { 'info': response }
         for c in range (0, len (self.currencies)):
@@ -7245,9 +7245,9 @@ class exmo (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
+        p = self.market (market)
         response = self.publicGetOrderBook (self.extend ({
             'pair': p['id'],
         }, params))
@@ -7272,7 +7272,7 @@ class exmo (Market):
                 result[key].append ([ price, amount ])
         return result
 
-    def parse_ticker (self, ticker, product):
+    def parse_ticker (self, ticker, market):
         timestamp = ticker['updated'] * 1000
         return {
             'timestamp': timestamp,
@@ -7295,37 +7295,37 @@ class exmo (Market):
         }
 
     def fetch_tickers (self, currency = 'USD'):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.publicGetTicker ()
         result = {}
         ids = list (response.keys ())
         for i in range (0, len (ids)):
             id = ids[i]
-            product = self.products_by_id[id]
-            symbol = product['symbol']
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
             ticker = response[id]
-            result[symbol] = self.parse_ticker (ticker, product)
+            result[symbol] = self.parse_ticker (ticker, market)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
         response = self.publicGetTicker ()
-        p = self.product (product)
+        p = self.market (market)
         return self.parse_ticker (response[p['id']], p)
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetTrades ({
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         prefix = ''
         if type =='market':
             prefix = 'market_'
         order = {
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
             'quantity': amount,
             'price': price or 0,
             'type': prefix + side,
@@ -7333,7 +7333,7 @@ class exmo (Market):
         return self.privatePostOrderCreate (self.extend (order, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privatePostOrderCancel ({ 'order_id': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
@@ -7356,11 +7356,11 @@ class exmo (Market):
         if 'result' in response:
             if response['result']:
                 return response
-        raise MarketError (self.id + ' ' + self.json (response))
+        raise ExchangeError (self.id + ' ' + self.json (response))
 
 #------------------------------------------------------------------------------
 
-class flowbtc (Market):
+class flowbtc (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -7408,27 +7408,27 @@ class flowbtc (Market):
         params.update (config)
         super (flowbtc, self).__init__ (params)
 
-    def fetch_products (self):
+    def fetch_markets (self):
         response = self.publicPostGetProductPairs ()
-        products = response['productPairs']
+        markets = response['productPairs']
         result = []
-        for p in range (0, len (products)):
-            product = products[p]
-            id = product['name']
-            base = product['product1Label']
-            quote = product['product2Label']
+        for p in range (0, len (markets)):
+            market = markets[p]
+            id = market['name']
+            base = market['product1Label']
+            quote = market['product2Label']
             symbol = base + '/' + quote
             result.append ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.privatePostGetAccountInfo ()
         balances = response['currencies']
         result = { 'info': response }
@@ -7444,9 +7444,9 @@ class flowbtc (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
+        p = self.market (market)
         orderbook = self.publicPostGetOrderBook (self.extend ({
             'productPair': p['id'],
         }, params))
@@ -7468,9 +7468,9 @@ class flowbtc (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         ticker = self.publicPostGetTicker ({
             'productPair': p['id'],
         })
@@ -7495,17 +7495,17 @@ class flowbtc (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicPostGetTrades ({
-            'productPair': self.product_id (product),
+            'productPair': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         orderType = 1 if (type == 'market') else 0
         order = {
-            'ins': self.product_id (product),
+            'ins': self.market_id (market),
             'side': side,
             'orderType': orderType,
             'qty': amount,
@@ -7514,12 +7514,12 @@ class flowbtc (Market):
         return self.privatePostCreateOrder (self.extend (order, params))
 
     def cancel_order (self, id, params = {}):
-        self.loadProducts ()
+        self.loadMarkets ()
         if 'ins' in params:
             return self.privatePostCancelOrder (self.extend ({
                 'serverOrderId': id,
             }, params))            
-        raise MarketError (self.id + ' requires `ins` symbol parameter for cancelling an order')
+        raise ExchangeError (self.id + ' requires `ins` symbol parameter for cancelling an order')
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
@@ -7545,7 +7545,7 @@ class flowbtc (Market):
         if 'isAccepted' in response:
             if response['isAccepted']:
                 return response
-        raise MarketError (self.id + ' ' + self.json (response))
+        raise ExchangeError (self.id + ' ' + self.json (response))
 
 #------------------------------------------------------------------------------
 
@@ -7566,7 +7566,7 @@ class foxbit (blinktrade):
                 'doc': 'https://blinktrade.com/docs',
             },
             'comment': 'Blinktrade API',
-            'products': {
+            'markets': {
                 'BTC/BRL': { 'id': 'BTCBRL', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'brokerId': 4, 'broker': 'FoxBit', },
             },
         }
@@ -7575,7 +7575,7 @@ class foxbit (blinktrade):
 
 #------------------------------------------------------------------------------
 
-class fyb (Market):
+class fyb (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -7609,7 +7609,7 @@ class fyb (Market):
         balance = self.privatePostGetaccinfo ()
         btc = float (balance['btcBal'])
         symbol = self.symbols[0]
-        quote = self.products[symbol]['quote']
+        quote = self.markets[symbol]['quote']
         lowercase = quote.lower () + 'Bal'
         fiat = float (balance[lowercase])
         crypto = {
@@ -7626,7 +7626,7 @@ class fyb (Market):
         accounts['info'] = balance
         return accounts
 
-    def fetch_order_book (self, product, params = {}):
+    def fetch_order_book (self, market, params = {}):
         orderbook = self.publicGetOrderbook (params)
         timestamp = self.milliseconds ()
         result = {
@@ -7646,7 +7646,7 @@ class fyb (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         ticker = self.publicGetTickerdetailed ()
         timestamp = self.milliseconds ()
         last = None
@@ -7675,10 +7675,10 @@ class fyb (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.publicGetTrades ()
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         return self.privatePostPlaceorder (self.extend ({
             'qty': amount,
             'price': price,
@@ -7704,7 +7704,7 @@ class fyb (Market):
         if type == 'private':
             if 'error' in response:
                 if response['error']:
-                    raise MarketError (self.id + ' ' + self.json (response))
+                    raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
@@ -7722,7 +7722,7 @@ class fybse (fyb):
                 'www': 'https://www.fybse.se',
                 'doc': 'http://docs.fyb.apiary.io',
             },
-            'products': {
+            'markets': {
                 'BTC/SEK': { 'id': 'SEK', 'symbol': 'BTC/SEK', 'base': 'BTC', 'quote': 'SEK' },
             },
         }
@@ -7744,7 +7744,7 @@ class fybsg (fyb):
                 'www': 'https://www.fybsg.com',
                 'doc': 'http://docs.fyb.apiary.io',
             },
-            'products': {
+            'markets': {
                 'BTC/SGD': { 'id': 'SGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD' },
             },
         }
@@ -7753,7 +7753,7 @@ class fybsg (fyb):
 
 #------------------------------------------------------------------------------
 
-class gatecoin (Market):
+class gatecoin (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -7916,13 +7916,13 @@ class gatecoin (Market):
         params.update (config)
         super (gatecoin, self).__init__ (params)
 
-    def fetch_products (self):
+    def fetch_markets (self):
         response = self.publicGetPublicLiveTickers ()
-        products = response['tickers']
+        markets = response['tickers']
         result = []
-        for p in range (0, len (products)):
-            product = products[p]
-            id = product['currencyPair']
+        for p in range (0, len (markets)):
+            market = markets[p]
+            id = market['currencyPair']
             base = id[0:3]
             quote = id[3:6]
             symbol = base + '/' + quote
@@ -7931,12 +7931,12 @@ class gatecoin (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.privateGetBalanceBalances ()
         balances = response['balances']
         result = { 'info': balances }
@@ -7954,9 +7954,9 @@ class gatecoin (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
+        p = self.market (market)
         orderbook = self.publicGetPublicMarketDepthCurrencyPair (self.extend ({
             'CurrencyPair': p['id'],
         }, params))
@@ -7978,7 +7978,7 @@ class gatecoin (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def parse_ticker (self, ticker, product):
+    def parse_ticker (self, ticker, market):
         timestamp = int (ticker['createDateTime']) * 1000
         return {
             'timestamp': timestamp,
@@ -8001,37 +8001,37 @@ class gatecoin (Market):
         }
 
     def fetch_tickers (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.publicGetPublicLiveTickers ()
         tickers = response['tickers']
         result = {}
         for t in range (0, len (tickers)):
             ticker = tickers[t]
             id = ticker['currencyPair']
-            product = self.products_by_id[id]
-            symbol = product['symbol']
-            result[symbol] = self.parse_ticker (ticker, product)
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
+            result[symbol] = self.parse_ticker (ticker, market)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         response = self.publicGetPublicLiveTickerCurrencyPair ({
             'CurrencyPair': p['id'],
         })
         ticker = response['ticker']
         return self.parse_ticker (ticker, p)
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetPublicTransactionsCurrencyPair ({
-            'CurrencyPair': self.product_id (product),
+            'CurrencyPair': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         order = {
-            'Code': self.product_id (product),
+            'Code': self.market_id (market),
             'Way': 'Bid' if (side == 'buy') else 'Ask',
             'Amount': amount,
         }
@@ -8045,7 +8045,7 @@ class gatecoin (Market):
         return self.privatePostTradeOrders (self.extend (order, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privateDeleteTradeOrdersOrderID ({ 'OrderID': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
@@ -8073,11 +8073,11 @@ class gatecoin (Market):
             if 'message' in response['responseStatus']:
                 if response['responseStatus']['message'] == 'OK':
                     return response
-        raise MarketError (self.id + ' ' + self.json (response))
+        raise ExchangeError (self.id + ' ' + self.json (response))
 
 #------------------------------------------------------------------------------
 
-class gdax (Market):
+class gdax (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -8143,26 +8143,26 @@ class gdax (Market):
         params.update (config)
         super (gdax, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetProducts ()
+    def fetch_markets (self):
+        markets = self.publicGetProducts ()
         result = []
-        for p in range (0, len (products)):
-            product = products[p]
-            id = product['id']
-            base = product['base_currency']
-            quote = product['quote_currency']
+        for p in range (0, len (markets)):
+            market = markets[p]
+            id = market['id']
+            base = market['base_currency']
+            quote = market['quote_currency']
             symbol = base + '/' + quote
             result.append ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         balances = self.privateGetAccounts ()
         result = { 'info': balances }
         for b in range (0, len (balances)):
@@ -8176,10 +8176,10 @@ class gdax (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         orderbook = self.publicGetProductsIdBook (self.extend ({
-            'id': self.product_id (product),
+            'id': self.market_id (market),
             'level': 2, # 1 best bidask, 2 aggregated, 3 full
         }, params))
         timestamp = self.milliseconds ()
@@ -8200,9 +8200,9 @@ class gdax (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         ticker = self.publicGetProductsIdTicker ({
             'id': p['id'],
         })
@@ -8236,17 +8236,17 @@ class gdax (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetProductsIdTrades ({
-            'id': self.product_id (product), # fixes issue #2
+            'id': self.market_id (market), # fixes issue #2
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         oid = str (self.nonce ())
         order = {
-            'product_id': self.product_id (product),
+            'product_id': self.market_id (market),
             'side': side,
             'size': amount,
             'type': type,
@@ -8256,7 +8256,7 @@ class gdax (Market):
         return self.privatePostOrders (self.extend (order, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privateDeleteOrdersId ({ 'id': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
@@ -8288,12 +8288,12 @@ class gdax (Market):
             }
         response = self.fetch (url, method, headers, body)
         if 'message' in response:
-            raise MarketError (self.id + ' ' + self.json (response))
+            raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class gemini (Market):
+class gemini (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -8340,29 +8340,29 @@ class gemini (Market):
         params.update (config)
         super (gemini, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetSymbols ()
+    def fetch_markets (self):
+        markets = self.publicGetSymbols ()
         result = []
-        for p in range (0, len (products)):
-            product = products[p]
-            id = product
-            uppercaseProduct = product.upper ()
-            base = uppercaseProduct[0:3]
-            quote = uppercaseProduct[3:6]
+        for p in range (0, len (markets)):
+            id = markets[p]
+            market = id
+            uppercase = market.upper ()
+            base = uppercase[0:3]
+            quote = uppercase[3:6]
             symbol = base + '/' + quote
             result.append ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         orderbook = self.publicGetBookSymbol (self.extend ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         }, params))
         timestamp = self.milliseconds ()
         result = {
@@ -8383,9 +8383,9 @@ class gemini (Market):
                 result[side].append ([ price, amount, timestamp ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         ticker = self.publicGetPubtickerSymbol ({
             'symbol': p['id'],
         })
@@ -8412,14 +8412,14 @@ class gemini (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetTradesSymbol ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         })
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         balances = self.privatePostBalances ()
         result = { 'info': balances }
         for b in range (0, len (balances)):
@@ -8434,13 +8434,13 @@ class gemini (Market):
             result[currency] = account
         return result
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         if type == 'market':
-            raise MarketError (self.id + ' allows limit orders only')
+            raise ExchangeError (self.id + ' allows limit orders only')
         order = {
             'client_order_id': self.nonce (),
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
             'amount': str (amount),
             'price': str (price),
             'side': side,
@@ -8449,7 +8449,7 @@ class gemini (Market):
         return self.privatePostOrderNew (self.extend (order, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privatePostCancelOrder ({ 'order_id': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
@@ -8479,12 +8479,12 @@ class gemini (Market):
         response = self.fetch (url, method, headers, body)
         if 'result' in response:
             if response['result'] == 'error':
-                raise MarketError (self.id + ' ' + self.json (response))
+                raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class hitbtc (Market):
+class hitbtc (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -8549,16 +8549,16 @@ class hitbtc (Market):
         params.update (config)
         super (hitbtc, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetSymbols ()
+    def fetch_markets (self):
+        markets = self.publicGetSymbols ()
         result = []
-        for p in range (0, len (products['symbols'])):
-            product = products['symbols'][p]
-            id = product['symbol']
-            base = product['commodity']
-            quote = product['currency']
-            lot = float (product['lot'])
-            step = float (product['step'])
+        for p in range (0, len (markets['symbols'])):
+            market = markets['symbols'][p]
+            id = market['symbol']
+            base = market['commodity']
+            quote = market['currency']
+            lot = float (market['lot'])
+            step = float (market['step'])
             base = self.commonCurrencyCode (base)
             quote = self.commonCurrencyCode (quote)
             # looks like they now have it correct
@@ -8572,12 +8572,12 @@ class hitbtc (Market):
                 'quote': quote,
                 'lot': lot,
                 'step': step,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.tradingGetBalance ()
         balances = response['balance']
         result = { 'info': balances }
@@ -8593,10 +8593,10 @@ class hitbtc (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         orderbook = self.publicGetSymbolOrderbook (self.extend ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         }, params))
         timestamp = self.milliseconds ()
         result = {
@@ -8616,7 +8616,7 @@ class hitbtc (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def parse_ticker (self, ticker, product):
+    def parse_ticker (self, ticker, market):
         timestamp = ticker['timestamp']
         return {
             'timestamp': timestamp,
@@ -8639,44 +8639,44 @@ class hitbtc (Market):
         }
 
     def fetch_tickers (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         tickers = self.publicGetTicker ()
         ids = list (tickers.keys ())
         result = {}
         for i in range (0, len (ids)):
             id = ids[i]
-            product = self.products_by_id[id]
-            symbol = product['symbol']
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
             ticker = tickers[id]
-            result[symbol] = self.parse_ticker (ticker, product)
+            result[symbol] = self.parse_ticker (ticker, market)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         ticker = self.publicGetSymbolTicker ({
             'symbol': p['id'],
         })
         if 'message' in ticker:
-            raise MarketError (self.id + ' ' + ticker['message'])
+            raise ExchangeError (self.id + ' ' + ticker['message'])
         return self.parse_ticker (ticker, p)
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetSymbolTrades ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
-        p = self.product (product)
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
+        p = self.market (market)
         # check if amount can be evenly divided into lots
         # they want integer quantity in lot units
         quantity = float (amount) / p['lot']
         wholeLots = int (round (quantity))
         difference = quantity - wholeLots
         if abs (difference) > p['step']:
-            raise MarketError (self.id + ' order amount should be evenly divisible by lot unit size of ' + str (p['lot']))
+            raise ExchangeError (self.id + ' order amount should be evenly divisible by lot unit size of ' + str (p['lot']))
         order = {
             'clientOrderId': self.nonce (),
             'symbol': p['id'],
@@ -8689,7 +8689,7 @@ class hitbtc (Market):
         return self.tradingPostNewOrder (self.extend (order, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.tradingPostCancelOrder ({ 'clientOrderId': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
@@ -8714,12 +8714,12 @@ class hitbtc (Market):
         url = self.urls['api'] + url
         response = self.fetch (url, method, headers, body)
         if 'code' in response:
-            raise MarketError (self.id + ' ' + self.json (response))
+            raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class huobi (Market):
+class huobi (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -8776,7 +8776,7 @@ class huobi (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/CNY': { 'id': 'btc', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', 'type': 'staticmarket', 'coinType': 1, },
                 'LTC/CNY': { 'id': 'ltc', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', 'type': 'staticmarket', 'coinType': 2, },
                 'BTC/USD': { 'id': 'btc', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'usdmarket',    'coinType': 1, },
@@ -8809,8 +8809,8 @@ class huobi (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        p = self.product (product)
+    def fetch_order_book (self, market, params = {}):
+        p = self.market (market)
         method = p['type'] + 'GetDepthId'
         orderbook = getattr (self, method) (self.extend ({ 'id': p['id'] }, params))
         timestamp = self.milliseconds ()
@@ -8822,8 +8822,8 @@ class huobi (Market):
         }
         return result
 
-    def fetch_ticker (self, product):
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        p = self.market (market)
         method = p['type'] + 'GetTickerId'
         response = getattr (self, method) ({ 'id': p['id'] })
         ticker = response['ticker']
@@ -8848,13 +8848,13 @@ class huobi (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
-        p = self.product (product)
+    def fetch_trades (self, market):
+        p = self.market (market)
         method = p['type'] + 'GetDetailId'
         return getattr (self, method) ({ 'id': p['id'] })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        p = self.product (product)
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        p = self.market (market)
         method = 'tradePost' + self.capitalize (side)
         order = {
             'coin_type': p['coinType'],
@@ -8896,14 +8896,14 @@ class huobi (Market):
         response = self.fetch (url, method, headers, body)
         if 'status' in response:
             if response['status'] == 'error':
-                raise MarketError (self.id + ' ' + self.json (response))
+                raise ExchangeError (self.id + ' ' + self.json (response))
         if 'code' in response:
-            raise MarketError (self.id + ' ' + self.json (response))
+            raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class itbit (Market):
+class itbit (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -8951,7 +8951,7 @@ class itbit (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/USD': { 'id': 'XBTUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
                 'BTC/SGD': { 'id': 'XBTSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD' },
                 'BTC/EUR': { 'id': 'XBTEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
@@ -8960,9 +8960,9 @@ class itbit (Market):
         params.update (config)
         super (itbit, self).__init__ (params)
 
-    def fetch_order_book (self, product, params = {}):
+    def fetch_order_book (self, market, params = {}):
         orderbook = self.publicGetMarketsSymbolOrderBook (self.extend ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         }, params))
         timestamp = self.milliseconds ()
         result = {
@@ -8982,9 +8982,9 @@ class itbit (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         ticker = self.publicGetMarketsSymbolTicker ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         })
         timestamp = self.parse8601 (ticker['serverTimeUTC'])
         bid = None
@@ -9015,9 +9015,9 @@ class itbit (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.publicGetMarketsSymbolTrades ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         })
 
     def fetch_balance (self):
@@ -9042,12 +9042,12 @@ class itbit (Market):
     def nonce (self):
         return self.milliseconds ()
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         if type == 'market':
-            raise MarketError (self.id + ' allows limit orders only')
+            raise ExchangeError (self.id + ' allows limit orders only')
         amount = str (amount)
         price = str (price)
-        p = self.product (product)
+        p = self.market (market)
         order = {
             'side': side,
             'type': type,
@@ -9090,12 +9090,12 @@ class itbit (Market):
             }
         response = self.fetch (url, method, headers, body)
         if 'code' in response:
-            raise MarketError (self.id + ' ' + self.json (response))
+            raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class jubi (Market):
+class jubi (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -9134,9 +9134,9 @@ class jubi (Market):
         params.update (config)
         super (jubi, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetAllticker ()
-        keys = list (products.keys ())
+    def fetch_markets (self):
+        markets = self.publicGetAllticker ()
+        keys = list (markets.keys ())
         result = []
         for p in range (0, len (keys)):
             id = keys[p]
@@ -9155,7 +9155,7 @@ class jubi (Market):
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         balances = self.privatePostBalance ()
         result = { 'info': balances }
         for c in range (0, len (self.currencies)):
@@ -9178,10 +9178,10 @@ class jubi (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         orderbook = self.publicGetDepth (self.extend ({
-            'coin': self.product_id (product),
+            'coin': self.market_id (market),
         }, params))
         timestamp = self.milliseconds ()
         result = {
@@ -9193,7 +9193,7 @@ class jubi (Market):
         result['asks'] = self.sort_by (result['asks'], 0)
         return result
 
-    def parse_ticker (self, ticker, product):
+    def parse_ticker (self, ticker, market):
         timestamp = self.milliseconds ()
         return {
             'timestamp': timestamp,
@@ -9216,43 +9216,43 @@ class jubi (Market):
         }
 
     def fetch_tickers (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         tickers = self.publicGetAllticker ()
         ids = list (tickers.keys ())
         result = {}
         for i in range (0, len (ids)):
             id = ids[i]
-            product = self.products_by_id[id]
-            symbol = product['symbol']
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
             ticker = tickers[id]
-            result[symbol] = self.parse_ticker (ticker, product)
+            result[symbol] = self.parse_ticker (ticker, market)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         ticker = self.publicGetTicker ({
             'coin': p['id'],
         })
         return self.parse_ticker (ticker, p)
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetOrders ({
-            'coin': self.product_id (product),
+            'coin': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         return self.privatePostTradeAdd (self.extend ({
             'amount': amount,
             'price': price,
             'type': side,
-            'coin': self.product_id (product),
+            'coin': self.market_id (market),
         }, params))
 
     def cancel_order (self, id, params = {}):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privateDeleteWalletsWalletIdOrdersId (self.extend ({
             'id': id,
         }, params))
@@ -9279,12 +9279,12 @@ class jubi (Market):
         response = self.fetch (url, method, headers, body)
         if 'result' in response:
             if not response['result']:
-                raise MarketError (self.id + ' ' + self.json (response))
+                raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class kraken (Market):
+class kraken (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -9344,15 +9344,15 @@ class kraken (Market):
         params.update (config)
         super (kraken, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetAssetPairs ()
-        keys = list (products['result'].keys ())
+    def fetch_markets (self):
+        markets = self.publicGetAssetPairs ()
+        keys = list (markets['result'].keys ())
         result = []
         for p in range (0, len (keys)):
             id = keys[p]
-            product = products['result'][id]
-            base = product['base']
-            quote = product['quote']
+            market = markets['result'][id]
+            base = market['base']
+            quote = market['quote']
             if (base[0] == 'X') or (base[0] == 'Z'):
                 base = base[1:]
             if (quote[0] == 'X') or (quote[0] == 'Z'):
@@ -9360,23 +9360,23 @@ class kraken (Market):
             base = self.commonCurrencyCode (base)
             quote = self.commonCurrencyCode (quote)
             darkpool = id.find ('.d') >= 0
-            symbol = product['altname'] if darkpool else (base + '/' + quote)
+            symbol = market['altname'] if darkpool else (base + '/' + quote)
             result.append ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'darkpool': darkpool,
-                'info': product,
+                'info': market,
             })
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
-        darkpool = product.find ('.d') >= 0
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
+        darkpool = market.find ('.d') >= 0
         if darkpool:
-            raise MarketError (self.id + ' does not provide an order book for darkpool symbol ' + product)
-        p = self.product (product)
+            raise ExchangeError (self.id + ' does not provide an order book for darkpool symbol ' + market)
+        p = self.market (market)
         response = self.publicGetDepth  (self.extend ({
             'pair': p['id'],
         }, params))
@@ -9400,7 +9400,7 @@ class kraken (Market):
                 result[side].append ([ price, amount, timestamp ])
         return result
 
-    def parse_ticker (self, ticker, product):
+    def parse_ticker (self, ticker, market):
         timestamp = self.milliseconds ()
         return {
             'timestamp': timestamp,
@@ -9423,13 +9423,13 @@ class kraken (Market):
         }
 
     def fetch_tickers (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         pairs = []
         for s in range (0, len (self.symbols)):
             symbol = self.symbols[s]
-            product = self.products[symbol]
-            if not product['darkpool']:
-                pairs.append (product['id'])
+            market = self.markets[symbol]
+            if not market['darkpool']:
+                pairs.append (market['id'])
         filter = ','.join (pairs)
         response = self.publicGetTicker ({
             'pair': filter,
@@ -9439,32 +9439,32 @@ class kraken (Market):
         result = {}
         for i in range (0, len (ids)):
             id = ids[i]
-            product = self.products_by_id[id]
-            symbol = product['symbol']
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
             ticker = tickers[id]
-            result[symbol] = self.parse_ticker (ticker, product)
+            result[symbol] = self.parse_ticker (ticker, market)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        darkpool = product.find ('.d') >= 0
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        darkpool = market.find ('.d') >= 0
         if darkpool:
-            raise MarketError (self.id + ' does not provide a ticker for darkpool symbol ' + product)
-        p = self.product (product)
+            raise ExchangeError (self.id + ' does not provide a ticker for darkpool symbol ' + market)
+        p = self.market (market)
         response = self.publicGetTicker ({
             'pair': p['id'],
         })
         ticker = response['result'][p['id']]
         return self.parse_ticker (ticker, p)
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetTrades ({
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
         })
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.privatePostBalance ()
         balances = response['result']
         result = { 'info': balances }
@@ -9487,10 +9487,10 @@ class kraken (Market):
             result[code] = account
         return result
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         order = {
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
             'type': side,
             'ordertype': type,
             'volume': amount,
@@ -9500,7 +9500,7 @@ class kraken (Market):
         return self.privatePostAddOrder (self.extend (order, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privatePostCancelOrder ({ 'txid': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
@@ -9527,12 +9527,12 @@ class kraken (Market):
         if 'error' in response:
             numErrors = len (response['error'])
             if numErrors:
-                raise MarketError (self.id + ' ' + self.json (response))
+                raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class lakebtc (Market):
+class lakebtc (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -9574,13 +9574,13 @@ class lakebtc (Market):
         params.update (config)
         super (lakebtc, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetTicker ()
+    def fetch_markets (self):
+        markets = self.publicGetTicker ()
         result = []
-        keys = list (products.keys ())
+        keys = list (markets.keys ())
         for k in range (0, len (keys)):
             id = keys[k]
-            product = products[id]
+            market = markets[id]
             base = id[0:3]
             quote = id[3:6]
             base = base.upper ()
@@ -9591,12 +9591,12 @@ class lakebtc (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.privatePostGetAccountInfo ()
         balances = response['balance']
         result = { 'info': response }
@@ -9612,10 +9612,10 @@ class lakebtc (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         orderbook = self.publicGetBcorderbook (self.extend ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         }, params))
         timestamp = self.milliseconds ()
         result = {
@@ -9635,9 +9635,9 @@ class lakebtc (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         tickers = self.publicGetTicker ({
             'symbol': p['id'],
         })
@@ -9663,25 +9663,25 @@ class lakebtc (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetBctrades ({
-            'symbol': self.product_id (product)
+            'symbol': self.market_id (market)
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         if type == 'market':
-            raise MarketError (self.id + ' allows limit orders only')
+            raise ExchangeError (self.id + ' allows limit orders only')
         method = 'privatePost' + self.capitalize (side) + 'Order'
-        productId = self.product_id (product)
+        marketId = self.market_id (market)
         order = {
-            'params': [ price, amount, productId ],
+            'params': [ price, amount, marketId ],
         }
         return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privatePostCancelOrder ({ 'params': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
@@ -9718,12 +9718,12 @@ class lakebtc (Market):
             }
         response = self.fetch (url, method, headers, body)
         if 'error' in response:
-            raise MarketError (self.id + ' ' + self.json (response))
+            raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class livecoin (Market):
+class livecoin (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -9784,12 +9784,12 @@ class livecoin (Market):
         params.update (config)
         super (livecoin, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetExchangeTicker ()
+    def fetch_markets (self):
+        markets = self.publicGetExchangeTicker ()
         result = []
-        for p in range (0, len (products)):
-            product = products[p]
-            id = product['symbol']
+        for p in range (0, len (markets)):
+            market = markets[p]
+            id = market['symbol']
             symbol = id
             base, quote = symbol.split ('/')
             result.append ({
@@ -9797,12 +9797,12 @@ class livecoin (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         balances = self.privateGetPaymentBalances ()
         result = { 'info': balances }
         for b in range (0, len (self.currencies)):
@@ -9826,10 +9826,10 @@ class livecoin (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         orderbook = self.publicGetExchangeOrderBook (self.extend ({
-            'currencyPair': self.product_id (product),
+            'currencyPair': self.market_id (market),
             'groupByPrice': 'false',
             'depth': 100,
         }, params))
@@ -9851,7 +9851,7 @@ class livecoin (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def parse_ticker (self, ticker, product):
+    def parse_ticker (self, ticker, market):
         timestamp = self.milliseconds ()
         return {
             'timestamp': timestamp,
@@ -9874,38 +9874,38 @@ class livecoin (Market):
         }
 
     def fetch_tickers (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.publicGetExchangeTicker ()
         tickers = self.index_by (response, 'symbol')
         ids = list (tickers.keys ())
         result = {}
         for i in range (0, len (ids)):
             id = ids[i]
-            product = self.products_by_id[id]
-            symbol = product['symbol']
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
             ticker = tickers[id]
-            result[symbol] = self.parse_ticker (ticker, product)
+            result[symbol] = self.parse_ticker (ticker, market)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         ticker = self.publicGetExchangeTicker ({
             'currencyPair': p['id'],
         })
         return self.parse_ticker (ticker, p)
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetExchangeLastTrades ({
-            'currencyPair': self.product_id (product)
+            'currencyPair': self.market_id (market)
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         method = 'privatePostExchange' + self.capitalize (side) + type
         order = {
-            'currencyPair': self.product_id (product),
+            'currencyPair': self.market_id (market),
             'quantity': amount,
         }
         if type == 'limit':
@@ -9913,7 +9913,7 @@ class livecoin (Market):
         return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id, params = {}):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privatePostExchangeCancellimit (self.extend ({
             'orderId': id,
         }, params))
@@ -9940,7 +9940,7 @@ class livecoin (Market):
         response = self.fetch (url, method, headers, body)
         if 'success' in response:
             if not response['success']:
-                raise MarketError (self.id + ' ' + self.json (response))
+                raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
@@ -9989,12 +9989,12 @@ class liqui (btce):
         response = self.fetch (url, method, headers, body)
         if 'success' in response:
             if not response['success']:
-                raise MarketError (self.id + ' ' + self.json (response))
+                raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class luno (Market):
+class luno (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -10060,12 +10060,12 @@ class luno (Market):
         params.update (config)
         super (luno, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetTickers ()
+    def fetch_markets (self):
+        markets = self.publicGetTickers ()
         result = []
-        for p in range (0, len (products['tickers'])):
-            product = products['tickers'][p]
-            id = product['pair']
+        for p in range (0, len (markets['tickers'])):
+            market = markets['tickers'][p]
+            id = market['pair']
             base = id[0:3]
             quote = id[3:6]
             base = self.commonCurrencyCode (base)
@@ -10076,12 +10076,12 @@ class luno (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.privateGetBalance ()
         balances = response['balance']
         result = { 'info': response }
@@ -10099,10 +10099,10 @@ class luno (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         orderbook = self.publicGetOrderbook (self.extend ({
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
         }, params))
         timestamp = orderbook['timestamp']
         result = {
@@ -10123,7 +10123,7 @@ class luno (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def parse_ticker (self, ticker, product):
+    def parse_ticker (self, ticker, market):
         timestamp = ticker['timestamp']
         return {
             'timestamp': timestamp,
@@ -10146,37 +10146,37 @@ class luno (Market):
         }        
 
     def fetch_tickers (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.publicGetTickers ()
         tickers = self.index_by (response['tickers'], 'pair')
         ids = list (tickers.keys ())
         result = {}
         for i in range (0, len (ids)):
             id = ids[i]
-            product = self.products_by_id[id]
-            symbol = product['symbol']
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
             ticker = tickers[id]
-            result[symbol] = self.parse_ticker (ticker, product)
+            result[symbol] = self.parse_ticker (ticker, market)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         ticker = self.publicGetTicker ({
             'pair': p['id'],
         })
         return self.parse_ticker (ticker, p)
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetTrades ({
-            'pair': self.product_id (product)
+            'pair': self.market_id (market)
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         method = 'privatePost'
-        order = { 'pair': self.product_id (product) }
+        order = { 'pair': self.market_id (market) }
         if type == 'market':
             method += 'Marketorder'
             order['type'] = side.upper ()
@@ -10195,7 +10195,7 @@ class luno (Market):
         return getattr (self, method) (self.extend (order, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privatePostStoporder ({ 'order_id': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
@@ -10209,12 +10209,12 @@ class luno (Market):
             headers = { 'Authorization': 'Basic ' + self.decode (auth) }
         response = self.fetch (url, method, headers, body)
         if 'error' in response:
-            raise MarketError (self.id + ' ' + self.json (response))
+            raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class mercado (Market):
+class mercado (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -10263,7 +10263,7 @@ class mercado (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/BRL': { 'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'suffix': '' },
                 'LTC/BRL': { 'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin' },
             },
@@ -10271,8 +10271,8 @@ class mercado (Market):
         params.update (config)
         super (mercado, self).__init__ (params)
 
-    def fetch_order_book (self, product, params = {}):
-        p = self.product (product)
+    def fetch_order_book (self, market, params = {}):
+        p = self.market (market)
         method = 'publicGetOrderbook' + self.capitalize (p['suffix'])
         orderbook = getattr (self, method) (params)
         timestamp = self.milliseconds ()
@@ -10284,8 +10284,8 @@ class mercado (Market):
         }
         return result
 
-    def fetch_ticker (self, product):
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        p = self.market (market)
         method = 'publicGetV2Ticker' + self.capitalize (p['suffix'])
         response = getattr (self, method) ()
         ticker = response['ticker']
@@ -10310,8 +10310,8 @@ class mercado (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
-        p = self.product (product)
+    def fetch_trades (self, market):
+        p = self.market (market)
         method = 'publicGetTrades' + self.capitalize (p['suffix'])
         return getattr (self, method) ()
 
@@ -10334,12 +10334,12 @@ class mercado (Market):
             result[currency] = account
         return result
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         if type == 'market':
-            raise MarketError (self.id + ' allows limit orders only')
+            raise ExchangeError (self.id + ' allows limit orders only')
         method = 'privatePostPlace' + self.capitalize (side) + 'Order'
         order = {
-            'coin_pair': self.product_id (product),
+            'coin_pair': self.market_id (market),
             'quantity': amount,
             'limit_price': price,
         }
@@ -10369,12 +10369,12 @@ class mercado (Market):
             }
         response = self.fetch (url, method, headers, body)
         if 'error_message' in response:
-            raise MarketError (self.id + ' ' + self.json (response))
+            raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class okcoin (Market):
+class okcoin (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -10445,9 +10445,9 @@ class okcoin (Market):
         params.update (config)
         super (okcoin, self).__init__ (params)
 
-    def fetch_order_book (self, product, params = {}):
+    def fetch_order_book (self, market, params = {}):
         orderbook = self.publicGetDepth (self.extend ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         }, params))
         timestamp = self.milliseconds ()
         result = {
@@ -10458,9 +10458,9 @@ class okcoin (Market):
         }
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         response = self.publicGetTicker ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         })
         ticker = response['ticker']
         timestamp = int (response['date']) * 1000
@@ -10484,9 +10484,9 @@ class okcoin (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.publicGetTrades ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         })
 
     def fetch_balance (self):
@@ -10509,9 +10509,9 @@ class okcoin (Market):
             result[currency] = account
         return result
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         order = {
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
             'type': side,
             'amount': amount,
         }
@@ -10544,7 +10544,7 @@ class okcoin (Market):
         response = self.fetch (url, method, headers, body)
         if 'result' in response:
             if not response['result']:
-                raise MarketError (self.id + ' ' + self.json (response))
+                raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
@@ -10562,7 +10562,7 @@ class okcoincny (okcoin):
                 'www': 'https://www.okcoin.cn',
                 'doc': 'https://www.okcoin.cn/rest_getStarted.html',
             },
-            'products': {
+            'markets': {
                 'BTC/CNY': { 'id': 'btc_cny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY' },
                 'LTC/CNY': { 'id': 'ltc_cny', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY' },
             },
@@ -10588,7 +10588,7 @@ class okcoinusd (okcoin):
                     'https://www.npmjs.com/package/okcoin.com',
                 ],
             },
-            'products': {
+            'markets': {
                 'BTC/USD': { 'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
                 'LTC/USD': { 'id': 'ltc_usd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD' },
             },
@@ -10598,7 +10598,7 @@ class okcoinusd (okcoin):
 
 #------------------------------------------------------------------------------
 
-class paymium (Market):
+class paymium (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -10650,7 +10650,7 @@ class paymium (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/EUR': { 'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
             },
         }
@@ -10678,9 +10678,9 @@ class paymium (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
+    def fetch_order_book (self, market, params = {}):
         orderbook = self.publicGetDataIdDepth  (self.extend ({
-            'id': self.product_id (product),
+            'id': self.market_id (market),
         }, params))
         timestamp = self.milliseconds ()
         result = {
@@ -10702,9 +10702,9 @@ class paymium (Market):
         result['bids'] = self.sort_by (result['bids'], 0, True)
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         ticker = self.publicGetDataIdTicker ({
-            'id': self.product_id (product),
+            'id': self.market_id (market),
         })
         timestamp = ticker['at'] * 1000
         return {
@@ -10727,15 +10727,15 @@ class paymium (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.publicGetDataIdTrades ({
-            'id': self.product_id (product),
+            'id': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         order = {
             'type': self.capitalize (type) + 'Order',
-            'currency': self.product_id (product),
+            'currency': self.market_id (market),
             'direction': side,
             'amount': amount,
         }
@@ -10766,12 +10766,12 @@ class paymium (Market):
             }
         response = self.fetch (url, method, headers, body)
         if 'errors' in response:
-            raise MarketError (self.id + ' ' + self.json (response))
+            raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class poloniex (Market):
+class poloniex (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -10840,13 +10840,13 @@ class poloniex (Market):
         params.update (config)
         super (poloniex, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetReturnTicker ()
-        keys = list (products.keys ())
+    def fetch_markets (self):
+        markets = self.publicGetReturnTicker ()
+        keys = list (markets.keys ())
         result = []
         for p in range (0, len (keys)):
             id = keys[p]
-            product = products[id]
+            market = markets[id]
             quote, base = id.split ('_')
             symbol = base + '/' + quote
             result.append ({
@@ -10854,12 +10854,12 @@ class poloniex (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         balances = self.privatePostReturnCompleteBalances ({
             'account': 'all',
         })
@@ -10877,10 +10877,10 @@ class poloniex (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         orderbook = self.publicGetReturnOrderBook (self.extend ({
-            'currencyPair': self.product_id (product),
+            'currencyPair': self.market_id (market),
         }, params))
         timestamp = self.milliseconds ()
         result = {
@@ -10900,9 +10900,9 @@ class poloniex (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         tickers = self.publicGetReturnTicker ()
         ticker = tickers[p['id']]
         timestamp = self.milliseconds ()
@@ -10926,23 +10926,23 @@ class poloniex (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetReturnTradeHistory ({
-            'currencyPair': self.product_id (product),
+            'currencyPair': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         method = 'privatePost' + self.capitalize (side)
         return getattr (self, method) (self.extend ({
-            'currencyPair': self.product_id (product),
+            'currencyPair': self.market_id (market),
             'rate': price,
             'amount': amount,
         }, params))
 
     def cancel_order (self, id, params = {}):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privatePostCancelOrder (self.extend ({
             'orderNumber': id,
         }, params))
@@ -10962,12 +10962,12 @@ class poloniex (Market):
             }
         response = self.fetch (url, method, headers, body)
         if 'error' in response:
-            raise MarketError (self.id + ' ' + self.json (response))
+            raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class quadrigacx (Market):
+class quadrigacx (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -11006,7 +11006,7 @@ class quadrigacx (Market):
                     ],
                 },
             },
-            'products': {
+            'markets': {
                 'BTC/CAD': { 'id': 'btc_cad', 'symbol': 'BTC/CAD', 'base': 'BTC', 'quote': 'CAD' },
                 'BTC/USD': { 'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
                 'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
@@ -11030,9 +11030,9 @@ class quadrigacx (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
+    def fetch_order_book (self, market, params = {}):
         orderbook = self.publicGetOrderBook (self.extend ({
-            'book': self.product_id (product),
+            'book': self.market_id (market),
         }, params))
         timestamp = int (orderbook['timestamp']) * 1000
         result = {
@@ -11052,9 +11052,9 @@ class quadrigacx (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
+    def fetch_ticker (self, market):
         ticker = self.publicGetTicker ({
-            'book': self.product_id (product),
+            'book': self.market_id (market),
         })
         timestamp = int (ticker['timestamp']) * 1000
         return {
@@ -11077,16 +11077,16 @@ class quadrigacx (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
+    def fetch_trades (self, market):
         return self.publicGetTransactions ({
-            'book': self.product_id (product),
+            'book': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
+    def create_order (self, market, type, side, amount, price = None, params = {}):
         method = 'privatePost' + self.capitalize (side)
         order = {
             'amount': amount,
-            'book': self.product_id (product),
+            'book': self.market_id (market),
         }
         if type == 'limit':
             order['price'] = price
@@ -11119,12 +11119,12 @@ class quadrigacx (Market):
             }
         response = self.fetch (url, method, headers, body)
         if 'error' in response:
-            raise MarketError (self.id + ' ' + self.json (response))
+            raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class quoine (Market):
+class quoine (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -11186,26 +11186,26 @@ class quoine (Market):
         params.update (config)
         super (quoine, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetProducts ()
+    def fetch_markets (self):
+        markets = self.publicGetProducts ()
         result = []
-        for p in range (0, len (products)):
-            product = products[p]
-            id = product['id']
-            base = product['base_currency']
-            quote = product['quoted_currency']
+        for p in range (0, len (markets)):
+            market = markets[p]
+            id = market['id']
+            base = market['base_currency']
+            quote = market['quoted_currency']
             symbol = base + '/' + quote
             result.append ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         balances = self.privateGetAccountsBalance ()
         result = { 'info': balances }
         for b in range (0, len (balances)):
@@ -11220,10 +11220,10 @@ class quoine (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         orderbook = self.publicGetProductsIdPriceLevels (self.extend ({
-            'id': self.product_id (product),
+            'id': self.market_id (market),
         }, params))
         timestamp = self.milliseconds ()
         result = {
@@ -11245,7 +11245,7 @@ class quoine (Market):
                 result[key].append ([ price, amount ])
         return result
 
-    def parse_ticker (self, ticker, product):
+    def parse_ticker (self, ticker, market):
         timestamp = self.milliseconds ()
         return {
             'timestamp': timestamp,
@@ -11268,7 +11268,7 @@ class quoine (Market):
         }
 
     def fetch_tickers (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         tickers = self.publicGetProducts ()
         result = {}
         for t in range (0, len (tickers)):
@@ -11276,29 +11276,29 @@ class quoine (Market):
             base = ticker['base_currency']
             quote = ticker['quoted_currency']
             symbol = base + '/' + quote
-            product = self.products[symbol]
-            result[symbol] = self.parse_ticker (ticker, product)
+            market = self.markets[symbol]
+            result[symbol] = self.parse_ticker (ticker, market)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         ticker = self.publicGetProductsId ({
             'id': p['id'],
         })
         return self.parse_ticker (ticker, p)
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetExecutions ({
-            'product_id': self.product_id (product),
+            'market_id': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         order = {
             'order_type': type,
-            'product_id': self.product_id (product),
+            'product_id': self.market_id (market),
             'side': side,
             'quantity': amount,
         }
@@ -11309,7 +11309,7 @@ class quoine (Market):
         }, params))
 
     def cancel_order (self, id, params = {}):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privatePutOrdersIdCancel (self.extend ({
             'id': id,
         }, params))
@@ -11337,12 +11337,12 @@ class quoine (Market):
             headers['X-Quoine-Auth'] = self.jwt (request, self.secret)
         response = self.fetch (self.urls['api'] + url, method, headers, body)
         if 'message' in response:
-            raise MarketError (self.id + ' ' + self.json (response))
+            raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class southxchange (Market):
+class southxchange (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -11382,13 +11382,13 @@ class southxchange (Market):
         params.update (config)
         super (southxchange, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetMarkets ()
+    def fetch_markets (self):
+        markets = self.publicGetMarkets ()
         result = []
-        for p in range (0, len (products)):
-            product = products[p]
-            base = product[0]
-            quote = product[1]
+        for p in range (0, len (markets)):
+            market = markets[p]
+            base = market[0]
+            quote = market[1]
             symbol = base + '/' + quote
             id = symbol
             result.append ({
@@ -11396,12 +11396,12 @@ class southxchange (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         balances = self.privatePostListBalances ()
         result = { 'info': balances }
         for b in range (0, len (balances)):
@@ -11419,10 +11419,10 @@ class southxchange (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         orderbook = self.publicGetBookSymbol (self.extend ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         }, params))
         timestamp = self.milliseconds ()
         result = {
@@ -11444,7 +11444,7 @@ class southxchange (Market):
                 result[key].append ([ price, amount ])
         return result
 
-    def parse_ticker (self, ticker, product):
+    def parse_ticker (self, ticker, market):
         timestamp = self.milliseconds ()
         return {
             'timestamp': timestamp,
@@ -11467,36 +11467,36 @@ class southxchange (Market):
         }
 
     def fetch_tickers (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.publicGetPrices ()
         tickers = self.index_by (response, 'Market')
         ids = list (tickers.keys ())
         result = {}
         for i in range (0, len (ids)):
             id = ids[i]
-            product = self.products_by_id[id]
-            symbol = product['symbol']
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
             ticker = tickers[id]
-            result[symbol] = self.parse_ticker (ticker, product)
+            result[symbol] = self.parse_ticker (ticker, market)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         ticker = self.publicGetPriceSymbol ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         })
         return self.parse_ticker (ticker, p)
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetTradesSymbol ({
-            'symbol': self.product_id (product),
+            'symbol': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
-        p = self.product (product)
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
+        p = self.market (market)
         order = {
             'listingCurrency': p['base'],
             'referenceCurrency': p['quote'],
@@ -11508,7 +11508,7 @@ class southxchange (Market):
         return self.privatePostPlaceOrder (self.extend (order, params))
 
     def cancel_order (self, id, params = {}):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privatePostCancelOrder (self.extend ({
             'orderCode': id,
         }, params))
@@ -11529,7 +11529,7 @@ class southxchange (Market):
             }
         response = self.fetch (url, method, headers, body)
         if not response:
-            raise MarketError (self.id + ' ' + self.json (response))
+            raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
@@ -11551,7 +11551,7 @@ class surbitcoin (blinktrade):
                 'doc': 'https://blinktrade.com/docs',
             },
             'comment': 'Blinktrade API',
-            'products': {
+            'markets': {
                 'BTC/VEF': { 'id': 'BTCVEF', 'symbol': 'BTC/VEF', 'base': 'BTC', 'quote': 'VEF', 'brokerId': 1, 'broker': 'SurBitcoin', },
             },
         }
@@ -11560,7 +11560,7 @@ class surbitcoin (blinktrade):
 
 #------------------------------------------------------------------------------
 
-class therock (Market):
+class therock (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -11620,12 +11620,12 @@ class therock (Market):
         params.update (config)
         super (therock, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetFundsTickers ()
+    def fetch_markets (self):
+        markets = self.publicGetFundsTickers ()
         result = []
-        for p in range (0, len (products['tickers'])):
-            product = products['tickers'][p]
-            id = product['fund_id']
+        for p in range (0, len (markets['tickers'])):
+            market = markets['tickers'][p]
+            id = market['fund_id']
             base = id[0:3]
             quote = id[3:6]
             symbol = base + '/' + quote
@@ -11634,12 +11634,12 @@ class therock (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.privateGetBalances ()
         balances = response['balances']
         result = { 'info': response }
@@ -11657,10 +11657,10 @@ class therock (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         orderbook = self.publicGetFundsIdOrderbook (self.extend ({
-            'id': self.product_id (product),
+            'id': self.market_id (market),
         }, params))
         timestamp = self.parse8601 (orderbook['date'])
         result = {
@@ -11680,7 +11680,7 @@ class therock (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def parse_ticker (self, ticker, product):
+    def parse_ticker (self, ticker, market):
         timestamp = self.parse8601 (ticker['date'])
         return {
             'timestamp': timestamp,
@@ -11703,46 +11703,46 @@ class therock (Market):
         }
 
     def fetch_tickers (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.publicGetFundsTickers ()
         tickers = self.index_by (response['tickers'], 'fund_id')
         ids = list (tickers.keys ())
         result = {}
         for i in range (0, len (ids)):
             id = ids[i]
-            product = self.products_by_id[id]
-            symbol = product['symbol']
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
             ticker = tickers[id]
-            result[symbol] = self.parse_ticker (ticker, product)
+            result[symbol] = self.parse_ticker (ticker, market)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         ticker = self.publicGetFundsIdTicker ({
             'id': p['id'],
         })
         return self.parse_ticker (ticker, p)
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetFundsIdTrades ({
-            'id': self.product_id (product),
+            'id': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         if type == 'market':
-            raise MarketError (self.id + ' allows limit orders only')
+            raise ExchangeError (self.id + ' allows limit orders only')
         return self.privatePostFundsFundIdOrders (self.extend ({
-            'fund_id': self.product_id (product),
+            'fund_id': self.market_id (market),
             'side': side,
             'amount': amount,
             'price': price,
         }, params))
 
     def cancel_order (self, id, params = {}):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privateDeleteFundsFundIdOrdersId (self.extend ({
             'id': id,
         }, params))
@@ -11763,7 +11763,7 @@ class therock (Market):
                 headers['Content-Type'] = 'application/json'
         response = self.fetch (url, method, headers, body)
         if 'errors' in response:
-            raise MarketError (self.id + ' ' + self.json (response))
+            raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
@@ -11785,7 +11785,7 @@ class urdubit (blinktrade):
                 'doc': 'https://blinktrade.com/docs',
             },
             'comment': 'Blinktrade API',
-            'products': {
+            'markets': {
                 'BTC/PKR': { 'id': 'BTCPKR', 'symbol': 'BTC/PKR', 'base': 'BTC', 'quote': 'PKR', 'brokerId': 8, 'broker': 'UrduBit', },
             },
         }
@@ -11794,7 +11794,7 @@ class urdubit (blinktrade):
 
 #------------------------------------------------------------------------------
 
-class vaultoro (Market):
+class vaultoro (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -11842,16 +11842,16 @@ class vaultoro (Market):
         params.update (config)
         super (vaultoro, self).__init__ (params)
 
-    def fetch_products (self):
+    def fetch_markets (self):
         result = []
-        products = self.publicGetMarkets ()
-        product = products['data']
-        base = product['BaseCurrency']
-        quote = product['MarketCurrency']
+        markets = self.publicGetMarkets ()
+        market = markets['data']
+        base = market['BaseCurrency']
+        quote = market['MarketCurrency']
         symbol = base + '/' + quote
         baseId = base
         quoteId = quote
-        id = product['MarketName']
+        id = market['MarketName']
         result.append ({
             'id': id,
             'symbol': symbol,
@@ -11859,12 +11859,12 @@ class vaultoro (Market):
             'quote': quote,
             'baseId': baseId,
             'quoteId': quoteId,
-            'info': product,
+            'info': market,
         })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.privateGetBalance ()
         balances = response['data']
         result = { 'info': balances }
@@ -11883,8 +11883,8 @@ class vaultoro (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         response = self.publicGetOrderbook (params)
         orderbook = {
             'bids': response['data'][0]['b'],
@@ -11909,8 +11909,8 @@ class vaultoro (Market):
         result['bids'] = self.sort_by (result['bids'], 0, True)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
         quote = self.publicGetBidandask ()
         bidsLength = len (quote['bids'])
         bid = quote['bids'][bidsLength - 1]
@@ -11938,13 +11938,13 @@ class vaultoro (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetTransactionsDay ()
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
-        p = self.product (product)
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
+        p = self.market (market)
         method = 'privatePost' + self.capitalize (side) + 'SymbolType'
         return getattr (self, method) (self.extend ({
             'symbol': p['quoteId'].lower (),
@@ -11954,7 +11954,7 @@ class vaultoro (Market):
         }, params))
 
     def cancel_order (self, id, params = {}):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privatePostCancelId (self.extend ({
             'id': id,
         }, params))
@@ -11996,7 +11996,7 @@ class vbtc (blinktrade):
                 'doc': 'https://blinktrade.com/docs',
             },
             'comment': 'Blinktrade API',
-            'products': {
+            'markets': {
                 'BTC/VND': { 'id': 'BTCVND', 'symbol': 'BTC/VND', 'base': 'BTC', 'quote': 'VND', 'brokerId': 3, 'broker': 'VBTC', },
             },
         }
@@ -12005,7 +12005,7 @@ class vbtc (blinktrade):
 
 #------------------------------------------------------------------------------
 
-class virwox (Market):
+class virwox (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -12072,27 +12072,27 @@ class virwox (Market):
         params.update (config)
         super (virwox, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetInstruments ()
-        keys = list (products['result'].keys ())
+    def fetch_markets (self):
+        markets = self.publicGetInstruments ()
+        keys = list (markets['result'].keys ())
         result = []
         for p in range (0, len (keys)):
-            product = products['result'][keys[p]]
-            id = product['instrumentID']
-            symbol = product['symbol']
-            base = product['longCurrency']
-            quote = product['shortCurrency']
+            market = markets['result'][keys[p]]
+            id = market['instrumentID']
+            symbol = market['symbol']
+            base = market['longCurrency']
+            quote = market['shortCurrency']
             result.append ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.privatePostGetBalances ()
         balances = response['result']['accountList']
         result = { 'info': balances }
@@ -12108,16 +12108,16 @@ class virwox (Market):
             result[currency] = account
         return result
 
-    def fetchBestPrices (self, product):
-        self.loadProducts ()
+    def fetchBestPrices (self, market):
+        self.loadMarkets ()
         return self.publicPostGetBestPrices ({
-            'symbols': [ self.symbol (product) ],
+            'symbols': [ self.symbol (market) ],
         })
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         response = self.publicPostGetMarketDepth (self.extend ({
-            'symbols': [ self.symbol (product) ],
+            'symbols': [ self.symbol (market) ],
             'buyDepth': 100,
             'sellDepth': 100,
         }, params))
@@ -12142,12 +12142,12 @@ class virwox (Market):
                 result[key].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
         end = self.milliseconds ()
         start = end - 86400000
         response = self.publicGetTradedPriceVolume ({
-            'instrument': self.symbol (product),
+            'instrument': self.symbol (market),
             'endDate': self.yyyymmddhhmmss (end),
             'startDate': self.yyyymmddhhmmss (start),
             'HLOC': 1,
@@ -12178,17 +12178,17 @@ class virwox (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetRawTradeData ({
-            'instrument': self.symbol (product),
+            'instrument': self.symbol (market),
             'timespan': 3600,
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         order = {
-            'instrument': self.symbol (product),
+            'instrument': self.symbol (market),
             'orderType': side.upper (),
             'amount': amount,
         }
@@ -12197,7 +12197,7 @@ class virwox (Market):
         return self.privatePostPlaceOrder (self.extend (order, params))
 
     def cancel_order (self, id, params = {}):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privatePostCancelOrder (self.extend ({
             'orderID': id,
         }, params))
@@ -12225,12 +12225,12 @@ class virwox (Market):
         response = self.fetch (url, method, headers, body)
         if 'error' in response:
             if response['error']:
-                raise MarketError (self.id + ' ' + self.json (response))
+                raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class xbtce (Market):
+class xbtce (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -12319,29 +12319,29 @@ class xbtce (Market):
         params.update (config)
         super (xbtce, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.privateGetSymbol ()
+    def fetch_markets (self):
+        markets = self.privateGetSymbol ()
         result = []
-        for p in range (0, len (products)):
-            product = products[p]
-            id = product['Symbol']
-            base = product['MarginCurrency']
-            quote = product['ProfitCurrency']
+        for p in range (0, len (markets)):
+            market = markets[p]
+            id = market['Symbol']
+            base = market['MarginCurrency']
+            quote = market['ProfitCurrency']
             if base == 'DSH':
                 base = 'DASH'
             symbol = base + '/' + quote
-            symbol = symbol if product['IsTradeAllowed'] else id
+            symbol = symbol if market['IsTradeAllowed'] else id
             result.append ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         balances = self.privateGetAsset ()
         result = { 'info': balances }
         for b in range (0, len (balances)):
@@ -12360,9 +12360,9 @@ class xbtce (Market):
             result[uppercase] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
+        p = self.market (market)
         orderbook = self.privateGetLevel2Filter (self.extend ({
             'filter': p['id'],
         }, params))
@@ -12386,7 +12386,7 @@ class xbtce (Market):
                 result[side].append ([ price, amount ])
         return result
 
-    def parse_ticker (self, ticker, product):
+    def parse_ticker (self, ticker, market):
         timestamp = 0
         last = None
         if 'LastBuyTimestamp' in ticker:
@@ -12420,22 +12420,22 @@ class xbtce (Market):
         }
 
     def fetch_tickers (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         tickers = self.publicGetTicker ()
         tickers = self.index_by (tickers, 'Symbol')
         ids = list (tickers.keys ())
         result = {}
         for i in range (0, len (ids)):
             id = ids[i]
-            product = self.products_by_id[id]
-            symbol = product['symbol']
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
             ticker = tickers[id]
-            result[symbol] = self.parse_ticker (ticker, product)
+            result[symbol] = self.parse_ticker (ticker, market)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         tickers = self.publicGetTickerFilter ({
             'filter': p['id'],
         })
@@ -12443,24 +12443,24 @@ class xbtce (Market):
         ticker = tickers[p['id']]
         return self.parse_ticker (ticker, p)
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         # no method for trades?
         return self.privateGetTrade ()
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         if type == 'market':
-            raise MarketError (self.id + ' allows limit orders only')
+            raise ExchangeError (self.id + ' allows limit orders only')
         return self.tapiPostTrade (self.extend ({
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
             'type': side,
             'amount': amount,
             'rate': price,
         }, params))
 
     def cancel_order (self, id, params = {}):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privateDeleteTrade (self.extend ({
             'Type': 'Cancel',
             'Id': id,
@@ -12495,13 +12495,14 @@ class xbtce (Market):
             if body:
                 auth += body
             signature = self.hmac (self.encode (auth), self.encode (self.secret), hashlib.sha256, 'base64')
-            credentials = ':'.join ([ self.uid, self.apiKey, nonce, signature ])
+            print (type (signature))
+            credentials = ':'.join ([ self.uid, self.apiKey, nonce, self.encode (signature) ])
             headers['Authorization'] = 'HMAC ' + credentials
         return self.fetch (url, method, headers, body)
 
 #------------------------------------------------------------------------------
 
-class yobit (Market):
+class yobit (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -12542,13 +12543,13 @@ class yobit (Market):
         params.update (config)
         super (yobit, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.apiGetInfo ()
-        keys = list (products['pairs'].keys ())
+    def fetch_markets (self):
+        markets = self.apiGetInfo ()
+        keys = list (markets['pairs'].keys ())
         result = []
         for p in range (0, len (keys)):
             id = keys[p]
-            product = products['pairs'][id]
+            market = markets['pairs'][id]
             symbol = id.upper ().replace ('_', '/')
             base, quote = symbol.split ('/')
             base = self.commonCurrencyCode (base)
@@ -12558,12 +12559,12 @@ class yobit (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.tapiPostGetInfo ()
         balances = response['return']
         result = { 'info': balances }
@@ -12586,9 +12587,9 @@ class yobit (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
+        p = self.market (market)
         response = self.apiGetDepthPairs (self.extend ({
             'pairs': p['id'],
         }, params))
@@ -12604,9 +12605,9 @@ class yobit (Market):
         }
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         tickers = self.apiGetTickerPairs ({
             'pairs': p['id'],
         })
@@ -12632,25 +12633,25 @@ class yobit (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.apiGetTradesPairs ({
-            'pairs': self.product_id (product),
+            'pairs': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         if type == 'market':
-            raise MarketError (self.id + ' allows limit orders only')
+            raise ExchangeError (self.id + ' allows limit orders only')
         return self.tapiPostTrade (self.extend ({
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
             'type': side,
             'amount': amount,
             'rate': price,
         }, params))
 
     def cancel_order (self, id, params = {}):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.tapiPostCancelOrder (self.extend ({
             'order_id': id,
         }, params))
@@ -12673,12 +12674,12 @@ class yobit (Market):
             }
         response = self.fetch (url, method, headers, body)
         if 'error' in response:
-            raise MarketError (self.id + ' ' + self.json (response))
+            raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class yunbi (Market):
+class yunbi (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -12734,13 +12735,13 @@ class yunbi (Market):
         params.update (config)
         super (yunbi, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.publicGetMarkets ()
+    def fetch_markets (self):
+        markets = self.publicGetMarkets ()
         result = []
-        for p in range (0, len (products)):
-            product = products[p]
-            id = product['id']
-            symbol = product['name']
+        for p in range (0, len (markets)):
+            market = markets[p]
+            id = market['id']
+            symbol = market['name']
             base, quote = symbol.split ('/')
             base = self.commonCurrencyCode (base)
             quote = self.commonCurrencyCode (quote)
@@ -12749,12 +12750,12 @@ class yunbi (Market):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.privateGetMembersMe ()
         balances = response['accounts']
         result = { 'info': balances }
@@ -12771,9 +12772,9 @@ class yunbi (Market):
             result[uppercase] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
+        p = self.market (market)
         orderbook = self.publicGetDepth (self.extend ({
             'market': p['id'],
             'limit': 300,
@@ -12798,7 +12799,7 @@ class yunbi (Market):
         result['asks'] = self.sort_by (result['asks'], 0)
         return result
 
-    def parse_ticker (self, ticker, product):
+    def parse_ticker (self, ticker, market):
         timestamp = ticker['at'] * 1000
         ticker = ticker['ticker']
         return {
@@ -12822,36 +12823,36 @@ class yunbi (Market):
         }        
 
     def fetch_tickers (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         tickers = self.publicGetTickers ()
         ids = list (tickers.keys ())
         result = {}
         for i in range (0, len (ids)):
             id = ids[i]
-            product = self.products_by_id[id]
-            symbol = product['symbol']
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
             ticker = tickers[id]
-            result[symbol] = self.parse_ticker (ticker, product)
+            result[symbol] = self.parse_ticker (ticker, market)
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
-        p = self.product (product)
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        p = self.market (market)
         response = self.publicGetTickersMarket ({
             'market': p['id'],
         })
         return self.parse_ticker (response, p)
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.publicGetTrades ({
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         order = {
-            'market': self.product_id (product),
+            'market': self.market_id (market),
             'side': side,
             'volume': str (amount),
             'ord_type': type,
@@ -12861,7 +12862,7 @@ class yunbi (Market):
         return self.privatePostOrders (self.extend (order, params))
 
     def cancel_order (self, id):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.privatePostOrderDelete ({ 'id': id })
 
     def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
@@ -12890,12 +12891,12 @@ class yunbi (Market):
                 }
         response = self.fetch (url, method, headers, body)
         if 'error' in response:
-            raise MarketError (self.id + ' ' + self.json (response))
+            raise ExchangeError (self.id + ' ' + self.json (response))
         return response
 
 #------------------------------------------------------------------------------
 
-class zaif (Market):
+class zaif (Exchange):
 
     def __init__ (self, config = {}):
         params = {
@@ -12957,25 +12958,25 @@ class zaif (Market):
         params.update (config)
         super (zaif, self).__init__ (params)
 
-    def fetch_products (self):
-        products = self.apiGetCurrencyPairsAll ()
+    def fetch_markets (self):
+        markets = self.apiGetCurrencyPairsAll ()
         result = []
-        for p in range (0, len (products)):
-            product = products[p]
-            id = product['currency_pair']
-            symbol = product['name']
+        for p in range (0, len (markets)):
+            market = markets[p]
+            id = market['currency_pair']
+            symbol = market['name']
             base, quote = symbol.split ('/')
             result.append ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': product,
+                'info': market,
             })
         return result
 
     def fetch_balance (self):
-        self.loadProducts ()
+        self.loadMarkets ()
         response = self.tapiPostGetInfo ()
         balances = response['return']
         result = { 'info': balances }
@@ -12998,10 +12999,10 @@ class zaif (Market):
             result[currency] = account
         return result
 
-    def fetch_order_book (self, product, params = {}):
-        self.loadProducts ()
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
         orderbook = self.apiGetDepthPair  (self.extend ({
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
         }, params))
         timestamp = self.milliseconds ()
         result = {
@@ -13012,10 +13013,10 @@ class zaif (Market):
         }
         return result
 
-    def fetch_ticker (self, product):
-        self.loadProducts ()
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
         ticker = self.apiGetTickerPair ({
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
         })
         timestamp = self.milliseconds ()
         return {
@@ -13038,25 +13039,25 @@ class zaif (Market):
             'info': ticker,
         }
 
-    def fetch_trades (self, product):
-        self.loadProducts ()
+    def fetch_trades (self, market):
+        self.loadMarkets ()
         return self.apiGetTradesPair ({
-            'pair': self.product_id (product),
+            'pair': self.market_id (market),
         })
 
-    def create_order (self, product, type, side, amount, price = None, params = {}):
-        self.loadProducts ()
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
         if type == 'market':
-            raise MarketError (self.id + ' allows limit orders only')
+            raise ExchangeError (self.id + ' allows limit orders only')
         return self.tapiPostTrade (self.extend ({
-            'currency_pair': self.product_id (product),
+            'currency_pair': self.market_id (market),
             'action': 'bid' if (side == 'buy') else 'ask',
             'amount': amount,
             'price': price,
         }, params))
 
     def cancel_order (self, id, params = {}):
-        self.loadProducts ()
+        self.loadMarkets ()
         return self.tapiPostCancelOrder (self.extend ({
             'order_id': id,
         }, params))
@@ -13079,8 +13080,8 @@ class zaif (Market):
             }
         response = self.fetch (url, method, headers, body)
         if 'error' in response:
-            raise MarketError (self.id + ' ' + response['error'])
+            raise ExchangeError (self.id + ' ' + response['error'])
         if 'success' in response:
             if not response['success']:
-                raise MarketError (self.id + ' ' + self.json (response))
+                raise ExchangeError (self.id + ' ' + self.json (response))
         return response

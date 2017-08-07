@@ -14,18 +14,18 @@ function regexAll (text, array) {
 
 let ccxtjs = fs.readFileSync ('ccxt.js', 'utf8')
 let contents = ccxtjs.match (/\/\/====(?:[\s\S]+?)\/\/====/) [0]
-let markets
-let regex = /^var ([\S]+) =\s*(?:extend\s*\(([^\,]+)\,\s*)?{([\s\S]+?)^}/gm // market class
+let exchanges
+let regex = /^var ([\S]+) =\s*(?:extend\s*\(([^\,]+)\,\s*)?{([\s\S]+?)^}/gm // exchange class
 let python = []
 let php = []
 
-while (markets = regex.exec (contents)) {
+while (exchanges = regex.exec (contents)) {
 
-    let id = markets[1]
+    let id = exchanges[1]
 
-    let parent = markets[2]
+    let parent = exchanges[2]
 
-    let all = markets[3].trim ().split (/\,\s*\n\s*\n/)
+    let all = exchanges[3].trim ().split (/\,\s*\n\s*\n/)
     let params = '    ' + all[0]
     let methods = all.slice (1)
 
@@ -35,7 +35,7 @@ while (markets = regex.exec (contents)) {
     params = params.split ("\n")
     
     py.push ('')
-    py.push ('class ' + id + ' (' + (parent ? parent : 'Market') + '):')
+    py.push ('class ' + id + ' (' + (parent ? parent : 'Exchange') + '):')
     py.push ('')
     py.push ('    def __init__ (self, config = {}):')
     py.push ('        params = {')
@@ -45,7 +45,7 @@ while (markets = regex.exec (contents)) {
     py.push ('        super (' + id + ', self).__init__ (params)')
 
     ph.push ('')
-    ph.push ('class ' + id + ' extends ' + (parent ? parent : 'Market') + ' {')
+    ph.push ('class ' + id + ' extends ' + (parent ? parent : 'Exchange') + ' {')
     ph.push ('')
     ph.push ('    public function __construct ($options = array ()) {')
     ph.push ('        parent::__construct (array_merge (array (')
@@ -57,7 +57,7 @@ while (markets = regex.exec (contents)) {
         let part = methods[i].trim ()       
         let lines = part.split ("\n")
         let header = lines[0].trim ()
-        let regex2 = /(async |)([\S]+)\s\(([^)]*)\)\s*{/g // market method
+        let regex2 = /(async |)([\S]+)\s\(([^)]*)\)\s*{/g // exchange method
         let matches = regex2.exec (header)
         let keyword = matches[1]
         let method = matches[2]
@@ -65,7 +65,7 @@ while (markets = regex.exec (contents)) {
 
         method = method.replace ('fetchBalance', 'fetch_balance')
                         // .replace ('fetchCategories', 'fetch_categories')
-                        .replace ('fetchProducts', 'fetch_products')
+                        .replace ('fetchMarkets', 'fetch_markets')
                         .replace ('fetchOrderBook', 'fetch_order_book')
                         .replace ('fetchTickers', 'fetch_tickers')
                         .replace ('fetchTicker', 'fetch_ticker')
@@ -108,7 +108,7 @@ while (markets = regex.exec (contents)) {
             [ /\.parseTicker/g, '.parse_ticker'],
             [ /\.indexBy/g, '.index_by'],
             [ /\.sortBy/g, '.sort_by'],
-            [ /\.productId/g, '.product_id'],
+            [ /\.marketId/g, '.market_id'],
             [ /this\.urlencode\s/g, '_urlencode.urlencode ' ],
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z])this([^a-zA-Z])/g, '$1self$2' ],
@@ -172,7 +172,7 @@ while (markets = regex.exec (contents)) {
             [ /\.extractParams/g, '.extract_params'],
             [ /\.indexBy/g, '.index_by'],
             [ /\.sortBy/g, '.sort_by'],
-            [ /\.productId/g, '.product_id'],
+            [ /\.marketId/g, '.market_id'],
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
             [ /this_\./g, '$this_->' ],

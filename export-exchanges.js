@@ -9,7 +9,7 @@ const execSync  = require ('child_process').execSync
 const log       = require ('ololog')
 const ansi      = require ('ansicolor').nice
 
-let markets
+let exchanges
 let verbose = false
 
 let wikiPath = 'ccxt.wiki'
@@ -22,44 +22,44 @@ if (!fs.existsSync (wikiPath)) {
 
 try {
 
-    markets = require ('./config')
+    exchanges = require ('./config')
 
 } catch (e) {
 
     let ccxtjs = fs.readFileSync ('./ccxt.js', 'utf8')
-    let marketsMatches = /var markets \= \{([^\}]+)\}/g.exec (ccxtjs)
+    let exchangesMatches = /var exchanges \= \{([^\}]+)\}/g.exec (ccxtjs)
     let idRegex = /\'([^\'\n\s]+)\'/g
     let ids = []
     let idMatch 
-    while (idMatch = idRegex.exec (marketsMatches[1])) {
+    while (idMatch = idRegex.exec (exchangesMatches[1])) {
         ids.push (idMatch[1])
     }
     let idString = "    '" + ids.join ("',\n    '") + "',"
 
     let ccxtpyFilename = './ccxt/__init__.py'
     let ccxtpy = fs.readFileSync (ccxtpyFilename, 'utf8')
-    let ccxtpyParts = ccxtpy.split (/markets \= \[[^\]]+\]/)
-    let ccxtpyNewContent = ccxtpyParts[0] + "markets = [\n" + idString + "\n]" + ccxtpyParts[1]
+    let ccxtpyParts = ccxtpy.split (/exchanges \= \[[^\]]+\]/)
+    let ccxtpyNewContent = ccxtpyParts[0] + "exchanges = [\n" + idString + "\n]" + ccxtpyParts[1]
     fs.truncateSync (ccxtpyFilename)
     fs.writeFileSync (ccxtpyFilename, ccxtpyNewContent)
 
     idString = "        '" + ids.join ("',\n        '") + "',"
     let ccxtphpFilename = './ccxt.php'
     let ccxtphp = fs.readFileSync (ccxtphpFilename, 'utf8')
-    let ccxtphpParts = ccxtphp.split (/public static \$markets \= array \([^\)]+\)/)
-    let ccxtphpNewContent = ccxtphpParts[0] + "public static $markets = array (\n" + idString + "\n    )" + ccxtphpParts[1]
+    let ccxtphpParts = ccxtphp.split (/public static \$exchanges \= array \([^\)]+\)/)
+    let ccxtphpNewContent = ccxtphpParts[0] + "public static $exchanges = array (\n" + idString + "\n    )" + ccxtphpParts[1]
     fs.truncateSync (ccxtphpFilename)
     fs.writeFileSync (ccxtphpFilename, ccxtphpNewContent)
 
-    markets = {}
+    exchanges = {}
     ids.forEach (id => {
-        markets[id] = { 'verbose': verbose, 'apiKey': '', 'secret': '' }
+        exchanges[id] = { 'verbose': verbose, 'apiKey': '', 'secret': '' }
     })
 }
 
-for (let id in markets) {
-    markets[id] = new (ccxt)[id] (markets[id])
-    markets[id].verbose = verbose
+for (let id in exchanges) {
+    exchanges[id] = new (ccxt)[id] (exchanges[id])
+    exchanges[id].verbose = verbose
 }
 
 // console.log (Object.values (ccxt).length)
@@ -73,29 +73,29 @@ let sleep = async ms => await new Promise (resolve => setTimeout (resolve, ms))
 //-------------------------------------------------------------------------
 // list all supported exchanges
 
-let values = Object.values (markets).map (market => {
-    let logo = market.urls['logo']
-    let website = Array.isArray (market.urls.www) ? market.urls.www[0] : market.urls.www
-    let countries = Array.isArray (market.countries) ? market.countries.map (countryName).join (', ') : countryName (market.countries)
-    let doc = Array.isArray (market.urls.doc) ? market.urls.doc[0] : market.urls.doc
-    let version = market.version ? market.version : '\*'
+let values = Object.values (exchanges).map (exchange => {
+    let logo = exchange.urls['logo']
+    let website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
+    let countries = Array.isArray (exchange.countries) ? exchange.countries.map (countryName).join (', ') : countryName (exchange.countries)
+    let doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
+    let version = exchange.version ? exchange.version : '\*'
     let matches = version.match (/[^0-9]*([0-9].*)/)
     if (matches)
         version = matches[1];
     return {
-        '': '![' + market.id + '](' + logo + ')',
-        'id': market.id,
-        'name': '[' + market.name + '](' + website + ')',
+        '': '![' + exchange.id + '](' + logo + ')',
+        'id': exchange.id,
+        'name': '[' + exchange.name + '](' + website + ')',
         'ver': version,
         'doc': '[API](' + doc + ')',
         'countries': countries, 
     }        
 })
 
-let numMarkets = Object.keys (markets).length
-let exchanges = asTable.configure ({ delimiter: ' | ' }) (values)
+let numExchanges = Object.keys (exchanges).length
+let table = asTable.configure ({ delimiter: ' | ' }) (values)
 
-let lines = exchanges.split ("\n")
+let lines = table.split ("\n")
 lines[1] = lines[0].replace (/[^\|]/g, '-')
 let headerLine = lines[1].split ('|')
 headerLine[3] = ':' + headerLine[3].slice (1, headerLine[3].length - 1) + ':'
@@ -105,12 +105,12 @@ lines[1] = headerLine.join ('|')
 lines = lines.map (line => '|' + line + '|').join ("\n")
 
 let changeInFile = (filename) => {
-    log.bright ('Exporting markets to'.cyan, filename.yellow, '...')
+    log.bright ('Exporting exchanges to'.cyan, filename.yellow, '...')
     let oldContent = fs.readFileSync (filename, 'utf8')
     let beginning = "The ccxt library currently supports the following "
     let ending = " cryptocurrency exchange markets and trading APIs:\n\n"
     let regex = new RegExp ("[^\n]+[\n][\n]\\|[^#]+\\|([\n][\n]|[\n]$|$)", 'm')    
-    let totalString = beginning + numMarkets + ending
+    let totalString = beginning + numExchanges + ending
     let replacement = totalString + lines + "$1"
     let newContent = oldContent.replace (regex, replacement)
     fs.truncateSync (filename)
@@ -124,42 +124,42 @@ changeInFile (wikiPath + '/Manual.md')
 // console.log (typeof countries)
 // console.log (countries)
 
-let marketsByCountries = []
+let exchangesByCountries = []
 Object.keys (countries).forEach (code => { 
     let country = countries[code]
     let result = []
-    Object.keys (markets).forEach (id => {
-        let market = markets[id]
-        let logo = market.urls['logo']
-        let website = Array.isArray (market.urls.www) ? market.urls.www[0] : market.urls.www
-        let doc = Array.isArray (market.urls.doc) ? market.urls.doc[0] : market.urls.doc
-        let version = market.version ? market.version : '\*'
+    Object.keys (exchanges).forEach (id => {
+        let exchange = exchanges[id]
+        let logo = exchange.urls['logo']
+        let website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
+        let doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
+        let version = exchange.version ? exchange.version : '\*'
         let matches = version.match (/[^0-9]*([0-9].*)/)
         if (matches)
             version = matches[1];
         let shouldInclude = false
-        if (Array.isArray (market.countries)) {
-            if (market.countries.indexOf (code) > -1)
+        if (Array.isArray (exchange.countries)) {
+            if (exchange.countries.indexOf (code) > -1)
                 shouldInclude = true
         } else {
-            if (code == market.countries)
+            if (code == exchange.countries)
                 shouldInclude = true
         }
         if (shouldInclude) {
             result.push ({
                 'country / region': country, 
-                'logo': ' ![' + market.id + '](' + logo + ') ',
-                'id': market.id,
-                'name': '[' + market.name + '](' + website + ')',
+                'logo': ' ![' + exchange.id + '](' + logo + ') ',
+                'id': exchange.id,
+                'name': '[' + exchange.name + '](' + website + ')',
                 'ver': version,
                 'doc': ' [API](' + doc + ') ',
             })
         }
     })
-    marketsByCountries = marketsByCountries.concat (result)
+    exchangesByCountries = exchangesByCountries.concat (result)
 });
 
-marketsByCountries = marketsByCountries.sort ((a, b) => {
+exchangesByCountries = exchangesByCountries.sort ((a, b) => {
     let countryA = a['country / region'].toLowerCase ()
     let countryB = b['country / region'].toLowerCase ()
     let idA = a['id']
@@ -180,8 +180,8 @@ marketsByCountries = marketsByCountries.sort ((a, b) => {
 })
 
 ;(() => {
-    let exchanges = asTable.configure ({ delimiter: ' | ' }) (marketsByCountries)
-    let lines = exchanges.split ("\n")
+    let table = asTable.configure ({ delimiter: ' | ' }) (exchangesByCountries)
+    let lines = table.split ("\n")
     lines[1] = lines[0].replace (/[^\|]/g, '-')
     let headerLine = lines[1].split ('|')
     headerLine[4] = ':' + headerLine[4].slice (1, headerLine[4].length - 1) + ':'
@@ -195,10 +195,10 @@ marketsByCountries = marketsByCountries.sort ((a, b) => {
     // console.log (result)
 }) ();
 
-// console.log (marketsByCountries)
-// console.log (asTable.configure ({ delimiter: ' | ' }) (marketsByCountries))
+// console.log (exchangesByCountries)
+// console.log (asTable.configure ({ delimiter: ' | ' }) (exchangesByCountries))
 
-log.bright ('Exporting market IDs to'.cyan, 'markets.json'.yellow)
-fs.writeFileSync ('markets.json', JSON.stringify ({ ids: Object.keys (markets) }, null, 4))
+log.bright ('Exporting exchange IDs to'.cyan, 'exchanges.json'.yellow)
+fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids: Object.keys (exchanges) }, null, 4))
 
-log.bright.green ('Markets exported successfully.')
+log.bright.green ('Exchanges exported successfully.')
