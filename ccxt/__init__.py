@@ -105,6 +105,7 @@ import ssl
 import sys
 import time
 import zlib
+import decimal
 
 try: 
     import urllib.parse   as _urlencode  # Python 3
