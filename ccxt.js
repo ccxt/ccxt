@@ -13212,6 +13212,8 @@ var yunbi = {
             let id = product['id'];
             let symbol = product['name'];
             let [ base, quote ] = symbol.split ('/');
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
             result.push ({
                 'id': id,
                 'symbol': symbol,
