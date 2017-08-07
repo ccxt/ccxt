@@ -496,6 +496,10 @@ class Exchange (object):
         return result
 
     @staticmethod
+    def binary_to_string (s):
+        return s.decode ('ascii')
+
+    @staticmethod
     def base64urlencode (s):
         return Exchange.decode (base64.urlsafe_b64encode (s)).replace ('=', '')
 
@@ -798,7 +802,7 @@ class _1broker (Exchange):
         self.loadMarkets ()
         return self.privatePostOrderCancel ({ 'order_id': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         if not self.apiKey:
             raise AuthenticationError (self.id + ' requires apiKey for all requests')
         url = self.urls['api'] + '/' + self.version + '/' + path + '.php'
@@ -947,11 +951,11 @@ class cryptocapital (Exchange):
     def cancel_order (self, id):
         return self.privatePostOrdersCancel ({ 'id': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         if self.id == 'cryptocapital':
             raise ExchangeError (self.id + ' is an abstract base API for _1btcxe')
         url = self.urls['api'] + '/' + path
-        if type == 'public':
+        if api == 'public':
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
@@ -1185,11 +1189,11 @@ class anxpro (Exchange):
     def nonce (self):
         return self.milliseconds ()
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         request = self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
         url = self.urls['api'] + '/' + self.version + '/' + request
-        if type == 'public':
+        if api == 'public':
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
@@ -1349,9 +1353,9 @@ class bit2c (Exchange):
     def cancel_order (self, id):
         return self.privatePostOrderCancelOrder ({ 'id': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.implode_params (path, params)
-        if type == 'public':
+        if api == 'public':
             url += '.json'
         else:
             nonce = self.nonce ()
@@ -1507,9 +1511,9 @@ class bitbay (Exchange):
     def cancel_order (self, id):
         return self.privatePostCancel ({ 'id': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        url = self.urls['api'][type]
-        if type == 'public':
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][api]
+        if api == 'public':
             url += '/' + self.implode_params (path, params) + '.json'
         else:
             body = _urlencode.urlencode (self.extend ({
@@ -1660,9 +1664,9 @@ class bitbays (Exchange):
     def cancel_order (self, id):
         return self.privatePostCancel ({ 'id': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
-        if type == 'public':
+        if api == 'public':
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
@@ -1833,9 +1837,9 @@ class bitcoincoid (Exchange):
             'id': id,
         }, params))
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        url = self.urls['api'][type]
-        if type == 'public':
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][api]
+        if api == 'public':
             url += '/' + self.implode_params (path, params)
         else:
             body = _urlencode.urlencode (self.extend ({
@@ -2062,11 +2066,11 @@ class bitfinex (Exchange):
     def nonce (self):
         return self.milliseconds ()
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         request = '/' + self.version + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
         url = self.urls['api'] + request
-        if type == 'public':
+        if api == 'public':
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
@@ -2270,12 +2274,12 @@ class bitflyer (Exchange):
             'parent_order_id': id,
         }, params))
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         request = '/' + self.version + '/' + path
-        if type == 'private':
+        if api == 'private':
             request = '/me' + request
         url = self.urls['api'] + request
-        if type == 'public':
+        if api == 'public':
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
@@ -2496,9 +2500,9 @@ class bitlish (Exchange):
         self.loadMarkets ()
         return self.privatePostCancelTrade ({ 'id': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
-        if type == 'public':
+        if api == 'public':
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
@@ -2672,9 +2676,9 @@ class bitmarket (Exchange):
     def cancel_order (self, id):
         return self.privatePostCancel ({ 'id': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        url = self.urls['api'][type]
-        if type == 'public':
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][api]
+        if api == 'public':
             url += '/' + self.implode_params (path + '.json', params)
         else:
             nonce = self.nonce ()
@@ -2919,12 +2923,12 @@ class bitmex (Exchange):
         self.loadMarkets ()
         return self.privateDeleteOrder ({ 'orderID': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         query = '/api/' + self.version + '/' + path
         if params:
             query += '?' + _urlencode.urlencode (params)
         url = self.urls['api'] + query
-        if type == 'private':
+        if api == 'private':
             nonce = str (self.nonce ())
             if method == 'POST':
                 if params:
@@ -3113,10 +3117,10 @@ class bitso (Exchange):
         self.loadMarkets ()
         return self.privateDeleteOrders ({ 'oid': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         query = '/' + self.version + '/' + self.implode_params (path, params)
         url = self.urls['api'] + query
-        if type == 'public':
+        if api == 'public':
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
@@ -3290,10 +3294,10 @@ class bitstamp (Exchange):
     def cancel_order (self, id):
         return self.privatePostCancelOrder ({ 'id': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
-        if type == 'public':
+        if api == 'public':
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
@@ -3490,16 +3494,16 @@ class bittrex (Exchange):
         self.loadMarkets ()
         return self.marketGetCancel ({ 'uuid': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/'
-        if type == 'public':
-            url += type + '/' + method.lower () + path
+        if api == 'public':
+            url += api + '/' + method.lower () + path
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
             nonce = self.nonce ()
-            url += type + '/'
-            if ((type == 'account') and (path != 'withdraw')) or (path == 'openorders'):
+            url += api + '/'
+            if ((api == 'account') and (path != 'withdraw')) or (path == 'openorders'):
                 url += method.lower ()
             url += path + '?' + _urlencode.urlencode (self.extend ({
                 'nonce': nonce,
@@ -3653,10 +3657,10 @@ class blinktrade (Exchange):
             'ClOrdID': id,
         }, params))
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        url = self.urls['api'][type] + '/' + self.version + '/' + self.implode_params (path, params)
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
-        if type == 'public':
+        if api == 'public':
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
@@ -3822,11 +3826,11 @@ class bl3p (Exchange):
     def cancel_order (self, id):
         return self.privatePostMarketMoneyOrderCancel ({ 'order_id': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         request = self.implode_params (path, params)
         url = self.urls['api'] + '/' + self.version + '/' + request
         query = self.omit (params, self.extract_params (path))
-        if type == 'public':
+        if api == 'public':
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
@@ -4026,9 +4030,9 @@ class btcchina (Exchange):
     def nonce (self):
         return self.microseconds ()
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        url = self.urls['api'][type] + '/' + path
-        if type == 'public':
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][api] + '/' + path
+        if api == 'public':
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
@@ -4229,10 +4233,10 @@ class btce (Exchange):
         self.loadMarkets ()
         return self.privatePostCancelOrder ({ 'order_id': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        url = self.urls['api'][type] + '/' + self.version + '/' + self.implode_params (path, params)
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
-        if type == 'public':
+        if api == 'public':
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
@@ -4378,11 +4382,11 @@ class btctrader (Exchange):
     def cancel_order (self, id):
         return self.privatePostCancelOrder ({ 'id': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         if self.id == 'btctrader':
             raise ExchangeError (self.id + ' is an abstract base API for BTCExchange, BTCTurk')
         url = self.urls['api'] + '/' + path
-        if type == 'public':
+        if api == 'public':
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
@@ -4600,10 +4604,10 @@ class btctradeua (Exchange):
     def cancel_order (self, id):
         return self.privatePostRemoveOrderId ({ 'id': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
-        if type == 'public':
+        if api == 'public':
             if query:
                 url += self.implode_params (path, query)
         else:
@@ -4769,13 +4773,13 @@ class btcx (Exchange):
     def cancel_order (self, id):
         return self.privatePostCancel ({ 'order': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/'
-        if type == 'public':
+        if api == 'public':
             url += self.implode_params (path, params)
         else:
             nonce = self.nonce ()
-            url += type
+            url += api
             body = _urlencode.urlencode (self.extend ({
                 'Method': path.upper (),
                 'Nonce': nonce,
@@ -4976,11 +4980,11 @@ class bter (Exchange):
         self.loadMarkets ()
         return self.privatePostCancelOrder ({ 'orderNumber': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        prefix = (type + '/') if (type == 'private') else ''
-        url = self.urls['api'][type] + self.version + '/1/' + prefix + self.implode_params (path, params)
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
+        prefix = (api + '/') if (api == 'private') else ''
+        url = self.urls['api'][api] + self.version + '/1/' + prefix + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
-        if type == 'public':
+        if api == 'public':
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
@@ -5190,13 +5194,13 @@ class bxinth (Exchange):
             'pairing': pairing,
         })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/'
         if path:
             url += path + '/'
         if params:
             url += '?' + _urlencode.urlencode (params)
-        if type == 'private':
+        if api == 'private':
             nonce = self.nonce ()
             auth = self.apiKey + str (nonce) + self.secret
             signature = self.hash (self.encode (auth), 'sha256')
@@ -5211,7 +5215,7 @@ class bxinth (Exchange):
                 'Content-Length': len (body),
             }
         response = self.fetch (url, method, headers, body)
-        if type == 'public':
+        if api == 'public':
             return response
         if 'success' in response:
             if response['success']:
@@ -5389,9 +5393,9 @@ class ccex (Exchange):
         self.loadMarkets ()
         return self.privateGetCancel ({ 'uuid': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        url = self.urls['api'][type]
-        if type == 'private':
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][api]
+        if api == 'private':
             nonce = str (self.nonce ())
             query = self.keysort (self.extend ({
                 'a': path,
@@ -5400,14 +5404,14 @@ class ccex (Exchange):
             }, params))
             url += '?' + _urlencode.urlencode (query)
             headers = { 'apisign': self.hmac (self.encode (url), self.encode (self.secret), hashlib.sha512) }
-        elif type == 'public':
+        elif api == 'public':
             url += '?' + _urlencode.urlencode (self.extend ({
                 'a': 'get' + path,
             }, params))
         else:
             url += '/' + self.implode_params (path, params) + '.json'
         response = self.fetch (url, method, headers, body)
-        if type == 'tickers':
+        if api == 'tickers':
             return response
         if 'success' in response:
             if response['success']:
@@ -5587,10 +5591,10 @@ class cex (Exchange):
         self.loadMarkets ()
         return self.privatePostCancelOrder ({ 'id': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
-        if type == 'public':
+        if api == 'public':
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
@@ -5774,9 +5778,9 @@ class chbtc (Exchange):
     def nonce (self):
         return self.milliseconds ()
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        url = self.urls['api'][type] 
-        if type == 'public':
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][api] 
+        if api == 'public':
             url += '/' + self.version + '/' + path
             if params:
                 url += '?' + _urlencode.urlencode (params)
@@ -5791,7 +5795,7 @@ class chbtc (Exchange):
             suffix = 'sign=' + signature + '&reqTime=' + str (nonce)
             url += '/' + path + '?' + auth + '&' + suffix
         response = self.fetch (url, method, headers, body)
-        if type == 'private':
+        if api == 'private':
             if 'code' in response:
                 raise ExchangeError (self.id + ' ' + self.json (response))
         return response
@@ -5996,10 +6000,10 @@ class coincheck (Exchange):
     def cancel_order (self, id):
         return self.privateDeleteExchangeOrdersId ({ 'id': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
-        if type == 'public':
+        if api == 'public':
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
@@ -6017,7 +6021,7 @@ class coincheck (Exchange):
                 'ACCESS-SIGNATURE': self.hmac (self.encode (auth), self.encode (self.secret)),
             }
         response = self.fetch (url, method, headers, body)
-        if type == 'public':
+        if api == 'public':
             return response
         if 'success' in response:
             if response['success']:
@@ -6188,10 +6192,10 @@ class coingi (Exchange):
     def cancel_order (self, id):
         return self.userPostCancelOrder ({ 'orderId': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        url = self.urls['api'] + '/' + type + '/' + self.implode_params (path, params)
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'] + '/' + api + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
-        if type == 'current':
+        if api == 'current':
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
@@ -6349,7 +6353,7 @@ class coinmarketcap (Exchange):
         ticker = response[0]
         return self.parse_ticker (ticker, p)
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
         if query:
@@ -6504,9 +6508,9 @@ class coinmate (Exchange):
     def cancel_order (self, id):
         return self.privatePostCancelOrder ({ 'orderId': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + path
-        if type == 'public':
+        if api == 'public':
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
@@ -6760,7 +6764,7 @@ class coinsecure (Exchange):
     def create_order (self, market, type, side, amount, price = None, params = {}):
         method = 'privatePutUserExchange'
         order = {}
-        if type == 'market':
+        if api == 'market':
             method += 'Instant' + self.capitalize (side)
             if side == 'buy':
                 order['maxFiat'] = amount
@@ -6778,10 +6782,10 @@ class coinsecure (Exchange):
         method = 'privateDeleteUserExchangeAskCancelOrderId' # TODO fixme, have to specify order side here
         return getattr (self, method) ({ 'orderID': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
-        if type == 'private':
+        if api == 'private':
             headers = { 'Authorization': self.apiKey }
             if query:
                 body = self.json (query)
@@ -6936,11 +6940,11 @@ class coinspot (Exchange):
         method = 'privatePostMyBuy'
         return getattr (self, method) ({ 'id': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         if not self.apiKey:
             raise AuthenticationError (self.id + ' requires apiKey for all requests')
-        url = self.urls['api'][type] + '/' + path
-        if type == 'private':
+        url = self.urls['api'][api] + '/' + path
+        if api == 'private':
             nonce = self.nonce ()
             body = self.json (self.extend ({ 'nonce': nonce }, params))
             headers = {
@@ -7126,12 +7130,12 @@ class dsx (Exchange):
         self.loadMarkets ()
         return self.tapiPostCancelOrder ({ 'orderId': id })
 
-    def request (self, path, type = 'mapi', method = 'GET', params = {}, headers = None, body = None):
-        url = self.urls['api'][type]
-        if (type == 'mapi') or (type == 'dwapi'):
+    def request (self, path, api = 'mapi', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][api]
+        if (api == 'mapi') or (api == 'dwapi'):
             url += '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
-        if type == 'mapi':
+        if api == 'mapi':
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
@@ -7148,7 +7152,7 @@ class dsx (Exchange):
                 'Sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512, 'base64'),
             }
         response = self.fetch (url, method, headers, body)
-        if type == 'mapi':
+        if api == 'mapi':
             return response
         if 'success' in response:
             if response['success']:
@@ -7336,9 +7340,9 @@ class exmo (Exchange):
         self.loadMarkets ()
         return self.privatePostOrderCancel ({ 'order_id': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
-        if type == 'public':
+        if api == 'public':
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
@@ -7351,7 +7355,7 @@ class exmo (Exchange):
                 'Sign': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha512),
             }
         response = self.fetch (url, method, headers, body)
-        if type == 'public':
+        if api == 'public':
             return response
         if 'result' in response:
             if response['result']:
@@ -7521,9 +7525,9 @@ class flowbtc (Exchange):
             }, params))            
         raise ExchangeError (self.id + ' requires `ins` symbol parameter for cancelling an order')
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
-        if type == 'public':
+        if api == 'public':
             if params:
                 body = self.json (params)
         else:
@@ -7688,20 +7692,20 @@ class fyb (Exchange):
     def cancel_order (self, id):
         return self.privatePostCancelpendingorder ({ 'orderNo': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + path
-        if type == 'public':
+        if api == 'public':
             url += '.json'
         else:
             nonce = self.nonce ()
             body = _urlencode.urlencode (self.extend ({ 'timestamp': nonce }, params))
             headers = {
-                'Content-type': 'application/x-www-form-urlencoded',
+                'Content-Type': 'application/x-www-form-urlencoded',
                 'key': self.apiKey,
                 'sig': self.hmac (self.encode (body), self.encode (self.secret), hashlib.sha1)
             }
         response = self.fetch (url, method, headers, body)
-        if type == 'private':
+        if api == 'private':
             if 'error' in response:
                 if response['error']:
                     raise ExchangeError (self.id + ' ' + self.json (response))
@@ -8048,10 +8052,10 @@ class gatecoin (Exchange):
         self.loadMarkets ()
         return self.privateDeleteTradeOrdersOrderID ({ 'OrderID': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
-        if type == 'public':
+        if api == 'public':
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
@@ -8259,11 +8263,11 @@ class gdax (Exchange):
         self.loadMarkets ()
         return self.privateDeleteOrdersId ({ 'id': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         request = '/' + self.implode_params (path, params)
         url = self.urls['api'] + request
         query = self.omit (params, self.extract_params (path))
-        if type == 'public':
+        if api == 'public':
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
@@ -8452,10 +8456,10 @@ class gemini (Exchange):
         self.loadMarkets ()
         return self.privatePostCancelOrder ({ 'order_id': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = '/' + self.version + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
-        if type == 'public':
+        if api == 'public':
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
@@ -8692,10 +8696,10 @@ class hitbtc (Exchange):
         self.loadMarkets ()
         return self.tradingPostCancelOrder ({ 'clientOrderId': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        url = '/api/' + self.version + '/' + type + '/' + self.implode_params (path, params)
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = '/' + 'api' + '/' + self.version + '/' + api + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
-        if type == 'public':
+        if api == 'public':
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
@@ -8870,9 +8874,9 @@ class huobi (Exchange):
     def cancel_order (self, id):
         return self.tradePostCancelOrder ({ 'id': id })
 
-    def request (self, path, type = 'trade', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'trade', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api']
-        if type == 'trade':
+        if api == 'trade':
             url += '/api' + self.version
             query = self.keysort (self.extend ({
                 'method': path,
@@ -8889,7 +8893,7 @@ class huobi (Exchange):
                 'Content-Length': len (body),
             }
         else:
-            url += '/' + type + '/' + self.implode_params (path, params) + '_json.js'
+            url += '/' + api + '/' + self.implode_params (path, params) + '_json.js'
             query = self.omit (params, self.extract_params (path))
             if query:
                 url += '?' + _urlencode.urlencode (query)
@@ -9064,10 +9068,10 @@ class itbit (Exchange):
             'id': id,
         }, params))
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
-        if type == 'public':
+        if api == 'public':
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
@@ -9257,9 +9261,9 @@ class jubi (Exchange):
             'id': id,
         }, params))
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
-        if type == 'public':
+        if api == 'public':
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
@@ -9503,9 +9507,9 @@ class kraken (Exchange):
         self.loadMarkets ()
         return self.privatePostCancelOrder ({ 'txid': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        url = '/' + self.version + '/' + type + '/' + path
-        if type == 'public':
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = '/' + self.version + '/' + api + '/' + path
+        if api == 'public':
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
@@ -9520,7 +9524,7 @@ class kraken (Exchange):
             headers = {
                 'API-Key': self.apiKey,
                 'API-Sign': signature,
-                'Content-type': 'application/x-www-form-urlencoded',
+                'Content-Type': 'application/x-www-form-urlencoded',
             }
         url = self.urls['api'] + url
         response = self.fetch (url, method, headers, body)
@@ -9684,9 +9688,9 @@ class lakebtc (Exchange):
         self.loadMarkets ()
         return self.privatePostCancelOrder ({ 'params': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version
-        if type == 'public':
+        if api == 'public':
             url += '/' + path
             if params:
                 url += '?' + _urlencode.urlencode (params)
@@ -9918,9 +9922,9 @@ class livecoin (Exchange):
             'orderId': id,
         }, params))
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + path
-        if type == 'public':
+        if api == 'public':
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
@@ -9967,10 +9971,10 @@ class liqui (btce):
         params.update (config)
         super (liqui, self).__init__ (params)
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        url = self.urls['api'][type]
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][api]
         query = self.omit (params, self.extract_params (path))
-        if type == 'public':
+        if api == 'public':
             url +=  '/' + self.version + '/' + self.implode_params (path, params)
             if query:
                 url += '?' + _urlencode.urlencode (query)
@@ -10198,12 +10202,12 @@ class luno (Exchange):
         self.loadMarkets ()
         return self.privatePostStoporder ({ 'order_id': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
         if query:
             url += '?' + _urlencode.urlencode (query)
-        if type == 'private':
+        if api == 'private':
             auth = self.encode (self.apiKey + ':' + self.secret)
             auth = base64.b64encode (auth)
             headers = { 'Authorization': 'Basic ' + self.decode (auth) }
@@ -10350,9 +10354,9 @@ class mercado (Exchange):
             'order_id': id,
         }, params))
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        url = self.urls['api'][type] + '/'
-        if type == 'public':
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][api] + '/'
+        if api == 'public':
             url += path
         else:
             url += self.version + '/'
@@ -10526,9 +10530,9 @@ class okcoin (Exchange):
             'order_id': id,
         }, params))
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = '/api/' + self.version + '/' + path + '.do'
-        if type == 'public':
+        if api == 'public':
             if params:
                 url += '?' + _urlencode.urlencode (params)
         else:
@@ -10539,7 +10543,7 @@ class okcoin (Exchange):
             queryString = _urlencode.urlencode (query) + '&secret_key=' + self.secret
             query['sign'] = self.hash (self.encode (queryString)).upper ()
             body = _urlencode.urlencode (query)
-            headers = { 'Content-type': 'application/x-www-form-urlencoded' }
+            headers = { 'Content-Type': 'application/x-www-form-urlencoded' }
         url = self.urls['api'] + url
         response = self.fetch (url, method, headers, body)
         if 'result' in response:
@@ -10748,10 +10752,10 @@ class paymium (Exchange):
             'orderNumber': id,
         }, params))
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
-        if type == 'public':
+        if api == 'public':
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
@@ -10947,10 +10951,10 @@ class poloniex (Exchange):
             'orderNumber': id,
         }, params))
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        url = self.urls['api'][type]
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][api]
         query = self.extend ({ 'command': path }, params)
-        if type == 'public':
+        if api == 'public':
             url += '?' + _urlencode.urlencode (query)
         else:
             query['nonce'] = self.nonce ()
@@ -11097,9 +11101,9 @@ class quadrigacx (Exchange):
             'id': id,
         }, params))
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
-        if type == 'public':
+        if api == 'public':
             url += '?' + _urlencode.urlencode (params)
         else:
             if not self.uid:
@@ -11314,14 +11318,14 @@ class quoine (Exchange):
             'id': id,
         }, params))
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
         headers = {
             'X-Quoine-API-Version': self.version,
-            'Content-type': 'application/json',
+            'Content-Type': 'application/json',
         }
-        if type == 'public':
+        if api == 'public':
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
@@ -11513,10 +11517,10 @@ class southxchange (Exchange):
             'orderCode': id,
         }, params))
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
-        if type == 'private':
+        if api == 'private':
             nonce = self.nonce ()
             query = self.extend ({
                 'key': self.apiKey,
@@ -11747,10 +11751,10 @@ class therock (Exchange):
             'id': id,
         }, params))
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
-        if type == 'private':
+        if api == 'private':
             nonce = str (self.nonce ())
             auth = nonce + url
             headers = {
@@ -11959,9 +11963,9 @@ class vaultoro (Exchange):
             'id': id,
         }, params))
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/'
-        if type == 'public':
+        if api == 'public':
             url += path
         else:
             nonce = self.nonce ()
@@ -12202,10 +12206,10 @@ class virwox (Exchange):
             'orderID': id,
         }, params))
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
-        url = self.urls['api'][type]
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'][api]
         auth = {}
-        if type == 'private':
+        if api == 'private':
             auth['key'] = self.apiKey
             auth['user'] = self.login
             auth['pass'] = self.password
@@ -12216,7 +12220,7 @@ class virwox (Exchange):
                 'id': nonce,
             }, auth, params))
         else:
-            headers = { 'Content-type': 'application/json' }
+            headers = { 'Content-Type': 'application/json' }
             body = self.json ({
                 'method': path,
                 'params': self.extend (auth, params),
@@ -12469,17 +12473,17 @@ class xbtce (Exchange):
     def nonce (self):
         return self.milliseconds ()
 
-    def request (self, path, type = 'api', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'api', method = 'GET', params = {}, headers = None, body = None):
         if not self.apiKey:
             raise AuthenticationError (self.id + ' requires apiKey for all requests, their public API is always busy')
         if not self.uid:
             raise AuthenticationError (self.id + ' requires uid property for authentication and trading')
         url = self.urls['api'] + '/' + self.version
-        if type == 'public':
-            url += '/' + type
+        if api == 'public':
+            url += '/' + api
         url += '/' + self.implode_params (path, params)
         query = self.omit (params, self.extract_params (path))
-        if type == 'public':
+        if api == 'public':
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
@@ -12495,8 +12499,10 @@ class xbtce (Exchange):
             if body:
                 auth += body
             signature = self.hmac (self.encode (auth), self.encode (self.secret), hashlib.sha256, 'base64')
-            print (type (signature))
-            credentials = ':'.join ([ self.uid, self.apiKey, nonce, self.encode (signature) ])
+            print (nonce, signature)
+            print (nonce, self.binary_to_string (signature))
+            sys.exit ()
+            credentials = self.uid + ':' + self.apiKey + ':' + nonce + ':' + self.binary_to_string (signature)
             headers['Authorization'] = 'HMAC ' + credentials
         return self.fetch (url, method, headers, body)
 
@@ -12656,9 +12662,9 @@ class yobit (Exchange):
             'order_id': id,
         }, params))
 
-    def request (self, path, type = 'api', method = 'GET', params = {}, headers = None, body = None):
-        url = self.urls['api'] + '/' + type
-        if type == 'api':
+    def request (self, path, api = 'api', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'] + '/' + api
+        if api == 'api':
             url += '/' + self.version + '/' + self.implode_params (path, params)
             query = self.omit (params, self.extract_params (path))
             if query:
@@ -12865,11 +12871,11 @@ class yunbi (Exchange):
         self.loadMarkets ()
         return self.privatePostOrderDelete ({ 'id': id })
 
-    def request (self, path, type = 'public', method = 'GET', params = {}, headers = None, body = None):
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         request = '/api/' + self.version + '/' + self.implode_params (path, params) + '.json'
         query = self.omit (params, self.extract_params (path))
         url = self.urls['api'] + request
-        if type == 'public':
+        if api == 'public':
             if query:
                 url += '?' + _urlencode.urlencode (query)
         else:
@@ -13062,9 +13068,9 @@ class zaif (Exchange):
             'order_id': id,
         }, params))
 
-    def request (self, path, type = 'api', method = 'GET', params = {}, headers = None, body = None):
-        url = self.urls['api'] + '/' + type
-        if type == 'api':
+    def request (self, path, api = 'api', method = 'GET', params = {}, headers = None, body = None):
+        url = self.urls['api'] + '/' + api
+        if api == 'api':
             url += '/' + self.version + '/' + self.implode_params (path, params)
         else:
             nonce = self.nonce ()

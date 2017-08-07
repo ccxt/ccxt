@@ -103,6 +103,7 @@ while (exchanges = regex.exec (contents)) {
             [ /this\.stringToBase64/g, 'base64.b64encode' ],
             [ /this\.base64ToBinary/g, 'base64.b64decode' ],
             [ /\.binaryConcat/g, '.binary_concat'],
+            [ /\.binaryToString/g, '.binary_to_string' ],
             [ /\.implodeParams/g, '.implode_params'],
             [ /\.extractParams/g, '.extract_params'],
             [ /\.parseTicker/g, '.parse_ticker'],
@@ -157,6 +158,8 @@ while (exchanges = regex.exec (contents)) {
             [ /([^\s]+)\.toString \(\)/g, 'str ($1)' ],                
             [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$2.join ($1)' ],
             [ /Math\.(max|min)/g, '$1' ],
+            [ /console\.log/g, 'print'],
+            [ /process\.exit\s+\(\)og/g, 'sys.exit ()'],
         ]
 
         let phRegex = [
@@ -168,6 +171,7 @@ while (exchanges = regex.exec (contents)) {
             [ /this\.base64ToBinary/g, 'base64_decode' ],
             [ /\.parseTicker/g, '.parse_ticker'],
             [ /\.binaryConcat/g, '.binary_concat'],
+            [ /\.binaryToString/g, '.binary_to_string' ],
             [ /\.implodeParams/g, '.implode_params'],
             [ /\.extractParams/g, '.extract_params'],
             [ /\.indexBy/g, '.index_by'],
@@ -216,6 +220,8 @@ while (exchanges = regex.exec (contents)) {
             [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '(array_key_exists ($1, $2))' ],
             [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode ($2, $1)' ],
             [ /Math\.(max|min)/g, '$1' ],
+            [ /console\.log/g, 'var_dump'],
+            [ /process\.exit\s+\(\)og/g, 'exit ()'],
         ]
 
         let pyBody = regexAll (body, pyRegex)

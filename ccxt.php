@@ -326,6 +326,14 @@ class Exchange {
         return gmdate ('Y-m-d H:i:s', (int) round ($timestamp / 1000));
     }
 
+    public static function binary_concat () {
+        return implode ('', func_get_args ());
+    }
+
+    public function binary_to_string ($binary) {
+        return $binary;
+    }
+
     public static function json ($input) {
         return json_encode ($input);
     }
@@ -420,10 +428,6 @@ class Exchange {
         return $hmac;
     }
 
-    public function binary_concat () {
-        return implode ('', func_get_args ());
-    } 
-    
     public function jwt ($request, $secret, $alg = 'HS256', $hash = 'sha256') {
         $encodedHeader = $this->urlencodeBase64 (json_encode (array ('alg' => $alg, 'typ' => 'JWT')));
         $encodedData = $this->urlencodeBase64 (json_encode ($request, JSON_UNESCAPED_SLASHES));
@@ -937,7 +941,7 @@ class _1broker extends Exchange {
         return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!$this->apiKey)
             throw new AuthenticationError ($this->id . ' requires apiKey for all requests');
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path . '.php';
@@ -1096,11 +1100,11 @@ class cryptocapital extends Exchange {
         return $this->privatePostOrdersCancel (array ( 'id' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if ($this->id == 'cryptocapital')
             throw new ExchangeError ($this->id . ' is an abstract base API for _1btcxe');
         $url = $this->urls['api'] . '/' . $path;
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -1349,11 +1353,11 @@ class anxpro extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         $url = $this->urls['api'] . '/' . $this->version . '/' . $request;
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -1526,9 +1530,9 @@ class bit2c extends Exchange {
         return $this->privatePostOrderCancelOrder (array ( 'id' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
-        if ($type == 'public') {
+        if ($api == 'public') {
             $url .= '.json';
         } else {
             $nonce = $this->nonce ();
@@ -1694,9 +1698,9 @@ class bitbay extends Exchange {
         return $this->privatePostCancel (array ( 'id' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$type];
-        if ($type == 'public') {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$api];
+        if ($api == 'public') {
             $url .= '/' . $this->implode_params ($path, $params) . '.json';
         } else {
             $body = $this->urlencode (array_merge (array (
@@ -1860,9 +1864,9 @@ class bitbays extends Exchange {
         return $this->privatePostCancel (array ( 'id' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -2046,9 +2050,9 @@ class bitcoincoid extends Exchange {
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$type];
-        if ($type == 'public') {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$api];
+        if ($api == 'public') {
             $url .= '/' . $this->implode_params ($path, $params);
         } else {
             $body = $this->urlencode (array_merge (array (
@@ -2293,11 +2297,11 @@ class bitfinex extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         $url = $this->urls['api'] . $request;
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -2517,12 +2521,12 @@ class bitflyer extends Exchange {
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->version . '/' . $path;
-        if ($type == 'private')
+        if ($api == 'private')
             $request = '/me' . $request;
         $url = $this->urls['api'] . $request;
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -2762,9 +2766,9 @@ class bitlish extends Exchange {
         return $this->privatePostCancelTrade (array ( 'id' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -2947,9 +2951,9 @@ class bitmarket extends Exchange {
         return $this->privatePostCancel (array ( 'id' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$type];
-        if ($type == 'public') {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$api];
+        if ($api == 'public') {
             $url .= '/' . $this->implode_params ($path . '.json', $params);
         } else {
             $nonce = $this->nonce ();
@@ -3207,12 +3211,12 @@ class bitmex extends Exchange {
         return $this->privateDeleteOrder (array ( 'orderID' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $query = '/api/' . $this->version . '/' . $path;
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $query = '/$api/' . $this->version . '/' . $path;
         if ($params)
             $query .= '?' . $this->urlencode ($params);
         $url = $this->urls['api'] . $query;
-        if ($type == 'private') {
+        if ($api == 'private') {
             $nonce = (string) $this->nonce ();
             if ($method == 'POST')
                 if ($params)
@@ -3414,10 +3418,10 @@ class bitso extends Exchange {
         return $this->privateDeleteOrders (array ( 'oid' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $url = $this->urls['api'] . $query;
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -3602,10 +3606,10 @@ class bitstamp extends Exchange {
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -3816,16 +3820,16 @@ class bittrex extends Exchange {
         return $this->marketGetCancel (array ( 'uuid' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/';
-        if ($type == 'public') {
-            $url .= $type . '/' . strtolower ($method) . $path;
+        if ($api == 'public') {
+            $url .= $api . '/' . strtolower ($method) . $path;
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
             $nonce = $this->nonce ();
-            $url .= $type . '/';
-            if ((($type == 'account') && ($path != 'withdraw')) || ($path == 'openorders'))
+            $url .= $api . '/';
+            if ((($api == 'account') && ($path != 'withdraw')) || ($path == 'openorders'))
                 $url .= strtolower ($method);
             $url .= $path . '?' . $this->urlencode (array_merge (array (
                 'nonce' => $nonce,
@@ -3989,10 +3993,10 @@ class blinktrade extends Exchange {
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$type] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -4175,11 +4179,11 @@ class bl3p extends Exchange {
         return $this->privatePostMarketMoneyOrderCancel (array ( 'order_id' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = $this->implode_params ($path, $params);
         $url = $this->urls['api'] . '/' . $this->version . '/' . $request;
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -4392,9 +4396,9 @@ class btcchina extends Exchange {
         return $this->microseconds ();
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$type] . '/' . $path;
-        if ($type == 'public') {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$api] . '/' . $path;
+        if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -4607,10 +4611,10 @@ class btce extends Exchange {
         return $this->privatePostCancelOrder (array ( 'order_id' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$type] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -4767,11 +4771,11 @@ class btctrader extends Exchange {
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if ($this->id == 'btctrader')
             throw new ExchangeError ($this->id . ' is an abstract base API for BTCExchange, BTCTurk');
         $url = $this->urls['api'] . '/' . $path;
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -5005,10 +5009,10 @@ class btctradeua extends Exchange {
         return $this->privatePostRemoveOrderId (array ( 'id' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($query)
                 $url .= $this->implode_params ($path, $query);
         } else {
@@ -5185,13 +5189,13 @@ class btcx extends Exchange {
         return $this->privatePostCancel (array ( 'order' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/';
-        if ($type == 'public') {
+        if ($api == 'public') {
             $url .= $this->implode_params ($path, $params);
         } else {
             $nonce = $this->nonce ();
-            $url .= $type;
+            $url .= $api;
             $body = $this->urlencode (array_merge (array (
                 'Method' => strtoupper ($path),
                 'Nonce' => $nonce,
@@ -5412,11 +5416,11 @@ class bter extends Exchange {
         return $this->privatePostCancelOrder (array ( 'orderNumber' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $prefix = ($type == 'private') ? ($type . '/') : '';
-        $url = $this->urls['api'][$type] . $this->version . '/1/' . $prefix . $this->implode_params ($path, $params);
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $prefix = ($api == 'private') ? ($api . '/') : '';
+        $url = $this->urls['api'][$api] . $this->version . '/1/' . $prefix . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -5643,13 +5647,13 @@ class bxinth extends Exchange {
         ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/';
         if ($path)
             $url .= $path . '/';
         if ($params)
             $url .= '?' . $this->urlencode ($params);
-        if ($type == 'private') {
+        if ($api == 'private') {
             $nonce = $this->nonce ();
             $auth = $this->apiKey . (string) $nonce . $this->secret;
             $signature = $this->hash ($this->encode ($auth), 'sha256');
@@ -5665,7 +5669,7 @@ class bxinth extends Exchange {
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
-        if ($type == 'public')
+        if ($api == 'public')
             return $response;
         if (array_key_exists ('success', $response))
             if ($response['success'])
@@ -5856,9 +5860,9 @@ class ccex extends Exchange {
         return $this->privateGetCancel (array ( 'uuid' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$type];
-        if ($type == 'private') {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$api];
+        if ($api == 'private') {
             $nonce = (string) $this->nonce ();
             $query = $this->keysort (array_merge (array (
                 'a' => $path,
@@ -5867,7 +5871,7 @@ class ccex extends Exchange {
             ), $params));
             $url .= '?' . $this->urlencode ($query);
             $headers = array ( 'apisign' => $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512') );
-        } else if ($type == 'public') {
+        } else if ($api == 'public') {
             $url .= '?' . $this->urlencode (array_merge (array (
                 'a' => 'get' . $path,
             ), $params));
@@ -5875,7 +5879,7 @@ class ccex extends Exchange {
             $url .= '/' . $this->implode_params ($path, $params) . '.json';
         }
         $response = $this->fetch ($url, $method, $headers, $body);
-        if ($type == 'tickers')
+        if ($api == 'tickers')
             return $response;
         if (array_key_exists ('success', $response))
             if ($response['success'])
@@ -6068,10 +6072,10 @@ class cex extends Exchange {
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -6267,9 +6271,9 @@ class chbtc extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$type]; 
-        if ($type == 'public') {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$api]; 
+        if ($api == 'public') {
             $url .= '/' . $this->version . '/' . $path;
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
@@ -6285,7 +6289,7 @@ class chbtc extends Exchange {
             $url .= '/' . $path . '?' . $auth . '&' . $suffix;
         }
         $response = $this->fetch ($url, $method, $headers, $body);
-        if ($type == 'private')
+        if ($api == 'private')
             if (array_key_exists ('code', $response))
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
@@ -6501,10 +6505,10 @@ class coincheck extends Exchange {
         return $this->privateDeleteExchangeOrdersId (array ( 'id' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -6524,7 +6528,7 @@ class coincheck extends Exchange {
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
-        if ($type == 'public')
+        if ($api == 'public')
             return $response;
         if (array_key_exists ('success', $response))
             if ($response['success'])
@@ -6711,10 +6715,10 @@ class coingi extends Exchange {
         return $this->userPostCancelOrder (array ( 'orderId' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $type . '/' . $this->implode_params ($path, $params);
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $api . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'current') {
+        if ($api == 'current') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -6883,7 +6887,7 @@ class coinmarketcap extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($query)
@@ -7050,9 +7054,9 @@ class coinmate extends Exchange {
         return $this->privatePostCancelOrder (array ( 'orderId' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -7314,7 +7318,7 @@ class coinsecure extends Exchange {
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePutUserExchange';
         $order = array ();
-        if ($type == 'market') {
+        if (api == 'market') {
             $method .= 'Instant' . $this->capitalize ($side);
             if ($side == 'buy')
                 $order['maxFiat'] = $amount;
@@ -7335,10 +7339,10 @@ class coinsecure extends Exchange {
         return $this->$method (array ( 'orderID' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'private') {
+        if ($api == 'private') {
             $headers = array ( 'Authorization' => $this->apiKey );
             if ($query) {
                 $body = $this->json ($query);
@@ -7506,11 +7510,11 @@ class coinspot extends Exchange {
         return $this->$method (array ( 'id' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!$this->apiKey)
             throw new AuthenticationError ($this->id . ' requires apiKey for all requests');
-        $url = $this->urls['api'][$type] . '/' . $path;
-        if ($type == 'private') {
+        $url = $this->urls['api'][$api] . '/' . $path;
+        if ($api == 'private') {
             $nonce = $this->nonce ();
             $body = $this->json (array_merge (array ( 'nonce' => $nonce ), $params));
             $headers = array (
@@ -7709,12 +7713,12 @@ class dsx extends Exchange {
         return $this->tapiPostCancelOrder (array ( 'orderId' => $id ));
     }
 
-    public function request ($path, $type = 'mapi', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$type];
-        if (($type == 'mapi') || ($type == 'dwapi'))
+    public function request ($path, $api = 'mapi', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$api];
+        if (($api == 'mapi') || ($api == 'dwapi'))
             $url .= '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'mapi') {
+        if ($api == 'mapi') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -7732,7 +7736,7 @@ class dsx extends Exchange {
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
-        if ($type == 'mapi')
+        if ($api == 'mapi')
             return $response;
         if (array_key_exists ('success', $response))
             if ($response['success'])
@@ -7935,9 +7939,9 @@ class exmo extends Exchange {
         return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -7951,7 +7955,7 @@ class exmo extends Exchange {
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
-        if ($type == 'public')
+        if ($api == 'public')
             return $response;
         if (array_key_exists ('result', $response))
             if ($response['result'])
@@ -8134,9 +8138,9 @@ class flowbtc extends Exchange {
         throw new ExchangeError ($this->id . ' requires `ins` symbol parameter for cancelling an order');
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($params) {
                 $body = $this->json ($params);
             }
@@ -8312,21 +8316,21 @@ class fyb extends Exchange {
         return $this->privatePostCancelpendingorder (array ( 'orderNo' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
-        if ($type == 'public') {
+        if ($api == 'public') {
             $url .= '.json';
         } else {
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array ( 'timestamp' => $nonce ), $params));
             $headers = array (
-                'Content-type' => 'application/x-www-form-urlencoded',
+                'Content-Type' => 'application/x-www-form-urlencoded',
                 'key' => $this->apiKey,
                 'sig' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha1')
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
-        if ($type == 'private')
+        if ($api == 'private')
             if (array_key_exists ('error', $response))
                 if ($response['error'])
                     throw new ExchangeError ($this->id . ' ' . $this->json ($response));
@@ -8689,10 +8693,10 @@ class gatecoin extends Exchange {
         return $this->privateDeleteTradeOrdersOrderID (array ( 'OrderID' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -8914,11 +8918,11 @@ class gdax extends Exchange {
         return $this->privateDeleteOrdersId (array ( 'id' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->implode_params ($path, $params);
         $url = $this->urls['api'] . $request;
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -9120,10 +9124,10 @@ class gemini extends Exchange {
         return $this->privatePostCancelOrder (array ( 'order_id' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -9376,10 +9380,10 @@ class hitbtc extends Exchange {
         return $this->tradingPostCancelOrder (array ( 'clientOrderId' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = '/api/' . $this->version . '/' . $type . '/' . $this->implode_params ($path, $params);
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = '/' . 'api' . '/' . $this->version . '/' . $api . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -9563,9 +9567,9 @@ class huobi extends Exchange {
         return $this->tradePostCancelOrder (array ( 'id' => $id ));
     }
 
-    public function request ($path, $type = 'trade', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'trade', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'];
-        if ($type == 'trade') {
+        if ($api == 'trade') {
             $url .= '/api' . $this->version;
             $query = $this->keysort (array_merge (array (
                 'method' => $path,
@@ -9582,7 +9586,7 @@ class huobi extends Exchange {
                 'Content-Length' => strlen ($body),
             );
         } else {
-            $url .= '/' . $type . '/' . $this->implode_params ($path, $params) . '_json.js';
+            $url .= '/' . $api . '/' . $this->implode_params ($path, $params) . '_json.js';
             $query = $this->omit ($params, $this->extract_params ($path));
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
@@ -9770,10 +9774,10 @@ class itbit extends Exchange {
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -9977,9 +9981,9 @@ class jubi extends Exchange {
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -10241,9 +10245,9 @@ class kraken extends Exchange {
         return $this->privatePostCancelOrder (array ( 'txid' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = '/' . $this->version . '/' . $type . '/' . $path;
-        if ($type == 'public') {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = '/' . $this->version . '/' . $api . '/' . $path;
+        if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -10258,7 +10262,7 @@ class kraken extends Exchange {
             $headers = array (
                 'API-Key' => $this->apiKey,
                 'API-Sign' => $signature,
-                'Content-type' => 'application/x-www-form-urlencoded',
+                'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
         $url = $this->urls['api'] . $url;
@@ -10436,9 +10440,9 @@ class lakebtc extends Exchange {
         return $this->privatePostCancelOrder (array ( 'params' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version;
-        if ($type == 'public') {
+        if ($api == 'public') {
             $url .= '/' . $path;
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
@@ -10686,9 +10690,9 @@ class livecoin extends Exchange {
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -10737,10 +10741,10 @@ class liqui extends btce {
         ), $options));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$type];
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$api];
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'public') {
+        if ($api == 'public') {
             $url .=  '/' . $this->version . '/' . $this->implode_params ($path, $params);
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
@@ -10985,12 +10989,12 @@ class luno extends Exchange {
         return $this->privatePostStoporder (array ( 'order_id' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($query)
             $url .= '?' . $this->urlencode ($query);
-        if ($type == 'private') {
+        if ($api == 'private') {
             $auth = $this->encode ($this->apiKey . ':' . $this->secret);
             $auth = base64_encode ($auth);
             $headers = array ( 'Authorization' => 'Basic ' . $this->decode ($auth) );
@@ -11147,9 +11151,9 @@ class mercado extends Exchange {
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$type] . '/';
-        if ($type == 'public') {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$api] . '/';
+        if ($api == 'public') {
             $url .= $path;
         } else {
             $url .= $this->version . '/';
@@ -11332,9 +11336,9 @@ class okcoin extends Exchange {
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = '/api/' . $this->version . '/' . $path . '.do';
-        if ($type == 'public') {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = '/$api/' . $this->version . '/' . $path . '.do';
+        if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -11345,7 +11349,7 @@ class okcoin extends Exchange {
             $queryString = $this->urlencode ($query) . '&secret_key=' . $this->secret;
             $query['sign'] = strtoupper ($this->hash ($this->encode ($queryString)));
             $body = $this->urlencode ($query);
-            $headers = array ( 'Content-type' => 'application/x-www-form-urlencoded' );
+            $headers = array ( 'Content-Type' => 'application/x-www-form-urlencoded' );
         }
         $url = $this->urls['api'] . $url;
         $response = $this->fetch ($url, $method, $headers, $body);
@@ -11565,10 +11569,10 @@ class paymium extends Exchange {
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -11777,10 +11781,10 @@ class poloniex extends Exchange {
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$type];
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$api];
         $query = array_merge (array ( 'command' => $path ), $params);
-        if ($type == 'public') {
+        if ($api == 'public') {
             $url .= '?' . $this->urlencode ($query);
         } else {
             $query['nonce'] = $this->nonce ();
@@ -11938,9 +11942,9 @@ class quadrigacx extends Exchange {
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-        if ($type == 'public') {
+        if ($api == 'public') {
             $url .= '?' . $this->urlencode ($params);
         } else {
             if (!$this->uid)
@@ -12171,14 +12175,14 @@ class quoine extends Exchange {
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         $headers = array (
             'X-Quoine-API-Version' => $this->version,
-            'Content-type' => 'application/json',
+            'Content-Type' => 'application/json',
         );
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -12386,10 +12390,10 @@ class southxchange extends Exchange {
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'private') {
+        if ($api == 'private') {
             $nonce = $this->nonce ();
             $query = array_merge (array (
                 'key' => $this->apiKey,
@@ -12636,10 +12640,10 @@ class therock extends Exchange {
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'private') {
+        if ($api == 'private') {
             $nonce = (string) $this->nonce ();
             $auth = $nonce . $url;
             $headers = array (
@@ -12861,9 +12865,9 @@ class vaultoro extends Exchange {
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/';
-        if ($type == 'public') {
+        if ($api == 'public') {
             $url .= $path;
         } else {
             $nonce = $this->nonce ();
@@ -13118,10 +13122,10 @@ class virwox extends Exchange {
         ), $params));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$type];
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$api];
         $auth = array ();
-        if ($type == 'private') {
+        if ($api == 'private') {
             $auth['key'] = $this->apiKey;
             $auth['user'] = $this->login;
             $auth['pass'] = $this->password;
@@ -13133,7 +13137,7 @@ class virwox extends Exchange {
                 'id' => $nonce,
             ), $auth, $params));
         } else {
-            $headers = array ( 'Content-type' => 'application/json' );
+            $headers = array ( 'Content-Type' => 'application/json' );
             $body = $this->json (array (
                 'method' => $path,
                 'params' => array_merge ($auth, $params),
@@ -13405,17 +13409,17 @@ class xbtce extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function request ($path, $type = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function request ($path, $api = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!$this->apiKey)
             throw new AuthenticationError ($this->id . ' requires apiKey for all requests, their public API is always busy');
         if (!$this->uid)
             throw new AuthenticationError ($this->id . ' requires uid property for authentication and trading');
         $url = $this->urls['api'] . '/' . $this->version;
-        if ($type == 'public')
-            $url .= '/' . $type;
+        if ($api == 'public')
+            $url .= '/' . $api;
         $url .= '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -13433,7 +13437,7 @@ class xbtce extends Exchange {
             if ($body)
                 $auth .= $body;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256', 'base64');
-            $credentials = implode (':', array ($this->uid, $this->apiKey, $nonce, $this->encode ($signature)));
+            $credentials = $this->uid . ':' . $this->apiKey . ':' . $nonce . ':' . $this->binary_to_string ($signature);
             $headers['Authorization'] = 'HMAC ' . $credentials;
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -13604,9 +13608,9 @@ class yobit extends Exchange {
         ), $params));
     }
 
-    public function request ($path, $type = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $type;
-        if ($type == 'api') {
+    public function request ($path, $api = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $api;
+        if ($api == 'api') {
             $url .= '/' . $this->version . '/' . $this->implode_params ($path, $params);
             $query = $this->omit ($params, $this->extract_params ($path));
             if ($query)
@@ -13830,11 +13834,11 @@ class yunbi extends Exchange {
         return $this->privatePostOrderDelete (array ( 'id' => $id ));
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/api/' . $this->version . '/' . $this->implode_params ($path, $params) . '.json';
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $request = '/$api/' . $this->version . '/' . $this->implode_params ($path, $params) . '.json';
         $query = $this->omit ($params, $this->extract_params ($path));
         $url = $this->urls['api'] . $request;
-        if ($type == 'public') {
+        if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -14039,9 +14043,9 @@ class zaif extends Exchange {
         ), $params));
     }
 
-    public function request ($path, $type = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $type;
-        if ($type == 'api') {
+    public function request ($path, $api = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $api;
+        if ($api == 'api') {
             $url .= '/' . $this->version . '/' . $this->implode_params ($path, $params);
         } else {
             $nonce = $this->nonce ();

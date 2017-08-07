@@ -220,6 +220,7 @@ const stringToBase64 = string => CryptoJS.enc.Latin1.parse (string).toString (Cr
     , utf16ToBase64  = string => CryptoJS.enc.Utf16 .parse (string).toString (CryptoJS.enc.Base64)
     , base64ToBinary = string => CryptoJS.enc.Base64.parse (string)
     , base64ToString = string => CryptoJS.enc.Base64.parse (string).toString (CryptoJS.enc.Utf8)
+    , binaryToString = string => string
 
 const binaryConcat = (...args) => args.reduce ((a, b) => a.concat (b))
 
@@ -265,6 +266,7 @@ const Exchange = function (config) {
     this.stringToBase64 = stringToBase64
     this.base64ToBinary = base64ToBinary
     this.base64ToString = base64ToString
+    this.binaryToString = binaryToString
     this.utf16ToBase64 = utf16ToBase64
     this.urlencode = urlencode
     this.omit = omit
@@ -754,7 +756,7 @@ var _1broker = {
         return this.privatePostOrderCancel ({ 'order_id': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (!this.apiKey)
             throw new AuthenticationError (this.id + ' requires apiKey for all requests');
         let url = this.urls['api'] + '/' + this.version + '/' + path + '.php';
@@ -909,11 +911,11 @@ var cryptocapital = {
         return this.privatePostOrdersCancel ({ 'id': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (this.id == 'cryptocapital')
             throw new ExchangeError (this.id + ' is an abstract base API for _1btcxe');
         let url = this.urls['api'] + '/' + path;
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -1154,11 +1156,11 @@ var anxpro = {
         return this.milliseconds ();
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + '/' + this.version + '/' + request;
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -1327,9 +1329,9 @@ var bit2c = {
         return this.privatePostOrderCancelOrder ({ 'id': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
-        if (type == 'public') {
+        if (api == 'public') {
             url += '.json';
         } else {
             let nonce = this.nonce ();
@@ -1491,9 +1493,9 @@ var bitbay = {
         return this.privatePostCancel ({ 'id': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][type];
-        if (type == 'public') {
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api];
+        if (api == 'public') {
             url += '/' + this.implodeParams (path, params) + '.json';
         } else {
             body = this.urlencode (this.extend ({
@@ -1653,9 +1655,9 @@ var bitbays = {
         return this.privatePostCancel ({ 'id': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -1835,9 +1837,9 @@ var bitcoincoid = {
         }, params));
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][type];
-        if (type == 'public') {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api];
+        if (api == 'public') {
             url += '/' + this.implodeParams (path, params);
         } else {
             body = this.urlencode (this.extend ({
@@ -2078,11 +2080,11 @@ var bitfinex = {
         return this.milliseconds ();
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + request;
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -2298,12 +2300,12 @@ var bitflyer = {
         }, params));
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.version + '/' + path;
-        if (type == 'private')
+        if (api == 'private')
             request = '/me' + request;
         let url = this.urls['api'] + request;
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -2539,9 +2541,9 @@ var bitlish = {
         return this.privatePostCancelTrade ({ 'id': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -2720,9 +2722,9 @@ var bitmarket = {
         return this.privatePostCancel ({ 'id': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][type];
-        if (type == 'public') {
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api];
+        if (api == 'public') {
             url += '/' + this.implodeParams (path + '.json', params);
         } else {
             let nonce = this.nonce ();
@@ -2976,12 +2978,12 @@ var bitmex = {
         return this.privateDeleteOrder ({ 'orderID': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = '/api/' + this.version + '/' + path;
         if (Object.keys (params).length)
             query += '?' + this.urlencode (params);
         let url = this.urls['api'] + query;
-        if (type == 'private') {
+        if (api == 'private') {
             let nonce = this.nonce ().toString ();
             if (method == 'POST')
                 if (Object.keys (params).length)
@@ -3180,10 +3182,10 @@ var bitso = {
         return this.privateDeleteOrders ({ 'oid': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'] + query;
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -3364,10 +3366,10 @@ var bitstamp = {
         return this.privatePostCancelOrder ({ 'id': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -3574,16 +3576,16 @@ var bittrex = {
         return this.marketGetCancel ({ 'uuid': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/';
-        if (type == 'public') {
-            url += type + '/' + method.toLowerCase () + path;
+        if (api == 'public') {
+            url += api + '/' + method.toLowerCase () + path;
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
             let nonce = this.nonce ();
-            url += type + '/';
-            if (((type == 'account') && (path != 'withdraw')) || (path == 'openorders'))
+            url += api + '/';
+            if (((api == 'account') && (path != 'withdraw')) || (path == 'openorders'))
                 url += method.toLowerCase ();
             url += path + '?' + this.urlencode (this.extend ({
                 'nonce': nonce,
@@ -3743,10 +3745,10 @@ var blinktrade = {
         }, params));
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][type] + '/' + this.version + '/' + this.implodeParams (path, params);
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -3925,11 +3927,11 @@ var bl3p = {
         return this.privatePostMarketMoneyOrderCancel ({ 'order_id': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = this.implodeParams (path, params);
         let url = this.urls['api'] + '/' + this.version + '/' + request;
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -4138,9 +4140,9 @@ var btcchina = {
         return this.microseconds ();
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][type] + '/' + path;
-        if (type == 'public') {
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api] + '/' + path;
+        if (api == 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -4349,10 +4351,10 @@ var btce = {
         return this.privatePostCancelOrder ({ 'order_id': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][type] + '/' + this.version + '/' + this.implodeParams (path, params);
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -4505,11 +4507,11 @@ var btctrader = {
         return this.privatePostCancelOrder ({ 'id': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (this.id == 'btctrader')
             throw new ExchangeError (this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         let url = this.urls['api'] + '/' + path;
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -4735,10 +4737,10 @@ var btctradeua = {
         return this.privatePostRemoveOrderId ({ 'id': id });
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (query).length)
                 url += this.implodeParams (path, query);
         } else {
@@ -4907,13 +4909,13 @@ var btcx = {
         return this.privatePostCancel ({ 'order': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/';
-        if (type == 'public') {
+        if (api == 'public') {
             url += this.implodeParams (path, params);
         } else {
             let nonce = this.nonce ();
-            url += type;
+            url += api;
             body = this.urlencode (this.extend ({
                 'Method': path.toUpperCase (),
                 'Nonce': nonce,
@@ -5129,11 +5131,11 @@ var bter = {
         return this.privatePostCancelOrder ({ 'orderNumber': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let prefix = (type == 'private') ? (type + '/') : '';
-        let url = this.urls['api'][type] + this.version + '/1/' + prefix + this.implodeParams (path, params);
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let prefix = (api == 'private') ? (api + '/') : '';
+        let url = this.urls['api'][api] + this.version + '/1/' + prefix + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -5356,13 +5358,13 @@ var bxinth = {
         });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/';
         if (path)
             url += path + '/';
         if (Object.keys (params).length)
             url += '?' + this.urlencode (params);
-        if (type == 'private') {
+        if (api == 'private') {
             let nonce = this.nonce ();
             let auth = this.apiKey + nonce.toString () + this.secret;
             let signature = this.hash (this.encode (auth), 'sha256');
@@ -5378,7 +5380,7 @@ var bxinth = {
             };
         }
         let response = await this.fetch (url, method, headers, body);
-        if (type == 'public')
+        if (api == 'public')
             return response;
         if ('success' in response)
             if (response['success'])
@@ -5565,9 +5567,9 @@ var ccex = {
         return this.privateGetCancel ({ 'uuid': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][type];
-        if (type == 'private') {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api];
+        if (api == 'private') {
             let nonce = this.nonce ().toString ();
             let query = this.keysort (this.extend ({
                 'a': path,
@@ -5576,7 +5578,7 @@ var ccex = {
             }, params));
             url += '?' + this.urlencode (query);
             headers = { 'apisign': this.hmac (this.encode (url), this.encode (this.secret), 'sha512') };
-        } else if (type == 'public') {
+        } else if (api == 'public') {
             url += '?' + this.urlencode (this.extend ({
                 'a': 'get' + path,
             }, params));
@@ -5584,7 +5586,7 @@ var ccex = {
             url += '/' + this.implodeParams (path, params) + '.json';
         }
         let response = await this.fetch (url, method, headers, body);
-        if (type == 'tickers')
+        if (api == 'tickers')
             return response;
         if ('success' in response)
             if (response['success'])
@@ -5773,10 +5775,10 @@ var cex = {
         return this.privatePostCancelOrder ({ 'id': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -5967,9 +5969,9 @@ var chbtc = {
         return this.milliseconds ();
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][type]; 
-        if (type == 'public') {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api]; 
+        if (api == 'public') {
             url += '/' + this.version + '/' + path;
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
@@ -5985,7 +5987,7 @@ var chbtc = {
             url += '/' + path + '?' + auth + '&' + suffix;
         }
         let response = await this.fetch (url, method, headers, body);
-        if (type == 'private')
+        if (api == 'private')
             if ('code' in response)
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
@@ -6192,10 +6194,10 @@ var coincheck = {
         return this.privateDeleteExchangeOrdersId ({ 'id': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -6215,7 +6217,7 @@ var coincheck = {
             };
         }
         let response = await this.fetch (url, method, headers, body);
-        if (type == 'public')
+        if (api == 'public')
             return response;
         if ('success' in response)
             if (response['success'])
@@ -6398,10 +6400,10 @@ var coingi = {
         return this.userPostCancelOrder ({ 'orderId': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + type + '/' + this.implodeParams (path, params);
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + api + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'current') {
+        if (api == 'current') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -6566,7 +6568,7 @@ var coinmarketcap = {
         return this.parseTicker (ticker, p);
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (Object.keys (query).length)
@@ -6729,9 +6731,9 @@ var coinmate = {
         return this.privatePostCancelOrder ({ 'orderId': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -6989,7 +6991,7 @@ var coinsecure = {
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePutUserExchange';
         let order = {};
-        if (type == 'market') {
+        if (api == 'market') {
             method += 'Instant' + this.capitalize (side);
             if (side == 'buy')
                 order['maxFiat'] = amount;
@@ -7010,10 +7012,10 @@ var coinsecure = {
         return this[method] ({ 'orderID': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'private') {
+        if (api == 'private') {
             headers = { 'Authorization': this.apiKey };
             if (Object.keys (query).length) {
                 body = this.json (query);
@@ -7177,11 +7179,11 @@ var coinspot = {
         return this[method] ({ 'id': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (!this.apiKey)
             throw new AuthenticationError (this.id + ' requires apiKey for all requests');
-        let url = this.urls['api'][type] + '/' + path;
-        if (type == 'private') {
+        let url = this.urls['api'][api] + '/' + path;
+        if (api == 'private') {
             let nonce = this.nonce ();
             body = this.json (this.extend ({ 'nonce': nonce }, params));
             headers = {
@@ -7376,12 +7378,12 @@ var dsx = {
         return this.tapiPostCancelOrder ({ 'orderId': id });
     },
 
-    async request (path, type = 'mapi', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][type];
-        if ((type == 'mapi') || (type == 'dwapi'))
+    async request (path, api = 'mapi', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api];
+        if ((api == 'mapi') || (api == 'dwapi'))
             url += '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'mapi') {
+        if (api == 'mapi') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -7399,7 +7401,7 @@ var dsx = {
             };
         }
         let response = await this.fetch (url, method, headers, body);
-        if (type == 'mapi')
+        if (api == 'mapi')
             return response;
         if ('success' in response)
             if (response['success'])
@@ -7598,9 +7600,9 @@ var exmo = {
         return this.privatePostOrderCancel ({ 'order_id': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -7614,7 +7616,7 @@ var exmo = {
             };
         }
         let response = await this.fetch (url, method, headers, body);
-        if (type == 'public')
+        if (api == 'public')
             return response;
         if ('result' in response)
             if (response['result'])
@@ -7793,9 +7795,9 @@ var flowbtc = {
         throw new ExchangeError (this.id + ' requires `ins` symbol parameter for cancelling an order');
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (params).length) {
                 body = this.json (params);
             }
@@ -7962,21 +7964,21 @@ var fyb = {
         return this.privatePostCancelpendingorder ({ 'orderNo': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
-        if (type == 'public') {
+        if (api == 'public') {
             url += '.json';
         } else {
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'timestamp': nonce }, params));
             headers = {
-                'Content-type': 'application/x-www-form-urlencoded',
+                'Content-Type': 'application/x-www-form-urlencoded',
                 'key': this.apiKey,
                 'sig': this.hmac (this.encode (body), this.encode (this.secret), 'sha1')
             };
         }
         let response = await this.fetch (url, method, headers, body);
-        if (type == 'private')
+        if (api == 'private')
             if ('error' in response)
                 if (response['error'])
                     throw new ExchangeError (this.id + ' ' + this.json (response));
@@ -8325,10 +8327,10 @@ var gatecoin = {
         return this.privateDeleteTradeOrdersOrderID ({ 'OrderID': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -8545,11 +8547,11 @@ var gdax = {
         return this.privateDeleteOrdersId ({ 'id': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         let url = this.urls['api'] + request;
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -8746,10 +8748,10 @@ var gemini = {
         return this.privatePostCancelOrder ({ 'order_id': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -8998,10 +9000,10 @@ var hitbtc = {
         return this.tradingPostCancelOrder ({ 'clientOrderId': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = '/api/' + this.version + '/' + type + '/' + this.implodeParams (path, params);
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = '/' + 'api' + '/' + this.version + '/' + api + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -9181,9 +9183,9 @@ var huobi = {
         return this.tradePostCancelOrder ({ 'id': id });
     },
 
-    async request (path, type = 'trade', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'trade', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'];
-        if (type == 'trade') {
+        if (api == 'trade') {
             url += '/api' + this.version;
             let query = this.keysort (this.extend ({
                 'method': path,
@@ -9200,7 +9202,7 @@ var huobi = {
                 'Content-Length': body.length,
             };
         } else {
-            url += '/' + type + '/' + this.implodeParams (path, params) + '_json.js';
+            url += '/' + api + '/' + this.implodeParams (path, params) + '_json.js';
             let query = this.omit (params, this.extractParams (path));
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
@@ -9384,10 +9386,10 @@ var itbit = {
         }, params));
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -9587,9 +9589,9 @@ var jubi = {
         }, params));
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -9848,9 +9850,9 @@ var kraken = {
         return this.privatePostCancelOrder ({ 'txid': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = '/' + this.version + '/' + type + '/' + path;
-        if (type == 'public') {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = '/' + this.version + '/' + api + '/' + path;
+        if (api == 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -9865,7 +9867,7 @@ var kraken = {
             headers = {
                 'API-Key': this.apiKey,
                 'API-Sign': signature,
-                'Content-type': 'application/x-www-form-urlencoded',
+                'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
         url = this.urls['api'] + url;
@@ -10039,9 +10041,9 @@ var lakebtc = {
         return this.privatePostCancelOrder ({ 'params': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version;
-        if (type == 'public') {
+        if (api == 'public') {
             url += '/' + path;
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
@@ -10285,9 +10287,9 @@ var livecoin = {
         }, params));
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -10331,10 +10333,10 @@ var liqui = extend (btce, {
         'doc': 'https://liqui.io/api',
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][type];
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api];
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'public') {
+        if (api == 'public') {
             url +=  '/' + this.version + '/' + this.implodeParams (path, params);
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
@@ -10575,12 +10577,12 @@ var luno = {
         return this.privatePostStoporder ({ 'order_id': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (Object.keys (query).length)
             url += '?' + this.urlencode (query);
-        if (type == 'private') {
+        if (api == 'private') {
             let auth = this.encode (this.apiKey + ':' + this.secret);
             auth = this.stringToBase64 (auth);
             headers = { 'Authorization': 'Basic ' + this.decode (auth) };
@@ -10733,9 +10735,9 @@ var mercado = {
         }, params));
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][type] + '/';
-        if (type == 'public') {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api] + '/';
+        if (api == 'public') {
             url += path;
         } else {
             url += this.version + '/';
@@ -10922,9 +10924,9 @@ var okcoin = {
         }, params));
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/api/' + this.version + '/' + path + '.do';
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -10935,7 +10937,7 @@ var okcoin = {
             let queryString = this.urlencode (query) + '&secret_key=' + this.secret;
             query['sign'] = this.hash (this.encode (queryString)).toUpperCase ();
             body = this.urlencode (query);
-            headers = { 'Content-type': 'application/x-www-form-urlencoded' };
+            headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
         }
         url = this.urls['api'] + url;
         let response = await this.fetch (url, method, headers, body);
@@ -11141,10 +11143,10 @@ var paymium = {
         }, params));
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -11349,10 +11351,10 @@ var poloniex = {
         }, params));
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][type];
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api];
         let query = this.extend ({ 'command': path }, params);
-        if (type == 'public') {
+        if (api == 'public') {
             url += '?' + this.urlencode (query);
         } else {
             query['nonce'] = this.nonce ();
@@ -11506,9 +11508,9 @@ var quadrigacx = {
         }, params));
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (type == 'public') {
+        if (api == 'public') {
             url += '?' + this.urlencode (params);
         } else {
             if (!this.uid)
@@ -11735,14 +11737,14 @@ var quoine = {
         }, params));
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         headers = {
             'X-Quoine-API-Version': this.version,
-            'Content-type': 'application/json',
+            'Content-Type': 'application/json',
         };
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -11946,10 +11948,10 @@ var southxchange = {
         }, params));
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'private') {
+        if (api == 'private') {
             let nonce = this.nonce ();
             query = this.extend ({
                 'key': this.apiKey,
@@ -12187,10 +12189,10 @@ var therock = {
         }, params));
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'private') {
+        if (api == 'private') {
             let nonce = this.nonce ().toString ();
             let auth = nonce + url;
             headers = {
@@ -12403,9 +12405,9 @@ var vaultoro = {
         }, params));
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/';
-        if (type == 'public') {
+        if (api == 'public') {
             url += path;
         } else {
             let nonce = this.nonce ();
@@ -12652,10 +12654,10 @@ var virwox = {
         }, params));
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][type];
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api];
         let auth = {};
-        if (type == 'private') {
+        if (api == 'private') {
             auth['key'] = this.apiKey;
             auth['user'] = this.login;
             auth['pass'] = this.password;
@@ -12667,7 +12669,7 @@ var virwox = {
                 'id': nonce,
             }, auth, params));
         } else {
-            headers = { 'Content-type': 'application/json' };
+            headers = { 'Content-Type': 'application/json' };
             body = this.json ({
                 'method': path,
                 'params': this.extend (auth, params),
@@ -12935,17 +12937,17 @@ var xbtce = {
         return this.milliseconds ();
     },
 
-    request (path, type = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    request (path, api = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (!this.apiKey)
             throw new AuthenticationError (this.id + ' requires apiKey for all requests, their public API is always busy');
         if (!this.uid)
             throw new AuthenticationError (this.id + ' requires uid property for authentication and trading');
         let url = this.urls['api'] + '/' + this.version;
-        if (type == 'public')
-            url += '/' + type;
+        if (api == 'public')
+            url += '/' + api;
         url += '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -12963,7 +12965,7 @@ var xbtce = {
             if (body)
                 auth += body;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
-            let credentials = [ this.uid, this.apiKey, nonce, signature ].join (':');
+            let credentials = this.uid + ':' + this.apiKey + ':' + nonce + ':' + this.binaryToString (signature);
             headers['Authorization'] = 'HMAC ' + credentials;
         }
         return this.fetch (url, method, headers, body);
@@ -13130,9 +13132,9 @@ var yobit = {
         }, params));
     },
 
-    async request (path, type = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + type;
-        if (type == 'api') {
+    async request (path, api = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + api;
+        if (api == 'api') {
             url += '/' + this.version + '/' + this.implodeParams (path, params);
             let query = this.omit (params, this.extractParams (path));
             if (Object.keys (query).length)
@@ -13352,11 +13354,11 @@ var yunbi = {
         return this.privatePostOrderDelete ({ 'id': id });
     },
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/api/' + this.version + '/' + this.implodeParams (path, params) + '.json';
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + request;
-        if (type == 'public') {
+        if (api == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -13557,9 +13559,9 @@ var zaif = {
         }, params));
     },
 
-    async request (path, type = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + type;
-        if (type == 'api') {
+    async request (path, api = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + api;
+        if (api == 'api') {
             url += '/' + this.version + '/' + this.implodeParams (path, params);
         } else {
             let nonce = this.nonce ();
@@ -13712,6 +13714,7 @@ if (isNode || isReactNative) {
 
         binaryConcat,
         stringToBinary,
+        binaryToString,
         stringToBase64,
         utf16ToBase64,
         base64ToBinary,

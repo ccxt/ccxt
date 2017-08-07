@@ -31,7 +31,7 @@ $exchanges = null;
 
 foreach (\ccxt\Exchange::$exchanges as $id) {
     $exchange = '\\ccxt\\' . $id;
-    $exchanges[$id] = new $exchange (array ('verbose' => false));
+    $exchanges[$id] = new $exchange (array ('verbose' => true));
 }
 
 $config = json_decode (file_get_contents ('./keys.json'), true);
