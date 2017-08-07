@@ -13014,6 +13014,8 @@ var yobit = {
             let product = products['pairs'][id];
             let symbol = id.toUpperCase ().replace ('_', '/');
             let [ base, quote ] = symbol.split ('/');
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
             result.push ({
                 'id': id,
                 'symbol': symbol,
