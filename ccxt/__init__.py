@@ -524,7 +524,7 @@ class Market (object):
     def nonce (self):
         return Market.seconds ()
 
-    def commonCurrencyCode (currency):
+    def commonCurrencyCode (self, currency):
         if not self.substituteCommonCurrencyCodes:
             return currency
         if currency == 'XBT':
