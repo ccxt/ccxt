@@ -4981,6 +4981,8 @@ var bter = {
             let id = product['pair'];
             let base = product['curr_a'];
             let quote = product['curr_b'];
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
