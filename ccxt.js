@@ -349,8 +349,10 @@ const Market = function (config) {
                 throw e // rethrow all unknown errors
             })
             .then (response => {
+
                 if (typeof response == 'string')
                     return response
+                
                 return response.text ().then (text => {
                     if (this.verbose)
                         console.log (this.id, method, url, text ? ("\nResponse:\n" + text) : '')
