@@ -232,8 +232,8 @@ The ccxt library supports both camelcase notation (preferred in JavaScript) and 
 
 ```
 // both of these notations work in JavaScript/Python/PHP
-market.methodName ()  // camelcase pseudocode
-market.method_name () // underscore pseudocode
+exchange.methodName ()  // camelcase pseudocode
+exchange.method_name () // underscore pseudocode
 ```
 
 See the [Manual](https://github.com/kroitor/ccxt/wiki) for more details.
