@@ -11328,6 +11328,21 @@ var poloniex = {
         };
     },
 
+    async fetchTickers () {
+        await this.loadMarkets ();
+        let response = await this.publicGetReturnTicker ();
+        let ids = Object.keys (tickers);
+        let result = {};
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let market = this.markets_by_id[id];
+            let symbol = market['symbol'];
+            let ticker = tickers[id];
+            result[symbol] = this.parseTicker (ticker, market);
+        }
+        return result;
+    },
+
     async fetchTicker (market) {
         await this.loadMarkets ();
         let m = this.market (market);
