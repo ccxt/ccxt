@@ -5,7 +5,7 @@ let exchange = new ccxt.bitfinex ({
     secret: 'Rgxxw1BGnq6NLTLq1hn0oQ5FBDRLYFFVRzyEKYbz1io',
 })
 
-await exchange.loadProducts ()
+await exchange.loadMarkets ()
 console.log (exchange.symbols)
 
 let symbol = exchange.symbols[0]
