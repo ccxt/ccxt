@@ -85,7 +85,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.5'
+__version__ = '1.3.6'
 
 # Python 2 & 3
 import base64
@@ -3414,7 +3414,7 @@ class bittrex (Exchange):
             if currency in indexed:
                 balance = indexed[currency]
                 account['free'] = balance['Available']
-                account['used'] = balance['Pending']
+                account['used'] = balance['Balance'] - balance['Available']
                 account['total'] = balance['Balance']
             result[currency] = account
         return result
