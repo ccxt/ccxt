@@ -12,7 +12,7 @@ here = path.abspath (path.dirname (__file__))
 with open (path.join (here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
-# Get the version number and other params from package.json    
+# Get the version number and all other params from package.json    
 with open (path.join (here, 'package.json'), encoding = 'utf-8') as f:
     package = json.load (f)
  
@@ -45,6 +45,7 @@ setup (
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Programming Language :: JavaScript',
         'Programming Language :: PHP',
         'Operating System :: OS Independent',
