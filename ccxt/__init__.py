@@ -257,11 +257,11 @@ class Exchange (object):
             if e.code == 429:
                 error = DDoSProtectionError
             elif e.code in [500, 501, 502, 404, 525]:
-                details = e.read ().decode ('utf-8') if e else None
+                details = e.read ().decode ('utf-8', 'ignore') if e else None
                 error = ExchangeNotAvailableError
             elif e.code in [400, 403, 405, 503]:
                 # special case to detect ddos protection
-                reason = e.read ().decode ('utf-8')
+                reason = e.read ().decode ('utf-8', 'ignore')
                 ddos_protection = re.search ('(cloudflare|incapsula)', reason, flags = re.IGNORECASE)
                 if ddos_protection:
                     error = DDoSProtectionError
