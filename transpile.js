@@ -70,6 +70,8 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('fetchTickers',   'fetch_tickers')
                         .replace ('fetchTicker',    'fetch_ticker')
                         .replace ('parseTicker',    'parse_ticker')
+                        .replace ('parseBidAsk',    'parse_bidask')
+                        .replace ('parseBidAsks',   'parse_bidasks')
                         .replace ('fetchTrades',    'fetch_trades')
                         .replace ('createOrder',    'create_order')
                         .replace ('cancelOrder',    'cancel_order')
@@ -107,6 +109,8 @@ while (exchanges = regex.exec (contents)) {
             [ /\.implodeParams/g, '.implode_params'],
             [ /\.extractParams/g, '.extract_params'],
             [ /\.parseTicker/g, '.parse_ticker'],
+            [ /\.parseBidAsk/g, '.parse_bidask'],
+            [ /\.parseBidAsks/g, '.parse_bidasks'],
             [ /\.indexBy/g, '.index_by'],
             [ /\.sortBy/g, '.sort_by'],
             [ /\.marketId/g, '.market_id'],
@@ -170,6 +174,8 @@ while (exchanges = regex.exec (contents)) {
             [ /this\.stringToBase64/g, 'base64_encode' ],
             [ /this\.base64ToBinary/g, 'base64_decode' ],
             [ /\.parseTicker/g, '.parse_ticker'],
+            [ /\.parseBidAsk/g, '.parse_bidask'],
+            [ /\.parseBidAsks/g, '.parse_bidasks'],
             [ /\.binaryConcat/g, '.binary_concat'],
             [ /\.binaryToString/g, '.binary_to_string' ],
             [ /\.implodeParams/g, '.implode_params'],
