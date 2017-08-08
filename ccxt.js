@@ -13357,8 +13357,20 @@ var yunbi = {
         let result = {};
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
+            let market = undefined;
+            let symbol = id;
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
+                symbol = market['symbol'];
+            } else {
+                let base = id.slice (0, 3);
+                let quote = id.slice (3, 6);
+                base = base.toUpperCase ();
+                quote = quote.toUpperCase ();
+                base = this.commonCurrencyCode (base);
+                quote = this.commonCurrencyCode (quote);
+                let symbol = base + '/' + quote;
+            }
             let ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
