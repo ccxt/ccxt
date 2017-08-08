@@ -3500,9 +3500,10 @@ var bittrex = {
     },
 
     parseBidAsks (bidasks) {
-        let result = []
-        for (let i = 0; i < bidasks.length; i++)
+        let result = [];
+        for (let i = 0; i < bidasks.length; i++) {
             result.push (this.parseBidAsk (bidasks[i]));
+        }
         return result;
     },
 

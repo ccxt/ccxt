@@ -3737,6 +3737,20 @@ class bittrex extends Exchange {
         return $result;
     }
 
+    public function parseBidAsk ($bidask) {
+        $price = floatval ($bidask['Rate']);
+        $amount = floatval ($bidask['Quantity']);
+        return array ($price, $amount);
+    }
+
+    public function parseBidAsks ($bidasks) {
+        $result = array ();
+        for ($i = 0; $i < count ($bidasks); $i++) {
+            $result[] = $this->parseBidAsk ($bidasks[$i]);
+        }
+        return $result;
+    }
+
     public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $response = $this->publicGetOrderbook (array_merge (array (
@@ -3757,13 +3771,7 @@ class bittrex extends Exchange {
         for ($k = 0; $k < count ($keys); $k++) {
             $key = $keys[$k];
             $side = $sides[$key];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = floatval ($order['Rate']);
-                $amount = floatval ($order['Quantity']);
-                $result[$key][] = array ($price, $amount);
-            }
+            $result[$key] = $this->parseBidAsks ($orderbook[$side]);
         }
         return $result;
     }
