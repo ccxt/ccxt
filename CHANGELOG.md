@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Started adding fetchTickers () (all at once) where applicable, [issue #7](https://github.com/kroitor/ccxt/issues/7)
 - Fixed Bittrex used/pending balance, [issue #91](https://github.com/kroitor/ccxt/issues/91)
 
 ## Version 1.3.x 2017-08-08
