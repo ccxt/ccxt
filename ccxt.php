@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.7';
+$version = '1.3.8';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3768,12 +3768,7 @@ class bittrex extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
-        $this->loadMarkets ();
-        $response = $this->publicGetMarketsummary (array (
-            'market' => $this->market_id ($market),
-        ));
-        $ticker = $response['result'][0];
+    public function parse_ticker ($ticker, $market) {
         $timestamp = $this->parse8601 ($ticker['TimeStamp']);
         return array (
             'timestamp' => $timestamp,
@@ -3794,6 +3789,16 @@ class bittrex extends Exchange {
             'quoteVolume' => floatval ($ticker['Volume']),
             'info' => $ticker,
         );
+    }
+
+    public function fetch_ticker ($market) {
+        $this->loadMarkets ();
+        $m = $this->market ($market)
+        $response = $this->publicGetMarketsummary (array (
+            'market' => $m['id'],
+        ));
+        $ticker = $response['result'][0];
+        return $this->parse_ticker ($ticker, $m);
     }
 
     public function fetch_trades ($market) {
