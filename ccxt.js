@@ -3571,7 +3571,7 @@ var bittrex = {
 
     async fetchTicker (market) {
         await this.loadMarkets ();
-        let m = this.market (market)
+        let m = this.market (market);
         let response = await this.publicGetMarketsummary ({
             'market': m['id'],
         });
