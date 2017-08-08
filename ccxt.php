@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.10';
+$version = '1.3.11';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3803,7 +3803,7 @@ class bittrex extends Exchange {
             $symbol = $id;
             if (array_key_exists ($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
-                $symbol = $market['symbol']
+                $symbol = $market['symbol'];
             } else {
                 list ($quote, $base) = explode ('-', $id);
                 $base = $this->commonCurrencyCode ($base);
