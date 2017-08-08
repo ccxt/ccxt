@@ -85,7 +85,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.7'
+__version__ = '1.3.8'
 
 # Python 2 & 3
 import base64
@@ -3447,12 +3447,7 @@ class bittrex (Exchange):
                 result[key].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, market):
-        self.loadMarkets ()
-        response = self.publicGetMarketsummary ({
-            'market': self.market_id (market),
-        })
-        ticker = response['result'][0]
+    def parse_ticker (self, ticker, market):
         timestamp = self.parse8601 (ticker['TimeStamp'])
         return {
             'timestamp': timestamp,
@@ -3473,6 +3468,15 @@ class bittrex (Exchange):
             'quoteVolume': float (ticker['Volume']),
             'info': ticker,
         }
+
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        m = self.market (market)
+        response = self.publicGetMarketsummary ({
+            'market': m['id'],
+        })
+        ticker = response['result'][0]
+        return self.parse_ticker (ticker, m)
 
     def fetch_trades (self, market):
         self.loadMarkets ()
