@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.5';
+$version = '1.3.6';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3729,7 +3729,7 @@ class bittrex extends Exchange {
             if (array_key_exists ($currency, $indexed)) {
                 $balance = $indexed[$currency];
                 $account['free'] = $balance['Available'];
-                $account['used'] = $balance['Pending'];
+                $account['used'] = $balance['Balance'] - $balance['Available'];
                 $account['total'] = $balance['Balance'];
             }
             $result[$currency] = $account;
