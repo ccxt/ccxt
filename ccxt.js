@@ -3493,6 +3493,19 @@ var bittrex = {
         return result;
     },
 
+    parseBidAsk (bidask) {
+        let price = parseFloat (bidask['Rate']);
+        let amount = parseFloat (bidask['Quantity']);
+        return [ price, amount ];
+    },
+
+    parseBidAsks (bidasks) {
+        let result = []
+        for (let i = 0; i < bidasks.length; i++)
+            result.push (this.parseBidAsk (bidasks[i]));
+        return result;
+    },
+
     async fetchOrderBook (market, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetOrderbook (this.extend ({
@@ -3513,13 +3526,7 @@ var bittrex = {
         for (let k = 0; k < keys.length; k++) {
             let key = keys[k];
             let side = sides[key];
-            let orders = orderbook[side];
-            for (let i = 0; i < orders.length; i++) {
-                let order = orders[i];
-                let price = parseFloat (order['Rate']);
-                let amount = parseFloat (order['Quantity']);
-                result[key].push ([ price, amount ]);
-            }
+            result[key] = this.parseBidAsks (orderbook[side]);
         }
         return result;
     },
