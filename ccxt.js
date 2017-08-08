@@ -11330,7 +11330,7 @@ var poloniex = {
 
     async fetchTickers () {
         await this.loadMarkets ();
-        let response = await this.publicGetReturnTicker ();
+        let tickers = await this.publicGetReturnTicker ();
         let ids = Object.keys (tickers);
         let result = {};
         for (let i = 0; i < ids.length; i++) {
