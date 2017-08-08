@@ -62,15 +62,17 @@ if len (sys.argv) > 2:
                 exchange.proxy = proxies[currentProxy]
                 exchange.load_markets ()
 
-            except ccxt.DDoSProtectionError as e:
+            except ccxt.DDoSProtection as e:
                 dump (yellow (type (e).__name__), e.args)
-            except ccxt.TimeoutError as e:
+            except ccxt.RequestTimeout as e:
                 dump (yellow (type (e).__name__), e.args)
             except ccxt.AuthenticationError as e:
                 dump (yellow (type (e).__name__), e.args)
-            except ccxt.ExchangeNotAvailableError as e:
+            except ccxt.ExchangeNotAvailable as e:
                 dump (yellow (type (e).__name__), e.args)
-            except ccxt.EndpointNotAvailableError as e:
+            except ccxt.ExchangeError as e:
+                dump (yellow (type (e).__name__), e.args)
+            except ccxt.NetworkError as e:
                 dump (yellow (type (e).__name__), e.args)
             except Exception as e: # reraise all other exceptions
                 raise 

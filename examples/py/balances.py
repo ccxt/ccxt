@@ -61,11 +61,11 @@ try:
     # output the result
     dump (green (quadrigacx.name), 'balance', quadrigacxBalance)
 
-except ccxt.DDoSProtectionError as e:
-    print (type (e).__name__, e.args, 'DDoS Protection Error (ignoring)')
+except ccxt.DDoSProtection as e:
+    print (type (e).__name__, e.args, 'DDoS Protection (ignoring)')
 except ccxt.TimeoutError as e:
-    print (type (e).__name__, e.args, 'Timeout Error, request timed out (ignoring)')
-except ccxt.MarketNotAvailableError as e:
-    print (type (e).__name__, e.args, 'Market Not Available Error due to downtime or maintenance (ignoring)')
+    print (type (e).__name__, e.args, 'Request Timeout (ignoring)')
+except ccxt.ExchangeNotAvailable as e:
+    print (type (e).__name__, e.args, 'Exchange Not Available due to downtime or maintenance (ignoring)')
 except ccxt.AuthenticationError as e:
     print (type (e).__name__, e.args, 'Authentication Error (missing API keys, ignoring)')

@@ -153,11 +153,11 @@ def try_all_proxies (exchange, proxies):
             dump (yellow (type (e).__name__), e.args)
         except ccxt.AuthenticationError as e:
             dump (yellow (type (e).__name__), str (e))
-        except ccxt.DDoSProtectionError as e:
+        except ccxt.DDoSProtection as e:
             dump (yellow (type (e).__name__), e.args)
-        except ccxt.TimeoutError as e:
+        except ccxt.RequestTimeout as e:
             dump (yellow (type (e).__name__), str (e))
-        except ccxt.ExchangeNotAvailableError as e:
+        except ccxt.ExchangeNotAvailable as e:
             dump (yellow (type (e).__name__), e.args)
 
 #------------------------------------------------------------------------------

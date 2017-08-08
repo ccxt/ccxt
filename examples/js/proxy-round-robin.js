@@ -48,16 +48,18 @@ let tryAllProxies = async function (exchange, proxies) {
         } catch (e) {
 
             currentProxy = ++currentProxy % proxies.length
-            if (e instanceof ccxt.DDoSProtectionError) {
-                log.bright.yellow (exchange.id, '[DDoS Protection Error] ' + e.message)
-            } else if (e instanceof ccxt.TimeoutError) {
-                log.bright.yellow (exchange.id, '[Timeout Error] ' + e.message)
+            if (e instanceof ccxt.DDoSProtection) {
+                log.bright.yellow (exchange.id, '[DDoS Protection] ' + e.message)
+            } else if (e instanceof ccxt.RequestTimeout) {
+                log.bright.yellow (exchange.id, '[Request Timeout] ' + e.message)
             } else if (e instanceof ccxt.AuthenticationError) {
                 log.bright.yellow (exchange.id, '[Authentication Error] ' + e.message)
-            } else if (e instanceof ccxt.ExchangeNotAvailableError) {
-                log.bright.yellow (exchange.id, '[Exchange Not Available Error] ' + e.message)
-            } else if (e instanceof ccxt.EndpointNotAvailableError) {
-                log.bright.yellow (exchange.id, '[Endpoint Not Available Error] ' + e.message)
+            } else if (e instanceof ccxt.ExchangeNotAvailable) {
+                log.bright.yellow (exchange.id, '[Exchange Not Available] ' + e.message)
+            } else if (e instanceof ccxt.ExchangeError) {
+                log.bright.yellow (exchange.id, '[Exchange Error] ' + e.message)
+            } else if (e instanceof ccxt.NetworkError) {
+                log.bright.yellow (exchange.id, '[Network Error] ' + e.message)
             } else {
                 throw e;
             }

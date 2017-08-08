@@ -2,13 +2,13 @@
 
 namespace ccxt;
 
-class CCXTError                  extends \Exception {}
-class ExchangeError                extends CCXTError {}
-class AuthenticationError        extends CCXTError {}
-class NetworkError               extends CCXTError {}
-class DDoSProtectionError        extends NetworkError {}
-class TimeoutError               extends NetworkError {}
-class ExchangeNotAvailableError    extends NetworkError {}
+class CCXTError            extends \Exception {}
+class ExchangeError        extends CCXTError {}
+class AuthenticationError  extends CCXTError {}
+class NetworkError         extends CCXTError {}
+class DDoSProtection       extends NetworkError {}
+class RequestTimeout       extends NetworkError {}
+class ExchangeNotAvailable extends NetworkError {}
 
 $version = '1.3.4';
 
@@ -522,31 +522,31 @@ class Exchange {
             $curl_error = curl_error ($this->curl);
 
             if ($curl_errno == 28) // CURLE_OPERATION_TIMEDOUT
-                $this->raise_error ('TimeoutError', $url, $method, $curl_errno, $curl_error);
+                $this->raise_error ('RequestTimeout', $url, $method, $curl_errno, $curl_error);
 
             var_dump ($result);
 
             // all sorts of SSL problems, accessibility
-            $this->raise_error ('ExchangeNotAvailableError', $url, $method, $curl_errno, $curl_error);
+            $this->raise_error ('ExchangeNotAvailable', $url, $method, $curl_errno, $curl_error);
         }
 
         $http_status_code = curl_getinfo ($this->curl, CURLINFO_HTTP_CODE);
 
         if ($http_status_code == 429) {
 
-            $this->raise_error ('DDoSProtectionError', $url, $method, 
+            $this->raise_error ('DDoSProtection', $url, $method, 
                 'not accessible from this location at the moment');
         }
 
         if (in_array ($http_status_code, array (500, 501, 502, 404))) {
 
-            $this->raise_error ('ExchangeNotAvailableError', $url, $method, 
+            $this->raise_error ('ExchangeNotAvailable', $url, $method, 
                 'not accessible from this location at the moment');
         }
 
         if (in_array ($http_status_code, array (408, 504))) {
 
-            $this->raise_error ('TimeoutError', $url, $method, 
+            $this->raise_error ('RequestTimeout', $url, $method, 
                 'not accessible from this location at the moment');
         }
 
@@ -569,7 +569,7 @@ class Exchange {
 
             if (preg_match ('#cloudflare|incapsula#i', $result)) {
         
-                $this->raise_error ('DDoSProtectionError', $url, $method, 
+                $this->raise_error ('DDoSProtection', $url, $method, 
                     'not accessible from this location at the moment');
         
             } else {
@@ -583,7 +583,7 @@ class Exchange {
                     'rate-limiting in effect',
                 )) . ')';
         
-                $this->raise_error ('ExchangeNotAvailableError', $url, $method, 
+                $this->raise_error ('ExchangeNotAvailable', $url, $method, 
                     'not accessible from this location at the moment', $details);
             }            
         }
@@ -601,12 +601,12 @@ class Exchange {
                     'rate-limiting in effect',
                 )) . ')';
 
-                $this->raise_error ('ExchangeNotAvailableError', $url, $method, 
+                $this->raise_error ('ExchangeNotAvailable', $url, $method, 
                     'not accessible from this location at the moment', $details);
             }
 
             if (preg_match ('#cloudflare|incapsula#i', $result)) {
-                $this->raise_error ('DDoSProtectionError', $url, $method, 
+                $this->raise_error ('DDoSProtection', $url, $method, 
                     'not accessible from this location at the moment');
             }
         }

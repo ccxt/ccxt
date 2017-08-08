@@ -103,18 +103,18 @@ function try_all_proxies ($exchange, $proxies) {
             test_exchange ($exchange);
             break;
 
-        } catch (\ccxt\TimeoutError $e) {
+        } catch (\ccxt\RequestTimeout $e) {
             dump (yellow ('[Timeout Error] ' . $e->getMessage () . ' (ignoring)'));
-        } catch (\ccxt\DDoSProtectionError $e) {
+        } catch (\ccxt\DDoSProtection $e) {
             dump (yellow ('[DDoS Protection Error] ' . $e->getMessage () . ' (ignoring)'));
         } catch (\ccxt\AuthenticationError $e) {
             dump (yellow ('[Authentication Error] ' . $e->getMessage () . ' (ignoring)'));
-        } catch (\ccxt\ExchangeNotAvailableError $e) {
-            dump (yellow ('[Exchange Not Available Error] ' . $e->getMessage () . ' (ignoring)'));
-        } catch (\ccxt\EndpointError $e) {
-            dump (yellow ('[EndpointError] ' . $e->getMessage () . ' (ignoring)'));
+        } catch (\ccxt\ExchangeNotAvailable $e) {
+            dump (yellow ('[Exchange Not Available] ' . $e->getMessage () . ' (ignoring)'));
+        } catch (\ccxt\NetworkError $e) {
+            dump (yellow ('[Network Error] ' . $e->getMessage () . ' (ignoring)'));
         } catch (\ccxt\ExchangeError $e) {
-            dump (yellow ('[ExchangeError] ' . $e->getMessage () . ' (ignoring)'));
+            dump (yellow ('[Exchange Error] ' . $e->getMessage () . ' (ignoring)'));
         } catch (Exception $e) {
             dump (red ('[Error] ' . $e->getMessage ()));
         }

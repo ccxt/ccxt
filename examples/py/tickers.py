@@ -83,12 +83,12 @@ try:
                         # fetch and print ticker
                         print_ticker (exchange, symbol)
 
-        except ccxt.DDoSProtectionError as e:
-            print (type (e).__name__, e.args, 'DDoS Protection Error (ignoring)')
-        except ccxt.TimeoutError as e:
-            print (type (e).__name__, e.args, 'Timeout Error, request timed out (ignoring)')
-        except ccxt.ExchangeNotAvailableError as e:
-            print (type (e).__name__, e.args, 'Exchange Not Available Error due to downtime or maintenance (ignoring)')
+        except ccxt.DDoSProtection as e:
+            print (type (e).__name__, e.args, 'DDoS Protection (ignoring)')
+        except ccxt.RequestTimeout as e:
+            print (type (e).__name__, e.args, 'Request Timeout (ignoring)')
+        except ccxt.ExchangeNotAvailable as e:
+            print (type (e).__name__, e.args, 'Exchange Not Available due to downtime or maintenance (ignoring)')
         except ccxt.AuthenticationError as e:
             print (type (e).__name__, e.args, 'Authentication Error (missing API keys, ignoring)')
             

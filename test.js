@@ -350,14 +350,14 @@ let tryAllProxies = async function (exchange, proxies) {
         } catch (e) {
 
             currentProxy = ++currentProxy % proxies.length
-            if (e instanceof ccxt.DDoSProtectionError) {
-                warn (exchange.id, '[DDoS Protection Error] ' + e.message)
-            } else if (e instanceof ccxt.TimeoutError) {
-                warn (exchange.id, '[Timeout Error] ' + e.message)
+            if (e instanceof ccxt.DDoSProtection) {
+                warn (exchange.id, '[DDoS Protection] ' + e.message)
+            } else if (e instanceof ccxt.RequestTimeout) {
+                warn (exchange.id, '[Request Timeout] ' + e.message)
             } else if (e instanceof ccxt.AuthenticationError) {
                 warn (exchange.id, '[Authentication Error] ' + e.message)
-            } else if (e instanceof ccxt.ExchangeNotAvailableError) {
-                warn (exchange.id, '[Exchange Not Available Error] ' + e.message)
+            } else if (e instanceof ccxt.ExchangeNotAvailable) {
+                warn (exchange.id, '[Exchange Not Available] ' + e.message)
             } else if (e instanceof ccxt.ExchangeError) {
                 warn (exchange.id, '[Exchange Error] ' + e.message)
             } else {

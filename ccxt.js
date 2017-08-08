@@ -48,29 +48,29 @@ class NetworkError extends CCXTError {
     }    
 }
 
-class DDoSProtectionError extends NetworkError {
+class DDoSProtection extends NetworkError {
     constructor (message) {
         super (message)
-        this.constructor = DDoSProtectionError 
-        this.__proto__   = DDoSProtectionError.prototype
+        this.constructor = DDoSProtection 
+        this.__proto__   = DDoSProtection.prototype
         this.message     = message
     }
 }
 
-class TimeoutError extends NetworkError {
+class RequestTimeout extends NetworkError {
     constructor (message) {
         super (message)
-        this.constructor = TimeoutError 
-        this.__proto__   = TimeoutError.prototype
+        this.constructor = RequestTimeout 
+        this.__proto__   = RequestTimeout.prototype
         this.message     = message
     }
 }
 
-class ExchangeNotAvailableError extends NetworkError {
+class ExchangeNotAvailable extends NetworkError {
     constructor (message) {
         super (message)
-        this.constructor = ExchangeNotAvailableError
-        this.__proto__   = ExchangeNotAvailableError.prototype
+        this.constructor = ExchangeNotAvailable
+        this.__proto__   = ExchangeNotAvailable.prototype
         this.message     = message
     }    
 }
@@ -85,7 +85,7 @@ const decimal = float => parseFloat (float).toString ()
 const timeout = (ms, promise) =>
         Promise.race ([
             promise,
-            sleep (ms).then (() => { throw new TimeoutError ('request timed out') })
+            sleep (ms).then (() => { throw new RequestTimeout ('request timed out') })
         ])
 
 const capitalize = string => string.length ? (string.charAt (0).toUpperCase () + string.slice (1)) : string
@@ -346,7 +346,7 @@ const Exchange = function (config) {
         return timeout (this.timeout, fetch (url, options)
             .catch (e => {
                 if (isNode) {
-                    throw new ExchangeNotAvailableError ([ this.id, method, url, e.type, e.message ].join (' '))
+                    throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
                 }
                 throw e // rethrow all unknown errors
             })
@@ -363,15 +363,15 @@ const Exchange = function (config) {
                     let error = undefined
                     let details = text
                     if ([ 429 ].indexOf (response.status) >= 0) {
-                        error = DDoSProtectionError
+                        error = DDoSProtection
                     } else if ([ 500, 501, 502, 404, 525 ].indexOf (response.status) >= 0) {
-                        error = ExchangeNotAvailableError
+                        error = ExchangeNotAvailable
                     } else if ([ 400, 403, 405, 503 ].indexOf (response.status) >= 0) {
                         let ddosProtection = text.match (/cloudflare|incapsula/i)
                         if (ddosProtection) {
-                            error = DDoSProtectionError
+                            error = DDoSProtection
                         } else {
-                            error = ExchangeNotAvailableError
+                            error = ExchangeNotAvailable
                             details = text + ' (possible reasons: ' + [
                                 'invalid API keys',
                                 'bad or old nonce',
@@ -382,7 +382,7 @@ const Exchange = function (config) {
                             ].join (', ') + ')'
                         }
                     } else if ([ 408, 504 ].indexOf (response.status) >= 0) {
-                        error = TimeoutError
+                        error = RequestTimeout
                     } else if ([ 401, 422, 511 ].indexOf (response.status) >= 0) {
                         error = AuthenticationError
                     } else {
@@ -406,12 +406,12 @@ const Exchange = function (config) {
 
             if (e instanceof SyntaxError) {
 
-                let error = ExchangeNotAvailableError
+                let error = ExchangeNotAvailable
                 let details = 'not accessible from this location at the moment'
                 if (maintenance)
                     details = 'offline, on maintenance or unreachable from this location at the moment'
                 if (ddosProtection)
-                    error = DDoSProtectionError
+                    error = DDoSProtection
                 throw new error ([ this.id, method, url, details ].join (' '))
             }
 
@@ -13684,9 +13684,9 @@ if (isNode || isReactNative) {
         ExchangeError,
         AuthenticationError,
         NetworkError,
-        DDoSProtectionError,
-        TimeoutError,       
-        ExchangeNotAvailableError,
+        DDoSProtection,
+        RequestTimeout,       
+        ExchangeNotAvailable,
         
         // common utility functions
 

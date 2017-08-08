@@ -80,9 +80,9 @@ __all__ = exchanges + [
     'ExchangeError',
     'AuthenticationError',
     'NetworkError',
-    'DDoSProtectionError',
-    'TimeoutError',
-    'ExchangeNotAvailableError',
+    'DDoSProtection',
+    'RequestTimeout',
+    'ExchangeNotAvailable',
 ]
 
 __version__ = '1.3.4'
@@ -131,13 +131,13 @@ class AuthenticationError (CCXTError):
 class NetworkError (CCXTError):
     pass
 
-class DDoSProtectionError (NetworkError):
+class DDoSProtection (NetworkError):
     pass
 
-class TimeoutError (NetworkError):
+class RequestTimeout (NetworkError):
     pass
 
-class ExchangeNotAvailableError (NetworkError):
+class ExchangeNotAvailable (NetworkError):
     pass
 
 class Exchange (object):
@@ -248,25 +248,25 @@ class Exchange (object):
             response = opener.open (request, timeout = int (self.timeout / 1000))
             text = response.read ()
         except socket.timeout as e:
-            raise TimeoutError (' '.join ([ self.id, method, url, 'request timeout' ]))
+            raise RequestTimeout (' '.join ([ self.id, method, url, 'request timeout' ]))
         except ssl.SSLError as e:
-            self.raise_error (ExchangeNotAvailableError, url, method, e)
+            self.raise_error (ExchangeNotAvailable, url, method, e)
         except _urllib.HTTPError as e:
             error = None
             details = text if text else None
             if e.code == 429:
-                error = DDoSProtectionError
+                error = DDoSProtection
             elif e.code in [500, 501, 502, 404, 525]:
                 details = e.read ().decode ('utf-8', 'ignore') if e else None
-                error = ExchangeNotAvailableError
+                error = ExchangeNotAvailable
             elif e.code in [400, 403, 405, 503]:
                 # special case to detect ddos protection
                 reason = e.read ().decode ('utf-8', 'ignore')
                 ddos_protection = re.search ('(cloudflare|incapsula)', reason, flags = re.IGNORECASE)
                 if ddos_protection:
-                    error = DDoSProtectionError
+                    error = DDoSProtection
                 else:
-                    error = ExchangeNotAvailableError
+                    error = ExchangeNotAvailable
                     details = '(possible reasons: ' + ', '.join ([
                         'invalid API keys',
                         'bad or old nonce',
@@ -277,12 +277,12 @@ class Exchange (object):
                         reason,
                     ]) + ')'
             elif e.code in [408, 504]:
-                error = TimeoutError
+                error = RequestTimeout
             elif e.code in [401, 422, 511]:
                 error = AuthenticationError
             self.raise_error (error, url, method, e, details)
         except _urllib.URLError as e:
-            self.raise_error (ExchangeNotAvailableError, url, method, e)        
+            self.raise_error (ExchangeNotAvailable, url, method, e)        
         encoding = response.info ().get ('Content-Encoding')
         if encoding in ('gzip', 'x-gzip', 'deflate'):
             if encoding == 'deflate':
@@ -302,10 +302,10 @@ class Exchange (object):
             ddos_protection = re.search ('(cloudflare|incapsula)', body, flags = re.IGNORECASE)
             exchange_not_available = re.search ('(offline|unavailable|busy|maintenance|maintenancing)', body, flags = re.IGNORECASE)
             if ddos_protection:
-                raise DDoSProtectionError (' '.join ([ self.id, method, url, body ]))
+                raise DDoSProtection (' '.join ([ self.id, method, url, body ]))
             if exchange_not_available:
                 message = 'exchange downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
-                raise ExchangeNotAvailableError (' '.join ([
+                raise ExchangeNotAvailable (' '.join ([
                     self.id,
                     method,
                     url,                
