@@ -3485,7 +3485,7 @@ var bittrex = {
             if (currency in indexed) {
                 let balance = indexed[currency];
                 account['free'] = balance['Available'];
-                account['used'] = balance['Pending'];
+                account['used'] = balance['Balance'] - balance['Available'];
                 account['total'] = balance['Balance'];
             }
             result[currency] = account;
