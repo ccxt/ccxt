@@ -3419,15 +3419,15 @@ class bittrex (Exchange):
             result[currency] = account
         return result
 
-    def parseBidAsk (self, bidask):
+    def parse_bidask (self, bidask):
         price = float (bidask['Rate'])
         amount = float (bidask['Quantity'])
         return [ price, amount ]
 
-    def parseBidAsks (self, bidasks):
+    def parse_bidasks (self, bidasks):
         result = []
         for i in range (0, len (bidasks)):
-            result.append (self.parseBidAsk (bidasks[i]))
+            result.append (self.parse_bidask (bidasks[i]))
         return result
 
     def fetch_order_book (self, market, params = {}):
@@ -3450,7 +3450,7 @@ class bittrex (Exchange):
         for k in range (0, len (keys)):
             key = keys[k]
             side = sides[key]
-            result[key] = self.parseBidAsks (orderbook[side])
+            result[key] = self.parse_bidasks (orderbook[side])
         return result
 
     def parse_ticker (self, ticker, market):
@@ -10916,15 +10916,15 @@ class poloniex (Exchange):
             result[currency] = account
         return result
 
-    def parseBidAsk (self, bidask):
+    def parse_bidask (self, bidask):
         price = float (bidask[0])
         amount = float (bidask[1])
         return [ price, amount ]
 
-    def parseBidAsks (self, bidasks):
+    def parse_bidasks (self, bidasks):
         result = []
         for i in range (0, len (bidasks)):
-            result.append (self.parseBidAsk (bidasks[i]))
+            result.append (self.parse_bidask (bidasks[i]))
         return result
 
     def fetch_order_book (self, market, params = {}):
@@ -10942,7 +10942,7 @@ class poloniex (Exchange):
         sides = [ 'bids', 'asks' ]
         for s in range (0, len (sides)):
             side = sides[s]
-            result[side] = self.parseBidAsks (orderbook[side])
+            result[side] = self.parse_bidasks (orderbook[side])
         return result
 
     def parse_ticker (self, ticker, market):

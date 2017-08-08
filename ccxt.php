@@ -3737,16 +3737,16 @@ class bittrex extends Exchange {
         return $result;
     }
 
-    public function parseBidAsk ($bidask) {
+    public function parse_bidask ($bidask) {
         $price = floatval ($bidask['Rate']);
         $amount = floatval ($bidask['Quantity']);
         return array ($price, $amount);
     }
 
-    public function parseBidAsks ($bidasks) {
+    public function parse_bidasks ($bidasks) {
         $result = array ();
         for ($i = 0; $i < count ($bidasks); $i++) {
-            $result[] = $this->parseBidAsk ($bidasks[$i]);
+            $result[] = $this->parse_bidask ($bidasks[$i]);
         }
         return $result;
     }
@@ -3771,7 +3771,7 @@ class bittrex extends Exchange {
         for ($k = 0; $k < count ($keys); $k++) {
             $key = $keys[$k];
             $side = $sides[$key];
-            $result[$key] = $this->parseBidAsks ($orderbook[$side]);
+            $result[$key] = $this->parse_bidasks ($orderbook[$side]);
         }
         return $result;
     }
@@ -11744,16 +11744,16 @@ class poloniex extends Exchange {
         return $result;
     }
 
-    public function parseBidAsk ($bidask) {
+    public function parse_bidask ($bidask) {
         $price = floatval ($bidask[0]);
         $amount = floatval ($bidask[1]);
         return array ($price, $amount);
     }
 
-    public function parseBidAsks ($bidasks) {
+    public function parse_bidasks ($bidasks) {
         $result = array ();
         for ($i = 0; $i < count ($bidasks); $i++) {
-            $result[] = $this->parseBidAsk ($bidasks[$i]);
+            $result[] = $this->parse_bidask ($bidasks[$i]);
         }
         return $result;
     }
@@ -11773,7 +11773,7 @@ class poloniex extends Exchange {
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
             $side = $sides[$s];
-            $result[$side] = $this->parseBidAsks ($orderbook[$side]);
+            $result[$side] = $this->parse_bidasks ($orderbook[$side]);
         }
         return $result;
     }
