@@ -232,6 +232,7 @@ class Exchange (object):
                 headers.update (self.userAgent)
         if len (self.proxy):
             headers.update ({ 'Origin': '*' })
+        headers.update ({ 'Accept-Encoding': 'gzip, deflate' })
         url = self.proxy + url
         if self.verbose:
             print (url, method, url, "\nRequest:", headers, body)
@@ -12499,9 +12500,6 @@ class xbtce (Exchange):
             if body:
                 auth += body
             signature = self.hmac (self.encode (auth), self.encode (self.secret), hashlib.sha256, 'base64')
-            print (nonce, signature)
-            print (nonce, self.binary_to_string (signature))
-            sys.exit ()
             credentials = self.uid + ':' + self.apiKey + ':' + nonce + ':' + self.binary_to_string (signature)
             headers['Authorization'] = 'HMAC ' + credentials
         return self.fetch (url, method, headers, body)
