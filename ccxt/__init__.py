@@ -10916,6 +10916,17 @@ class poloniex (Exchange):
             result[currency] = account
         return result
 
+    def parseBidAsk (self, bidask):
+        price = float (bidask[0])
+        amount = float (bidask[1])
+        return [ price, amount ]
+
+    def parseBidAsks (self, bidasks):
+        result = []
+        for i in range (0, len (bidasks)):
+            result.append (self.parseBidAsk (bidasks[i]))
+        return result
+
     def fetch_order_book (self, market, params = {}):
         self.loadMarkets ()
         orderbook = self.publicGetReturnOrderBook (self.extend ({
@@ -10931,12 +10942,7 @@ class poloniex (Exchange):
         sides = [ 'bids', 'asks' ]
         for s in range (0, len (sides)):
             side = sides[s]
-            orders = orderbook[side]
-            for i in range (0, len (orders)):
-                order = orders[i]
-                price = float (order[0])
-                amount = float (order[1])
-                result[side].append ([ price, amount ])
+            result[side] = self.parseBidAsks (orderbook[side])
         return result
 
     def parse_ticker (self, ticker, market):

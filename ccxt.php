@@ -11744,6 +11744,20 @@ class poloniex extends Exchange {
         return $result;
     }
 
+    public function parseBidAsk ($bidask) {
+        $price = floatval ($bidask[0]);
+        $amount = floatval ($bidask[1]);
+        return array ($price, $amount);
+    }
+
+    public function parseBidAsks ($bidasks) {
+        $result = array ();
+        for ($i = 0; $i < count ($bidasks); $i++) {
+            $result[] = $this->parseBidAsk ($bidasks[$i]);
+        }
+        return $result;
+    }
+
     public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook = $this->publicGetReturnOrderBook (array_merge (array (
@@ -11759,13 +11773,7 @@ class poloniex extends Exchange {
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
             $side = $sides[$s];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = floatval ($order[0]);
-                $amount = floatval ($order[1]);
-                $result[$side][] = array ($price, $amount);
-            }
+            $result[$side] = $this->parseBidAsks ($orderbook[$side]);
         }
         return $result;
     }

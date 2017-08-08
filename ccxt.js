@@ -11315,13 +11315,13 @@ var poloniex = {
     },
 
     parseBidAsk (bidask) {
-        let price = parseFloat (order[0]);
-        let amount = parseFloat (order[1]);
+        let price = parseFloat (bidask[0]);
+        let amount = parseFloat (bidask[1]);
         return [ price, amount ];
     },
 
     parseBidAsks (bidasks) {
-        result = [];
+        let result = [];
         for (let i = 0; i < bidasks.length; i++) {
             result.push (this.parseBidAsk (bidasks[i]));
         }
@@ -11343,13 +11343,7 @@ var poloniex = {
         let sides = [ 'bids', 'asks' ];
         for (let s = 0; s < sides.length; s++) {
             let side = sides[s];
-            let orders = orderbook[side];
-            for (let i = 0; i < orders.length; i++) {
-                let order = orders[i];
-                let price = parseFloat (order[0]);
-                let amount = parseFloat (order[1]);
-                result[side].push ([ price, amount ]);
-            }
+            result[side] = this.parseBidAsks (orderbook[side]);
         }
         return result;
     },
