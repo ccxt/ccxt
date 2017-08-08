@@ -16,3 +16,4 @@ travis-keys.sh
 ccxt.wiki/
 package-lock.json
 exchanges.json
+ccxt.sublime-workspace
