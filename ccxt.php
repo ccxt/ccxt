@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.8';
+$version = '1.3.9';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -11735,11 +11735,7 @@ class poloniex extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
-        $this->loadMarkets ();
-        $p = $this->market ($market);
-        $tickers = $this->publicGetReturnTicker ();
-        $ticker = $tickers[$p['id']];
+    public function parse_ticker ($ticker, $market) {
         $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
@@ -11760,6 +11756,29 @@ class poloniex extends Exchange {
             'quoteVolume' => floatval ($ticker['quoteVolume']),
             'info' => $ticker,
         );
+    }
+
+    public function fetch_tickers () {
+        $this->loadMarkets ();
+        $tickers = $this->publicGetReturnTicker ();
+        $ids = array_keys ($tickers);
+        $result = array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($market) {
+        $this->loadMarkets ();
+        $m = $this->market ($market);
+        $tickers = $this->publicGetReturnTicker ();
+        $ticker = $tickers[$m['id']];
+        return $this->parse_ticker ($ticker, $m);
     }
 
     public function fetch_trades ($market) {

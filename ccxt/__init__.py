@@ -85,7 +85,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.8'
+__version__ = '1.3.9'
 
 # Python 2 & 3
 import base64
@@ -10909,11 +10909,7 @@ class poloniex (Exchange):
                 result[side].append ([ price, amount ])
         return result
 
-    def fetch_ticker (self, market):
-        self.loadMarkets ()
-        p = self.market (market)
-        tickers = self.publicGetReturnTicker ()
-        ticker = tickers[p['id']]
+    def parse_ticker (self, ticker, market):
         timestamp = self.milliseconds ()
         return {
             'timestamp': timestamp,
@@ -10934,6 +10930,26 @@ class poloniex (Exchange):
             'quoteVolume': float (ticker['quoteVolume']),
             'info': ticker,
         }
+
+    def fetch_tickers (self):
+        self.loadMarkets ()
+        tickers = self.publicGetReturnTicker ()
+        ids = list (tickers.keys ())
+        result = {}
+        for i in range (0, len (ids)):
+            id = ids[i]
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
+            ticker = tickers[id]
+            result[symbol] = self.parse_ticker (ticker, market)
+        return result
+
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        m = self.market (market)
+        tickers = self.publicGetReturnTicker ()
+        ticker = tickers[m['id']]
+        return self.parse_ticker (ticker, m)
 
     def fetch_trades (self, market):
         self.loadMarkets ()
