@@ -6535,7 +6535,10 @@ var coinmarketcap = {
     },
 
     parseTicker (ticker, market) {
-        let timestamp = parseInt (ticker['last_updated']) * 1000;
+        let timestamp = this.milliseconds ();
+        if ('last_updated' in ticker)
+            if (ticker['last_updated'])
+                timestamp = parseInt (ticker['last_updated']) * 1000;
         let volume = undefined;
         let volumeKey = '24h_volume_' + market['quoteId'];
         if (ticker[volumeKey])
