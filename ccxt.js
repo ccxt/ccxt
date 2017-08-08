@@ -11305,11 +11305,7 @@ var poloniex = {
         return result;
     },
 
-    async fetchTicker (market) {
-        await this.loadMarkets ();
-        let p = this.market (market);
-        let tickers = await this.publicGetReturnTicker ();
-        let ticker = tickers[p['id']];
+    parseTicker (ticker, market) {
         let timestamp = this.milliseconds ();
         return {
             'timestamp': timestamp,
@@ -11330,6 +11326,14 @@ var poloniex = {
             'quoteVolume': parseFloat (ticker['quoteVolume']),
             'info': ticker,
         };
+    },
+
+    async fetchTicker (market) {
+        await this.loadMarkets ();
+        let m = this.market (market);
+        let tickers = await this.publicGetReturnTicker ();
+        let ticker = tickers[m['id']];
+        return this.parseTicker (ticker, m);
     },
 
     async fetchTrades (market) {
