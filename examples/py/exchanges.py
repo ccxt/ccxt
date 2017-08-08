@@ -16,22 +16,22 @@ sys.path.append (root)
 
 import ccxt
 
-markets = {}
+exchanges = {}
 
-for id in ccxt.markets:
-    market = getattr (ccxt, id)
-    markets[id] = market ()
+for id in ccxt.exchanges:
+    exchange = getattr (ccxt, id)
+    exchanges[id] = exchange ()
 
 def log (*args):
     print (' '.join ([str (arg) for arg in args]))
 
-log ('The ccxt library supports', green (len (ccxt.markets)), 'markets:')
+log ('The ccxt library supports', green (len (ccxt.exchanges)), 'exchanges:')
 
-# output a table of all markets
+# output a table of all exchanges
 log (pink ('{:<15} {:<15} {:<15}'.format ('id', 'name', 'URL')))
-tuples = list (ccxt.Market.keysort (markets).items ())
+tuples = list (ccxt.Exchange.keysort (exchanges).items ())
 for (id, params) in tuples:
-    market = markets[id]
-    website = market.urls['www'][0] if type (market.urls['www']) is list else market.urls['www']
-    log ('{:<15} {:<15} {:<15}'.format (market.id, market.name, website))
+    exchange = exchanges[id]
+    website = exchange.urls['www'][0] if type (exchange.urls['www']) is list else exchange.urls['www']
+    log ('{:<15} {:<15} {:<15}'.format (exchange.id, exchange.name, website))
     

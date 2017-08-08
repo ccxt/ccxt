@@ -20,19 +20,19 @@ import ccxt
 def dump (*args):
     print (' '.join ([str (arg) for arg in args]))
 
-def print_markets ():
-    dump ('Supported markets:', ', '.join (ccxt.markets))
+def print_exchanges ():
+    dump ('Supported exchanges:', ', '.join (ccxt.exchanges))
 
 def print_usage ():
     dump ("Usage: python " + sys.argv[0], green ('id'), yellow ('[symbol]'))
     dump ("Symbol is optional, for example:")
     dump ("python " + sys.argv[0], green ('kraken'))
     dump ("python " + sys.argv[0], green ('gdax'), yellow ('BTC/USD'))
-    print_markets ()
+    print_exchanges ()
 
-def print_ticker (market, symbol):
-    ticker = market.fetch_ticker (symbol)
-    dump (green (market.id), yellow (symbol), 'ticker',
+def print_ticker (exchange, symbol):
+    ticker = exchange.fetch_ticker (symbol)
+    dump (green (exchange.id), yellow (symbol), 'ticker',
         ticker['datetime'],
         'high: '   + str (ticker['high']),
         'low: '    + str (ticker['low']),
@@ -46,55 +46,55 @@ try:
     id = sys.argv[1] # get exchange id from command line arguments
 
     # check if the exchange is supported by ccxt
-    market_found = id in ccxt.markets
+    exchange_found = id in ccxt.exchanges
 
-    if market_found:
+    if exchange_found:
         
         dump ('Instantiating', green (id))
         
         # instantiate the exchange by id
-        market = getattr (ccxt, id) ()
+        exchange = getattr (ccxt, id) ()
         
-        # load all products from the exchange
-        products = market.load_products ()
+        # load all markets from the exchange
+        markets = exchange.load_markets ()
         
         # output all symbols
-        dump (green (id), 'has', len (market.symbols), 'symbols:', yellow (', '.join (market.symbols)))
+        dump (green (id), 'has', len (exchange.symbols), 'symbols:', yellow (', '.join (exchange.symbols)))
 
         try:
 
             if len (sys.argv) > 2: # if symbol is present, get that symbol only 
 
                 symbol = sys.argv[2]
-                print_ticker (market, symbol)
+                print_ticker (exchange, symbol)
 
             else: # run through all symbols one by one
 
-                delay = int (market.rateLimit / 1000) # delay in between requests
+                delay = int (exchange.rateLimit / 1000) # delay in between requests
 
-                for symbol in market.symbols:
+                for symbol in exchange.symbols:
 
-                    # suffix '.d' means 'darkpool' on some markets
+                    # suffix '.d' means 'darkpool' on some exchanges
                     if symbol.find ('.d') < 0: 
                         
                         # sleep to remain under the rateLimit
                         time.sleep (delay)
 
                         # fetch and print ticker
-                        print_ticker (market, symbol)
+                        print_ticker (exchange, symbol)
 
         except ccxt.DDoSProtectionError as e:
             print (type (e).__name__, e.args, 'DDoS Protection Error (ignoring)')
         except ccxt.TimeoutError as e:
             print (type (e).__name__, e.args, 'Timeout Error, request timed out (ignoring)')
-        except ccxt.MarketNotAvailableError as e:
-            print (type (e).__name__, e.args, 'Market Not Available Error due to downtime or maintenance (ignoring)')
+        except ccxt.ExchangeNotAvailableError as e:
+            print (type (e).__name__, e.args, 'Exchange Not Available Error due to downtime or maintenance (ignoring)')
         except ccxt.AuthenticationError as e:
             print (type (e).__name__, e.args, 'Authentication Error (missing API keys, ignoring)')
             
     else:
 
-        dump ('Market ' + red (id) + ' not found')
+        dump ('Exchange ' + red (id) + ' not found')
         print_usage ()
 
 except Exception as e:

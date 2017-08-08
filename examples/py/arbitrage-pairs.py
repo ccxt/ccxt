@@ -20,8 +20,8 @@ import ccxt
 def dump (*args):
     print (' '.join ([str (arg) for arg in args]))
 
-def print_markets ():
-    dump ('Supported markets:', ', '.join (ccxt.markets))
+def print_exchanges ():
+    dump ('Supported exchanges:', ', '.join (ccxt.exchanges))
 
 def print_usage ():
     dump ("Usage: python " + sys.argv[0], green ('id1'), yellow ('id2'), blue ('id3'), '...')
@@ -34,19 +34,19 @@ proxies = [
 
 if len (sys.argv) > 2:
     ids = list (sys.argv[1:])
-    markets = {}
+    exchanges = {}
     dump (ids)
     dump (yellow (' '.join (ids)))
-    for id in ids: # load all products from all exchange markets
+    for id in ids: # load all markets from all exchange exchanges
 
         # instantiate the exchange by id
-        market = getattr (ccxt, id) ()
+        exchange = getattr (ccxt, id) ()
 
         # save it in a dictionary under its id for future use
-        markets[id] = market
+        exchanges[id] = exchange
 
-        # load all products from the exchange
-        products = market.load_products ()
+        # load all markets from the exchange
+        markets = exchange.load_markets ()
 
         # basic round-robin proxy scheduler
         currentProxy = -1
@@ -57,10 +57,10 @@ if len (sys.argv) > 2:
             # try proxies in round-robin fashion
             currentProxy = (currentProxy + 1) % len (proxies)
 
-            try: # try to load exchange products using current proxy
+            try: # try to load exchange markets using current proxy
 
-                market.proxy = proxies[currentProxy]
-                market.load_products ()
+                exchange.proxy = proxies[currentProxy]
+                exchange.load_markets ()
 
             except ccxt.DDoSProtectionError as e:
                 dump (yellow (type (e).__name__), e.args)
@@ -68,18 +68,18 @@ if len (sys.argv) > 2:
                 dump (yellow (type (e).__name__), e.args)
             except ccxt.AuthenticationError as e:
                 dump (yellow (type (e).__name__), e.args)
-            except ccxt.MarketNotAvailableError as e:
+            except ccxt.ExchangeNotAvailableError as e:
                 dump (yellow (type (e).__name__), e.args)
             except ccxt.EndpointNotAvailableError as e:
                 dump (yellow (type (e).__name__), e.args)
             except Exception as e: # reraise all other exceptions
                 raise 
 
-        dump (green (id), 'loaded', green (str (len (market.symbols))), 'products')
+        dump (green (id), 'loaded', green (str (len (exchange.symbols))), 'markets')
 
-    dump (green ('Loaded all products'))
+    dump (green ('Loaded all markets'))
 
-    allSymbols = [symbol for id in ids for symbol in markets[id].symbols]
+    allSymbols = [symbol for id in ids for symbol in exchanges[id].symbols]
 
     # get all unique symbols
     uniqueSymbols = list (set (allSymbols))
@@ -96,8 +96,8 @@ if len (sys.argv) > 2:
         string = ' {:<15} | '.format (symbol)
         row = { }
         for id in ids:
-            # if a symbol is present on a market print that market's id in the row
-            string += ' {:<15} | '.format (id if symbol in markets[id].symbols else '')
+            # if a symbol is present on a exchange print that exchange's id in the row
+            string += ' {:<15} | '.format (id if symbol in exchanges[id].symbols else '')
         dump (string)
 
 else:

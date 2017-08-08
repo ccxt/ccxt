@@ -20,7 +20,7 @@ import ccxt
 def dump (*args):
     print (' '.join ([str (arg) for arg in args]))
                 
-# instantiate exchange markets
+# instantiate exchanges
 
 gdax = ccxt.gdax ({
     'apiKey': '92560ffae9b8a01d012726c698bcb2f1', # standard

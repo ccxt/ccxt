@@ -19,41 +19,41 @@ import ccxt
 def dump (*args):
     print (' '.join ([str (arg) for arg in args]))
 
-def print_supported_markets ():
-    dump ('Supported markets:', green (', '.join (ccxt.markets)))
+def print_supported_exchanges ():
+    dump ('Supported exchanges:', green (', '.join (ccxt.exchanges)))
 
 try:
 
     id = sys.argv[1] # get exchange id from command line arguments
 
     # check if the exchange is supported by ccxt
-    market_found = id in ccxt.markets
+    exchange_found = id in ccxt.exchanges
 
-    if market_found:
+    if exchange_found:
         
-        dump ('Instantiating', green (id), 'exchange market')
+        dump ('Instantiating', green (id), 'exchange exchange')
         
         # instantiate the exchange by id
-        market = getattr (ccxt, id) ()
+        exchange = getattr (ccxt, id) ()
         
-        # load all products from the exchange
-        products = market.load_products ()
+        # load all markets from the exchange
+        markets = exchange.load_markets ()
         
-        # output a list of all product symbols
-        dump (green (id), 'has', len (market.symbols), 'symbols:', yellow (', '.join (market.symbols)))
+        # output a list of all market symbols
+        dump (green (id), 'has', len (exchange.symbols), 'symbols:', yellow (', '.join (exchange.symbols)))
 
-        # output a table of all products
+        # output a table of all markets
         dump (pink ('{:<15} {:<15} {:<15} {:<15}'.format ('id', 'symbol', 'base', 'quote')))
-        tuples = list (ccxt.Market.keysort (products).items ())
+        tuples = list (ccxt.Exchange.keysort (markets).items ())
         for (k, v) in tuples:
             dump ('{:<15} {:<15} {:<15} {:<15}'.format (v['id'], v['symbol'], v['base'], v['quote']))
 
     else:
 
-        dump ('Market ' + red (id) + ' not found')
-        print_supported_markets ()
+        dump ('Exchange ' + red (id) + ' not found')
+        print_supported_exchanges ()
 
 except:
     
     dump ("Usage: python " + sys.argv[0], green ('id'))
-    print_supported_markets ()
+    print_supported_exchanges ()

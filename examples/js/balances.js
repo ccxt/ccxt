@@ -33,7 +33,7 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
 
     try { 
 
-        // fetch account balance from exchange market
+        // fetch account balance from the exchange 
         let gdaxBalance = await gdax.fetchBalance ()
 
         // output the result

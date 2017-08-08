@@ -18,12 +18,12 @@ let proxies = [
 
 (async function main () {
 
-    let ids = ccxt.markets
-    let markets = {}
+    let ids = ccxt.exchanges
+    let exchanges = {}
 
-    // instantiate all markets
-    ccxt.markets.forEach (id => {
-        markets[id] = new (ccxt)[id] ({
+    // instantiate all exchanges
+    ccxt.exchanges.forEach (id => {
+        exchanges[id] = new (ccxt)[id] ({
             verbose: false,
             substituteCommonCurrencyCodes: true,
         })
@@ -35,15 +35,15 @@ let proxies = [
     // set up api keys appropriately
     for (let id in config)
         for (let key in config[id])
-            markets[id][key] = config[id][key]
+            exchanges[id][key] = config[id][key]
 
     log (ids.join (', ').yellow)
 
-    // load all products from all exchange markets 
+    // load all markets from all exchanges 
 
     await Promise.all (ids.map (async id => {
 
-        let market = markets[id]
+        let exchange = exchanges[id]
 
         // basic round-robin proxy scheduler
         let currentProxy = 0
@@ -51,24 +51,24 @@ let proxies = [
         
         for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
 
-            try { // try to load exchange products using current proxy
+            try { // try to load exchange markets using current proxy
 
-                market.proxy = proxies[currentProxy]
-                await market.loadProducts ()
+                exchange.proxy = proxies[currentProxy]
+                await exchange.loadMarkets ()
 
             } catch (e) { // rotate proxies in case of connectivity errors, catch all other exceptions
 
                 // swallow connectivity exceptions only
                 if ((e instanceof ccxt.DDoSProtectionError) || e.message.includes ('ECONNRESET')) {
-                    log.bright.yellow (market.id + ' [DDoS Protection Error]')
+                    log.bright.yellow (exchange.id + ' [DDoS Protection Error]')
                 } else if (e instanceof ccxt.TimeoutError) {
-                    log.bright.yellow (market.id + ' [Timeout Error] ' + e.message)
+                    log.bright.yellow (exchange.id + ' [Timeout Error] ' + e.message)
                 } else if (e instanceof ccxt.AuthenticationError) {
-                    log.bright.yellow (market.id + ' [Authentication Error] ' + e.message)
-                } else if (e instanceof ccxt.MarketNotAvailableError) {
-                    log.bright.yellow (market.id + ' [Market Not Available Error] ' + e.message)
-                } else if (e instanceof ccxt.MarketError) {
-                    log.bright.yellow (market.id + ' [Market Error] ' + e.message)
+                    log.bright.yellow (exchange.id + ' [Authentication Error] ' + e.message)
+                } else if (e instanceof ccxt.ExchangeNotAvailableError) {
+                    log.bright.yellow (exchange.id + ' [Exchange Not Available Error] ' + e.message)
+                } else if (e instanceof ccxt.ExchangeError) {
+                    log.bright.yellow (exchange.id + ' [Exchange Error] ' + e.message)
                 } else {
                     throw e; // rethrow all other exceptions
                 }
@@ -78,19 +78,19 @@ let proxies = [
             }
         }
 
-        if (market.symbols)
-            log (id.green, 'loaded', market.symbols.length.green, 'products')
+        if (exchange.symbols)
+            log (id.green, 'loaded', exchange.symbols.length.green, 'markets')
 
     }))
 
-    log ('Loaded all products'.green)
+    log ('Loaded all markets'.green)
 
-    let table = ccxt.markets.map (id => {
+    let table = ccxt.exchanges.map (id => {
         console.log (id)
-        let market = markets[id]
-        if (market.currencies) {
-            let hasBCC = market.currencies.includes ('BCC')
-            let hasBCH = market.currencies.includes ('BCH')
+        let exchange = exchanges[id]
+        if (exchange.currencies) {
+            let hasBCC = exchange.currencies.includes ('BCC')
+            let hasBCH = exchange.currencies.includes ('BCH')
             let hasBoth = (hasBCC && hasBCH)
             return {
                 id,
