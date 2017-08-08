@@ -3555,13 +3555,15 @@ var bittrex = {
         for (let t = 0; t < tickers.length; t++) {
             let ticker = tickers[t];
             let id = ticker['MarketName'];
-            let [ quote, base ] = id.split ('-');
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
-            let symbol = base + '/' + quote;
             let market = undefined;
-            if (id in this.markets_by_id)
-                market = this.markets[id];
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
+            } else {
+                let [ quote, base ] = id.split ('-');
+                base = this.commonCurrencyCode (base);
+                quote = this.commonCurrencyCode (quote);
+                let symbol = base + '/' + quote;                
+            }
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
