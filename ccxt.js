@@ -3524,12 +3524,7 @@ var bittrex = {
         return result;
     },
 
-    async fetchTicker (market) {
-        await this.loadMarkets ();
-        let response = await this.publicGetMarketsummary ({
-            'market': this.marketId (market),
-        });
-        let ticker = response['result'][0];
+    parseTicker (ticker, market) {
         let timestamp = this.parse8601 (ticker['TimeStamp']);
         return {
             'timestamp': timestamp,
@@ -3550,6 +3545,16 @@ var bittrex = {
             'quoteVolume': parseFloat (ticker['Volume']),
             'info': ticker,
         };
+    },
+
+    async fetchTicker (market) {
+        await this.loadMarkets ();
+        let m = this.market (market)
+        let response = await this.publicGetMarketsummary ({
+            'market': m['id'],
+        });
+        let ticker = response['result'][0];
+        return this.parseTicker (ticker, m);
     },
 
     async fetchTrades (market) {
