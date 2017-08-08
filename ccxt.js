@@ -11314,6 +11314,20 @@ var poloniex = {
         return result;
     },
 
+    parseBidAsk (bidask) {
+        let price = parseFloat (order[0]);
+        let amount = parseFloat (order[1]);
+        return [ price, amount ];
+    },
+
+    parseBidAsks (bidasks) {
+        result = [];
+        for (let i = 0; i < bidasks.length; i++) {
+            result.push (this.parseBidAsk (bidasks[i]));
+        }
+        return result;
+    },
+
     async fetchOrderBook (market, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetReturnOrderBook (this.extend ({
