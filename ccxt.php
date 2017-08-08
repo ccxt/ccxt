@@ -592,7 +592,7 @@ class Exchange {
         
         if (!$decoded) {
 
-            if (preg_match ('#offline|unavailable|busy|maintenance|maintenancing#i', $result)) {
+            if (preg_match ('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
 
                 $details = '(possible reasons: ' . implode (', ', array (
                     'exchange is down or offline',

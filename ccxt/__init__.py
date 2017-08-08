@@ -300,7 +300,7 @@ class Exchange (object):
             return json.loads (body)
         except Exception as e:
             ddos_protection = re.search ('(cloudflare|incapsula)', body, flags = re.IGNORECASE)
-            exchange_not_available = re.search ('(offline|unavailable|busy|maintenance|maintenancing)', body, flags = re.IGNORECASE)
+            exchange_not_available = re.search ('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', body, flags = re.IGNORECASE)
             if ddos_protection:
                 raise DDoSProtection (' '.join ([ self.id, method, url, body ]))
             if exchange_not_available:

@@ -401,7 +401,7 @@ const Exchange = function (config) {
 
         } catch (e) {
 
-            let maintenance = body.match (/offline|unavailable|maintain|maintenance|maintenancing/i)
+            let maintenance = body.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
             let ddosProtection = body.match (/cloudflare|incapsula|overload/i)
 
             if (e instanceof SyntaxError) {
