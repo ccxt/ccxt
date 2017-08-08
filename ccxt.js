@@ -3560,7 +3560,7 @@ var bittrex = {
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             let market = undefined;
-            if (id in this.markets)
+            if (id in this.markets_by_id)
                 market = this.markets[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
