@@ -3547,6 +3547,26 @@ var bittrex = {
         };
     },
 
+    async fetchTickers () {
+        await this.loadMarkets ();
+        let response = await this.publicGetMarketsummaries ();
+        let tickers = response['result'];
+        let result = {};
+        for (let t = 0; t < tickers.length; t++) {
+            let ticker = tickers[t];
+            let id = ticker['MarketName'];
+            let [ base, quote ] = id.split ('-');
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
+            let symbol = base + '/' + quote;
+            let market = undefined;
+            if (id in this.markets)
+                market = this.markets[id];
+            result[symbol] = this.parseTicker (ticker, market);
+        }
+        return result;
+    },    
+
     async fetchTicker (market) {
         await this.loadMarkets ();
         let m = this.market (market)

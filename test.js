@@ -152,7 +152,9 @@ let testExchangeSymbol = async (exchange, symbol) => {
         // await testExchangeSymbolTrades (exchange, symbol)
     }
     try {
-        let tickers = exchange.fetchTickers ()
+        log (exchange.id.green, 'fetching tickers...')
+        let tickers = await exchange.fetchTickers ()
+        log (exchange.id.green, 'fetched', Object.keys (tickers).length.toString ().green, 'tickers...')
     } catch (e) {
         if (e instanceof ccxt.ExchangeError) {
             // do nothing
