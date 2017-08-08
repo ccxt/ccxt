@@ -10,8 +10,10 @@
   - renamed (M|m)arket[s] → (E|e)xchange[s] everywhere in code, tests, examples and docs
   - renamed (P|p)roduct[s] → (M|m)arket[s] everywhere as well
 - Added optional `substituteCommonCurrencyCodes` exchange parameter (true by default)
-- Initial Bitcoin Cash support (preferred BCH to BCC), [issue #83](https://github.com/kroitor/ccxt/issues/80)
-- Added additional extra params to fetchOrderBook to control the level of order book aggregation detail
+- Fixed HitBTC string/float/decimal conversions, [issue #88](https://github.com/kroitor/ccxt/issues/88)
+- Initial Bitcoin Cash support (preferred BCH to BCC), [issue #83](https://github.com/kroitor/ccxt/issues/83)
+- Fixed Kraken BTC balance, [issue #82](https://github.com/kroitor/ccxt/issues/82)
+- Added additional extra params to fetchOrderBook to control the level of order book aggregation detail, [issue #84](https://github.com/kroitor/ccxt/issues/84)
 - Reworked exception hierarchy and error handling for unification
 - Fixed CHBTC missing bid/ask handling in order books for certain symbols
 
