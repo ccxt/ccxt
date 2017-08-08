@@ -1,9 +1,9 @@
 # Сhangelog
 
-## Version 1.3.0 2017-08-08
+## Version 1.3.x 2017-08-08
 
 ```diff
-- Version 1.3.x is backward incompatible with previous versions due to a major renaming and refactoring of the code base
+- Version 1.3.x is backward incompatible with previous versions due to a major renaming in the code
 ```
 
 - Renamed basic elements for consistency, this change is backward-incompatible! [issue #89](https://github.com/kroitor/ccxt/issues/89)
@@ -15,7 +15,7 @@
 - Reworked exception hierarchy and error handling for unification
 - Fixed CHBTC missing bid/ask handling in order books for certain symbols
 
-## Version 1.2.0 2017-08-01
+## Version 1.2.x 2017-08-01
 
 - Fixed Gatecoin private API body in GET-requests, [issue #80](https://github.com/kroitor/ccxt/issues/80)
 - Added optional `userAgent` property, [issue #67](https://github.com/kroitor/ccxt/issues/67)
