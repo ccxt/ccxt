@@ -3559,7 +3559,7 @@ var bittrex = {
             let symbol = id;
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
-                symbol = market['symbol']
+                symbol = market['symbol'];
             } else {
                 let [ quote, base ] = id.split ('-');
                 base = this.commonCurrencyCode (base);
