@@ -85,7 +85,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.9'
+__version__ = '1.3.10'
 
 # Python 2 & 3
 import base64
@@ -3469,6 +3469,27 @@ class bittrex (Exchange):
             'info': ticker,
         }
 
+    def fetch_tickers (self):
+        self.loadMarkets ()
+        response = self.publicGetMarketsummaries ()
+        tickers = response['result']
+        result = {}
+        for t in range (0, len (tickers)):
+            ticker = tickers[t]
+            id = ticker['MarketName']
+            market = None
+            symbol = id
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+            else:
+                quote, base = id.split ('-')
+                base = self.commonCurrencyCode (base)
+                quote = self.commonCurrencyCode (quote)
+                symbol = base + '/' + quote                
+            result[symbol] = self.parse_ticker (ticker, market)
+        return result
+
     def fetch_ticker (self, market):
         self.loadMarkets ()
         m = self.market (market)
@@ -6302,7 +6323,10 @@ class coinmarketcap (Exchange):
         return self.publicGetGlobal (request)
 
     def parse_ticker (self, ticker, market):
-        timestamp = int (ticker['last_updated']) * 1000
+        timestamp = self.milliseconds ()
+        if 'last_updated' in ticker:
+            if ticker['last_updated']:
+                timestamp = int (ticker['last_updated']) * 1000
         volume = None
         volumeKey = '24h_volume_' + market['quoteId']
         if ticker[volumeKey]:
@@ -12853,8 +12877,19 @@ class yunbi (Exchange):
         result = {}
         for i in range (0, len (ids)):
             id = ids[i]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
+            market = None
+            symbol = id
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+            else:
+                base = id[0:3]
+                quote = id[3:6]
+                base = base.upper ()
+                quote = quote.upper ()
+                base = self.commonCurrencyCode (base)
+                quote = self.commonCurrencyCode (quote)
+                symbol = base + '/' + quote
             ticker = tickers[id]
             result[symbol] = self.parse_ticker (ticker, market)
         return result

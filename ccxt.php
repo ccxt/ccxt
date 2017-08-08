@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.9';
+$version = '1.3.10';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3791,9 +3791,33 @@ class bittrex extends Exchange {
         );
     }
 
+    public function fetch_tickers () {
+        $this->loadMarkets ();
+        $response = $this->publicGetMarketsummaries ();
+        $tickers = $response['result'];
+        $result = array ();
+        for ($t = 0; $t < count ($tickers); $t++) {
+            $ticker = $tickers[$t];
+            $id = $ticker['MarketName'];
+            $market = null;
+            $symbol = $id;
+            if (array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol']
+            } else {
+                list ($quote, $base) = explode ('-', $id);
+                $base = $this->commonCurrencyCode ($base);
+                $quote = $this->commonCurrencyCode ($quote);
+                $symbol = $base . '/' . $quote;                
+            }
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
+        }
+        return $result;
+    }
+
     public function fetch_ticker ($market) {
         $this->loadMarkets ();
-        $m = $this->market ($market)
+        $m = $this->market ($market);
         $response = $this->publicGetMarketsummary (array (
             'market' => $m['id'],
         ));
@@ -6832,7 +6856,10 @@ class coinmarketcap extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market) {
-        $timestamp = intval ($ticker['last_updated']) * 1000;
+        $timestamp = $this->milliseconds ();
+        if (array_key_exists ('last_updated', $ticker))
+            if ($ticker['last_updated'])
+                $timestamp = intval ($ticker['last_updated']) * 1000;
         $volume = null;
         $volumeKey = '24h_volume_' . $market['quoteId'];
         if ($ticker[$volumeKey])
@@ -13815,8 +13842,20 @@ class yunbi extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
+            $market = null;
+            $symbol = $id;
+            if (array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+            } else {
+                $base = mb_substr ($id, 0, 3);
+                $quote = mb_substr ($id, 3, 6);
+                $base = strtoupper ($base);
+                $quote = strtoupper ($quote);
+                $base = $this->commonCurrencyCode ($base);
+                $quote = $this->commonCurrencyCode ($quote);
+                $symbol = $base . '/' . $quote;
+            }
             $ticker = $tickers[$id];
             $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
