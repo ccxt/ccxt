@@ -1,5 +1,7 @@
 # Сhangelog
 
+- Fixed bittrex used/pending balance, [issue #91](https://github.com/kroitor/ccxt/issues/91)
+
 ## Version 1.3.x 2017-08-08
 
 ```diff
