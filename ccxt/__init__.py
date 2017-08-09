@@ -85,7 +85,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.15'
+__version__ = '1.3.16'
 
 # Python 2 & 3
 import base64
