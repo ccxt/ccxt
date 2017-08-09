@@ -212,26 +212,35 @@ Incoming pull requests are automatically validated by the CI service. You can wa
 
 ### How To Build & Run Tests On Your Local Machine
 
-This command will build everything, generating PHP and Python versions of the source:
+The command below will build everything and generate slave PHP/Python versions from master `ccxt.js` file:
 
 ```
 npm run build
 ```
 
-The following command will run tests against the built source (for all markets, symbols and languages):
+The following command will test the build slave source files (for all exchanges, symbols and languages):
 
 ```
 node run-tests
 ```
 
-You can restrict tests to specific language, market or symbol:
+You can restrict tests to a specific language, a particular exchange or symbol:
 
 ```
-node run-tests [--php] [--js] [--python] [--es6] [market] [symbol]
+node run-tests [--php] [--js] [--python] [--python3] [--es6] [exchange] [symbol]
 ```
 
-For example, this will run tests only for the master ES6-version of source (`ccxt.js`), thus not requiring an `npm build` executed before (it can be useful for quickly checking whether you have broken something with your latest changes):
+For example, the first of the following lines will only test the single master ES6-version of source (`ccxt.js`). It does not require an `npm build` before running it (can be useful if you need to verify quickly whether your changes break the code or not):
 
+```shell
+
+node run-tests --js --es6     # test ES6 master ccxt.js, all exchanges
+
+# Other examples require the 'npm build' to run
+
+node run-tests --python         # test Python 2 version
+node run-tests --php bitfinex   # test Bitfinex with PHP
+node run-tests --python3 kraken # test Kraken with Python 3, requires npm build
 ```
-node run-tests --js --es6
-```
+
+```UNDER CONSTRUCTION```
