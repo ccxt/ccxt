@@ -85,7 +85,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.14'
+__version__ = '1.3.15'
 
 # Python 2 & 3
 import base64
@@ -3470,7 +3470,7 @@ class bittrex (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
+            'baseVolume': float (ticker['BaseVolume']),
             'quoteVolume': float (ticker['Volume']),
             'info': ticker,
         }
