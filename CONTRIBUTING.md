@@ -85,35 +85,35 @@ Slave files and docs are partially-generated from the master `ccxt.js` file by t
 The structure of the master/slave file can be outlined like this:
 
 ```
-        +--------------------------+ ← beginning of file
-h   ╭   |                          |
-e   │   |  common stuff            |
-a   │   |                          |  
-d  ─┤   //-------------------------+ ← thin horizontal ruler comment is used to separate code blocks 
-e   │   |                          |
-r   │   |  base exchange class     |   above this first bold line all code is language-specific
-    ╰   |                          |                    ↑
-        //=========================+ ← first 'bold' horizontal ruler comment
-    ╭   |                          |                    ↓
-    │   | derived exchange class A |   below this line all code can be ported to other languages
-    │   |                          |
-b   │   //-------------------------+ ← thin horizontal ruler used to separate derived classes
-o   │   |                          |
-d  ─┤   | derived exchange class B |
-y   │   |                          |
-    │   //-------------------------+
-    │   |                          |
-    │   | ...                      |   above this line all code is transpileable
-    ╰   |                          |                    ↑
-        //=========================+ ← second 'bold' horizontal ruler comment
-f   ╭   |                          |                    ↓
-o   │   |  other code              |   below this second bold line all code is language-specific
-o   │   |                          |
-t  ─┤   //-------------------------+ ← thin horizontal ruler comment is used to separate code blocks 
-e   │   |                          |   
-r   │   |  other code              |   
-    ╰   |                          |
-        //-------------------------+ ← end of file
+        +----------------------------+  ←  beginning of file
+h   ╭   |                            |
+e   │   |  globals                   |
+a   │   |                            |  
+d  ─┤   //---------------------------+  ←  thin horizontal ruler comment is used to separate code blocks 
+e   │   |                            |
+r   │   |  base exchange class       |     above this first bold line all code is language-specific
+    ╰   |                            |                    ↑
+        //===========================+  ←  first bold horizontal ruler comment
+    ╭   |                            |                    ↓
+    │   |  derived exchange class A  |     below this line all code can be ported to other languages
+    │   |                            |
+b   │   //---------------------------+  ←  thin horizontal ruler used to separate derived classes
+o   │   |                            |
+d  ─┤   |  derived exchange class B  |
+y   │   |                            |
+    │   //---------------------------+
+    │   |                            |
+    │   | ...                        |     above this line all code is transpileable
+    ╰   |                            |                    ↑
+        //===========================+  ←  second bold horizontal ruler comment
+f   ╭   |                            |                    ↓
+o   │   |  other code                |     below this second bold line all code is language-specific
+o   │   |                            |
+t  ─┤   //---------------------------+  ←  thin horizontal ruler comment is used to separate code blocks 
+e   │   |                            |   
+r   │   |  other code                |   
+    ╰   |                            |
+        //---------------------------+  ←  end of file
 ```
 
 Key notes on the structure of the library file:
