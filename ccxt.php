@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.18';
+$version = '1.3.19';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3849,7 +3849,12 @@ class bittrex extends Exchange {
         );
         if ($type == 'limit')
             $order['rate'] = $price;
-        return $this->$method (array_merge ($order, $params));
+        $response = $this->$method (array_merge ($order, $params));
+        $result = array (
+            'info' => $response,
+            'id' => $response['result']['uuid'],
+        );
+        return $result;
     }
 
     public function cancel_order ($id) {
@@ -11834,11 +11839,16 @@ class poloniex extends Exchange {
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $method = 'privatePost' . $this->capitalize ($side);
-        return $this->$method (array_merge (array (
+        $response = $this->$method (array_merge (array (
             'currencyPair' => $this->market_id ($market),
             'rate' => $price,
             'amount' => $amount,
         ), $params));
+        $result = array (
+            'info' => $response,
+            'id' => $response['orderNumber'],
+        );
+        return $result;
     }
 
     public function cancel_order ($id, $params = array ()) {
