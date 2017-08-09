@@ -4413,12 +4413,263 @@ var btce = {
 
 //-----------------------------------------------------------------------------
 
+var btcmarkets = {
+
+    'id': 'btcmarkets',
+    'name': 'BTC Markets',
+    'countries': 'AU', // Australia
+    'rateLimit': 1000, // market data cached for 1 second (trades cached for 2 seconds)
+    'version': 'v1',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/29133480-4968a7ea-7d3c-11e7-8fec-2afb7d820f45.jpg',
+        'api': 'https://api.btcmarkets.net',
+        'www': 'https://btcmarkets.net/',
+        'doc': [
+            'https://github.com/BTCMarkets/API',
+        ],
+    },
+    'api': {
+        'public': {
+            'get': [
+                'market/BTC/AUD/tick',
+                'market/BTC/AUD/orderbook',
+                'market/BTC/AUD/trades',
+            ],
+        },
+        'private': {
+            'get': [
+                'account/balance',
+                'account/{instrument}/{currency}/tradingfee',
+            ],
+            'post': [
+                'fundtransfer/withdrawCrypto',
+                'fundtransfer/withdrawEFT',
+                'order/create',
+                'order/cancel',
+                'order/history',
+                'order/open',
+                'order/trade/history',
+                'order/createBatch', // they promise it's coming soon...
+                'order/detail',
+            ],
+        },
+    },
+
+    async fetchMarkets () {
+        let markets = await this.publicGetPairSettings ();
+        let keys = Object.keys (markets);
+        let result = [];
+        for (let p = 0; p < keys.length; p++) {
+            let id = keys[p];
+            let market = markets[id];
+            let symbol = id.replace ('_', '/');
+            let [ base, quote ] = symbol.split ('/');
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': market,
+            });
+        }
+        return result;
+    },
+
+    async fetchBalance () {
+        // [{"balance":1000000000,"pendingFunds":0,"currency":"AUD"},{"balance":1000000000,"pendingFunds":0,"currency":"BTC"},{"balance":1000000000,"pendingFunds":0,"currency":"LTC"}]
+        await this.loadMarkets ();
+        let response = await this.privatePostUserInfo ();
+        let result = { 'info': response };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if (currency in response['balances'])
+                account['free'] = parseFloat (response['balances'][currency]);
+            if (currency in response['reserved'])
+                account['used'] = parseFloat (response['reserved'][currency]);
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
+    },
+
+    async fetchOrderBook (market, params = {}) {
+        // {"currency":"AUD","instrument":"BTC","timestamp":1476243360,"asks":[[844.98,0.45077821],[845.0,2.7069457],[848.68,2.58512],[848.76,0.29745]],"bids":[[844.0,0.00489636],[840.21,0.060724],[840.16,0.1180803],[840.1,0.32130103]]}
+        await this.loadMarkets ();
+        let p = this.market (market);
+        let response = await this.publicGetOrderBook (this.extend ({
+            'pair': p['id'],
+        }, params));
+        let orderbook = response[p['id']];
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = { 'bids': 'bid', 'asks': 'ask' };
+        let keys = Object.keys (sides);
+        for (let k = 0; k < keys.length; k++) {
+            let key = keys[k];
+            let side = sides[key];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order[0]);
+                let amount = parseFloat (order[1]);
+                result[key].push ([ price, amount ]);
+            }
+        }
+        return result;
+    },
+
+    parseTicker (ticker, market) {
+        // {"bestBid":844.0,"bestAsk":844.98,"lastPrice":845.0,"currency":"AUD","instrument":"BTC","timestamp":1476242958,"volume24h":172.60804}
+        let timestamp = ticker['updated'] * 1000;
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['buy_price']),
+            'ask': parseFloat (ticker['sell_price']),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last_trade']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': parseFloat (ticker['avg']),
+            'baseVolume': parseFloat (ticker['vol']),
+            'quoteVolume': parseFloat (ticker['vol_curr']),
+            'info': ticker,
+        };
+    },
+
+    async fetchTickers (currency = 'USD') { 
+        await this.loadMarkets ();
+        let response = await this.publicGetTicker ();
+        let result = {};
+        let ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let market = this.markets_by_id[id];
+            let symbol = market['symbol'];
+            let ticker = response[id];
+            result[symbol] = this.parseTicker (ticker, market);
+        }
+        return result;
+    },
+
+    async fetchTicker (market) {
+        await this.loadMarkets ();
+        let response = await this.publicGetTicker ();
+        let p = this.market (market);
+        return this.parseTicker (response[p['id']], p);
+    },
+
+    async fetchTrades (market) {
+        // [{"tid":4432702312,"amount":0.01959674,"price":845.0,"date":1378878093},{"tid":59861212129,"amount":1.21434000,"price":845.15,"date":1377840783}]
+
+
+
+        await this.loadMarkets ();
+        return this.publicGetTrades ({
+            'pair': this.marketId (market),
+            // 'since': 59868345231
+        });
+    },
+
+    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        // {"currency":"AUD","instrument":"BTC","price":13000000000,"volume":10000000,"orderSide":"Bid","ordertype":"Limit","clientRequestId":"abc-cdf-1000"}
+        let prefix = '';
+        if (type =='market')
+            prefix = 'market_';
+        let order = {
+            'pair': this.marketId (market),
+            'quantity': amount,
+            'price': price || 0,
+            'type': prefix + side,
+        };
+        return this.privatePostOrderCreate (this.extend (order, params));
+    },
+
+    async cancelOrders (ids) {
+        await this.loadMarkets ();
+        return this.privatePostOrderCancel ({ 'order_ids': ids });
+    },
+
+    async cancelOrder (id) {
+        await this.loadMarkets ();
+        let ids = [ id ];
+        return this.cancelOrders (ids);
+    },
+
+    nonce () {
+        return this.milliseconds ();
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        /*
+        In this example the parameters used to calculate the signature are:
+        1 - URI /order/history
+        2 - current timestamp in milliseconds 1378818710123
+        3 - Request body
+        { "currency": "AUD", "instrument": "BTC", "limit": "10"}
+        The string to sign is:
+        '/order/history' + '\n' + '1378818710123' + '\n' + '{"currency":"AUD", "instrument":"BTC", "limit":"10"}'
+
+        Note: if creating a signature for http GET method then post data will be null and therefore no need to add it to this string.
+        Use HmacSHA512 algorithm in order to sign above string with your API private 
+        key which results in the following signature: 'bEDtDJnW0y/Ll4YZitxb+D5sTNnEpQKH67EJRCmQCqN9cvGiB8+IHzB7HjsOs3mSlxLmu4aiPDRpe9anuWzylw=='
+
+        Now we are ready to build a http request with all the headers and parameters required.
+
+        */
+        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (api == 'public') {
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
+        } else {
+            let nonce = this.nonce ().toString ();
+            body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
+            headers = {
+                // 'Accept': 'application/json',
+                // 'Accept-Charset': 'UTF-8',
+                'Content-Type': 'application/json',
+                'Content-Length': body.length,
+                'apikey': this.apiKey,
+                'timestamp': nonce,
+                'signature': this.hmac (this.encode (body), this.encode (this.secret), 'sha512', 'base64'),
+            };
+        }
+        let response = await this.fetch (url, method, headers, body);
+        if (api == 'public')
+            return response;
+        if ('result' in response)
+            if (response['result'])
+                return response;
+        throw new ExchangeError (this.id + ' ' + this.json (response));
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var btctrader = {
 
     'id': 'btctrader',
     'name': 'BTCTrader',
     'countries': [ 'TR', 'GR', 'PH' ], // Turkey, Greece, Philippines
     'rateLimit': 1000,
+    'comment': 'base API for BTCExchange, BTCTurk',
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27992404-cda1e386-649c-11e7-8dc1-40bbd2897768.jpg',
         'api': 'https://www.btctrader.com/api',

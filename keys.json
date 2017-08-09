@@ -12,6 +12,7 @@
     "bitso":         { "apiKey": "xZnHRmdlgJ", "secret": "e156bb7f7ab3a831afbc7a80f7866b9e" },
     "bittrex":       { "apiKey": "60f38a5818934fc08308778f94d3d8c4", "secret": "9d294ddb5b944403b58e5298653720c1" },
     "btce":          { "apiKey": "9CVM7IPZ-300HPKQD-ME5Y21HS-6LLQUPN5-NCX0GXHF", "secret": "77c7395cbf788ee5eafbe79133deac3da5c62b72f72b7184eba3f49c5bb1d654" },
+    "btcmarkets":    { "apiKey": "26f4eebf-0f56-41dd-a1fd-db938d378d68", "secret": "WZG6612t4pAEBk0jKu4uae3PFs9pvR15hiFQTJ6uMPZlDQP0PdhaVhzSbp0tykLxxFO8jPnvERElmus8POxV+g==" },
     "btctradeua":    { "apiKey": "dd5de6b608f21776665da9098232bfb47445cc42485a7258350a2d426a14367c", "secret": "e7aa669524e3d28b922ebe6f273c277a649da10c85e9d12092a1feebe40491db" },
     "btcx":          { "apiKey": "IOQKX-R06CO-39BV3-IDE5M-O9149-DHE6C-DGQTR", "secret": "pt4gyrrnm6neym429uqjl4dmeb7z6eqnynurbhbofot74qz4hlhsikbnmahkezz7" },
     "bter":          { "apiKey": "9600DEB4-B499-417C-B496-5925953236E5", "secret": "c7853b8c94b1ab1b1ce4a9c2e7318cb3bbe9777168ab9b1d0eceb73969b64291" },
