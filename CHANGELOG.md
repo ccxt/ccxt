@@ -1,7 +1,7 @@
 # Сhangelog
 
 - Updated [CONTRIBUTING](https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md) guidelines
-- Added a new ad-hoc test-frontend to run individual tests of all exchanges in all languages in parallel
+- Added a new ad-hoc test-frontend to run individual tests of all exchanges in all languages in parallel, see [How To Build & Run Tests On Your Local Machine](https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md#how-to-build--run-tests-on-your-local-machine)
 - Started adding fetchTickers () (all at once) where applicable, [issue #7](https://github.com/kroitor/ccxt/issues/7)
 - Fixed Bittrex used/pending balance, [issue #91](https://github.com/kroitor/ccxt/issues/91)
 
