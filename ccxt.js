@@ -4475,22 +4475,20 @@ var btcmarkets = {
     },
 
     async fetchBalance () {
-        // [{"balance":1000000000,"pendingFunds":0,"currency":"AUD"},{"balance":1000000000,"pendingFunds":0,"currency":"BTC"},{"balance":1000000000,"pendingFunds":0,"currency":"LTC"}]
         await this.loadMarkets ();
-        let response = await this.privatePostUserInfo ();
-        let result = { 'info': response };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let balances = await this.privateGetAccountBalance ();
+        let result = { 'info': balances };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = balance['currency'];
+            let multiplier = 100000000;
+            let free = parseFloat (balance['balance'] / multiplier);
+            let used = parseFloat (balance['pendingFunds'] / multiplier);
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': free,
+                'used': used,
+                'total': this.sum (free, used),
             };
-            if (currency in response['balances'])
-                account['free'] = parseFloat (response['balances'][currency]);
-            if (currency in response['reserved'])
-                account['used'] = parseFloat (response['reserved'][currency]);
-            account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
         return result;
@@ -4516,7 +4514,7 @@ var btcmarkets = {
         let orderbook = await this.publicGetMarketIdOrderbook (this.extend ({
             'id': m['id'],
         }, params));
-        let timestamp = orderbook['timestamp'];
+        let timestamp = orderbook['timestamp'] * 1000;
         let result = {
             'bids': [],
             'asks': [],
@@ -4525,14 +4523,14 @@ var btcmarkets = {
         };
         let sides = [ 'bids', 'asks' ];
         for (let s = 0; s < sides.length; s++) {
-            let side = sides[side];
-            result[side] = this.parseBidAsks (orderbook['side']);
+            let side = sides[s];
+            result[side] = this.parseBidAsks (orderbook[side]);
         }
         return result;
     },
 
     parseTicker (ticker, market) {
-        let timestamp = ticker['timestamp'];
+        let timestamp = ticker['timestamp'] * 1000;
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -4557,7 +4555,7 @@ var btcmarkets = {
     async fetchTicker (market) {
         await this.loadMarkets ();
         let m = this.market (market);
-        let ticker = await this.publicGetTicker ({
+        let ticker = await this.publicGetMarketIdTick ({
             'id': m['id'],
         });
         return this.parseTicker (ticker, m);
@@ -4611,30 +4609,28 @@ var btcmarkets = {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
-            console.log ('Done.');
-            process.exit ();
             let nonce = this.nonce ().toString ();
             let auth = uri + "\n" + nonce + "\n";
-            if (method == 'POST') {
-                body = this.urlencode (query);
-                auth += body;
-            }
             headers = {
-                // 'Accept': 'application/json',
-                // 'Accept-Charset': 'UTF-8',
                 'Content-Type': 'application/json',
-                'Content-Length': body.length,
                 'apikey': this.apiKey,
                 'timestamp': nonce,
-                'signature': this.hmac (this.encode (auth), this.encode (this.secret), 'sha512', 'base64'),
             };
+            if (method == 'POST') {
+                body = this.urlencode (query);
+                headers['Content-Length'] = body.length;
+                auth += body;
+            }
+            let secret = this.base64ToBinary (this.secret);
+            let signature = this.hmac (this.encode (auth), this.encode (secret), 'sha512', 'base64');
+            headers['signature'] = signature;
         }
         let response = await this.fetch (url, method, headers, body);
         if (api == 'private') {
             if ('success' in response)
-                if (response['success'])
-                    return response;
-            throw new ExchangeError (this.id + ' ' + this.json (response));
+                if (!response['success'])
+                    throw new ExchangeError (this.id + ' ' + this.json (response));
+            return response;            
         }
         return response;
     },
