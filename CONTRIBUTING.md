@@ -236,7 +236,7 @@ For example, the first of the following lines will only test the single master E
 
 node run-tests --js --es6       # test ES6 master ccxt.js, all exchanges
 
-# Other examples require the 'npm run build' to run
+# other examples require the 'npm run build' to run
 
 node run-tests --python         # test Python 2 version, all exchanges
 node run-tests --php bitfinex   # test Bitfinex with PHP
