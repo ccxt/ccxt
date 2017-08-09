@@ -234,7 +234,7 @@ For example, the first of the following lines will only test the single master E
 
 ```shell
 
-node run-tests --js --es6     # test ES6 master ccxt.js, all exchanges
+node run-tests --js --es6       # test ES6 master ccxt.js, all exchanges
 
 # Other examples require the 'npm build' to run
 
