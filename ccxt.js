@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.3.18'
+var version = '1.3.19'
 var isNode  = (typeof window === 'undefined')
 var isReactNative = (typeof navigator !== 'undefined') && navigator &&
     navigator.product && navigator.product == 'ReactNative' || false
@@ -3605,7 +3605,12 @@ var bittrex = {
         };
         if (type == 'limit')
             order['rate'] = price;
-        return this[method] (this.extend (order, params));
+        let response = await this[method] (this.extend (order, params));
+        let result = {
+            'info': response,
+            'id': response['result']['uuid'],
+        };
+        return result;
     },
 
     async cancelOrder (id) {
@@ -11655,11 +11660,16 @@ var poloniex = {
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let method = 'privatePost' + this.capitalize (side);
-        return this[method] (this.extend ({
+        let response = await this[method] (this.extend ({
             'currencyPair': this.marketId (market),
             'rate': price,
             'amount': amount,
         }, params));
+        let result = {
+            'info': response,
+            'id': response['orderNumber'],
+        };
+        return result;
     },
 
     async cancelOrder (id, params = {}) {

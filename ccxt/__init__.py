@@ -85,7 +85,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.18'
+__version__ = '1.3.19'
 
 # Python 2 & 3
 import base64
@@ -3520,7 +3520,12 @@ class bittrex (Exchange):
         }
         if type == 'limit':
             order['rate'] = price
-        return getattr (self, method) (self.extend (order, params))
+        response = getattr (self, method) (self.extend (order, params))
+        result = {
+            'info': response,
+            'id': response['result']['uuid'],
+        }
+        return result
 
     def cancel_order (self, id):
         self.loadMarkets ()
@@ -10996,11 +11001,16 @@ class poloniex (Exchange):
     def create_order (self, market, type, side, amount, price = None, params = {}):
         self.loadMarkets ()
         method = 'privatePost' + self.capitalize (side)
-        return getattr (self, method) (self.extend ({
+        response = getattr (self, method) (self.extend ({
             'currencyPair': self.market_id (market),
             'rate': price,
             'amount': amount,
         }, params))
+        result = {
+            'info': response,
+            'id': response['orderNumber'],
+        }
+        return result
 
     def cancel_order (self, id, params = {}):
         self.loadMarkets ()
