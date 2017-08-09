@@ -23,6 +23,7 @@ Below are the rules for contributing to the ccxt library codebase.
 - Node.js (version 8 or higher)
 - Python 2/3
 - PHP 5.3+
+- [Pandoc](https://pandoc.org/installing.html)
 
 ## What You Need To Know
 
@@ -55,7 +56,8 @@ The contents of the repository are structured as follows:
 /export-exchanges.js # used to create tables of exchanges in the docs during the build
 /package.json        # npm package file, also used in setup.py for version single-sourcing
 /setup.cfg           # wheels config file for the Python package
-/test.js             # a test in JavaScript that runs through all exchanges and calls basic APIs
+/run-tests.js        # a tests front-end that runs invididual tests through all exchanges and all languages (JS/PHP/Python)
+/test.js             # invididual tests in JS
 /test.php            # same in PHP
 /test.py             # same in Python
 /tox.ini             # tox config for Python
@@ -68,62 +70,6 @@ The contents of the repository are structured as follows:
 The ccxt library is available in three different languages (more to come). We encourage developers to design *portable* code, so that a single-language user can read code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
 At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *master/slave* process. There is now a single master version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the master version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the master version as well.
-
-### Continuous Integration
-
-Builds are automated by [travis-ci](https://travis-ci.org/kroitor/ccxt/builds). Code coverage is analyzed with [coveralls.io](https://coveralls.io). All build steps are described in the [`.travis.yml`](https://github.com/kroitor/ccxt/blob/master/.travis.yml) file. A build consists of the following:
-
-1. Install dependencies
-2. Increment version number _(not triggered by pull requests)_
-3. Transpile JavaScript → Python/PHP and wiki documentation from the master source file
-4. Run tests and collect code coverage analytics
-5. Send coverage report to [coveralls.io](https://coveralls.io)
-6. Push built files back to GitHub _(not triggered by pull requests)_
-7. Push generated wiki documentation files back to a separate GitHub repo _(not triggered by pull requests)_
-
-You can also execute build steps manually to make sure everything works before committing your changes.
-
-#### Install Dependencies
-
-You will need the latest version of `pandoc` supporting `--wrap=preserve` option. On OSX it can be installed easily with `brew install pandoc` (you will need [brew](https://brew.sh/) as well). For other options see [Installing pandoc](http://pandoc.org/installing.html).
-
-#### Increment Version Number
-
-The version number is single-sourced from the main NPM package file `package.json` to JavaScript, Python and PHP. It gets incremented by the standard `npm version patch` command upon each release and then the updated version number is injected into all source files.
-
-#### Transpile Sources And Documentation
-
-Everything is done by the `npm run build` command. The transpilation is performed by a custom utility script in the root of the repository, named `transpile.js` that derives slave versions in other languages from the master code. The script converts language syntax from JS to Python/PHP and it is itself written in JavaScript. The transpiler does its job by sequentially applying series of regexp substitutions to perform one-to-one (line-to-line) mapping from JS to other languages.
-
-Read [Master/Slave Code](https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md#masterslave-code) below for more details before hacking the actual source code.
-
-#### Run Tests And Collect Coverage
-
-Run the standard `npm test` command to see test results and code coverage analytics. The coverage analysis is also available in HTML (see the generated `coverage` folder). A transpilation is triggered automatically by the `npm test` command, so there is no need to execute the `npm run build` manually before.
-
-To speed up test execution you can use the `npm run fasttest` command. It will only test the master `ccxt.js` file, and thus does not require the `npm run build` to be executed first. You can also pass an exchange name and an symbol (optional), to test a part of code or a single exchange. A partial test is usually many times faster than the full test:
-
-```bash
-npm test                         # runs the full test
-npm test kraken                  # runs a partial test for Kraken
-npm test kraken BTC/USD          # partial test for BTC/USD @ Kraken
-npm run fasttest                 # full test of master source file only
-npm run fasttest gdax            # partial test of master source file only for GDAX
-npm run fasttest gdax BTC/USD    # partial test only for the BTC/USD pair on GDAX exchange
-```
-
-Other languages can also be tested by running the following scripts (`npm run build` is required in prior):
-
-```bash
-python test.py
-python test.py kraken
-python test.py kraken BTC/USD
-php -f test.php
-php -f test.php gdax
-php -f test.php gdax BTC/USD
-```
-
-## Master/Slave Code
 
 The ccxt library includes one single file per each language:
 
@@ -258,4 +204,34 @@ The basic JSON-skeleton for a new exchange integration is as follows:
 
 ```UNDER CONSTRUCTION```
 
+### Continuous Integration
 
+Builds are automated by [travis-ci](https://travis-ci.org/kroitor/ccxt/builds). All build steps are described in the [`.travis.yml`](https://github.com/kroitor/ccxt/blob/master/.travis.yml) file.
+
+Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [travis-ci.org/kroitor/ccxt/builds](https://travis-ci.org/kroitor/ccxt/builds).
+
+### How To Build & Run Tests On Your Local Machine
+
+This command will build everything, generating PHP and Python versions of the source:
+
+```
+npm run build
+```
+
+The following command will run tests against the built source (for all markets, symbols and languages):
+
+```
+node run-tests
+```
+
+You can restrict tests to specific language, market or symbol:
+
+```
+node run-tests [--php] [--js] [--python] [--es6] [market] [symbol]
+```
+
+For example, this will run tests only for the master ES6-version of source (`ccxt.js`), thus not requiring an `npm build` executed before (it can be useful for quickly checking whether you have broken something with your latest changes):
+
+```
+node run-tests --js --es6 gdax
+```
