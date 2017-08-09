@@ -238,7 +238,7 @@ node run-tests --js --es6       # test ES6 master ccxt.js, all exchanges
 
 # Other examples require the 'npm build' to run
 
-node run-tests --python         # test Python 2 version
+node run-tests --python         # test Python 2 version, all exchanges
 node run-tests --php bitfinex   # test Bitfinex with PHP
 node run-tests --python3 kraken # test Kraken with Python 3, requires npm build
 ```
