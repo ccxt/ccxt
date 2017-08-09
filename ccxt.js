@@ -4429,16 +4429,14 @@ var btcmarkets = {
         'logo': 'https://user-images.githubusercontent.com/1294454/29133480-4968a7ea-7d3c-11e7-8fec-2afb7d820f45.jpg',
         'api': 'https://api.btcmarkets.net',
         'www': 'https://btcmarkets.net/',
-        'doc': [
-            'https://github.com/BTCMarkets/API',
-        ],
+        'doc': 'https://github.com/BTCMarkets/API',
     },
     'api': {
         'public': {
             'get': [
-                'market/BTC/AUD/tick',
-                'market/BTC/AUD/orderbook',
-                'market/BTC/AUD/trades',
+                'market/{id}/tick',
+                'market/{id}/orderbook',
+                'market/{id}/trades',
             ],
         },
         'private': {
@@ -4459,25 +4457,18 @@ var btcmarkets = {
             ],
         },
     },
-
-    async fetchMarkets () {
-        let markets = await this.publicGetPairSettings ();
-        let keys = Object.keys (markets);
-        let result = [];
-        for (let p = 0; p < keys.length; p++) {
-            let id = keys[p];
-            let market = markets[id];
-            let symbol = id.replace ('_', '/');
-            let [ base, quote ] = symbol.split ('/');
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': market,
-            });
-        }
-        return result;
+    'products': {
+        'BTC/AUD': { 'id': 'BTC/AUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD' },
+        'LTC/AUD': { 'id': 'LTC/AUD', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD' },
+        'ETH/AUD': { 'id': 'ETH/AUD', 'symbol': 'ETH/AUD', 'base': 'ETH', 'quote': 'AUD' },
+        'ETC/AUD': { 'id': 'ETC/AUD', 'symbol': 'ETC/AUD', 'base': 'ETC', 'quote': 'AUD' },
+        'XRP/AUD': { 'id': 'XRP/AUD', 'symbol': 'XRP/AUD', 'base': 'XRP', 'quote': 'AUD' },
+        'BCH/AUD': { 'id': 'BCH/AUD', 'symbol': 'BCH/AUD', 'base': 'BCH', 'quote': 'AUD' },
+        'LTC/BTC': { 'id': 'LTC/BTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+        'ETH/BTC': { 'id': 'ETH/BTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
+        'ETC/BTC': { 'id': 'ETC/BTC', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC' },
+        'XRP/BTC': { 'id': 'XRP/BTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC' },
+        'BCH/BTC': { 'id': 'BCH/BTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
     },
 
     async fetchBalance () {
@@ -4502,92 +4493,80 @@ var btcmarkets = {
         return result;
     },
 
+    parseBidAsk (bidask) {
+        let price = bidask[0];
+        let amount = bidask[1];
+        return [ price, amount ];
+    },
+
+    parseBidAsks (bidasks) {
+        let result = [];
+        for (let i = 0; i < bidasks.length; i++) {
+            result.push (this.parseBidAsk (bidasks[i]));
+        }
+        return result;
+    },
+
     async fetchOrderBook (market, params = {}) {
-        // {"currency":"AUD","instrument":"BTC","timestamp":1476243360,"asks":[[844.98,0.45077821],[845.0,2.7069457],[848.68,2.58512],[848.76,0.29745]],"bids":[[844.0,0.00489636],[840.21,0.060724],[840.16,0.1180803],[840.1,0.32130103]]}
         await this.loadMarkets ();
-        let p = this.market (market);
-        let response = await this.publicGetOrderBook (this.extend ({
-            'pair': p['id'],
+        let m = this.market (market);
+        let orderbook = await this.publicGetMarketIdOrderbook (this.extend ({
+            'id': m['id'],
         }, params));
-        let orderbook = response[p['id']];
-        let timestamp = this.milliseconds ();
+        let timestamp = orderbook['timestamp'];
         let result = {
             'bids': [],
             'asks': [],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        let sides = { 'bids': 'bid', 'asks': 'ask' };
-        let keys = Object.keys (sides);
-        for (let k = 0; k < keys.length; k++) {
-            let key = keys[k];
-            let side = sides[key];
-            let orders = orderbook[side];
-            for (let i = 0; i < orders.length; i++) {
-                let order = orders[i];
-                let price = parseFloat (order[0]);
-                let amount = parseFloat (order[1]);
-                result[key].push ([ price, amount ]);
-            }
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[side];
+            result[side] = this.parseBidAsks (orderbook['side']);
         }
         return result;
     },
 
     parseTicker (ticker, market) {
         // {"bestBid":844.0,"bestAsk":844.98,"lastPrice":845.0,"currency":"AUD","instrument":"BTC","timestamp":1476242958,"volume24h":172.60804}
-        let timestamp = ticker['updated'] * 1000;
+        let timestamp = ticker['timestamp'];
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy_price']),
-            'ask': parseFloat (ticker['sell_price']),
+            'high': undefined,
+            'low': undefined,
+            'bid': parseFloat (ticker['bestBid']),
+            'ask': parseFloat (ticker['bestAsk']),
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': parseFloat (ticker['last_trade']),
+            'last': parseFloat (ticker['lastPrice']),
             'change': undefined,
             'percentage': undefined,
-            'average': parseFloat (ticker['avg']),
-            'baseVolume': parseFloat (ticker['vol']),
-            'quoteVolume': parseFloat (ticker['vol_curr']),
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['volume24h']),
             'info': ticker,
         };
     },
 
-    async fetchTickers (currency = 'USD') { 
-        await this.loadMarkets ();
-        let response = await this.publicGetTicker ();
-        let result = {};
-        let ids = Object.keys (response);
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
-            let ticker = response[id];
-            result[symbol] = this.parseTicker (ticker, market);
-        }
-        return result;
-    },
-
     async fetchTicker (market) {
         await this.loadMarkets ();
-        let response = await this.publicGetTicker ();
-        let p = this.market (market);
-        return this.parseTicker (response[p['id']], p);
+        let m = this.market (market);
+        let ticker = await this.publicGetTicker ({
+            'id': m['id'],
+        });
+        return this.parseTicker (ticker, m);
     },
 
     async fetchTrades (market) {
         // [{"tid":4432702312,"amount":0.01959674,"price":845.0,"date":1378878093},{"tid":59861212129,"amount":1.21434000,"price":845.15,"date":1377840783}]
-
-
-
         await this.loadMarkets ();
-        return this.publicGetTrades ({
-            'pair': this.marketId (market),
-            // 'since': 59868345231
+        return this.publicGetMarketIdTrades ({
+            // 'since': 59868345231,
+            'id': this.marketId (market),
         });
     },
 
