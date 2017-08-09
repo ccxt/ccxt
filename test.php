@@ -39,7 +39,7 @@ $config = json_decode (file_get_contents ('./keys.json'), true);
 foreach ($config as $id => $params)
     foreach ($params as $key => $value)
         if (array_key_exists ($id, $exchanges))
-            $exchanges[$id]->$key = $value  ;
+            $exchanges[$id]->$key = $value;
 
 $exchanges['gdax']->urls['api'] = 'https://api-public.sandbox.gdax.com';
 $exchanges['anxpro']->proxy = 'https://cors-anywhere.herokuapp.com/';
