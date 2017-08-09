@@ -158,6 +158,8 @@ const sum = (...args) => {
         result.reduce ((sum, value) => sum + value, 0) : undefined
 }
 
+const ordered = x => x // a stub to keep assoc keys in order, in JS it does nothing, it's mostly for Python
+
 //-----------------------------------------------------------------------------
 // platform-specific code (Node.js / Web Browsers)
 
@@ -281,6 +283,7 @@ const Exchange = function (config) {
     this.capitalize = capitalize
     this.json = JSON.stringify
     this.sum = sum
+    this.ordered = ordered
 
     this.encode = string => string
     this.decode = string => string
@@ -4529,7 +4532,6 @@ var btcmarkets = {
     },
 
     parseTicker (ticker, market) {
-        // {"bestBid":844.0,"bestAsk":844.98,"lastPrice":845.0,"currency":"AUD","instrument":"BTC","timestamp":1476242958,"volume24h":172.60804}
         let timestamp = ticker['timestamp'];
         return {
             'timestamp': timestamp,
@@ -4576,6 +4578,9 @@ var btcmarkets = {
         let prefix = '';
         if (type =='market')
             prefix = 'market_';
+        let order = this.ordered ({
+            'pair': this.marketId (market),
+        });
         let order = {
             'pair': this.marketId (market),
             'quantity': amount,
@@ -4601,30 +4606,21 @@ var btcmarkets = {
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        /*
-        In this example the parameters used to calculate the signature are:
-        1 - URI /order/history
-        2 - current timestamp in milliseconds 1378818710123
-        3 - Request body
-        { "currency": "AUD", "instrument": "BTC", "limit": "10"}
-        The string to sign is:
-        '/order/history' + '\n' + '1378818710123' + '\n' + '{"currency":"AUD", "instrument":"BTC", "limit":"10"}'
-
-        Note: if creating a signature for http GET method then post data will be null and therefore no need to add it to this string.
-        Use HmacSHA512 algorithm in order to sign above string with your API private 
-        key which results in the following signature: 'bEDtDJnW0y/Ll4YZitxb+D5sTNnEpQKH67EJRCmQCqN9cvGiB8+IHzB7HjsOs3mSlxLmu4aiPDRpe9anuWzylw=='
-
-        Now we are ready to build a http request with all the headers and parameters required.
-
-        */
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let uri = '/' + this.implodeParams (path, params);
+        let url = this.urls['api'] + uri;
         let query = this.omit (params, this.extractParams (path));
         if (api == 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
             let nonce = this.nonce ().toString ();
-            body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
+            let auth = uri + "\n" + nonce + "\n";
+
+
+            if (method == 'POST') {
+                body = this.urlencode (query);
+                auth += body;
+            }
             headers = {
                 // 'Accept': 'application/json',
                 // 'Accept-Charset': 'UTF-8',
@@ -4632,16 +4628,17 @@ var btcmarkets = {
                 'Content-Length': body.length,
                 'apikey': this.apiKey,
                 'timestamp': nonce,
-                'signature': this.hmac (this.encode (body), this.encode (this.secret), 'sha512', 'base64'),
+                'signature': this.hmac (this.encode (auth), this.encode (this.secret), 'sha512', 'base64'),
             };
         }
         let response = await this.fetch (url, method, headers, body);
-        if (api == 'public')
-            return response;
-        if ('result' in response)
-            if (response['result'])
-                return response;
-        throw new ExchangeError (this.id + ' ' + this.json (response));
+        if (api == 'private') {
+            if ('success' in response)
+                if (response['success'])
+                    return response;
+            throw new ExchangeError (this.id + ' ' + this.json (response));
+        }
+        return response;
     },
 }
 
