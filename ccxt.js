@@ -3549,7 +3549,7 @@ var bittrex = {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
+            'baseVolume': parseFloat (ticker['BaseVolume']),
             'quoteVolume': parseFloat (ticker['Volume']),
             'info': ticker,
         };
