@@ -239,9 +239,7 @@ while (exchanges = regex.exec (contents)) {
         while (orderedMatches = orderedRegex.exec (pyBody)) {
             let replaced = orderedMatches[1].replace (/^(\s+)([^\:]+)\:\s*([^\,]+)\,$/gm, '$1($2, $3),')
             pyBody = pyBody.replace (orderedRegex, '\.ordered ([' + replaced + '])')
-            // console.log (id, replaced, "-----------------------------------", orderedMatches[1], orderedMatches)
         }
-        // process.exit ()
 
         py.push ('');
         py.push ('    def ' + method + ' (self' + (pyArgs.length ? ', ' + pyArgs.replace (/undefined/g, 'None') : '') + '):');
