@@ -233,5 +233,5 @@ node run-tests [--php] [--js] [--python] [--es6] [market] [symbol]
 For example, this will run tests only for the master ES6-version of source (`ccxt.js`), thus not requiring an `npm build` executed before (it can be useful for quickly checking whether you have broken something with your latest changes):
 
 ```
-node run-tests --js --es6 gdax
+node run-tests --js --es6
 ```
