@@ -4427,7 +4427,6 @@ var btcmarkets = {
     'name': 'BTC Markets',
     'countries': 'AU', // Australia
     'rateLimit': 1000, // market data cached for 1 second (trades cached for 2 seconds)
-    'version': 'v1',
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
         'api': 'https://api.btcmarkets.net',
