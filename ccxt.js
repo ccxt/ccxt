@@ -3605,10 +3605,10 @@ var bittrex = {
         };
         if (type == 'limit')
             order['rate'] = price;
-        let response = this[method] (this.extend (order, params));
+        let response = await this[method] (this.extend (order, params));
         let result = {
             'info': response,
-            'uuid': response['result']['uuid'],
+            'id': response['result']['uuid'],
         };
         return result;
     },
