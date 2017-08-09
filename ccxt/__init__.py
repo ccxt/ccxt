@@ -330,11 +330,15 @@ class Exchange (object):
 
     @staticmethod
     def extend (*args):
-        result = {}
         if args is not None:
+            if type (arg[0]) is collections.OrderedDict:
+                result = collections.OrderedDict ()
+            else
+                result = {}
             for arg in args:
                 result.update (arg)
-        return result
+            return result
+        return {}
 
     @staticmethod
     def index_by (array, key):
@@ -399,6 +403,10 @@ class Exchange (object):
     @staticmethod
     def sum (*args):
         return sum ([arg for arg in args if isinstance (arg, int) or isinstance (arg, float)])
+
+    @staticmethod
+    def ordered (array):
+        return collections.OrderedDict (array)
 
     @staticmethod
     def s ():
@@ -4292,6 +4300,209 @@ class btce (Exchange):
 
 #------------------------------------------------------------------------------
 
+class btcmarkets (Exchange):
+
+    def __init__ (self, config = {}):
+        params = {
+            'id': 'btcmarkets',
+            'name': 'BTC Markets',
+            'countries': 'AU', # Australia
+            'rateLimit': 1000, # market data cached for 1 second (trades cached for 2 seconds)
+            'version': 'v1',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/29133480-4968a7ea-7d3c-11e7-8fec-2afb7d820f45.jpg',
+                'api': 'https://api.btcmarkets.net',
+                'www': 'https://btcmarkets.net/',
+                'doc': 'https://github.com/BTCMarkets/API',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'market/{id}/tick',
+                        'market/{id}/orderbook',
+                        'market/{id}/trades',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'account/balance',
+                        'account/{id}/tradingfee',
+                    ],
+                    'post': [
+                        'fundtransfer/withdrawCrypto',
+                        'fundtransfer/withdrawEFT',
+                        'order/create',
+                        'order/cancel',
+                        'order/history',
+                        'order/open',
+                        'order/trade/history',
+                        'order/createBatch', # they promise it's coming soon...
+                        'order/detail',
+                    ],
+                },
+            },
+            'markets': {
+                'BTC/AUD': { 'id': 'BTC/AUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD' },
+                'LTC/AUD': { 'id': 'LTC/AUD', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD' },
+                'ETH/AUD': { 'id': 'ETH/AUD', 'symbol': 'ETH/AUD', 'base': 'ETH', 'quote': 'AUD' },
+                'ETC/AUD': { 'id': 'ETC/AUD', 'symbol': 'ETC/AUD', 'base': 'ETC', 'quote': 'AUD' },
+                'XRP/AUD': { 'id': 'XRP/AUD', 'symbol': 'XRP/AUD', 'base': 'XRP', 'quote': 'AUD' },
+                'BCH/AUD': { 'id': 'BCH/AUD', 'symbol': 'BCH/AUD', 'base': 'BCH', 'quote': 'AUD' },
+                'LTC/BTC': { 'id': 'LTC/BTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+                'ETH/BTC': { 'id': 'ETH/BTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
+                'ETC/BTC': { 'id': 'ETC/BTC', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC' },
+                'XRP/BTC': { 'id': 'XRP/BTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC' },
+                'BCH/BTC': { 'id': 'BCH/BTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
+            },
+        }
+        params.update (config)
+        super (btcmarkets, self).__init__ (params)
+
+    def fetch_balance (self):
+        self.loadMarkets ()
+        balances = self.privateGetAccountBalance ()
+        result = { 'info': balances }
+        for b in range (0, len (balances)):
+            balance = balances[b]
+            currency = balance['currency']
+            multiplier = 100000000
+            free = float (balance['balance'] / multiplier)
+            used = float (balance['pendingFunds'] / multiplier)
+            account = {
+                'free': free,
+                'used': used,
+                'total': self.sum (free, used),
+            }
+            result[currency] = account
+        return result
+
+    def parse_bidask (self, bidask):
+        price = bidask[0]
+        amount = bidask[1]
+        return [ price, amount ]
+
+    def parse_bidasks (self, bidasks):
+        result = []
+        for i in range (0, len (bidasks)):
+            result.append (self.parse_bidask (bidasks[i]))
+        return result
+
+    def fetch_order_book (self, market, params = {}):
+        self.loadMarkets ()
+        m = self.market (market)
+        orderbook = self.publicGetMarketIdOrderbook (self.extend ({
+            'id': m['id'],
+        }, params))
+        timestamp = orderbook['timestamp'] * 1000
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+        }
+        sides = [ 'bids', 'asks' ]
+        for s in range (0, len (sides)):
+            side = sides[s]
+            result[side] = self.parse_bidasks (orderbook[side])
+        return result
+
+    def parse_ticker (self, ticker, market):
+        timestamp = ticker['timestamp'] * 1000
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'high': None,
+            'low': None,
+            'bid': float (ticker['bestBid']),
+            'ask': float (ticker['bestAsk']),
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float (ticker['lastPrice']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float (ticker['volume24h']),
+            'info': ticker,
+        }
+
+    def fetch_ticker (self, market):
+        self.loadMarkets ()
+        m = self.market (market)
+        ticker = self.publicGetMarketIdTick ({
+            'id': m['id'],
+        })
+        return self.parse_ticker (ticker, m)
+
+    def fetch_trades (self, market):
+        self.loadMarkets ()
+        return self.publicGetMarketIdTrades ({
+            # 'since': 59868345231,
+            'id': self.market_id (market),
+        })
+
+    def create_order (self, market, type, side, amount, price = None, params = {}):
+        self.loadMarkets ()
+        m = self.market (market)
+        multiplier = 100000000 # for price and volume
+        # does BTC Markets support market orders at all?
+        orderSide = 'Bid' if (side == 'buy') else 'Ask'
+        order = self.ordered ([
+            ('currency', m['quote']),
+            ('instrument', m['base']),
+            ('price', price * multiplier),
+            ('volume', amount * multiplier),
+            ('orderSide', orderSide),
+            ('ordertype', self.capitalize (type)),
+            ('clientRequestId', str (self.nonce ())),
+        ])
+        return self.privatePostOrderCreate (self.extend (order, params))
+
+    def cancel_orders (self, ids):
+        self.loadMarkets ()
+        return self.privatePostOrderCancel ({ 'order_ids': ids })
+
+    def cancel_order (self, id):
+        self.loadMarkets ()
+        return self.cancelOrders ([ id ])
+
+    def nonce (self):
+        return self.milliseconds ()
+
+    def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
+        uri = '/' + self.implode_params (path, params)
+        url = self.urls['api'] + uri
+        query = self.omit (params, self.extract_params (path))
+        if api == 'public':
+            if params:
+                url += '?' + _urlencode.urlencode (params)
+        else:
+            nonce = str (self.nonce ())
+            auth = uri + "\n" + nonce + "\n"
+            headers = {
+                'Content-Type': 'application/json',
+                'apikey': self.apiKey,
+                'timestamp': nonce,
+            }
+            if method == 'POST':
+                body = _urlencode.urlencode (query)
+                headers['Content-Length'] = len (body)
+                auth += body
+            secret = base64.b64decode (self.secret)
+            signature = self.hmac (self.encode (auth), self.encode (secret), hashlib.sha512, 'base64')
+            headers['signature'] = signature
+        response = self.fetch (url, method, headers, body)
+        if api == 'private':
+            if 'success' in response:
+                if not response['success']:
+                    raise ExchangeError (self.id + ' ' + self.json (response))
+            return response            
+        return response
+
+#------------------------------------------------------------------------------
+
 class btctrader (Exchange):
 
     def __init__ (self, config = {}):
@@ -4300,6 +4511,7 @@ class btctrader (Exchange):
             'name': 'BTCTrader',
             'countries': [ 'TR', 'GR', 'PH' ], # Turkey, Greece, Philippines
             'rateLimit': 1000,
+            'comment': 'base API for BTCExchange, BTCTurk',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27992404-cda1e386-649c-11e7-8dc1-40bbd2897768.jpg',
                 'api': 'https://www.btctrader.com/api',

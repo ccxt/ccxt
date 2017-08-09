@@ -265,6 +265,10 @@ class Exchange {
         return Exchange::implode_params ($string, $params);
     }
 
+    public static function ordered ($array) { // for Python OrderedDicts, does nothing in PHP and JS
+        return $array;
+    }
+
     public static function urlencodeBase64 ($string) {
         return preg_replace (array ('#[=]+$#u', '#\+#u', '#\\/#'), array ('', '-', '_'), base64_encode ($string));
     }
@@ -4678,6 +4682,227 @@ class btce extends Exchange {
 
 //-----------------------------------------------------------------------------
 
+class btcmarkets extends Exchange {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array (
+            'id' => 'btcmarkets',
+            'name' => 'BTC Markets',
+            'countries' => 'AU', // Australia
+            'rateLimit' => 1000, // market data cached for 1 second (trades cached for 2 seconds)
+            'version' => 'v1',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/29133480-4968a7ea-7d3c-11e7-8fec-2afb7d820f45.jpg',
+                'api' => 'https://api.btcmarkets.net',
+                'www' => 'https://btcmarkets.net/',
+                'doc' => 'https://github.com/BTCMarkets/API',
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'market/{id}/tick',
+                        'market/{id}/orderbook',
+                        'market/{id}/trades',
+                    ),
+                ),
+                'private' => array (
+                    'get' => array (
+                        'account/balance',
+                        'account/{id}/tradingfee',
+                    ),
+                    'post' => array (
+                        'fundtransfer/withdrawCrypto',
+                        'fundtransfer/withdrawEFT',
+                        'order/create',
+                        'order/cancel',
+                        'order/history',
+                        'order/open',
+                        'order/trade/history',
+                        'order/createBatch', // they promise it's coming soon...
+                        'order/detail',
+                    ),
+                ),
+            ),
+            'markets' => array (
+                'BTC/AUD' => array ( 'id' => 'BTC/AUD', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD' ),
+                'LTC/AUD' => array ( 'id' => 'LTC/AUD', 'symbol' => 'LTC/AUD', 'base' => 'LTC', 'quote' => 'AUD' ),
+                'ETH/AUD' => array ( 'id' => 'ETH/AUD', 'symbol' => 'ETH/AUD', 'base' => 'ETH', 'quote' => 'AUD' ),
+                'ETC/AUD' => array ( 'id' => 'ETC/AUD', 'symbol' => 'ETC/AUD', 'base' => 'ETC', 'quote' => 'AUD' ),
+                'XRP/AUD' => array ( 'id' => 'XRP/AUD', 'symbol' => 'XRP/AUD', 'base' => 'XRP', 'quote' => 'AUD' ),
+                'BCH/AUD' => array ( 'id' => 'BCH/AUD', 'symbol' => 'BCH/AUD', 'base' => 'BCH', 'quote' => 'AUD' ),
+                'LTC/BTC' => array ( 'id' => 'LTC/BTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                'ETH/BTC' => array ( 'id' => 'ETH/BTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC' ),
+                'ETC/BTC' => array ( 'id' => 'ETC/BTC', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC' ),
+                'XRP/BTC' => array ( 'id' => 'XRP/BTC', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC' ),
+                'BCH/BTC' => array ( 'id' => 'BCH/BTC', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC' ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_balance () {
+        $this->loadMarkets ();
+        $balances = $this->privateGetAccountBalance ();
+        $result = array ( 'info' => $balances );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
+            $currency = $balance['currency'];
+            $multiplier = 100000000;
+            $free = floatval ($balance['balance'] / $multiplier);
+            $used = floatval ($balance['pendingFunds'] / $multiplier);
+            $account = array (
+                'free' => $free,
+                'used' => $used,
+                'total' => $this->sum ($free, $used),
+            );
+            $result[$currency] = $account;
+        }
+        return $result;
+    }
+
+    public function parse_bidask ($bidask) {
+        $price = $bidask[0];
+        $amount = $bidask[1];
+        return array ($price, $amount);
+    }
+
+    public function parse_bidasks ($bidasks) {
+        $result = array ();
+        for ($i = 0; $i < count ($bidasks); $i++) {
+            $result[] = $this->parse_bidask ($bidasks[$i]);
+        }
+        return $result;
+    }
+
+    public function fetch_order_book ($market, $params = array ()) {
+        $this->loadMarkets ();
+        $m = $this->market ($market);
+        $orderbook = $this->publicGetMarketIdOrderbook (array_merge (array (
+            'id' => $m['id'],
+        ), $params));
+        $timestamp = $orderbook['timestamp'] * 1000;
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $result[$side] = $this->parse_bidasks ($orderbook[$side]);
+        }
+        return $result;
+    }
+
+    public function parse_ticker ($ticker, $market) {
+        $timestamp = $ticker['timestamp'] * 1000;
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => null,
+            'low' => null,
+            'bid' => floatval ($ticker['bestBid']),
+            'ask' => floatval ($ticker['bestAsk']),
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['lastPrice']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['volume24h']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_ticker ($market) {
+        $this->loadMarkets ();
+        $m = $this->market ($market);
+        $ticker = $this->publicGetMarketIdTick (array (
+            'id' => $m['id'],
+        ));
+        return $this->parse_ticker ($ticker, $m);
+    }
+
+    public function fetch_trades ($market) {
+        $this->loadMarkets ();
+        return $this->publicGetMarketIdTrades (array (
+            // 'since' => 59868345231,
+            'id' => $this->market_id ($market),
+        ));
+    }
+
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->loadMarkets ();
+        $m = $this->market ($market);
+        $multiplier = 100000000; // for $price and volume
+        // does BTC Markets support $market orders at all?
+        $orderSide = ($side == 'buy') ? 'Bid' : 'Ask';
+        $order = $this->ordered (array (
+            'currency' => $m['quote'],
+            'instrument' => $m['base'],
+            'price' => $price * $multiplier,
+            'volume' => $amount * $multiplier,
+            'orderSide' => $orderSide,
+            'ordertype' => $this->capitalize ($type),
+            'clientRequestId' => (string) $this->nonce (),
+        ));
+        return $this->privatePostOrderCreate (array_merge ($order, $params));
+    }
+
+    public function cancel_orders ($ids) {
+        $this->loadMarkets ();
+        return $this->privatePostOrderCancel (array ( 'order_ids' => $ids ));
+    }
+
+    public function cancel_order ($id) {
+        $this->loadMarkets ();
+        return $this->cancelOrders (array ($id));
+    }
+
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $uri = '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'] . $uri;
+        $query = $this->omit ($params, $this->extract_params ($path));
+        if ($api == 'public') {
+            if ($params)
+                $url .= '?' . $this->urlencode ($params);
+        } else {
+            $nonce = (string) $this->nonce ();
+            $auth = $uri . "\n" . $nonce . "\n";
+            $headers = array (
+                'Content-Type' => 'application/json',
+                'apikey' => $this->apiKey,
+                'timestamp' => $nonce,
+            );
+            if ($method == 'POST') {
+                $body = $this->urlencode ($query);
+                $headers['Content-Length'] = count ($body);
+                $auth .= $body;
+            }
+            $secret = base64_decode ($this->secret);
+            $signature = $this->hmac ($this->encode ($auth), $this->encode ($secret), 'sha512', 'base64');
+            $headers['signature'] = $signature;
+        }
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if ($api == 'private') {
+            if (array_key_exists ('success', $response))
+                if (!$response['success'])
+                    throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+            return $response;            
+        }
+        return $response;
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 class btctrader extends Exchange {
 
     public function __construct ($options = array ()) {
@@ -4686,6 +4911,7 @@ class btctrader extends Exchange {
             'name' => 'BTCTrader',
             'countries' => array ( 'TR', 'GR', 'PH' ), // Turkey, Greece, Philippines
             'rateLimit' => 1000,
+            'comment' => 'base API for BTCExchange, BTCTurk',
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27992404-cda1e386-649c-11e7-8dc1-40bbd2897768.jpg',
                 'api' => 'https://www.btctrader.com/api',

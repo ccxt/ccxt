@@ -4562,7 +4562,6 @@ var btcmarkets = {
     },
 
     async fetchTrades (market) {
-        // [{"tid":4432702312,"amount":0.01959674,"price":845.0,"date":1378878093},{"tid":59861212129,"amount":1.21434000,"price":845.15,"date":1377840783}]
         await this.loadMarkets ();
         return this.publicGetMarketIdTrades ({
             // 'since': 59868345231,
@@ -4575,12 +4574,13 @@ var btcmarkets = {
         let m = this.market (market);
         let multiplier = 100000000; // for price and volume
         // does BTC Markets support market orders at all?
+        let orderSide = (side == 'buy') ? 'Bid' : 'Ask';
         let order = this.ordered ({
             'currency': m['quote'],
             'instrument': m['base'],
             'price': price * multiplier,
             'volume': amount * multiplier,
-            'orderSide': (side == 'buy') ? 'Bid' : 'Ask',
+            'orderSide': orderSide,
             'ordertype': this.capitalize (type),
             'clientRequestId': this.nonce ().toString (),
         });
