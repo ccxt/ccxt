@@ -52,7 +52,8 @@ let config = JSON.parse (fs.readFileSync ('./keys.json', 'utf8'))
 // set up api keys appropriately
 for (let id in config)
     for (let key in config[id])
-        exchanges[id][key] = config[id][key]
+        if (typeof exchanges[id] != 'undefined')
+            exchanges[id][key] = config[id][key]
 
 // move gdax to sandbox
 exchanges['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'

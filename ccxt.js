@@ -4460,7 +4460,7 @@ var btcmarkets = {
             ],
         },
     },
-    'products': {
+    'markets': {
         'BTC/AUD': { 'id': 'BTC/AUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD' },
         'LTC/AUD': { 'id': 'LTC/AUD', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD' },
         'ETH/AUD': { 'id': 'ETH/AUD', 'symbol': 'ETH/AUD', 'base': 'ETH', 'quote': 'AUD' },
@@ -13923,6 +13923,7 @@ var exchanges = {
     'btcchina':      btcchina,
     'btce':          btce,
     'btcexchange':   btcexchange,
+    'btcmarkets':    btcmarkets,
     'btctradeua':    btctradeua,
     'btcturk':       btcturk,
     'btcx':          btcx,
