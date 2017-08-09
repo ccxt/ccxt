@@ -4445,7 +4445,7 @@ var btcmarkets = {
         'private': {
             'get': [
                 'account/balance',
-                'account/{instrument}/{currency}/tradingfee',
+                'account/{id}/tradingfee',
             ],
             'post': [
                 'fundtransfer/withdrawCrypto',
@@ -4574,19 +4574,18 @@ var btcmarkets = {
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        // {"currency":"AUD","instrument":"BTC","price":13000000000,"volume":10000000,"orderSide":"Bid","ordertype":"Limit","clientRequestId":"abc-cdf-1000"}
-        let prefix = '';
-        if (type =='market')
-            prefix = 'market_';
+        let m = this.market (market);
+        let multiplier = 100000000; // for price and volume
+        // does BTC Markets support market orders at all?
         let order = this.ordered ({
-            'pair': this.marketId (market),
+            'currency': m['quote'],
+            'instrument': m['base'],
+            'price': price * multiplier,
+            'volume': amount * multiplier,
+            'orderSide': (side == 'buy') ? 'Bid' : 'Ask',
+            'ordertype': this.capitalize (type),
+            'clientRequestId': this.nonce ().toString (),
         });
-        let order = {
-            'pair': this.marketId (market),
-            'quantity': amount,
-            'price': price || 0,
-            'type': prefix + side,
-        };
         return this.privatePostOrderCreate (this.extend (order, params));
     },
 
@@ -4597,8 +4596,7 @@ var btcmarkets = {
 
     async cancelOrder (id) {
         await this.loadMarkets ();
-        let ids = [ id ];
-        return this.cancelOrders (ids);
+        return this.cancelOrders ([ id ]);
     },
 
     nonce () {
@@ -4613,10 +4611,10 @@ var btcmarkets = {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
+            console.log ('Done.');
+            process.exit ();
             let nonce = this.nonce ().toString ();
             let auth = uri + "\n" + nonce + "\n";
-
-
             if (method == 'POST') {
                 body = this.urlencode (query);
                 auth += body;
