@@ -20,6 +20,7 @@ exchanges = [
     'btcchina',
     'btce',
     'btcexchange',
+    'btcmarkets',
     'btctradeua',
     'btcturk',
     'btcx',
@@ -331,9 +332,10 @@ class Exchange (object):
     @staticmethod
     def extend (*args):
         if args is not None:
-            if type (arg[0]) is collections.OrderedDict:
+            result = None
+            if type (args[0]) is collections.OrderedDict:
                 result = collections.OrderedDict ()
-            else
+            else:
                 result = {}
             for arg in args:
                 result.update (arg)
@@ -4491,7 +4493,7 @@ class btcmarkets (Exchange):
                 headers['Content-Length'] = len (body)
                 auth += body
             secret = base64.b64decode (self.secret)
-            signature = self.hmac (self.encode (auth), self.encode (secret), hashlib.sha512, 'base64')
+            signature = self.hmac (self.encode (auth), secret, hashlib.sha512, 'base64')
             headers['signature'] = signature
         response = self.fetch (url, method, headers, body)
         if api == 'private':

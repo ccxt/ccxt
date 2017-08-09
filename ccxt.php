@@ -121,6 +121,7 @@ class Exchange {
         'btcchina',
         'btce',
         'btcexchange',
+        'btcmarkets',
         'btctradeua',
         'btcturk',
         'btcx',
@@ -4887,7 +4888,7 @@ class btcmarkets extends Exchange {
                 $auth .= $body;
             }
             $secret = base64_decode ($this->secret);
-            $signature = $this->hmac ($this->encode ($auth), $this->encode ($secret), 'sha512', 'base64');
+            $signature = $this->hmac ($this->encode ($auth), $secret, 'sha512', 'base64');
             $headers['signature'] = $signature;
         }
         $response = $this->fetch ($url, $method, $headers, $body);

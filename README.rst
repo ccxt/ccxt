@@ -13,7 +13,7 @@ CCXT – CryptoCurrency eXchange Trading Library
     :target: https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master
 .. image:: https://badge.runkitcdn.com/ccxt.svg
     :target: https://npm.runkit.com/ccxt
-.. image:: https://img.shields.io/badge/exchanges-70-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-71-blue.svg
     :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
@@ -27,13 +27,14 @@ Current featurelist:
 -  all currencies, altcoins and symbols, prices, order books, trades, tickers, etc...
 -  optional normalised data for cross-exchange or cross-currency analytics and arbitrage
 -  an out-of-the box unified all-in-one API extremely easy to integrate
+-  works in Node 6+, Python 2 and 3, PHP 5.3+
 
 `ccxt on GitHub <https://github.com/kroitor/ccxt>`__ | Install | Usage | `Manual <https://github.com/kroitor/ccxt/wiki>`__ | `Examples <https://github.com/kroitor/ccxt/tree/master/examples>`__ | Contributing | **Public Offer**
 
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 70 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 71 cryptocurrency exchange markets and trading APIs:
 
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id              | name                                                      | ver   | doc                                                                                              | countries                                  |
@@ -75,6 +76,8 @@ The ccxt library currently supports the following 70 cryptocurrency exchange mar
 | btce            | `BTC-e <https://btc-e.com>`__                             | 3     | `API <https://btc-e.com/api/3/docs>`__                                                           | Bulgaria, Russia                           |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | btcexchange     | `BTCExchange <https://www.btcexchange.ph>`__              | \*    | `API <https://github.com/BTCTrader/broker-api-docs>`__                                           | Philippines                                |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| btcmarkets      | `BTC Markets <https://btcmarkets.net/>`__                 | 1     | `API <https://github.com/BTCMarkets/API>`__                                                      | Australia                                  |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | btctradeua      | `BTC Trade UA <https://btc-trade.com.ua>`__               | \*    | `API <https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit>`__   | Ukraine                                    |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+

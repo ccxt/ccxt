@@ -4622,7 +4622,7 @@ var btcmarkets = {
                 auth += body;
             }
             let secret = this.base64ToBinary (this.secret);
-            let signature = this.hmac (this.encode (auth), this.encode (secret), 'sha512', 'base64');
+            let signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers['signature'] = signature;
         }
         let response = await this.fetch (url, method, headers, body);
