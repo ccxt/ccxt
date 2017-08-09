@@ -13,6 +13,7 @@ Current featurelist:
 - all currencies, altcoins and symbols, prices, order books, trades, tickers, etc...
 - optional normalised data for cross-exchange or cross-currency analytics and arbitrage
 - an out-of-the box unified all-in-one API extremely easy to integrate
+- works in Node 6+, Python 2 and 3, PHP 5.3+
 
 [ccxt on GitHub](https://github.com/kroitor/ccxt) | [Install](#install) | [Usage](#usage) | [Manual](https://github.com/kroitor/ccxt/wiki) | [Examples](https://github.com/kroitor/ccxt/tree/master/examples) | [Contributing](#contributing) | [**Public Offer**](#public-offer)
 
