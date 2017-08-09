@@ -11409,14 +11409,14 @@ var poloniex = {
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let method = 'privatePost' + this.capitalize (side);
-        let orderData = this[method] (this.extend ({
+        let response = this[method] (this.extend ({
             'currencyPair': this.marketId (market),
             'rate': price,
             'amount': amount,
         }, params));
         let result = {
-            'info': orderData,
-            'uuid': orderData['orderNumber'],
+            'info': response,
+            'uuid': response['orderNumber'],
         };
         return result;
     },
