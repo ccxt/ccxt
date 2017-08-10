@@ -2321,7 +2321,7 @@ var bitflyer = {
             'price': price,
             'size': amount,
         };
-        let result = this.privatePostSendchildorder (this.extend (order, params));
+        let result = await this.privatePostSendchildorder (this.extend (order, params));
         return {
             'info': result,
             'id': result['child_order_acceptance_id'],
