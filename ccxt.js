@@ -4245,7 +4245,11 @@ var btcchina = {
         } else {
             order['params'] = [ price, amount, id ];
         }
-        return this[method] (this.extend (order, params));
+        let response = await this[method] (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['id'],
+        };
     },
 
     async cancelOrder (id, params = {}) {
