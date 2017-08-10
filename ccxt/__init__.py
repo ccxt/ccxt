@@ -86,7 +86,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.32'
+__version__ = '1.3.33'
 
 # Python 2 & 3
 import base64
@@ -4139,7 +4139,11 @@ class btcchina (Exchange):
             order['params'] = [ None, amount, id ]
         else:
             order['params'] = [ price, amount, id ]
-        return getattr (self, method) (self.extend (order, params))
+        response = getattr (self, method) (self.extend (order, params))
+        return {
+            'info': response,
+            'id': response['id'],
+        }
 
     def cancel_order (self, id, params = {}):
         self.loadMarkets ()

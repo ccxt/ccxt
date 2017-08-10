@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.32';
+$version = '1.3.33';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -4503,7 +4503,11 @@ class btcchina extends Exchange {
         } else {
             $order['params'] = array ($price, $amount, $id);
         }
-        return $this->$method (array_merge ($order, $params));
+        $response = $this->$method (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['id'],
+        );
     }
 
     public function cancel_order ($id, $params = array ()) {
