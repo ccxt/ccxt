@@ -86,7 +86,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.21'
+__version__ = '1.3.22'
 
 # Python 2 & 3
 import base64
@@ -807,7 +807,11 @@ class _1broker (Exchange):
             order['price'] = price
         else:
             order['type'] += '_market'
-        return self.privateGetOrderCreate (self.extend (order, params))
+        result = self.privateGetOrderCreate (self.extend (order, params))
+        return {
+            'info': result,
+            'id': result['response']['order_id'],
+        }
 
     def cancel_order (self, id):
         self.loadMarkets ()
