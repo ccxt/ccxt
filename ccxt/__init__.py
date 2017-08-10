@@ -86,7 +86,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.28'
+__version__ = '1.3.29'
 
 # Python 2 & 3
 import base64
@@ -1864,7 +1864,7 @@ class bitcoincoid (Exchange):
         result = self.privatePostTrade (self.extend (order, params))
         return {
             'info': result,
-            'id': result['return']['order_id'],
+            'id': str (result['return']['order_id']),
         }
 
     def cancel_order (self, id, params = {}):
@@ -2092,7 +2092,11 @@ class bitfinex (Exchange):
             order['price'] = str (self.nonce ())
         else:
             order['price'] = price
-        return self.privatePostOrderNew (self.extend (order, params))
+        result = self.privatePostOrderNew (self.extend (order, params))
+        return {
+            'info': result,
+            'id': str (result['order_id']),
+        }
 
     def cancel_order (self, id):
         self.loadMarkets ()
@@ -2301,11 +2305,15 @@ class bitflyer (Exchange):
             'price': price,
             'size': amount,
         }
-        return self.privatePostSendparentorder (self.extend (order, params))
+        result = self.privatePostSendchildorder (self.extend (order, params))
+        return {
+            'info': result,
+            'id': result['child_order_acceptance_id'],
+        }
 
     def cancel_order (self, id, params = {}):
         self.loadMarkets ()
-        return self.privatePostCancelparentorder (self.extend ({
+        return self.privatePostCancelchildorder (self.extend ({
             'parent_order_id': id,
         }, params))
 
@@ -2529,7 +2537,11 @@ class bitlish (Exchange):
         }
         if type == 'limit':
             order['price'] = price
-        return self.privatePostCreateTrade (self.extend (order, params))
+        result = self.privatePostCreateTrade (self.extend (order, params))
+        return {
+            'info': result,
+            'id': result['id'],
+        }
 
     def cancel_order (self, id):
         self.loadMarkets ()
@@ -2701,12 +2713,18 @@ class bitmarket (Exchange):
         })
 
     def create_order (self, market, type, side, amount, price = None, params = {}):
-        return self.privatePostTrade (self.extend ({
+        response = self.privatePostTrade (self.extend ({
             'market': self.market_id (market),
             'type': side,
             'amount': amount,
             'rate': price,
         }, params))
+        result = {
+            'info': response,
+        }
+        if 'id' in response['order']:
+            result['id'] = response['id']
+        return result
 
     def cancel_order (self, id):
         return self.privatePostCancel ({ 'id': id })

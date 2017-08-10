@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.28';
+$version = '1.3.29';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2069,7 +2069,7 @@ class bitcoincoid extends Exchange {
         $result = $this->privatePostTrade (array_merge ($order, $params));
         return array (
             'info' => $result,
-            'id' => $result['return']['order_id'],
+            'id' => (string) $result['return']['order_id'],
         );
     }
 
@@ -2314,7 +2314,11 @@ class bitfinex extends Exchange {
         } else {
             $order['price'] = $price;
         }
-        return $this->privatePostOrderNew (array_merge ($order, $params));
+        $result = $this->privatePostOrderNew (array_merge ($order, $params));
+        return array (
+            'info' => $result,
+            'id' => (string) $result['order_id'],
+        );
     }
 
     public function cancel_order ($id) {
@@ -2540,12 +2544,16 @@ class bitflyer extends Exchange {
             'price' => $price,
             'size' => $amount,
         );
-        return $this->privatePostSendparentorder (array_merge ($order, $params));
+        $result = $this->privatePostSendchildorder (array_merge ($order, $params));
+        return array (
+            'info' => $result,
+            'id' => $result['child_order_acceptance_id'],
+        );
     }
 
     public function cancel_order ($id, $params = array ()) {
         $this->loadMarkets ();
-        return $this->privatePostCancelparentorder (array_merge (array (
+        return $this->privatePostCancelchildorder (array_merge (array (
             'parent_order_id' => $id,
         ), $params));
     }
@@ -2787,7 +2795,11 @@ class bitlish extends Exchange {
         );
         if ($type == 'limit')
             $order['price'] = $price;
-        return $this->privatePostCreateTrade (array_merge ($order, $params));
+        $result = $this->privatePostCreateTrade (array_merge ($order, $params));
+        return array (
+            'info' => $result,
+            'id' => $result['id'],
+        );
     }
 
     public function cancel_order ($id) {
@@ -2968,12 +2980,18 @@ class bitmarket extends Exchange {
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
-        return $this->privatePostTrade (array_merge (array (
+        $response = $this->privatePostTrade (array_merge (array (
             'market' => $this->market_id ($market),
             'type' => $side,
             'amount' => $amount,
             'rate' => $price,
         ), $params));
+        $result = array (
+            'info' => $response,
+        );
+        if (array_key_exists ('id', $response['order']))
+            $result['id'] = $response['id'];
+        return $result;
     }
 
     public function cancel_order ($id) {
