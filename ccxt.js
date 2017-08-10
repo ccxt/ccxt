@@ -4869,7 +4869,11 @@ var btctrader = {
             order['Price'] = price;
             order['Amount'] = amount;
         }
-        return this[method] (this.extend (order, params));
+        let response = await this[method] (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['id'],
+        };
     },
 
     async cancelOrder (id) {
