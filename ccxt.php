@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.34';
+$version = '1.3.35';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5139,7 +5139,11 @@ class btctrader extends Exchange {
             $order['Price'] = $price;
             $order['Amount'] = $amount;
         }
-        return $this->$method (array_merge ($order, $params));
+        $response = $this->$method (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['id'],
+        );
     }
 
     public function cancel_order ($id) {

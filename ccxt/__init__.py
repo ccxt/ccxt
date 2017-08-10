@@ -86,7 +86,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.34'
+__version__ = '1.3.35'
 
 # Python 2 & 3
 import base64
@@ -4732,7 +4732,11 @@ class btctrader (Exchange):
         else:
             order['Price'] = price
             order['Amount'] = amount
-        return getattr (self, method) (self.extend (order, params))
+        response = getattr (self, method) (self.extend (order, params))
+        return {
+            'info': response,
+            'id': response['id'],
+        }
 
     def cancel_order (self, id):
         return self.privatePostCancelOrder ({ 'id': id })
