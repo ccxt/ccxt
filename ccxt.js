@@ -3636,6 +3636,23 @@ var bittrex = {
         await this.loadMarkets ();
         return this.marketGetCancel ({ 'uuid': id });
     },
+    
+    async fetchOrder (id) {
+        await this.loadMarkets ();
+        let response = await this.accountGetOrder ({ 'uuid': id });
+        let orderInfo = response['result'];
+        let orderType = (orderInfo['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
+        let result = {
+            'info': response,
+            'type': orderType,
+            'rate': orderInfo['PricePerUnit'],
+            'startingAmount': orderInfo['Quantity'],
+            'remaining': orderInfo['QuantityRemaining'],
+            'isOpen': orderInfo['IsOpen'],
+            'isCanceled': orderInfo['CancelInitiated'],
+        };
+        return result;
+    },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/';
@@ -4404,12 +4421,33 @@ var btce = {
             'amount': amount,
             'rate': price,
         };
-        return this.privatePostTrade (this.extend (order, params));
+        let response = await this.privatePostTrade (this.extend (order, params));
+        let result = {
+            'info': response,
+            'id': response['return']['order_id'],
+        };
+        return result;
     },
 
     async cancelOrder (id) {
         await this.loadMarkets ();
         return this.privatePostCancelOrder ({ 'order_id': id });
+    },
+    
+    async fetchOrder (id) {
+        await this.loadMarkets ();
+        let response = await this.privatePostOrderInfo ({ 'order_id': id });
+        let orderInfo = response['return'][id];
+        let result = {
+            'info': response,
+            'type': orderInfo['type'],
+            'rate': orderInfo['rate'],
+            'startingAmount': orderInfo['start_amount'],
+            'remaining': orderInfo['amount'],
+            'isOpen': orderInfo['status'] == 0,
+            'isCanceled': orderInfo['status'] in [2, 3],
+        };
+        return result;
     },
 
     request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
