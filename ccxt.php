@@ -816,7 +816,7 @@ class _1broker extends Exchange {
 
     public function fetchCategories () {
         $categories = $this->privateGetMarketCategories ();
-        return categoriesarray ('response');
+        return $categories['response'];
     }
 
     public function fetch_markets () {
@@ -824,21 +824,21 @@ class _1broker extends Exchange {
         $categories = $this->fetchCategories ();
         $result = array ();
         for ($c = 0; $c < count ($categories); $c++) {
-            $category = categoriesarray ($c);
+            $category = $categories[$c];
             $markets = $this_->privateGetMarketList (array (
                 'category' => strtolower ($category),
             ));
-            for ($p = 0; $p < count (marketsarray ('response')); $p++) {
-                $market = marketsarray ('response')array ($p);
-                $id = marketarray ('symbol');
+            for ($p = 0; $p < count ($markets['response']); $p++) {
+                $market = $markets['response'][$p];
+                $id = $market['symbol'];
                 $symbol = null;
                 $base = null;
                 $quote = null;
                 if (($category == 'FOREX') || ($category == 'CRYPTO')) {
-                    $symbol = marketarray ('name');
+                    $symbol = $market['name'];
                     $parts = explode ('/', $symbol);
-                    $base = partsarray (0);
-                    $quote = partsarray (1);
+                    $base = $parts[0];
+                    $quote = $parts[1];
                 } else {
                     $base = $id;
                     $quote = 'USD';
@@ -861,18 +861,18 @@ class _1broker extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $balance = $this->privateGetUserOverview ();
-        $response = balancearray ('response');
+        $response = $balance['response'];
         $result = array ( 'info' => $response );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
-            resultarray ($currency) = array (
+            $currency = $this->currencies[$c];
+            $result[$currency] = array (
                 'free' => null,
                 'used' => null,
                 'total' => null,
             );
         }
-        resultarray ('BTC')array ('free') = floatval (responsearray ('balance'));
-        resultarray ('BTC')array ('total') = resultarray ('BTC')array ('free');
+        $result['BTC']['free'] = floatval ($response['balance']);
+        $result['BTC']['total'] = $result['BTC']['free'];
         return $result;
     }
 
@@ -881,10 +881,10 @@ class _1broker extends Exchange {
         $response = $this->privateGetMarketQuotes (array_merge (array (
             'symbols' => $this->market_id ($market),
         ), $params));
-        $orderbook = responsearray ('response')array (0);
-        $timestamp = $this->parse8601 (orderbookarray ('updated'));
-        $bidPrice = floatval (orderbookarray ('bid'));
-        $askPrice = floatval (orderbookarray ('ask'));
+        $orderbook = $response['response'][0];
+        $timestamp = $this->parse8601 ($orderbook['updated']);
+        $bidPrice = floatval ($orderbook['bid']);
+        $askPrice = floatval ($orderbook['ask']);
         $bid = array ($bidPrice, null);
         $ask = array ($askPrice, null);
         return array (
@@ -903,18 +903,18 @@ class _1broker extends Exchange {
             'limit' => 1,
         ));
         $orderbook = $this->fetchOrderBook ($market);
-        $ticker = resultarray ('response')array (0);
-        $timestamp = $this->parse8601 (tickerarray ('date'));
+        $ticker = $result['response'][0];
+        $timestamp = $this->parse8601 ($ticker['date']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('h')),
-            'low' => floatval (tickerarray ('l')),
-            'bid' => orderbookarray ('bids')array (0)array (0),
-            'ask' => orderbookarray ('asks')array (0)array (0),
+            'high' => floatval ($ticker['h']),
+            'low' => floatval ($ticker['l']),
+            'bid' => $orderbook['bids'][0][0],
+            'ask' => $orderbook['asks'][0][0],
             'vwap' => null,
-            'open' => floatval (tickerarray ('o')),
-            'close' => floatval (tickerarray ('c')),
+            'open' => floatval ($ticker['o']),
+            'close' => floatval ($ticker['c']),
             'first' => null,
             'last' => null,
             'change' => null,
@@ -935,13 +935,13 @@ class _1broker extends Exchange {
             'type' => $side,
         );
         if ($type == 'limit')
-            orderarray ('price') = $price;
+            $order['price'] = $price;
         else
-            orderarray ('type') .= '_market';
+            $order['type'] .= '_market';
         $result = $this->privateGetOrderCreate (array_merge ($order, $params));
         return array (
             'info' => $result,
-            'id' => resultarray ('response')array ('order_id'),
+            'id' => $result['response']['order_id'],
         );
     }
 
@@ -953,16 +953,16 @@ class _1broker extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!$this->apiKey)
             throw new AuthenticationError ($this->id . ' requires apiKey for all requests');
-        $url = $this->urlsarray ('api') . '/' . $this->version . '/' . $path . '.php';
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $path . '.php';
         $query = array_merge (array ( 'token' => $this->apiKey ), $params);
         $url .= '?' . $this->urlencode ($query);
         $response = $this->fetch ($url, $method);
         if (array_key_exists ('warning', $response))
-            if (responsearray ('warning'))
-                throw new ExchangeError ($this->id . ' Warning => ' . responsearray ('warning_message'));
+            if ($response['warning'])
+                throw new ExchangeError ($this->id . ' Warning => ' . $response['warning_message']);
         if (array_key_exists ('error', $response))
-            if (responsearray ('error'))
-                throw new ExchangeError ($this->id . ' Error => ' . responsearray ('error_code') . responsearray ('error_message'));
+            if ($response['error'])
+                throw new ExchangeError ($this->id . ' Error => ' . $response['error_code'] . $response['error_message']);
         return $response;
     }
 }
@@ -1013,21 +1013,21 @@ class cryptocapital extends Exchange {
 
     public function fetch_balance () {
         $response = $this->privatePostBalancesAndInfo ();
-        $balance = responsearray ('balances-and-info');
+        $balance = $response['balances-and-info'];
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $account = array (
                 'free' => null,
                 'used' => null,
                 'total' => null,
             );
-            if (array_key_exists ($currency, balancearray ('available')))
-                accountarray ('free') = floatval (balancearray ('available')array ($currency));
-            if (array_key_exists ($currency, balancearray ('on_hold')))
-                accountarray ('used') = floatval (balancearray ('on_hold')array ($currency));
-            accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
-            resultarray ($currency) = $account;
+            if (array_key_exists ($currency, $balance['available']))
+                $account['free'] = floatval ($balance['available'][$currency]);
+            if (array_key_exists ($currency, $balance['on_hold']))
+                $account['used'] = floatval ($balance['on_hold'][$currency]);
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -1036,7 +1036,7 @@ class cryptocapital extends Exchange {
         $response = $this->publicGetOrderBook (array_merge (array (
             'currency' => $this->market_id ($market),
         ), $params));
-        $orderbook = responsearray ('order-book');
+        $orderbook = $response['order-book'];
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -1047,15 +1047,15 @@ class cryptocapital extends Exchange {
         $sides = array ( 'bids' => 'bid', 'asks' => 'ask' );
         $keys = array_keys ($sides);
         for ($k = 0; $k < count ($keys); $k++) {
-            $key = keysarray ($k);
-            $side = sidesarray ($key);
-            $orders = orderbookarray ($side);
+            $key = $keys[$k];
+            $side = $sides[$key];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $timestamp = intval (orderarray ('timestamp')) * 1000;
-                $price = floatval (orderarray ('price'));
-                $amount = floatval (orderarray ('order_amount'));
-                resultarray ($key)[] = array ($price, $amount, $timestamp);
+                $order = $orders[$i];
+                $timestamp = intval ($order['timestamp']) * 1000;
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['order_amount']);
+                $result[$key][] = array ($price, $amount, $timestamp);
             }
         }
         return $result;
@@ -1065,25 +1065,25 @@ class cryptocapital extends Exchange {
         $response = $this->publicGetStats (array (
             'currency' => $this->market_id ($market),
         ));
-        $ticker = responsearray ('stats');
+        $ticker = $response['stats'];
         $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('max')),
-            'low' => floatval (tickerarray ('min')),
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
+            'high' => floatval ($ticker['max']),
+            'low' => floatval ($ticker['min']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
             'vwap' => null,
-            'open' => floatval (tickerarray ('open')),
+            'open' => floatval ($ticker['open']),
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last_price')),
-            'change' => floatval (tickerarray ('daily_change')),
+            'last' => floatval ($ticker['last_price']),
+            'change' => floatval ($ticker['daily_change']),
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('total_btc_traded')),
+            'quoteVolume' => floatval ($ticker['total_btc_traded']),
         );
     }
 
@@ -1101,7 +1101,7 @@ class cryptocapital extends Exchange {
             'amount' => $amount,
         );
         if ($type == 'limit')
-            orderarray ('limit_price') = $price;
+            $order['limit_price'] = $price;
         $result = $this->privatePostOrdersNew (array_merge ($order, $params));
         return array (
             'info' => $result,
@@ -1116,7 +1116,7 @@ class cryptocapital extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if ($this->id == 'cryptocapital')
             throw new ExchangeError ($this->id . ' is an abstract base API for _1btcxe');
-        $url = $this->urlsarray ('api') . '/' . $path;
+        $url = $this->urls['api'] . '/' . $path;
         if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
@@ -1126,16 +1126,16 @@ class cryptocapital extends Exchange {
                 'nonce' => $this->nonce (),
             ), $params);
             $request = $this->json ($query);
-            queryarray ('signature') = $this->hmac ($this->encode ($request), $this->encode ($this->secret));
+            $query['signature'] = $this->hmac ($this->encode ($request), $this->encode ($this->secret));
             $body = $this->json ($query);
             $headers = array ( 'Content-Type' => 'application/json' );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('errors', $response)) {
             $errors = array ();
-            for ($e = 0; $e < count (responsearray ('errors')); $e++) {
-                $error = responsearray ('errors')array ($e);
-                $errors[] = errorarray ('code') . ' => ' . errorarray ('message');
+            for ($e = 0; $e < count ($response['errors']); $e++) {
+                $error = $response['errors'][$e];
+                $errors[] = $error['code'] . ' => ' . $error['message'];
             }
             $errors = implode (' ', $errors);
             throw new ExchangeError ($this->id . ' ' . $errors);
@@ -1258,23 +1258,23 @@ class anxpro extends Exchange {
 
     public function fetch_balance () {
         $response = $this->privatePostMoneyInfo ();
-        $balance = responsearray ('data');
-        $currencies = array_keys (balancearray ('Wallets'));
+        $balance = $response['data'];
+        $currencies = array_keys ($balance['Wallets']);
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($currencies); $c++) {
-            $currency = currenciesarray ($c);
+            $currency = $currencies[$c];
             $account = array (
                 'free' => null,
                 'used' => null,
                 'total' => null,
             );
-            if (array_key_exists ($currency, balancearray ('Wallets'))) {
-                $wallet = balancearray ('Wallets')array ($currency);
-                accountarray ('free') = floatval (walletarray ('Available_Balance')array ('value'));
-                accountarray ('total') = floatval (walletarray ('Balance')array ('value'));
-                accountarray ('used') = accountarray ('total') - accountarray ('free');
+            if (array_key_exists ($currency, $balance['Wallets'])) {
+                $wallet = $balance['Wallets'][$currency];
+                $account['free'] = floatval ($wallet['Available_Balance']['value']);
+                $account['total'] = floatval ($wallet['Balance']['value']);
+                $account['used'] = $account['total'] - $account['free'];
             }
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -1283,8 +1283,8 @@ class anxpro extends Exchange {
         $response = $this->publicGetCurrencyPairMoneyDepthFull (array_merge (array (
             'currency_pair' => $this->market_id ($market),
         ), $params));
-        $orderbook = responsearray ('data');
-        $t = intval (orderbookarray ('dataUpdateTime'));
+        $orderbook = $response['data'];
+        $t = intval ($orderbook['dataUpdateTime']);
         $timestamp = intval ($t / 1000);
         $result = array (
             'bids' => array (),
@@ -1294,13 +1294,13 @@ class anxpro extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray ('price'));
-                $amount = floatval (orderarray ('amount'));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['amount']);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -1310,32 +1310,32 @@ class anxpro extends Exchange {
         $response = $this->publicGetCurrencyPairMoneyTicker (array (
             'currency_pair' => $this->market_id ($market),
         ));
-        $ticker = responsearray ('data');
-        $t = intval (tickerarray ('dataUpdateTime'));
+        $ticker = $response['data'];
+        $t = intval ($ticker['dataUpdateTime']);
         $timestamp = intval ($t / 1000);
         $bid = null;
         $ask = null;
-        if (tickerarray ('buy')array ('value'))
-            $bid = floatval (tickerarray ('buy')array ('value'));
-        if (tickerarray ('sell')array ('value'))
-            $ask = floatval (tickerarray ('sell')array ('value'));
+        if ($ticker['buy']['value'])
+            $bid = floatval ($ticker['buy']['value']);
+        if ($ticker['sell']['value'])
+            $ask = floatval ($ticker['sell']['value']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')array ('value')),
-            'low' => floatval (tickerarray ('low')array ('value')),
+            'high' => floatval ($ticker['high']['value']),
+            'low' => floatval ($ticker['low']['value']),
             'bid' => $bid,
             'ask' => $ask,
-            'vwap' => floatval (tickerarray ('vwap')array ('value')),
+            'vwap' => floatval ($ticker['vwap']['value']),
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')array ('value')),
+            'last' => floatval ($ticker['last']['value']),
             'change' => null,
             'percentage' => null,
-            'average' => floatval (tickerarray ('avg')array ('value')),
+            'average' => floatval ($ticker['avg']['value']),
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('vol')array ('value')),
+            'quoteVolume' => floatval ($ticker['vol']['value']),
         );
     }
 
@@ -1354,11 +1354,11 @@ class anxpro extends Exchange {
             'type' => $side,
         );
         if ($type == 'limit')
-            orderarray ('price_int') = $price;
+            $order['price_int'] = $price;
         $result = $this->privatePostCurrencyPairOrderAdd (array_merge ($order, $params));
         return array (
             'info' => $result,
-            'id' => resultarray ('data')
+            'id' => $result['data']
         );
     }
 
@@ -1373,7 +1373,7 @@ class anxpro extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        $url = $this->urlsarray ('api') . '/' . $this->version . '/' . $request;
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $request;
         if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
@@ -1390,7 +1390,7 @@ class anxpro extends Exchange {
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('result', $response))
-            if (responsearray ('result') == 'success')
+            if ($response['result'] == 'success')
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
@@ -1453,7 +1453,7 @@ class bit2c extends Exchange {
         $balance = $this->privatePostAccountBalanceV2 ();
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $account = array (
                 'free' => null,
                 'used' => null,
@@ -1461,11 +1461,11 @@ class bit2c extends Exchange {
             );
             if (array_key_exists ($currency, $balance)) {
                 $available = 'AVAILABLE_' . $currency;
-                accountarray ('free') = balancearray ($available);
-                accountarray ('total') = balancearray ($currency);
-                accountarray ('used') = accountarray ('total') - accountarray ('free');
+                $account['free'] = $balance[$available];
+                $account['total'] = $balance[$currency];
+                $account['used'] = $account['total'] - $account['free'];
             }
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -1483,14 +1483,14 @@ class bit2c extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = orderarray (0);
-                $amount = orderarray (1);
-                $timestamp = orderarray (2) * 1000;
-                resultarray ($side)[] = array ($price, $amount, $timestamp);
+                $order = $orders[$i];
+                $price = $order[0];
+                $amount = $order[1];
+                $timestamp = $order[2] * 1000;
+                $result[$side][] = array ($price, $amount, $timestamp);
             }
         }
         return $result;
@@ -1504,20 +1504,20 @@ class bit2c extends Exchange {
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('h')),
-            'low' => floatval (tickerarray ('l')),
+            'high' => floatval ($ticker['h']),
+            'low' => floatval ($ticker['l']),
             'bid' => null,
             'ask' => null,
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('ll')),
+            'last' => floatval ($ticker['ll']),
             'change' => null,
             'percentage' => null,
-            'average' => floatval (tickerarray ('av')),
+            'average' => floatval ($ticker['av']),
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('a')),
+            'quoteVolume' => floatval ($ticker['a']),
         );
     }
 
@@ -1536,14 +1536,14 @@ class bit2c extends Exchange {
         if ($type == 'market') {
             $method .= 'MarketPrice' . $this->capitalize ($side);
         } else {
-            orderarray ('Price') = $price;
-            orderarray ('Total') = $amount * $price;
-            orderarray ('IsBid') = ($side == 'buy');
+            $order['Price'] = $price;
+            $order['Total'] = $amount * $price;
+            $order['IsBid'] = ($side == 'buy');
         }
-        $result = thisarray ($method) (array_merge ($order, $params));
+        $result = $this->$method (array_merge ($order, $params));
         return array (
             'info' => $result,
-            'id' => resultarray ('NewOrder')array ('id'),
+            'id' => $result['NewOrder']['id'],
         );
     }
 
@@ -1552,7 +1552,7 @@ class bit2c extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         if ($api == 'public') {
             $url .= '.json';
         } else {
@@ -1639,21 +1639,21 @@ class bitbay extends Exchange {
 
     public function fetch_balance () {
         $response = $this->privatePostInfo ();
-        $balance = responsearray ('balances');
+        $balance = $response['balances'];
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $account = array (
                 'free' => null,
                 'used' => null,
                 'total' => null,
             );
             if (array_key_exists ($currency, $balance)) {
-                accountarray ('free') = floatval (balancearray ($currency)array ('available'));
-                accountarray ('used') = floatval (balancearray ($currency)array ('locked'));
-                accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
+                $account['free'] = floatval ($balance[$currency]['available']);
+                $account['used'] = floatval ($balance[$currency]['locked']);
+                $account['total'] = $this->sum ($account['free'], $account['used']);
             }
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -1664,8 +1664,8 @@ class bitbay extends Exchange {
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
-            'bids' => orderbookarray ('bids'),
-            'asks' => orderbookarray ('asks'),
+            'bids' => $orderbook['bids'],
+            'asks' => $orderbook['asks'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
@@ -1680,20 +1680,20 @@ class bitbay extends Exchange {
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('max')),
-            'low' => floatval (tickerarray ('min')),
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
-            'vwap' => floatval (tickerarray ('vwap')),
+            'high' => floatval ($ticker['max']),
+            'low' => floatval ($ticker['min']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => floatval ($ticker['vwap']),
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
-            'average' => floatval (tickerarray ('average')),
+            'average' => floatval ($ticker['average']),
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('volume')),
+            'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
     }
@@ -1708,9 +1708,9 @@ class bitbay extends Exchange {
         $p = $this->market ($market);
         return $this->privatePostTrade (array_merge (array (
             'type' => $side,
-            'currency' => parray ('base'),
+            'currency' => $p['base'],
             'amount' => $amount,
-            'payment_currency' => parray ('quote'),
+            'payment_currency' => $p['quote'],
             'rate' => $price,
         ), $params));
     }
@@ -1720,7 +1720,7 @@ class bitbay extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api')array ($api);
+        $url = $this->urls['api'][$api];
         if ($api == 'public') {
             $url .= '/' . $this->implode_params ($path, $params) . '.json';
         } else {
@@ -1787,10 +1787,10 @@ class bitbays extends Exchange {
 
     public function fetch_balance () {
         $response = $this->privatePostInfo ();
-        $balance = responsearray ('result')array ('wallet');
+        $balance = $response['result']['wallet'];
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = array (
                 'free' => null,
@@ -1798,11 +1798,11 @@ class bitbays extends Exchange {
                 'total' => null,
             );
             if (array_key_exists ($lowercase, $balance)) {
-                accountarray ('free') = floatval (balancearray ($lowercase)array ('avail'));
-                accountarray ('used') = floatval (balancearray ($lowercase)array ('lock'));
-                accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
+                $account['free'] = floatval ($balance[$lowercase]['avail']);
+                $account['used'] = floatval ($balance[$lowercase]['lock']);
+                $account['total'] = $this->sum ($account['free'], $account['used']);
             }
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -1811,7 +1811,7 @@ class bitbays extends Exchange {
         $response = $this->publicGetDepth (array_merge (array (
             'market' => $this->market_id ($market),
         ), $params));
-        $orderbook = responsearray ('result');
+        $orderbook = $response['result'];
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -1821,13 +1821,13 @@ class bitbays extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray (0));
-                $amount = floatval (orderarray (1));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -1837,25 +1837,25 @@ class bitbays extends Exchange {
         $response = $this->publicGetTicker (array (
             'market' => $this->market_id ($market),
         ));
-        $ticker = responsearray ('result');
+        $ticker = $response['result'];
         $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('buy')),
-            'ask' => floatval (tickerarray ('sell')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('vol')),
+            'quoteVolume' => floatval ($ticker['vol']),
             'info' => $ticker,
         );
     }
@@ -1873,10 +1873,10 @@ class bitbays extends Exchange {
             'amount' => $amount,
         );
         if ($type == 'market') {
-            orderarray ('order_type') = 1;
-            orderarray ('price') = $price;
+            $order['order_type'] = 1;
+            $order['price'] = $price;
         } else {
-            orderarray ('order_type') = 0;
+            $order['order_type'] = 0;
         }
         return $this->privatePostTrade (array_merge ($order, $params));
     }
@@ -1886,7 +1886,7 @@ class bitbays extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->version . '/' . $path;
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
@@ -1904,7 +1904,7 @@ class bitbays extends Exchange {
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('status', $response))
-            if (responsearray ('status') == 200)
+            if ($response['status'] == 200)
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
@@ -1967,11 +1967,11 @@ class bitcoincoid extends Exchange {
 
     public function fetch_balance () {
         $response = $this->privatePostGetInfo ();
-        $balance = responsearray ('return')array ('balance');
-        $frozen = responsearray ('return')array ('balance_hold');
+        $balance = $response['return']['balance'];
+        $frozen = $response['return']['balance_hold'];
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = array (
                 'free' => null,
@@ -1979,13 +1979,13 @@ class bitcoincoid extends Exchange {
                 'total' => null,
             );
             if (array_key_exists ($lowercase, $balance)) {
-                accountarray ('free') = floatval (balancearray ($lowercase));
+                $account['free'] = floatval ($balance[$lowercase]);
             }
             if (array_key_exists ($lowercase, $frozen)) {
-                accountarray ('used') = floatval (frozenarray ($lowercase));
+                $account['used'] = floatval ($frozen[$lowercase]);
             }
-            accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
-            resultarray ($currency) = $account;
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -2004,14 +2004,14 @@ class bitcoincoid extends Exchange {
         $sides = array ( 'bids' => 'buy', 'asks' => 'sell' );
         $keys = array_keys ($sides);
         for ($k = 0; $k < count ($keys); $k++) {
-            $key = keysarray ($k);
-            $side = sidesarray ($key);
-            $orders = orderbookarray ($side);
+            $key = $keys[$k];
+            $side = $sides[$key];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray (0));
-                $amount = floatval (orderarray (1));
-                resultarray ($key)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$key][] = array ($price, $amount);
             }
         }
         return $result;
@@ -2020,29 +2020,29 @@ class bitcoincoid extends Exchange {
     public function fetch_ticker ($market) {
         $pair = $this->market ($market);
         $response = $this->publicGetPairTicker (array (
-            'pair' => pairarray ('id'),
+            'pair' => $pair['id'],
         ));
-        $ticker = responsearray ('ticker');
-        $timestamp = floatval (tickerarray ('server_time')) * 1000;
-        $baseVolume = 'vol_' . strtolower (pairarray ('baseId'));
-        $quoteVolume = 'vol_' . strtolower (pairarray ('quoteId'));
+        $ticker = $response['ticker'];
+        $timestamp = floatval ($ticker['server_time']) * 1000;
+        $baseVolume = 'vol_' . strtolower ($pair['baseId']);
+        $quoteVolume = 'vol_' . strtolower ($pair['quoteId']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('buy')),
-            'ask' => floatval (tickerarray ('sell')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval (tickerarray ($baseVolume)),
-            'quoteVolume' => floatval (tickerarray ($quoteVolume)),
+            'baseVolume' => floatval ($ticker[$baseVolume]),
+            'quoteVolume' => floatval ($ticker[$quoteVolume]),
             'info' => $ticker,
         );
     }
@@ -2056,12 +2056,12 @@ class bitcoincoid extends Exchange {
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $p = $this->market ($market);
         $order = array (
-            'pair' => parray ('id'),
+            'pair' => $p['id'],
             'type' => $side,
             'price' => $price,
         );
-        $base = strtolower (parray ('base'));
-        orderarray ($base) = $amount;
+        $base = strtolower ($p['base']);
+        $order[$base] = $amount;
         return $this->privatePostTrade (array_merge ($order, $params));
     }
 
@@ -2072,7 +2072,7 @@ class bitcoincoid extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api')array ($api);
+        $url = $this->urls['api'][$api];
         if ($api == 'public') {
             $url .= '/' . $this->implode_params ($path, $params);
         } else {
@@ -2089,7 +2089,7 @@ class bitcoincoid extends Exchange {
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('error', $response))
-            throw new ExchangeError ($this->id . ' ' . responsearray ('error'));
+            throw new ExchangeError ($this->id . ' ' . $response['error']);
         return $response;        
     }
 }
@@ -2173,8 +2173,8 @@ class bitfinex extends Exchange {
         $markets = $this->publicGetSymbolsDetails ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
-            $market = marketsarray ($p);
-            $id = strtoupper (marketarray ('pair'));
+            $market = $markets[$p];
+            $id = strtoupper ($market['pair']);
             $baseId = mb_substr ($id, 0, 3);
             $quoteId = mb_substr ($id, 3, 6);
             $base = $baseId;
@@ -2201,30 +2201,30 @@ class bitfinex extends Exchange {
         $response = $this->privatePostBalances ();
         $balances = array ();
         for ($b = 0; $b < count ($response); $b++) {
-            $account = responsearray ($b);
-            if (accountarray ('type') == 'exchange') {
-                $currency = accountarray ('currency');
+            $account = $response[$b];
+            if ($account['type'] == 'exchange') {
+                $currency = $account['currency'];
                 // issue #4 Bitfinex names Dash as DSH, instead of DASH
                 if ($currency == 'DSH')
                     $currency = 'DASH';
                 $uppercase = strtoupper ($currency);
-                balancesarray ($uppercase) = $account;
+                $balances[$uppercase] = $account;
             }
         }
         $result = array ( 'info' => $response );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $account = array (
                 'free' => null,
                 'used' => null,
                 'total' => null,
             );
             if (array_key_exists ($currency, $balances)) {
-                accountarray ('free') = floatval (balancesarray ($currency)array ('available'));
-                accountarray ('total') = floatval (balancesarray ($currency)array ('amount'));
-                accountarray ('used') = accountarray ('total') - accountarray ('free');
+                $account['free'] = floatval ($balances[$currency]['available']);
+                $account['total'] = floatval ($balances[$currency]['amount']);
+                $account['used'] = $account['total'] - $account['free'];
             }
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -2243,14 +2243,14 @@ class bitfinex extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray ('price'));
-                $amount = floatval (orderarray ('amount'));
-                $timestamp = intval (floatval (orderarray ('timestamp')));
-                resultarray ($side)[] = array ($price, $amount, $timestamp);
+                $order = $orders[$i];
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['amount']);
+                $timestamp = intval (floatval ($order['timestamp']));
+                $result[$side][] = array ($price, $amount, $timestamp);
             }
         }
         return $result;
@@ -2261,24 +2261,24 @@ class bitfinex extends Exchange {
         $ticker = $this->publicGetPubtickerSymbol (array (
             'symbol' => $this->market_id ($market),
         ));
-        $timestamp = floatval (tickerarray ('timestamp')) * 1000;
+        $timestamp = floatval ($ticker['timestamp']) * 1000;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last_price')),
+            'last' => floatval ($ticker['last_price']),
             'change' => null,
             'percentage' => null,
-            'average' => floatval (tickerarray ('mid')),
+            'average' => floatval ($ticker['mid']),
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('volume')),
+            'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
     }
@@ -2302,9 +2302,9 @@ class bitfinex extends Exchange {
             'sell_price_oco' => 0,
         );
         if ($type == 'market') {
-            orderarray ('price') = (string) $this->nonce ();
+            $order['price'] = (string) $this->nonce ();
         } else {
-            orderarray ('price') = $price;
+            $order['price'] = $price;
         }
         return $this->privatePostOrderNew (array_merge ($order, $params));
     }
@@ -2321,7 +2321,7 @@ class bitfinex extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        $url = $this->urlsarray ('api') . $request;
+        $url = $this->urls['api'] . $request;
         if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
@@ -2413,16 +2413,16 @@ class bitflyer extends Exchange {
         $markets = $this->publicGetMarkets ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
-            $market = marketsarray ($p);
-            $id = marketarray ('product_code');
+            $market = $markets[$p];
+            $id = $market['product_code'];
             $currencies = explode ('_', $id);
             $base = null;
             $quote = null;
             $symbol = $id;
             $numCurrencies = count ($currencies);
             if ($numCurrencies == 2) {
-                $base = currenciesarray (0);
-                $quote = currenciesarray (1);
+                $base = $currencies[0];
+                $quote = $currencies[1];
                 $symbol = $base . '/' . $quote;
             }
             $result[] = array (
@@ -2441,24 +2441,24 @@ class bitflyer extends Exchange {
         $response = $this->privateGetBalance ();
         $balances = array ();
         for ($b = 0; $b < count ($response); $b++) {
-            $account = responsearray ($b);
-            $currency = accountarray ('currency_code');
-            balancesarray ($currency) = $account;
+            $account = $response[$b];
+            $currency = $account['currency_code'];
+            $balances[$currency] = $account;
         }
         $result = array ( 'info' => $response );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $account = array (
                 'free' => null,
                 'used' => null,
                 'total' => null,
             );
             if (array_key_exists ($currency, $balances)) {
-                accountarray ('total') = balancesarray ($currency)array ('amount');
-                accountarray ('free') = balancesarray ($currency)array ('available');                
-                accountarray ('used') = accountarray ('total') - accountarray ('free');
+                $account['total'] = $balances[$currency]['amount'];
+                $account['free'] = $balances[$currency]['available'];                
+                $account['used'] = $account['total'] - $account['free'];
             }
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -2477,13 +2477,13 @@ class bitflyer extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray ('price'));
-                $amount = floatval (orderarray ('size'));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['size']);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -2494,24 +2494,24 @@ class bitflyer extends Exchange {
         $ticker = $this->publicGetTicker (array (
             'product_code' => $this->market_id ($market),
         ));
-        $timestamp = $this->parse8601 (tickerarray ('timestamp'));
+        $timestamp = $this->parse8601 ($ticker['timestamp']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval (tickerarray ('best_bid')),
-            'ask' => floatval (tickerarray ('best_ask')),
+            'bid' => floatval ($ticker['best_bid']),
+            'ask' => floatval ($ticker['best_ask']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('ltp')),
+            'last' => floatval ($ticker['ltp']),
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval (tickerarray ('volume_by_product')),
-            'quoteVolume' => floatval (tickerarray ('volume')),
+            'baseVolume' => floatval ($ticker['volume_by_product']),
+            'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
     }
@@ -2546,7 +2546,7 @@ class bitflyer extends Exchange {
         $request = '/' . $this->version . '/' . $path;
         if ($api == 'private')
             $request = '/me' . $request;
-        $url = $this->urlsarray ('api') . $request;
+        $url = $this->urls['api'] . $request;
         if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
@@ -2631,9 +2631,9 @@ class bitlish extends Exchange {
         $result = array ();
         $keys = array_keys ($markets);
         for ($p = 0; $p < count ($keys); $p++) {
-            $market = marketsarray ($keys[$p)];
-            $id = marketarray ('id');
-            $symbol = marketarray ('name');
+            $market = $markets[$keys[$p]];
+            $id = $market['id'];
+            $symbol = $market['name'];
             list ($base, $quote) = explode ('/', $symbol);
             // issue #4 bitlish names Dash as DSH, instead of DASH
             if ($base == 'DSH')
@@ -2655,15 +2655,15 @@ class bitlish extends Exchange {
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('max')),
-            'low' => floatval (tickerarray ('min')),
+            'high' => floatval ($ticker['max']),
+            'low' => floatval ($ticker['min']),
             'bid' => null,
             'ask' => null,
             'vwap' => null,
             'open' => null,
             'close' => null,
-            'first' => floatval (tickerarray ('first')),
-            'last' => floatval (tickerarray ('last')),
+            'first' => floatval ($ticker['first']),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -2679,11 +2679,11 @@ class bitlish extends Exchange {
         $ids = array_keys ($tickers);
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
-            $id = idsarray ($i);
-            $market = $this->markets_by_idarray ($id);
-            $symbol = marketarray ('symbol');
-            $ticker = tickersarray ($id);
-            resultarray ($symbol) = $this->parse_ticker ($ticker, $market);
+            $id = $ids[$i];
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
     }
@@ -2692,7 +2692,7 @@ class bitlish extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $tickers = $this->publicGetTickers ();
-        $ticker = tickersarray ($p['id')];
+        $ticker = $tickers[$p['id']];
         return $this->parse_ticker ($ticker, $p);
     }
 
@@ -2701,7 +2701,7 @@ class bitlish extends Exchange {
         $orderbook = $this->publicGetTradesDepth (array_merge (array (
             'pair_id' => $this->market_id ($market),
         ), $params));
-        $timestamp = intval (intval (orderbookarray ('last')) / 1000);
+        $timestamp = intval (intval ($orderbook['last']) / 1000);
         $result = array (
             'bids' => array (),
             'asks' => array (),
@@ -2711,14 +2711,14 @@ class bitlish extends Exchange {
         $sides = array ( 'bids' => 'bid', 'asks' => 'ask' );
         $keys = array_keys ($sides);
         for ($k = 0; $k < count ($keys); $k++) {
-            $key = keysarray ($k);
-            $side = sidesarray ($key);
-            $orders = orderbookarray ($side);
+            $key = $keys[$k];
+            $side = $sides[$key];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray ('price'));
-                $amount = floatval (orderarray ('volume'));
-                resultarray ($key)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['volume']);
+                $result[$key][] = array ($price, $amount);
             }
         }
         return $result;
@@ -2738,27 +2738,27 @@ class bitlish extends Exchange {
         $currencies = array_keys ($response);
         $balance = array ();
         for ($c = 0; $c < count ($currencies); $c++) {
-            $currency = currenciesarray ($c);
-            $account = responsearray ($currency);
+            $currency = $currencies[$c];
+            $account = $response[$currency];
             $currency = strtoupper ($currency);
             // issue #4 bitlish names Dash as DSH, instead of DASH
             if ($currency == 'DSH')
                 $currency = 'DASH';
-            balancearray ($currency) = $account;
+            $balance[$currency] = $account;
         }
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $account = array (
                 'free' => null,
                 'used' => null,
                 'total' => null,
             );
             if (array_key_exists ($currency, $balance)) {
-                accountarray ('free') = floatval (balancearray ($currency)array ('funds'));
-                accountarray ('used') = floatval (balancearray ($currency)array ('holded'));                
-                accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
+                $account['free'] = floatval ($balance[$currency]['funds']);
+                $account['used'] = floatval ($balance[$currency]['holded']);                
+                $account['total'] = $this->sum ($account['free'], $account['used']);
             }
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -2778,7 +2778,7 @@ class bitlish extends Exchange {
             'amount' => $amount,
         );
         if ($type == 'limit')
-            orderarray ('price') = $price;
+            $order['price'] = $price;
         return $this->privatePostCreateTrade (array_merge ($order, $params));
     }
 
@@ -2788,7 +2788,7 @@ class bitlish extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->version . '/' . $path;
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
@@ -2892,22 +2892,22 @@ class bitmarket extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $response = $this->privatePostInfo ();
-        $data = responsearray ('data');
-        $balance = dataarray ('balances');
+        $data = $response['data'];
+        $balance = $data['balances'];
         $result = array ( 'info' => $data );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $account = array (
                 'free' => null,
                 'used' => null,
                 'total' => null,
             );
-            if (array_key_exists ($currency, balancearray ('available')))
-                accountarray ('free') = balancearray ('available')array ($currency);
-            if (array_key_exists ($currency, balancearray ('blocked')))
-                accountarray ('used') = balancearray ('blocked')array ($currency);
-            accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
-            resultarray ($currency) = $account;
+            if (array_key_exists ($currency, $balance['available']))
+                $account['free'] = $balance['available'][$currency];
+            if (array_key_exists ($currency, $balance['blocked']))
+                $account['used'] = $balance['blocked'][$currency];
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -2918,8 +2918,8 @@ class bitmarket extends Exchange {
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
-            'bids' => orderbookarray ('bids'),
-            'asks' => orderbookarray ('asks'),
+            'bids' => $orderbook['bids'],
+            'asks' => $orderbook['asks'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
@@ -2935,20 +2935,20 @@ class bitmarket extends Exchange {
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
-            'vwap' => floatval (tickerarray ('vwap')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => floatval ($ticker['vwap']),
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('volume')),
+            'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
     }
@@ -2973,7 +2973,7 @@ class bitmarket extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api')array ($api);
+        $url = $this->urls['api'][$api];
         if ($api == 'public') {
             $url .= '/' . $this->implode_params ($path . '.json', $params);
         } else {
@@ -3105,10 +3105,10 @@ class bitmex extends Exchange {
         $markets = $this->publicGetInstrumentActive ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
-            $market = marketsarray ($p);
-            $id = marketarray ('symbol');
-            $base = marketarray ('underlying');
-            $quote = marketarray ('quoteCurrency');
+            $market = $markets[$p];
+            $id = $market['symbol'];
+            $base = $market['underlying'];
+            $quote = $market['quoteCurrency'];
             $isFuturesContract = $id != ($base . $quote);
             $base = $this->commonCurrencyCode ($base);
             $quote = $this->commonCurrencyCode ($quote);
@@ -3129,20 +3129,20 @@ class bitmex extends Exchange {
         $response = $this->privateGetUserMargin (array ( 'currency' => 'all' ));
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($response); $b++) {
-            $balance = responsearray ($b);
-            $currency = strtoupper (balancearray ('currency'));
+            $balance = $response[$b];
+            $currency = strtoupper ($balance['currency']);
             $currency = $this->commonCurrencyCode ($currency);
             $account = array (
-                'free' => balancearray ('availableMargin'),
+                'free' => $balance['availableMargin'],
                 'used' => null,
-                'total' => balancearray ('amount'),
+                'total' => $balance['amount'],
             );
             if ($currency == 'BTC') {
-                accountarray ('free') = accountarray ('free') * 0.00000001;
-                accountarray ('total') = accountarray ('total') * 0.00000001;
+                $account['free'] = $account['free'] * 0.00000001;
+                $account['total'] = $account['total'] * 0.00000001;
             }
-            accountarray ('used') = accountarray ('total') - accountarray ('free');
-            resultarray ($currency) = $account;
+            $account['used'] = $account['total'] - $account['free'];
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -3160,14 +3160,14 @@ class bitmex extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
         );
         for ($o = 0; $o < count ($orderbook); $o++) {
-            $order = orderbookarray ($o);
-            $side = (orderarray ('side') == 'Sell') ? 'asks' : 'bids';
-            $amount = orderarray ('size');
-            $price = orderarray ('price');
-            resultarray ($side)[] = array ($price, $amount);
+            $order = $orderbook[$o];
+            $side = ($order['side'] == 'Sell') ? 'asks' : 'bids';
+            $amount = $order['size'];
+            $price = $order['price'];
+            $result[$side][] = array ($price, $amount);
         }
-        resultarray ('bids') = $this->sort_by (resultarray ('bids'), 0, true);
-        resultarray ('asks') = $this->sort_by (resultarray ('asks'), 0);
+        $result['bids'] = $this->sort_by ($result['bids'], 0, true);
+        $result['asks'] = $this->sort_by ($result['asks'], 0);
         return $result;
     }
 
@@ -3182,27 +3182,27 @@ class bitmex extends Exchange {
         );
         $quotes = $this->publicGetQuoteBucketed ($request);
         $quotesLength = count ($quotes);
-        $quote = quotesarray ($quotesLength - 1);
+        $quote = $quotes[$quotesLength - 1];
         $tickers = $this->publicGetTradeBucketed ($request);
-        $ticker = tickersarray (0);
+        $ticker = $tickers[0];
         $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (quotearray ('bidPrice')),
-            'ask' => floatval (quotearray ('askPrice')),
-            'vwap' => floatval (tickerarray ('vwap')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($quote['bidPrice']),
+            'ask' => floatval ($quote['askPrice']),
+            'vwap' => floatval ($ticker['vwap']),
             'open' => null,
-            'close' => floatval (tickerarray ('close')),
+            'close' => floatval ($ticker['close']),
             'first' => null,
             'last' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval (tickerarray ('homeNotional')),
-            'quoteVolume' => floatval (tickerarray ('foreignNotional')),
+            'baseVolume' => floatval ($ticker['homeNotional']),
+            'quoteVolume' => floatval ($ticker['foreignNotional']),
             'info' => $ticker,
         );
     }
@@ -3223,7 +3223,7 @@ class bitmex extends Exchange {
             'ordType' => $this->capitalize ($type),
         );
         if ($type == 'limit')
-            orderarray ('rate') = $price;
+            $order['rate'] = $price;
         return $this->privatePostOrder (array_merge ($order, $params));
     }
 
@@ -3236,7 +3236,7 @@ class bitmex extends Exchange {
         $query = '/$api/' . $this->version . '/' . $path;
         if ($params)
             $query .= '?' . $this->urlencode ($params);
-        $url = $this->urlsarray ('api') . $query;
+        $url = $this->urls['api'] . $query;
         if ($api == 'private') {
             $nonce = (string) $this->nonce ();
             if ($method == 'POST')
@@ -3325,9 +3325,9 @@ class bitso extends Exchange {
     public function fetch_markets () {
         $markets = $this->publicGetAvailableBooks ();
         $result = array ();
-        for ($p = 0; $p < count (marketsarray ('payload')); $p++) {
-            $market = marketsarray ('payload')array ($p);
-            $id = marketarray ('book');
+        for ($p = 0; $p < count ($markets['payload']); $p++) {
+            $market = $markets['payload'][$p];
+            $id = $market['book'];
             $symbol = str_replace ('_', '/', strtoupper ($id));
             list ($base, $quote) = explode ('/', $symbol);
             $result[] = array (
@@ -3344,17 +3344,17 @@ class bitso extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $response = $this->privateGetBalance ();
-        $balances = responsearray ('payload')array ('balances');
+        $balances = $response['payload']['balances'];
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = balancesarray ($b);
-            $currency = strtoupper (balancearray ('currency'));
+            $balance = $balances[$b];
+            $currency = strtoupper ($balance['currency']);
             $account = array (
-                'free' => floatval (balancearray ('available')),
-                'used' => floatval (balancearray ('locked')),
-                'total' => floatval (balancearray ('total')),
+                'free' => floatval ($balance['available']),
+                'used' => floatval ($balance['locked']),
+                'total' => floatval ($balance['total']),
             );
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -3364,8 +3364,8 @@ class bitso extends Exchange {
         $response = $this->publicGetOrderBook (array_merge (array (
             'book' => $this->market_id ($market),
         ), $params));
-        $orderbook = responsearray ('payload');
-        $timestamp = $this->parse8601 (orderbookarray ('updated_at'));
+        $orderbook = $response['payload'];
+        $timestamp = $this->parse8601 ($orderbook['updated_at']);
         $result = array (
             'bids' => array (),
             'asks' => array (),
@@ -3374,13 +3374,13 @@ class bitso extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray ('price'));
-                $amount = floatval (orderarray ('amount'));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['amount']);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -3391,16 +3391,16 @@ class bitso extends Exchange {
         $response = $this->publicGetTicker (array (
             'book' => $this->market_id ($market),
         ));
-        $ticker = responsearray ('payload');
-        $timestamp = $this->parse8601 (tickerarray ('created_at'));
+        $ticker = $response['payload'];
+        $timestamp = $this->parse8601 ($ticker['created_at']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
-            'vwap' => floatval (tickerarray ('vwap')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => floatval ($ticker['vwap']),
             'open' => null,
             'close' => null,
             'first' => null,
@@ -3409,7 +3409,7 @@ class bitso extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('volume')),
+            'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
     }
@@ -3430,7 +3430,7 @@ class bitso extends Exchange {
             'major' => $amount,
         );
         if ($type == 'limit')
-            orderarray ('price') = $price;
+            $order['price'] = $price;
         return $this->privatePostOrders (array_merge ($order, $params));
     }
 
@@ -3441,7 +3441,7 @@ class bitso extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = '/' . $this->version . '/' . $this->implode_params ($path, $params);
-        $url = $this->urlsarray ('api') . $query;
+        $url = $this->urls['api'] . $query;
         if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
@@ -3456,7 +3456,7 @@ class bitso extends Exchange {
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('success', $response))
-            if (responsearray ('success'))
+            if ($response['success'])
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
@@ -3531,7 +3531,7 @@ class bitstamp extends Exchange {
         $orderbook = $this->publicGetOrderBookId (array_merge (array (
             'id' => $this->market_id ($market),
         ), $params));
-        $timestamp = intval (orderbookarray ('timestamp')) * 1000;
+        $timestamp = intval ($orderbook['timestamp']) * 1000;
         $result = array (
             'bids' => array (),
             'asks' => array (),
@@ -3540,13 +3540,13 @@ class bitstamp extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray (0));
-                $amount = floatval (orderarray (1));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -3556,24 +3556,24 @@ class bitstamp extends Exchange {
         $ticker = $this->publicGetTickerId (array (
             'id' => $this->market_id ($market),
         ));
-        $timestamp = intval (tickerarray ('timestamp')) * 1000;
+        $timestamp = intval ($ticker['timestamp']) * 1000;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
-            'vwap' => floatval (tickerarray ('vwap')),
-            'open' => floatval (tickerarray ('open')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => floatval ($ticker['vwap']),
+            'open' => floatval ($ticker['open']),
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('volume')),
+            'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
     }
@@ -3588,7 +3588,7 @@ class bitstamp extends Exchange {
         $balance = $this->privatePostBalance ();
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $total = $lowercase . '_balance';
             $free = $lowercase . '_available';
@@ -3599,12 +3599,12 @@ class bitstamp extends Exchange {
                 'total' => null,
             );
             if (array_key_exists ($free, $balance))
-                accountarray ('free') = floatval (balancearray ($free));
+                $account['free'] = floatval ($balance[$free]);
             if (array_key_exists ($used, $balance))
-                accountarray ('used') = floatval (balancearray ($used));
+                $account['used'] = floatval ($balance[$used]);
             if (array_key_exists ($total, $balance))
-                accountarray ('total') = floatval (balancearray ($total));
-            resultarray ($currency) = $account;
+                $account['total'] = floatval ($balance[$total]);
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -3618,9 +3618,9 @@ class bitstamp extends Exchange {
         if ($type == 'market')
             $method .= 'Market';
         else
-            orderarray ('price') = $price;
+            $order['price'] = $price;
         $method .= 'Id';
-        return thisarray ($method) (array_merge ($order, $params));
+        return $this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id) {
@@ -3628,7 +3628,7 @@ class bitstamp extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
             if ($query)
@@ -3715,11 +3715,11 @@ class bittrex extends Exchange {
     public function fetch_markets () {
         $markets = $this->publicGetMarkets ();
         $result = array ();
-        for ($p = 0; $p < count (marketsarray ('result')); $p++) {
-            $market = marketsarray ('result')array ($p);
-            $id = marketarray ('MarketName');
-            $base = marketarray ('MarketCurrency');
-            $quote = marketarray ('BaseCurrency');
+        for ($p = 0; $p < count ($markets['result']); $p++) {
+            $market = $markets['result'][$p];
+            $id = $market['MarketName'];
+            $base = $market['MarketCurrency'];
+            $quote = $market['BaseCurrency'];
             $base = $this->commonCurrencyCode ($base);
             $quote = $this->commonCurrencyCode ($quote);
             $symbol = $base . '/' . $quote;
@@ -3737,37 +3737,37 @@ class bittrex extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $response = $this->accountGetBalances ();
-        $balances = responsearray ('result');
+        $balances = $response['result'];
         $result = array ( 'info' => $balances );
         $indexed = $this->index_by ($balances, 'Currency');
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $account = array (
                 'free' => null,
                 'used' => null,
                 'total' => null,
             );
             if (array_key_exists ($currency, $indexed)) {
-                $balance = indexedarray ($currency);
-                accountarray ('free') = balancearray ('Available');
-                accountarray ('used') = balancearray ('Balance') - balancearray ('Available');
-                accountarray ('total') = balancearray ('Balance');
+                $balance = $indexed[$currency];
+                $account['free'] = $balance['Available'];
+                $account['used'] = $balance['Balance'] - $balance['Available'];
+                $account['total'] = $balance['Balance'];
             }
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
 
     public function parse_bidask ($bidask) {
-        $price = floatval (bidaskarray ('Rate'));
-        $amount = floatval (bidaskarray ('Quantity'));
+        $price = floatval ($bidask['Rate']);
+        $amount = floatval ($bidask['Quantity']);
         return array ($price, $amount);
     }
 
     public function parse_bidasks ($bidasks) {
         $result = array ();
         for ($i = 0; $i < count ($bidasks); $i++) {
-            $result[] = $this->parse_bidask (bidasksarray ($i));
+            $result[] = $this->parse_bidask ($bidasks[$i]);
         }
         return $result;
     }
@@ -3779,7 +3779,7 @@ class bittrex extends Exchange {
             'type' => 'both',
             'depth' => 50,
         ), $params));
-        $orderbook = responsearray ('result');
+        $orderbook = $response['result'];
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -3790,32 +3790,32 @@ class bittrex extends Exchange {
         $sides = array ( 'bids' => 'buy', 'asks' => 'sell' );
         $keys = array_keys ($sides);
         for ($k = 0; $k < count ($keys); $k++) {
-            $key = keysarray ($k);
-            $side = sidesarray ($key);
-            resultarray ($key) = $this->parse_bidasks (orderbookarray ($side));
+            $key = $keys[$k];
+            $side = $sides[$key];
+            $result[$key] = $this->parse_bidasks ($orderbook[$side]);
         }
         return $result;
     }
 
     public function parse_ticker ($ticker, $market) {
-        $timestamp = $this->parse8601 (tickerarray ('TimeStamp'));
+        $timestamp = $this->parse8601 ($ticker['TimeStamp']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('High')),
-            'low' => floatval (tickerarray ('Low')),
-            'bid' => floatval (tickerarray ('Bid')),
-            'ask' => floatval (tickerarray ('Ask')),
+            'high' => floatval ($ticker['High']),
+            'low' => floatval ($ticker['Low']),
+            'bid' => floatval ($ticker['Bid']),
+            'ask' => floatval ($ticker['Ask']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('Last')),
+            'last' => floatval ($ticker['Last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval (tickerarray ('BaseVolume')),
-            'quoteVolume' => floatval (tickerarray ('Volume')),
+            'baseVolume' => floatval ($ticker['BaseVolume']),
+            'quoteVolume' => floatval ($ticker['Volume']),
             'info' => $ticker,
         );
     }
@@ -3823,23 +3823,23 @@ class bittrex extends Exchange {
     public function fetch_tickers () {
         $this->loadMarkets ();
         $response = $this->publicGetMarketsummaries ();
-        $tickers = responsearray ('result');
+        $tickers = $response['result'];
         $result = array ();
         for ($t = 0; $t < count ($tickers); $t++) {
-            $ticker = tickersarray ($t);
-            $id = tickerarray ('MarketName');
+            $ticker = $tickers[$t];
+            $id = $ticker['MarketName'];
             $market = null;
             $symbol = $id;
             if (array_key_exists ($id, $this->markets_by_id)) {
-                $market = $this->markets_by_idarray ($id);
-                $symbol = marketarray ('symbol');
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
             } else {
                 list ($quote, $base) = explode ('-', $id);
                 $base = $this->commonCurrencyCode ($base);
                 $quote = $this->commonCurrencyCode ($quote);
                 $symbol = $base . '/' . $quote;                
             }
-            resultarray ($symbol) = $this->parse_ticker ($ticker, $market);
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
     }
@@ -3848,9 +3848,9 @@ class bittrex extends Exchange {
         $this->loadMarkets ();
         $m = $this->market ($market);
         $response = $this->publicGetMarketsummary (array (
-            'market' => marray ('id'),
+            'market' => $m['id'],
         ));
-        $ticker = responsearray ('result')array (0);
+        $ticker = $response['result'][0];
         return $this->parse_ticker ($ticker, $m);
     }
 
@@ -3869,11 +3869,11 @@ class bittrex extends Exchange {
             'quantity' => $amount,
         );
         if ($type == 'limit')
-            orderarray ('rate') = $price;
-        $response = thisarray ($method) (array_merge ($order, $params));
+            $order['rate'] = $price;
+        $response = $this->$method (array_merge ($order, $params));
         $result = array (
             'info' => $response,
-            'id' => responsearray ('result')array ('uuid'),
+            'id' => $response['result']['uuid'],
         );
         return $result;
     }
@@ -3886,22 +3886,22 @@ class bittrex extends Exchange {
     public function fetchOrder ($id) {
         $this->loadMarkets ();
         $response = $this->accountGetOrder (array ( 'uuid' => $id ));
-        $orderInfo = responsearray ('result');
-        $orderType = (orderInfoarray ('Type') == 'LIMIT_BUY') ? 'buy' : 'sell';
+        $orderInfo = $response['result'];
+        $orderType = ($orderInfo['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
         $result = array (
             'info' => $response,
             'type' => $orderType,
-            'rate' => orderInfoarray ('PricePerUnit'),
-            'startingAmount' => orderInfoarray ('Quantity'),
-            'remaining' => orderInfoarray ('QuantityRemaining'),
-            'isOpen' => orderInfoarray ('IsOpen'),
-            'isCanceled' => orderInfoarray ('CancelInitiated'),
+            'rate' => $orderInfo['PricePerUnit'],
+            'startingAmount' => $orderInfo['Quantity'],
+            'remaining' => $orderInfo['QuantityRemaining'],
+            'isOpen' => $orderInfo['IsOpen'],
+            'isCanceled' => $orderInfo['CancelInitiated'],
         );
         return $result;
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->version . '/';
+        $url = $this->urls['api'] . '/' . $this->version . '/';
         if ($api == 'public') {
             $url .= $api . '/' . strtolower ($method) . $path;
             if ($params)
@@ -3920,7 +3920,7 @@ class bittrex extends Exchange {
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('success', $response))
-            if (responsearray ('success'))
+            if ($response['success'])
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
@@ -3989,8 +3989,8 @@ class blinktrade extends Exchange {
     public function fetch_order_book ($market, $params = array ()) {
         $p = $this->market ($market);
         $orderbook = $this->publicGetCurrencyOrderbook (array_merge (array (
-            'currency' => parray ('quote'),
-            'crypto_currency' => parray ('base'),
+            'currency' => $p['quote'],
+            'crypto_currency' => $p['base'],
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -4001,13 +4001,13 @@ class blinktrade extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray (0));
-                $amount = floatval (orderarray (1));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -4016,29 +4016,29 @@ class blinktrade extends Exchange {
     public function fetch_ticker ($market) {
         $p = $this->market ($market);
         $ticker = $this->publicGetCurrencyTicker (array (
-            'currency' => parray ('quote'),
-            'crypto_currency' => parray ('base'),
+            'currency' => $p['quote'],
+            'crypto_currency' => $p['base'],
         ));
         $timestamp = $this->milliseconds ();
-        $lowercaseQuote = strtolower (parray ('quote'));
+        $lowercaseQuote = strtolower ($p['quote']);
         $quoteVolume = 'vol_' . $lowercaseQuote;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('buy')),
-            'ask' => floatval (tickerarray ('sell')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval (tickerarray ('vol')),
-            'quoteVolume' => floatval (tickerarray ($quoteVolume)),
+            'baseVolume' => floatval ($ticker['vol']),
+            'quoteVolume' => floatval ($ticker[$quoteVolume]),
             'info' => $ticker,
         );
     }
@@ -4046,8 +4046,8 @@ class blinktrade extends Exchange {
     public function fetch_trades ($market) {
         $p = $this->market ($market);
         return $this->publicGetCurrencyTrades (array (
-            'currency' => parray ('quote'),
-            'crypto_currency' => parray ('base'),
+            'currency' => $p['quote'],
+            'crypto_currency' => $p['base'],
         ));
     }
 
@@ -4057,12 +4057,12 @@ class blinktrade extends Exchange {
         $p = $this->market ($market);
         $order = array (
             'ClOrdID' => $this->nonce (),
-            'Symbol' => parray ('id'),
+            'Symbol' => $p['id'],
             'Side' => $this->capitalize ($side),
             'OrdType' => 2,
             'Price' => $price,
             'OrderQty' => $amount,
-            'BrokerID' => parray ('brokerId'),
+            'BrokerID' => $p['brokerId'],
         );
         return $this->privatePostD (array_merge ($order, $params));
     }
@@ -4074,7 +4074,7 @@ class blinktrade extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api')array ($api) . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
             if ($query)
@@ -4153,32 +4153,32 @@ class bl3p extends Exchange {
 
     public function fetch_balance () {
         $response = $this->privatePostGENMKTMoneyInfo ();
-        $data = responsearray ('data');
-        $balance = dataarray ('wallets');
+        $data = $response['data'];
+        $balance = $data['wallets'];
         $result = array ( 'info' => $data );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $account = array (
                 'free' => null,
                 'used' => null,
                 'total' => null,
             );
             if (array_key_exists ($currency, $balance)) {
-                if (array_key_exists ('available', balancearray ($currency))) {
-                    accountarray ('free') = floatval (balancearray ($currency)array ('available')array ('value'));
+                if (array_key_exists ('available', $balance[$currency])) {
+                    $account['free'] = floatval ($balance[$currency]['available']['value']);
                 }
             }
             if (array_key_exists ($currency, $balance)) {
-                if (array_key_exists ('balance', balancearray ($currency))) {
-                    accountarray ('total') = floatval (balancearray ($currency)array ('balance')array ('value'));
+                if (array_key_exists ('balance', $balance[$currency])) {
+                    $account['total'] = floatval ($balance[$currency]['balance']['value']);
                 }
             }
-            if (accountarray ('total')) {
-                if (accountarray ('free')) {
-                    accountarray ('used') = accountarray ('total') - accountarray ('free');
+            if ($account['total']) {
+                if ($account['free']) {
+                    $account['used'] = $account['total'] - $account['free'];
                 }
             }
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -4186,9 +4186,9 @@ class bl3p extends Exchange {
     public function fetch_order_book ($market, $params = array ()) {
         $p = $this->market ($market);
         $response = $this->publicGetMarketOrderbook (array_merge (array (
-            'market' => parray ('id'),
+            'market' => $p['id'],
         ), $params));
-        $orderbook = responsearray ('data');
+        $orderbook = $response['data'];
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -4198,13 +4198,13 @@ class bl3p extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = orderarray ('price_int') / 100000;
-                $amount = orderarray ('amount_int') / 100000000;
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = $order['price_int'] / 100000;
+                $amount = $order['amount_int'] / 100000000;
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -4214,24 +4214,24 @@ class bl3p extends Exchange {
         $ticker = $this->publicGetMarketTicker (array (
             'market' => $this->market_id ($market),
         ));        
-        $timestamp = tickerarray ('timestamp') * 1000;
+        $timestamp = $ticker['timestamp'] * 1000;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('volume')array ('24h')),
+            'quoteVolume' => floatval ($ticker['volume']['24h']),
             'info' => $ticker,
         );
     }
@@ -4245,13 +4245,13 @@ class bl3p extends Exchange {
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $p = $this->market ($market);
         $order = array (
-            'market' => parray ('id'),
+            'market' => $p['id'],
             'amount_int' => $amount,
-            'fee_currency' => parray ('quote'),
+            'fee_currency' => $p['quote'],
             'type' => ($side == 'buy') ? 'bid' : 'ask',
         );
         if ($type == 'limit')
-            orderarray ('price_int') = $price;
+            $order['price_int'] = $price;
         return $this->privatePostMarketMoneyOrderAdd (array_merge ($order, $params));
     }
 
@@ -4261,7 +4261,7 @@ class bl3p extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = $this->implode_params ($path, $params);
-        $url = $this->urlsarray ('api') . '/' . $this->version . '/' . $request;
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $request;
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
             if ($query)
@@ -4354,10 +4354,10 @@ class btcchina extends Exchange {
         $result = array ();
         $keys = array_keys ($markets);
         for ($p = 0; $p < count ($keys); $p++) {
-            $key = keysarray ($p);
-            $market = marketsarray ($key);
+            $key = $keys[$p];
+            $market = $markets[$key];
             $parts = explode ('_', $key);
-            $id = partsarray (1);
+            $id = $parts[1];
             $base = mb_substr ($id, 0, 3);
             $quote = mb_substr ($id, 3, 6);
             $base = strtoupper ($base);
@@ -4377,23 +4377,23 @@ class btcchina extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $response = $this->privatePostGetAccountInfo ();
-        $balances = responsearray ('result');
+        $balances = $response['result'];
         $result = array ( 'info' => $balances );
 
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = array (
                 'free' => null,
                 'used' => null,
                 'total' => null,
             );
-            if (array_key_exists ($lowercase, balancesarray ('balance')))
-                accountarray ('total') = floatval (balancesarray ('balance')array ($lowercase)array ('amount'));
-            if (array_key_exists ($lowercase, balancesarray ('frozen')))
-                accountarray ('used') = floatval (balancesarray ('frozen')array ($lowercase)array ('amount'));
-            accountarray ('free') = accountarray ('total') - accountarray ('used');
-            resultarray ($currency) = $account;
+            if (array_key_exists ($lowercase, $balances['balance']))
+                $account['total'] = floatval ($balances['balance'][$lowercase]['amount']);
+            if (array_key_exists ($lowercase, $balances['frozen']))
+                $account['used'] = floatval ($balances['frozen'][$lowercase]['amount']);
+            $account['free'] = $account['total'] - $account['used'];
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -4403,14 +4403,14 @@ class btcchina extends Exchange {
         $orderbook = $this->publicGetOrderbook (array_merge (array (
             'market' => $this->market_id ($market),
         ), $params));
-        $timestamp = orderbookarray ('date') * 1000;;
+        $timestamp = $orderbook['date'] * 1000;;
         $result = array (
-            'bids' => orderbookarray ('bids'),
-            'asks' => orderbookarray ('asks'),
+            'bids' => $orderbook['bids'],
+            'asks' => $orderbook['asks'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        resultarray ('asks') = $this->sort_by (resultarray ('asks'), 0);
+        $result['asks'] = $this->sort_by ($result['asks'], 0);
         return $result;
     }
 
@@ -4418,27 +4418,27 @@ class btcchina extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $tickers = $this->publicGetTicker (array (
-            'market' => parray ('id'),
+            'market' => $p['id'],
         ));
-        $ticker = tickersarray ('ticker');
-        $timestamp = tickerarray ('date') * 1000;
+        $ticker = $tickers['ticker'];
+        $timestamp = $ticker['date'] * 1000;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('buy')),
-            'ask' => floatval (tickerarray ('sell')),
-            'vwap' => floatval (tickerarray ('vwap')),
-            'open' => floatval (tickerarray ('open')),
-            'close' => floatval (tickerarray ('prev_close')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
+            'vwap' => floatval ($ticker['vwap']),
+            'open' => floatval ($ticker['open']),
+            'close' => floatval ($ticker['prev_close']),
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('vol')),
+            'quoteVolume' => floatval ($ticker['vol']),
             'info' => $ticker,
         );
     }
@@ -4455,18 +4455,18 @@ class btcchina extends Exchange {
         $p = $this->market ($market);
         $method = 'privatePost' . $this->capitalize ($side) . 'Order2';
         $order = array ();
-        $id = strtoupper (parray ('id'));
+        $id = strtoupper ($p['id']);
         if ($type == 'market') {
-            orderarray ('params') = array (null, $amount, $id);
+            $order['params'] = array (null, $amount, $id);
         } else {
-            orderarray ('params') = array ($price, $amount, $id);
+            $order['params'] = array ($price, $amount, $id);
         }
-        return thisarray ($method) (array_merge ($order, $params));
+        return $this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id, $params = array ()) {
         $this->loadMarkets ();
-        $market = paramsarray ('market'); // TODO fixme
+        $market = $params['market']; // TODO fixme
         return $this->privatePostCancelOrder (array_merge (array (
             'params' => array ($id, $market), 
         ), $params));
@@ -4477,7 +4477,7 @@ class btcchina extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api')array ($api) . '/' . $path;
+        $url = $this->urls['api'][$api] . '/' . $path;
         if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
@@ -4488,7 +4488,7 @@ class btcchina extends Exchange {
                 throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.secret` property for authentication');
             $p = array ();
             if (array_key_exists ('params', $params))
-                $p = paramsarray ('params');
+                $p = $params['params'];
             $nonce = $this->nonce ();
             $request = array (
                 'method' => $path,
@@ -4569,12 +4569,12 @@ class btce extends Exchange {
 
     public function fetch_markets () {
         $response = $this->publicGetInfo ();
-        $markets = responsearray ('pairs');
+        $markets = $response['pairs'];
         $keys = array_keys ($markets);
         $result = array ();
         for ($p = 0; $p < count ($keys); $p++) {
-            $id = keysarray ($p);
-            $market = marketsarray ($id);
+            $id = $keys[$p];
+            $market = $markets[$id];
             list ($base, $quote) = explode ('_', $id);
             $base = strtoupper ($base);
             $quote = strtoupper ($quote);
@@ -4597,22 +4597,22 @@ class btce extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $response = $this->privatePostGetInfo ();
-        $balances = responsearray ('return');
+        $balances = $response['return'];
         $result = array ( 'info' => $balances );
-        $funds = balancesarray ('funds');
+        $funds = $balances['funds'];
         $currencies = array_keys ($funds);
         for ($c = 0; $c < count ($currencies); $c++) {
-            $currency = currenciesarray ($c);
+            $currency = $currencies[$c];
             $uppercase = strtoupper ($currency);
             // they misspell DASH as dsh :/
             if ($uppercase == 'DSH')
                 $uppercase = 'DASH';
             $account = array (
-                'free' => fundsarray ($currency),
+                'free' => $funds[$currency],
                 'used' => null,
-                'total' => fundsarray ($currency),
+                'total' => $funds[$currency],
             );
-            resultarray ($uppercase) = $account;
+            $result[$uppercase] = $account;
         }
         return $result;
     }
@@ -4621,49 +4621,49 @@ class btce extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $response = $this->publicGetDepthPair (array_merge (array (
-            'pair' => parray ('id'),
+            'pair' => $p['id'],
         ), $params));
-        if (parray (array_key_exists ('id'), $response)) {
-            $orderbook = responsearray ($p['id')];
+        if (array_key_exists ($p['id'], $response)) {
+            $orderbook = $response[$p['id']];
             $timestamp = $this->milliseconds ();
             $result = array (
-                'bids' => orderbookarray ('bids'),
-                'asks' => orderbookarray ('asks'),
+                'bids' => $orderbook['bids'],
+                'asks' => $orderbook['asks'],
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601 ($timestamp),
             );
-            resultarray ('bids') = $this->sort_by (resultarray ('bids'), 0, true);
-            resultarray ('asks') = $this->sort_by (resultarray ('asks'), 0);
+            $result['bids'] = $this->sort_by ($result['bids'], 0, true);
+            $result['asks'] = $this->sort_by ($result['asks'], 0);
             return $result;
         }
-        throw new ExchangeError ($this->id . ' ' . parray ('symbol') . ' order book is empty or not available');
+        throw new ExchangeError ($this->id . ' ' . $p['symbol'] . ' order book is empty or not available');
     }
 
     public function fetch_ticker ($market) {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $tickers = $this->publicGetTickerPair (array (
-            'pair' => parray ('id'),
+            'pair' => $p['id'],
         ));
-        $ticker = tickersarray ($p['id')];
-        $timestamp = tickerarray ('updated') * 1000;
+        $ticker = $tickers[$p['id']];
+        $timestamp = $ticker['updated'] * 1000;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => tickerarray ('high') ? tickerarray ('high') : null,
-            'low' => tickerarray ('low') ? tickerarray ('low') : null,
-            'bid' => tickerarray ('sell') ? tickerarray ('buy') : null,
-            'ask' => tickerarray ('buy') ? tickerarray ('sell') : null,
+            'high' => $ticker['high'] ? $ticker['high'] : null,
+            'low' => $ticker['low'] ? $ticker['low'] : null,
+            'bid' => $ticker['sell'] ? $ticker['buy'] : null,
+            'ask' => $ticker['buy'] ? $ticker['sell'] : null,
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => tickerarray ('last') ? tickerarray ('last') : null,
+            'last' => $ticker['last'] ? $ticker['last'] : null,
             'change' => null,
             'percentage' => null,
-            'average' => tickerarray ('avg') ? tickerarray ('avg') : null,
-            'baseVolume' => tickerarray ('vol_cur') ? tickerarray ('vol_cur') : null,
-            'quoteVolume' => tickerarray ('vol') ? tickerarray ('vol') : null,
+            'average' => $ticker['avg'] ? $ticker['avg'] : null,
+            'baseVolume' => $ticker['vol_cur'] ? $ticker['vol_cur'] : null,
+            'quoteVolume' => $ticker['vol'] ? $ticker['vol'] : null,
             'info' => $ticker,
         );
     }
@@ -4686,7 +4686,7 @@ class btce extends Exchange {
         $response = $this->privatePostTrade (array_merge ($order, $params));
         $result = array (
             'info' => $response,
-            'id' => responsearray ('return')array ('order_id'),
+            'id' => $response['return']['order_id'],
         );
         return $result;
     }
@@ -4699,25 +4699,24 @@ class btce extends Exchange {
     public function fetchOrder ($id) {
         $this->loadMarkets ();
         $response = $this->privatePostOrderInfo (array ( 'order_id' => $id ));
-        $orderInfo = responsearray ('return')array ($id);
+        $orderInfo = $response['return'][$id];
         $isCanceled = false;
-        $canceled = array (2, 3);
-        if (orderInfoarray (array_key_exists ('status'), $canceled))
+        if (($orderInfo['status'] == 2) || ($orderInfo['status'] == 3))
             $isCanceled = true;
         $result = array (
             'info' => $response,
-            'type' => orderInfoarray ('type'),
-            'rate' => orderInfoarray ('rate'),
-            'startingAmount' => orderInfoarray ('start_amount'),
-            'remaining' => orderInfoarray ('amount'),
-            'isOpen' => orderInfoarray ('status') == 0,
+            'type' => $orderInfo['type'],
+            'rate' => $orderInfo['rate'],
+            'startingAmount' => $orderInfo['start_amount'],
+            'remaining' => $orderInfo['amount'],
+            'isOpen' => $orderInfo['status'] == 0,
             'isCanceled' => $isCanceled,
         );
         return $result;
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api')array ($api) . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
             if ($query)
@@ -4802,31 +4801,31 @@ class btcmarkets extends Exchange {
         $balances = $this->privateGetAccountBalance ();
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = balancesarray ($b);
-            $currency = balancearray ('currency');
+            $balance = $balances[$b];
+            $currency = $balance['currency'];
             $multiplier = 100000000;
-            $free = floatval (balancearray ('balance') / $multiplier);
-            $used = floatval (balancearray ('pendingFunds') / $multiplier);
+            $free = floatval ($balance['balance'] / $multiplier);
+            $used = floatval ($balance['pendingFunds'] / $multiplier);
             $account = array (
                 'free' => $free,
                 'used' => $used,
                 'total' => $this->sum ($free, $used),
             );
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
 
     public function parse_bidask ($bidask) {
-        $price = bidaskarray (0);
-        $amount = bidaskarray (1);
+        $price = $bidask[0];
+        $amount = $bidask[1];
         return array ($price, $amount);
     }
 
     public function parse_bidasks ($bidasks) {
         $result = array ();
         for ($i = 0; $i < count ($bidasks); $i++) {
-            $result[] = $this->parse_bidask (bidasksarray ($i));
+            $result[] = $this->parse_bidask ($bidasks[$i]);
         }
         return $result;
     }
@@ -4835,9 +4834,9 @@ class btcmarkets extends Exchange {
         $this->loadMarkets ();
         $m = $this->market ($market);
         $orderbook = $this->publicGetMarketIdOrderbook (array_merge (array (
-            'id' => marray ('id'),
+            'id' => $m['id'],
         ), $params));
-        $timestamp = orderbookarray ('timestamp') * 1000;
+        $timestamp = $orderbook['timestamp'] * 1000;
         $result = array (
             'bids' => array (),
             'asks' => array (),
@@ -4846,31 +4845,31 @@ class btcmarkets extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            resultarray ($side) = $this->parse_bidasks (orderbookarray ($side));
+            $side = $sides[$s];
+            $result[$side] = $this->parse_bidasks ($orderbook[$side]);
         }
         return $result;
     }
 
     public function parse_ticker ($ticker, $market) {
-        $timestamp = tickerarray ('timestamp') * 1000;
+        $timestamp = $ticker['timestamp'] * 1000;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval (tickerarray ('bestBid')),
-            'ask' => floatval (tickerarray ('bestAsk')),
+            'bid' => floatval ($ticker['bestBid']),
+            'ask' => floatval ($ticker['bestAsk']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('lastPrice')),
+            'last' => floatval ($ticker['lastPrice']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('volume24h')),
+            'quoteVolume' => floatval ($ticker['volume24h']),
             'info' => $ticker,
         );
     }
@@ -4879,7 +4878,7 @@ class btcmarkets extends Exchange {
         $this->loadMarkets ();
         $m = $this->market ($market);
         $ticker = $this->publicGetMarketIdTick (array (
-            'id' => marray ('id'),
+            'id' => $m['id'],
         ));
         return $this->parse_ticker ($ticker, $m);
     }
@@ -4899,8 +4898,8 @@ class btcmarkets extends Exchange {
         // does BTC Markets support $market orders at all?
         $orderSide = ($side == 'buy') ? 'Bid' : 'Ask';
         $order = $this->ordered (array (
-            'currency' => marray ('quote'),
-            'instrument' => marray ('base'),
+            'currency' => $m['quote'],
+            'instrument' => $m['base'],
             'price' => $price * $multiplier,
             'volume' => $amount * $multiplier,
             'orderSide' => $orderSide,
@@ -4926,7 +4925,7 @@ class btcmarkets extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $uri = '/' . $this->implode_params ($path, $params);
-        $url = $this->urlsarray ('api') . $uri;
+        $url = $this->urls['api'] . $uri;
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
             if ($params)
@@ -4941,17 +4940,17 @@ class btcmarkets extends Exchange {
             );
             if ($method == 'POST') {
                 $body = $this->urlencode ($query);
-                headersarray ('Content-Length') = count ($body);
+                $headers['Content-Length'] = count ($body);
                 $auth .= $body;
             }
             $secret = base64_decode ($this->secret);
             $signature = $this->hmac ($this->encode ($auth), $secret, 'sha512', 'base64');
-            headersarray ('signature') = $signature;
+            $headers['signature'] = $signature;
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if ($api == 'private') {
             if (array_key_exists ('success', $response))
-                if (!responsearray ('success'))
+                if (!$response['success'])
                     throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             return $response;            
         }
@@ -5007,25 +5006,25 @@ class btctrader extends Exchange {
         $response = $this->privateGetBalance ();
         $result = array ( 'info' => $response );
         $base = array ( 
-            'free' => responsearray ('bitcoin_available'),
-            'used' => responsearray ('bitcoin_reserved'),
-            'total' => responsearray ('bitcoin_balance'),
+            'free' => $response['bitcoin_available'],
+            'used' => $response['bitcoin_reserved'],
+            'total' => $response['bitcoin_balance'],
         );
         $quote = array (
-            'free' => responsearray ('money_available'),
-            'used' => responsearray ('money_reserved'),
-            'total' => responsearray ('money_balance'),
+            'free' => $response['money_available'],
+            'used' => $response['money_reserved'],
+            'total' => $response['money_balance'],
         );
-        $symbol = $this->symbolsarray (0);
-        $market = $this->marketsarray ($symbol);
-        resultarray ($market['base')] = $base;
-        resultarray ($market['quote')] = $quote;
+        $symbol = $this->symbols[0];
+        $market = $this->markets[$symbol];
+        $result[$market['base']] = $base;
+        $result[$market['quote']] = $quote;
         return $result;
     }
 
     public function fetch_order_book ($market, $params = array ()) {
         $orderbook = $this->publicGetOrderbook ($params);
-        $timestamp = intval (orderbookarray ('timestamp') * 1000);
+        $timestamp = intval ($orderbook['timestamp'] * 1000);
         $result = array (
             'bids' => array (),
             'asks' => array (),
@@ -5034,13 +5033,13 @@ class btctrader extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray (0));
-                $amount = floatval (orderarray (1));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -5048,24 +5047,24 @@ class btctrader extends Exchange {
 
     public function fetch_ticker ($market) {
         $ticker = $this->publicGetTicker ();
-        $timestamp = intval (tickerarray ('timestamp') * 1000);
+        $timestamp = intval ($ticker['timestamp'] * 1000);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
             'vwap' => null,
-            'open' => floatval (tickerarray ('open')),
+            'open' => floatval ($ticker['open']),
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
-            'average' => floatval (tickerarray ('average')),
+            'average' => floatval ($ticker['average']),
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('volume')),
+            'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
     }
@@ -5083,14 +5082,14 @@ class btctrader extends Exchange {
         );
         if ($type == 'market') {
             if ($side == 'buy')
-                orderarray ('Total') = $amount;
+                $order['Total'] = $amount;
             else
-                orderarray ('Amount') = $amount;
+                $order['Amount'] = $amount;
         } else {
-            orderarray ('Price') = $price;
-            orderarray ('Amount') = $amount;
+            $order['Price'] = $price;
+            $order['Amount'] = $amount;
         }
-        return thisarray ($method) (array_merge ($order, $params));
+        return $this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id) {
@@ -5100,7 +5099,7 @@ class btctrader extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if ($this->id == 'btctrader')
             throw new ExchangeError ($this->id . ' is an abstract base API for BTCExchange, BTCTurk');
-        $url = $this->urlsarray ('api') . '/' . $path;
+        $url = $this->urls['api'] . '/' . $path;
         if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
@@ -5207,13 +5206,13 @@ class btctradeua extends Exchange {
 
     public function fetch_balance () {
         $response = $this->privatePostBalance ();
-        $accounts = responsearray ('accounts');
+        $accounts = $response['accounts'];
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($accounts); $b++) {
-            $account = accountsarray ($b);
-            $currency = accountarray ('currency');
-            $balance = floatval (accountarray ('balance'));
-            resultarray ($currency) = array (
+            $account = $accounts[$b];
+            $currency = $account['currency'];
+            $balance = floatval ($account['balance']);
+            $result[$currency] = array (
                 'free' => $balance,
                 'used' => null,
                 'total' => $balance,
@@ -5225,10 +5224,10 @@ class btctradeua extends Exchange {
     public function fetch_order_book ($market, $params = array ()) {
         $p = $this->market ($market);
         $bids = $this->publicGetTradesBuySymbol (array_merge (array (
-            'symbol' => parray ('id'),
+            'symbol' => $p['id'],
         ), $params));
         $asks = $this->publicGetTradesSellSymbol (array_merge (array (
-            'symbol' => parray ('id'),
+            'symbol' => $p['id'],
         ), $params));
         $orderbook = array (
             'bids' => array (),
@@ -5236,11 +5235,11 @@ class btctradeua extends Exchange {
         );
         if ($bids) {
             if (array_key_exists ('list', $bids))
-                orderbookarray ('bids') = bidsarray ('list');
+                $orderbook['bids'] = $bids['list'];
         }
         if ($asks) {
             if (array_key_exists ('list', $asks))
-                orderbookarray ('asks') = asksarray ('list');
+                $orderbook['asks'] = $asks['list'];
         }
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -5251,13 +5250,13 @@ class btctradeua extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray ('price'));
-                $amount = floatval (orderarray ('currency_trade'));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['currency_trade']);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -5267,7 +5266,7 @@ class btctradeua extends Exchange {
         $response = $this->publicGetJapanStatHighSymbol (array (
             'symbol' => $this->market_id ($market),
         ));
-        $ticker = responsearray ('trades');
+        $ticker = $response['trades'];
         $timestamp = $this->milliseconds ();
         $result = array (
             'timestamp' => $timestamp,
@@ -5292,21 +5291,21 @@ class btctradeua extends Exchange {
         if ($tickerLength > 0) {
             $start = max ($tickerLength - 48, 0);
             for ($t = $start; $t < count ($ticker); $t++) {
-                $candle = tickerarray ($t);
-                if (resultarray ('open') == null)
-                    resultarray ('open') = candlearray (1);
-                if ((resultarray ('high') == null) || (resultarray ('high') < candlearray (2)))
-                    resultarray ('high') = candlearray (2);
-                if ((resultarray ('low') == null) || (resultarray ('low') > candlearray (3)))
-                    resultarray ('low') = candlearray (3);
-                if (resultarray ('quoteVolume') == null)
-                    resultarray ('quoteVolume') = -candlearray (5);
+                $candle = $ticker[$t];
+                if ($result['open'] == null)
+                    $result['open'] = $candle[1];
+                if (($result['high'] == null) || ($result['high'] < $candle[2]))
+                    $result['high'] = $candle[2];
+                if (($result['low'] == null) || ($result['low'] > $candle[3]))
+                    $result['low'] = $candle[3];
+                if ($result['quoteVolume'] == null)
+                    $result['quoteVolume'] = -$candle[5];
                 else
-                    resultarray ('quoteVolume') -= candlearray (5);
+                    $result['quoteVolume'] -= $candle[5];
             }
             $last = $tickerLength - 1;
-            resultarray ('close') = tickerarray ($last)array (4);
-            resultarray ('quoteVolume') = -1 * resultarray ('quoteVolume');
+            $result['close'] = $ticker[$last][4];
+            $result['quoteVolume'] = -1 * $result['quoteVolume'];
         }
         return $result;
     }
@@ -5324,11 +5323,11 @@ class btctradeua extends Exchange {
         $method = 'privatePost' . $this->capitalize ($side) . 'Id';
         $order = array (
             'count' => $amount,
-            'currency1' => parray ('quote'),
-            'currency' => parray ('base'),
+            'currency1' => $p['quote'],
+            'currency' => $p['base'],
             'price' => $price,
         );
-        return thisarray ($method) (array_merge ($order, $params));
+        return $this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id) {
@@ -5336,7 +5335,7 @@ class btctradeua extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
             if ($query)
@@ -5431,14 +5430,14 @@ class btcx extends Exchange {
         $result = array ( 'info' => $balances );
         $currencies = array_keys ($balances);
         for ($c = 0; $c < count ($currencies); $c++) {
-            $currency = currenciesarray ($c);
+            $currency = $currencies[$c];
             $uppercase = strtoupper ($currency);
             $account = array (
-                'free' => balancesarray ($currency),
+                'free' => $balances[$currency],
                 'used' => null,
-                'total' => balancesarray ($currency),
+                'total' => $balances[$currency],
             );
-            resultarray ($uppercase) = $account;
+            $result[$uppercase] = $account;
         }
         return $result;
     }
@@ -5457,13 +5456,13 @@ class btcx extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = orderarray ('price');
-                $amount = orderarray ('amount');
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = $order['price'];
+                $amount = $order['amount'];
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -5473,24 +5472,24 @@ class btcx extends Exchange {
         $ticker = $this->publicGetTickerId (array (
             'id' => $this->market_id ($market),
         ));
-        $timestamp = tickerarray ('time') * 1000;
+        $timestamp = $ticker['time'] * 1000;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('sell')),
-            'ask' => floatval (tickerarray ('buy')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['sell']),
+            'ask' => floatval ($ticker['buy']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('volume')),
+            'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
     }
@@ -5516,7 +5515,7 @@ class btcx extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->version . '/';
+        $url = $this->urls['api'] . '/' . $this->version . '/';
         if ($api == 'public') {
             $url .= $this->implode_params ($path, $params);
         } else {
@@ -5534,7 +5533,7 @@ class btcx extends Exchange {
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('error', $response))
-            throw new ExchangeError ($this->id . ' ' . $this->json (responsearray ('error')));
+            throw new ExchangeError ($this->id . ' ' . $this->json ($response['error']));
         return $response;
     }
 }
@@ -5594,13 +5593,13 @@ class bter extends Exchange {
 
     public function fetch_markets () {
         $response = $this->publicGetMarketlist ();
-        $markets = responsearray ('data');
+        $markets = $response['data'];
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
-            $market = marketsarray ($p);
-            $id = marketarray ('pair');
-            $base = marketarray ('curr_a');
-            $quote = marketarray ('curr_b');
+            $market = $markets[$p];
+            $id = $market['pair'];
+            $base = $market['curr_a'];
+            $quote = $market['curr_b'];
             $base = $this->commonCurrencyCode ($base);
             $quote = $this->commonCurrencyCode ($quote);
             $symbol = $base . '/' . $quote;
@@ -5620,24 +5619,24 @@ class bter extends Exchange {
         $balance = $this->privatePostBalances ();
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $account = array (
                 'free' => null,
                 'used' => null,
                 'total' => null,
             );
             if (array_key_exists ('available', $balance)) {
-                if (array_key_exists ($currency, balancearray ('available'))) {
-                    accountarray ('free') = floatval (balancearray ('available')array ($currency));
+                if (array_key_exists ($currency, $balance['available'])) {
+                    $account['free'] = floatval ($balance['available'][$currency]);
                 }
             }
             if (array_key_exists ('locked', $balance)) {
-                if (array_key_exists ($currency, balancearray ('locked'))) {
-                    accountarray ('used') = floatval (balancearray ('locked')array ($currency));
+                if (array_key_exists ($currency, $balance['locked'])) {
+                    $account['used'] = floatval ($balance['locked'][$currency]);
                 }
             }
-            accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
-            resultarray ($currency) = $account;
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -5656,16 +5655,16 @@ class bter extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray (0));
-                $amount = floatval (orderarray (1));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
             }
         }
-        resultarray ('asks') = $this->sort_by (resultarray ('asks'), 0);
+        $result['asks'] = $this->sort_by ($result['asks'], 0);
         return $result;
     }
 
@@ -5674,20 +5673,20 @@ class bter extends Exchange {
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high24hr')),
-            'low' => floatval (tickerarray ('low24hr')),
-            'bid' => floatval (tickerarray ('highestBid')),
-            'ask' => floatval (tickerarray ('lowestAsk')),
+            'high' => floatval ($ticker['high24hr']),
+            'low' => floatval ($ticker['low24hr']),
+            'bid' => floatval ($ticker['highestBid']),
+            'ask' => floatval ($ticker['lowestAsk']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
-            'change' => floatval (tickerarray ('percentChange')),
+            'last' => floatval ($ticker['last']),
+            'change' => floatval ($ticker['percentChange']),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval (tickerarray ('baseVolume')),
-            'quoteVolume' => floatval (tickerarray ('quoteVolume')),
+            'baseVolume' => floatval ($ticker['baseVolume']),
+            'quoteVolume' => floatval ($ticker['quoteVolume']),
             'info' => $ticker,
         );
     }
@@ -5698,14 +5697,14 @@ class bter extends Exchange {
         $result = array ();
         $ids = array_keys ($tickers);
         for ($i = 0; $i < count ($ids); $i++) {
-            $id = idsarray ($i);
+            $id = $ids[$i];
             list ($baseId, $quoteId) = explode ('_', $id);
             $base = strtoupper ($baseId);
             $quote = strtoupper ($quoteId);
             $symbol = $base . '/' . $quote;
-            $ticker = tickersarray ($id);
-            $market = $this->marketsarray ($symbol);
-            resultarray ($symbol) = $this->parse_ticker ($ticker, $market);
+            $ticker = $tickers[$id];
+            $market = $this->markets[$symbol];
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
     }
@@ -5714,7 +5713,7 @@ class bter extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $ticker = $this->publicGetTickerId (array (
-            'id' => parray ('id'),
+            'id' => $p['id'],
         ));
         return $this->parse_ticker ($ticker, $p);
     }
@@ -5734,7 +5733,7 @@ class bter extends Exchange {
             'rate' => $price,
             'amount' => $amount,
         );
-        return thisarray ($method) (array_merge ($order, $params));
+        return $this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id) {
@@ -5744,7 +5743,7 @@ class bter extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $prefix = ($api == 'private') ? ($api . '/') : '';
-        $url = $this->urlsarray ('api')array ($api) . $this->version . '/1/' . $prefix . $this->implode_params ($path, $params);
+        $url = $this->urls['api'][$api] . $this->version . '/1/' . $prefix . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
             if ($query)
@@ -5762,7 +5761,7 @@ class bter extends Exchange {
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('result', $response))
-            if (responsearray ('result') != 'true')
+            if ($response['result'] != 'true')
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;        
     }
@@ -5829,10 +5828,10 @@ class bxinth extends Exchange {
         $keys = array_keys ($markets);
         $result = array ();
         for ($p = 0; $p < count ($keys); $p++) {
-            $market = marketsarray ($keys[$p)];
-            $id = marketarray ('pairing_id');
-            $base = marketarray ('primary_currency');
-            $quote = marketarray ('secondary_currency');
+            $market = $markets[$keys[$p]];
+            $id = $market['pairing_id'];
+            $base = $market['primary_currency'];
+            $quote = $market['secondary_currency'];
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -5857,19 +5856,19 @@ class bxinth extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $response = $this->privatePostBalance ();
-        $balance = responsearray ('balance');
+        $balance = $response['balance'];
         $result = array ( 'info' => $balance );
         $currencies = array_keys ($balance);
         for ($c = 0; $c < count ($currencies); $c++) {
-            $currency = currenciesarray ($c);
+            $currency = $currencies[$c];
             $code = $this->commonCurrencyCode ($currency);
             $account = array (
-                'free' => floatval (balancearray ($currency)array ('available')),
+                'free' => floatval ($balance[$currency]['available']),
                 'used' => null,
-                'total' => floatval (balancearray ($currency)array ('total')),
+                'total' => floatval ($balance[$currency]['total']),
             );
-            accountarray ('used') = accountarray ('total') - accountarray ('free');
-            resultarray ($code) = $account;
+            $account['used'] = $account['total'] - $account['free'];
+            $result[$code] = $account;
         }
         return $result;
     }
@@ -5888,13 +5887,13 @@ class bxinth extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray (0));
-                $amount = floatval (orderarray (1));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -5907,18 +5906,18 @@ class bxinth extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval (tickerarray ('orderbook')array ('bids')array ('highbid')),
-            'ask' => floatval (tickerarray ('orderbook')array ('asks')array ('highbid')),
+            'bid' => floatval ($ticker['orderbook']['bids']['highbid']),
+            'ask' => floatval ($ticker['orderbook']['asks']['highbid']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last_price')),
-            'change' => floatval (tickerarray ('change')),
+            'last' => floatval ($ticker['last_price']),
+            'change' => floatval ($ticker['change']),
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('volume_24hours')),
+            'quoteVolume' => floatval ($ticker['volume_24hours']),
             'info' => $ticker,
         );
     }
@@ -5929,11 +5928,11 @@ class bxinth extends Exchange {
         $result = array ();
         $ids = array_keys ($tickers);
         for ($i = 0; $i < count ($ids); $i++) {
-            $id = idsarray ($i);
-            $ticker = tickersarray ($id);
-            $market = $this->markets_by_idarray ($id);
-            $symbol = marketarray ('symbol');
-            resultarray ($symbol) = $this->parse_ticker ($ticker, $market);
+            $id = $ids[$i];
+            $ticker = $tickers[$id];
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
     }
@@ -5941,9 +5940,9 @@ class bxinth extends Exchange {
     public function fetch_ticker ($market) {
         $this->loadMarkets ();
         $p = $this->market ($market);
-        $tickers = $this->publicGet (array ( 'pairing' => parray ('id') ));
-        $id = (string) parray ('id');
-        $ticker = tickersarray ($id);
+        $tickers = $this->publicGet (array ( 'pairing' => $p['id'] ));
+        $id = (string) $p['id'];
+        $ticker = $tickers[$id];
         return $this->parse_ticker ($ticker, $p);
     }
 
@@ -5974,7 +5973,7 @@ class bxinth extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/';
+        $url = $this->urls['api'] . '/';
         if ($path)
             $url .= $path . '/';
         if ($params)
@@ -5998,7 +5997,7 @@ class bxinth extends Exchange {
         if ($api == 'public')
             return $response;
         if (array_key_exists ('success', $response))
-            if (responsearray ('success'))
+            if ($response['success'])
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
@@ -6063,11 +6062,11 @@ class ccex extends Exchange {
     public function fetch_markets () {
         $markets = $this->publicGetMarkets ();
         $result = array ();
-        for ($p = 0; $p < count (marketsarray ('result')); $p++) {
-            $market = marketsarray ('result')array ($p);
-            $id = marketarray ('MarketName');
-            $base = marketarray ('MarketCurrency');
-            $quote = marketarray ('BaseCurrency');
+        for ($p = 0; $p < count ($markets['result']); $p++) {
+            $market = $markets['result'][$p];
+            $id = $market['MarketName'];
+            $base = $market['MarketCurrency'];
+            $quote = $market['BaseCurrency'];
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -6083,17 +6082,17 @@ class ccex extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $response = $this->privateGetBalances ();
-        $balances = responsearray ('result');
+        $balances = $response['result'];
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = balancesarray ($b);
-            $currency = balancearray ('Currency');
+            $balance = $balances[$b];
+            $currency = $balance['Currency'];
             $account = array (
-                'free' => balancearray ('Available'),
-                'used' => balancearray ('Pending'),
-                'total' => balancearray ('Balance'),
+                'free' => $balance['Available'],
+                'used' => $balance['Pending'],
+                'total' => $balance['Balance'],
             );
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -6105,7 +6104,7 @@ class ccex extends Exchange {
             'type' => 'both',
             'depth' => 100,
         ), $params));
-        $orderbook = responsearray ('result');
+        $orderbook = $response['result'];
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -6116,38 +6115,38 @@ class ccex extends Exchange {
         $sides = array ( 'bids' => 'buy', 'asks' => 'sell' );
         $keys = array_keys ($sides);
         for ($k = 0; $k < count ($keys); $k++) {
-            $key = keysarray ($k);
-            $side = sidesarray ($key);
-            $orders = orderbookarray ($side);
+            $key = $keys[$k];
+            $side = $sides[$key];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray ('Rate'));
-                $amount = floatval (orderarray ('Quantity'));
-                resultarray ($key)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order['Rate']);
+                $amount = floatval ($order['Quantity']);
+                $result[$key][] = array ($price, $amount);
             }
         }
         return $result;
     }
 
     public function parse_ticker ($ticker, $market) {
-        $timestamp = tickerarray ('updated') * 1000;
+        $timestamp = $ticker['updated'] * 1000;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('buy')),
-            'ask' => floatval (tickerarray ('sell')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('lastprice')),
+            'last' => floatval ($ticker['lastprice']),
             'change' => null,
             'percentage' => null,
-            'average' => floatval (tickerarray ('avg')),
+            'average' => floatval ($ticker['avg']),
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('buysupport')),
+            'quoteVolume' => floatval ($ticker['buysupport']),
             'info' => $ticker,
         );
     }
@@ -6156,9 +6155,9 @@ class ccex extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $response = $this->tickersGetMarket (array (
-            'market' => strtolower (parray ('id')),
+            'market' => strtolower ($p['id']),
         ));
-        $ticker = responsearray ('ticker');
+        $ticker = $response['ticker'];
         return $this->parse_ticker ($ticker, $p);
     }
 
@@ -6174,7 +6173,7 @@ class ccex extends Exchange {
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $method = 'privateGet' . $this->capitalize ($side) . $type;
-        return thisarray ($method) (array_merge (array (
+        return $this->$method (array_merge (array (
             'market' => $this->market_id ($market),
             'quantity' => $amount,
             'rate' => $price,
@@ -6187,7 +6186,7 @@ class ccex extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api')array ($api);
+        $url = $this->urls['api'][$api];
         if ($api == 'private') {
             $nonce = (string) $this->nonce ();
             $query = $this->keysort (array_merge (array (
@@ -6208,7 +6207,7 @@ class ccex extends Exchange {
         if ($api == 'tickers')
             return $response;
         if (array_key_exists ('success', $response))
-            if (responsearray ('success'))
+            if ($response['success'])
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
@@ -6275,9 +6274,9 @@ class cex extends Exchange {
     public function fetch_markets () {
         $markets = $this->publicGetCurrencyLimits ();
         $result = array ();
-        for ($p = 0; $p < count (marketsarray ('data')array ('pairs')); $p++) {
-            $market = marketsarray ('data')array ('pairs')array ($p);
-            $id = marketarray ('symbol1') . '/' . marketarray ('symbol2');
+        for ($p = 0; $p < count ($markets['data']['pairs']); $p++) {
+            $market = $markets['data']['pairs'][$p];
+            $id = $market['symbol1'] . '/' . $market['symbol2'];
             $symbol = $id;
             list ($base, $quote) = explode ('/', $symbol);
             $result[] = array (
@@ -6296,14 +6295,14 @@ class cex extends Exchange {
         $balances = $this->privatePostBalance ();
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $account = array (
-                'free' => floatval (balancesarray ($currency)array ('available')),
-                'used' => floatval (balancesarray ($currency)array ('orders')),
+                'free' => floatval ($balances[$currency]['available']),
+                'used' => floatval ($balances[$currency]['orders']),
                 'total' => null,
             );
-            accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
-            resultarray ($currency) = $account;
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -6313,10 +6312,10 @@ class cex extends Exchange {
         $orderbook =  $this->publicGetOrderBookPair (array_merge (array (
             'pair' => $this->market_id ($market),
         ), $params));
-        $timestamp = orderbookarray ('timestamp') * 1000;
+        $timestamp = $orderbook['timestamp'] * 1000;
         $result = array (
-            'bids' => orderbookarray ('bids'),
-            'asks' => orderbookarray ('asks'),
+            'bids' => $orderbook['bids'],
+            'asks' => $orderbook['asks'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
@@ -6324,24 +6323,24 @@ class cex extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market) {
-        $timestamp = intval (tickerarray ('timestamp')) * 1000;
+        $timestamp = intval ($ticker['timestamp']) * 1000;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('volume')),
+            'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
     }
@@ -6352,13 +6351,13 @@ class cex extends Exchange {
         $response = $this->publicGetTickersCurrencies (array (
             'currencies' => $currencies,
         ));
-        $tickers = responsearray ('data');
+        $tickers = $response['data'];
         $result = array ();
         for ($t = 0; $t < count ($tickers); $t++) {
-            $ticker = tickersarray ($t);
-            $symbol = str_replace (':', '/', tickerarray ('pair'));
-            $market = $this->marketsarray ($symbol);            
-            resultarray ($symbol) = $this->parse_ticker ($ticker, $market);
+            $ticker = $tickers[$t];
+            $symbol = str_replace (':', '/', $ticker['pair']);
+            $market = $this->markets[$symbol];            
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
     }
@@ -6367,7 +6366,7 @@ class cex extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $ticker = $this->publicGetTickerPair (array (
-            'pair' => parray ('id'),
+            'pair' => $p['id'],
         ));
         return $this->parse_ticker ($ticker, $p);
     }
@@ -6387,9 +6386,9 @@ class cex extends Exchange {
             'amount' => $amount,
         );
         if ($type == 'limit')
-            orderarray ('price') = $price;
+            $order['price'] = $price;
         else
-            orderarray ('order_type') = $type;
+            $order['order_type'] = $type;
         return $this->privatePostPlaceOrderPair (array_merge ($order, $params));
     }
 
@@ -6399,7 +6398,7 @@ class cex extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
             if ($query)
@@ -6423,7 +6422,7 @@ class cex extends Exchange {
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('e', $response)) {
             if (array_key_exists ('ok', $response))
-                if (responsearray ('ok') == 'ok')
+                if ($response['ok'] == 'ok')
                     return $response;
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }
@@ -6493,21 +6492,21 @@ class chbtc extends Exchange {
 
     public function fetch_balance () {
         $response = $this->privatePostGetAccountInfo ();
-        $balances = responsearray ('result');
+        $balances = $response['result'];
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $account = array (
                 'free' => null,
                 'used' => null,
                 'total' => null,
             );
-            if (array_key_exists ($currency, balancesarray ('balance')))
-                accountarray ('free') = balancesarray ('balance')array ($currency)array ('amount');
-            if (array_key_exists ($currency, balancesarray ('frozen')))
-                accountarray ('used') = balancesarray ('frozen')array ($currency)array ('amount');
-            accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
-            resultarray ($currency) = $account;
+            if (array_key_exists ($currency, $balances['balance']))
+                $account['free'] = $balances['balance'][$currency]['amount'];
+            if (array_key_exists ($currency, $balances['frozen']))
+                $account['used'] = $balances['frozen'][$currency]['amount'];
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -6515,25 +6514,25 @@ class chbtc extends Exchange {
     public function fetch_order_book ($market, $params = array ()) {
         $p = $this->market ($market);
         $orderbook = $this->publicGetDepth (array_merge (array (
-            'currency' => parray ('id'),
+            'currency' => $p['id'],
         ), $params));
         $timestamp = $this->milliseconds ();
         $bids = null;
         $asks = null;
         if (array_key_exists ('bids', $orderbook))
-            $bids = orderbookarray ('bids');
+            $bids = $orderbook['bids'];
         if (array_key_exists ('asks', $orderbook))
-            $asks = orderbookarray ('asks');
+            $asks = $orderbook['asks'];
         $result = array (
             'bids' => $bids,
             'asks' => $asks,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        if (resultarray ('bids'))
-            resultarray ('bids') = $this->sort_by (resultarray ('bids'), 0, true);
-        if (resultarray ('asks'))
-            resultarray ('asks') = $this->sort_by (resultarray ('asks'), 0);
+        if ($result['bids'])
+            $result['bids'] = $this->sort_by ($result['bids'], 0, true);
+        if ($result['asks'])
+            $result['asks'] = $this->sort_by ($result['asks'], 0);
         return $result;
     }
 
@@ -6541,25 +6540,25 @@ class chbtc extends Exchange {
         $response = $this->publicGetTicker (array (
             'currency' => $this->market_id ($market),
         ));
-        $ticker = responsearray ('ticker');
+        $ticker = $response['ticker'];
         $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('buy')),
-            'ask' => floatval (tickerarray ('sell')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('vol')),
+            'quoteVolume' => floatval ($ticker['vol']),
             'info' => $ticker,
         );
     }
@@ -6582,14 +6581,14 @@ class chbtc extends Exchange {
     public function cancel_order ($id, $params = array ()) {
         $paramString = '&$id=' . (string) $id;
         if (array_key_exists ('currency', $params))
-            $paramString .= '&currency=' . paramsarray ('currency');
+            $paramString .= '&currency=' . $params['currency'];
         return $this->privatePostCancelOrder ($paramString);
     }
 
     public function fetchOrder ($id, $params = array ()) {
         $paramString = '&$id=' . (string) $id;
         if (array_key_exists ('currency', $params))
-            $paramString .= '&currency=' . paramsarray ('currency');
+            $paramString .= '&currency=' . $params['currency'];
         return $this->privatePostGetOrder ($paramString);
     }
 
@@ -6598,7 +6597,7 @@ class chbtc extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api')array ($api); 
+        $url = $this->urls['api'][$api]; 
         if ($api == 'public') {
             $url .= '/' . $this->version . '/' . $path;
             if ($params)
@@ -6740,7 +6739,7 @@ class coincheck extends Exchange {
         $balances = $this->privateGetAccountsBalance ();
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = array (
                 'free' => null,
@@ -6748,12 +6747,12 @@ class coincheck extends Exchange {
                 'total' => null,
             );
             if (array_key_exists ($lowercase, $balances))
-                accountarray ('free') = floatval (balancesarray ($lowercase));
+                $account['free'] = floatval ($balances[$lowercase]);
             $reserved = $lowercase . '_reserved';
             if (array_key_exists ($reserved, $balances))
-                accountarray ('used') = floatval (balancesarray ($reserved));
-            accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
-            resultarray ($currency) = $account;
+                $account['used'] = floatval ($balances[$reserved]);
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -6769,13 +6768,13 @@ class coincheck extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray (0));
-                $amount = floatval (orderarray (1));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -6783,24 +6782,24 @@ class coincheck extends Exchange {
 
     public function fetch_ticker ($market) {
         $ticker = $this->publicGetTicker ();
-        $timestamp = tickerarray ('timestamp') * 1000;
+        $timestamp = $ticker['timestamp'] * 1000;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('volume')),
+            'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
     }
@@ -6816,13 +6815,13 @@ class coincheck extends Exchange {
         );
         if ($type == 'market') {
             $order_type = $type . '_' . $side;
-            orderarray ('order_type') = $order_type;
+            $order['order_type'] = $order_type;
             $prefix = ($side == buy) ? ($order_type . '_') : '';
-            orderarray ($prefix . 'amount') = $amount;
+            $order[$prefix . 'amount'] = $amount;
         } else {
-            orderarray ('order_type') = $side;
-            orderarray ('rate') = $price;
-            orderarray ('amount') = $amount;
+            $order['order_type'] = $side;
+            $order['rate'] = $price;
+            $order['amount'] = $amount;
         }
         return $this->privatePostExchangeOrders (array_merge ($order, $params));
     }
@@ -6832,7 +6831,7 @@ class coincheck extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
             if ($query)
@@ -6857,7 +6856,7 @@ class coincheck extends Exchange {
         if ($api == 'public')
             return $response;
         if (array_key_exists ('success', $response))
-            if (responsearray ('success'))
+            if ($response['success'])
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
@@ -6913,7 +6912,7 @@ class coingi extends Exchange {
     public function fetch_balance () {
         $currencies = array ();
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = strtolower ($this->currenciesarray ($c));
+            $currency = strtolower ($this->currencies[$c]);
             $currencies[] = $currency;
         }
         $balances = $this->userPostBalance (array (
@@ -6921,16 +6920,16 @@ class coingi extends Exchange {
         ));
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = balancesarray ($b);
-            $currency = balancearray ('currency')array ('name');
+            $balance = $balances[$b];
+            $currency = $balance['currency']['name'];
             $currency = strtoupper ($currency);
             $account = array (
-                'free' => balancearray ('available'),
-                'used' => balancearray ('blocked') . balancearray ('inOrders') . balancearray ('withdrawing'),
+                'free' => $balance['available'],
+                'used' => $balance['blocked'] . $balance['inOrders'] . $balance['withdrawing'],
                 'total' => null,
             );
-            accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
-            resultarray ($currency) = $account;
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -6938,7 +6937,7 @@ class coingi extends Exchange {
     public function fetch_order_book ($market, $params = array ()) {
         $p = $this->market ($market);
         $orderbook = $this->currentGetOrderBookPairAskCountBidCountDepth (array_merge (array (
-            'pair' => parray ('id'),
+            'pair' => $p['id'],
             'askCount' => 512, // maximum returned number of asks 1-512
             'bidCount' => 512, // maximum returned number of bids 1-512
             'depth' => 32, // maximum number of depth range steps 1-32
@@ -6952,13 +6951,13 @@ class coingi extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = orderarray ('price');
-                $amount = orderarray ('baseAmount');
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = $order['price'];
+                $amount = $order['baseAmount'];
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -6969,10 +6968,10 @@ class coingi extends Exchange {
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => tickerarray ('high'),
-            'low' => tickerarray ('low'),
-            'bid' => tickerarray ('highestBid'),
-            'ask' => tickerarray ('lowestAsk'),
+            'high' => $ticker['high'],
+            'low' => $ticker['low'],
+            'bid' => $ticker['highestBid'],
+            'ask' => $ticker['lowestAsk'],
             'vwap' => null,
             'open' => null,
             'close' => null,
@@ -6981,8 +6980,8 @@ class coingi extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => tickerarray ('baseVolume'),
-            'quoteVolume' => tickerarray ('counterVolume'),
+            'baseVolume' => $ticker['baseVolume'],
+            'quoteVolume' => $ticker['counterVolume'],
             'info' => $ticker,
         );
         return $ticker;
@@ -6992,12 +6991,12 @@ class coingi extends Exchange {
         $response = $this->currentGet24hourRollingAggregation ();
         $result = array ();
         for ($t = 0; $t < count ($response); $t++) {
-            $ticker = responsearray ($t);
-            $base = strtoupper (tickerarray ('currencyPair')array ('base'));
-            $quote = strtoupper (tickerarray ('currencyPair')array ('counter'));
+            $ticker = $response[$t];
+            $base = strtoupper ($ticker['currencyPair']['base']);
+            $quote = strtoupper ($ticker['currencyPair']['counter']);
             $symbol = $base . '/' . $quote;
-            $market = $this->marketsarray ($symbol);
-            resultarray ($symbol) = $this->parse_ticker ($ticker, $market);
+            $market = $this->markets[$symbol];
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
     }
@@ -7006,16 +7005,16 @@ class coingi extends Exchange {
         $response = $this->currentGet24hourRollingAggregation ();
         $tickers = array ();
         for ($t = 0; $t < count ($response); $t++) {
-            $ticker = responsearray ($t);
-            $base = strtoupper (tickerarray ('currencyPair')array ('base'));
-            $quote = strtoupper (tickerarray ('currencyPair')array ('counter'));
+            $ticker = $response[$t];
+            $base = strtoupper ($ticker['currencyPair']['base']);
+            $quote = strtoupper ($ticker['currencyPair']['counter']);
             $symbol = $base . '/' . $quote;
-            tickersarray ($symbol) = $ticker;
+            $tickers[$symbol] = $ticker;
         }        
         $p = $this->market ($market);
-        $symbol = parray ('symbol');
+        $symbol = $p['symbol'];
         if (array_key_exists ($symbol, $tickers)) {
-            $ticker = tickersarray ($symbol);
+            $ticker = $tickers[$symbol];
             return $this->parse_ticker ($ticker, $p);
         }
         throw new ExchangeError ($this->id . ' ' . $symbol . ' $ticker not found');
@@ -7042,7 +7041,7 @@ class coingi extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $api . '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'] . '/' . $api . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'current') {
             if ($query)
@@ -7054,7 +7053,7 @@ class coingi extends Exchange {
                 'nonce' => $nonce,
             ), $query);
             $auth = (string) $nonce . '$' . $this->apiKey;
-            requestarray ('signature') = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
+            $request['signature'] = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
             $body = $this->json ($request);            
             $headers = array (
                 'Content-Type' => 'application/json',
@@ -7122,11 +7121,11 @@ class coinmarketcap extends Exchange {
         $markets = $this->publicGetTicker ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
-            $market = marketsarray ($p);
+            $market = $markets[$p];
             for ($c = 0; $c < count ($this->currencies); $c++) {
-                $base = marketarray ('symbol');                
-                $baseId = marketarray ('id');
-                $quote = $this->currenciesarray ($c);
+                $base = $market['symbol'];                
+                $baseId = $market['id'];
+                $quote = $this->currencies[$c];
                 $quoteId = strtolower ($quote);
                 $symbol = $base . '/' . $quote;
                 $id = $baseId . '/' . $quote;
@@ -7148,24 +7147,24 @@ class coinmarketcap extends Exchange {
         $this->loadMarkets ();
         $request = array ();
         if ($currency)
-            requestarray ('convert') = $currency;
+            $request['convert'] = $currency;
         return $this->publicGetGlobal ($request);
     }
 
     public function parse_ticker ($ticker, $market) {
         $timestamp = $this->milliseconds ();
         if (array_key_exists ('last_updated', $ticker))
-            if (tickerarray ('last_updated'))
-                $timestamp = intval (tickerarray ('last_updated')) * 1000;
+            if ($ticker['last_updated'])
+                $timestamp = intval ($ticker['last_updated']) * 1000;
         $volume = null;
-        $volumeKey = '24h_volume_' . marketarray ('quoteId');
-        if (tickerarray ($volumeKey))
-            $volume = floatval (tickerarray ($volumeKey));
-        $price = 'price_' . marketarray ('quoteId');
+        $volumeKey = '24h_volume_' . $market['quoteId'];
+        if ($ticker[$volumeKey])
+            $volume = floatval ($ticker[$volumeKey]);
+        $price = 'price_' . $market['quoteId'];
         $change = null;
         $changeKey = 'percent_change_24h';
-        if (tickerarray ($changeKey))
-            $change = floatval (tickerarray ($changeKey));
+        if ($ticker[$changeKey])
+            $change = floatval ($ticker[$changeKey]);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -7177,7 +7176,7 @@ class coinmarketcap extends Exchange {
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ($price)),
+            'last' => floatval ($ticker[$price]),
             'change' => $change,
             'percentage' => null,
             'average' => null,
@@ -7191,15 +7190,15 @@ class coinmarketcap extends Exchange {
         $this->loadMarkets ();
         $request = array ();
         if ($currency) 
-            requestarray ('convert') = $currency;
+            $request['convert'] = $currency;
         $response = $this->publicGetTicker ($request);
         $tickers = array ();
         for ($t = 0; $t < count ($response); $t++) {
-            $ticker = responsearray ($t);
-            $id = tickerarray ('id') . '/' . $currency;
-            $market = $this->markets_by_idarray ($id);
-            $symbol = marketarray ('symbol');
-            tickersarray ($symbol) = $this->parse_ticker ($ticker, $market);
+            $ticker = $response[$t];
+            $id = $ticker['id'] . '/' . $currency;
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $tickers[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $tickers;
     }
@@ -7208,16 +7207,16 @@ class coinmarketcap extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $request = array (
-            'convert' => parray ('quote'),
-            'id' => parray ('baseId'),
+            'convert' => $p['quote'],
+            'id' => $p['baseId'],
         );
         $response = $this->publicGetTickerId ($request);
-        $ticker = responsearray (0);
+        $ticker = $response[0];
         return $this->parse_ticker ($ticker, $p);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($query)
             $url .= '?' . $this->urlencode ($query);
@@ -7280,21 +7279,21 @@ class coinmate extends Exchange {
 
     public function fetch_balance () {
         $response = $this->privatePostBalances ();
-        $balances = responsearray ('data');
+        $balances = $response['data'];
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $account = array (
                 'free' => null,
                 'used' => null,
                 'total' => null,
             );
             if (array_key_exists ($currency, $balances)) {
-                accountarray ('free') = balancesarray ($currency)array ('available');
-                accountarray ('used') = balancesarray ($currency)array ('reserved');
-                accountarray ('total') = balancesarray ($currency)array ('balance');
+                $account['free'] = $balances[$currency]['available'];
+                $account['used'] = $balances[$currency]['reserved'];
+                $account['total'] = $balances[$currency]['balance'];
             }            
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -7304,8 +7303,8 @@ class coinmate extends Exchange {
             'currencyPair' => $this->market_id ($market),
             'groupByPriceLimit' => 'False',
         ), $params));
-        $orderbook = responsearray ('data');
-        $timestamp = orderbookarray ('timestamp') * 1000;
+        $orderbook = $response['data'];
+        $timestamp = $orderbook['timestamp'] * 1000;
         $result = array (
             'bids' => array (),
             'asks' => array (),
@@ -7314,13 +7313,13 @@ class coinmate extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = orderarray ('price');
-                $amount = orderarray ('amount');
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = $order['price'];
+                $amount = $order['amount'];
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -7330,25 +7329,25 @@ class coinmate extends Exchange {
         $response = $this->publicGetTicker (array (
             'currencyPair' => $this->market_id ($market),
         ));
-        $ticker = responsearray ('data');
-        $timestamp = tickerarray ('timestamp') * 1000;
+        $ticker = $response['data'];
+        $timestamp = $ticker['timestamp'] * 1000;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('amount')),
+            'quoteVolume' => floatval ($ticker['amount']),
             'info' => $ticker,
         );
     }
@@ -7367,16 +7366,16 @@ class coinmate extends Exchange {
         );
         if ($type == 'market') {
             if ($side == 'buy')
-                orderarray ('total') = $amount; // $amount in fiat
+                $order['total'] = $amount; // $amount in fiat
             else
-                orderarray ('amount') = $amount; // $amount in fiat
+                $order['amount'] = $amount; // $amount in fiat
             $method .= 'Instant';
         } else {
-            orderarray ('amount') = $amount; // $amount in crypto
-            orderarray ('price') = $price;
+            $order['amount'] = $amount; // $amount in crypto
+            $order['price'] = $price;
             $method .= $this->capitalize ($type);
         }
-        return thisarray ($method) (self.extend ($order, $params));
+        return $this->$method (self.extend ($order, $params));
     }
 
     public function cancel_order ($id) {
@@ -7384,7 +7383,7 @@ class coinmate extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $path;
+        $url = $this->urls['api'] . '/' . $path;
         if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
@@ -7406,7 +7405,7 @@ class coinmate extends Exchange {
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('error', $response))
-            if (responsearray ('error'))
+            if ($response['error'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
@@ -7568,16 +7567,16 @@ class coinsecure extends Exchange {
 
     public function fetch_balance () {
         $response = $this->privateGetUserExchangeBankSummary ();
-        $balance = responsearray ('message');
+        $balance = $response['message'];
         $coin = array (
-            'free' => balancearray ('availableCoinBalance'),
-            'used' => balancearray ('pendingCoinBalance'),
-            'total' => balancearray ('totalCoinBalance'),
+            'free' => $balance['availableCoinBalance'],
+            'used' => $balance['pendingCoinBalance'],
+            'total' => $balance['totalCoinBalance'],
         );
         $fiat = array (
-            'free' => balancearray ('availableFiatBalance'),
-            'used' => balancearray ('pendingFiatBalance'),
-            'total' => balancearray ('totalFiatBalance'),
+            'free' => $balance['availableFiatBalance'],
+            'used' => $balance['pendingFiatBalance'],
+            'total' => $balance['totalFiatBalance'],
         );
         $result = array (
             'info' => $balance,
@@ -7591,8 +7590,8 @@ class coinsecure extends Exchange {
         $bids = $this->publicGetExchangeBidOrders ($params);
         $asks = $this->publicGetExchangeAskOrders ($params);
         $orderbook = array (
-            'bids' => bidsarray ('message'),
-            'asks' => asksarray ('message'),
+            'bids' => $bids['message'],
+            'asks' => $asks['message'],
         );
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -7603,13 +7602,13 @@ class coinsecure extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = orderarray ('rate');
-                $amount = orderarray ('vol');
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = $order['rate'];
+                $amount = $order['vol'];
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -7617,25 +7616,25 @@ class coinsecure extends Exchange {
 
     public function fetch_ticker ($market) {
         $response = $this->publicGetExchangeTicker ();
-        $ticker = responsearray ('message');
-        $timestamp = tickerarray ('timestamp');
+        $ticker = $response['message'];
+        $timestamp = $ticker['timestamp'];
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
             'vwap' => null,
-            'open' => floatval (tickerarray ('open')),
+            'open' => floatval ($ticker['open']),
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('lastPrice')),
+            'last' => floatval ($ticker['lastPrice']),
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval (tickerarray ('coinvolume')),
-            'quoteVolume' => floatval (tickerarray ('fiatvolume')),
+            'baseVolume' => floatval ($ticker['coinvolume']),
+            'quoteVolume' => floatval ($ticker['fiatvolume']),
             'info' => $ticker,
         );
     }
@@ -7650,37 +7649,37 @@ class coinsecure extends Exchange {
         if (api == 'market') {
             $method .= 'Instant' . $this->capitalize ($side);
             if ($side == 'buy')
-                orderarray ('maxFiat') = $amount;
+                $order['maxFiat'] = $amount;
             else
-                orderarray ('maxVol') = $amount;
+                $order['maxVol'] = $amount;
         } else {
             $direction = ($side == 'buy') ? 'Bid' : 'Ask';
             $method .= $direction . 'New';
-            orderarray ('rate') = $price;
-            orderarray ('vol') = $amount;
+            $order['rate'] = $price;
+            $order['vol'] = $amount;
         }
-        return thisarray ($method) (self.extend ($order, $params));
+        return $this->$method (self.extend ($order, $params));
     }
 
     public function cancel_order ($id) {
         throw new ExchangeError ($this->id . ' cancelOrder () is not fully implemented yet');
         $method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
-        return thisarray ($method) (array ( 'orderID' => $id ));
+        return $this->$method (array ( 'orderID' => $id ));
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'private') {
             $headers = array ( 'Authorization' => $this->apiKey );
             if ($query) {
                 $body = $this->json ($query);
-                headersarray ('Content-Type') = 'application/json';
+                $headers['Content-Type'] = 'application/json';
             }
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('success', $response))
-            if (responsearray ('success'))
+            if ($response['success'])
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
@@ -7740,19 +7739,19 @@ class coinspot extends Exchange {
         $response = $this->privatePostMyBalances ();
         $result = array ( 'info' => $response );
         if (array_key_exists ('balance', $response)) {
-            $balances = responsearray ('balance');
+            $balances = $response['balance'];
             $currencies = array_keys ($balances);
             for ($c = 0; $c < count ($currencies); $c++) {
-                $currency = currenciesarray ($c);
+                $currency = $currencies[$c];
                 $uppercase = strtoupper ($currency);
                 $account = array (
-                    'free' => balancesarray ($currency),
+                    'free' => $balances[$currency],
                     'used' => null,
-                    'total' => balancesarray ($currency),
+                    'total' => $balances[$currency],
                 );
                 if ($uppercase == 'DRK')
                     $uppercase = 'DASH';
-                resultarray ($uppercase) = $account;
+                $result[$uppercase] = $account;
             }
         }
         return $result;
@@ -7761,7 +7760,7 @@ class coinspot extends Exchange {
     public function fetch_order_book ($market, $params = array ()) {
         $p = $this->market ($market);
         $orderbook = $this->privatePostOrders (array_merge (array (
-            'cointype' => parray ('id'),
+            'cointype' => $p['id'],
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -7773,18 +7772,18 @@ class coinspot extends Exchange {
         $sides = array ( 'bids' => 'buyorders', 'asks' => 'sellorders' );
         $keys = array_keys ($sides);
         for ($k = 0; $k < count ($keys); $k++) {
-            $key = keysarray ($k);
-            $side = sidesarray ($key);
-            $orders = orderbookarray ($side);
+            $key = $keys[$k];
+            $side = $sides[$key];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray ('rate'));
-                $amount = floatval (orderarray ('amount'));
-                resultarray ($key)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order['rate']);
+                $amount = floatval ($order['amount']);
+                $result[$key][] = array ($price, $amount);
             }
         }
-        resultarray ('bids') = $this->sort_by (resultarray ('bids'), 0, true);
-        resultarray ('asks') = $this->sort_by (resultarray ('asks'), 0);
+        $result['bids'] = $this->sort_by ($result['bids'], 0, true);
+        $result['asks'] = $this->sort_by ($result['asks'], 0);
         return $result;
     }
 
@@ -7792,20 +7791,20 @@ class coinspot extends Exchange {
         $response = $this->publicGetLatest ();
         $id = $this->market_id ($market);
         $id = strtolower ($id);
-        $ticker = responsearray ('prices')array ($id);
+        $ticker = $response['prices'][$id];
         $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -7830,19 +7829,19 @@ class coinspot extends Exchange {
             'amount' => $amount,
             'rate' => $price,
         );
-        return thisarray ($method) (array_merge ($order, $params));
+        return $this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id, $params = array ()) {
         throw new ExchangeError ($this->id . ' cancelOrder () is not fully implemented yet');
         $method = 'privatePostMyBuy';
-        return thisarray ($method) (array ( 'id' => $id ));
+        return $this->$method (array ( 'id' => $id ));
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!$this->apiKey)
             throw new AuthenticationError ($this->id . ' requires apiKey for all requests');
-        $url = $this->urlsarray ('api')array ($api) . '/' . $path;
+        $url = $this->urls['api'][$api] . '/' . $path;
         if ($api == 'private') {
             $nonce = $this->nonce ();
             $body = $this->json (array_merge (array ( 'nonce' => $nonce ), $params));
@@ -7920,11 +7919,11 @@ class dsx extends Exchange {
 
     public function fetch_markets () {
         $response = $this->mapiGetInfo ();
-        $keys = array_keys (responsearray ('pairs'));
+        $keys = array_keys ($response['pairs']);
         $result = array ();
         for ($p = 0; $p < count ($keys); $p++) {
-            $id = keysarray ($p);
-            $market = responsearray ('pairs')array ($id);
+            $id = $keys[$p];
+            $market = $response['pairs'][$id];
             $base = mb_substr ($id, 0, 3);
             $quote = mb_substr ($id, 3, 6);
             $base = strtoupper ($base);
@@ -7944,18 +7943,18 @@ class dsx extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $response = $this->tapiPostGetInfo ();
-        $balances = responsearray ('return');
+        $balances = $response['return'];
         $result = array ( 'info' => $balances );
-        $currencies = array_keys (balancesarray ('total'));
+        $currencies = array_keys ($balances['total']);
         for ($c = 0; $c < count ($currencies); $c++) {
-            $currency = currenciesarray ($c);
+            $currency = $currencies[$c];
             $account = array (
-                'free' => balancesarray ('funds')array ($currency),
+                'free' => $balances['funds'][$currency],
                 'used' => null,
-                'total' => balancesarray ('total')array ($currency),
+                'total' => $balances['total'][$currency],
             );
-            accountarray ('used') = accountarray ('total') - accountarray ('free');
-            resultarray ($currency) = $account;
+            $account['used'] = $account['total'] - $account['free'];
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -7964,9 +7963,9 @@ class dsx extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $response = $this->mapiGetDepthId (array_merge (array (
-            'id' => parray ('id'),
+            'id' => $p['id'],
         ), $params));
-        $orderbook = responsearray ($p['id')];
+        $orderbook = $response[$p['id']];
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -7976,13 +7975,13 @@ class dsx extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = orderarray (0);
-                $amount = orderarray (1);
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = $order[0];
+                $amount = $order[1];
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -7992,27 +7991,27 @@ class dsx extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $response = $this->mapiGetTickerId (array (
-            'id' => parray ('id'),
+            'id' => $p['id'],
         ));
-        $ticker = responsearray ($p['id')];
-        $timestamp = tickerarray ('updated') * 1000;
+        $ticker = $response[$p['id']];
+        $timestamp = $ticker['updated'] * 1000;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('buy')),
-            'ask' => floatval (tickerarray ('sell')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
-            'average' => floatval (tickerarray ('avg')),
-            'baseVolume' => floatval (tickerarray ('vol')),
-            'quoteVolume' => floatval (tickerarray ('vol_cur')),
+            'average' => floatval ($ticker['avg']),
+            'baseVolume' => floatval ($ticker['vol']),
+            'quoteVolume' => floatval ($ticker['vol_cur']),
             'info' => $ticker,
         );
     }
@@ -8043,7 +8042,7 @@ class dsx extends Exchange {
     }
 
     public function request ($path, $api = 'mapi', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api')array ($api);
+        $url = $this->urls['api'][$api];
         if (($api == 'mapi') || ($api == 'dwapi'))
             $url .= '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
@@ -8068,7 +8067,7 @@ class dsx extends Exchange {
         if ($api == 'mapi')
             return $response;
         if (array_key_exists ('success', $response))
-            if (responsearray ('success'))
+            if ($response['success'])
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response)); 
     }
@@ -8131,8 +8130,8 @@ class exmo extends Exchange {
         $keys = array_keys ($markets);
         $result = array ();
         for ($p = 0; $p < count ($keys); $p++) {
-            $id = keysarray ($p);
-            $market = marketsarray ($id);
+            $id = $keys[$p];
+            $market = $markets[$id];
             $symbol = str_replace ('_', '/', $id);
             list ($base, $quote) = explode ('/', $symbol);
             $result[] = array (
@@ -8151,18 +8150,18 @@ class exmo extends Exchange {
         $response = $this->privatePostUserInfo ();
         $result = array ( 'info' => $response );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $account = array (
                 'free' => null,
                 'used' => null,
                 'total' => null,
             );
-            if (array_key_exists ($currency, responsearray ('balances')))
-                accountarray ('free') = floatval (responsearray ('balances')array ($currency));
-            if (array_key_exists ($currency, responsearray ('reserved')))
-                accountarray ('used') = floatval (responsearray ('reserved')array ($currency));
-            accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
-            resultarray ($currency) = $account;
+            if (array_key_exists ($currency, $response['balances']))
+                $account['free'] = floatval ($response['balances'][$currency]);
+            if (array_key_exists ($currency, $response['reserved']))
+                $account['used'] = floatval ($response['reserved'][$currency]);
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -8171,9 +8170,9 @@ class exmo extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $response = $this->publicGetOrderBook (array_merge (array (
-            'pair' => parray ('id'),
+            'pair' => $p['id'],
         ), $params));
-        $orderbook = responsearray ($p['id')];
+        $orderbook = $response[$p['id']];
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -8184,38 +8183,38 @@ class exmo extends Exchange {
         $sides = array ( 'bids' => 'bid', 'asks' => 'ask' );
         $keys = array_keys ($sides);
         for ($k = 0; $k < count ($keys); $k++) {
-            $key = keysarray ($k);
-            $side = sidesarray ($key);
-            $orders = orderbookarray ($side);
+            $key = $keys[$k];
+            $side = $sides[$key];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray (0));
-                $amount = floatval (orderarray (1));
-                resultarray ($key)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$key][] = array ($price, $amount);
             }
         }
         return $result;
     }
 
     public function parse_ticker ($ticker, $market) {
-        $timestamp = tickerarray ('updated') * 1000;
+        $timestamp = $ticker['updated'] * 1000;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('buy_price')),
-            'ask' => floatval (tickerarray ('sell_price')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy_price']),
+            'ask' => floatval ($ticker['sell_price']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last_trade')),
+            'last' => floatval ($ticker['last_trade']),
             'change' => null,
             'percentage' => null,
-            'average' => floatval (tickerarray ('avg')),
-            'baseVolume' => floatval (tickerarray ('vol')),
-            'quoteVolume' => floatval (tickerarray ('vol_curr')),
+            'average' => floatval ($ticker['avg']),
+            'baseVolume' => floatval ($ticker['vol']),
+            'quoteVolume' => floatval ($ticker['vol_curr']),
             'info' => $ticker,
         );
     }
@@ -8226,11 +8225,11 @@ class exmo extends Exchange {
         $result = array ();
         $ids = array_keys ($response);
         for ($i = 0; $i < count ($ids); $i++) {
-            $id = idsarray ($i);
-            $market = $this->markets_by_idarray ($id);
-            $symbol = marketarray ('symbol');
-            $ticker = responsearray ($id);
-            resultarray ($symbol) = $this->parse_ticker ($ticker, $market);
+            $id = $ids[$i];
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $ticker = $response[$id];
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
     }
@@ -8239,7 +8238,7 @@ class exmo extends Exchange {
         $this->loadMarkets ();
         $response = $this->publicGetTicker ();
         $p = $this->market ($market);
-        return $this->parse_ticker (responsearray ($p['id')], $p);
+        return $this->parse_ticker ($response[$p['id']], $p);
     }
 
     public function fetch_trades ($market) {
@@ -8269,7 +8268,7 @@ class exmo extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->version . '/' . $path;
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
@@ -8287,7 +8286,7 @@ class exmo extends Exchange {
         if ($api == 'public')
             return $response;
         if (array_key_exists ('result', $response))
-            if (responsearray ('result'))
+            if ($response['result'])
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
@@ -8344,13 +8343,13 @@ class flowbtc extends Exchange {
 
     public function fetch_markets () {
         $response = $this->publicPostGetProductPairs ();
-        $markets = responsearray ('productPairs');
+        $markets = $response['productPairs'];
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
-            $market = marketsarray ($p);
-            $id = marketarray ('name');
-            $base = marketarray ('product1Label');
-            $quote = marketarray ('product2Label');
+            $market = $markets[$p];
+            $id = $market['name'];
+            $base = $market['product1Label'];
+            $quote = $market['product2Label'];
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -8366,18 +8365,18 @@ class flowbtc extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $response = $this->privatePostGetAccountInfo ();
-        $balances = responsearray ('currencies');
+        $balances = $response['currencies'];
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = balancesarray ($b);
-            $currency = balancearray ('name');
+            $balance = $balances[$b];
+            $currency = $balance['name'];
             $account = array (
-                'free' => balancearray ('balance'),
-                'used' => balancearray ('hold'),
+                'free' => $balance['balance'],
+                'used' => $balance['hold'],
                 'total' => null,
             );
-            accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
-            resultarray ($currency) = $account;
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -8386,7 +8385,7 @@ class flowbtc extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $orderbook = $this->publicPostGetOrderBook (array_merge (array (
-            'productPair' => parray ('id'),
+            'productPair' => $p['id'],
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -8397,13 +8396,13 @@ class flowbtc extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray ('px'));
-                $amount = floatval (orderarray ('qty'));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order['px']);
+                $amount = floatval ($order['qty']);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -8413,26 +8412,26 @@ class flowbtc extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $ticker = $this->publicPostGetTicker (array (
-            'productPair' => parray ('id'),
+            'productPair' => $p['id'],
         ));
         $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval (tickerarray ('volume24hr')),
-            'quoteVolume' => floatval (tickerarray ('volume24hrProduct2')),
+            'baseVolume' => floatval ($ticker['volume24hr']),
+            'quoteVolume' => floatval ($ticker['volume24hrProduct2']),
             'info' => $ticker,
         );
     }
@@ -8468,7 +8467,7 @@ class flowbtc extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->version . '/' . $path;
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api == 'public') {
             if ($params) {
                 $body = $this->json ($params);
@@ -8491,7 +8490,7 @@ class flowbtc extends Exchange {
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('isAccepted', $response))
-            if (responsearray ('isAccepted'))
+            if ($response['isAccepted'])
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
@@ -8556,23 +8555,23 @@ class fyb extends Exchange {
 
     public function fetch_balance () {
         $balance = $this->privatePostGetaccinfo ();
-        $btc = floatval (balancearray ('btcBal'));
-        $symbol = $this->symbolsarray (0);
-        $quote = $this->marketsarray ($symbol)array ('quote');
+        $btc = floatval ($balance['btcBal']);
+        $symbol = $this->symbols[0];
+        $quote = $this->markets[$symbol]['quote'];
         $lowercase = strtolower ($quote) . 'Bal';
-        $fiat = floatval (balancearray ($lowercase));
+        $fiat = floatval ($balance[$lowercase]);
         $crypto = array (
             'free' => $btc,
             'used' => null,
             'total' => $btc,
         );
         $accounts = array ( 'BTC' => $crypto );
-        accountsarray ($quote) = array (
+        $accounts[$quote] = array (
             'free' => $fiat,
             'used' => null,
             'total' => $fiat,
         );
-        accountsarray ('info') = $balance;
+        $accounts['info'] = $balance;
         return $accounts;
     }
 
@@ -8587,13 +8586,13 @@ class fyb extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray (0));
-                $amount = floatval (orderarray (1));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -8605,16 +8604,16 @@ class fyb extends Exchange {
         $last = null;
         $volume = null;
         if (array_key_exists ('last', $ticker))
-            $last = floatval (tickerarray ('last'));
+            $last = floatval ($ticker['last']);
         if (array_key_exists ('vol', $ticker))
-            $volume = floatval (tickerarray ('vol'));
+            $volume = floatval ($ticker['vol']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
             'vwap' => null,
             'open' => null,
             'close' => null,
@@ -8637,7 +8636,7 @@ class fyb extends Exchange {
         return $this->privatePostPlaceorder (array_merge (array (
             'qty' => $amount,
             'price' => $price,
-            'type' => strtoupper (sidearray (0))
+            'type' => strtoupper ($side[0])
         ), $params));
     }
 
@@ -8646,7 +8645,7 @@ class fyb extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $path;
+        $url = $this->urls['api'] . '/' . $path;
         if ($api == 'public') {
             $url .= '.json';
         } else {
@@ -8661,7 +8660,7 @@ class fyb extends Exchange {
         $response = $this->fetch ($url, $method, $headers, $body);
         if ($api == 'private')
             if (array_key_exists ('error', $response))
-                if (responsearray ('error'))
+                if ($response['error'])
                     throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
@@ -8877,11 +8876,11 @@ class gatecoin extends Exchange {
 
     public function fetch_markets () {
         $response = $this->publicGetPublicLiveTickers ();
-        $markets = responsearray ('tickers');
+        $markets = $response['tickers'];
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
-            $market = marketsarray ($p);
-            $id = marketarray ('currencyPair');
+            $market = $markets[$p];
+            $id = $market['currencyPair'];
             $base = mb_substr ($id, 0, 3);
             $quote = mb_substr ($id, 3, 6);
             $symbol = $base . '/' . $quote;
@@ -8899,20 +8898,20 @@ class gatecoin extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $response = $this->privateGetBalanceBalances ();
-        $balances = responsearray ('balances');
+        $balances = $response['balances'];
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = balancesarray ($b);
-            $currency = balancearray ('currency');
+            $balance = $balances[$b];
+            $currency = $balance['currency'];
             $account = array (
-                'free' => balancearray ('availableBalance'),
+                'free' => $balance['availableBalance'],
                 'used' => $this->sum (
-                    balancearray ('pendingIncoming'), 
-                    balancearray ('pendingOutgoing'),
-                    balancearray ('openOrder')),
-                'total' => balancearray ('balance'),
+                    $balance['pendingIncoming'], 
+                    $balance['pendingOutgoing'],
+                    $balance['openOrder']),
+                'total' => $balance['balance'],
             );
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -8921,7 +8920,7 @@ class gatecoin extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $orderbook = $this->publicGetPublicMarketDepthCurrencyPair (array_merge (array (
-            'CurrencyPair' => parray ('id'),
+            'CurrencyPair' => $p['id'],
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -8932,37 +8931,37 @@ class gatecoin extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray ('price'));
-                $amount = floatval (orderarray ('volume'));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['volume']);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
     }
 
     public function parse_ticker ($ticker, $market) {
-        $timestamp = intval (tickerarray ('createDateTime')) * 1000;
+        $timestamp = intval ($ticker['createDateTime']) * 1000;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
-            'vwap' => floatval (tickerarray ('vwap')),
-            'open' => floatval (tickerarray ('open')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => floatval ($ticker['vwap']),
+            'open' => floatval ($ticker['open']),
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('volume')),
+            'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
     }
@@ -8970,14 +8969,14 @@ class gatecoin extends Exchange {
     public function fetch_tickers () {
         $this->loadMarkets ();
         $response = $this->publicGetPublicLiveTickers ();
-        $tickers = responsearray ('tickers');
+        $tickers = $response['tickers'];
         $result = array ();
         for ($t = 0; $t < count ($tickers); $t++) {
-            $ticker = tickersarray ($t);
-            $id = tickerarray ('currencyPair');
-            $market = $this->markets_by_idarray ($id);
-            $symbol = marketarray ('symbol');
-            resultarray ($symbol) = $this->parse_ticker ($ticker, $market);
+            $ticker = $tickers[$t];
+            $id = $ticker['currencyPair'];
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
     }
@@ -8986,9 +8985,9 @@ class gatecoin extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $response = $this->publicGetPublicLiveTickerCurrencyPair (array (
-            'CurrencyPair' => parray ('id'),
+            'CurrencyPair' => $p['id'],
         ));
-        $ticker = responsearray ('ticker');
+        $ticker = $response['ticker'];
         return $this->parse_ticker ($ticker, $p);
     }
 
@@ -9007,10 +9006,10 @@ class gatecoin extends Exchange {
             'Amount' => $amount,
         );
         if ($type == 'limit')
-            orderarray ('Price') = $price;
+            $order['Price'] = $price;
         if ($this->twofa) {
             if (array_key_exists ('ValidationCode', $params))
-                orderarray ('ValidationCode') = paramsarray ('ValidationCode');
+                $order['ValidationCode'] = $params['ValidationCode'];
             else
                 throw new AuthenticationError ($this->id . ' two-factor authentication requires a missing ValidationCode parameter');
         }
@@ -9023,7 +9022,7 @@ class gatecoin extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
             if ($query)
@@ -9040,14 +9039,14 @@ class gatecoin extends Exchange {
                 'API_REQUEST_DATE' => $nonce,
             );
             if ($method != 'GET') {
-                headersarray ('Content-Type') = $contentType;
+                $headers['Content-Type'] = $contentType;
                 $body = $this->json (array_merge (array ( 'nonce' => $nonce ), $params));
             }
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('responseStatus', $response))
-            if (array_key_exists ('message', responsearray ('responseStatus')))
-                if (responsearray ('responseStatus')array ('message') == 'OK')
+            if (array_key_exists ('message', $response['responseStatus']))
+                if ($response['responseStatus']['message'] == 'OK')
                     return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
@@ -9124,10 +9123,10 @@ class gdax extends Exchange {
         $markets = $this->publicGetProducts ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
-            $market = marketsarray ($p);
-            $id = marketarray ('id');
-            $base = marketarray ('base_currency');
-            $quote = marketarray ('quote_currency');
+            $market = $markets[$p];
+            $id = $market['id'];
+            $base = $market['base_currency'];
+            $quote = $market['quote_currency'];
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -9145,14 +9144,14 @@ class gdax extends Exchange {
         $balances = $this->privateGetAccounts ();
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = balancesarray ($b);
-            $currency = balancearray ('currency');
+            $balance = $balances[$b];
+            $currency = $balance['currency'];
             $account = array (
-                'free' => floatval (balancearray ('available')),
-                'used' => floatval (balancearray ('hold')),
-                'total' => floatval (balancearray ('balance')),
+                'free' => floatval ($balance['available']),
+                'used' => floatval ($balance['hold']),
+                'total' => floatval ($balance['balance']),
             );
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -9172,13 +9171,13 @@ class gdax extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray (0));
-                $amount = floatval (orderarray (1));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -9188,35 +9187,35 @@ class gdax extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $ticker = $this->publicGetProductsIdTicker (array (
-            'id' => parray ('id'),
+            'id' => $p['id'],
         ));
         $quote = $this->publicGetProductsIdStats (array (
-            'id' => parray ('id'),
+            'id' => $p['id'],
         ));
-        $timestamp = $this->parse8601 (tickerarray ('time'));
+        $timestamp = $this->parse8601 ($ticker['time']);
         $bid = null;
         $ask = null;
         if (array_key_exists ('bid', $ticker))
-            $bid = floatval (tickerarray ('bid'));
+            $bid = floatval ($ticker['bid']);
         if (array_key_exists ('ask', $ticker))
-            $ask = floatval (tickerarray ('ask'));
+            $ask = floatval ($ticker['ask']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (quotearray ('high')),
-            'low' => floatval (quotearray ('low')),
+            'high' => floatval ($quote['high']),
+            'low' => floatval ($quote['low']),
             'bid' => $bid,
             'ask' => $ask,
             'vwap' => null,
-            'open' => floatval (quotearray ('open')),
+            'open' => floatval ($quote['open']),
             'close' => null,
             'first' => null,
-            'last' => floatval (quotearray ('last')),
+            'last' => floatval ($quote['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('volume')),
+            'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
     }
@@ -9238,7 +9237,7 @@ class gdax extends Exchange {
             'type' => $type,
         );
         if ($type == 'limit')
-            orderarray ('price') = $price;
+            $order['price'] = $price;
         return $this->privatePostOrders (array_merge ($order, $params));
     }
 
@@ -9249,7 +9248,7 @@ class gdax extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->implode_params ($path, $params);
-        $url = $this->urlsarray ('api') . $request;
+        $url = $this->urls['api'] . $request;
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
             if ($query)
@@ -9334,7 +9333,7 @@ class gemini extends Exchange {
         $markets = $this->publicGetSymbols ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
-            $id = marketsarray ($p);
+            $id = $markets[$p];
             $market = $id;
             $uppercase = strtoupper ($market);
             $base = mb_substr ($uppercase, 0, 3);
@@ -9365,14 +9364,14 @@ class gemini extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray ('price'));
-                $amount = floatval (orderarray ('amount'));
-                $timestamp = intval (orderarray ('timestamp')) * 1000;
-                resultarray ($side)[] = array ($price, $amount, $timestamp);
+                $order = $orders[$i];
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['amount']);
+                $timestamp = intval ($order['timestamp']) * 1000;
+                $result[$side][] = array ($price, $amount, $timestamp);
             }
         }
         return $result;
@@ -9382,28 +9381,28 @@ class gemini extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $ticker = $this->publicGetPubtickerSymbol (array (
-            'symbol' => parray ('id'),
+            'symbol' => $p['id'],
         ));
-        $timestamp = tickerarray ('volume')array ('timestamp');
-        $baseVolume = parray ('base');
-        $quoteVolume = parray ('quote');
+        $timestamp = $ticker['volume']['timestamp'];
+        $baseVolume = $p['base'];
+        $quoteVolume = $p['quote'];
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval (tickerarray ('volume')array ($baseVolume)),
-            'quoteVolume' => floatval (tickerarray ('volume')array ($quoteVolume)),
+            'baseVolume' => floatval ($ticker['volume'][$baseVolume]),
+            'quoteVolume' => floatval ($ticker['volume'][$quoteVolume]),
             'info' => $ticker,
         );
     }
@@ -9420,15 +9419,15 @@ class gemini extends Exchange {
         $balances = $this->privatePostBalances ();
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = balancesarray ($b);
-            $currency = balancearray ('currency');
+            $balance = $balances[$b];
+            $currency = $balance['currency'];
             $account = array (
-                'free' => floatval (balancearray ('available')),
+                'free' => floatval ($balance['available']),
                 'used' => null,
-                'total' => floatval (balancearray ('amount')),
+                'total' => floatval ($balance['amount']),
             );
-            accountarray ('used') = accountarray ('total') - accountarray ('free');
-            resultarray ($currency) = $account;
+            $account['used'] = $account['total'] - $account['free'];
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -9477,10 +9476,10 @@ class gemini extends Exchange {
                 'X-GEMINI-SIGNATURE' => $signature,
             );
         }
-        $url = $this->urlsarray ('api') . $url;
+        $url = $this->urls['api'] . $url;
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('result', $response))
-            if (responsearray ('result') == 'error')
+            if ($response['result'] == 'error')
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
@@ -9555,13 +9554,13 @@ class hitbtc extends Exchange {
     public function fetch_markets () {
         $markets = $this->publicGetSymbols ();
         $result = array ();
-        for ($p = 0; $p < count (marketsarray ('symbols')); $p++) {
-            $market = marketsarray ('symbols')array ($p);
-            $id = marketarray ('symbol');
-            $base = marketarray ('commodity');
-            $quote = marketarray ('currency');
-            $lot = floatval (marketarray ('lot'));
-            $step = floatval (marketarray ('step'));
+        for ($p = 0; $p < count ($markets['symbols']); $p++) {
+            $market = $markets['symbols'][$p];
+            $id = $market['symbol'];
+            $base = $market['commodity'];
+            $quote = $market['currency'];
+            $lot = floatval ($market['lot']);
+            $step = floatval ($market['step']);
             $base = $this->commonCurrencyCode ($base);
             $quote = $this->commonCurrencyCode ($quote);
             // looks like they now have it correct
@@ -9584,18 +9583,18 @@ class hitbtc extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $response = $this->tradingGetBalance ();
-        $balances = responsearray ('balance');
+        $balances = $response['balance'];
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = balancesarray ($b);
-            $currency = balancearray ('currency_code');
+            $balance = $balances[$b];
+            $currency = $balance['currency_code'];
             $account = array (
-                'free' => floatval (balancearray ('cash')),
-                'used' => floatval (balancearray ('reserved')),
+                'free' => floatval ($balance['cash']),
+                'used' => floatval ($balance['reserved']),
                 'total' => null,
             );
-            accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
-            resultarray ($currency) = $account;
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -9614,37 +9613,37 @@ class hitbtc extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray (0));
-                $amount = floatval (orderarray (1));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
     }
 
     public function parse_ticker ($ticker, $market) {
-        $timestamp = tickerarray ('timestamp');
+        $timestamp = $ticker['timestamp'];
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
             'vwap' => null,
-            'open' => floatval (tickerarray ('open')),
+            'open' => floatval ($ticker['open']),
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval (tickerarray ('volume')),
-            'quoteVolume' => floatval (tickerarray ('volume_quote')),
+            'baseVolume' => floatval ($ticker['volume']),
+            'quoteVolume' => floatval ($ticker['volume_quote']),
             'info' => $ticker,
         );
     }
@@ -9655,11 +9654,11 @@ class hitbtc extends Exchange {
         $ids = array_keys ($tickers);
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
-            $id = idsarray ($i);
-            $market = $this->markets_by_idarray ($id);
-            $symbol = marketarray ('symbol');
-            $ticker = tickersarray ($id);
-            resultarray ($symbol) = $this->parse_ticker ($ticker, $market);
+            $id = $ids[$i];
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
     }
@@ -9668,10 +9667,10 @@ class hitbtc extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $ticker = $this->publicGetSymbolTicker (array (
-            'symbol' => parray ('id'),
+            'symbol' => $p['id'],
         ));
         if (array_key_exists ('message', $ticker))
-            throw new ExchangeError ($this->id . ' ' . tickerarray ('message'));
+            throw new ExchangeError ($this->id . ' ' . $ticker['message']);
         return $this->parse_ticker ($ticker, $p);
     }
 
@@ -9687,20 +9686,20 @@ class hitbtc extends Exchange {
         $p = $this->market ($market);
         // check if $amount can be evenly divided into lots
         // they want integer $quantity in lot units
-        $quantity = floatval ($amount) / parray ('lot');
+        $quantity = floatval ($amount) / $p['lot'];
         $wholeLots = (int) round ($quantity);
         $difference = $quantity - $wholeLots;
-        if (abs ($difference) > parray ('step'))
-            throw new ExchangeError ($this->id . ' $order $amount should be evenly divisible by lot unit size of ' . (string) parray ('lot'));
+        if (abs ($difference) > $p['step'])
+            throw new ExchangeError ($this->id . ' $order $amount should be evenly divisible by lot unit size of ' . (string) $p['lot']);
         $order = array (
             'clientOrderId' => $this->nonce (),
-            'symbol' => parray ('id'),
+            'symbol' => $p['id'],
             'side' => $side,
             'quantity' => (string) $wholeLots, // $quantity in integer lot units
             'type' => $type,
         );
         if ($type == 'limit')
-            orderarray ('price') = $this->decimal ($price);
+            $order['price'] = $this->decimal ($price);
         return $this->tradingPostNewOrder (array_merge ($order, $params));
     }
 
@@ -9729,7 +9728,7 @@ class hitbtc extends Exchange {
                 'X-Signature' => strtolower ($this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512')),
             );
         }
-        $url = $this->urlsarray ('api') . $url;
+        $url = $this->urls['api'] . $url;
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('code', $response))
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
@@ -9808,7 +9807,7 @@ class huobi extends Exchange {
         $balances = $this->tradePostGetAccountInfo ();
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = array (
                 'free' => null,
@@ -9819,25 +9818,25 @@ class huobi extends Exchange {
             $frozen = 'frozen_' . $lowercase . '_display';
             $loan = 'loan_' . $lowercase . '_display';
             if (array_key_exists ($available, $balances))
-                accountarray ('free') = floatval (balancesarray ($available));
+                $account['free'] = floatval ($balances[$available]);
             if (array_key_exists ($frozen, $balances))
-                accountarray ('used') = floatval (balancesarray ($frozen));
+                $account['used'] = floatval ($balances[$frozen]);
             if (array_key_exists ($loan, $balances))
-                accountarray ('used') = $this->sum (accountarray ('used'), floatval (balancesarray ($loan)));
-            accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
-            resultarray ($currency) = $account;
+                $account['used'] = $this->sum ($account['used'], floatval ($balances[$loan]));
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
         }
         return $result;
     }
 
     public function fetch_order_book ($market, $params = array ()) {
         $p = $this->market ($market);
-        $method = parray ('type') . 'GetDepthId';
-        $orderbook = thisarray ($method) (array_merge (array ( 'id' => parray ('id') ), $params));
+        $method = $p['type'] . 'GetDepthId';
+        $orderbook = $this->$method (array_merge (array ( 'id' => $p['id'] ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
-            'bids' => orderbookarray ('bids'),
-            'asks' => orderbookarray ('asks'),
+            'bids' => $orderbook['bids'],
+            'asks' => $orderbook['asks'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
@@ -9846,50 +9845,50 @@ class huobi extends Exchange {
 
     public function fetch_ticker ($market) {
         $p = $this->market ($market);
-        $method = parray ('type') . 'GetTickerId';
-        $response = thisarray ($method) (array ( 'id' => parray ('id') ));
-        $ticker = responsearray ('ticker');
-        $timestamp = intval (responsearray ('time')) * 1000;
+        $method = $p['type'] . 'GetTickerId';
+        $response = $this->$method (array ( 'id' => $p['id'] ));
+        $ticker = $response['ticker'];
+        $timestamp = intval ($response['time']) * 1000;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('buy')),
-            'ask' => floatval (tickerarray ('sell')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
             'vwap' => null,
-            'open' => floatval (tickerarray ('open')),
+            'open' => floatval ($ticker['open']),
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('vol')),
+            'quoteVolume' => floatval ($ticker['vol']),
             'info' => $ticker,
         );
     }
 
     public function fetch_trades ($market) {
         $p = $this->market ($market);
-        $method = parray ('type') . 'GetDetailId';
-        return thisarray ($method) (array ( 'id' => parray ('id') ));
+        $method = $p['type'] . 'GetDetailId';
+        return $this->$method (array ( 'id' => $p['id'] ));
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $p = $this->market ($market);
         $method = 'tradePost' . $this->capitalize ($side);
         $order = array (
-            'coin_type' => parray ('coinType'),
+            'coin_type' => $p['coinType'],
             'amount' => $amount,
-            'market' => strtolower (parray ('quote')),
+            'market' => strtolower ($p['quote']),
         );
         if ($type == 'limit')
-            orderarray ('price') = $price;
+            $order['price'] = $price;
         else
             $method .= $this->capitalize ($type);
-        return thisarray ($method) (array_merge ($order, $params));
+        return $this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id) {
@@ -9897,7 +9896,7 @@ class huobi extends Exchange {
     }
 
     public function request ($path, $api = 'trade', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api');
+        $url = $this->urls['api'];
         if ($api == 'trade') {
             $url .= '/api' . $this->version;
             $query = $this->keysort (array_merge (array (
@@ -9908,7 +9907,7 @@ class huobi extends Exchange {
             $queryString = $this->urlencode ($this->omit ($query, 'market'));
             // secret key must be at the end of $query to be signed
             $queryString .= '&secret_key=' . $this->secret;
-            queryarray ('sign') = $this->hash ($this->encode ($queryString));
+            $query['sign'] = $this->hash ($this->encode ($queryString));
             $body = $this->urlencode ($query);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
@@ -9922,7 +9921,7 @@ class huobi extends Exchange {
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('status', $response))
-            if (responsearray ('status') == 'error')
+            if ($response['status'] == 'error')
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         if (array_key_exists ('code', $response))
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
@@ -10001,13 +10000,13 @@ class itbit extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray (0));
-                $amount = floatval (orderarray (1));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -10017,32 +10016,32 @@ class itbit extends Exchange {
         $ticker = $this->publicGetMarketsSymbolTicker (array (
             'symbol' => $this->market_id ($market),
         ));
-        $timestamp = $this->parse8601 (tickerarray ('serverTimeUTC'));
+        $timestamp = $this->parse8601 ($ticker['serverTimeUTC']);
         $bid = null;
         $ask = null;
         if (array_key_exists ('bid', $ticker))
-            if (tickerarray ('bid'))
-                $bid = floatval (tickerarray ('bid'));
+            if ($ticker['bid'])
+                $bid = floatval ($ticker['bid']);
         if (array_key_exists ('ask', $ticker))
-            if (tickerarray ('ask'))
-                $ask = floatval (tickerarray ('ask'));
+            if ($ticker['ask'])
+                $ask = floatval ($ticker['ask']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high24h')),
-            'low' => floatval (tickerarray ('low24h')),
+            'high' => floatval ($ticker['high24h']),
+            'low' => floatval ($ticker['low24h']),
             'bid' => $bid,
             'ask' => $ask,
-            'vwap' => floatval (tickerarray ('vwap24h')),
-            'open' => floatval (tickerarray ('openToday')),
+            'vwap' => floatval ($ticker['vwap24h']),
+            'open' => floatval ($ticker['openToday']),
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('lastPrice')),
+            'last' => floatval ($ticker['lastPrice']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('volume24h')),
+            'quoteVolume' => floatval ($ticker['volume24h']),
             'info' => $ticker,
         );
     }
@@ -10055,18 +10054,18 @@ class itbit extends Exchange {
 
     public function fetch_balance () {
         $response = $this->privateGetBalances ();
-        $balances = responsearray ('balances');
+        $balances = $response['balances'];
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = balancesarray ($b);
-            $currency = balancearray ('currency');
+            $balance = $balances[$b];
+            $currency = $balance['currency'];
             $account = array (
-                'free' => floatval (balancearray ('availableBalance')),
+                'free' => floatval ($balance['availableBalance']),
                 'used' => null,
-                'total' => floatval (balancearray ('totalBalance')),
+                'total' => floatval ($balance['totalBalance']),
             );
-            accountarray ('used') = accountarray ('total') - accountarray ('free');
-            resultarray ($currency) = $account;
+            $account['used'] = $account['total'] - $account['free'];
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -10088,11 +10087,11 @@ class itbit extends Exchange {
         $order = array (
             'side' => $side,
             'type' => $type,
-            'currency' => parray ('base'),
+            'currency' => $p['base'],
             'amount' => $amount,
             'display' => $amount,
             'price' => $price,
-            'instrument' => parray ('id'),
+            'instrument' => $p['id'],
         );
         return $this->privatePostTradeAdd (array_merge ($order, $params));
     }
@@ -10104,7 +10103,7 @@ class itbit extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
             if ($query)
@@ -10180,7 +10179,7 @@ class jubi extends Exchange {
         $keys = array_keys ($markets);
         $result = array ();
         for ($p = 0; $p < count ($keys); $p++) {
-            $id = keysarray ($p);
+            $id = $keys[$p];
             $base = strtoupper ($id);
             $quote = 'CNY';
             $symbol = $base . '/' . $quote;
@@ -10202,7 +10201,7 @@ class jubi extends Exchange {
         $balances = $this->privatePostBalance ();
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             if ($lowercase == 'dash')
                 $lowercase = 'drk';
@@ -10214,11 +10213,11 @@ class jubi extends Exchange {
             $free = $lowercase . '_balance';
             $used = $lowercase . '_lock';
             if (array_key_exists ($free, $balances))
-                accountarray ('free') = floatval (balancesarray ($free));
+                $account['free'] = floatval ($balances[$free]);
             if (array_key_exists ($used, $balances))
-                accountarray ('used') = floatval (balancesarray ($used));
-            accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
-            resultarray ($currency) = $account;
+                $account['used'] = floatval ($balances[$used]);
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -10230,12 +10229,12 @@ class jubi extends Exchange {
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
-            'bids' => orderbookarray ('bids'),
-            'asks' => orderbookarray ('asks'),
+            'bids' => $orderbook['bids'],
+            'asks' => $orderbook['asks'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        resultarray ('asks') = $this->sort_by (resultarray ('asks'), 0);
+        $result['asks'] = $this->sort_by ($result['asks'], 0);
         return $result;
     }
 
@@ -10244,20 +10243,20 @@ class jubi extends Exchange {
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('buy')),
-            'ask' => floatval (tickerarray ('sell')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval (tickerarray ('vol')),
-            'quoteVolume' => floatval (tickerarray ('volume')),
+            'baseVolume' => floatval ($ticker['vol']),
+            'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
     }
@@ -10268,11 +10267,11 @@ class jubi extends Exchange {
         $ids = array_keys ($tickers);
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
-            $id = idsarray ($i);
-            $market = $this->markets_by_idarray ($id);
-            $symbol = marketarray ('symbol');
-            $ticker = tickersarray ($id);
-            resultarray ($symbol) = $this->parse_ticker ($ticker, $market);
+            $id = $ids[$i];
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
     }
@@ -10281,7 +10280,7 @@ class jubi extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $ticker = $this->publicGetTicker (array (
-            'coin' => parray ('id'),
+            'coin' => $p['id'],
         ));
         return $this->parse_ticker ($ticker, $p);
     }
@@ -10311,7 +10310,7 @@ class jubi extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->version . '/' . $path;
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
@@ -10323,7 +10322,7 @@ class jubi extends Exchange {
             ), $params);
             $request = $this->urlencode ($query);
             $secret = $this->hash ($this->encode ($this->secret));
-            queryarray ('signature') = $this->hmac ($this->encode ($request), $this->encode ($secret));
+            $query['signature'] = $this->hmac ($this->encode ($request), $this->encode ($secret));
             $body = $this->urlencode ($query);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
@@ -10332,7 +10331,7 @@ class jubi extends Exchange {
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('result', $response))
-            if (!responsearray ('result'))
+            if (!$response['result'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
@@ -10401,21 +10400,21 @@ class kraken extends Exchange {
 
     public function fetch_markets () {
         $markets = $this->publicGetAssetPairs ();
-        $keys = array_keys (marketsarray ('result'));
+        $keys = array_keys ($markets['result']);
         $result = array ();
         for ($p = 0; $p < count ($keys); $p++) {
-            $id = keysarray ($p);
-            $market = marketsarray ('result')array ($id);
-            $base = marketarray ('base');
-            $quote = marketarray ('quote');
-            if ((basearray (0) == 'X') || (basearray (0) == 'Z'))
+            $id = $keys[$p];
+            $market = $markets['result'][$id];
+            $base = $market['base'];
+            $quote = $market['quote'];
+            if (($base[0] == 'X') || ($base[0] == 'Z'))
                 $base = mb_substr ($base, 1);
-            if ((quotearray (0) == 'X') || (quotearray (0) == 'Z'))
+            if (($quote[0] == 'X') || ($quote[0] == 'Z'))
                 $quote = mb_substr ($quote, 1);
             $base = $this->commonCurrencyCode ($base);
             $quote = $this->commonCurrencyCode ($quote);
             $darkpool = mb_strpos ($id, '.d') !== false;
-            $symbol = $darkpool ? marketarray ('altname') : ($base . '/' . $quote);
+            $symbol = $darkpool ? $market['altname'] : ($base . '/' . $quote);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -10435,9 +10434,9 @@ class kraken extends Exchange {
             throw new ExchangeError ($this->id . ' does not provide an $order book for $darkpool symbol ' . $market);
         $p = $this->market ($market);
         $response = $this->publicGetDepth  (array_merge (array (
-            'pair' => parray ('id'),
+            'pair' => $p['id'],
         ), $params));
-        $orderbook = responsearray ('result')array ($p['id')];
+        $orderbook = $response['result'][$p['id']];
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -10447,14 +10446,14 @@ class kraken extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray (0));
-                $amount = floatval (orderarray (1));
-                $timestamp = orderarray (2) * 1000;
-                resultarray ($side)[] = array ($price, $amount, $timestamp);
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $timestamp = $order[2] * 1000;
+                $result[$side][] = array ($price, $amount, $timestamp);
             }
         }
         return $result;
@@ -10465,20 +10464,20 @@ class kraken extends Exchange {
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('h')array (1)),
-            'low' => floatval (tickerarray ('l')array (1)),
-            'bid' => floatval (tickerarray ('b')array (0)),
-            'ask' => floatval (tickerarray ('a')array (0)),
-            'vwap' => floatval (tickerarray ('p')array (1)),
-            'open' => floatval (tickerarray ('o')),
+            'high' => floatval ($ticker['h'][1]),
+            'low' => floatval ($ticker['l'][1]),
+            'bid' => floatval ($ticker['b'][0]),
+            'ask' => floatval ($ticker['a'][0]),
+            'vwap' => floatval ($ticker['p'][1]),
+            'open' => floatval ($ticker['o']),
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('c')array (0)),
+            'last' => floatval ($ticker['c'][0]),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('v')array (1)),
+            'quoteVolume' => floatval ($ticker['v'][1]),
             'info' => $ticker,
         );
     }
@@ -10487,24 +10486,24 @@ class kraken extends Exchange {
         $this->loadMarkets ();
         $pairs = array ();
         for ($s = 0; $s < count ($this->symbols); $s++) {
-            $symbol = $this->symbolsarray ($s);
-            $market = $this->marketsarray ($symbol);
-            if (!marketarray ('darkpool'))
-                $pairs[] = marketarray ('id');
+            $symbol = $this->symbols[$s];
+            $market = $this->markets[$symbol];
+            if (!$market['darkpool'])
+                $pairs[] = $market['id'];
         }
         $filter = implode (',', $pairs);
         $response = $this->publicGetTicker (array (
             'pair' => $filter,
         ));
-        $tickers = responsearray ('result');
+        $tickers = $response['result'];
         $ids = array_keys ($tickers);
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
-            $id = idsarray ($i);
-            $market = $this->markets_by_idarray ($id);
-            $symbol = marketarray ('symbol');
-            $ticker = tickersarray ($id);
-            resultarray ($symbol) = $this->parse_ticker ($ticker, $market);
+            $id = $ids[$i];
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
     }
@@ -10516,9 +10515,9 @@ class kraken extends Exchange {
             throw new ExchangeError ($this->id . ' does not provide a $ticker for $darkpool symbol ' . $market);
         $p = $this->market ($market);
         $response = $this->publicGetTicker (array (
-            'pair' => parray ('id'),
+            'pair' => $p['id'],
         ));
-        $ticker = responsearray ('result')array ($p['id')];
+        $ticker = $response['result'][$p['id']];
         return $this->parse_ticker ($ticker, $p);
     }
 
@@ -10532,26 +10531,26 @@ class kraken extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $response = $this->privatePostBalance ();
-        $balances = responsearray ('result');
+        $balances = $response['result'];
         $result = array ( 'info' => $balances );
         $currencies = array_keys ($balances);
         for ($c = 0; $c < count ($currencies); $c++) {
-            $currency = currenciesarray ($c);
+            $currency = $currencies[$c];
             $code = $currency;
             // X-ISO4217-A3 standard $currency codes
-            if (codearray (0) == 'X') {
+            if ($code[0] == 'X') {
                 $code = mb_substr ($code, 1);
-            } else if (codearray (0) == 'Z') {
+            } else if ($code[0] == 'Z') {
                 $code = mb_substr ($code, 1);
             }
             $code = $this->commonCurrencyCode ($code);
-            $balance = floatval (balancesarray ($currency));
+            $balance = floatval ($balances[$currency]);
             $account = array (
                 'free' => $balance,
                 'used' => null,
                 'total' => $balance,
             );
-            resultarray ($code) = $account;
+            $result[$code] = $account;
         }
         return $result;
     }
@@ -10565,7 +10564,7 @@ class kraken extends Exchange {
             'volume' => $amount,
         );
         if ($type == 'limit')
-            orderarray ('price') = $price;
+            $order['price'] = $price;
         return $this->privatePostAddOrder (array_merge ($order, $params));
     }
 
@@ -10594,10 +10593,10 @@ class kraken extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        $url = $this->urlsarray ('api') . $url;
+        $url = $this->urls['api'] . $url;
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('error', $response)) {
-            $numErrors = count (responsearray ('error'));
+            $numErrors = count ($response['error']);
             if ($numErrors)
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }
@@ -10653,8 +10652,8 @@ class lakebtc extends Exchange {
         $result = array ();
         $keys = array_keys ($markets);
         for ($k = 0; $k < count ($keys); $k++) {
-            $id = keysarray ($k);
-            $market = marketsarray ($id);
+            $id = $keys[$k];
+            $market = $markets[$id];
             $base = mb_substr ($id, 0, 3);
             $quote = mb_substr ($id, 3, 6);
             $base = strtoupper ($base);
@@ -10674,18 +10673,18 @@ class lakebtc extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $response = $this->privatePostGetAccountInfo ();
-        $balances = responsearray ('balance');
+        $balances = $response['balance'];
         $result = array ( 'info' => $response );
         $currencies = array_keys ($balances);
         for ($c = 0; $c < count ($currencies); $c++) {
-            $currency = currenciesarray ($c);
-            $balance = floatval (balancesarray ($currency));
+            $currency = $currencies[$c];
+            $balance = floatval ($balances[$currency]);
             $account = array (
                 'free' => $balance,
                 'used' => null,
                 'total' => $balance,
             );
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -10704,13 +10703,13 @@ class lakebtc extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray (0));
-                $amount = floatval (orderarray (1));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -10720,27 +10719,27 @@ class lakebtc extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $tickers = $this->publicGetTicker (array (
-            'symbol' => parray ('id'),
+            'symbol' => $p['id'],
         ));
-        $ticker = tickersarray ($p['id')];
+        $ticker = $tickers[$p['id']];
         $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('volume')),
+            'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
     }
@@ -10761,7 +10760,7 @@ class lakebtc extends Exchange {
         $order = array (
             'params' => array ($price, $amount, $marketId),
         );
-        return thisarray ($method) (array_merge ($order, $params));
+        return $this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id) {
@@ -10770,7 +10769,7 @@ class lakebtc extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->version;
+        $url = $this->urls['api'] . '/' . $this->version;
         if ($api == 'public') {
             $url .= '/' . $path;
             if ($params)
@@ -10875,8 +10874,8 @@ class livecoin extends Exchange {
         $markets = $this->publicGetExchangeTicker ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
-            $market = marketsarray ($p);
-            $id = marketarray ('symbol');
+            $market = $markets[$p];
+            $id = $market['symbol'];
             $symbol = $id;
             list ($base, $quote) = explode ('/', $symbol);
             $result[] = array (
@@ -10895,24 +10894,24 @@ class livecoin extends Exchange {
         $balances = $this->privateGetPaymentBalances ();
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($this->currencies); $b++) {
-            $balance = balancesarray ($b);
-            $currency = balancearray ('currency');
+            $balance = $balances[$b];
+            $currency = $balance['currency'];
             $account = null;
             if (array_key_exists ($currency, $result))
-                $account = resultarray ($currency);
+                $account = $result[$currency];
             else
                 $account = array (
                     'free' => null,
                     'used' => null,
                     'total' => null,
                 );
-            if (balancearray ('type') == 'total')
-                accountarray ('total') = floatval (balancearray ('value'));
-            if (balancearray ('type') == 'available')
-                accountarray ('free') = floatval (balancearray ('value'));
-            if (balancearray ('type') == 'trade')
-                accountarray ('used') = floatval (balancearray ('value'));
-            resultarray ($currency) = $account;
+            if ($balance['type'] == 'total')
+                $account['total'] = floatval ($balance['value']);
+            if ($balance['type'] == 'available')
+                $account['free'] = floatval ($balance['value']);
+            if ($balance['type'] == 'trade')
+                $account['used'] = floatval ($balance['value']);
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -10924,7 +10923,7 @@ class livecoin extends Exchange {
             'groupByPrice' => 'false',
             'depth' => 100,
         ), $params));
-        $timestamp = orderbookarray ('timestamp');
+        $timestamp = $orderbook['timestamp'];
         $result = array (
             'bids' => array (),
             'asks' => array (),
@@ -10933,13 +10932,13 @@ class livecoin extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray (0));
-                $amount = floatval (orderarray (1));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -10950,20 +10949,20 @@ class livecoin extends Exchange {
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('best_bid')),
-            'ask' => floatval (tickerarray ('best_ask')),
-            'vwap' => floatval (tickerarray ('vwap')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['best_bid']),
+            'ask' => floatval ($ticker['best_ask']),
+            'vwap' => floatval ($ticker['vwap']),
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('volume')),
+            'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
     }
@@ -10975,11 +10974,11 @@ class livecoin extends Exchange {
         $ids = array_keys ($tickers);
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
-            $id = idsarray ($i);
-            $market = $this->markets_by_idarray ($id);
-            $symbol = marketarray ('symbol');
-            $ticker = tickersarray ($id);
-            resultarray ($symbol) = $this->parse_ticker ($ticker, $market);
+            $id = $ids[$i];
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
     }
@@ -10988,7 +10987,7 @@ class livecoin extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $ticker = $this->publicGetExchangeTicker (array (
-            'currencyPair' => parray ('id'),
+            'currencyPair' => $p['id'],
         ));
         return $this->parse_ticker ($ticker, $p);
     }
@@ -11008,8 +11007,8 @@ class livecoin extends Exchange {
             'quantity' => $amount,
         );
         if ($type == 'limit')
-            orderarray ('price') = $price;
-        return thisarray ($method) (array_merge ($order, $params));
+            $order['price'] = $price;
+        return $this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -11020,7 +11019,7 @@ class livecoin extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $path;
+        $url = $this->urls['api'] . '/' . $path;
         if ($api == 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
@@ -11041,7 +11040,7 @@ class livecoin extends Exchange {
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('success', $response))
-            if (!responsearray ('success'))
+            if (!$response['success'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
@@ -11071,7 +11070,7 @@ class liqui extends btce {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api')array ($api);
+        $url = $this->urls['api'][$api];
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
             $url .=  '/' . $this->version . '/' . $this->implode_params ($path, $params);
@@ -11092,7 +11091,7 @@ class liqui extends btce {
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('success', $response))
-            if (!responsearray ('success'))
+            if (!$response['success'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
@@ -11168,9 +11167,9 @@ class luno extends Exchange {
     public function fetch_markets () {
         $markets = $this->publicGetTickers ();
         $result = array ();
-        for ($p = 0; $p < count (marketsarray ('tickers')); $p++) {
-            $market = marketsarray ('tickers')array ($p);
-            $id = marketarray ('pair');
+        for ($p = 0; $p < count ($markets['tickers']); $p++) {
+            $market = $markets['tickers'][$p];
+            $id = $market['pair'];
             $base = mb_substr ($id, 0, 3);
             $quote = mb_substr ($id, 3, 6);
             $base = $this->commonCurrencyCode ($base);
@@ -11190,20 +11189,20 @@ class luno extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $response = $this->privateGetBalance ();
-        $balances = responsearray ('balance');
+        $balances = $response['balance'];
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = balancesarray ($b);
-            $currency = $this->commonCurrencyCode (balancearray ('asset'));
-            $reserved = floatval (balancearray ('reserved'));
-            $unconfirmed = floatval (balancearray ('unconfirmed'));
+            $balance = $balances[$b];
+            $currency = $this->commonCurrencyCode ($balance['asset']);
+            $reserved = floatval ($balance['reserved']);
+            $unconfirmed = floatval ($balance['unconfirmed']);
             $account = array (
-                'free' => floatval (balancearray ('balance')),
+                'free' => floatval ($balance['balance']),
                 'used' => $this->sum ($reserved, $unconfirmed),
                 'total' => null,
             );
-            accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
-            resultarray ($currency) = $account;
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -11213,7 +11212,7 @@ class luno extends Exchange {
         $orderbook = $this->publicGetOrderbook (array_merge (array (
             'pair' => $this->market_id ($market),
         ), $params));
-        $timestamp = orderbookarray ('timestamp');
+        $timestamp = $orderbook['timestamp'];
         $result = array (
             'bids' => array (),
             'asks' => array (),
@@ -11222,38 +11221,38 @@ class luno extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray ('price'));
-                $amount = floatval (orderarray ('volume'));
-                // $timestamp = orderarray (2) * 1000;
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['volume']);
+                // $timestamp = $order[2] * 1000;
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
     }
 
     public function parse_ticker ($ticker, $market) {
-        $timestamp = tickerarray ('timestamp');
+        $timestamp = $ticker['timestamp'];
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last_trade')),
+            'last' => floatval ($ticker['last_trade']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('rolling_24_hour_volume')),
+            'quoteVolume' => floatval ($ticker['rolling_24_hour_volume']),
             'info' => $ticker,
         );        
     }
@@ -11261,15 +11260,15 @@ class luno extends Exchange {
     public function fetch_tickers () {
         $this->loadMarkets ();
         $response = $this->publicGetTickers ();
-        $tickers = $this->index_by (responsearray ('tickers'), 'pair');
+        $tickers = $this->index_by ($response['tickers'], 'pair');
         $ids = array_keys ($tickers);
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
-            $id = idsarray ($i);
-            $market = $this->markets_by_idarray ($id);
-            $symbol = marketarray ('symbol');
-            $ticker = tickersarray ($id);
-            resultarray ($symbol) = $this->parse_ticker ($ticker, $market);
+            $id = $ids[$i];
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
     }
@@ -11278,7 +11277,7 @@ class luno extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $ticker = $this->publicGetTicker (array (
-            'pair' => parray ('id'),
+            'pair' => $p['id'],
         ));
         return $this->parse_ticker ($ticker, $p);
     }
@@ -11296,21 +11295,21 @@ class luno extends Exchange {
         $order = array ( 'pair' => $this->market_id ($market) );
         if ($type == 'market') {
             $method .= 'Marketorder';
-            orderarray ('type') = strtoupper ($side);
+            $order['type'] = strtoupper ($side);
             if ($side == 'buy')
-                orderarray ('counter_volume') = $amount;
+                $order['counter_volume'] = $amount;
             else
-                orderarray ('base_volume') = $amount;
+                $order['base_volume'] = $amount;
         } else {
             $method .= 'Order';
-            orderarray ('volume') = $amount;
-            orderarray ('price') = $price;
+            $order['volume'] = $amount;
+            $order['price'] = $price;
             if ($side == 'buy')
-                orderarray ('type') = 'BID';
+                $order['type'] = 'BID';
             else
-                orderarray ('type') = 'ASK';
+                $order['type'] = 'ASK';
         }
-        return thisarray ($method) (array_merge ($order, $params));
+        return $this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id) {
@@ -11319,7 +11318,7 @@ class luno extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($query)
             $url .= '?' . $this->urlencode ($query);
@@ -11395,12 +11394,12 @@ class mercado extends Exchange {
 
     public function fetch_order_book ($market, $params = array ()) {
         $p = $this->market ($market);
-        $method = 'publicGetOrderbook' . $this->capitalize (parray ('suffix'));
-        $orderbook = thisarray ($method) ($params);
+        $method = 'publicGetOrderbook' . $this->capitalize ($p['suffix']);
+        $orderbook = $this->$method ($params);
         $timestamp = $this->milliseconds ();
         $result = array (
-            'bids' => orderbookarray ('bids'),
-            'asks' => orderbookarray ('asks'),
+            'bids' => $orderbook['bids'],
+            'asks' => $orderbook['asks'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
@@ -11409,43 +11408,43 @@ class mercado extends Exchange {
 
     public function fetch_ticker ($market) {
         $p = $this->market ($market);
-        $method = 'publicGetV2Ticker' . $this->capitalize (parray ('suffix'));
-        $response = thisarray ($method) ();
-        $ticker = responsearray ('ticker');
-        $timestamp = intval (tickerarray ('date')) * 1000;
+        $method = 'publicGetV2Ticker' . $this->capitalize ($p['suffix']);
+        $response = $this->$method ();
+        $ticker = $response['ticker'];
+        $timestamp = intval ($ticker['date']) * 1000;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('buy')),
-            'ask' => floatval (tickerarray ('sell')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('vol')),
+            'quoteVolume' => floatval ($ticker['vol']),
             'info' => $ticker,
         );
     }
 
     public function fetch_trades ($market) {
         $p = $this->market ($market);
-        $method = 'publicGetTrades' . $this->capitalize (parray ('suffix'));
-        return thisarray ($method) ();
+        $method = 'publicGetTrades' . $this->capitalize ($p['suffix']);
+        return $this->$method ();
     }
 
     public function fetch_balance () {
         $response = $this->privatePostGetAccountInfo ();
-        $balances = responsearray ('balance');
+        $balances = $response['balance'];
         $result = array ( 'info' => $response );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = array (
                 'free' => null,
@@ -11453,11 +11452,11 @@ class mercado extends Exchange {
                 'total' => null,
             );
             if (array_key_exists ($lowercase, $balances)) {
-                accountarray ('free') = floatval (balancesarray ($lowercase)array ('available'));
-                accountarray ('total') = floatval (balancesarray ($lowercase)array ('total'));
-                accountarray ('used') = accountarray ('total') - accountarray ('free');
+                $account['free'] = floatval ($balances[$lowercase]['available']);
+                $account['total'] = floatval ($balances[$lowercase]['total']);
+                $account['used'] = $account['total'] - $account['free'];
             }           
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -11471,7 +11470,7 @@ class mercado extends Exchange {
             'quantity' => $amount,
             'limit_price' => $price,
         );
-        return thisarray ($method) (array_merge ($order, $params));
+        return $this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -11481,7 +11480,7 @@ class mercado extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api')array ($api) . '/';
+        $url = $this->urls['api'][$api] . '/';
         if ($api == 'public') {
             $url .= $path;
         } else {
@@ -11583,8 +11582,8 @@ class okcoin extends Exchange {
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
-            'bids' => orderbookarray ('bids'),
-            'asks' => $this->sort_by (orderbookarray ('asks'), 0),
+            'bids' => $orderbook['bids'],
+            'asks' => $this->sort_by ($orderbook['asks'], 0),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
@@ -11595,25 +11594,25 @@ class okcoin extends Exchange {
         $response = $this->publicGetTicker (array (
             'symbol' => $this->market_id ($market),
         ));
-        $ticker = responsearray ('ticker');
-        $timestamp = intval (responsearray ('date')) * 1000;
+        $ticker = $response['ticker'];
+        $timestamp = intval ($response['date']) * 1000;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('buy')),
-            'ask' => floatval (tickerarray ('sell')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('vol')),
+            'quoteVolume' => floatval ($ticker['vol']),
             'info' => $ticker,
         );
     }
@@ -11626,22 +11625,22 @@ class okcoin extends Exchange {
 
     public function fetch_balance () {
         $response = $this->privatePostUserinfo ();
-        $balances = responsearray ('info')array ('funds');
+        $balances = $response['info']['funds'];
         $result = array ( 'info' => $response );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = array (
                 'free' => null,
                 'used' => null,
                 'total' => null,
             );
-            if (array_key_exists ($lowercase, balancesarray ('free')))
-                accountarray ('free') = floatval (balancesarray ('free')array ($lowercase));
-            if (array_key_exists ($lowercase, balancesarray ('freezed')))
-                accountarray ('used') = floatval (balancesarray ('freezed')array ($lowercase));
-            accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
-            resultarray ($currency) = $account;
+            if (array_key_exists ($lowercase, $balances['free']))
+                $account['free'] = floatval ($balances['free'][$lowercase]);
+            if (array_key_exists ($lowercase, $balances['freezed']))
+                $account['used'] = floatval ($balances['freezed'][$lowercase]);
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -11653,9 +11652,9 @@ class okcoin extends Exchange {
             'amount' => $amount,
         );
         if ($type == 'limit')
-            orderarray ('price') = $price;
+            $order['price'] = $price;
         else
-            orderarray ('type') .= '_market';
+            $order['type'] .= '_market';
         return $this->privatePostTrade (array_merge ($order, $params));
     }
 
@@ -11676,14 +11675,14 @@ class okcoin extends Exchange {
             ), $params));
             // secret key must be at the end of $query
             $queryString = $this->urlencode ($query) . '&secret_key=' . $this->secret;
-            strtoupper (queryarray ('sign') = $this->hash ($this->encode ($queryString)));
+            $query['sign'] = strtoupper ($this->hash ($this->encode ($queryString)));
             $body = $this->urlencode ($query);
             $headers = array ( 'Content-Type' => 'application/x-www-form-urlencoded' );
         }
-        $url = $this->urlsarray ('api') . $url;
+        $url = $this->urls['api'] . $url;
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('result', $response))
-            if (!responsearray ('result'))
+            if (!$response['result'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
@@ -11802,7 +11801,7 @@ class paymium extends Exchange {
         $balances = $this->privateGetUser ();
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = array (
                 'free' => null,
@@ -11812,11 +11811,11 @@ class paymium extends Exchange {
             $balance = 'balance_' . $lowercase;
             $locked = 'locked_' . $lowercase;
             if (array_key_exists ($balance, $balances))
-                accountarray ('free') = balancesarray ($balance);
+                $account['free'] = $balances[$balance];
             if (array_key_exists ($locked, $balances))
-                accountarray ('used') = balancesarray ($locked);
-            accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
-            resultarray ($currency) = $account;
+                $account['used'] = $balances[$locked];
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -11834,17 +11833,17 @@ class paymium extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = orderarray ('price');
-                $amount = orderarray ('amount');
-                $timestamp = orderarray ('timestamp') * 1000;
-                resultarray ($side)[] = array ($price, $amount, $timestamp);
+                $order = $orders[$i];
+                $price = $order['price'];
+                $amount = $order['amount'];
+                $timestamp = $order['timestamp'] * 1000;
+                $result[$side][] = array ($price, $amount, $timestamp);
             }
         }
-        resultarray ('bids') = $this->sort_by (resultarray ('bids'), 0, true);
+        $result['bids'] = $this->sort_by ($result['bids'], 0, true);
         return $result;
     }
 
@@ -11852,24 +11851,24 @@ class paymium extends Exchange {
         $ticker = $this->publicGetDataIdTicker (array (
             'id' => $this->market_id ($market),
         ));
-        $timestamp = tickerarray ('at') * 1000;
+        $timestamp = $ticker['at'] * 1000;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
-            'vwap' => floatval (tickerarray ('vwap')),
-            'open' => floatval (tickerarray ('open')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => floatval ($ticker['vwap']),
+            'open' => floatval ($ticker['open']),
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('price')),
+            'last' => floatval ($ticker['price']),
             'change' => null,
-            'percentage' => floatval (tickerarray ('variation')),
+            'percentage' => floatval ($ticker['variation']),
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('volume')),
+            'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
     }
@@ -11888,7 +11887,7 @@ class paymium extends Exchange {
             'amount' => $amount,
         );
         if ($type == 'market')
-            orderarray ('price') = $price;
+            $order['price'] = $price;
         return $this->privatePostUserOrders (array_merge ($order, $params));
     }
 
@@ -11899,7 +11898,7 @@ class paymium extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
             if ($query)
@@ -11997,8 +11996,8 @@ class poloniex extends Exchange {
         $keys = array_keys ($markets);
         $result = array ();
         for ($p = 0; $p < count ($keys); $p++) {
-            $id = keysarray ($p);
-            $market = marketsarray ($id);
+            $id = $keys[$p];
+            $market = $markets[$id];
             list ($quote, $base) = explode ('_', $id);
             $symbol = $base . '/' . $quote;
             $result[] = array (
@@ -12020,29 +12019,29 @@ class poloniex extends Exchange {
         $result = array ( 'info' => $balances );
         $currencies = array_keys ($balances);
         for ($c = 0; $c < count ($currencies); $c++) {
-            $currency = currenciesarray ($c);
-            $balance = balancesarray ($currency);
+            $currency = $currencies[$c];
+            $balance = $balances[$currency];
             $account = array (
-                'free' => floatval (balancearray ('available')),
-                'used' => floatval (balancearray ('onOrders')),
+                'free' => floatval ($balance['available']),
+                'used' => floatval ($balance['onOrders']),
                 'total' => null,
             );
-            accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
-            resultarray ($currency) = $account;
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
         }
         return $result;
     }
 
     public function parse_bidask ($bidask) {
-        $price = floatval (bidaskarray (0));
-        $amount = floatval (bidaskarray (1));
+        $price = floatval ($bidask[0]);
+        $amount = floatval ($bidask[1]);
         return array ($price, $amount);
     }
 
     public function parse_bidasks ($bidasks) {
         $result = array ();
         for ($i = 0; $i < count ($bidasks); $i++) {
-            $result[] = $this->parse_bidask (bidasksarray ($i));
+            $result[] = $this->parse_bidask ($bidasks[$i]);
         }
         return $result;
     }
@@ -12061,8 +12060,8 @@ class poloniex extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            resultarray ($side) = $this->parse_bidasks (orderbookarray ($side));
+            $side = $sides[$s];
+            $result[$side] = $this->parse_bidasks ($orderbook[$side]);
         }
         return $result;
     }
@@ -12072,20 +12071,20 @@ class poloniex extends Exchange {
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high24hr')),
-            'low' => floatval (tickerarray ('low24hr')),
-            'bid' => floatval (tickerarray ('highestBid')),
-            'ask' => floatval (tickerarray ('lowestAsk')),
+            'high' => floatval ($ticker['high24hr']),
+            'low' => floatval ($ticker['low24hr']),
+            'bid' => floatval ($ticker['highestBid']),
+            'ask' => floatval ($ticker['lowestAsk']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
-            'change' => floatval (tickerarray ('percentChange')),
+            'last' => floatval ($ticker['last']),
+            'change' => floatval ($ticker['percentChange']),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval (tickerarray ('baseVolume')),
-            'quoteVolume' => floatval (tickerarray ('quoteVolume')),
+            'baseVolume' => floatval ($ticker['baseVolume']),
+            'quoteVolume' => floatval ($ticker['quoteVolume']),
             'info' => $ticker,
         );
     }
@@ -12096,11 +12095,11 @@ class poloniex extends Exchange {
         $ids = array_keys ($tickers);
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
-            $id = idsarray ($i);
-            $market = $this->markets_by_idarray ($id);
-            $symbol = marketarray ('symbol');
-            $ticker = tickersarray ($id);
-            resultarray ($symbol) = $this->parse_ticker ($ticker, $market);
+            $id = $ids[$i];
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
     }
@@ -12109,7 +12108,7 @@ class poloniex extends Exchange {
         $this->loadMarkets ();
         $m = $this->market ($market);
         $tickers = $this->publicGetReturnTicker ();
-        $ticker = tickersarray ($m['id')];
+        $ticker = $tickers[$m['id']];
         return $this->parse_ticker ($ticker, $m);
     }
 
@@ -12123,14 +12122,14 @@ class poloniex extends Exchange {
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $method = 'privatePost' . $this->capitalize ($side);
-        $response = thisarray ($method) (array_merge (array (
+        $response = $this->$method (array_merge (array (
             'currencyPair' => $this->market_id ($market),
             'rate' => $price,
             'amount' => $amount,
         ), $params));
         $result = array (
             'info' => $response,
-            'id' => responsearray ('orderNumber'),
+            'id' => $response['orderNumber'],
         );
         return $result;
     }
@@ -12143,12 +12142,12 @@ class poloniex extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api')array ($api);
+        $url = $this->urls['api'][$api];
         $query = array_merge (array ( 'command' => $path ), $params);
         if ($api == 'public') {
             $url .= '?' . $this->urlencode ($query);
         } else {
-            queryarray ('nonce') = $this->nonce ();
+            $query['nonce'] = $this->nonce ();
             $body = $this->urlencode ($query);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
@@ -12217,14 +12216,14 @@ class quadrigacx extends Exchange {
         $balances = $this->privatePostBalance ();
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = array (
-                'free' => floatval (balancesarray ($lowercase . '_available')),
-                'used' => floatval (balancesarray ($lowercase . '_reserved')),
-                'total' => floatval (balancesarray ($lowercase . '_balance')),
+                'free' => floatval ($balances[$lowercase . '_available']),
+                'used' => floatval ($balances[$lowercase . '_reserved']),
+                'total' => floatval ($balances[$lowercase . '_balance']),
             );
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -12233,7 +12232,7 @@ class quadrigacx extends Exchange {
         $orderbook = $this->publicGetOrderBook (array_merge (array (
             'book' => $this->market_id ($market),
         ), $params));
-        $timestamp = intval (orderbookarray ('timestamp')) * 1000;
+        $timestamp = intval ($orderbook['timestamp']) * 1000;
         $result = array (
             'bids' => array (),
             'asks' => array (),
@@ -12242,13 +12241,13 @@ class quadrigacx extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray (0));
-                $amount = floatval (orderarray (1));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -12258,24 +12257,24 @@ class quadrigacx extends Exchange {
         $ticker = $this->publicGetTicker (array (
             'book' => $this->market_id ($market),
         ));
-        $timestamp = intval (tickerarray ('timestamp')) * 1000;
+        $timestamp = intval ($ticker['timestamp']) * 1000;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
-            'vwap' => floatval (tickerarray ('vwap')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => floatval ($ticker['vwap']),
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('volume')),
+            'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
     }
@@ -12293,8 +12292,8 @@ class quadrigacx extends Exchange {
             'book' => $this->market_id ($market),
         );
         if ($type == 'limit')
-            orderarray ('price') = $price;
-        return thisarray ($method) (array_merge ($order, $params));
+            $order['price'] = $price;
+        return $this->$method (array_merge ($order, $params));
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -12304,7 +12303,7 @@ class quadrigacx extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->version . '/' . $path;
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api == 'public') {
             $url .= '?' . $this->urlencode ($params);
         } else {
@@ -12398,10 +12397,10 @@ class quoine extends Exchange {
         $markets = $this->publicGetProducts ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
-            $market = marketsarray ($p);
-            $id = marketarray ('id');
-            $base = marketarray ('base_currency');
-            $quote = marketarray ('quoted_currency');
+            $market = $markets[$p];
+            $id = $market['id'];
+            $base = $market['base_currency'];
+            $quote = $market['quoted_currency'];
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -12419,15 +12418,15 @@ class quoine extends Exchange {
         $balances = $this->privateGetAccountsBalance ();
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = balancesarray ($b);            
-            $currency = balancearray ('currency');
-            $total = floatval (balancearray ('balance'));
+            $balance = $balances[$b];            
+            $currency = $balance['currency'];
+            $total = floatval ($balance['balance']);
             $account = array (
                 'free' => $total,
                 'used' => null,
                 'total' => $total,
             );
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -12447,14 +12446,14 @@ class quoine extends Exchange {
         $sides = array ( 'bids' => 'buy_price_levels', 'asks' => 'sell_price_levels' );
         $keys = array_keys ($sides);
         for ($k = 0; $k < count ($keys); $k++) {
-            $key = keysarray ($k);
-            $side = sidesarray ($key);
-            $orders = orderbookarray ($side);
+            $key = $keys[$k];
+            $side = $sides[$key];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray (0));
-                $amount = floatval (orderarray (1));
-                resultarray ($key)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$key][] = array ($price, $amount);
             }
         }
         return $result;
@@ -12465,19 +12464,19 @@ class quoine extends Exchange {
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high_market_ask')),
-            'low' => floatval (tickerarray ('low_market_bid')),
-            'bid' => floatval (tickerarray ('market_bid')),
-            'ask' => floatval (tickerarray ('market_ask')),
+            'high' => floatval ($ticker['high_market_ask']),
+            'low' => floatval ($ticker['low_market_bid']),
+            'bid' => floatval ($ticker['market_bid']),
+            'ask' => floatval ($ticker['market_ask']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last_traded_price')),
+            'last' => floatval ($ticker['last_traded_price']),
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval (tickerarray ('volume_24h')),
+            'baseVolume' => floatval ($ticker['volume_24h']),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -12488,12 +12487,12 @@ class quoine extends Exchange {
         $tickers = $this->publicGetProducts ();
         $result = array ();
         for ($t = 0; $t < count ($tickers); $t++) {
-            $ticker = tickersarray ($t);
-            $base = tickerarray ('base_currency');
-            $quote = tickerarray ('quoted_currency');
+            $ticker = $tickers[$t];
+            $base = $ticker['base_currency'];
+            $quote = $ticker['quoted_currency'];
             $symbol = $base . '/' . $quote;
-            $market = $this->marketsarray ($symbol);
-            resultarray ($symbol) = $this->parse_ticker ($ticker, $market);
+            $market = $this->markets[$symbol];
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
     }
@@ -12502,7 +12501,7 @@ class quoine extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $ticker = $this->publicGetProductsId (array (
-            'id' => parray ('id'),
+            'id' => $p['id'],
         ));
         return $this->parse_ticker ($ticker, $p);
     }
@@ -12523,7 +12522,7 @@ class quoine extends Exchange {
             'quantity' => $amount,
         );
         if ($type == 'limit')
-            orderarray ('price') = $price;
+            $order['price'] = $price;
         return $this->privatePostOrders (array_merge (array (
             'order' => $order,
         ), $params));
@@ -12556,9 +12555,9 @@ class quoine extends Exchange {
             );
             if ($query)
                 $body = $this->json ($query);
-            headersarray ('X-Quoine-Auth') = $this->jwt ($request, $this->secret);
+            $headers['X-Quoine-Auth'] = $this->jwt ($request, $this->secret);
         }
-        $response = $this->fetch ($this->urlsarray ('api') . $url, $method, $headers, $body);
+        $response = $this->fetch ($this->urls['api'] . $url, $method, $headers, $body);
         if (array_key_exists ('message', $response))
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
@@ -12610,9 +12609,9 @@ class southxchange extends Exchange {
         $markets = $this->publicGetMarkets ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
-            $market = marketsarray ($p);
-            $base = marketarray (0);
-            $quote = marketarray (1);
+            $market = $markets[$p];
+            $base = $market[0];
+            $quote = $market[1];
             $symbol = $base . '/' . $quote;
             $id = $symbol;
             $result[] = array (
@@ -12631,18 +12630,18 @@ class southxchange extends Exchange {
         $balances = $this->privatePostListBalances ();
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = balancesarray ($b);            
-            $currency = balancearray ('Currency');
+            $balance = $balances[$b];            
+            $currency = $balance['Currency'];
             $uppercase = $currency.uppercase;
-            $free = floatval (balancearray ('Available'));
-            $used = floatval (balancearray ('Unconfirmed'));
+            $free = floatval ($balance['Available']);
+            $used = floatval ($balance['Unconfirmed']);
             $total = $this->sum ($free, $used);
             $account = array (
                 'free' => $free,
                 'used' => $used,
                 'total' => $total,
             );
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -12662,14 +12661,14 @@ class southxchange extends Exchange {
         $sides = array ( 'bids' => 'BuyOrders', 'asks' => 'SellOrders' );
         $keys = array_keys ($sides);
         for ($k = 0; $k < count ($keys); $k++) {
-            $key = keysarray ($k);
-            $side = sidesarray ($key);
-            $orders = orderbookarray ($side);
+            $key = $keys[$k];
+            $side = $sides[$key];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray ('Price'));
-                $amount = floatval (orderarray ('Amount'));
-                resultarray ($key)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order['Price']);
+                $amount = floatval ($order['Amount']);
+                $result[$key][] = array ($price, $amount);
             }
         }
         return $result;
@@ -12682,18 +12681,18 @@ class southxchange extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval (tickerarray ('Bid')),
-            'ask' => floatval (tickerarray ('Ask')),
+            'bid' => floatval ($ticker['Bid']),
+            'ask' => floatval ($ticker['Ask']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('Last')),
-            'change' => floatval (tickerarray ('Variation24Hr')),
+            'last' => floatval ($ticker['Last']),
+            'change' => floatval ($ticker['Variation24Hr']),
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('Volume24Hr')),
+            'quoteVolume' => floatval ($ticker['Volume24Hr']),
             'info' => $ticker,
         );
     }
@@ -12705,11 +12704,11 @@ class southxchange extends Exchange {
         $ids = array_keys ($tickers);
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
-            $id = idsarray ($i);
-            $market = $this->markets_by_idarray ($id);
-            $symbol = marketarray ('symbol');
-            $ticker = tickersarray ($id);
-            resultarray ($symbol) = $this->parse_ticker ($ticker, $market);
+            $id = $ids[$i];
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
     }
@@ -12734,13 +12733,13 @@ class southxchange extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $order = array (
-            'listingCurrency' => parray ('base'),
-            'referenceCurrency' => parray ('quote'),
+            'listingCurrency' => $p['base'],
+            'referenceCurrency' => $p['quote'],
             'type' => $side,
             'amount' => $amount,
         );
         if ($type == 'limit')
-            orderarray ('limitPrice') = $price;
+            $order['limitPrice'] = $price;
         return $this->privatePostPlaceOrder (array_merge ($order, $params));
     }
 
@@ -12752,7 +12751,7 @@ class southxchange extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'private') {
             $nonce = $this->nonce ();
@@ -12863,9 +12862,9 @@ class therock extends Exchange {
     public function fetch_markets () {
         $markets = $this->publicGetFundsTickers ();
         $result = array ();
-        for ($p = 0; $p < count (marketsarray ('tickers')); $p++) {
-            $market = marketsarray ('tickers')array ($p);
-            $id = marketarray ('fund_id');
+        for ($p = 0; $p < count ($markets['tickers']); $p++) {
+            $market = $markets['tickers'][$p];
+            $id = $market['fund_id'];
             $base = mb_substr ($id, 0, 3);
             $quote = mb_substr ($id, 3, 6);
             $symbol = $base . '/' . $quote;
@@ -12883,20 +12882,20 @@ class therock extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $response = $this->privateGetBalances ();
-        $balances = responsearray ('balances');
+        $balances = $response['balances'];
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = balancesarray ($b);            
-            $currency = balancearray ('currency');
-            $free = balancearray ('trading_balance');
-            $total = balancearray ('balance');
+            $balance = $balances[$b];            
+            $currency = $balance['currency'];
+            $free = $balance['trading_balance'];
+            $total = $balance['balance'];
             $used = $total - $free;            
             $account = array (
                 'free' => $free,
                 'used' => $used,
                 'total' => $total,
             );
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -12906,7 +12905,7 @@ class therock extends Exchange {
         $orderbook = $this->publicGetFundsIdOrderbook (array_merge (array (
             'id' => $this->market_id ($market),
         ), $params));
-        $timestamp = $this->parse8601 (orderbookarray ('date'));
+        $timestamp = $this->parse8601 ($orderbook['date']);
         $result = array (
             'bids' => array (),
             'asks' => array (),
@@ -12915,37 +12914,37 @@ class therock extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray ('price'));
-                $amount = floatval (orderarray ('amount'));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['amount']);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
     }
 
     public function parse_ticker ($ticker, $market) {
-        $timestamp = $this->parse8601 (tickerarray ('date'));
+        $timestamp = $this->parse8601 ($ticker['date']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('bid')),
-            'ask' => floatval (tickerarray ('ask')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
             'vwap' => null,
-            'open' => floatval (tickerarray ('open')),
-            'close' => floatval (tickerarray ('close')),
+            'open' => floatval ($ticker['open']),
+            'close' => floatval ($ticker['close']),
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval (tickerarray ('volume_traded')),
-            'quoteVolume' => floatval (tickerarray ('volume')),
+            'baseVolume' => floatval ($ticker['volume_traded']),
+            'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
     }
@@ -12953,15 +12952,15 @@ class therock extends Exchange {
     public function fetch_tickers () {
         $this->loadMarkets ();
         $response = $this->publicGetFundsTickers ();
-        $tickers = $this->index_by (responsearray ('tickers'), 'fund_id');
+        $tickers = $this->index_by ($response['tickers'], 'fund_id');
         $ids = array_keys ($tickers);
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
-            $id = idsarray ($i);
-            $market = $this->markets_by_idarray ($id);
-            $symbol = marketarray ('symbol');
-            $ticker = tickersarray ($id);
-            resultarray ($symbol) = $this->parse_ticker ($ticker, $market);
+            $id = $ids[$i];
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
     }
@@ -12970,7 +12969,7 @@ class therock extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $ticker = $this->publicGetFundsIdTicker (array (
-            'id' => parray ('id'),
+            'id' => $p['id'],
         ));
         return $this->parse_ticker ($ticker, $p);
     }
@@ -13002,7 +13001,7 @@ class therock extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $this->version . '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'private') {
             $nonce = (string) $this->nonce ();
@@ -13014,7 +13013,7 @@ class therock extends Exchange {
             );
             if ($query) {
                 $body = $this->json ($query);
-                headersarray ('Content-Type') = 'application/json';
+                $headers['Content-Type'] = 'application/json';
             }
         }
         $response = $this->fetch ($url, $method, $headers, $body);
@@ -13102,13 +13101,13 @@ class vaultoro extends Exchange {
     public function fetch_markets () {
         $result = array ();
         $markets = $this->publicGetMarkets ();
-        $market = marketsarray ('data');
-        $base = marketarray ('BaseCurrency');
-        $quote = marketarray ('MarketCurrency');
+        $market = $markets['data'];
+        $base = $market['BaseCurrency'];
+        $quote = $market['MarketCurrency'];
         $symbol = $base . '/' . $quote;
         $baseId = $base;
         $quoteId = $quote;
-        $id = marketarray ('MarketName');
+        $id = $market['MarketName'];
         $result[] = array (
             'id' => $id,
             'symbol' => $symbol,
@@ -13124,21 +13123,21 @@ class vaultoro extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $response = $this->privateGetBalance ();
-        $balances = responsearray ('data');
+        $balances = $response['data'];
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = balancesarray ($b);            
-            $currency = balancearray ('currency_code');
+            $balance = $balances[$b];            
+            $currency = $balance['currency_code'];
             $uppercase = strtoupper ($currency);
-            $free = balancearray ('cash');
-            $used = balancearray ('reserved');
+            $free = $balance['cash'];
+            $used = $balance['reserved'];
             $total = $this->sum ($free, $used);
             $account = array (
                 'free' => $free,
                 'used' => $used,
                 'total' => $total,
             );
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -13147,8 +13146,8 @@ class vaultoro extends Exchange {
         $this->loadMarkets ();
         $response = $this->publicGetOrderbook ($params);
         $orderbook = array (
-            'bids' => responsearray ('data')array (0)array ('b'),
-            'asks' => responsearray ('data')array (1)array ('s'),
+            'bids' => $response['data'][0]['b'],
+            'asks' => $response['data'][1]['s'],
         );
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -13159,45 +13158,45 @@ class vaultoro extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = orderarray ('Gold_Price');
-                $amount = orderarray ('Gold_Amount');
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = $order['Gold_Price'];
+                $amount = $order['Gold_Amount'];
+                $result[$side][] = array ($price, $amount);
             }
         }
-        resultarray ('bids') = $this->sort_by (resultarray ('bids'), 0, true);
+        $result['bids'] = $this->sort_by ($result['bids'], 0, true);
         return $result;
     }
 
     public function fetch_ticker ($market) {
         $this->loadMarkets ();
         $quote = $this->publicGetBidandask ();
-        $bidsLength = count (quotearray ('bids'));
-        $bid = quotearray ('bids')array ($bidsLength - 1);
-        $ask = quotearray ('asks')array (0);
+        $bidsLength = count ($quote['bids']);
+        $bid = $quote['bids'][$bidsLength - 1];
+        $ask = $quote['asks'][0];
         $response = $this->publicGetMarkets ();
-        $ticker = responsearray ('data');
+        $ticker = $response['data'];
         $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('24hHigh')),
-            'low' => floatval (tickerarray ('24hLow')),
-            'bid' => bidarray (0),
-            'ask' => askarray (0),
+            'high' => floatval ($ticker['24hHigh']),
+            'low' => floatval ($ticker['24hLow']),
+            'bid' => $bid[0],
+            'ask' => $ask[0],
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('LastPrice')),
+            'last' => floatval ($ticker['LastPrice']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('24hVolume')),
+            'quoteVolume' => floatval ($ticker['24hVolume']),
             'info' => $ticker,
         );
     }
@@ -13211,8 +13210,8 @@ class vaultoro extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $method = 'privatePost' . $this->capitalize ($side) . 'SymbolType';
-        return thisarray ($method) (array_merge (array (
-            'symbol' => strtolower (parray ('quoteId')),
+        return $this->$method (array_merge (array (
+            'symbol' => strtolower ($p['quoteId']),
             'type' => $type,
             'gld' => $amount,
             'price' => $price || 1,
@@ -13227,7 +13226,7 @@ class vaultoro extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/';
+        $url = $this->urls['api'] . '/';
         if ($api == 'public') {
             $url .= $path;
         } else {
@@ -13343,14 +13342,14 @@ class virwox extends Exchange {
 
     public function fetch_markets () {
         $markets = $this->publicGetInstruments ();
-        $keys = array_keys (marketsarray ('result'));
+        $keys = array_keys ($markets['result']);
         $result = array ();
         for ($p = 0; $p < count ($keys); $p++) {
-            $market = marketsarray ('result')array ($keys[$p)];
-            $id = marketarray ('instrumentID');
-            $symbol = marketarray ('symbol');
-            $base = marketarray ('longCurrency');
-            $quote = marketarray ('shortCurrency');
+            $market = $markets['result'][$keys[$p]];
+            $id = $market['instrumentID'];
+            $symbol = $market['symbol'];
+            $base = $market['longCurrency'];
+            $quote = $market['shortCurrency'];
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -13365,18 +13364,18 @@ class virwox extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $response = $this->privatePostGetBalances ();
-        $balances = responsearray ('result')array ('accountList');
+        $balances = $response['result']['accountList'];
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = balancesarray ($b);            
-            $currency = balancearray ('currency');
-            $total = balancearray ('balance');
+            $balance = $balances[$b];            
+            $currency = $balance['currency'];
+            $total = $balance['balance'];
             $account = array (
                 'free' => $total,
                 'used' => null,
                 'total' => $total,
             );
-            resultarray ($currency) = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -13395,7 +13394,7 @@ class virwox extends Exchange {
             'buyDepth' => 100,
             'sellDepth' => 100,
         ), $params));
-        $orderbook = responsearray ('result')array (0);
+        $orderbook = $response['result'][0];
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -13406,14 +13405,14 @@ class virwox extends Exchange {
         $sides = array ( 'bids' => 'buy', 'asks' => 'sell' );
         $keys = array_keys ($sides);
         for ($k = 0; $k < count ($keys); $k++) {
-            $key = keysarray ($k);
-            $side = sidesarray ($key);
-            $orders = orderbookarray ($side);
+            $key = $keys[$k];
+            $side = $sides[$key];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray ('price'));
-                $amount = floatval (orderarray ('volume'));
-                resultarray ($key)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order['price']);
+                $amount = floatval ($order['volume']);
+                $result[$key][] = array ($price, $amount);
             }
         }
         return $result;
@@ -13429,29 +13428,29 @@ class virwox extends Exchange {
             'startDate' => $this->yyyymmddhhmmss ($start),
             'HLOC' => 1,
         ));
-        $tickers = responsearray ('result')array ('priceVolumeList');
+        $tickers = $response['result']['priceVolumeList'];
         $keys = array_keys ($tickers);
         $length = count ($keys);
-        $lastKey = keysarray ($length - 1);
-        $ticker = tickersarray ($lastKey);
+        $lastKey = $keys[$length - 1];
+        $ticker = $tickers[$lastKey];
         $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
             'bid' => null,
             'ask' => null,
             'vwap' => null,
-            'open' => floatval (tickerarray ('open')),
-            'close' => floatval (tickerarray ('close')),
+            'open' => floatval ($ticker['open']),
+            'close' => floatval ($ticker['close']),
             'first' => null,
             'last' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval (tickerarray ('longVolume')),
-            'quoteVolume' => floatval (tickerarray ('shortVolume')),
+            'baseVolume' => floatval ($ticker['longVolume']),
+            'quoteVolume' => floatval ($ticker['shortVolume']),
             'info' => $ticker,
         );
     }
@@ -13472,7 +13471,7 @@ class virwox extends Exchange {
             'amount' => $amount,
         );
         if ($type == 'limit')
-            orderarray ('price') = $price;
+            $order['price'] = $price;
         return $this->privatePostPlaceOrder (array_merge ($order, $params));
     }
 
@@ -13484,12 +13483,12 @@ class virwox extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api')array ($api);
+        $url = $this->urls['api'][$api];
         $auth = array ();
         if ($api == 'private') {
-            autharray ('key') = $this->apiKey;
-            autharray ('user') = $this->login;
-            autharray ('pass') = $this->password;
+            $auth['key'] = $this->apiKey;
+            $auth['user'] = $this->login;
+            $auth['pass'] = $this->password;
         }
         $nonce = $this->nonce ();
         if ($method == 'GET') {
@@ -13507,7 +13506,7 @@ class virwox extends Exchange {
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('error', $response))
-            if (responsearray ('error'))
+            if ($response['error'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
@@ -13607,14 +13606,14 @@ class xbtce extends Exchange {
         $markets = $this->privateGetSymbol ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
-            $market = marketsarray ($p);
-            $id = marketarray ('Symbol');
-            $base = marketarray ('MarginCurrency');
-            $quote = marketarray ('ProfitCurrency');
+            $market = $markets[$p];
+            $id = $market['Symbol'];
+            $base = $market['MarginCurrency'];
+            $quote = $market['ProfitCurrency'];
             if ($base == 'DSH')
                 $base = 'DASH';
             $symbol = $base . '/' . $quote;
-            $symbol = marketarray ('IsTradeAllowed') ? $symbol : $id;
+            $symbol = $market['IsTradeAllowed'] ? $symbol : $id;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -13631,19 +13630,19 @@ class xbtce extends Exchange {
         $balances = $this->privateGetAsset ();
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = balancesarray ($b);            
-            $currency = balancearray ('Currency');
+            $balance = $balances[$b];            
+            $currency = $balance['Currency'];
             $uppercase = strtoupper ($currency);
             // xbtce names DASH incorrectly as DSH
             if ($uppercase == 'DSH')
                 $uppercase = 'DASH';
-            $total = balancearray ('balance');
+            $total = $balance['balance'];
             $account = array (
-                'free' => balancearray ('FreeAmount'),
-                'used' => balancearray ('LockedAmount'),
-                'total' => balancearray ('Amount'),
+                'free' => $balance['FreeAmount'],
+                'used' => $balance['LockedAmount'],
+                'total' => $balance['Amount'],
             );
-            resultarray ($uppercase) = $account;
+            $result[$uppercase] = $account;
         }
         return $result;
     }
@@ -13652,10 +13651,10 @@ class xbtce extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $orderbook = $this->privateGetLevel2Filter (array_merge (array (
-            'filter' => parray ('id'),
+            'filter' => $p['id'],
         ), $params));
-        $orderbook = orderbookarray (0);
-        $timestamp = orderbookarray ('Timestamp');
+        $orderbook = $orderbook[0];
+        $timestamp = $orderbook['Timestamp'];
         $result = array (
             'bids' => array (),
             'asks' => array (),
@@ -13664,14 +13663,14 @@ class xbtce extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
+            $side = $sides[$s];
             $Side = $this->capitalize ($side);
-            $orders = orderbookarray ($Side);
+            $orders = $orderbook[$Side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray ('Price'));
-                $amount = floatval (orderarray ('Volume'));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order['Price']);
+                $amount = floatval ($order['Volume']);
+                $result[$side][] = array ($price, $amount);
             }
         }
         return $result;
@@ -13681,24 +13680,24 @@ class xbtce extends Exchange {
         $timestamp = 0;
         $last = null;
         if (array_key_exists ('LastBuyTimestamp', $ticker))
-            if ($timestamp < tickerarray ('LastBuyTimestamp')) {
-                $timestamp = tickerarray ('LastBuyTimestamp');
-                $last = tickerarray ('LastBuyPrice');
+            if ($timestamp < $ticker['LastBuyTimestamp']) {
+                $timestamp = $ticker['LastBuyTimestamp'];
+                $last = $ticker['LastBuyPrice'];
             }
         if (array_key_exists ('LastSellTimestamp', $ticker))
-            if ($timestamp < tickerarray ('LastSellTimestamp')) {
-                $timestamp = tickerarray ('LastSellTimestamp');
-                $last = tickerarray ('LastSellPrice');
+            if ($timestamp < $ticker['LastSellTimestamp']) {
+                $timestamp = $ticker['LastSellTimestamp'];
+                $last = $ticker['LastSellPrice'];
             }
         if (!$timestamp)
             $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => tickerarray ('DailyBestBuyPrice'),
-            'low' => tickerarray ('DailyBestSellPrice'),
-            'bid' => tickerarray ('BestBid'),
-            'ask' => tickerarray ('BestAsk'),
+            'high' => $ticker['DailyBestBuyPrice'],
+            'low' => $ticker['DailyBestSellPrice'],
+            'bid' => $ticker['BestBid'],
+            'ask' => $ticker['BestAsk'],
             'vwap' => null,
             'open' => null,
             'close' => null,
@@ -13708,7 +13707,7 @@ class xbtce extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => tickerarray ('DailyTradedTotalVolume'),
+            'quoteVolume' => $ticker['DailyTradedTotalVolume'],
             'info' => $ticker,
         );
     }
@@ -13720,11 +13719,11 @@ class xbtce extends Exchange {
         $ids = array_keys ($tickers);
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
-            $id = idsarray ($i);
-            $market = $this->markets_by_idarray ($id);
-            $symbol = marketarray ('symbol');
-            $ticker = tickersarray ($id);
-            resultarray ($symbol) = $this->parse_ticker ($ticker, $market);
+            $id = $ids[$i];
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
     }
@@ -13733,10 +13732,10 @@ class xbtce extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $tickers = $this->publicGetTickerFilter (array (
-            'filter' => parray ('id'),
+            'filter' => $p['id'],
         ));
         $tickers = $this->index_by ($tickers, 'Symbol');
-        $ticker = tickersarray ($p['id')];
+        $ticker = $tickers[$p['id']];
         return $this->parse_ticker ($ticker, $p);
     }
 
@@ -13775,7 +13774,7 @@ class xbtce extends Exchange {
             throw new AuthenticationError ($this->id . ' requires apiKey for all requests, their public API is always busy');
         if (!$this->uid)
             throw new AuthenticationError ($this->id . ' requires uid property for authentication and trading');
-        $url = $this->urlsarray ('api') . '/' . $this->version;
+        $url = $this->urls['api'] . '/' . $this->version;
         if ($api == 'public')
             $url .= '/' . $api;
         $url .= '/' . $this->implode_params ($path, $params);
@@ -13788,7 +13787,7 @@ class xbtce extends Exchange {
             $nonce = (string) $this->nonce ();
             if ($method == 'POST') {
                 if ($query) {
-                    headersarray ('Content-Type') = 'application/json';
+                    $headers['Content-Type'] = 'application/json';
                     $body = $this->json ($query);
                 }
                 else
@@ -13799,7 +13798,7 @@ class xbtce extends Exchange {
                 $auth .= $body;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256', 'base64');
             $credentials = $this->uid . ':' . $this->apiKey . ':' . $nonce . ':' . $this->binary_to_string ($signature);
-            headersarray ('Authorization') = 'HMAC ' . $credentials;
+            $headers['Authorization'] = 'HMAC ' . $credentials;
         }
         return $this->fetch ($url, $method, $headers, $body);
     }
@@ -13849,11 +13848,11 @@ class yobit extends Exchange {
 
     public function fetch_markets () {
         $markets = $this->apiGetInfo ();
-        $keys = array_keys (marketsarray ('pairs'));
+        $keys = array_keys ($markets['pairs']);
         $result = array ();
         for ($p = 0; $p < count ($keys); $p++) {
-            $id = keysarray ($p);
-            $market = marketsarray ('pairs')array ($id);
+            $id = $keys[$p];
+            $market = $markets['pairs'][$id];
             $symbol = str_replace ('_', '/', strtoupper ($id));
             list ($base, $quote) = explode ('/', $symbol);
             $base = $this->commonCurrencyCode ($base);
@@ -13872,10 +13871,10 @@ class yobit extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $response = $this->tapiPostGetInfo ();
-        $balances = responsearray ('return');
+        $balances = $response['return'];
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = array (
                 'free' => null,
@@ -13883,14 +13882,14 @@ class yobit extends Exchange {
                 'total' => null,
             );
             if (array_key_exists ('funds', $balances))
-                if (array_key_exists ($lowercase, balancesarray ('funds')))
-                    accountarray ('free') = balancesarray ('funds')array ($lowercase);
+                if (array_key_exists ($lowercase, $balances['funds']))
+                    $account['free'] = $balances['funds'][$lowercase];
             if (array_key_exists ('funds_incl_orders', $balances))
-                if (array_key_exists ($lowercase, balancesarray ('funds_incl_orders')))
-                    accountarray ('total') = balancesarray ('funds_incl_orders')array ($lowercase);
-            if (accountarray ('total') && accountarray ('free'))
-                accountarray ('used') = accountarray ('total') - accountarray ('free');
-            resultarray ($currency) = $account;
+                if (array_key_exists ($lowercase, $balances['funds_incl_orders']))
+                    $account['total'] = $balances['funds_incl_orders'][$lowercase];
+            if ($account['total'] && $account['free'])
+                $account['used'] = $account['total'] - $account['free'];
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -13899,12 +13898,12 @@ class yobit extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $response = $this->apiGetDepthPairs (array_merge (array (
-            'pairs' => parray ('id'),
+            'pairs' => $p['id'],
         ), $params));
-        $orderbook = responsearray ($p['id')];
+        $orderbook = $response[$p['id']];
         $timestamp = $this->milliseconds ();
-        $bids = (array_key_exists ('bids', $orderbook)) ? orderbookarray ('bids') : array ();
-        $asks = (array_key_exists ('asks', $orderbook)) ? orderbookarray ('asks') : array ();
+        $bids = (array_key_exists ('bids', $orderbook)) ? $orderbook['bids'] : array ();
+        $asks = (array_key_exists ('asks', $orderbook)) ? $orderbook['asks'] : array ();
         $result = array (
             'bids' => $bids,
             'asks' => $asks,
@@ -13918,27 +13917,27 @@ class yobit extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $tickers = $this->apiGetTickerPairs (array (
-            'pairs' => parray ('id'),
+            'pairs' => $p['id'],
         ));
-        $ticker = tickersarray ($p['id')];
-        $timestamp = tickerarray ('updated') * 1000;
+        $ticker = $tickers[$p['id']];
+        $timestamp = $ticker['updated'] * 1000;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('buy')),
-            'ask' => floatval (tickerarray ('sell')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
-            'average' => floatval (tickerarray ('avg')),
-            'baseVolume' => floatval (tickerarray ('vol_cur')),
-            'quoteVolume' => floatval (tickerarray ('vol')),
+            'average' => floatval ($ticker['avg']),
+            'baseVolume' => floatval ($ticker['vol_cur']),
+            'quoteVolume' => floatval ($ticker['vol']),
             'info' => $ticker,
         );
     }
@@ -13970,7 +13969,7 @@ class yobit extends Exchange {
     }
 
     public function request ($path, $api = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $api;
+        $url = $this->urls['api'] . '/' . $api;
         if ($api == 'api') {
             $url .= '/' . $this->version . '/' . $this->implode_params ($path, $params);
             $query = $this->omit ($params, $this->extract_params ($path));
@@ -14054,9 +14053,9 @@ class yunbi extends Exchange {
         $markets = $this->publicGetMarkets ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
-            $market = marketsarray ($p);
-            $id = marketarray ('id');
-            $symbol = marketarray ('name');
+            $market = $markets[$p];
+            $id = $market['id'];
+            $symbol = $market['name'];
             list ($base, $quote) = explode ('/', $symbol);
             $base = $this->commonCurrencyCode ($base);
             $quote = $this->commonCurrencyCode ($quote);
@@ -14074,19 +14073,19 @@ class yunbi extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $response = $this->privateGetMembersMe ();
-        $balances = responsearray ('accounts');
+        $balances = $response['accounts'];
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = balancesarray ($b);
-            $currency = balancearray ('currency');
+            $balance = $balances[$b];
+            $currency = $balance['currency'];
             $uppercase = strtoupper ($currency);
             $account = array (
-                'free' => floatval (balancearray ('balance')),
-                'used' => floatval (balancearray ('locked')),
+                'free' => floatval ($balance['balance']),
+                'used' => floatval ($balance['locked']),
                 'total' => null,
             );
-            accountarray ('total') = $this->sum (accountarray ('free'), accountarray ('used'));
-            resultarray ($uppercase) = $account;
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$uppercase] = $account;
         }
         return $result;
     }
@@ -14095,10 +14094,10 @@ class yunbi extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $orderbook = $this->publicGetDepth (array_merge (array (
-            'market' => parray ('id'),
+            'market' => $p['id'],
             'limit' => 300,
         ), $params));
-        $timestamp = orderbookarray ('timestamp') * 1000;
+        $timestamp = $orderbook['timestamp'] * 1000;
         $result = array (
             'bids' => array (),
             'asks' => array (),
@@ -14107,40 +14106,40 @@ class yunbi extends Exchange {
         );
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
-            $side = sidesarray ($s);
-            $orders = orderbookarray ($side);
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
-                $order = ordersarray ($i);
-                $price = floatval (orderarray (0));
-                $amount = floatval (orderarray (1));
-                resultarray ($side)[] = array ($price, $amount);
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
             }
         }
-        resultarray ('bids') = $this->sort_by (resultarray ('bids'), 0, true);
-        resultarray ('asks') = $this->sort_by (resultarray ('asks'), 0);
+        $result['bids'] = $this->sort_by ($result['bids'], 0, true);
+        $result['asks'] = $this->sort_by ($result['asks'], 0);
         return $result;
     }
 
     public function parse_ticker ($ticker, $market) {
-        $timestamp = tickerarray ('at') * 1000;
-        $ticker = tickerarray ('ticker');
+        $timestamp = $ticker['at'] * 1000;
+        $ticker = $ticker['ticker'];
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval (tickerarray ('high')),
-            'low' => floatval (tickerarray ('low')),
-            'bid' => floatval (tickerarray ('buy')),
-            'ask' => floatval (tickerarray ('sell')),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['buy']),
+            'ask' => floatval ($ticker['sell']),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval (tickerarray ('last')),
+            'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval (tickerarray ('vol')),
+            'quoteVolume' => floatval ($ticker['vol']),
             'info' => $ticker,
         );        
     }
@@ -14151,12 +14150,12 @@ class yunbi extends Exchange {
         $ids = array_keys ($tickers);
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
-            $id = idsarray ($i);
+            $id = $ids[$i];
             $market = null;
             $symbol = $id;
             if (array_key_exists ($id, $this->markets_by_id)) {
-                $market = $this->markets_by_idarray ($id);
-                $symbol = marketarray ('symbol');
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
             } else {
                 $base = mb_substr ($id, 0, 3);
                 $quote = mb_substr ($id, 3, 6);
@@ -14166,8 +14165,8 @@ class yunbi extends Exchange {
                 $quote = $this->commonCurrencyCode ($quote);
                 $symbol = $base . '/' . $quote;
             }
-            $ticker = tickersarray ($id);
-            resultarray ($symbol) = $this->parse_ticker ($ticker, $market);
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
     }
@@ -14176,7 +14175,7 @@ class yunbi extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $response = $this->publicGetTickersMarket (array (
-            'market' => parray ('id'),
+            'market' => $p['id'],
         ));
         return $this->parse_ticker ($response, $p);
     }
@@ -14197,7 +14196,7 @@ class yunbi extends Exchange {
             'ord_type' => $type,
         );
         if ($type == 'limit') {
-            orderarray ('price') = (string) $price;
+            $order['price'] = (string) $price;
         }
         return $this->privatePostOrders (array_merge ($order, $params));
     }
@@ -14210,7 +14209,7 @@ class yunbi extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/$api/' . $this->version . '/' . $this->implode_params ($path, $params) . '.json';
         $query = $this->omit ($params, $this->extract_params ($path));
-        $url = $this->urlsarray ('api') . $request;
+        $url = $this->urls['api'] . $request;
         if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
@@ -14307,9 +14306,9 @@ class zaif extends Exchange {
         $markets = $this->apiGetCurrencyPairsAll ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
-            $market = marketsarray ($p);
-            $id = marketarray ('currency_pair');
-            $symbol = marketarray ('name');
+            $market = $markets[$p];
+            $id = $market['currency_pair'];
+            $symbol = $market['name'];
             list ($base, $quote) = explode ('/', $symbol);
             $result[] = array (
                 'id' => $id,
@@ -14325,10 +14324,10 @@ class zaif extends Exchange {
     public function fetch_balance () {
         $this->loadMarkets ();
         $response = $this->tapiPostGetInfo ();
-        $balances = responsearray ('return');
+        $balances = $response['return'];
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currenciesarray ($c);
+            $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = array (
                 'free' => null,
@@ -14336,14 +14335,14 @@ class zaif extends Exchange {
                 'total' => null,
             );
             if (array_key_exists ('funds', $balances))
-                if (array_key_exists ($lowercase, balancesarray ('funds')))
-                    accountarray ('free') = balancesarray ('funds')array ($lowercase);
+                if (array_key_exists ($lowercase, $balances['funds']))
+                    $account['free'] = $balances['funds'][$lowercase];
             if (array_key_exists ('funds_incl_orders', $balances))
-                if (array_key_exists ($lowercase, balancesarray ('funds_incl_orders')))
-                    accountarray ('total') = balancesarray ('funds_incl_orders')array ($lowercase);
-            if (accountarray ('total') && accountarray ('free'))
-                accountarray ('used') = accountarray ('total') - accountarray ('free');
-            resultarray ($currency) = $account;
+                if (array_key_exists ($lowercase, $balances['funds_incl_orders']))
+                    $account['total'] = $balances['funds_incl_orders'][$lowercase];
+            if ($account['total'] && $account['free'])
+                $account['used'] = $account['total'] - $account['free'];
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -14355,8 +14354,8 @@ class zaif extends Exchange {
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
-            'bids' => orderbookarray ('bids'),
-            'asks' => orderbookarray ('asks'),
+            'bids' => $orderbook['bids'],
+            'asks' => $orderbook['asks'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
@@ -14372,20 +14371,20 @@ class zaif extends Exchange {
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => tickerarray ('high'),
-            'low' => tickerarray ('low'),
-            'bid' => tickerarray ('bid'),
-            'ask' => tickerarray ('ask'),
-            'vwap' => tickerarray ('vwap'),
+            'high' => $ticker['high'],
+            'low' => $ticker['low'],
+            'bid' => $ticker['bid'],
+            'ask' => $ticker['ask'],
+            'vwap' => $ticker['vwap'],
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => tickerarray ('last'),
+            'last' => $ticker['last'],
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => tickerarray ('volume'),
+            'quoteVolume' => $ticker['volume'],
             'info' => $ticker,
         );
     }
@@ -14417,7 +14416,7 @@ class zaif extends Exchange {
     }
 
     public function request ($path, $api = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urlsarray ('api') . '/' . $api;
+        $url = $this->urls['api'] . '/' . $api;
         if ($api == 'api') {
             $url .= '/' . $this->version . '/' . $this->implode_params ($path, $params);
         } else {
@@ -14435,9 +14434,9 @@ class zaif extends Exchange {
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('error', $response))
-            throw new ExchangeError ($this->id . ' ' . responsearray ('error'));
+            throw new ExchangeError ($this->id . ' ' . $response['error']);
         if (array_key_exists ('success', $response))
-            if (!responsearray ('success'))
+            if (!$response['success'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }

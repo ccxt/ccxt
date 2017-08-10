@@ -205,7 +205,7 @@ while (exchanges = regex.exec (contents)) {
             [ /([\S])\: /g, '$1 => ' ],
             [ /\{([^\;\{]+?)\}([^\s])/g, 'array ($1)$2' ],
             [ /\[\s*([^\]]+?)\s*\]\.join\s*\(\s*([^\)]+?)\s*\)/g, "implode ($2, array ($1))" ],
-            [ /\[\s*([^\]]+?)\s*\]/g, 'array ($1)' ],
+            [ /\[\s([^\]]+?)\s\]/g, 'array ($1)' ],
             [ /JSON\.stringify/g, 'json_encode' ],
             [ /parseFloat\s/g, 'floatval '],
             [ /parseInt\s/g, 'intval '],
