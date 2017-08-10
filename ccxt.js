@@ -1669,7 +1669,7 @@ var bitbays = {
         }
         let response = await this.privatePostTrade (this.extend (order, params));
         return {
-            'info': response['result'],
+            'info': response,
             'id': response['result']['id'].toString (),
         };
     },
@@ -1851,7 +1851,11 @@ var bitcoincoid = {
         };
         let base = p['base'].toLowerCase ();
         order[base] = amount;
-        return this.privatePostTrade (this.extend (order, params));
+        let result = this.privatePostTrade (this.extend (order, params));
+        return {
+            'info': result,
+            'id': result['return']['order_id'],
+        };
     },
 
     async cancelOrder (id, params = {}) {
