@@ -1854,7 +1854,7 @@ var bitcoincoid = {
         let result = this.privatePostTrade (this.extend (order, params));
         return {
             'info': result,
-            'id': result['return']['order_id'],
+            'id': result['return']['order_id'].toString (),
         };
     },
 
