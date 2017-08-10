@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.27';
+$version = '1.3.28';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -1880,7 +1880,7 @@ class bitbays extends Exchange {
         }
         $response = $this->privatePostTrade (array_merge ($order, $params));
         return array (
-            'info' => $response['result'],
+            'info' => $response,
             'id' => (string) $response['result']['id'],
         );
     }
@@ -2066,7 +2066,11 @@ class bitcoincoid extends Exchange {
         );
         $base = strtolower ($p['base']);
         $order[$base] = $amount;
-        return $this->privatePostTrade (array_merge ($order, $params));
+        $result = $this->privatePostTrade (array_merge ($order, $params));
+        return array (
+            'info' => $result,
+            'id' => $result['return']['order_id'],
+        );
     }
 
     public function cancel_order ($id, $params = array ()) {
