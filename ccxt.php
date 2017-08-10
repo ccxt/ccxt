@@ -4700,6 +4700,9 @@ class btce extends Exchange {
         $this->loadMarkets ();
         $response = $this->privatePostOrderInfo (array ( 'order_id' => $id ));
         $orderInfo = $response['return'][$id];
+        $isCanceled = false;
+        if (array_key_exists ($orderInfo['status'], [2, 3]))
+            $isCanceled = true;
         $result = array (
             'info' => $response,
             'type' => $orderInfo['type'],
@@ -4707,7 +4710,7 @@ class btce extends Exchange {
             'startingAmount' => $orderInfo['start_amount'],
             'remaining' => $orderInfo['amount'],
             'isOpen' => $orderInfo['status'] == 0,
-            'isCanceled' => $orderInfo['status'] in [2, 3],
+            'isCanceled' => $isCanceled,
         );
         return $result;
     }

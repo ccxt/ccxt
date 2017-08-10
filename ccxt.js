@@ -4438,6 +4438,9 @@ var btce = {
         await this.loadMarkets ();
         let response = await this.privatePostOrderInfo ({ 'order_id': id });
         let orderInfo = response['return'][id];
+        let isCanceled = false;
+        if (orderInfo['status'] in [2, 3])
+            isCanceled = true;
         let result = {
             'info': response,
             'type': orderInfo['type'],
@@ -4445,7 +4448,7 @@ var btce = {
             'startingAmount': orderInfo['start_amount'],
             'remaining': orderInfo['amount'],
             'isOpen': orderInfo['status'] == 0,
-            'isCanceled': orderInfo['status'] in [2, 3],
+            'isCanceled': isCanceled,
         };
         return result;
     },

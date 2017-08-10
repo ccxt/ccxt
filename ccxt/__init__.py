@@ -4321,6 +4321,9 @@ class btce (Exchange):
         self.loadMarkets ()
         response = self.privatePostOrderInfo ({ 'order_id': id })
         orderInfo = response['return'][id]
+        isCanceled = False
+        if orderInfo['status'] in [2, 3]:
+            isCanceled = True
         result = {
             'info': response,
             'type': orderInfo['type'],
@@ -4328,7 +4331,7 @@ class btce (Exchange):
             'startingAmount': orderInfo['start_amount'],
             'remaining': orderInfo['amount'],
             'isOpen': orderInfo['status'] == 0,
-            'isCanceled': orderInfo['status'] in [2, 3],
+            'isCanceled': isCanceled,
         }
         return result
 
