@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.31';
+$version = '1.3.32';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -4290,7 +4290,11 @@ class bl3p extends Exchange {
         );
         if ($type == 'limit')
             $order['price_int'] = $price;
-        return $this->privatePostMarketMoneyOrderAdd (array_merge ($order, $params));
+        $response = $this->privatePostMarketMoneyOrderAdd (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response['order_id'],
+        );
     }
 
     public function cancel_order ($id) {

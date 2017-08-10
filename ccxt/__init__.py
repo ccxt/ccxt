@@ -86,7 +86,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.31'
+__version__ = '1.3.32'
 
 # Python 2 & 3
 import base64
@@ -3938,7 +3938,11 @@ class bl3p (Exchange):
         }
         if type == 'limit':
             order['price_int'] = price
-        return self.privatePostMarketMoneyOrderAdd (self.extend (order, params))
+        response = self.privatePostMarketMoneyOrderAdd (self.extend (order, params))
+        return {
+            'info': response,
+            'id': str (response['order_id']),
+        }
 
     def cancel_order (self, id):
         return self.privatePostMarketMoneyOrderCancel ({ 'order_id': id })
