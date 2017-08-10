@@ -86,7 +86,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.22'
+__version__ = '1.3.23'
 
 # Python 2 & 3
 import base64
@@ -961,7 +961,11 @@ class cryptocapital (Exchange):
         }
         if type == 'limit':
             order['limit_price'] = price
-        return self.privatePostOrdersNew (self.extend (order, params))
+        result = self.privatePostOrdersNew (self.extend (order, params))
+        return {
+            'info': result,
+            'id': result,
+        }
 
     def cancel_order (self, id):
         return self.privatePostOrdersCancel ({ 'id': id })
@@ -1196,7 +1200,11 @@ class anxpro (Exchange):
         }
         if type == 'limit':
             order['price_int'] = price
-        return self.privatePostCurrencyPairOrderAdd (self.extend (order, params))
+        result = self.privatePostCurrencyPairOrderAdd (self.extend (order, params))
+        return {
+            'info': result,
+            'id': result['data']
+        }
 
     def cancel_order (self, id):
         return self.privatePostCurrencyPairOrderCancel ({ 'oid': id })
