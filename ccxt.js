@@ -3641,9 +3641,10 @@ var bittrex = {
         await this.loadMarkets ();
         let response = await this.accountGetOrder ({ 'uuid': id });
         let orderInfo = response['result'];
+        let orderType = (orderInfo['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
         let result = {
             'info': response,
-            'type': (orderInfo['Type'] == 'LIMIT_BUY') 'buy' ? 'sell',
+            'type': orderType,
             'rate': orderInfo['PricePerUnit'],
             'startingAmount': orderInfo['Quantity'],
             'remaining': orderInfo['QuantityRemaining'],
