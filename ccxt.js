@@ -4686,7 +4686,11 @@ var btcmarkets = {
             'ordertype': this.capitalize (type),
             'clientRequestId': this.nonce ().toString (),
         });
-        return this.privatePostOrderCreate (this.extend (order, params));
+        let response = await this.privatePostOrderCreate (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['id'].toString (),
+        };
     },
 
     async cancelOrders (ids) {
