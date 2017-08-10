@@ -4404,7 +4404,12 @@ var btce = {
             'amount': amount,
             'rate': price,
         };
-        return this.privatePostTrade (this.extend (order, params));
+        let response = await this.privatePostTrade (this.extend (order, params));
+        let result = {
+            'info': response,
+            'id': response['return']['order_id'],
+        };
+        return result;
     },
 
     async cancelOrder (id) {
