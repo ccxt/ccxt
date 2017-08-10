@@ -4416,6 +4416,22 @@ var btce = {
         await this.loadMarkets ();
         return this.privatePostCancelOrder ({ 'order_id': id });
     },
+    
+    async fetchOrder (id) {
+        await this.loadMarkets ();
+        let response await = this.privatePostOrderInfo ({ 'order_id': id });
+        let orderInfo = response['return'][id];
+        let result = {
+            'info': response,
+            'type': orderInfo['type'],
+            'rate': orderInfo['rate'],
+            'startingAmount': orderInfo['start_amount'],
+            'remaining': orderInfo['amount'],
+            'isOpen': orderInfo['status'] == 0,
+            'isCanceled': orderInfo['status'] in [2, 3],
+        };
+        return result;
+    },
 
     request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
