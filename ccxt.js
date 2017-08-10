@@ -1337,7 +1337,11 @@ var bit2c = {
             order['Total'] = amount * price;
             order['IsBid'] = (side == 'buy');
         }
-        return this[method] (this.extend (order, params));
+        let result = await this[method] (this.extend (order, params));
+        return {
+            'info': result,
+            'id': result['NewOrder']['id'],
+        };
     },
 
     async cancelOrder (id) {
