@@ -183,6 +183,8 @@ let testExchangeBalance = async (exchange, symbol) => {
         'LTC',
         'DASH',
         'DOGE',
+        'UAH',
+        'RUB',
     ]
 
     if ('info' in balance) {
@@ -232,6 +234,8 @@ let loadExchange = async exchange => {
         'BTC/AUD',
         'BTC/PLN',
         'USD/SLL',
+        'BTC/RUB',
+        'BTC/UAH',
     ]
     let result = exchange.symbols.filter (symbol => symbols.indexOf (symbol) >= 0)
     if (result.length > 0)
