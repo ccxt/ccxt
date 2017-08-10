@@ -1667,7 +1667,11 @@ var bitbays = {
         } else {
             order['order_type'] = 0;
         }
-        return this.privatePostTrade (this.extend (order, params));
+        let response = await this.privatePostTrade (this.extend (order, params));
+        return {
+            'info': response['result'],
+            'id': response['result']['id'].toString (),
+        };
     },
 
     async cancelOrder (id) {
