@@ -3636,6 +3636,22 @@ var bittrex = {
         await this.loadMarkets ();
         return this.marketGetCancel ({ 'uuid': id });
     },
+    
+    async fetchOrder (id) {
+        await this.loadMarkets ();
+        let response await = this.accountGetOrder ({ 'uuid': id });
+        let orderInfo = response['result'];
+        let result = {
+            'info': response,
+            'type': (orderInfo['Type'] == 'LIMIT_BUY') 'buy' ? 'sell',
+            'rate': orderInfo['PricePerUnit'],
+            'startingAmount': orderInfo['Quantity'],
+            'remaining': orderInfo['QuantityRemaining'],
+            'isOpen': orderInfo['IsOpen'],
+            'isCanceled': orderInfo['CancelInitiated'],
+        };
+        return result;
+    },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/';
