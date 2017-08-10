@@ -3639,7 +3639,7 @@ var bittrex = {
     
     async fetchOrder (id) {
         await this.loadMarkets ();
-        let response await = this.accountGetOrder ({ 'uuid': id });
+        let response = await this.accountGetOrder ({ 'uuid': id });
         let orderInfo = response['result'];
         let result = {
             'info': response,
@@ -4435,7 +4435,7 @@ var btce = {
     
     async fetchOrder (id) {
         await this.loadMarkets ();
-        let response await = this.privatePostOrderInfo ({ 'order_id': id });
+        let response = await this.privatePostOrderInfo ({ 'order_id': id });
         let orderInfo = response['return'][id];
         let result = {
             'info': response,
