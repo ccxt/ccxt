@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.30';
+$version = '1.3.31';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3461,7 +3461,11 @@ class bitso extends Exchange {
         );
         if ($type == 'limit')
             $order['price'] = $price;
-        return $this->privatePostOrders (array_merge ($order, $params));
+        $response = $this->privatePostOrders (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['payload']['oid'],
+        );
     }
 
     public function cancel_order ($id) {
@@ -3650,7 +3654,11 @@ class bitstamp extends Exchange {
         else
             $order['price'] = $price;
         $method .= 'Id';
-        return $this->$method (array_merge ($order, $params));
+        $response = $this->$method (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['id'],
+        );
     }
 
     public function cancel_order ($id) {
@@ -5236,17 +5244,19 @@ class btctradeua extends Exchange {
 
     public function fetch_balance () {
         $response = $this->privatePostBalance ();
-        $accounts = $response['accounts'];
         $result = array ( 'info' => $response );
-        for ($b = 0; $b < count ($accounts); $b++) {
-            $account = $accounts[$b];
-            $currency = $account['currency'];
-            $balance = floatval ($account['balance']);
-            $result[$currency] = array (
-                'free' => $balance,
-                'used' => null,
-                'total' => $balance,
-            );
+        if (array_key_exists ('accounts', $result)) {
+            $accounts = $response['accounts'];        
+            for ($b = 0; $b < count ($accounts); $b++) {
+                $account = $accounts[$b];
+                $currency = $account['currency'];
+                $balance = floatval ($account['balance']);
+                $result[$currency] = array (
+                    'free' => $balance,
+                    'used' => null,
+                    'total' => $balance,
+                );
+            }
         }
         return $result;
     }

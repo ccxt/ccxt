@@ -86,7 +86,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.30'
+__version__ = '1.3.31'
 
 # Python 2 & 3
 import base64
@@ -3168,7 +3168,11 @@ class bitso (Exchange):
         }
         if type == 'limit':
             order['price'] = price
-        return self.privatePostOrders (self.extend (order, params))
+        response = self.privatePostOrders (self.extend (order, params))
+        return {
+            'info': response,
+            'id': response['payload']['oid'],
+        }
 
     def cancel_order (self, id):
         self.loadMarkets ()
@@ -3346,7 +3350,11 @@ class bitstamp (Exchange):
         else:
             order['price'] = price
         method += 'Id'
-        return getattr (self, method) (self.extend (order, params))
+        response = getattr (self, method) (self.extend (order, params))
+        return {
+            'info': response,
+            'id': response['id'],
+        }
 
     def cancel_order (self, id):
         return self.privatePostCancelOrder ({ 'id': id })
@@ -4824,17 +4832,18 @@ class btctradeua (Exchange):
 
     def fetch_balance (self):
         response = self.privatePostBalance ()
-        accounts = response['accounts']
         result = { 'info': response }
-        for b in range (0, len (accounts)):
-            account = accounts[b]
-            currency = account['currency']
-            balance = float (account['balance'])
-            result[currency] = {
-                'free': balance,
-                'used': None,
-                'total': balance,
-            }
+        if 'accounts' in result:
+            accounts = response['accounts']        
+            for b in range (0, len (accounts)):
+                account = accounts[b]
+                currency = account['currency']
+                balance = float (account['balance'])
+                result[currency] = {
+                    'free': balance,
+                    'used': None,
+                    'total': balance,
+                }
         return result
 
     def fetch_order_book (self, market, params = {}):
