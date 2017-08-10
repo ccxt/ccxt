@@ -218,7 +218,7 @@ The command below will build everything and generate slave PHP/Python versions f
 npm run build
 ```
 
-The following command will test the build slave source files (for all exchanges, symbols and languages):
+The following command will test the built slave source files (for all exchanges, symbols and languages):
 
 ```
 node run-tests
