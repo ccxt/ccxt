@@ -4966,17 +4966,19 @@ var btctradeua = {
 
     async fetchBalance () {
         let response = await this.privatePostBalance ();
-        let accounts = response['accounts'];
         let result = { 'info': response };
-        for (let b = 0; b < accounts.length; b++) {
-            let account = accounts[b];
-            let currency = account['currency'];
-            let balance = parseFloat (account['balance']);
-            result[currency] = {
-                'free': balance,
-                'used': undefined,
-                'total': balance,
-            };
+        if ('accounts' in result) {
+            let accounts = response['accounts'];        
+            for (let b = 0; b < accounts.length; b++) {
+                let account = accounts[b];
+                let currency = account['currency'];
+                let balance = parseFloat (account['balance']);
+                result[currency] = {
+                    'free': balance,
+                    'used': undefined,
+                    'total': balance,
+                };
+            }
         }
         return result;
     },
