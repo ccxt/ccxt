@@ -86,7 +86,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.23'
+__version__ = '1.3.24'
 
 # Python 2 & 3
 import base64
@@ -1371,7 +1371,11 @@ class bit2c (Exchange):
             order['Price'] = price
             order['Total'] = amount * price
             order['IsBid'] = (side == 'buy')
-        return getattr (self, method) (self.extend (order, params))
+        result = getattr (self, method) (self.extend (order, params))
+        return {
+            'info': result,
+            'id': result['NewOrder']['id'],
+        }
 
     def cancel_order (self, id):
         return self.privatePostOrderCancelOrder ({ 'id': id })
