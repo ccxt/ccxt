@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.29';
+$version = '1.3.30';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3250,7 +3250,11 @@ class bitmex extends Exchange {
         );
         if ($type == 'limit')
             $order['rate'] = $price;
-        return $this->privatePostOrder (array_merge ($order, $params));
+        $response = $this->privatePostOrder (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['orderID'],
+        );
     }
 
     public function cancel_order ($id) {

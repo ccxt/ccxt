@@ -86,7 +86,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.29'
+__version__ = '1.3.30'
 
 # Python 2 & 3
 import base64
@@ -2970,7 +2970,11 @@ class bitmex (Exchange):
         }
         if type == 'limit':
             order['rate'] = price
-        return self.privatePostOrder (self.extend (order, params))
+        response = self.privatePostOrder (self.extend (order, params))
+        return {
+            'info': response,
+            'id': response['orderID'],
+        }
 
     def cancel_order (self, id):
         self.loadMarkets ()
