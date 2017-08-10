@@ -911,7 +911,11 @@ var cryptocapital = {
         };
         if (type == 'limit')
             order['limit_price'] = price;
-        return this.privatePostOrdersNew (this.extend (order, params));
+        let result = await this.privatePostOrdersNew (this.extend (order, params));
+        return {
+            'info': result,
+            'id': result,
+        };
     },
 
     async cancelOrder (id) {
@@ -1152,7 +1156,11 @@ var anxpro = {
         };
         if (type == 'limit')
             order['price_int'] = price;
-        return this.privatePostCurrencyPairOrderAdd (this.extend (order, params));
+        let result = await this.privatePostCurrencyPairOrderAdd (this.extend (order, params));
+        return {
+            'info': result,
+            'id': result['data']
+        };
     },
 
     async cancelOrder (id) {
