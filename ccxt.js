@@ -2321,12 +2321,16 @@ var bitflyer = {
             'price': price,
             'size': amount,
         };
-        return this.privatePostSendparentorder (this.extend (order, params));
+        let result = this.privatePostSendchildorder (this.extend (order, params));
+        return {
+            'info': result,
+            'id': result['child_order_acceptance_id'],
+        };
     },
 
     async cancelOrder (id, params = {}) {
         await this.loadMarkets ();
-        return this.privatePostCancelparentorder (this.extend ({
+        return this.privatePostCancelchildorder (this.extend ({
             'parent_order_id': id,
         }, params));
     },
@@ -2564,7 +2568,11 @@ var bitlish = {
         };
         if (type == 'limit')
             order['price'] = price;
-        return this.privatePostCreateTrade (this.extend (order, params));
+        let result = await this.privatePostCreateTrade (this.extend (order, params));
+        return {
+            'info': result,
+            'id': result['id'],
+        };
     },
 
     async cancelOrder (id) {
