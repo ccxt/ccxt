@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.22';
+$version = '1.3.23';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -1102,7 +1102,11 @@ class cryptocapital extends Exchange {
         );
         if ($type == 'limit')
             $order['limit_price'] = $price;
-        return $this->privatePostOrdersNew (array_merge ($order, $params));
+        $result = $this->privatePostOrdersNew (array_merge ($order, $params));
+        return array (
+            'info' => $result,
+            'id' => $result,
+        );
     }
 
     public function cancel_order ($id) {
@@ -1351,7 +1355,11 @@ class anxpro extends Exchange {
         );
         if ($type == 'limit')
             $order['price_int'] = $price;
-        return $this->privatePostCurrencyPairOrderAdd (array_merge ($order, $params));
+        $result = $this->privatePostCurrencyPairOrderAdd (array_merge ($order, $params));
+        return array (
+            'info' => $result,
+            'id' => $result['data']
+        );
     }
 
     public function cancel_order ($id) {
