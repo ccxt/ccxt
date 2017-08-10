@@ -4439,7 +4439,8 @@ var btce = {
         let response = await this.privatePostOrderInfo ({ 'order_id': id });
         let orderInfo = response['return'][id];
         let isCanceled = false;
-        if (orderInfo['status'] in [2, 3])
+        let canceled = [2, 3];
+        if (orderInfo['status'] in canceled)
             isCanceled = true;
         let result = {
             'info': response,

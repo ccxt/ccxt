@@ -4322,7 +4322,8 @@ class btce (Exchange):
         response = self.privatePostOrderInfo ({ 'order_id': id })
         orderInfo = response['return'][id]
         isCanceled = False
-        if orderInfo['status'] in [2, 3]:
+        canceled = [2, 3]
+        if orderInfo['status'] in canceled:
             isCanceled = True
         result = {
             'info': response,
