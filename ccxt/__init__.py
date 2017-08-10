@@ -86,7 +86,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.24'
+__version__ = '1.3.25'
 
 # Python 2 & 3
 import base64
@@ -3557,6 +3557,22 @@ class bittrex (Exchange):
         self.loadMarkets ()
         return self.marketGetCancel ({ 'uuid': id })
 
+    def fetchOrder (self, id):
+        self.loadMarkets ()
+        response = self.accountGetOrder ({ 'uuid': id })
+        orderInfo = response['result']
+        orderType = 'buy' if (orderInfo['Type'] == 'LIMIT_BUY') else 'sell'
+        result = {
+            'info': response,
+            'type': orderType,
+            'rate': orderInfo['PricePerUnit'],
+            'startingAmount': orderInfo['Quantity'],
+            'remaining': orderInfo['QuantityRemaining'],
+            'isOpen': orderInfo['IsOpen'],
+            'isCanceled': orderInfo['CancelInitiated'],
+        }
+        return result
+
     def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/'
         if api == 'public':
@@ -4290,11 +4306,31 @@ class btce (Exchange):
             'amount': amount,
             'rate': price,
         }
-        return self.privatePostTrade (self.extend (order, params))
+        response = self.privatePostTrade (self.extend (order, params))
+        result = {
+            'info': response,
+            'id': response['return']['order_id'],
+        }
+        return result
 
     def cancel_order (self, id):
         self.loadMarkets ()
         return self.privatePostCancelOrder ({ 'order_id': id })
+
+    def fetchOrder (self, id):
+        self.loadMarkets ()
+        response = self.privatePostOrderInfo ({ 'order_id': id })
+        orderInfo = response['return'][id]
+        result = {
+            'info': response,
+            'type': orderInfo['type'],
+            'rate': orderInfo['rate'],
+            'startingAmount': orderInfo['start_amount'],
+            'remaining': orderInfo['amount'],
+            'isOpen': orderInfo['status'] == 0,
+            'isCanceled': orderInfo['status'] in [2, 3],
+        }
+        return result
 
     def request (self, path, api = 'public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params (path, params)

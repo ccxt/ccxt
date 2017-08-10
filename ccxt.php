@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.24';
+$version = '1.3.25';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3883,6 +3883,23 @@ class bittrex extends Exchange {
         return $this->marketGetCancel (array ( 'uuid' => $id ));
     }
 
+    public function fetchOrder ($id) {
+        $this->loadMarkets ();
+        $response = $this->accountGetOrder (array ( 'uuid' => $id ));
+        $orderInfo = $response['result'];
+        $orderType = ($orderInfo['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
+        $result = array (
+            'info' => $response,
+            'type' => $orderType,
+            'rate' => $orderInfo['PricePerUnit'],
+            'startingAmount' => $orderInfo['Quantity'],
+            'remaining' => $orderInfo['QuantityRemaining'],
+            'isOpen' => $orderInfo['IsOpen'],
+            'isCanceled' => $orderInfo['CancelInitiated'],
+        );
+        return $result;
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/';
         if ($api == 'public') {
@@ -4666,12 +4683,33 @@ class btce extends Exchange {
             'amount' => $amount,
             'rate' => $price,
         );
-        return $this->privatePostTrade (array_merge ($order, $params));
+        $response = $this->privatePostTrade (array_merge ($order, $params));
+        $result = array (
+            'info' => $response,
+            'id' => $response['return']['order_id'],
+        );
+        return $result;
     }
 
     public function cancel_order ($id) {
         $this->loadMarkets ();
         return $this->privatePostCancelOrder (array ( 'order_id' => $id ));
+    }
+
+    public function fetchOrder ($id) {
+        $this->loadMarkets ();
+        $response = $this->privatePostOrderInfo (array ( 'order_id' => $id ));
+        $orderInfo = $response['return'][$id];
+        $result = array (
+            'info' => $response,
+            'type' => $orderInfo['type'],
+            'rate' => $orderInfo['rate'],
+            'startingAmount' => $orderInfo['start_amount'],
+            'remaining' => $orderInfo['amount'],
+            'isOpen' => $orderInfo['status'] == 0,
+            'isCanceled' => $orderInfo['status'] in [2, 3],
+        );
+        return $result;
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
