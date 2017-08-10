@@ -2749,12 +2749,18 @@ var bitmarket = {
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
-        return this.privatePostTrade (this.extend ({
+        let response = await this.privatePostTrade (this.extend ({
             'market': this.marketId (market),
             'type': side,
             'amount': amount,
             'rate': price,
         }, params));
+        let result = {
+            'info': response,
+        };
+        if ('id' in response['order'])
+            result['id'] = response['id'];
+        return result;
     },
 
     async cancelOrder (id) {
