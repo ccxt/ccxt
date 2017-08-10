@@ -86,7 +86,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.26'
+__version__ = '1.3.27'
 
 # Python 2 & 3
 import base64
@@ -1686,7 +1686,11 @@ class bitbays (Exchange):
             order['price'] = price
         else:
             order['order_type'] = 0
-        return self.privatePostTrade (self.extend (order, params))
+        response = self.privatePostTrade (self.extend (order, params))
+        return {
+            'info': response['result'],
+            'id': str (response['result']['id']),
+        }
 
     def cancel_order (self, id):
         return self.privatePostCancel ({ 'id': id })
