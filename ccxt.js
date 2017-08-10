@@ -751,7 +751,11 @@ var _1broker = {
             order['price'] = price;
         else
             order['type'] += '_market';
-        return this.privateGetOrderCreate (this.extend (order, params));
+        let result = await this.privateGetOrderCreate (this.extend (order, params));
+        return {
+            'info': result,
+            'id': result['response']['order_id'],
+        };
     },
 
     async cancelOrder (id) {
