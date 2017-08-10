@@ -163,7 +163,7 @@ Below are key notes on how to keep the JS code transpileable:
 - avoid multi-line comments
 - ...
 
-**If you want to add (support for) another exchange or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn by example, take a look at how same things are implemented in other exchanges and try to copy the code flow and style.**
+**If you want to add (support for) another exchange or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn from example, take a look at how same things are implemented in other exchanges and try to copy the code flow and style.**
 
 The basic JSON-skeleton for a new exchange integration is as follows:
 
