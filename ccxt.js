@@ -4036,7 +4036,11 @@ var bl3p = {
         };
         if (type == 'limit')
             order['price_int'] = price;
-        return this.privatePostMarketMoneyOrderAdd (this.extend (order, params));
+        let response = await this.privatePostMarketMoneyOrderAdd (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['order_id'].toString (),
+        };
     },
 
     async cancelOrder (id) {
