@@ -3412,7 +3412,11 @@ var bitstamp = {
         else
             order['price'] = price;
         method += 'Id';
-        return this[method] (this.extend (order, params));
+        let response = await this[method] (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['id'],
+        };
     },
 
     async cancelOrder (id) {
