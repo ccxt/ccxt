@@ -3015,7 +3015,11 @@ var bitmex = {
         };
         if (type == 'limit')
             order['rate'] = price;
-        return this.privatePostOrder (this.extend (order, params));
+        let response = await this.privatePostOrder (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['orderID'],
+        };
     },
 
     async cancelOrder (id) {
