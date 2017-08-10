@@ -4440,7 +4440,8 @@ var btce = {
         let orderInfo = response['return'][id];
         let isCanceled = false;
         let canceled = [2, 3];
-        if (orderInfo['status'] in canceled)
+        let orderStatus = orderInfo['status'];
+        if (orderStatus in canceled)
             isCanceled = true;
         let result = {
             'info': response,
