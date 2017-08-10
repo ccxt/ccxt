@@ -2095,7 +2095,11 @@ var bitfinex = {
         } else {
             order['price'] = price;
         }
-        return this.privatePostOrderNew (this.extend (order, params));
+        let result = await this.privatePostOrderNew (this.extend (order, params));
+        return {
+            'info': result,
+            'id': result['order_id'].toString (),
+        };
     },
 
     async cancelOrder (id) {
