@@ -223,8 +223,7 @@ let loadExchange = async exchange => {
         'BTC/EUR',
         'BTC/ETH',
         'ETH/BTC',
-        'BTC/JPY',
-        'LTC/BTC',
+        'BTC/JPY',        
         'ETH/EUR',
         'ETH/JPY',
         'ETH/CNY',
@@ -236,6 +235,7 @@ let loadExchange = async exchange => {
         'USD/SLL',
         'BTC/RUB',
         'BTC/UAH',
+        'LTC/BTC',
     ]
     let result = exchange.symbols.filter (symbol => symbols.indexOf (symbol) >= 0)
     if (result.length > 0)
