@@ -86,7 +86,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.33'
+__version__ = '1.3.34'
 
 # Python 2 & 3
 import base64
@@ -4560,7 +4560,11 @@ class btcmarkets (Exchange):
             ('ordertype', self.capitalize (type)),
             ('clientRequestId', str (self.nonce ())),
         ])
-        return self.privatePostOrderCreate (self.extend (order, params))
+        response = self.privatePostOrderCreate (self.extend (order, params))
+        return {
+            'info': response,
+            'id': str (response['id']),
+        }
 
     def cancel_orders (self, ids):
         self.loadMarkets ()
