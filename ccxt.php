@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.38';
+$version = '1.3.39';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -6907,7 +6907,11 @@ class coincheck extends Exchange {
             $order['rate'] = $price;
             $order['amount'] = $amount;
         }
-        return $this->privatePostExchangeOrders (array_merge ($order, $params));
+        $response = $this->privatePostExchangeOrders (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response['id'],
+        );
     }
 
     public function cancel_order ($id) {
@@ -7117,7 +7121,11 @@ class coingi extends Exchange {
             'price' => $price,
             'orderType' => ($side == 'buy') ? 0 : 1,
         );
-        return $this->userPostAddOrder (array_merge ($order, $params));
+        $response = $this->userPostAddOrder (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['result'],
+        );
     }
 
     public function cancel_order ($id) {
@@ -7459,7 +7467,11 @@ class coinmate extends Exchange {
             $order['price'] = $price;
             $method .= $this->capitalize ($type);
         }
-        return $this->$method (self.extend ($order, $params));
+        $response = $this->$method (self.extend ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response['data'],
+        );
     }
 
     public function cancel_order ($id) {
@@ -7742,7 +7754,11 @@ class coinsecure extends Exchange {
             $order['rate'] = $price;
             $order['vol'] = $amount;
         }
-        return $this->$method (self.extend ($order, $params));
+        $response = $this->$method (self.extend ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['message']['orderID'],
+        );
     }
 
     public function cancel_order ($id) {
@@ -8117,7 +8133,11 @@ class dsx extends Exchange {
             'rate' => $price,
             'amount' => $amount,
         );
-        return $this->tapiPostTrade (array_merge ($order, $params));
+        $response = $this->tapiPostTrade (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response['return']['orderId'],
+        );
     }
 
     public function cancel_order ($id) {
