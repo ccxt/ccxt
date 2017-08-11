@@ -10308,7 +10308,13 @@ var kraken = {
         };
         if (type == 'limit')
             order['price'] = price;
-        return this.privatePostAddOrder (this.extend (order, params));
+        let response = await this.privatePostAddOrder (this.extend (order, params));
+        let length = response['txid'].length;
+        let id = (length > 1) ? response['txid'] : response['txid'][0];
+        return {
+            'info': response,
+            'id': id,
+        };
     },
 
     async cancelOrder (id) {
