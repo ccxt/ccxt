@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.41';
+$version = '1.3.42';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10020,7 +10020,11 @@ class huobi extends Exchange {
             $order['price'] = $price;
         else
             $method .= $this->capitalize ($type);
-        return $this->$method (array_merge ($order, $params));
+        $response = $this->$method (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['id'],
+        );
     }
 
     public function cancel_order ($id) {
@@ -10225,7 +10229,11 @@ class itbit extends Exchange {
             'price' => $price,
             'instrument' => $p['id'],
         );
-        return $this->privatePostTradeAdd (array_merge ($order, $params));
+        $response = $this->privatePostTradeAdd (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['id'],
+        );
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -10426,12 +10434,16 @@ class jubi extends Exchange {
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
-        return $this->privatePostTradeAdd (array_merge (array (
+        $response = $this->privatePostTradeAdd (array_merge (array (
             'amount' => $amount,
             'price' => $price,
             'type' => $side,
             'coin' => $this->market_id ($market),
         ), $params));
+        return array (
+            'info' => $response,
+            'id' => $response['id'],
+        );
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -10697,7 +10709,13 @@ class kraken extends Exchange {
         );
         if ($type == 'limit')
             $order['price'] = $price;
-        return $this->privatePostAddOrder (array_merge ($order, $params));
+        $response = $this->privatePostAddOrder (array_merge ($order, $params));
+        $length = count ($response['txid']);
+        $id = ($length > 1) ? $response['txid'] : $response['txid'][0];
+        return array (
+            'info' => $response,
+            'id' => $id,
+        );
     }
 
     public function cancel_order ($id) {
