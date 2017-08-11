@@ -4472,11 +4472,10 @@ var btce = {
             'rate': price,
         };
         let response = await this.privatePostTrade (this.extend (order, params));
-        let result = {
+        return {
             'info': response,
             'id': response['return']['order_id'],
         };
-        return result;
     },
 
     async cancelOrder (id) {
@@ -11049,7 +11048,11 @@ var luno = {
             else
                 order['type'] = 'ASK';
         }
-        return this[method] (this.extend (order, params));
+        let response = await this[method] (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['order_id'],
+        };
     },
 
     async cancelOrder (id) {
