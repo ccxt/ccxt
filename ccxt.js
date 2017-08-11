@@ -11849,10 +11849,6 @@ var poloniex = {
     },
     
     orderCache: { },
-    
-    getCacheIndex (orderId) {
-      return '#'+orderId;
-    },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
@@ -11864,7 +11860,6 @@ var poloniex = {
             'amount': amount,
         }, params));
         let orderId = response['orderNumber'];
-        let orderCacheIndex = getCacheIndex(orderId);
         let order = {
             'orderId': orderId,
             'type': side,
@@ -11872,6 +11867,7 @@ var poloniex = {
             'rate': price,
             'currencyPair': currencyPair
         };
+        orderCache[orderId] = order;
         let result = {
             'info': response,
             'id': orderId,
@@ -11888,8 +11884,7 @@ var poloniex = {
     
     async fetchOrder (id) {
         await this.loadMarkets ();
-        let orderCacheIndex = getCacheIndex(id);
-        let cachedOrder = orderCache[orderCacheIndex];
+        let cachedOrder = orderCache[id];
         if(!cachedOrder)
             throw new ExchangeError('Order not found: '+id);
         let openOrders = await this.privatePostReturnTradeHistory (this.extend ({ 
