@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.36';
+$version = '1.3.37';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5793,7 +5793,11 @@ class bter extends Exchange {
             'rate' => $price,
             'amount' => $amount,
         );
-        return $this->$method (array_merge ($order, $params));
+        $response = $this->$method (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['orderNumber'],
+        );
     }
 
     public function cancel_order ($id) {
@@ -6015,12 +6019,16 @@ class bxinth extends Exchange {
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
-        return $this->privatePostOrder (array_merge (array (
+        $response = $this->privatePostOrder (array_merge (array (
             'pairing' => $this->market_id ($market),
             'type' => $side,
             'amount' => $amount,
             'rate' => $price,
         ), $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response['order_id'],
+        );
     }
 
     public function cancel_order ($id) {
@@ -6233,11 +6241,15 @@ class ccex extends Exchange {
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $method = 'privateGet' . $this->capitalize ($side) . $type;
-        return $this->$method (array_merge (array (
+        $response = $this->$method (array_merge (array (
             'market' => $this->market_id ($market),
             'quantity' => $amount,
             'rate' => $price,
         ), $params));
+        return array (
+            'info' => $response,
+            'id' => $response['result']['uuid'],
+        );
     }
 
     public function cancel_order ($id) {
@@ -6449,7 +6461,11 @@ class cex extends Exchange {
             $order['price'] = $price;
         else
             $order['order_type'] = $type;
-        return $this->privatePostPlaceOrderPair (array_merge ($order, $params));
+        $response = $this->privatePostPlaceOrderPair (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['id'],
+        );
     }
 
     public function cancel_order ($id) {
