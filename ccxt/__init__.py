@@ -86,7 +86,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.36'
+__version__ = '1.3.37'
 
 # Python 2 & 3
 import base64
@@ -5338,7 +5338,11 @@ class bter (Exchange):
             'rate': price,
             'amount': amount,
         }
-        return getattr (self, method) (self.extend (order, params))
+        response = getattr (self, method) (self.extend (order, params))
+        return {
+            'info': response,
+            'id': response['orderNumber'],
+        }
 
     def cancel_order (self, id):
         self.loadMarkets ()
@@ -5543,12 +5547,16 @@ class bxinth (Exchange):
 
     def create_order (self, market, type, side, amount, price = None, params = {}):
         self.loadMarkets ()
-        return self.privatePostOrder (self.extend ({
+        response = self.privatePostOrder (self.extend ({
             'pairing': self.market_id (market),
             'type': side,
             'amount': amount,
             'rate': price,
         }, params))
+        return {
+            'info': response,
+            'id': str (response['order_id']),
+        }
 
     def cancel_order (self, id):
         self.loadMarkets ()
@@ -5747,11 +5755,15 @@ class ccex (Exchange):
     def create_order (self, market, type, side, amount, price = None, params = {}):
         self.loadMarkets ()
         method = 'privateGet' + self.capitalize (side) + type
-        return getattr (self, method) (self.extend ({
+        response = getattr (self, method) (self.extend ({
             'market': self.market_id (market),
             'quantity': amount,
             'rate': price,
         }, params))
+        return {
+            'info': response,
+            'id': response['result']['uuid'],
+        }
 
     def cancel_order (self, id):
         self.loadMarkets ()
@@ -5949,7 +5961,11 @@ class cex (Exchange):
             order['price'] = price
         else:
             order['order_type'] = type
-        return self.privatePostPlaceOrderPair (self.extend (order, params))
+        response = self.privatePostPlaceOrderPair (self.extend (order, params))
+        return {
+            'info': response,
+            'id': response['id'],
+        }
 
     def cancel_order (self, id):
         self.loadMarkets ()
