@@ -5272,12 +5272,16 @@ var btcx = {
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
-        return this.privatePostTrade (this.extend ({
+        let response = await this.privatePostTrade (this.extend ({
             'type': side.toUpperCase (),
             'market': this.marketId (market),
             'amount': amount,
             'price': price,
         }, params));
+        return {
+            'info': response,
+            'id': response['order']['id'],
+        };
     },
 
     async cancelOrder (id) {
