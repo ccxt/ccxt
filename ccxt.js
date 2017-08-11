@@ -7421,7 +7421,11 @@ var coinsecure = {
             order['rate'] = price;
             order['vol'] = amount;
         }
-        return this[method] (self.extend (order, params));
+        let response = await this[method] (self.extend (order, params));
+        return {
+            'info': response,
+            'id': response['message']['orderID'],
+        };
     },
 
     async cancelOrder (id) {
