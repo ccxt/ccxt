@@ -86,7 +86,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.40'
+__version__ = '1.3.41'
 
 # Python 2 & 3
 import base64
@@ -8469,7 +8469,11 @@ class gatecoin (Exchange):
                 order['ValidationCode'] = params['ValidationCode']
             else:
                 raise AuthenticationError (self.id + ' two-factor authentication requires a missing ValidationCode parameter')
-        return self.privatePostTradeOrders (self.extend (order, params))
+        response = self.privatePostTradeOrders (self.extend (order, params))
+        return {
+            'info': response,
+            'id': response['clOrderId'],
+        }
 
     def cancel_order (self, id):
         self.loadMarkets ()
@@ -8680,7 +8684,11 @@ class gdax (Exchange):
         }
         if type == 'limit':
             order['price'] = price
-        return self.privatePostOrders (self.extend (order, params))
+        response = self.privatePostOrders (self.extend (order, params))
+        return {
+            'info': response,
+            'id': response['id'],
+        }
 
     def cancel_order (self, id):
         self.loadMarkets ()
@@ -8873,7 +8881,11 @@ class gemini (Exchange):
             'side': side,
             'type': 'exchange limit', # gemini allows limit orders only
         }
-        return self.privatePostOrderNew (self.extend (order, params))
+        response = self.privatePostOrderNew (self.extend (order, params))
+        return {
+            'info': response,
+            'id': response['order_id'],
+        }
 
     def cancel_order (self, id):
         self.loadMarkets ()
@@ -9113,7 +9125,11 @@ class hitbtc (Exchange):
         }
         if type == 'limit':
             order['price'] = self.decimal (price)
-        return self.tradingPostNewOrder (self.extend (order, params))
+        response = self.tradingPostNewOrder (self.extend (order, params))
+        return {
+            'info': response,
+            'id': response['ExecutionReport']['orderId'],
+        }
 
     def cancel_order (self, id):
         self.loadMarkets ()
