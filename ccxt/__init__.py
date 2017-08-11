@@ -86,7 +86,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.37'
+__version__ = '1.3.38'
 
 # Python 2 & 3
 import base64
@@ -3767,7 +3767,11 @@ class blinktrade (Exchange):
             'OrderQty': amount,
             'BrokerID': p['brokerId'],
         }
-        return self.privatePostD (self.extend (order, params))
+        response = self.privatePostD (self.extend (order, params))
+        return {
+            'info': response,
+            'id': response['OrderID'],
+        }
 
     def cancel_order (self, id, params = {}):
         return self.privatePostF (self.extend ({
@@ -6141,7 +6145,11 @@ class chbtc (Exchange):
         tradeType = '1' if (side == 'buy') else '0'
         paramString += '&tradeType=' + tradeType
         paramString += '&currency=' + self.market_id (market)
-        return self.privatePostOrder (paramString)
+        response = self.privatePostOrder (paramString)
+        return {
+            'info': response,
+            'id': response['id'],
+        }
 
     def cancel_order (self, id, params = {}):
         paramString = '&id=' + str (id)
