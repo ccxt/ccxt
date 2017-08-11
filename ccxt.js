@@ -9835,7 +9835,11 @@ var itbit = {
             'price': price,
             'instrument': p['id'],
         };
-        return this.privatePostTradeAdd (this.extend (order, params));
+        let response = await this.privatePostTradeAdd (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['id'],
+        };
     },
 
     async cancelOrder (id, params = {}) {
