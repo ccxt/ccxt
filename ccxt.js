@@ -11209,7 +11209,11 @@ var mercado = {
             'quantity': amount,
             'limit_price': price,
         };
-        return this[method] (this.extend (order, params));
+        let response = await this[method] (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['response_data']['order']['order_id'].toString (),
+        };
     },
 
     async cancelOrder (id, params = {}) {
