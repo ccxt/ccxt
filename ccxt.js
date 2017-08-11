@@ -6800,7 +6800,11 @@ var coingi = {
             'price': price,
             'orderType': (side == 'buy') ? 0 : 1,
         };
-        return this.userPostAddOrder (this.extend (order, params));
+        let response = await this.userPostAddOrder (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['result'],
+        };
     },
 
     async cancelOrder (id) {
