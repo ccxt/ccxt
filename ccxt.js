@@ -5502,7 +5502,11 @@ var bter = {
             'rate': price,
             'amount': amount,
         };
-        return this[method] (this.extend (order, params));
+        let response = await this[method] (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['orderNumber'],
+        };
     },
 
     async cancelOrder (id) {
