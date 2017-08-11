@@ -7138,7 +7138,11 @@ var coinmate = {
             order['price'] = price;
             method += this.capitalize (type);
         }
-        return this[method] (self.extend (order, params));
+        let response = await this[method] (self.extend (order, params));
+        return {
+            'info': response,
+            'id': response['data'].toString (),
+        };
     },
 
     async cancelOrder (id) {
