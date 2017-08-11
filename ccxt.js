@@ -5732,7 +5732,7 @@ var bxinth = {
         }, params));
         return {
             'info': response,
-            'id': response['order_id'],
+            'id': response['order_id'].toString (),
         };
     },
 
@@ -5942,11 +5942,15 @@ var ccex = {
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let method = 'privateGet' + this.capitalize (side) + type;
-        return this[method] (this.extend ({
+        let response = await this[method] (this.extend ({
             'market': this.marketId (market),
             'quantity': amount,
             'rate': price,
         }, params));
+        return {
+            'info': response,
+            'id': response['result']['uuid'],
+        };
     },
 
     async cancelOrder (id) {
@@ -6154,7 +6158,11 @@ var cex = {
             order['price'] = price;
         else
             order['order_type'] = type;
-        return this.privatePostPlaceOrderPair (this.extend (order, params));
+        let response = await this.privatePostPlaceOrderPair (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['id'],
+        };
     },
 
     async cancelOrder (id) {
