@@ -9630,7 +9630,11 @@ var huobi = {
             order['price'] = price;
         else
             method += this.capitalize (type);
-        return this[method] (this.extend (order, params));
+        let response = this[method] (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['id'],
+        };
     },
 
     async cancelOrder (id) {
