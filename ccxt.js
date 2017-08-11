@@ -8387,11 +8387,15 @@ var fyb = {
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
-        return this.privatePostPlaceorder (this.extend ({
+        let response = await this.privatePostPlaceorder (this.extend ({
             'qty': amount,
             'price': price,
             'type': side[0].toUpperCase ()
         }, params));
+        return {
+            'info': response,
+            'id': response['pending_oid'],
+        };
     },
 
     async cancelOrder (id) {
