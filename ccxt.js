@@ -5724,12 +5724,16 @@ var bxinth = {
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        return this.privatePostOrder (this.extend ({
+        let response = await this.privatePostOrder (this.extend ({
             'pairing': this.marketId (market),
             'type': side,
             'amount': amount,
             'rate': price,
         }, params));
+        return {
+            'info': response,
+            'id': response['order_id'],
+        };
     },
 
     async cancelOrder (id) {
