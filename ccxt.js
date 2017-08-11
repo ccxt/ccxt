@@ -7792,7 +7792,11 @@ var dsx = {
             'rate': price,
             'amount': amount,
         };
-        return this.tapiPostTrade (this.extend (order, params));
+        let response = await this.tapiPostTrade (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['return']['orderId'].toString (),
+        };
     },
 
     async cancelOrder (id) {
