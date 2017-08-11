@@ -11847,18 +11847,34 @@ var poloniex = {
             'currencyPair': this.marketId (market),
         });
     },
+    
+    orderCache: { },
+    
+    getCacheIndex (orderId) {
+      return '#'+orderId;
+    },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let method = 'privatePost' + this.capitalize (side);
+        let currencyPair = this.marketId (market);
         let response = await this[method] (this.extend ({
-            'currencyPair': this.marketId (market),
+            'currencyPair': currencyPair,
             'rate': price,
             'amount': amount,
         }, params));
+        let orderId = response['orderNumber'];
+        let orderCacheIndex = getCacheIndex(orderId);
+        let order = {
+            'orderId': orderId,
+            'type': side,
+            'startingAmount': amount,
+            'rate': price,
+            'currencyPair': currencyPair
+        };
         let result = {
             'info': response,
-            'id': response['orderNumber'],
+            'id': orderId,
         };
         return result;
     },
@@ -11868,6 +11884,46 @@ var poloniex = {
         return this.privatePostCancelOrder (this.extend ({
             'orderNumber': id,
         }, params));
+    },
+    
+    async fetchOrder (id) {
+        await this.loadMarkets ();
+        let orderCacheIndex = getCacheIndex(id);
+        let cachedOrder = orderCache[orderCacheIndex];
+        if(!cachedOrder)
+            throw new ExchangeError('Order not found: '+id);
+        let openOrders = await this.privatePostReturnTradeHistory (this.extend ({ 
+            'currencyPair': chachedOrder.currencyPair,
+        }));
+        let orderIsOpen = false;
+        for(let i = 0; i < openOrders.length && !orderIsOpen; i++)
+            if(openOrders[i].orderNumber == id)
+                orderIsOpen = true;
+        let startingAmount = cachedOrder.startingAmount;
+        let remainingAmount = startingAmount;
+        try {
+            let orderTrades = await this.privatePostReturnOrderTrades (this.extend ({
+               'orderNumber': id
+            }));
+            if(orderTrades)
+                for(let i = 0; i < orderTrades.length;i++) {
+                    let trade = orderTrades[i];
+                    remainingAmount -= parseFloat(trade.amount);
+                }
+        } catch (error) {
+            // Unfortunately, poloniex throws an error if you try to get trades where there is none instead of returning an empty array
+            // TODO Think how to check if error is the specific one for when the order has no trades
+        }
+        let result = {
+            'info': openOrders,
+            'type': cachedOrder.type,
+            'rate': cachedOrder.rate,
+            'startingAmount': cachedOrder.startingAmount,
+            'remaining': remainingAmount,
+            'isOpen': orderIsOpen,
+            'isCanceled': !orderIsOpen && remainingAmount != 0,
+        };
+        return result;
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
