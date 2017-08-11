@@ -6347,7 +6347,11 @@ var chbtc = {
         let tradeType = (side == 'buy') ? '1' : '0';
         paramString += '&tradeType=' + tradeType;
         paramString += '&currency=' + this.marketId (market);
-        return this.privatePostOrder (paramString);
+        let response = await this.privatePostOrder (paramString);
+        return {
+            'info': response,
+            'id': response['id'],
+        };
     },
 
     async cancelOrder (id, params = {}) {
