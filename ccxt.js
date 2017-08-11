@@ -11885,12 +11885,12 @@ var poloniex = {
         await this.loadMarkets ();
         let cachedOrder = this.orderCache[id];
         if (!cachedOrder)
-            throw new ExchangeError('Order not found: '+id);
+            throw new ExchangeError ('Order not found: '+id);
         let openOrders = await this.privatePostReturnTradeHistory (this.extend ({ 
             'currencyPair': cachedOrder.symbol,
         }));
         let orderIsOpen = false;
-        for(let i = 0; i < openOrders.length && !orderIsOpen; i++)
+        for (let i = 0; i < openOrders.length && !orderIsOpen; i++)
             if (openOrders[i].orderNumber == id)
                 orderIsOpen = true;
         let startingAmount = cachedOrder.startingAmount;
