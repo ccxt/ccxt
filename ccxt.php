@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.42';
+$version = '1.3.43';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -4734,11 +4734,10 @@ class btce extends Exchange {
             'rate' => $price,
         );
         $response = $this->privatePostTrade (array_merge ($order, $params));
-        $result = array (
+        return array (
             'info' => $response,
             'id' => $response['return']['order_id'],
         );
-        return $result;
     }
 
     public function cancel_order ($id) {
@@ -10910,7 +10909,11 @@ class lakebtc extends Exchange {
         $order = array (
             'params' => array ($price, $amount, $marketId),
         );
-        return $this->$method (array_merge ($order, $params));
+        $response = $this->$method (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response['id'],
+        );
     }
 
     public function cancel_order ($id) {
@@ -11158,7 +11161,11 @@ class livecoin extends Exchange {
         );
         if ($type == 'limit')
             $order['price'] = $price;
-        return $this->$method (array_merge ($order, $params));
+        $response = $this->$method (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response['id'],
+        );
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -11459,7 +11466,11 @@ class luno extends Exchange {
             else
                 $order['type'] = 'ASK';
         }
-        return $this->$method (array_merge ($order, $params));
+        $response = $this->$method (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['order_id'],
+        );
     }
 
     public function cancel_order ($id) {
@@ -11620,7 +11631,11 @@ class mercado extends Exchange {
             'quantity' => $amount,
             'limit_price' => $price,
         );
-        return $this->$method (array_merge ($order, $params));
+        $response = $this->$method (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response['response_data']['order']['order_id'],
+        );
     }
 
     public function cancel_order ($id, $params = array ()) {

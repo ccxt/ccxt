@@ -86,7 +86,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.42'
+__version__ = '1.3.43'
 
 # Python 2 & 3
 import base64
@@ -4357,11 +4357,10 @@ class btce (Exchange):
             'rate': price,
         }
         response = self.privatePostTrade (self.extend (order, params))
-        result = {
+        return {
             'info': response,
             'id': response['return']['order_id'],
         }
-        return result
 
     def cancel_order (self, id):
         self.loadMarkets ()
@@ -10139,7 +10138,11 @@ class lakebtc (Exchange):
         order = {
             'params': [ price, amount, marketId ],
         }
-        return getattr (self, method) (self.extend (order, params))
+        response = getattr (self, method) (self.extend (order, params))
+        return {
+            'info': response,
+            'id': str (response['id']),
+        }
 
     def cancel_order (self, id):
         self.loadMarkets ()
@@ -10371,7 +10374,11 @@ class livecoin (Exchange):
         }
         if type == 'limit':
             order['price'] = price
-        return getattr (self, method) (self.extend (order, params))
+        response = getattr (self, method) (self.extend (order, params))
+        return {
+            'info': response,
+            'id': str (response['id']),
+        }
 
     def cancel_order (self, id, params = {}):
         self.loadMarkets ()
@@ -10653,7 +10660,11 @@ class luno (Exchange):
                 order['type'] = 'BID'
             else:
                 order['type'] = 'ASK'
-        return getattr (self, method) (self.extend (order, params))
+        response = getattr (self, method) (self.extend (order, params))
+        return {
+            'info': response,
+            'id': response['order_id'],
+        }
 
     def cancel_order (self, id):
         self.loadMarkets ()
@@ -10804,7 +10815,11 @@ class mercado (Exchange):
             'quantity': amount,
             'limit_price': price,
         }
-        return getattr (self, method) (self.extend (order, params))
+        response = getattr (self, method) (self.extend (order, params))
+        return {
+            'info': response,
+            'id': str (response['response_data']['order']['order_id']),
+        }
 
     def cancel_order (self, id, params = {}):
         return self.privatePostCancelOrder (self.extend ({
