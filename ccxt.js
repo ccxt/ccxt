@@ -6590,7 +6590,11 @@ var coincheck = {
             order['rate'] = price;
             order['amount'] = amount;
         }
-        return this.privatePostExchangeOrders (this.extend (order, params));
+        let response = await this.privatePostExchangeOrders (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['id'].toString (),
+        };
     },
 
     async cancelOrder (id) {
