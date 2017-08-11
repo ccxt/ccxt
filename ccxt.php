@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.37';
+$version = '1.3.38';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -4102,7 +4102,11 @@ class blinktrade extends Exchange {
             'OrderQty' => $amount,
             'BrokerID' => $p['brokerId'],
         );
-        return $this->privatePostD (array_merge ($order, $params));
+        $response = $this->privatePostD (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['OrderID'],
+        );
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -6651,7 +6655,11 @@ class chbtc extends Exchange {
         $tradeType = ($side == 'buy') ? '1' : '0';
         $paramString .= '&$tradeType=' . $tradeType;
         $paramString .= '&currency=' . $this->market_id ($market);
-        return $this->privatePostOrder ($paramString);
+        $response = $this->privatePostOrder ($paramString);
+        return array (
+            'info' => $response,
+            'id' => $response['id'],
+        );
     }
 
     public function cancel_order ($id, $params = array ()) {
