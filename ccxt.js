@@ -11662,6 +11662,7 @@ var poloniex = {
     'name': 'Poloniex',
     'countries': 'US',
     'rateLimit': 500, // 6 calls per second
+    'orderCache': { },
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
         'api': {
@@ -11847,8 +11848,6 @@ var poloniex = {
             'currencyPair': this.marketId (market),
         });
     },
-    
-    orderCache: { },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
