@@ -8212,7 +8212,11 @@ var flowbtc = {
             'qty': amount,
             'px': price,
         };
-        return this.privatePostCreateOrder (this.extend (order, params));
+        let response = await this.privatePostCreateOrder (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['serverOrderId'],
+        };
     },
 
     async cancelOrder (id, params = {}) {
