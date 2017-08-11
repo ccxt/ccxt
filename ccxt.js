@@ -3852,7 +3852,11 @@ var blinktrade = {
             'OrderQty': amount,
             'BrokerID': p['brokerId'],
         };
-        return this.privatePostD (this.extend (order, params));
+        let response = await this.privatePostD (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['OrderID'],
+        };
     },
 
     async cancelOrder (id, params = {}) {
