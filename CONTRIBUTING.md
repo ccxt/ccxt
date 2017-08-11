@@ -45,7 +45,7 @@ The contents of the repository are structured as follows:
 /README.rst          # slave reStructuredText for PyPI
 /ccxt/               # Python ccxt module/package folder for PyPI
 /ccxt/__init__.py    # slave Python-version of the ccxt library
-/ccxt.es5.js         # slave JavaScript ES5 version of the ccxt library
+/ccxt-es5.js         # slave JavaScript ES5 version of the ccxt library
 /ccxt.js             # master JS ES6 version of the ccxt library
 /ccxt.php            # slave PHP version of the ccxt library
 /countries.js        # a list of ISO 2-letter country codes in JS for testing, not very important
@@ -75,7 +75,7 @@ The ccxt library includes one single file per each language:
 
 ```shell
 /ccxt/__init__.py  # slave Python-version of the ccxt library
-/ccxt.es5.js       # slave JavaScript ES5 version of the ccxt library
+/ccxt-es5.js       # slave JavaScript ES5 version of the ccxt library
 /ccxt.js           # master JS ES6 version of the ccxt library
 /ccxt.php          # slave PHP version of the ccxt library
 ```

@@ -28,7 +28,7 @@ const keys = {
     '--php': false,     // run PHP tests only
     '--python': false,  // run Python 2 tests only
     '--python3': false, // run Python 3 tests only
-    '--es6': false,     // run JS tests against ccxt.js instead of ccxt.es5.js (no need to `npm run build` before)
+    '--es6': false,     // run JS tests against ccxt.js instead of ccxt-es5.js (no need to `npm run build` before)
 }
 
 let exchanges = []
