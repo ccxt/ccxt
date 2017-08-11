@@ -9186,7 +9186,11 @@ var gemini = {
             'side': side,
             'type': 'exchange limit', // gemini allows limit orders only
         };
-        return this.privatePostOrderNew (this.extend (order, params));
+        let response = await this.privatePostOrderNew (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['order_id'],
+        };
     },
 
     async cancelOrder (id) {
