@@ -163,7 +163,7 @@ while (exchanges = regex.exec (contents)) {
             [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$2.join ($1)' ],
             [ /Math\.(max|min)/g, '$1' ],
             [ /console\.log/g, 'print'],
-            [ /process\.exit\s+\(\)og/g, 'sys.exit ()'],
+            [ /process\.exit\s+\(\)/g, 'sys.exit ()'],
         ]
 
         let phRegex = [
@@ -227,7 +227,7 @@ while (exchanges = regex.exec (contents)) {
             [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode ($2, $1)' ],
             [ /Math\.(max|min)/g, '$1' ],
             [ /console\.log/g, 'var_dump'],
-            [ /process\.exit\s+\(\)og/g, 'exit ()'],
+            [ /process\.exit\s+\(\)/g, 'exit ()'],
         ]
 
         let pyBody = regexAll (body, pyRegex)
