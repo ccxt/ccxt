@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.40';
+$version = '1.3.41';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9129,7 +9129,11 @@ class gatecoin extends Exchange {
             else
                 throw new AuthenticationError ($this->id . ' two-factor authentication requires a missing ValidationCode parameter');
         }
-        return $this->privatePostTradeOrders (array_merge ($order, $params));
+        $response = $this->privatePostTradeOrders (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['clOrderId'],
+        );
     }
 
     public function cancel_order ($id) {
@@ -9354,7 +9358,11 @@ class gdax extends Exchange {
         );
         if ($type == 'limit')
             $order['price'] = $price;
-        return $this->privatePostOrders (array_merge ($order, $params));
+        $response = $this->privatePostOrders (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['id'],
+        );
     }
 
     public function cancel_order ($id) {
@@ -9560,7 +9568,11 @@ class gemini extends Exchange {
             'side' => $side,
             'type' => 'exchange limit', // gemini allows limit orders only
         );
-        return $this->privatePostOrderNew (array_merge ($order, $params));
+        $response = $this->privatePostOrderNew (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['order_id'],
+        );
     }
 
     public function cancel_order ($id) {
@@ -9816,7 +9828,11 @@ class hitbtc extends Exchange {
         );
         if ($type == 'limit')
             $order['price'] = $this->decimal ($price);
-        return $this->tradingPostNewOrder (array_merge ($order, $params));
+        $response = $this->tradingPostNewOrder (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['ExecutionReport']['orderId'],
+        );
     }
 
     public function cancel_order ($id) {
