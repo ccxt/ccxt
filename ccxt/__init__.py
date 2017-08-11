@@ -86,7 +86,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.41'
+__version__ = '1.3.42'
 
 # Python 2 & 3
 import base64
@@ -9308,7 +9308,11 @@ class huobi (Exchange):
             order['price'] = price
         else:
             method += self.capitalize (type)
-        return getattr (self, method) (self.extend (order, params))
+        response = getattr (self, method) (self.extend (order, params))
+        return {
+            'info': response,
+            'id': response['id'],
+        }
 
     def cancel_order (self, id):
         return self.tradePostCancelOrder ({ 'id': id })
@@ -9500,7 +9504,11 @@ class itbit (Exchange):
             'price': price,
             'instrument': p['id'],
         }
-        return self.privatePostTradeAdd (self.extend (order, params))
+        response = self.privatePostTradeAdd (self.extend (order, params))
+        return {
+            'info': response,
+            'id': response['id'],
+        }
 
     def cancel_order (self, id, params = {}):
         return self.privateDeleteWalletsWalletIdOrdersId (self.extend ({
@@ -9687,12 +9695,16 @@ class jubi (Exchange):
 
     def create_order (self, market, type, side, amount, price = None, params = {}):
         self.loadMarkets ()
-        return self.privatePostTradeAdd (self.extend ({
+        response = self.privatePostTradeAdd (self.extend ({
             'amount': amount,
             'price': price,
             'type': side,
             'coin': self.market_id (market),
         }, params))
+        return {
+            'info': response,
+            'id': response['id'],
+        }
 
     def cancel_order (self, id, params = {}):
         self.loadMarkets ()
@@ -9940,7 +9952,13 @@ class kraken (Exchange):
         }
         if type == 'limit':
             order['price'] = price
-        return self.privatePostAddOrder (self.extend (order, params))
+        response = self.privatePostAddOrder (self.extend (order, params))
+        length = len (response['txid'])
+        id = response['txid'] if (length > 1) else response['txid'][0]
+        return {
+            'info': response,
+            'id': id,
+        }
 
     def cancel_order (self, id):
         self.loadMarkets ()
