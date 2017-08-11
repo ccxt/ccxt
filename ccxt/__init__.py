@@ -86,7 +86,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.38'
+__version__ = '1.3.39'
 
 # Python 2 & 3
 import base64
@@ -6383,7 +6383,11 @@ class coincheck (Exchange):
             order['order_type'] = side
             order['rate'] = price
             order['amount'] = amount
-        return self.privatePostExchangeOrders (self.extend (order, params))
+        response = self.privatePostExchangeOrders (self.extend (order, params))
+        return {
+            'info': response,
+            'id': str (response['id']),
+        }
 
     def cancel_order (self, id):
         return self.privateDeleteExchangeOrdersId ({ 'id': id })
@@ -6575,7 +6579,11 @@ class coingi (Exchange):
             'price': price,
             'orderType': 0 if (side == 'buy') else 1,
         }
-        return self.userPostAddOrder (self.extend (order, params))
+        response = self.userPostAddOrder (self.extend (order, params))
+        return {
+            'info': response,
+            'id': response['result'],
+        }
 
     def cancel_order (self, id):
         return self.userPostCancelOrder ({ 'orderId': id })
@@ -6894,7 +6902,11 @@ class coinmate (Exchange):
             order['amount'] = amount # amount in crypto
             order['price'] = price
             method += self.capitalize (type)
-        return getattr (self, method) (self.extend (order, params))
+        response = getattr (self, method) (self.extend (order, params))
+        return {
+            'info': response,
+            'id': str (response['data']),
+        }
 
     def cancel_order (self, id):
         return self.privatePostCancelOrder ({ 'orderId': id })
@@ -7166,7 +7178,11 @@ class coinsecure (Exchange):
             method += direction + 'New'
             order['rate'] = price
             order['vol'] = amount
-        return getattr (self, method) (self.extend (order, params))
+        response = getattr (self, method) (self.extend (order, params))
+        return {
+            'info': response,
+            'id': response['message']['orderID'],
+        }
 
     def cancel_order (self, id):
         raise ExchangeError (self.id + ' cancelOrder () is not fully implemented yet')
@@ -7515,7 +7531,11 @@ class dsx (Exchange):
             'rate': price,
             'amount': amount,
         }
-        return self.tapiPostTrade (self.extend (order, params))
+        response = self.tapiPostTrade (self.extend (order, params))
+        return {
+            'info': response,
+            'id': str (response['return']['orderId']),
+        }
 
     def cancel_order (self, id):
         self.loadMarkets ()
