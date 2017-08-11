@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.39';
+$version = '1.3.40';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8363,7 +8363,11 @@ class exmo extends Exchange {
             'price' => $price || 0,
             'type' => $prefix . $side,
         );
-        return $this->privatePostOrderCreate (array_merge ($order, $params));
+        $response = $this->privatePostOrderCreate (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response['order_id'],
+        );
     }
 
     public function cancel_order ($id) {
@@ -8557,7 +8561,11 @@ class flowbtc extends Exchange {
             'qty' => $amount,
             'px' => $price,
         );
-        return $this->privatePostCreateOrder (array_merge ($order, $params));
+        $response = $this->privatePostCreateOrder (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['serverOrderId'],
+        );
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -8737,11 +8745,15 @@ class fyb extends Exchange {
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
-        return $this->privatePostPlaceorder (array_merge (array (
+        $response = $this->privatePostPlaceorder (array_merge (array (
             'qty' => $amount,
             'price' => $price,
             'type' => strtoupper ($side[0])
         ), $params));
+        return array (
+            'info' => $response,
+            'id' => $response['pending_oid'],
+        );
     }
 
     public function cancel_order ($id) {

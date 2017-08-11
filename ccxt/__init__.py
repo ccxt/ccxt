@@ -86,7 +86,7 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
-__version__ = '1.3.39'
+__version__ = '1.3.40'
 
 # Python 2 & 3
 import base64
@@ -7745,7 +7745,11 @@ class exmo (Exchange):
             'price': price or 0,
             'type': prefix + side,
         }
-        return self.privatePostOrderCreate (self.extend (order, params))
+        response = self.privatePostOrderCreate (self.extend (order, params))
+        return {
+            'info': response,
+            'id': str (response['order_id']),
+        }
 
     def cancel_order (self, id):
         self.loadMarkets ()
@@ -7926,7 +7930,11 @@ class flowbtc (Exchange):
             'qty': amount,
             'px': price,
         }
-        return self.privatePostCreateOrder (self.extend (order, params))
+        response = self.privatePostCreateOrder (self.extend (order, params))
+        return {
+            'info': response,
+            'id': response['serverOrderId'],
+        }
 
     def cancel_order (self, id, params = {}):
         self.loadMarkets ()
@@ -8094,11 +8102,15 @@ class fyb (Exchange):
         return self.publicGetTrades ()
 
     def create_order (self, market, type, side, amount, price = None, params = {}):
-        return self.privatePostPlaceorder (self.extend ({
+        response = self.privatePostPlaceorder (self.extend ({
             'qty': amount,
             'price': price,
             'type': side[0].upper ()
         }, params))
+        return {
+            'info': response,
+            'id': response['pending_oid'],
+        }
 
     def cancel_order (self, id):
         return self.privatePostCancelpendingorder ({ 'orderNo': id })
