@@ -9442,7 +9442,11 @@ var hitbtc = {
         };
         if (type == 'limit')
             order['price'] = this.decimal (price);
-        return this.tradingPostNewOrder (this.extend (order, params));
+        let response = await this.tradingPostNewOrder (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['ExecutionReport']['orderId'],
+        };
     },
 
     async cancelOrder (id) {
