@@ -11853,9 +11853,9 @@ var poloniex = {
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let method = 'privatePost' + this.capitalize (side);
-        let currencyPair = this.marketId (market);
+        let symbol = this.marketId (market);
         let response = await this[method] (this.extend ({
-            'currencyPair': currencyPair,
+            'currencyPair': symbol,
             'rate': price,
             'amount': amount,
         }, params));
@@ -11865,9 +11865,9 @@ var poloniex = {
             'type': side,
             'startingAmount': amount,
             'rate': price,
-            'currencyPair': currencyPair
+            'symbol': symbol
         };
-        orderCache[orderId] = order;
+        this.orderCache[orderId] = order;
         let result = {
             'info': response,
             'id': orderId,
@@ -11884,11 +11884,11 @@ var poloniex = {
     
     async fetchOrder (id) {
         await this.loadMarkets ();
-        let cachedOrder = orderCache[id];
+        let cachedOrder = this.orderCache[id];
         if(!cachedOrder)
             throw new ExchangeError('Order not found: '+id);
         let openOrders = await this.privatePostReturnTradeHistory (this.extend ({ 
-            'currencyPair': chachedOrder.currencyPair,
+            'currencyPair': cachedOrder.symbol,
         }));
         let orderIsOpen = false;
         for(let i = 0; i < openOrders.length && !orderIsOpen; i++)
@@ -11907,7 +11907,8 @@ var poloniex = {
                 }
         } catch (error) {
             // Unfortunately, poloniex throws an error if you try to get trades where there is none instead of returning an empty array
-            // TODO Think how to check if error is the specific one for when the order has no trades
+            if(!(error instanceof ExchangeError) || error.message.indexOf('Order not found, or you are not the person who placed it.') == -1)
+                throw error;
         }
         let result = {
             'info': openOrders,
