@@ -11890,9 +11890,12 @@ var poloniex = {
             'currencyPair': cachedOrder.symbol,
         }));
         let orderIsOpen = false;
-        for (let i = 0; i < openOrders.length && !orderIsOpen; i++)
-            if (openOrders[i].orderNumber == id)
+        for (let i = 0; i < openOrders.length; i++) {
+            if (openOrders[i].orderNumber == id) {
                 orderIsOpen = true;
+                break;
+            }
+        }
         let startingAmount = cachedOrder.startingAmount;
         let remainingAmount = startingAmount;
         try {
