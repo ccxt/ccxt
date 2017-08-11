@@ -10505,7 +10505,11 @@ var lakebtc = {
         let order = {
             'params': [ price, amount, marketId ],
         };
-        return this[method] (this.extend (order, params));
+        let response = await this[method] (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['id'].toString (),
+        };
     },
 
     async cancelOrder (id) {
