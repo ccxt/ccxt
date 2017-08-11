@@ -11906,7 +11906,9 @@ var poloniex = {
                 }
         } catch (error) {
             // Unfortunately, poloniex throws an error if you try to get trades where there is none instead of returning an empty array
-            if(!(error instanceof ExchangeError) || error.message.indexOf('Order not found, or you are not the person who placed it.') == -1)
+            // So we have to ignore this error
+            let isTradeNotFoundError = error['message'].indexOf('Order not found, or you are not the person who placed it.') != -1;
+            if(!isTradeNotFoundError)
                 throw error;
         }
         let result = {
