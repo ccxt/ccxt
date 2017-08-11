@@ -8981,7 +8981,11 @@ var gdax = {
         };
         if (type == 'limit')
             order['price'] = price;
-        return this.privatePostOrders (this.extend (order, params));
+        let response = await this.privatePostOrders (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['id'],
+        };
     },
 
     async cancelOrder (id) {
