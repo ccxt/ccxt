@@ -8018,7 +8018,11 @@ var exmo = {
             'price': price || 0,
             'type': prefix + side,
         };
-        return this.privatePostOrderCreate (this.extend (order, params));
+        let response = await this.privatePostOrderCreate (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['order_id'].toString (),
+        };
     },
 
     async cancelOrder (id) {
