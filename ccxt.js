@@ -11884,14 +11884,14 @@ var poloniex = {
     async fetchOrder (id) {
         await this.loadMarkets ();
         let cachedOrder = this.orderCache[id];
-        if(!cachedOrder)
+        if (!cachedOrder)
             throw new ExchangeError('Order not found: '+id);
         let openOrders = await this.privatePostReturnTradeHistory (this.extend ({ 
             'currencyPair': cachedOrder.symbol,
         }));
         let orderIsOpen = false;
         for(let i = 0; i < openOrders.length && !orderIsOpen; i++)
-            if(openOrders[i].orderNumber == id)
+            if (openOrders[i].orderNumber == id)
                 orderIsOpen = true;
         let startingAmount = cachedOrder.startingAmount;
         let remainingAmount = startingAmount;
@@ -11899,7 +11899,7 @@ var poloniex = {
             let orderTrades = await this.privatePostReturnOrderTrades (this.extend ({
                'orderNumber': id
             }));
-            if(orderTrades)
+            if (orderTrades)
                 for(let i = 0; i < orderTrades.length;i++) {
                     let trade = orderTrades[i];
                     remainingAmount -= parseFloat(trade.amount);
@@ -11908,7 +11908,7 @@ var poloniex = {
             // Unfortunately, poloniex throws an error if you try to get trades where there is none instead of returning an empty array
             // So we have to ignore this error
             let isTradeNotFoundError = error['message'].indexOf('Order not found, or you are not the person who placed it.') >= 0;
-            if(!isTradeNotFoundError)
+            if (!isTradeNotFoundError)
                 throw error;
         }
         let result = {
