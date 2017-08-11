@@ -10036,12 +10036,16 @@ var jubi = {
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        return this.privatePostTradeAdd (this.extend ({
+        let response = await this.privatePostTradeAdd (this.extend ({
             'amount': amount,
             'price': price,
             'type': side,
             'coin': this.marketId (market),
         }, params));
+        return {
+            'info': response,
+            'id': response['id'],
+        };
     },
 
     async cancelOrder (id, params = {}) {
