@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.52';
+$version = '1.3.53';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8551,11 +8551,11 @@ class flowbtc extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
-        return $this->publicPostGetTrades (array (
-            'productPair' => $this->market_id ($market),
-        ));
+        return $this->publicPostGetTrades (array_merge (array (
+            'ins' => $this->market_id ($market),
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {

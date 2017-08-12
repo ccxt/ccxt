@@ -90,7 +90,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.52'
+__version__ = '1.3.53'
 
 #------------------------------------------------------------------------------
 
@@ -7919,11 +7919,11 @@ class flowbtc (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades (self, market):
+    def fetch_trades (self, market, params = {}):
         self.loadMarkets ()
-        return self.publicPostGetTrades ({
-            'productPair': self.market_id (market),
-        })
+        return self.publicPostGetTrades (self.extend ({
+            'ins': self.market_id (market),
+        }, params))
 
     def create_order (self, market, type, side, amount, price = None, params = {}):
         self.loadMarkets ()
