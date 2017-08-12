@@ -12295,7 +12295,7 @@ var quoine = {
     async fetchTrades (market) {
         await this.loadMarkets ();
         return this.publicGetExecutions ({
-            'market_id': this.marketId (market),
+            'product_id': this.marketId (market),
         });
     },
 
