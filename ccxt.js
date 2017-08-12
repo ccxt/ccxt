@@ -11633,7 +11633,11 @@ var paymium = {
         };
         if (type == 'market')
             order['price'] = price;
-        return this.privatePostUserOrders (this.extend (order, params));
+        let response = await this.privatePostUserOrders (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['uuid'],
+        };
     },
 
     async cancelOrder (id, params = {}) {
