@@ -90,7 +90,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.56'
+__version__ = '1.3.57'
 
 #------------------------------------------------------------------------------
 
@@ -11484,7 +11484,7 @@ class poloniex (Exchange):
             trades = response[id]
             market = self.markets_by_id[id]
             symbol = market['symbol']
-            result[symbol] = self.parse_trades (response[id], market)
+            result[symbol] = self.parse_trades (trades, market)
         return result
 
     def create_order (self, market, type, side, amount, price = None, params = {}):
