@@ -326,6 +326,8 @@ const Exchange = function (config) {
 
         if (this.markets)
             this.setMarkets (this.markets);
+
+        this.orders = {}
     }
 
     this.fetch = function (url, method = 'GET', headers = undefined, body = undefined) {
@@ -706,6 +708,10 @@ var _1broker = {
             'bids': [ bid ],
             'asks': [ ask ],
         };
+    },
+
+    async fetchTrades (market) {
+        throw new ExchangeError (this.id + ' fetchTrades () method not implemented yet')
     },
 
     async fetchTicker (market) {
@@ -6787,7 +6793,7 @@ var coingi = {
     },
 
     async fetchTrades (market) {
-        return this.publicGetTransactionsPairMaxCount ({
+        return this.currentGetTransactionsPairMaxCount ({
             'pair': this.marketId (market),
         });
     },

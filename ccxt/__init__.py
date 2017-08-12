@@ -74,6 +74,8 @@ exchanges = [
     'zaif',
 ]
 
+#------------------------------------------------------------------------------
+
 __all__ = exchanges + [
     'exchanges',
     'Exchange',
@@ -86,7 +88,11 @@ __all__ = exchanges + [
     'ExchangeNotAvailable',
 ]
 
+#------------------------------------------------------------------------------
+
 __version__ = '1.3.51'
+
+#------------------------------------------------------------------------------
 
 # Python 2 & 3
 import base64
@@ -108,6 +114,8 @@ import time
 import zlib
 import decimal
 
+#------------------------------------------------------------------------------
+
 try: 
     import urllib.parse   as _urlencode  # Python 3
     import urllib.request as _urllib
@@ -115,31 +123,24 @@ except ImportError:
     import urllib  as _urlencode         # Python 2
     import urllib2 as _urllib
 
+#------------------------------------------------------------------------------
+
 try:
   basestring # Python 3
 except NameError:
   basestring = str # Python 2
 
-class CCXTError (Exception):
-    pass
+#------------------------------------------------------------------------------
 
-class ExchangeError (CCXTError):
-    pass
+class CCXTError            (Exception):    pass
+class ExchangeError        (CCXTError):    pass
+class AuthenticationError  (CCXTError):    pass
+class NetworkError         (CCXTError):    pass
+class DDoSProtection       (NetworkError): pass
+class RequestTimeout       (NetworkError): pass
+class ExchangeNotAvailable (NetworkError): pass
 
-class AuthenticationError (CCXTError):
-    pass
-
-class NetworkError (CCXTError):
-    pass
-
-class DDoSProtection (NetworkError):
-    pass
-
-class RequestTimeout (NetworkError):
-    pass
-
-class ExchangeNotAvailable (NetworkError):
-    pass
+#------------------------------------------------------------------------------
 
 class Exchange (object):
 
@@ -148,10 +149,11 @@ class Exchange (object):
     timeout    = 10000 # milliseconds = seconds * 1000
     userAgent  = False
     verbose    = False
-    markets   = None
+    markets    = None
     symbols    = None
     currencies = None
     tickers    = None
+    orders     = {}
     proxy      = ''
     apiKey     = ''
     secret     = ''

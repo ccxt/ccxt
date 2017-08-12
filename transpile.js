@@ -65,17 +65,21 @@ while (exchanges = regex.exec (contents)) {
 
         method = method.replace ('fetchBalance',    'fetch_balance')
                         // .replace ('fetchCategories', 'fetch_categories')
-                        .replace ('fetchMarkets',   'fetch_markets')
-                        .replace ('fetchOrderBook', 'fetch_order_book')
-                        .replace ('fetchTickers',   'fetch_tickers')
-                        .replace ('fetchTicker',    'fetch_ticker')
-                        .replace ('parseTicker',    'parse_ticker')
-                        .replace ('parseBidAsk',    'parse_bidask')
-                        .replace ('parseBidAsks',   'parse_bidasks')
-                        .replace ('fetchTrades',    'fetch_trades')
-                        .replace ('createOrder',    'create_order')
-                        .replace ('cancelOrder',    'cancel_order')
-                        .replace ('signIn',         'sign_in')
+                        .replace ('fetchMarkets',     'fetch_markets')
+                        .replace ('fetchOrderBook',   'fetch_order_book')
+                        .replace ('fetchTickers',     'fetch_tickers')
+                        .replace ('fetchTicker',      'fetch_ticker')
+                        .replace ('parseTicker',      'parse_ticker')
+                        .replace ('parseTrades',      'parse_trades')
+                        .replace ('parseTrade',       'parse_trade')
+                        .replace ('parseBidAsks',     'parse_bidasks')
+                        .replace ('parseBidAsk',      'parse_bidask')                        
+                        .replace ('fetchTrades',      'fetch_trades')
+                        .replace ('fetchMyTrades',    'fetch_my_trades')
+                        .replace ('fetchAllMyTrades', 'fetch_all_my_trades')
+                        .replace ('createOrder',      'create_order')
+                        .replace ('cancelOrder',      'cancel_order')
+                        .replace ('signIn',           'sign_in')
 
         args = args.length ? args.split (',').map (x => x.trim ()) : []
         let phArgs = args.join (', $').trim ()
@@ -109,8 +113,10 @@ while (exchanges = regex.exec (contents)) {
             [ /\.implodeParams/g, '.implode_params'],
             [ /\.extractParams/g, '.extract_params'],
             [ /\.parseTicker/g, '.parse_ticker'],
-            [ /\.parseBidAsk/g, '.parse_bidask'],
+            [ /\.parseTrades/g, '.parse_trades'],
+            [ /\.parseTrade/g, '.parse_trade'],            
             [ /\.parseBidAsks/g, '.parse_bidasks'],
+            [ /\.parseBidAsk/g, '.parse_bidask'],            
             [ /\.indexBy/g, '.index_by'],
             [ /\.sortBy/g, '.sort_by'],
             [ /\.marketId/g, '.market_id'],
@@ -174,8 +180,10 @@ while (exchanges = regex.exec (contents)) {
             [ /this\.stringToBase64/g, 'base64_encode' ],
             [ /this\.base64ToBinary/g, 'base64_decode' ],
             [ /\.parseTicker/g, '.parse_ticker'],
-            [ /\.parseBidAsk/g, '.parse_bidask'],
+            [ /\.parseTrades/g, '.parse_trades'],
+            [ /\.parseTrade/g, '.parse_trade'],            
             [ /\.parseBidAsks/g, '.parse_bidasks'],
+            [ /\.parseBidAsk/g, '.parse_bidask'],            
             [ /\.binaryConcat/g, '.binary_concat'],
             [ /\.binaryToString/g, '.binary_to_string' ],
             [ /\.implodeParams/g, '.implode_params'],
