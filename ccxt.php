@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.51';
+$version = '1.3.52';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -893,6 +893,10 @@ class _1broker extends Exchange {
             'bids' => array ($bid),
             'asks' => array ($ask),
         );
+    }
+
+    public function fetch_trades ($market) {
+        throw new ExchangeError ($this->id . ' fetchTrades () method not implemented yet')
     }
 
     public function fetch_ticker ($market) {
@@ -7108,7 +7112,7 @@ class coingi extends Exchange {
     }
 
     public function fetch_trades ($market) {
-        return $this->publicGetTransactionsPairMaxCount (array (
+        return $this->currentGetTransactionsPairMaxCount (array (
             'pair' => $this->market_id ($market),
         ));
     }
@@ -12277,13 +12281,21 @@ class poloniex extends Exchange {
         return $this->parse_ticker ($ticker, $m);
     }
 
-    public function parseTrade ($trade, $market) {
+    public function parse_trade ($trade, $market) {
         $timestamp = $this->parse8601 ($trade['date']);
+        $id = null;
+        $order = null;
+        if (array_key_exists ('tradeID', $trade))
+            $id = $trade['tradeID'];
+        if (array_key_exists ('orderNumber', $trade))
+            $order = $trade['orderNumber'];
         return array (
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
+            'id' => $id,
+            'order' => $order,
             'type' => 'limit',
             'side' => $trade['type'],
             'price' => floatval ($trade['rate']),
@@ -12291,10 +12303,10 @@ class poloniex extends Exchange {
         );
     }
 
-    public function parseTrades ($trades, $market) {
+    public function parse_trades ($trades, $market) {
         $result = array ();
         for ($t = 0; $t < count ($trades); $t++) {
-            $result[] = $this->parseTrade ($trades[$t], $market);
+            $result[] = $this->parse_trade ($trades[$t], $market);
         }
         return $result;
     }
@@ -12305,35 +12317,18 @@ class poloniex extends Exchange {
         $trades = $this->publicGetReturnTradeHistory (array (
             'currencyPair' => $m['id'],
         ));
-        return $this->parseTrades ($trades, $m);
+        return $this->parse_trades ($trades, $m);
     }
 
-    public function parseMyTrade ($trade, $market) {
-        return array_merge ($this->parseTrade ($trade, $market), array (
-            'id' => (array_key_exists ('tradeID', $trade)) ? $trade['tradeID'] : null,
-            'order' => (array_key_exists ('orderNumber', $trade)) ? $trade['orderNumber'] : null, 
-        ));
-    }
-
-    public function parseMyTrades ($trades, $market) {
-        $result = array ();
-        for ($t = 0; $t < count ($trades); $t++) {
-            $result[] = $this->parseMyTrade ($trades[$t], $market);
-        }
-        return $result;
-    }
-
-    public function fetchMyTrades ($market = null) {
-        if (!$market)
-            return $this->fetchAllMyTrades ();
+    public function fetch_my_trades ($market) {
         $m = $this->market ($market);
         $trades = $this->privatePostReturnTradeHistory (array (
             'currencyPair' => $m['id'],
         ));
-        return $this->parseMyTrades ($trades, $m);
+        return $this->parse_trades ($trades, $m);
     }
 
-    public function fetchAllMyTrades () {
+    public function fetch_all_my_trades () {
         $response = $this->privatePostReturnTradeHistory (array (
             'currencyPair' => 'all',
         ));
@@ -12344,7 +12339,7 @@ class poloniex extends Exchange {
             $trades = $response[$id];
             $market = $this->markets_by_id[$id];
             $symbol = $market['symbol'];
-            $result[$symbol] = $this->parseMyTrades ($response[$id], $market);
+            $result[$symbol] = $this->parse_trades ($response[$id], $market);
         }
         return $result;
     }

@@ -90,7 +90,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.51'
+__version__ = '1.3.52'
 
 #------------------------------------------------------------------------------
 
@@ -766,6 +766,9 @@ class _1broker (Exchange):
             'bids': [ bid ],
             'asks': [ ask ],
         }
+
+    def fetch_trades (self, market):
+        raise ExchangeError (self.id + ' fetchTrades () method not implemented yet')
 
     def fetch_ticker (self, market):
         self.loadMarkets ()
@@ -6569,7 +6572,7 @@ class coingi (Exchange):
         raise ExchangeError (self.id + ' ' + symbol + ' ticker not found')
 
     def fetch_trades (self, market):
-        return self.publicGetTransactionsPairMaxCount ({
+        return self.currentGetTransactionsPairMaxCount ({
             'pair': self.market_id (market),
         })
 
@@ -11426,23 +11429,31 @@ class poloniex (Exchange):
         ticker = tickers[m['id']]
         return self.parse_ticker (ticker, m)
 
-    def parseTrade (self, trade, market):
+    def parse_trade (self, trade, market):
         timestamp = self.parse8601 (trade['date'])
+        id = None
+        order = None
+        if 'tradeID' in trade:
+            id = trade['tradeID']
+        if 'orderNumber' in trade:
+            order = trade['orderNumber']
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601 (timestamp),
             'symbol': market['symbol'],
+            'id': id,
+            'order': order,
             'type': 'limit',
             'side': trade['type'],
             'price': float (trade['rate']),
             'amount': float (trade['amount']),
         }
 
-    def parseTrades (self, trades, market):
+    def parse_trades (self, trades, market):
         result = []
         for t in range (0, len (trades)):
-            result.append (self.parseTrade (trades[t], market))
+            result.append (self.parse_trade (trades[t], market))
         return result
 
     def fetch_trades (self, market):
@@ -11451,30 +11462,16 @@ class poloniex (Exchange):
         trades = self.publicGetReturnTradeHistory ({
             'currencyPair': m['id'],
         })
-        return self.parseTrades (trades, m)
+        return self.parse_trades (trades, m)
 
-    def parseMyTrade (self, trade, market):
-        return self.extend (self.parseTrade (trade, market), {
-            'id': trade['tradeID'] if ('tradeID' in list (trade.keys ())) else None,
-            'order': trade['orderNumber'] if ('orderNumber' in list (trade.keys ())) else None, 
-        })
-
-    def parseMyTrades (self, trades, market):
-        result = []
-        for t in range (0, len (trades)):
-            result.append (self.parseMyTrade (trades[t], market))
-        return result
-
-    def fetchMyTrades (self, market = None):
-        if not market:
-            return self.fetchAllMyTrades ()
+    def fetch_my_trades (self, market):
         m = self.market (market)
         trades = self.privatePostReturnTradeHistory ({
             'currencyPair': m['id'],
         })
-        return self.parseMyTrades (trades, m)
+        return self.parse_trades (trades, m)
 
-    def fetchAllMyTrades (self):
+    def fetch_all_my_trades (self):
         response = self.privatePostReturnTradeHistory ({
             'currencyPair': 'all',
         })
@@ -11485,7 +11482,7 @@ class poloniex (Exchange):
             trades = response[id]
             market = self.markets_by_id[id]
             symbol = market['symbol']
-            result[symbol] = self.parseMyTrades (response[id], market)
+            result[symbol] = self.parse_trades (response[id], market)
         return result
 
     def create_order (self, market, type, side, amount, price = None, params = {}):
