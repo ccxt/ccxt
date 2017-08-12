@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.58';
+$version = '1.3.59';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -11829,7 +11829,11 @@ class okcoin extends Exchange {
             $order['price'] = $price;
         else
             $order['type'] .= '_market';
-        return $this->privatePostTrade (array_merge ($order, $params));
+        $response  = $this->privatePostTrade (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['order_id'],
+        );
     }
 
     public function cancel_order ($id, $params = array ()) {
