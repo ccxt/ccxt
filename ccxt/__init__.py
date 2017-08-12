@@ -90,7 +90,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.59'
+__version__ = '1.3.60'
 
 #------------------------------------------------------------------------------
 
@@ -11228,7 +11228,11 @@ class paymium (Exchange):
         }
         if type == 'market':
             order['price'] = price
-        return self.privatePostUserOrders (self.extend (order, params))
+        response = self.privatePostUserOrders (self.extend (order, params))
+        return {
+            'info': response,
+            'id': response['uuid'],
+        }
 
     def cancel_order (self, id, params = {}):
         return self.privatePostCancelOrder (self.extend ({
