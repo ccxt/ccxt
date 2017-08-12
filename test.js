@@ -150,7 +150,17 @@ let testExchangeSymbol = async (exchange, symbol) => {
         log (await exchange.fetchGlobal ());
     } else {
         await testExchangeSymbolOrderbook (exchange, symbol)
-        await testExchangeSymbolTrades (exchange, symbol)
+
+        try {
+            await testExchangeSymbolTrades (exchange, symbol)    
+        } catch (e) {
+            if (e instanceof ccxt.ExchangeError) {
+                warn (exchange.id, '[Exchange Error] ' + e.message)
+            } else {
+                throw e;
+            }
+        }
+        
     }
     try {
         log (exchange.id.green, 'fetching all tickers at once...')
