@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.56';
+$version = '1.3.57';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12344,7 +12344,7 @@ class poloniex extends Exchange {
             $trades = $response[$id];
             $market = $this->markets_by_id[$id];
             $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_trades ($response[$id], $market);
+            $result[$symbol] = $this->parse_trades ($trades, $market);
         }
         return $result;
     }
