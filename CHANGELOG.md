@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Started work on orders/trades unification, [pull request #102](https://github.com/kroitor/ccxt/pull/102)
 - Started unification of `createOrder ()` return, [issue #94](https://github.com/kroitor/ccxt/issues/94)
 - Added support for a new exchange: [BTC Markets](https://btcmarkets.net) (Australia)
 - Updated [CONTRIBUTING](https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md) guidelines
