@@ -90,7 +90,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.53'
+__version__ = '1.3.54'
 
 #------------------------------------------------------------------------------
 
@@ -11852,7 +11852,7 @@ class quoine (Exchange):
     def fetch_trades (self, market):
         self.loadMarkets ()
         return self.publicGetExecutions ({
-            'market_id': self.market_id (market),
+            'product_id': self.market_id (market),
         })
 
     def create_order (self, market, type, side, amount, price = None, params = {}):
