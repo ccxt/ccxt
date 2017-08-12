@@ -90,7 +90,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.60'
+__version__ = '1.3.61'
 
 #------------------------------------------------------------------------------
 
@@ -11005,7 +11005,7 @@ class okcoin (Exchange):
         response  = self.privatePostTrade (self.extend (order, params))
         return {
             'info': response,
-            'id': response['order_id'],
+            'id': str (response['order_id']),
         }
 
     def cancel_order (self, id, params = {}):
@@ -11505,11 +11505,10 @@ class poloniex (Exchange):
             'rate': price,
             'amount': amount,
         }, params))
-        result = {
+        return {
             'info': response,
             'id': response['orderNumber'],
         }
-        return result
 
     def cancel_order (self, id, params = {}):
         self.loadMarkets ()
@@ -11660,7 +11659,11 @@ class quadrigacx (Exchange):
         }
         if type == 'limit':
             order['price'] = price
-        return getattr (self, method) (self.extend (order, params))
+        response = getattr (self, method) (self.extend (order, params))
+        return {
+            'info': response,
+            'id': str (response['id']),
+        }
 
     def cancel_order (self, id, params = {}):
         return self.privatePostCancelOrder (self.extend ({
@@ -11874,9 +11877,13 @@ class quoine (Exchange):
         }
         if type == 'limit':
             order['price'] = price
-        return self.privatePostOrders (self.extend ({
+        response = self.privatePostOrders (self.extend ({
             'order': order,
         }, params))
+        return {
+            'info': response,
+            'id': str (response['id']),
+        }
 
     def cancel_order (self, id, params = {}):
         self.loadMarkets ()
@@ -12075,7 +12082,11 @@ class southxchange (Exchange):
         }
         if type == 'limit':
             order['limitPrice'] = price
-        return self.privatePostPlaceOrder (self.extend (order, params))
+        response = self.privatePostPlaceOrder (self.extend (order, params))
+        return {
+            'info': response,
+            'id': str (response),
+        }
 
     def cancel_order (self, id, params = {}):
         self.loadMarkets ()
@@ -12304,12 +12315,16 @@ class therock (Exchange):
         self.loadMarkets ()
         if type == 'market':
             raise ExchangeError (self.id + ' allows limit orders only')
-        return self.privatePostFundsFundIdOrders (self.extend ({
+        response = self.privatePostFundsFundIdOrders (self.extend ({
             'fund_id': self.market_id (market),
             'side': side,
             'amount': amount,
             'price': price,
         }, params))
+        return {
+            'info': response,
+            'id': str (response['id']),
+        }
 
     def cancel_order (self, id, params = {}):
         self.loadMarkets ()
@@ -12516,12 +12531,16 @@ class vaultoro (Exchange):
         self.loadMarkets ()
         p = self.market (market)
         method = 'privatePost' + self.capitalize (side) + 'SymbolType'
-        return getattr (self, method) (self.extend ({
+        response = getattr (self, method) (self.extend ({
             'symbol': p['quoteId'].lower (),
             'type': type,
             'gld': amount,
             'price': price or 1,
         }, params))
+        return {
+            'info': response,
+            'id': response['data']['Order_ID'],
+        }
 
     def cancel_order (self, id, params = {}):
         self.loadMarkets ()
