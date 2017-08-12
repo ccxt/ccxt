@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.57';
+$version = '1.3.58';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7118,7 +7118,7 @@ class coingi extends Exchange {
     public function fetch_trades ($market, $params = array ()) {
         return $this->currentGetTransactionsPairMaxCount (array_merge (array (
             'pair' => $this->market_id ($market),
-            'maxCount' => 512,
+            'maxCount' => 128,
         ), $params));
     }
 

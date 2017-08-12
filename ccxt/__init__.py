@@ -90,7 +90,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.57'
+__version__ = '1.3.58'
 
 #------------------------------------------------------------------------------
 
@@ -6575,7 +6575,7 @@ class coingi (Exchange):
     def fetch_trades (self, market, params = {}):
         return self.currentGetTransactionsPairMaxCount (self.extend ({
             'pair': self.market_id (market),
-            'maxCount': 512,
+            'maxCount': 128,
         }, params))
 
     def create_order (self, market, type, side, amount, price = None, params = {}):
