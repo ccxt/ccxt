@@ -90,7 +90,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.61'
+__version__ = '1.3.62'
 
 #------------------------------------------------------------------------------
 
@@ -12783,7 +12783,11 @@ class virwox (Exchange):
         }
         if type == 'limit':
             order['price'] = price
-        return self.privatePostPlaceOrder (self.extend (order, params))
+        response = self.privatePostPlaceOrder (self.extend (order, params))
+        return {
+            'info': response,
+            'id': str (response['orderID']),
+        }
 
     def cancel_order (self, id, params = {}):
         self.loadMarkets ()
@@ -13041,12 +13045,16 @@ class xbtce (Exchange):
         self.loadMarkets ()
         if type == 'market':
             raise ExchangeError (self.id + ' allows limit orders only')
-        return self.tapiPostTrade (self.extend ({
+        response = self.tapiPostTrade (self.extend ({
             'pair': self.market_id (market),
             'type': side,
             'amount': amount,
             'rate': price,
         }, params))
+        return {
+            'info': response,
+            'id': str (response['Id']),
+        }
 
     def cancel_order (self, id, params = {}):
         self.loadMarkets ()
@@ -13231,12 +13239,16 @@ class yobit (Exchange):
         self.loadMarkets ()
         if type == 'market':
             raise ExchangeError (self.id + ' allows limit orders only')
-        return self.tapiPostTrade (self.extend ({
+        response = self.tapiPostTrade (self.extend ({
             'pair': self.market_id (market),
             'type': side,
             'amount': amount,
             'rate': price,
         }, params))
+        return {
+            'info': response,
+            'id': str (response['return']['order_id']),
+        }
 
     def cancel_order (self, id, params = {}):
         self.loadMarkets ()
@@ -13458,7 +13470,11 @@ class yunbi (Exchange):
         }
         if type == 'limit':
             order['price'] = str (price)
-        return self.privatePostOrders (self.extend (order, params))
+        response = self.privatePostOrders (self.extend (order, params))
+        return {
+            'info': response,
+            'id': str (response['id']),
+        }
 
     def cancel_order (self, id):
         self.loadMarkets ()
@@ -13648,12 +13664,16 @@ class zaif (Exchange):
         self.loadMarkets ()
         if type == 'market':
             raise ExchangeError (self.id + ' allows limit orders only')
-        return self.tapiPostTrade (self.extend ({
+        response = self.tapiPostTrade (self.extend ({
             'currency_pair': self.market_id (market),
             'action': 'bid' if (side == 'buy') else 'ask',
             'amount': amount,
             'price': price,
         }, params))
+        return {
+            'info': response,
+            'id': str (response['return']['order_id']),
+        }
 
     def cancel_order (self, id, params = {}):
         self.loadMarkets ()

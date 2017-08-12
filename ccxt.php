@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.61';
+$version = '1.3.62';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -13731,7 +13731,11 @@ class virwox extends Exchange {
         );
         if ($type == 'limit')
             $order['price'] = $price;
-        return $this->privatePostPlaceOrder (array_merge ($order, $params));
+        $response = $this->privatePostPlaceOrder (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response['orderID'],
+        );
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -14008,12 +14012,16 @@ class xbtce extends Exchange {
         $this->loadMarkets ();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
-        return $this->tapiPostTrade (array_merge (array (
+        $response = $this->tapiPostTrade (array_merge (array (
             'pair' => $this->market_id ($market),
             'type' => $side,
             'amount' => $amount,
             'rate' => $price,
         ), $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response['Id'],
+        );
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -14212,12 +14220,16 @@ class yobit extends Exchange {
         $this->loadMarkets ();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
-        return $this->tapiPostTrade (array_merge (array (
+        $response = $this->tapiPostTrade (array_merge (array (
             'pair' => $this->market_id ($market),
             'type' => $side,
             'amount' => $amount,
             'rate' => $price,
         ), $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response['return']['order_id'],
+        );
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -14457,7 +14469,11 @@ class yunbi extends Exchange {
         if ($type == 'limit') {
             $order['price'] = (string) $price;
         }
-        return $this->privatePostOrders (array_merge ($order, $params));
+        $response = $this->privatePostOrders (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response['id'],
+        );
     }
 
     public function cancel_order ($id) {
@@ -14659,12 +14675,16 @@ class zaif extends Exchange {
         $this->loadMarkets ();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
-        return $this->tapiPostTrade (array_merge (array (
+        $response = $this->tapiPostTrade (array_merge (array (
             'currency_pair' => $this->market_id ($market),
             'action' => ($side == 'buy') ? 'bid' : 'ask',
             'amount' => $amount,
             'price' => $price,
         ), $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response['return']['order_id'],
+        );
     }
 
     public function cancel_order ($id, $params = array ()) {
