@@ -154,6 +154,7 @@ class Exchange (object):
     currencies = None
     tickers    = None
     orders     = {}
+    trades     = {}
     proxy      = ''
     apiKey     = ''
     secret     = ''

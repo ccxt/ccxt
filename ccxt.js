@@ -293,6 +293,9 @@ const Exchange = function (config) {
 
     this.init = function () {
 
+        this.orders = {}
+        this.trades = {}
+
         if (this.api)
             Object.keys (this.api).forEach (type => {
                 Object.keys (this.api[type]).forEach (method => {
@@ -326,8 +329,6 @@ const Exchange = function (config) {
 
         if (this.markets)
             this.setMarkets (this.markets);
-
-        this.orders = {}
     }
 
     this.fetch = function (url, method = 'GET', headers = undefined, body = undefined) {
