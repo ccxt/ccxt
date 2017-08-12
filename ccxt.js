@@ -11413,7 +11413,7 @@ var okcoin = {
         let response  = await this.privatePostTrade (this.extend (order, params));
         return {
             'info': response,
-            'id': response['order_id'],
+            'id': response['order_id'].toString (),
         };
     },
 
