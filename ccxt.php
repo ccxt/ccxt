@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.63';
+$version = '1.3.64';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -900,7 +900,7 @@ class _1broker extends Exchange {
     }
 
     public function fetch_trades ($market) {
-        throw new ExchangeError ($this->id . ' fetchTrades () method not implemented yet')
+        throw new ExchangeError ($this->id . ' fetchTrades () method not implemented yet');
     }
 
     public function fetch_ticker ($market) {
