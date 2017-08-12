@@ -12091,10 +12091,10 @@ var quadrigacx = {
         };
         if (type == 'limit')
             order['price'] = price;
-        let response = this[method] (this.extend (order, params));
+        let response = await this[method] (this.extend (order, params));
         return {
             'info': response,
-            'id': response['id'],
+            'id': response['id'].toString (),
         };
     },
 
@@ -12321,9 +12321,13 @@ var quoine = {
         };
         if (type == 'limit')
             order['price'] = price;
-        return this.privatePostOrders (this.extend ({
+        let response = await this.privatePostOrders (this.extend ({
             'order': order,
         }, params));
+        return {
+            'info': response,
+            'id': response['id'].toString (),
+        };
     },
 
     async cancelOrder (id, params = {}) {
