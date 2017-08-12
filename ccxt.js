@@ -11841,14 +11841,72 @@ var poloniex = {
         return this.parseTicker (ticker, m);
     },
 
+    parseTrade (trade, market) {
+        let timestamp = this.parse8601 (trade['date']);
+        let id = undefined;
+        let order = undefined;
+        if ('tradeID' in trade)
+            id = trade['tradeID'];
+        if ('orderNumber' in trade)
+            order = trade['orderNumber'];
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'id': id,
+            'order': order,
+            'type': 'limit',
+            'side': trade['type'],
+            'price': parseFloat (trade['rate']),
+            'amount': parseFloat (trade['amount']),
+        };
+    },
+
+    parseTrades (trades, market) {
+        let result = [];
+        for (let t = 0; t < trades.length; t++) {
+            result.push (this.parseTrade (trades[t], market));
+        }
+        return result;
+    },
+
     async fetchTrades (market) {
         await this.loadMarkets ();
-        return this.publicGetReturnTradeHistory ({
-            'currencyPair': this.marketId (market),
+        let m = this.market (market);
+        let trades = await this.publicGetReturnTradeHistory ({
+            'currencyPair': m['id'],
         });
+        return this.parseTrades (trades, m);
+    },
+
+    async fetchMyTrades (market) {
+        let m = this.market (market);
+        let trades = await this.privatePostReturnTradeHistory ({
+            'currencyPair': m['id'],
+        });
+        return this.parseTrades (trades, m);
+    },
+
+    async fetchAllMyTrades () {
+        let response = await this.privatePostReturnTradeHistory ({
+            'currencyPair': 'all',
+        });
+        let result = {};
+        let ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let trades = response[id];
+            let market = this.markets_by_id[id];
+            let symbol = market['symbol'];
+            result[symbol] = this.parseTrades (response[id], market);
+        }
+        return result;
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
+        if (type == 'market')
+            throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let method = 'privatePost' + this.capitalize (side);
         let response = await this[method] (this.extend ({

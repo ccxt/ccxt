@@ -11424,13 +11424,71 @@ class poloniex (Exchange):
         ticker = tickers[m['id']]
         return self.parse_ticker (ticker, m)
 
+    def parseTrade (self, trade, market):
+        timestamp = self.parse8601 (trade['date'])
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': 'limit',
+            'side': trade['type'],
+            'price': float (trade['rate']),
+            'amount': float (trade['amount']),
+        }
+
+    def parseTrades (self, trades, market):
+        result = []
+        for t in range (0, len (trades)):
+            result.append (self.parseTrade (trades[t], market))
+        return result
+
     def fetch_trades (self, market):
         self.loadMarkets ()
-        return self.publicGetReturnTradeHistory ({
-            'currencyPair': self.market_id (market),
+        m = self.market (market)
+        trades = self.publicGetReturnTradeHistory ({
+            'currencyPair': m['id'],
+        })
+        return self.parseTrades (trades, m)
+
+    def parseMyTrade (self, trade, market):
+        return self.extend (self.parseTrade (trade, market), {
+            'id': trade['tradeID'] if ('tradeID' in list (trade.keys ())) else None,
+            'order': trade['orderNumber'] if ('orderNumber' in list (trade.keys ())) else None, 
         })
 
+    def parseMyTrades (self, trades, market):
+        result = []
+        for t in range (0, len (trades)):
+            result.append (self.parseMyTrade (trades[t], market))
+        return result
+
+    def fetchMyTrades (self, market = None):
+        if not market:
+            return self.fetchAllMyTrades ()
+        m = self.market (market)
+        trades = self.privatePostReturnTradeHistory ({
+            'currencyPair': m['id'],
+        })
+        return self.parseMyTrades (trades, m)
+
+    def fetchAllMyTrades (self):
+        response = self.privatePostReturnTradeHistory ({
+            'currencyPair': 'all',
+        })
+        result = {}
+        ids = list (response.keys ())
+        for i in range (0, len (ids)):
+            id = ids[i]
+            trades = response[id]
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
+            result[symbol] = self.parseMyTrades (response[id], market)
+        return result
+
     def create_order (self, market, type, side, amount, price = None, params = {}):
+        if type == 'market':
+            raise ExchangeError (self.id + ' allows limit orders only')
         self.loadMarkets ()
         method = 'privatePost' + self.capitalize (side)
         response = getattr (self, method) (self.extend ({

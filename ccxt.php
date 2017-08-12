@@ -12277,14 +12277,81 @@ class poloniex extends Exchange {
         return $this->parse_ticker ($ticker, $m);
     }
 
+    public function parseTrade ($trade, $market) {
+        $timestamp = $this->parse8601 ($trade['date']);
+        return array (
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => 'limit',
+            'side' => $trade['type'],
+            'price' => floatval ($trade['rate']),
+            'amount' => floatval ($trade['amount']),
+        );
+    }
+
+    public function parseTrades ($trades, $market) {
+        $result = array ();
+        for ($t = 0; $t < count ($trades); $t++) {
+            $result[] = $this->parseTrade ($trades[$t], $market);
+        }
+        return $result;
+    }
+
     public function fetch_trades ($market) {
         $this->loadMarkets ();
-        return $this->publicGetReturnTradeHistory (array (
-            'currencyPair' => $this->market_id ($market),
+        $m = $this->market ($market);
+        $trades = $this->publicGetReturnTradeHistory (array (
+            'currencyPair' => $m['id'],
+        ));
+        return $this->parseTrades ($trades, $m);
+    }
+
+    public function parseMyTrade ($trade, $market) {
+        return array_merge ($this->parseTrade ($trade, $market), array (
+            'id' => (array_key_exists ('tradeID', $trade)) ? $trade['tradeID'] : null,
+            'order' => (array_key_exists ('orderNumber', $trade)) ? $trade['orderNumber'] : null, 
         ));
     }
 
+    public function parseMyTrades ($trades, $market) {
+        $result = array ();
+        for ($t = 0; $t < count ($trades); $t++) {
+            $result[] = $this->parseMyTrade ($trades[$t], $market);
+        }
+        return $result;
+    }
+
+    public function fetchMyTrades ($market = null) {
+        if (!$market)
+            return $this->fetchAllMyTrades ();
+        $m = $this->market ($market);
+        $trades = $this->privatePostReturnTradeHistory (array (
+            'currencyPair' => $m['id'],
+        ));
+        return $this->parseMyTrades ($trades, $m);
+    }
+
+    public function fetchAllMyTrades () {
+        $response = $this->privatePostReturnTradeHistory (array (
+            'currencyPair' => 'all',
+        ));
+        $result = array ();
+        $ids = array_keys ($response);
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $trades = $response[$id];
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $result[$symbol] = $this->parseMyTrades ($response[$id], $market);
+        }
+        return $result;
+    }
+
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($type == 'market')
+            throw new ExchangeError ($this->id . ' allows limit orders only');
         $this->loadMarkets ();
         $method = 'privatePost' . $this->capitalize ($side);
         $response = $this->$method (array_merge (array (
