@@ -127,7 +127,7 @@ while (exchanges = regex.exec (contents)) {
             [ /hmac \(([^,]+)\, ([^,]+)\, \'(sha[0-9]+)\'/g, 'hmac ($1, $2, hashlib.$3' ],
             [ /throw new ([\S]+) \((.*)\)/g, 'raise $1 ($2)'],
             [ /try {/g, 'try:'],
-            [ /catch \(([\S]+)\) {/g, 'except Exception as $1:'],
+            [ /\}\s+catch \(([\S]+)\) {/g, 'except Exception as $1:'],
             [ /(\s)await(\s)/g, '$1' ],
             [ /([\s\(])extend(\s)/g, '$1self.extend$2' ],
             [ /\} else if/g, 'elif' ],
