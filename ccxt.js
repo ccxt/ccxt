@@ -6793,10 +6793,11 @@ var coingi = {
         throw new ExchangeError (this.id + ' ' + symbol + ' ticker not found');
     },
 
-    async fetchTrades (market) {
-        return this.currentGetTransactionsPairMaxCount ({
+    async fetchTrades (market, params = {}) {
+        return this.currentGetTransactionsPairMaxCount (this.extend ({
             'pair': this.marketId (market),
-        });
+            'maxCount': 512,
+        }, params));
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
