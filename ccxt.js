@@ -12538,7 +12538,11 @@ var southxchange = {
         };
         if (type == 'limit')
             order['limitPrice'] = price;
-        return this.privatePostPlaceOrder (this.extend (order, params));
+        let response = await this.privatePostPlaceOrder (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response.toString (),
+        };
     },
 
     async cancelOrder (id, params = {}) {
@@ -12774,12 +12778,16 @@ var therock = {
         await this.loadMarkets ();
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
-        return this.privatePostFundsFundIdOrders (this.extend ({
+        let response = await this.privatePostFundsFundIdOrders (this.extend ({
             'fund_id': this.marketId (market),
             'side': side,
             'amount': amount,
             'price': price,
         }, params));
+        return {
+            'info': response,
+            'id': response['id'].toString (),
+        };
     },
 
     async cancelOrder (id, params = {}) {
