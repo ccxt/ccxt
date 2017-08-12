@@ -6796,7 +6796,7 @@ var coingi = {
     async fetchTrades (market, params = {}) {
         return this.currentGetTransactionsPairMaxCount (this.extend ({
             'pair': this.marketId (market),
-            'maxCount': 512,
+            'maxCount': 128,
         }, params));
     },
 
