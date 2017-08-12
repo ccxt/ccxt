@@ -11903,7 +11903,7 @@ var poloniex = {
                'orderNumber': id
             }));
             if (orderTrades)
-                for(let i = 0; i < orderTrades.length;i++) {
+                for (let i = 0; i < orderTrades.length;i++) {
                     let trade = orderTrades[i];
                     remainingAmount -= parseFloat(trade['amount']);
                 }
