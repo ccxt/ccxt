@@ -13737,12 +13737,16 @@ var yobit = {
         await this.loadMarkets ();
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
-        return this.tapiPostTrade (this.extend ({
+        let response = await this.tapiPostTrade (this.extend ({
             'pair': this.marketId (market),
             'type': side,
             'amount': amount,
             'rate': price,
         }, params));
+        return {
+            'info': response,
+            'id': response['return']['order_id'].toString (),
+        };
     },
 
     async cancelOrder (id, params = {}) {
