@@ -11930,11 +11930,10 @@ var poloniex = {
             'rate': price,
             'amount': amount,
         }, params));
-        let result = {
+        return {
             'info': response,
             'id': response['orderNumber'],
         };
-        return result;
     },
 
     async cancelOrder (id, params = {}) {
@@ -12092,7 +12091,11 @@ var quadrigacx = {
         };
         if (type == 'limit')
             order['price'] = price;
-        return this[method] (this.extend (order, params));
+        let response = this[method] (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['id'],
+        };
     },
 
     async cancelOrder (id, params = {}) {
