@@ -712,7 +712,7 @@ var _1broker = {
     },
 
     async fetchTrades (market) {
-        throw new ExchangeError (this.id + ' fetchTrades () method not implemented yet')
+        throw new ExchangeError (this.id + ' fetchTrades () method not implemented yet');
     },
 
     async fetchTicker (market) {
