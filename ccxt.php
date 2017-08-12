@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.60';
+$version = '1.3.61';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -11832,7 +11832,7 @@ class okcoin extends Exchange {
         $response  = $this->privatePostTrade (array_merge ($order, $params));
         return array (
             'info' => $response,
-            'id' => $response['order_id'],
+            'id' => (string) $response['order_id'],
         );
     }
 
@@ -12367,11 +12367,10 @@ class poloniex extends Exchange {
             'rate' => $price,
             'amount' => $amount,
         ), $params));
-        $result = array (
+        return array (
             'info' => $response,
             'id' => $response['orderNumber'],
         );
-        return $result;
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -12533,7 +12532,11 @@ class quadrigacx extends Exchange {
         );
         if ($type == 'limit')
             $order['price'] = $price;
-        return $this->$method (array_merge ($order, $params));
+        $response = $this->$method (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response['id'],
+        );
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -12763,9 +12766,13 @@ class quoine extends Exchange {
         );
         if ($type == 'limit')
             $order['price'] = $price;
-        return $this->privatePostOrders (array_merge (array (
+        $response = $this->privatePostOrders (array_merge (array (
             'order' => $order,
         ), $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response['id'],
+        );
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -12980,7 +12987,11 @@ class southxchange extends Exchange {
         );
         if ($type == 'limit')
             $order['limitPrice'] = $price;
-        return $this->privatePostPlaceOrder (array_merge ($order, $params));
+        $response = $this->privatePostPlaceOrder (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response,
+        );
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -13225,12 +13236,16 @@ class therock extends Exchange {
         $this->loadMarkets ();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
-        return $this->privatePostFundsFundIdOrders (array_merge (array (
+        $response = $this->privatePostFundsFundIdOrders (array_merge (array (
             'fund_id' => $this->market_id ($market),
             'side' => $side,
             'amount' => $amount,
             'price' => $price,
         ), $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response['id'],
+        );
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -13450,12 +13465,16 @@ class vaultoro extends Exchange {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $method = 'privatePost' . $this->capitalize ($side) . 'SymbolType';
-        return $this->$method (array_merge (array (
+        $response = $this->$method (array_merge (array (
             'symbol' => strtolower ($p['quoteId']),
             'type' => $type,
             'gld' => $amount,
             'price' => $price || 1,
         ), $params));
+        return array (
+            'info' => $response,
+            'id' => $response['data']['Order_ID'],
+        );
     }
 
     public function cancel_order ($id, $params = array ()) {
