@@ -90,7 +90,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.55'
+__version__ = '1.3.56'
 
 #------------------------------------------------------------------------------
 
@@ -6572,10 +6572,11 @@ class coingi (Exchange):
             return self.parse_ticker (ticker, p)
         raise ExchangeError (self.id + ' ' + symbol + ' ticker not found')
 
-    def fetch_trades (self, market):
-        return self.currentGetTransactionsPairMaxCount ({
+    def fetch_trades (self, market, params = {}):
+        return self.currentGetTransactionsPairMaxCount (self.extend ({
             'pair': self.market_id (market),
-        })
+            'maxCount': 512,
+        }, params))
 
     def create_order (self, market, type, side, amount, price = None, params = {}):
         order = {
