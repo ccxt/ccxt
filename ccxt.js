@@ -8201,11 +8201,11 @@ var flowbtc = {
         };
     },
 
-    async fetchTrades (market) {
+    async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
-        return this.publicPostGetTrades ({
-            'productPair': this.marketId (market),
-        });
+        return this.publicPostGetTrades (this.extend ({
+            'ins': this.marketId (market),
+        }, params);
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
