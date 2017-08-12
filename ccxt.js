@@ -11410,7 +11410,11 @@ var okcoin = {
             order['price'] = price;
         else
             order['type'] += '_market';
-        return this.privatePostTrade (this.extend (order, params));
+        let response  = await this.privatePostTrade (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['order_id'],
+        };
     },
 
     async cancelOrder (id, params = {}) {
