@@ -11887,16 +11887,16 @@ var poloniex = {
         if (!cachedOrder)
             throw new ExchangeError ('Order not found: '+id);
         let openOrders = await this.privatePostReturnTradeHistory (this.extend ({ 
-            'currencyPair': cachedOrder.symbol,
+            'currencyPair': cachedOrder['symbol'],
         }));
         let orderIsOpen = false;
         for (let i = 0; i < openOrders.length; i++) {
-            if (openOrders[i].orderNumber == id) {
+            if (openOrders[i]['orderNumber'] == id) {
                 orderIsOpen = true;
                 break;
             }
         }
-        let startingAmount = cachedOrder.startingAmount;
+        let startingAmount = cachedOrder['startingAmount'];
         let remainingAmount = startingAmount;
         try {
             let orderTrades = await this.privatePostReturnOrderTrades (this.extend ({
@@ -11905,7 +11905,7 @@ var poloniex = {
             if (orderTrades)
                 for(let i = 0; i < orderTrades.length;i++) {
                     let trade = orderTrades[i];
-                    remainingAmount -= parseFloat(trade.amount);
+                    remainingAmount -= parseFloat(trade['amount']);
                 }
         } catch (error) {
             // Unfortunately, poloniex throws an error if you try to get trades where there is none instead of returning an empty array
@@ -11916,9 +11916,9 @@ var poloniex = {
         }
         let result = {
             'info': openOrders,
-            'type': cachedOrder.type,
-            'rate': cachedOrder.rate,
-            'startingAmount': cachedOrder.startingAmount,
+            'type': cachedOrder['type'],
+            'rate': cachedOrder['rate'],
+            'startingAmount': cachedOrder['startingAmount'],
             'remaining': remainingAmount,
             'isOpen': orderIsOpen,
             'isCanceled': !orderIsOpen && remainingAmount != 0,
