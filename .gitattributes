@@ -1,8 +1,1 @@
-*.js linguist-language=JavaScript
-*.py linguist-language=Python
-*.php linguist-language=PHP
-
-ccxt.js linguist-language=JavaScript
-ccxt-es5.js linguist-language=JavaScript
-ccxt.php linguist-language=PHP
-ccxt/__init__.py linguist-language=Python
+ccxt-es5.js linguist-generated
