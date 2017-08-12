@@ -8205,7 +8205,7 @@ var flowbtc = {
         await this.loadMarkets ();
         return this.publicPostGetTrades (this.extend ({
             'ins': this.marketId (market),
-        }, params);
+        }, params));
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
