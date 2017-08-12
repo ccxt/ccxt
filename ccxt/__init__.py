@@ -90,7 +90,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.58'
+__version__ = '1.3.59'
 
 #------------------------------------------------------------------------------
 
@@ -11002,7 +11002,11 @@ class okcoin (Exchange):
             order['price'] = price
         else:
             order['type'] += '_market'
-        return self.privatePostTrade (self.extend (order, params))
+        response  = self.privatePostTrade (self.extend (order, params))
+        return {
+            'info': response,
+            'id': response['order_id'],
+        }
 
     def cancel_order (self, id, params = {}):
         return self.privatePostCancelOrder (self.extend ({
