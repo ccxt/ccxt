@@ -13256,7 +13256,11 @@ var virwox = {
         };
         if (type == 'limit')
             order['price'] = price;
-        return this.privatePostPlaceOrder (this.extend (order, params));
+        let response = await this.privatePostPlaceOrder (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['orderID'].toString (),
+        };
     },
 
     async cancelOrder (id, params = {}) {
