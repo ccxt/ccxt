@@ -13982,7 +13982,11 @@ var yunbi = {
         if (type == 'limit') {
             order['price'] = price.toString ();
         }
-        return this.privatePostOrders (this.extend (order, params));
+        let response = await this.privatePostOrders (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['id'].toString (),
+        };
     },
 
     async cancelOrder (id) {
