@@ -14184,12 +14184,16 @@ var zaif = {
         await this.loadMarkets ();
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
-        return this.tapiPostTrade (this.extend ({
+        let response = await this.tapiPostTrade (this.extend ({
             'currency_pair': this.marketId (market),
             'action': (side == 'buy') ? 'bid' : 'ask',
             'amount': amount,
             'price': price,
         }, params));
+        return {
+            'info': response,
+            'id': response['return']['order_id'].toString (),
+        };
     },
 
     async cancelOrder (id, params = {}) {
