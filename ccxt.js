@@ -12998,12 +12998,16 @@ var vaultoro = {
         await this.loadMarkets ();
         let p = this.market (market);
         let method = 'privatePost' + this.capitalize (side) + 'SymbolType';
-        return this[method] (this.extend ({
+        let response = await this[method] (this.extend ({
             'symbol': p['quoteId'].toLowerCase (),
             'type': type,
             'gld': amount,
             'price': price || 1,
         }, params));
+        return {
+            'info': response,
+            'id': response['data']['Order_ID'],
+        };
     },
 
     async cancelOrder (id, params = {}) {
