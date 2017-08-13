@@ -260,7 +260,7 @@ class Exchange (object):
             details = text if text else None
             if e.code == 429:
                 error = DDoSProtection
-            elif e.code in [500, 501, 502, 404, 525]:
+            elif e.code in [404, 409, 500, 501, 502, 525]:
                 details = e.read ().decode ('utf-8', 'ignore') if e else None
                 error = ExchangeNotAvailable
             elif e.code in [400, 403, 405, 503]:
