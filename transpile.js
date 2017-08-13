@@ -34,12 +34,18 @@ while (exchanges = regex.exec (contents)) {
 
     params = params.split ("\n")
     
+    let pyParams = params
+        .join ("\n        ")
+        .replace (/ \/\//g, ' #')
+        .replace (' { ', '{')  // PEP8 E201
+        .replace (' },', '},') // PEP8 E202
+
     py.push ('')
     py.push ('class ' + id + ' (' + (parent ? parent : 'Exchange') + '):')
     py.push ('')
     py.push ('    def __init__(self, config={}):')
     py.push ('        params = {')
-    py.push ('        ' + params.join ("\n        ").replace (/ \/\//g, ' #') + ((all.length > 1) ? ',' : ''))
+    py.push ('        ' + pyParams + ((all.length > 1) ? ',' : ''))
     py.push ('        }')
     py.push ('        params.update(config)')
     py.push ('        super(' + id + ', self).__init__(params)')
