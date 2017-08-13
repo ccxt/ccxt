@@ -764,13 +764,13 @@ class _1broker (Exchange):
         timestamp = self.parse8601(orderbook['updated'])
         bidPrice = float(orderbook['bid'])
         askPrice = float(orderbook['ask'])
-        bid = [ bidPrice, None ]
-        ask = [ askPrice, None ]
+        bid = [bidPrice, None]
+        ask = [askPrice, None]
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'bids': [ bid ],
-            'asks': [ ask ],
+            'bids': [bid],
+            'asks': [ask],
         }
 
     def fetch_trades(self, market):
@@ -805,7 +805,7 @@ class _1broker (Exchange):
             'quoteVolume': None,
         }
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         order = {
             'symbol': self.market_id(market),
@@ -828,7 +828,7 @@ class _1broker (Exchange):
         self.loadMarkets()
         return self.privatePostOrderCancel({ 'order_id': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         if not self.apiKey:
             raise AuthenticationError(self.id + ' requires apiKey for all requests')
         url = self.urls['api'] + '/' + self.version + '/' + path + '.php'
@@ -930,7 +930,7 @@ class cryptocapital (Exchange):
                 timestamp = int(order['timestamp']) * 1000
                 price = float(order['price'])
                 amount = float(order['order_amount'])
-                result[key].append([ price, amount, timestamp ])
+                result[key].append([price, amount, timestamp])
         return result
 
     def fetch_ticker(self, market):
@@ -963,7 +963,7 @@ class cryptocapital (Exchange):
             'currency': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         order = {
             'side': side,
             'type': type,
@@ -981,7 +981,7 @@ class cryptocapital (Exchange):
     def cancel_order(self, id):
         return self.privatePostOrdersCancel({ 'id': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         if self.id == 'cryptocapital':
             raise ExchangeError(self.id + ' is an abstract base API for _1btcxe')
         url = self.urls['api'] + '/' + path
@@ -1153,7 +1153,7 @@ class anxpro (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -1161,7 +1161,7 @@ class anxpro (Exchange):
                 order = orders[i]
                 price = float(order['price'])
                 amount = float(order['amount'])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -1203,7 +1203,7 @@ class anxpro (Exchange):
             'currency_pair': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         order = {
             'currency_pair': self.market_id(market),
             'amount_int': amount,
@@ -1223,7 +1223,7 @@ class anxpro (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         request = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'] + '/' + self.version + '/' + request
@@ -1329,7 +1329,7 @@ class bit2c (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -1338,7 +1338,7 @@ class bit2c (Exchange):
                 price = order[0]
                 amount = order[1]
                 timestamp = order[2] * 1000
-                result[side].append([ price, amount, timestamp ])
+                result[side].append([price, amount, timestamp])
         return result
 
     def fetch_ticker(self, market):
@@ -1370,7 +1370,7 @@ class bit2c (Exchange):
             'pair': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         method = 'privatePostOrderAddOrder'
         order = {
             'Amount': amount,
@@ -1391,7 +1391,7 @@ class bit2c (Exchange):
     def cancel_order(self, id):
         return self.privatePostOrderCancelOrder({ 'id': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         if api == 'public':
             url += '.json'
@@ -1536,7 +1536,7 @@ class bitbay (Exchange):
             'id': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         p = self.market(market)
         return self.privatePostTrade(self.extend({
             'type': side,
@@ -1549,7 +1549,7 @@ class bitbay (Exchange):
     def cancel_order(self, id):
         return self.privatePostCancel({ 'id': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][api]
         if api == 'public':
             url += '/' + self.implode_params(path, params) + '.json'
@@ -1644,7 +1644,7 @@ class bitbays (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -1652,7 +1652,7 @@ class bitbays (Exchange):
                 order = orders[i]
                 price = float(order[0])
                 amount = float(order[1])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -1686,7 +1686,7 @@ class bitbays (Exchange):
             'market': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         order = {
             'market': self.market_id(market),
             'op': side,
@@ -1706,7 +1706,7 @@ class bitbays (Exchange):
     def cancel_order(self, id):
         return self.privatePostCancel({ 'id': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
             if params:
@@ -1826,7 +1826,7 @@ class bitcoincoid (Exchange):
                 order = orders[i]
                 price = float(order[0])
                 amount = float(order[1])
-                result[key].append([ price, amount ])
+                result[key].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -1863,7 +1863,7 @@ class bitcoincoid (Exchange):
             'pair': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         p = self.market(market)
         order = {
             'pair': p['id'],
@@ -1883,7 +1883,7 @@ class bitcoincoid (Exchange):
             'id': id,
         }, params))
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][api]
         if api == 'public':
             url += '/' + self.implode_params(path, params)
@@ -2044,7 +2044,7 @@ class bitfinex (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -2053,7 +2053,7 @@ class bitfinex (Exchange):
                 price = float(order['price'])
                 amount = float(order['amount'])
                 timestamp = int(float(order['timestamp']))
-                result[side].append([ price, amount, timestamp ])
+                result[side].append([price, amount, timestamp])
         return result
 
     def fetch_ticker(self, market):
@@ -2088,7 +2088,7 @@ class bitfinex (Exchange):
             'symbol': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         order = {
             'symbol': self.market_id(market),
@@ -2116,7 +2116,7 @@ class bitfinex (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         request = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'] + request
@@ -2264,7 +2264,7 @@ class bitflyer (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -2272,7 +2272,7 @@ class bitflyer (Exchange):
                 order = orders[i]
                 price = float(order['price'])
                 amount = float(order['size'])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -2307,7 +2307,7 @@ class bitflyer (Exchange):
             'product_code': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         order = {
             'product_code': self.market_id(market),
@@ -2328,7 +2328,7 @@ class bitflyer (Exchange):
             'parent_order_id': id,
         }, params))
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         request = '/' + self.version + '/' + path
         if api == 'private':
             request = '/me' + request
@@ -2339,7 +2339,7 @@ class bitflyer (Exchange):
         else:
             nonce = str(self.nonce())
             body = self.json(params)
-            auth = ''.join([ nonce, method, request, body ])
+            auth = ''.join([nonce, method, request, body])
             headers = {
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
@@ -2496,7 +2496,7 @@ class bitlish (Exchange):
                 order = orders[i]
                 price = float(order['price'])
                 amount = float(order['volume'])
-                result[key].append([ price, amount ])
+                result[key].append([price, amount])
         return result
 
     def fetch_trades(self, market):
@@ -2539,7 +2539,7 @@ class bitlish (Exchange):
             'passwd': self.password,
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         order = {
             'pair_id': self.market_id(market),
@@ -2558,7 +2558,7 @@ class bitlish (Exchange):
         self.loadMarkets()
         return self.privatePostCancelTrade({ 'id': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
             if params:
@@ -2723,7 +2723,7 @@ class bitmarket (Exchange):
             'market': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         response = self.privatePostTrade(self.extend({
             'market': self.market_id(market),
             'type': side,
@@ -2740,7 +2740,7 @@ class bitmarket (Exchange):
     def cancel_order(self, id):
         return self.privatePostCancel({ 'id': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][api]
         if api == 'public':
             url += '/' + self.implode_params(path + '.json', params)
@@ -2925,7 +2925,7 @@ class bitmex (Exchange):
             side = 'asks' if(order['side'] == 'Sell') else 'bids'
             amount = order['size']
             price = order['price']
-            result[side].append([ price, amount ])
+            result[side].append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
@@ -2971,7 +2971,7 @@ class bitmex (Exchange):
             'symbol': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         order = {
             'symbol': self.market_id(market),
@@ -2991,7 +2991,7 @@ class bitmex (Exchange):
         self.loadMarkets()
         return self.privateDeleteOrder({ 'orderID': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         query = '/api/' + self.version + '/' + path
         if params:
             query += '?' + _urlencode.urlencode(params)
@@ -3001,7 +3001,7 @@ class bitmex (Exchange):
             if method == 'POST':
                 if params:
                     body = self.json(params)
-            request = ''.join([ method, query, nonce, body or ''])
+            request = ''.join([method, query, nonce, body or ''])
             headers = {
                 'Content-Type': 'application/json',
                 'api-nonce': nonce,
@@ -3125,7 +3125,7 @@ class bitso (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -3133,7 +3133,7 @@ class bitso (Exchange):
                 order = orders[i]
                 price = float(order['price'])
                 amount = float(order['amount'])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -3169,7 +3169,7 @@ class bitso (Exchange):
             'book': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         order = {
             'book': self.market_id(market),
@@ -3189,7 +3189,7 @@ class bitso (Exchange):
         self.loadMarkets()
         return self.privateDeleteOrders({ 'oid': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         query = '/' + self.version + '/' + self.implode_params(path, params)
         url = self.urls['api'] + query
         if api == 'public':
@@ -3199,7 +3199,7 @@ class bitso (Exchange):
             if params:
                 body = self.json(params)
             nonce = str(self.nonce())
-            request = ''.join([ nonce, method, query, body or '' ])
+            request = ''.join([nonce, method, query, body or ''])
             signature = self.hmac(self.encode(request), self.encode(self.secret))
             auth = self.apiKey + ':' + nonce + ':' + signature
             headers = { 'Authorization': "Bitso " + auth }
@@ -3286,7 +3286,7 @@ class bitstamp (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -3294,7 +3294,7 @@ class bitstamp (Exchange):
                 order = orders[i]
                 price = float(order[0])
                 amount = float(order[1])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -3350,7 +3350,7 @@ class bitstamp (Exchange):
             result[currency] = account
         return result
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         method = 'privatePost' + self.capitalize(side)
         order = {
             'id': self.market_id(market),
@@ -3370,7 +3370,7 @@ class bitstamp (Exchange):
     def cancel_order(self, id):
         return self.privatePostCancelOrder({ 'id': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -3497,7 +3497,7 @@ class bittrex (Exchange):
     def parse_bidask(self, bidask):
         price = float(bidask['Rate'])
         amount = float(bidask['Quantity'])
-        return [ price, amount ]
+        return [price, amount]
 
     def parse_bidasks(self, bidasks):
         result = []
@@ -3586,7 +3586,7 @@ class bittrex (Exchange):
             'market': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         method = 'marketGet' + self.capitalize(side) + type
         order = {
@@ -3622,7 +3622,7 @@ class bittrex (Exchange):
         }
         return result
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/'
         if api == 'public':
             url += api + '/' + method.lower() + path
@@ -3718,7 +3718,7 @@ class blinktrade (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -3726,7 +3726,7 @@ class blinktrade (Exchange):
                 order = orders[i]
                 price = float(order[0])
                 amount = float(order[1])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -3765,7 +3765,7 @@ class blinktrade (Exchange):
             'crypto_currency': p['base'],
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         p = self.market(market)
@@ -3789,7 +3789,7 @@ class blinktrade (Exchange):
             'ClOrdID': id,
         }, params))
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -3902,7 +3902,7 @@ class bl3p (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -3910,7 +3910,7 @@ class bl3p (Exchange):
                 order = orders[i]
                 price = order['price_int'] / 100000
                 amount = order['amount_int'] / 100000000
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -3943,7 +3943,7 @@ class bl3p (Exchange):
             'market': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         p = self.market(market)
         order = {
             'market': p['id'],
@@ -3962,7 +3962,7 @@ class bl3p (Exchange):
     def cancel_order(self, id):
         return self.privatePostMarketMoneyOrderCancel({ 'order_id': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         request = self.implode_params(path, params)
         url = self.urls['api'] + '/' + self.version + '/' + request
         query = self.omit(params, self.extract_params(path))
@@ -4144,16 +4144,16 @@ class btcchina (Exchange):
             'market': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         p = self.market(market)
         method = 'privatePost' + self.capitalize(side) + 'Order2'
         order = {}
         id = p['id'].upper()
         if type == 'market':
-            order['params'] = [ None, amount, id ]
+            order['params'] = [None, amount, id]
         else:
-            order['params'] = [ price, amount, id ]
+            order['params'] = [price, amount, id]
         response = getattr(self, method)(self.extend(order, params))
         return {
             'info': response,
@@ -4164,13 +4164,13 @@ class btcchina (Exchange):
         self.loadMarkets()
         market = params['market'] # TODO fixme
         return self.privatePostCancelOrder(self.extend({
-            'params': [ id, market ], 
+            'params': [id, market], 
         }, params))
 
     def nonce(self):
         return self.microseconds()
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][api] + '/' + path
         if api == 'public':
             if params:
@@ -4359,7 +4359,7 @@ class btce (Exchange):
             'pair': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         order = {
             'pair': self.market_id(market),
@@ -4395,7 +4395,7 @@ class btce (Exchange):
         }
         return result
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -4495,7 +4495,7 @@ class btcmarkets (Exchange):
     def parse_bidask(self, bidask):
         price = bidask[0]
         amount = bidask[1]
-        return [ price, amount ]
+        return [price, amount]
 
     def parse_bidasks(self, bidasks):
         result = []
@@ -4516,7 +4516,7 @@ class btcmarkets (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             result[side] = self.parse_bidasks(orderbook[side])
@@ -4559,7 +4559,7 @@ class btcmarkets (Exchange):
             'id': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         m = self.market(market)
         multiplier = 100000000 # for price and volume
@@ -4586,12 +4586,12 @@ class btcmarkets (Exchange):
 
     def cancel_order(self, id):
         self.loadMarkets()
-        return self.cancelOrders([ id ])
+        return self.cancelOrders([id])
 
     def nonce(self):
         return self.milliseconds()
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         uri = '/' + self.implode_params(path, params)
         url = self.urls['api'] + uri
         query = self.omit(params, self.extract_params(path))
@@ -4694,7 +4694,7 @@ class btctrader (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -4702,7 +4702,7 @@ class btctrader (Exchange):
                 order = orders[i]
                 price = float(order[0])
                 amount = float(order[1])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -4732,7 +4732,7 @@ class btctrader (Exchange):
         maxCount = 50
         return self.publicGetTrades()
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         method = 'privatePost' + self.capitalize(side)
         order = {
             'Type': 'BuyBtc' if(side == 'buy') else 'SelBtc',
@@ -4755,7 +4755,7 @@ class btctrader (Exchange):
     def cancel_order(self, id):
         return self.privatePostCancelOrder({ 'id': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         if self.id == 'btctrader':
             raise ExchangeError(self.id + ' is an abstract base API for BTCExchange, BTCTurk')
         url = self.urls['api'] + '/' + path
@@ -4901,7 +4901,7 @@ class btctradeua (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -4909,7 +4909,7 @@ class btctradeua (Exchange):
                 order = orders[i]
                 price = float(order['price'])
                 amount = float(order['currency_trade'])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -4962,7 +4962,7 @@ class btctradeua (Exchange):
             'symbol': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         p = self.market(market)
@@ -4978,7 +4978,7 @@ class btctradeua (Exchange):
     def cancel_order(self, id):
         return self.privatePostRemoveOrderId({ 'id': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -5094,7 +5094,7 @@ class btcx (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -5102,7 +5102,7 @@ class btcx (Exchange):
                 order = orders[i]
                 price = order['price']
                 amount = order['amount']
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -5136,7 +5136,7 @@ class btcx (Exchange):
             'limit': 100,
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         response = self.privatePostTrade(self.extend({
             'type': side.upper(),
             'market': self.market_id(market),
@@ -5151,7 +5151,7 @@ class btcx (Exchange):
     def cancel_order(self, id):
         return self.privatePostCancel({ 'order': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/'
         if api == 'public':
             url += self.implode_params(path, params)
@@ -5280,7 +5280,7 @@ class bter (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -5288,7 +5288,7 @@ class bter (Exchange):
                 order = orders[i]
                 price = float(order[0])
                 amount = float(order[1])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
@@ -5344,7 +5344,7 @@ class bter (Exchange):
             'id': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         method = 'privatePost' + self.capitalize(side)
         order = {
@@ -5362,7 +5362,7 @@ class bter (Exchange):
         self.loadMarkets()
         return self.privatePostCancelOrder({ 'orderNumber': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         prefix =(api + '/') if(api == 'private') else ''
         url = self.urls['api'][api] + self.version + '/1/' + prefix + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -5499,7 +5499,7 @@ class bxinth (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -5507,7 +5507,7 @@ class bxinth (Exchange):
                 order = orders[i]
                 price = float(order[0])
                 amount = float(order[1])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def parse_ticker(self, ticker, market):
@@ -5559,7 +5559,7 @@ class bxinth (Exchange):
             'pairing': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         response = self.privatePostOrder(self.extend({
             'pairing': self.market_id(market),
@@ -5580,7 +5580,7 @@ class bxinth (Exchange):
             'pairing': pairing,
         })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/'
         if path:
             url += path + '/'
@@ -5724,7 +5724,7 @@ class ccex (Exchange):
                 order = orders[i]
                 price = float(order['Rate'])
                 amount = float(order['Quantity'])
-                result[key].append([ price, amount ])
+                result[key].append([price, amount])
         return result
 
     def parse_ticker(self, ticker, market):
@@ -5766,7 +5766,7 @@ class ccex (Exchange):
             'depth': 100,
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         method = 'privateGet' + self.capitalize(side) + type
         response = getattr(self, method)(self.extend({
@@ -5783,7 +5783,7 @@ class ccex (Exchange):
         self.loadMarkets()
         return self.privateGetCancel({ 'uuid': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][api]
         if api == 'private':
             nonce = str(self.nonce())
@@ -5964,7 +5964,7 @@ class cex (Exchange):
             'pair': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         order = {
             'pair': self.market_id(market),
@@ -5985,7 +5985,7 @@ class cex (Exchange):
         self.loadMarkets()
         return self.privatePostCancelOrder({ 'id': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -6149,7 +6149,7 @@ class chbtc (Exchange):
             'currency': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         paramString = '&price=' + str(price)
         paramString += '&amount=' + str(amount)
         tradeType = '1' if(side == 'buy') else '0'
@@ -6176,7 +6176,7 @@ class chbtc (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][api] 
         if api == 'public':
             url += '/' + self.version + '/' + path
@@ -6342,7 +6342,7 @@ class coincheck (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -6350,7 +6350,7 @@ class coincheck (Exchange):
                 order = orders[i]
                 price = float(order[0])
                 amount = float(order[1])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -6379,7 +6379,7 @@ class coincheck (Exchange):
     def fetch_trades(self, market):
         return self.publicGetTrades()
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         prefix = ''
         order = {
             'pair': self.market_id(market),
@@ -6402,7 +6402,7 @@ class coincheck (Exchange):
     def cancel_order(self, id):
         return self.privateDeleteExchangeOrdersId({ 'id': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -6515,7 +6515,7 @@ class coingi (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -6523,7 +6523,7 @@ class coingi (Exchange):
                 order = orders[i]
                 price = order['price']
                 amount = order['baseAmount']
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def parse_ticker(self, ticker, market):
@@ -6583,7 +6583,7 @@ class coingi (Exchange):
             'maxCount': 128,
         }, params))
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         order = {
             'currencyPair': self.market_id(market),
             'volume': amount,
@@ -6599,7 +6599,7 @@ class coingi (Exchange):
     def cancel_order(self, id):
         return self.userPostCancelOrder({ 'orderId': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + api + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'current':
@@ -6763,7 +6763,7 @@ class coinmarketcap (Exchange):
         ticker = response[0]
         return self.parse_ticker(ticker, p)
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if query:
@@ -6855,7 +6855,7 @@ class coinmate (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -6863,7 +6863,7 @@ class coinmate (Exchange):
                 order = orders[i]
                 price = order['price']
                 amount = order['amount']
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -6898,7 +6898,7 @@ class coinmate (Exchange):
             'minutesIntoHistory': 10,
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         method = 'privatePost' + self.capitalize(side)
         order = {
             'currencyPair': self.market_id(market),
@@ -6922,7 +6922,7 @@ class coinmate (Exchange):
     def cancel_order(self, id):
         return self.privatePostCancelOrder({ 'orderId': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + path
         if api == 'public':
             if params:
@@ -7137,7 +7137,7 @@ class coinsecure (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -7145,7 +7145,7 @@ class coinsecure (Exchange):
                 order = orders[i]
                 price = order['rate']
                 amount = order['vol']
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -7175,7 +7175,7 @@ class coinsecure (Exchange):
     def fetch_trades(self, market):
         return self.publicGetExchangeTrades()
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         method = 'privatePutUserExchange'
         order = {}
         if type == 'market':
@@ -7200,7 +7200,7 @@ class coinsecure (Exchange):
         method = 'privateDeleteUserExchangeAskCancelOrderId' # TODO fixme, have to specify order side here
         return getattr(self, method)({ 'orderID': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
@@ -7306,7 +7306,7 @@ class coinspot (Exchange):
                 order = orders[i]
                 price = float(order['rate'])
                 amount = float(order['amount'])
-                result[key].append([ price, amount ])
+                result[key].append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
@@ -7342,7 +7342,7 @@ class coinspot (Exchange):
             'cointype': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         method = 'privatePostMy' + self.capitalize(side)
         if type =='market':
             raise ExchangeError(self.id + ' allows limit orders only')
@@ -7358,7 +7358,7 @@ class coinspot (Exchange):
         method = 'privatePostMyBuy'
         return getattr(self, method)({ 'id': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         if not self.apiKey:
             raise AuthenticationError(self.id + ' requires apiKey for all requests')
         url = self.urls['api'][api] + '/' + path
@@ -7487,7 +7487,7 @@ class dsx (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -7495,7 +7495,7 @@ class dsx (Exchange):
                 order = orders[i]
                 price = order[0]
                 amount = order[1]
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -7532,7 +7532,7 @@ class dsx (Exchange):
             'id': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
@@ -7552,7 +7552,7 @@ class dsx (Exchange):
         self.loadMarkets()
         return self.tapiPostCancelOrder({ 'orderId': id })
 
-    def request(self, path, api='mapi', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='mapi', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][api]
         if(api == 'mapi') or(api == 'dwapi'):
             url += '/' + self.implode_params(path, params)
@@ -7695,7 +7695,7 @@ class exmo (Exchange):
                 order = orders[i]
                 price = float(order[0])
                 amount = float(order[1])
-                result[key].append([ price, amount ])
+                result[key].append([price, amount])
         return result
 
     def parse_ticker(self, ticker, market):
@@ -7745,7 +7745,7 @@ class exmo (Exchange):
             'pair': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         prefix = ''
         if type =='market':
@@ -7766,7 +7766,7 @@ class exmo (Exchange):
         self.loadMarkets()
         return self.privatePostOrderCancel({ 'order_id': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
             if params:
@@ -7887,7 +7887,7 @@ class flowbtc (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -7895,7 +7895,7 @@ class flowbtc (Exchange):
                 order = orders[i]
                 price = float(order['px'])
                 amount = float(order['qty'])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -7931,7 +7931,7 @@ class flowbtc (Exchange):
             'ins': self.market_id(market),
         }, params))
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         orderType = 1 if(type == 'market') else 0
         order = {
@@ -7955,7 +7955,7 @@ class flowbtc (Exchange):
             }, params))            
         raise ExchangeError(self.id + ' requires `ins` symbol parameter for cancelling an order')
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
             if params:
@@ -8069,7 +8069,7 @@ class fyb (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -8077,7 +8077,7 @@ class fyb (Exchange):
                 order = orders[i]
                 price = float(order[0])
                 amount = float(order[1])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -8112,7 +8112,7 @@ class fyb (Exchange):
     def fetch_trades(self, market):
         return self.publicGetTrades()
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         response = self.privatePostPlaceorder(self.extend({
             'qty': amount,
             'price': price,
@@ -8126,7 +8126,7 @@ class fyb (Exchange):
     def cancel_order(self, id):
         return self.privatePostCancelpendingorder({ 'orderNo': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + path
         if api == 'public':
             url += '.json'
@@ -8405,7 +8405,7 @@ class gatecoin (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -8413,7 +8413,7 @@ class gatecoin (Exchange):
                 order = orders[i]
                 price = float(order['price'])
                 amount = float(order['volume'])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def parse_ticker(self, ticker, market):
@@ -8466,7 +8466,7 @@ class gatecoin (Exchange):
             'CurrencyPair': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         order = {
             'Code': self.market_id(market),
@@ -8490,7 +8490,7 @@ class gatecoin (Exchange):
         self.loadMarkets()
         return self.privateDeleteTradeOrdersOrderID({ 'OrderID': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -8631,7 +8631,7 @@ class gdax (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -8639,7 +8639,7 @@ class gdax (Exchange):
                 order = orders[i]
                 price = float(order[0])
                 amount = float(order[1])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -8684,7 +8684,7 @@ class gdax (Exchange):
             'id': self.market_id(market), # fixes issue #2
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         oid = str(self.nonce())
         order = {
@@ -8705,7 +8705,7 @@ class gdax (Exchange):
         self.loadMarkets()
         return self.privateDeleteOrdersId({ 'id': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         request = '/' + self.implode_params(path, params)
         url = self.urls['api'] + request
         query = self.omit(params, self.extract_params(path))
@@ -8817,7 +8817,7 @@ class gemini (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -8826,7 +8826,7 @@ class gemini (Exchange):
                 price = float(order['price'])
                 amount = float(order['amount'])
                 timestamp = int(order['timestamp']) * 1000
-                result[side].append([ price, amount, timestamp ])
+                result[side].append([price, amount, timestamp])
         return result
 
     def fetch_ticker(self, market):
@@ -8880,7 +8880,7 @@ class gemini (Exchange):
             result[currency] = account
         return result
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
@@ -8902,7 +8902,7 @@ class gemini (Exchange):
         self.loadMarkets()
         return self.privatePostCancelOrder({ 'order_id': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -9055,7 +9055,7 @@ class hitbtc (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -9063,7 +9063,7 @@ class hitbtc (Exchange):
                 order = orders[i]
                 price = float(order[0])
                 amount = float(order[1])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def parse_ticker(self, ticker, market):
@@ -9117,7 +9117,7 @@ class hitbtc (Exchange):
             'symbol': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         p = self.market(market)
         # check if amount can be evenly divided into lots
@@ -9146,7 +9146,7 @@ class hitbtc (Exchange):
         self.loadMarkets()
         return self.tradingPostCancelOrder({ 'clientOrderId': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = '/' + 'api' + '/' + self.version + '/' + api + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -9307,7 +9307,7 @@ class huobi (Exchange):
         method = p['type'] + 'GetDetailId'
         return getattr(self, method)({ 'id': p['id'] })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         p = self.market(market)
         method = 'tradePost' + self.capitalize(side)
         order = {
@@ -9328,7 +9328,7 @@ class huobi (Exchange):
     def cancel_order(self, id):
         return self.tradePostCancelOrder({ 'id': id })
 
-    def request(self, path, api='trade', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='trade', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api']
         if api == 'trade':
             url += '/api' + self.version
@@ -9429,7 +9429,7 @@ class itbit (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -9437,7 +9437,7 @@ class itbit (Exchange):
                 order = orders[i]
                 price = float(order[0])
                 amount = float(order[1])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -9500,7 +9500,7 @@ class itbit (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         amount = str(amount)
@@ -9526,7 +9526,7 @@ class itbit (Exchange):
             'id': id,
         }, params))
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -9539,7 +9539,7 @@ class itbit (Exchange):
                 body = ''
             nonce = str(self.nonce())
             timestamp = nonce
-            auth = [ method, url, body, nonce, timestamp ]
+            auth = [method, url, body, nonce, timestamp]
             message = nonce + self.json(auth)
             hash = self.hash(self.encode(message), 'sha256', 'binary')
             binhash = self.binary_concat(url, hash)
@@ -9704,7 +9704,7 @@ class jubi (Exchange):
             'coin': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         response = self.privatePostTradeAdd(self.extend({
             'amount': amount,
@@ -9723,7 +9723,7 @@ class jubi (Exchange):
             'id': id,
         }, params))
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
             if params:
@@ -9854,7 +9854,7 @@ class kraken (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -9863,7 +9863,7 @@ class kraken (Exchange):
                 price = float(order[0])
                 amount = float(order[1])
                 timestamp = order[2] * 1000
-                result[side].append([ price, amount, timestamp ])
+                result[side].append([price, amount, timestamp])
         return result
 
     def parse_ticker(self, ticker, market):
@@ -9953,7 +9953,7 @@ class kraken (Exchange):
             result[code] = account
         return result
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         order = {
             'pair': self.market_id(market),
@@ -9975,7 +9975,7 @@ class kraken (Exchange):
         self.loadMarkets()
         return self.privatePostCancelOrder({ 'txid': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = '/' + self.version + '/' + api + '/' + path
         if api == 'public':
             if params:
@@ -10096,7 +10096,7 @@ class lakebtc (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -10104,7 +10104,7 @@ class lakebtc (Exchange):
                 order = orders[i]
                 price = float(order[0])
                 amount = float(order[1])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -10141,14 +10141,14 @@ class lakebtc (Exchange):
             'symbol': self.market_id(market)
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         method = 'privatePost' + self.capitalize(side) + 'Order'
         marketId = self.market_id(market)
         order = {
-            'params': [ price, amount, marketId ],
+            'params': [price, amount, marketId],
         }
         response = getattr(self, method)(self.extend(order, params))
         return {
@@ -10160,7 +10160,7 @@ class lakebtc (Exchange):
         self.loadMarkets()
         return self.privatePostCancelOrder({ 'params': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version
         if api == 'public':
             url += '/' + path
@@ -10316,7 +10316,7 @@ class livecoin (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -10324,7 +10324,7 @@ class livecoin (Exchange):
                 order = orders[i]
                 price = float(order[0])
                 amount = float(order[1])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def parse_ticker(self, ticker, market):
@@ -10377,7 +10377,7 @@ class livecoin (Exchange):
             'currencyPair': self.market_id(market)
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         method = 'privatePostExchange' + self.capitalize(side) + type
         order = {
@@ -10398,7 +10398,7 @@ class livecoin (Exchange):
             'orderId': id,
         }, params))
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + path
         if api == 'public':
             if params:
@@ -10447,7 +10447,7 @@ class liqui (btce):
         params.update(config)
         super(liqui, self).__init__(params)
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][api]
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -10591,7 +10591,7 @@ class luno (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -10600,7 +10600,7 @@ class luno (Exchange):
                 price = float(order['price'])
                 amount = float(order['volume'])
                 # timestamp = order[2] * 1000
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def parse_ticker(self, ticker, market):
@@ -10653,7 +10653,7 @@ class luno (Exchange):
             'pair': self.market_id(market)
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         method = 'privatePost'
         order = { 'pair': self.market_id(market) }
@@ -10682,7 +10682,7 @@ class luno (Exchange):
         self.loadMarkets()
         return self.privatePostStoporder({ 'order_id': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if query:
@@ -10818,7 +10818,7 @@ class mercado (Exchange):
             result[currency] = account
         return result
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         method = 'privatePostPlace' + self.capitalize(side) + 'Order'
@@ -10838,7 +10838,7 @@ class mercado (Exchange):
             'order_id': id,
         }, params))
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][api] + '/'
         if api == 'public':
             url += path
@@ -10997,7 +10997,7 @@ class okcoin (Exchange):
             result[currency] = account
         return result
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         order = {
             'symbol': self.market_id(market),
             'type': side,
@@ -11018,7 +11018,7 @@ class okcoin (Exchange):
             'order_id': id,
         }, params))
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = '/api/' + self.version + '/' + path + '.do'
         if api == 'public':
             if params:
@@ -11183,7 +11183,7 @@ class paymium (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -11192,7 +11192,7 @@ class paymium (Exchange):
                 price = order['price']
                 amount = order['amount']
                 timestamp = order['timestamp'] * 1000
-                result[side].append([ price, amount, timestamp ])
+                result[side].append([price, amount, timestamp])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         return result
 
@@ -11226,7 +11226,7 @@ class paymium (Exchange):
             'id': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         order = {
             'type': self.capitalize(type) + 'Order',
             'currency': self.market_id(market),
@@ -11246,7 +11246,7 @@ class paymium (Exchange):
             'orderNumber': id,
         }, params))
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -11378,7 +11378,7 @@ class poloniex (Exchange):
     def parse_bidask(self, bidask):
         price = float(bidask[0])
         amount = float(bidask[1])
-        return [ price, amount ]
+        return [price, amount]
 
     def parse_bidasks(self, bidasks):
         result = []
@@ -11398,7 +11398,7 @@ class poloniex (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             result[side] = self.parse_bidasks(orderbook[side])
@@ -11504,7 +11504,7 @@ class poloniex (Exchange):
             result[symbol] = self.parse_trades(trades, market)
         return result
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         self.loadMarkets()
@@ -11525,7 +11525,7 @@ class poloniex (Exchange):
             'orderNumber': id,
         }, params))
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][api]
         query = self.extend({ 'command': path }, params)
         if api == 'public':
@@ -11619,7 +11619,7 @@ class quadrigacx (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -11627,7 +11627,7 @@ class quadrigacx (Exchange):
                 order = orders[i]
                 price = float(order[0])
                 amount = float(order[1])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -11660,7 +11660,7 @@ class quadrigacx (Exchange):
             'book': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         method = 'privatePost' + self.capitalize(side)
         order = {
             'amount': amount,
@@ -11679,7 +11679,7 @@ class quadrigacx (Exchange):
             'id': id,
         }, params))
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
             url += '?' + _urlencode.urlencode(params)
@@ -11687,7 +11687,7 @@ class quadrigacx (Exchange):
             if not self.uid:
                 raise AuthenticationError(self.id + ' requires `' + self.id + '.uid` property for authentication')
             nonce = self.nonce()
-            request = ''.join([ str(nonce), self.uid, self.apiKey ])
+            request = ''.join([str(nonce), self.uid, self.apiKey])
             signature = self.hmac(self.encode(request), self.encode(self.secret))
             query = self.extend({
                 'key': self.apiKey,
@@ -11824,7 +11824,7 @@ class quoine (Exchange):
                 order = orders[i]
                 price = float(order[0])
                 amount = float(order[1])
-                result[key].append([ price, amount ])
+                result[key].append([price, amount])
         return result
 
     def parse_ticker(self, ticker, market):
@@ -11876,7 +11876,7 @@ class quoine (Exchange):
             'product_id': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         order = {
             'order_type': type,
@@ -11900,7 +11900,7 @@ class quoine (Exchange):
             'id': id,
         }, params))
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         headers = {
@@ -12027,7 +12027,7 @@ class southxchange (Exchange):
                 order = orders[i]
                 price = float(order['Price'])
                 amount = float(order['Amount'])
-                result[key].append([ price, amount ])
+                result[key].append([price, amount])
         return result
 
     def parse_ticker(self, ticker, market):
@@ -12080,7 +12080,7 @@ class southxchange (Exchange):
             'symbol': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         p = self.market(market)
         order = {
@@ -12103,7 +12103,7 @@ class southxchange (Exchange):
             'orderCode': id,
         }, params))
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
@@ -12259,7 +12259,7 @@ class therock (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -12267,7 +12267,7 @@ class therock (Exchange):
                 order = orders[i]
                 price = float(order['price'])
                 amount = float(order['amount'])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def parse_ticker(self, ticker, market):
@@ -12320,7 +12320,7 @@ class therock (Exchange):
             'id': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
@@ -12341,7 +12341,7 @@ class therock (Exchange):
             'id': id,
         }, params))
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
@@ -12491,7 +12491,7 @@ class vaultoro (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -12499,7 +12499,7 @@ class vaultoro (Exchange):
                 order = orders[i]
                 price = order['Gold_Price']
                 amount = order['Gold_Amount']
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         return result
 
@@ -12536,7 +12536,7 @@ class vaultoro (Exchange):
         self.loadMarkets()
         return self.publicGetTransactionsDay()
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         p = self.market(market)
         method = 'privatePost' + self.capitalize(side) + 'SymbolType'
@@ -12557,7 +12557,7 @@ class vaultoro (Exchange):
             'id': id,
         }, params))
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/'
         if api == 'public':
             url += path
@@ -12709,13 +12709,13 @@ class virwox (Exchange):
     def fetchBestPrices(self, market):
         self.loadMarkets()
         return self.publicPostGetBestPrices({
-            'symbols': [ self.symbol(market) ],
+            'symbols': [self.symbol(market)],
         })
 
     def fetch_order_book(self, market, params={}):
         self.loadMarkets()
         response = self.publicPostGetMarketDepth(self.extend({
-            'symbols': [ self.symbol(market) ],
+            'symbols': [self.symbol(market)],
             'buyDepth': 100,
             'sellDepth': 100,
         }, params))
@@ -12737,7 +12737,7 @@ class virwox (Exchange):
                 order = orders[i]
                 price = float(order['price'])
                 amount = float(order['volume'])
-                result[key].append([ price, amount ])
+                result[key].append([price, amount])
         return result
 
     def fetch_ticker(self, market):
@@ -12783,7 +12783,7 @@ class virwox (Exchange):
             'timespan': 3600,
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         order = {
             'instrument': self.symbol(market),
@@ -12804,7 +12804,7 @@ class virwox (Exchange):
             'orderID': id,
         }, params))
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'][api]
         auth = {}
         if api == 'private':
@@ -12976,7 +12976,7 @@ class xbtce (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             Side = self.capitalize(side)
@@ -12985,7 +12985,7 @@ class xbtce (Exchange):
                 order = orders[i]
                 price = float(order['Price'])
                 amount = float(order['Volume'])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         return result
 
     def parse_ticker(self, ticker, market):
@@ -13050,7 +13050,7 @@ class xbtce (Exchange):
         # no method for trades?
         return self.privateGetTrade()
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
@@ -13075,7 +13075,7 @@ class xbtce (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def request(self, path, api='api', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='api', method = 'GET', params = {}, headers = None, body = None):
         if not self.apiKey:
             raise AuthenticationError(self.id + ' requires apiKey for all requests, their public API is always busy')
         if not self.uid:
@@ -13244,7 +13244,7 @@ class yobit (Exchange):
             'pairs': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
@@ -13265,7 +13265,7 @@ class yobit (Exchange):
             'order_id': id,
         }, params))
 
-    def request(self, path, api='api', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='api', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + api
         if api == 'api':
             url += '/' + self.version + '/' + self.implode_params(path, params)
@@ -13395,7 +13395,7 @@ class yunbi (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = [ 'bids', 'asks' ]
+        sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
             orders = orderbook[side]
@@ -13403,7 +13403,7 @@ class yunbi (Exchange):
                 order = orders[i]
                 price = float(order[0])
                 amount = float(order[1])
-                result[side].append([ price, amount ])
+                result[side].append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
@@ -13470,7 +13470,7 @@ class yunbi (Exchange):
             'market': m['id'],
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         order = {
             'market': self.market_id(market),
@@ -13490,7 +13490,7 @@ class yunbi (Exchange):
         self.loadMarkets()
         return self.privatePostOrderDelete({ 'id': id })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method = 'GET', params = {}, headers = None, body = None):
         request = '/api/' + self.version + '/' + self.implode_params(path, params) + '.json'
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'] + request
@@ -13670,7 +13670,7 @@ class zaif (Exchange):
             'pair': self.market_id(market),
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params = {}):
         self.loadMarkets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
@@ -13691,7 +13691,7 @@ class zaif (Exchange):
             'order_id': id,
         }, params))
 
-    def request(self, path, api='api', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='api', method = 'GET', params = {}, headers = None, body = None):
         url = self.urls['api'] + '/' + api
         if api == 'api':
             url += '/' + self.version + '/' + self.implode_params(path, params)

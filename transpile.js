@@ -171,6 +171,8 @@ while (exchanges = regex.exec (contents)) {
             [ /console\.log\s/g, 'print'],
             [ /process\.exit\s+/g, 'sys.exit'],
             [ /\s+\(/g, '(' ], // remove whitespaces before round brackets
+            [ /\[\s+/g, '[' ], // remove whitespaces after left square brackets
+            [ /\s+\]/g, ']' ], // remove whitespaces before right square brackets
         ]
 
         let phRegex = [
