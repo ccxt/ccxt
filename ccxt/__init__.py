@@ -347,7 +347,7 @@ class Exchange (object):
 
     @staticmethod
     def index_by(array, key):
-        result = {}    
+        result = {}
         if type(array) is dict:
             array = list(Exchange.keysort(array).items())
         for element in array:
@@ -358,7 +358,7 @@ class Exchange (object):
 
     @staticmethod
     def indexBy(l, key):
-        return Exchange.index_by (l, key)
+        return Exchange.index_by(l, key)
 
     @staticmethod
     def sort_by(l, key, descending=False):
@@ -615,13 +615,13 @@ class Exchange (object):
 
     def fetchBalance(self):
         return self.fetch_balance()
-    
+
     def fetchOrderBook(self, market): 
         return self.fetch_order_book(market)
-    
+
     def fetchTicker(self, market):
         return self.fetch_ticker(market)
-    
+
     def fetchTrades(self, market): 
         return self.fetch_trades(market)
 
@@ -638,16 +638,16 @@ class Exchange (object):
         return self.create_order(market, 'market', 'sell', amount, None, params)
 
     def createLimitBuyOrder(self, market, amount, price, params={}):
-        return self.create_limit_buy_order (market, amount, price, params)
+        return self.create_limit_buy_order(market, amount, price, params)
 
     def createLimitSellOrder(self, market, amount, price, params={}):
-        return self.create_limit_sell_order (market, amount, price, params)
+        return self.create_limit_sell_order(market, amount, price, params)
 
     def createMarketBuyOrder(self, market, amount, params={}): 
-        return self.create_market_buy_order (market, amount, params)
+        return self.create_market_buy_order(market, amount, params)
 
     def createMarketSellOrder(self, market, amount, params={}):
-        return self.create_market_sell_order (market, amount, params)
+        return self.create_market_sell_order(market, amount, params)
 
 #==============================================================================
 
