@@ -6907,7 +6907,7 @@ class coincheck extends Exchange {
         if ($type == 'market') {
             $order_type = $type . '_' . $side;
             $order['order_type'] = $order_type;
-            $prefix = ($side == buy) ? ($order_type . '_') : '';
+            $prefix = ($side == 'buy') ? ($order_type . '_') : '';
             $order[$prefix . 'amount'] = $amount;
         } else {
             $order['order_type'] = $side;
@@ -7750,7 +7750,7 @@ class coinsecure extends Exchange {
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePutUserExchange';
         $order = array ();
-        if (api == 'market') {
+        if ($type == 'market') {
             $method .= 'Instant' . $this->capitalize ($side);
             if ($side == 'buy')
                 $order['maxFiat'] = $amount;
