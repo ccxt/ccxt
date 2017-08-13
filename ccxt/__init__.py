@@ -616,13 +616,13 @@ class Exchange (object):
     def fetchBalance(self):
         return self.fetch_balance()
 
-    def fetchOrderBook(self, market): 
+    def fetchOrderBook(self, market):
         return self.fetch_order_book(market)
 
     def fetchTicker(self, market):
         return self.fetch_ticker(market)
 
-    def fetchTrades(self, market): 
+    def fetchTrades(self, market):
         return self.fetch_trades(market)
 
     def create_limit_buy_order(self, market, amount, price, params={}):
@@ -643,7 +643,7 @@ class Exchange (object):
     def createLimitSellOrder(self, market, amount, price, params={}):
         return self.create_limit_sell_order(market, amount, price, params)
 
-    def createMarketBuyOrder(self, market, amount, params={}): 
+    def createMarketBuyOrder(self, market, amount, params={}):
         return self.create_market_buy_order(market, amount, params)
 
     def createMarketSellOrder(self, market, amount, params={}):
