@@ -1381,7 +1381,7 @@ class bit2c (Exchange):
         else:
             order['Price'] = price
             order['Total'] = amount * price
-            order['IsBid'] =(side == 'buy')
+            order['IsBid'] = (side == 'buy')
         result = getattr(self, method)(self.extend(order, params))
         return {
             'info': result,
@@ -2875,7 +2875,7 @@ class bitmex (Exchange):
             id = market['symbol']
             base = market['underlying']
             quote = market['quoteCurrency']
-            isFuturesContract = id !=(base + quote)
+            isFuturesContract = id != (base + quote)
             base = self.commonCurrencyCode(base)
             quote = self.commonCurrencyCode(quote)
             symbol = id if isFuturesContract else(base + '/' + quote)
@@ -4191,7 +4191,7 @@ class btcchina (Exchange):
             }
             p = ','.join(p)
             body = self.json(request)
-            query =(
+            query = (
                 'tonce=' + nonce +
                 '&accesskey=' + self.apiKey +
                 '&requestmethod=' + method.lower() +
@@ -5363,7 +5363,7 @@ class bter (Exchange):
         return self.privatePostCancelOrder({'orderNumber': id})
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        prefix =(api + '/') if(api == 'private') else ''
+        prefix = (api + '/') if(api == 'private') else ''
         url = self.urls['api'][api] + self.version + '/1/' + prefix + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -6387,7 +6387,7 @@ class coincheck (Exchange):
         if type == 'market':
             order_type = type + '_' + side
             order['order_type'] = order_type
-            prefix =(order_type + '_') if(side == 'buy') else ''
+            prefix = (order_type + '_') if(side == 'buy') else ''
             order[prefix + 'amount'] = amount
         else:
             order['order_type'] = side
@@ -9843,7 +9843,7 @@ class kraken (Exchange):
         if darkpool:
             raise ExchangeError(self.id + ' does not provide an order book for darkpool symbol ' + market)
         p = self.market(market)
-        response = self.publicGetDepth(self.extend({
+        response = self.publicGetDepth  (self.extend({
             'pair': p['id'],
         }, params))
         orderbook = response['result'][p['id']]
@@ -11173,7 +11173,7 @@ class paymium (Exchange):
         return result
 
     def fetch_order_book(self, market, params={}):
-        orderbook = self.publicGetDataIdDepth(self.extend({
+        orderbook = self.publicGetDataIdDepth  (self.extend({
             'id': self.market_id(market),
         }, params))
         timestamp = self.milliseconds()
@@ -13626,7 +13626,7 @@ class zaif (Exchange):
 
     def fetch_order_book(self, market, params={}):
         self.loadMarkets()
-        orderbook = self.apiGetDepthPair(self.extend({
+        orderbook = self.apiGetDepthPair  (self.extend({
             'pair': self.market_id(market),
         }, params))
         timestamp = self.milliseconds()

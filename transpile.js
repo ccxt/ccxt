@@ -178,11 +178,11 @@ while (exchanges = regex.exec (contents)) {
             [ /Math\.(max|min)\s/g, '$1' ],
             [ /console\.log\s/g, 'print'],
             [ /process\.exit\s+/g, 'sys.exit'],
-            [ /\s+\(/g, '(' ],       // remove whitespaces before left ( round bracket
-            [ /\[ /g, '[' ],         // PEP8 E201 remove whitespaces after left [ square bracket
-            [ /\{ /g, '{' ],         // PEP8 E201 remove whitespaces after left { bracket
-            [ /([^\s]+) \]/g, '$1]' ], // PEP8 E202 remove whitespaces before right ] square bracket 
-            [ /([^\s]+) \}/g, '$1}' ], // PEP8 E202 remove whitespaces before right } bracket 
+            [ /([^=\s]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
+            [ /\[ /g, '[' ],            // PEP8 E201 remove whitespaces after left [ square bracket
+            [ /\{ /g, '{' ],            // PEP8 E201 remove whitespaces after left { bracket
+            [ /([^\s]+) \]/g, '$1]' ],  // PEP8 E202 remove whitespaces before right ] square bracket 
+            [ /([^\s]+) \}/g, '$1}' ],  // PEP8 E202 remove whitespaces before right } bracket 
         ]
 
         let phRegex = [
