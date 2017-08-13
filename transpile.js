@@ -37,7 +37,9 @@ while (exchanges = regex.exec (contents)) {
     let pyParams = params
         .join ("\n        ")
         .replace (/ \/\//g, ' #')
-        .replace (/\{\ /g, '{')             // PEP8 E201
+        .replace (/\{ /g, '{')              // PEP8 E201
+        .replace (/\[ /g, '[')              // PEP8 E201
+        .replace (/([^\s]+) \]/g, '$1]')    // PEP8 E202
         .replace (/([^\s]+) \}\,/g, '$1},') // PEP8 E202
 
     py.push ('')

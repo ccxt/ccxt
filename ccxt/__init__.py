@@ -1066,7 +1066,7 @@ class anxpro (Exchange):
         params = {
             'id': 'anxpro',
             'name': 'ANXPro',
-            'countries': [ 'JP', 'SG', 'HK', 'NZ', ],
+            'countries': ['JP', 'SG', 'HK', 'NZ',],
             'version': '2',
             'rateLimit': 1500,
             'urls': {
@@ -1415,7 +1415,7 @@ class bitbay (Exchange):
         params = {
             'id': 'bitbay',
             'name': 'BitBay',
-            'countries': [ 'PL', 'EU', ], # Poland
+            'countries': ['PL', 'EU',], # Poland
             'rateLimit': 1000,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
@@ -1574,7 +1574,7 @@ class bitbays (Exchange):
         params = {
             'id': 'bitbays',
             'name': 'BitBays',
-            'countries': [ 'CN', 'GB', 'HK', 'AU', 'CA' ],
+            'countries': ['CN', 'GB', 'HK', 'AU', 'CA'],
             'rateLimit': 1500,
             'version': 'v1',
             'urls': {
@@ -2356,7 +2356,7 @@ class bitlish (Exchange):
         params = {
             'id': 'bitlish',
             'name': 'bitlish',
-            'countries': [ 'GB', 'EU', 'RU', ],
+            'countries': ['GB', 'EU', 'RU',],
             'rateLimit': 1500,
             'version': 'v1',
             'urls': {
@@ -2576,7 +2576,7 @@ class bitmarket (Exchange):
         params = {
             'id': 'bitmarket',
             'name': 'BitMarket',
-            'countries': [ 'PL', 'EU', ],
+            'countries': ['PL', 'EU',],
             'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg',
@@ -3653,7 +3653,7 @@ class blinktrade (Exchange):
         params = {
             'id': 'blinktrade',
             'name': 'BlinkTrade',
-            'countries': [ 'US', 'VE', 'VN', 'BR', 'PK', 'CL' ],
+            'countries': ['US', 'VE', 'VN', 'BR', 'PK', 'CL'],
             'rateLimit': 1000,
             'version': 'v1',
             'urls': {
@@ -3815,7 +3815,7 @@ class bl3p (Exchange):
         params = {
             'id': 'bl3p',
             'name': 'BL3P',
-            'countries': [ 'NL', 'EU' ], # Netherlands, EU
+            'countries': ['NL', 'EU'], # Netherlands, EU
             'rateLimit': 1000,
             'version': '1',
             'comment': 'An exchange market by BitonicNL',
@@ -4216,7 +4216,7 @@ class btce (Exchange):
         params = {
             'id': 'btce',
             'name': 'BTC-e',
-            'countries': [ 'BG', 'RU' ], # Bulgaria, Russia
+            'countries': ['BG', 'RU'], # Bulgaria, Russia
             'version': '3',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27843225-1b571514-611a-11e7-9208-2641a560b561.jpg',
@@ -4629,7 +4629,7 @@ class btctrader (Exchange):
         params = {
             'id': 'btctrader',
             'name': 'BTCTrader',
-            'countries': [ 'TR', 'GR', 'PH' ], # Turkey, Greece, Philippines
+            'countries': ['TR', 'GR', 'PH'], # Turkey, Greece, Philippines
             'rateLimit': 1000,
             'comment': 'base API for BTCExchange, BTCTurk',
             'urls': {
@@ -5030,7 +5030,7 @@ class btcx (Exchange):
         params = {
             'id': 'btcx',
             'name': 'BTCX',
-            'countries': [ 'IS', 'US', 'EU', ],
+            'countries': ['IS', 'US', 'EU',],
             'rateLimit': 1500, # support in english is very poor, unable to tell rate limits
             'version': 'v1',
             'urls': {
@@ -5180,7 +5180,7 @@ class bter (Exchange):
         params = {
             'id': 'bter',
             'name': 'Bter',
-            'countries': [ 'VG', 'CN' ], # British Virgin Islands, China
+            'countries': ['VG', 'CN'], # British Virgin Islands, China
             'version': '2',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
@@ -5616,7 +5616,7 @@ class ccex (Exchange):
         params = {
             'id': 'ccex',
             'name': 'C-CEX',
-            'countries': [ 'DE', 'EU', ],
+            'countries': ['DE', 'EU',],
             'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
@@ -5816,7 +5816,7 @@ class cex (Exchange):
         params = {
             'id': 'cex',
             'name': 'CEX.IO',
-            'countries': [ 'GB', 'EU', 'CY', 'RU', ],
+            'countries': ['GB', 'EU', 'CY', 'RU',],
             'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -6232,7 +6232,7 @@ class coincheck (Exchange):
         params = {
             'id': 'coincheck',
             'name': 'coincheck',
-            'countries': [ 'JP', 'ID', ],
+            'countries': ['JP', 'ID',],
             'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
@@ -6439,7 +6439,7 @@ class coingi (Exchange):
             'id': 'coingi',
             'name': 'Coingi',
             'rateLimit': 1000,
-            'countries': [ 'PA', 'BG', 'CN', 'US' ], # Panama, Bulgaria, China, US
+            'countries': ['PA', 'BG', 'CN', 'US'], # Panama, Bulgaria, China, US
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
                 'api': 'https://api.coingi.com',
@@ -6778,7 +6778,7 @@ class coinmate (Exchange):
         params = {
             'id': 'coinmate',
             'name': 'CoinMate',
-            'countries': [ 'GB', 'CZ' ], # UK, Czech Republic
+            'countries': ['GB', 'CZ'], # UK, Czech Republic
             'rateLimit': 1000,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
@@ -7589,7 +7589,7 @@ class exmo (Exchange):
         params = {
             'id': 'exmo',
             'name': 'EXMO',
-            'countries': [ 'ES', 'RU', ], # Spain, Russia
+            'countries': ['ES', 'RU',], # Spain, Russia
             'rateLimit': 1000, # once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1',
             'urls': {
@@ -10205,7 +10205,7 @@ class livecoin (Exchange):
         params = {
             'id': 'livecoin',
             'name': 'LiveCoin',
-            'countries': [ 'US', 'UK', 'RU' ],
+            'countries': ['US', 'UK', 'RU'],
             'rateLimit': 1000,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
@@ -10431,7 +10431,7 @@ class liqui (btce):
         params = {
             'id': 'liqui',
             'name': 'Liqui',
-            'countries': [ 'UA', ],
+            'countries': ['UA',],
             'rateLimit': 1000,
             'version': '3',
             'urls': {
@@ -10480,7 +10480,7 @@ class luno (Exchange):
         params = {
             'id': 'luno',
             'name': 'luno',
-            'countries': [ 'GB', 'SG', 'ZA', ],
+            'countries': ['GB', 'SG', 'ZA',],
             'rateLimit': 3000,
             'version': '1',
             'urls': {
@@ -10721,7 +10721,7 @@ class mercado (Exchange):
             },
             'api': {
                 'public': {
-                    'get': [ # last slash critical
+                    'get': [# last slash critical
                         'orderbook/',
                         'orderbook_litecoin/',
                         'ticker/',
@@ -11070,7 +11070,7 @@ class okcoinusd (okcoin):
         params = {
             'id': 'okcoinusd',
             'name': 'OKCoin USD',
-            'countries': [ 'CN', 'US' ],
+            'countries': ['CN', 'US'],
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api': 'https://www.okcoin.com',
@@ -11098,7 +11098,7 @@ class paymium (Exchange):
         params = {
             'id': 'paymium',
             'name': 'Paymium',
-            'countries': [ 'FR', 'EU', ],
+            'countries': ['FR', 'EU',],
             'rateLimit': 2000,
             'version': 'v1',
             'urls': {
@@ -11712,7 +11712,7 @@ class quoine (Exchange):
         params = {
             'id': 'quoine',
             'name': 'QUOINE',
-            'countries': [ 'JP', 'SG', 'VN' ],
+            'countries': ['JP', 'SG', 'VN'],
             'version': '2',
             'rateLimit': 1000,
             'urls': {
