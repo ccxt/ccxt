@@ -1728,7 +1728,7 @@ var bitcoincoid = {
         'www': 'https://www.bitcoin.co.id',
         'doc': [
             'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
-            'https://vip.bitcoin.co.id/trade_api',            
+            'https://vip.bitcoin.co.id/trade_api',
         ],
     },
     'api': {
@@ -1892,7 +1892,7 @@ var bitcoincoid = {
         let response = await this.fetch (url, method, headers, body);
         if ('error' in response)
             throw new ExchangeError (this.id + ' ' + response['error']);
-        return response;        
+        return response;
     },
 }
 
@@ -2253,7 +2253,7 @@ var bitflyer = {
             };
             if (currency in balances) {
                 account['total'] = balances[currency]['amount'];
-                account['free'] = balances[currency]['available'];                
+                account['free'] = balances[currency]['available'];
                 account['used'] = account['total'] - account['free'];
             }
             result[currency] = account;
@@ -2553,7 +2553,7 @@ var bitlish = {
             };
             if (currency in balance) {
                 account['free'] = parseFloat (balance[currency]['funds']);
-                account['used'] = parseFloat (balance[currency]['holded']);                
+                account['used'] = parseFloat (balance[currency]['holded']);
                 account['total'] = this.sum (account['free'], account['used']);
             }
             result[currency] = account;
@@ -3638,7 +3638,7 @@ var bittrex = {
                 let [ quote, base ] = id.split ('-');
                 base = this.commonCurrencyCode (base);
                 quote = this.commonCurrencyCode (quote);
-                symbol = base + '/' + quote;                
+                symbol = base + '/' + quote;
             }
             result[symbol] = this.parseTicker (ticker, market);
         }
@@ -4010,7 +4010,7 @@ var bl3p = {
     async fetchTicker (market) {
         let ticker = await this.publicGetMarketTicker ({
             'market': this.marketId (market),
-        });        
+        });
         let timestamp = ticker['timestamp'] * 1000;
         return {
             'timestamp': timestamp,
@@ -4269,7 +4269,7 @@ var btcchina = {
         await this.loadMarkets ();
         let market = params['market']; // TODO fixme
         return this.privatePostCancelOrder (this.extend ({
-            'params': [ id, market ], 
+            'params': [ id, market ],
         }, params));
     },
 
@@ -4748,7 +4748,7 @@ var btcmarkets = {
             if ('success' in response)
                 if (!response['success'])
                     throw new ExchangeError (this.id + ' ' + this.json (response));
-            return response;            
+            return response;
         }
         return response;
     },
@@ -4776,7 +4776,6 @@ var btctrader = {
                 'orderbook',
                 'ticker',
                 'trades',   // ?last=COUNT (max 50)
-
             ],
         },
         'private': {
@@ -4784,7 +4783,6 @@ var btctrader = {
                 'balance',
                 'openOrders',
                 'userTransactions', // ?offset=0&limit=25&sort=asc
-
             ],
             'post': [
                 'buy',
@@ -4996,7 +4994,7 @@ var btctradeua = {
         let response = await this.privatePostBalance ();
         let result = { 'info': response };
         if ('accounts' in result) {
-            let accounts = response['accounts'];        
+            let accounts = response['accounts'];
             for (let b = 0; b < accounts.length; b++) {
                 let account = accounts[b];
                 let currency = account['currency'];
@@ -5548,7 +5546,7 @@ var bter = {
         if ('result' in response)
             if (response['result'] != 'true')
                 throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;        
+        return response;
     },
 }
 
@@ -6137,7 +6135,7 @@ var cex = {
         for (let t = 0; t < tickers.length; t++) {
             let ticker = tickers[t];
             let symbol = ticker['pair'].replace (':', '/');
-            let market = this.markets[symbol];            
+            let market = this.markets[symbol];
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
@@ -6381,16 +6379,16 @@ var chbtc = {
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api]; 
+        let url = this.urls['api'][api];
         if (api == 'public') {
             url += '/' + this.version + '/' + path;
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
             let paramsLength = params.length; // params should be a string here!
-            let nonce = this.nonce ();            
-            let auth = 'method=' + path;            
-            auth += '&accesskey=' + this.apiKey;            
+            let nonce = this.nonce ();
+            let auth = 'method=' + path;
+            auth += '&accesskey=' + this.apiKey;
             auth += paramsLength ? params : '';
             let secret = this.hash (this.encode (this.secret), 'sha1');
             let signature = this.hmac (this.encode (auth), this.encode (secret), 'md5');
@@ -6834,7 +6832,7 @@ var coingi = {
             }, query);
             let auth = nonce.toString () + '$' + this.apiKey;
             request['signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
-            body = this.json (request);            
+            body = this.json (request);
             headers = {
                 'Content-Type': 'application/json',
                 'Content-Length': body.length,
@@ -6899,7 +6897,7 @@ var coinmarketcap = {
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             for (let c = 0; c < this.currencies.length; c++) {
-                let base = market['symbol'];                
+                let base = market['symbol'];
                 let baseId = market['id'];
                 let quote = this.currencies[c];
                 let quoteId = quote.toLowerCase ();
@@ -7045,8 +7043,8 @@ var coinmate = {
         },
     },
     'markets': {
-        'BTC/EUR': { 'id': 'BTC_EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'  },
-        'BTC/CZK': { 'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK'  },
+        'BTC/EUR': { 'id': 'BTC_EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+        'BTC/CZK': { 'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK' },
     },
 
     async fetchBalance () {
@@ -7594,7 +7592,7 @@ var coinspot = {
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePostMy' + this.capitalize (side);
-        if (type =='market')
+        if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let order = {
             'cointype': this.marketId (market),
@@ -7841,7 +7839,7 @@ var dsx = {
         if ('success' in response)
             if (response['success'])
                 return response;
-        throw new ExchangeError (this.id + ' ' + this.json (response)); 
+        throw new ExchangeError (this.id + ' ' + this.json (response));
     },
 }
 
@@ -8019,7 +8017,7 @@ var exmo = {
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let prefix = '';
-        if (type =='market')
+        if (type == 'market')
             prefix = 'market_';
         let order = {
             'pair': this.marketId (market),
@@ -8233,7 +8231,7 @@ var flowbtc = {
         if ('ins' in params) {
             return this.privatePostCancelOrder (this.extend ({
                 'serverOrderId': id,
-            }, params));            
+            }, params));
         }
         throw new ExchangeError (this.id + ' requires `ins` symbol parameter for cancelling an order');
     },
@@ -8563,7 +8561,7 @@ var gatecoin = {
                 'Trade/StopOrders', // Gets all stop orders for the logged in trader. Max 1000 record.
                 'Trade/StopOrdersHistory', // Gets all stop orders for the logged in trader. Max 1000 record.
                 'Trade/Trades', // Gets all transactions of logged in user
-                'Trade/UserTrades', // Gets all transactions of logged in user            
+                'Trade/UserTrades', // Gets all transactions of logged in user
             ],
             'post': [
                 'Account/DocumentAddress', // Upload address proof document
@@ -8659,7 +8657,7 @@ var gatecoin = {
             let account = {
                 'free': balance['availableBalance'],
                 'used': this.sum (
-                    balance['pendingIncoming'], 
+                    balance['pendingIncoming'],
                     balance['pendingOutgoing'],
                     balance['openOrder']),
                 'total': balance['balance'],
@@ -10185,7 +10183,7 @@ var kraken = {
         if (darkpool)
             throw new ExchangeError (this.id + ' does not provide an order book for darkpool symbol ' + market);
         let p = this.market (market);
-        let response = await this.publicGetDepth  (this.extend ({
+        let response = await this.publicGetDepth (this.extend ({
             'pair': p['id'],
         }, params));
         let orderbook = response['result'][p['id']];
@@ -10789,7 +10787,7 @@ var livecoin = {
             else
                 if (query)
                     body = query;
-            let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');            
+            let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');
             headers = {
                 'Api-Key': this.apiKey,
                 'Sign': signature.toUpperCase (),
@@ -11003,7 +11001,7 @@ var luno = {
             'baseVolume': undefined,
             'quoteVolume': parseFloat (ticker['rolling_24_hour_volume']),
             'info': ticker,
-        };        
+        };
     },
 
     async fetchTickers () {
@@ -11570,7 +11568,7 @@ var paymium = {
     },
 
     async fetchOrderBook (market, params = {}) {
-        let orderbook = await this.publicGetDataIdDepth  (this.extend ({
+        let orderbook = await this.publicGetDataIdDepth (this.extend ({
             'id': this.marketId (market),
         }, params));
         let timestamp = this.milliseconds ();
@@ -12222,7 +12220,7 @@ var quoine = {
         let balances = await this.privateGetAccountsBalance ();
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];            
+            let balance = balances[b];
             let currency = balance['currency'];
             let total = parseFloat (balance['balance']);
             let account = {
@@ -12434,7 +12432,7 @@ var southxchange = {
         let balances = await this.privatePostListBalances ();
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];            
+            let balance = balances[b];
             let currency = balance['Currency'];
             let uppercase = currency.uppercase;
             let free = parseFloat (balance['Available']);
@@ -12684,11 +12682,11 @@ var therock = {
         let balances = response['balances'];
         let result = { 'info': response };
         for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];            
+            let balance = balances[b];
             let currency = balance['currency'];
             let free = balance['trading_balance'];
             let total = balance['balance'];
-            let used = total - free;            
+            let used = total - free;
             let account = {
                 'free': free,
                 'used': used,
@@ -12920,7 +12918,7 @@ var vaultoro = {
         let balances = response['data'];
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];            
+            let balance = balances[b];
             let currency = balance['currency_code'];
             let uppercase = currency.toUpperCase ();
             let free = balance['cash'];
@@ -13157,7 +13155,7 @@ var virwox = {
         let balances = response['result']['accountList'];
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];            
+            let balance = balances[b];
             let currency = balance['currency'];
             let total = balance['balance'];
             let account = {
@@ -13420,7 +13418,7 @@ var xbtce = {
         let balances = await this.privateGetAsset ();
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];            
+            let balance = balances[b];
             let currency = balance['Currency'];
             let uppercase = currency.toUpperCase ();
             // xbtce names DASH incorrectly as DSH
@@ -13585,7 +13583,7 @@ var xbtce = {
                     body = this.json (query);
                 }
                 else
-                    url += '?' + this.urlencode (query);                
+                    url += '?' + this.urlencode (query);
             }
             let auth = nonce + this.uid + this.apiKey + method + url;
             if (body)
@@ -13931,7 +13929,7 @@ var yunbi = {
             'baseVolume': undefined,
             'quoteVolume': parseFloat (ticker['vol']),
             'info': ticker,
-        };        
+        };
     },
 
     async fetchTickers () {
@@ -14140,7 +14138,7 @@ var zaif = {
 
     async fetchOrderBook (market, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.apiGetDepthPair  (this.extend ({
+        let orderbook = await this.apiGetDepthPair (this.extend ({
             'pair': this.marketId (market),
         }, params));
         let timestamp = this.milliseconds ();

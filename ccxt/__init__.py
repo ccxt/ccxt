@@ -1746,7 +1746,7 @@ class bitcoincoid (Exchange):
                 'www': 'https://www.bitcoin.co.id',
                 'doc': [
                     'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
-                    'https://vip.bitcoin.co.id/trade_api',            
+                    'https://vip.bitcoin.co.id/trade_api',
                 ],
             },
             'api': {
@@ -8287,7 +8287,7 @@ class gatecoin (Exchange):
                         'Trade/StopOrders', # Gets all stop orders for the logged in trader. Max 1000 record.
                         'Trade/StopOrdersHistory', # Gets all stop orders for the logged in trader. Max 1000 record.
                         'Trade/Trades', # Gets all transactions of logged in user
-                        'Trade/UserTrades', # Gets all transactions of logged in user            
+                        'Trade/UserTrades', # Gets all transactions of logged in user
                     ],
                     'post': [
                         'Account/DocumentAddress', # Upload address proof document
