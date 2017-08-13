@@ -13520,7 +13520,7 @@ var xbtce = {
                     base = 'DASH';
                 if (quote == 'DSH')
                     quote = 'DASH';
-                symbol = base + '/' + quote;                
+                symbol = base + '/' + quote;
             }
             let ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
