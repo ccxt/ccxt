@@ -61,7 +61,7 @@ try:
 
 except ccxt.DDoSProtection as e:
     print(type(e).__name__, e.args, 'DDoS Protection (ignoring)')
-except ccxt.TimeoutError as e:
+except ccxt.RequestTimeout as e:
     print(type(e).__name__, e.args, 'Request Timeout (ignoring)')
 except ccxt.ExchangeNotAvailable as e:
     print(type(e).__name__, e.args, 'Exchange Not Available due to downtime or maintenance (ignoring)')
