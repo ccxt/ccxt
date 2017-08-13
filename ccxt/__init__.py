@@ -348,7 +348,7 @@ class Exchange (object):
     @staticmethod
     def index_by(array, key):
         result = {}    
-        if type (array) is dict:
+        if type(array) is dict:
             array = list(Exchange.keysort(array).items())
         for element in array:
             if (key in element) and (element[key] is not None):
@@ -362,7 +362,7 @@ class Exchange (object):
 
     @staticmethod
     def sort_by(l, key, descending=False):
-        return sorted (l, key=lambda k: k[key], reverse=descending)
+        return sorted(l, key=lambda k: k[key], reverse=descending)
 
     @staticmethod
     def sortBy(l, key, descending=False):
@@ -416,31 +416,31 @@ class Exchange (object):
     @staticmethod
     def s():
         return Exchange.seconds()
-    
+
     @staticmethod
     def sec():
         return Exchange.seconds()
-    
+
     @staticmethod
     def ms():
         return Exchange.milliseconds()
-    
+
     @staticmethod
     def msec():
         return Exchange.milliseconds()
-    
+
     @staticmethod
     def us():
         return Exchange.microseconds()
-    
+
     @staticmethod
     def usec():
         return Exchange.microseconds()
-    
+
     @staticmethod
     def seconds():
         return int(time.time())
-    
+
     @staticmethod
     def milliseconds():
         return int(time.time() * 1000)
@@ -519,7 +519,7 @@ class Exchange (object):
 
     @staticmethod
     def jwt(request, secret, algorithm=hashlib.sha256, alg='HS256'):
-        header = Exchange.encode (Exchange.json ({
+        header = Exchange.encode(Exchange.json({
             'alg': alg,
             'typ': 'JWT',
         }))
@@ -591,7 +591,7 @@ class Exchange (object):
         return self.fetch_markets()
 
     def fetch_tickers(self):
-        raise ExchangeError (self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
+        raise ExchangeError(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
 
     def fetchTickers(self):
         return self.fetch_tickers()
@@ -604,7 +604,7 @@ class Exchange (object):
 
     def market_id(self, market):
         p = self.market(market)
-        return p['id'] if type (p) is dict else market
+        return p['id'] if type(p) is dict else market
 
     def marketId(self, market):
         return self.market_id(market)
