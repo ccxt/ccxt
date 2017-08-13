@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Python codebase is now PEP8-conformant, [issue #104](https://github.com/kroitor/ccxt/issues/104), [pull request #106](https://github.com/kroitor/ccxt/pull/106)
 - Unified `createOrder ()` return, [issue #94](https://github.com/kroitor/ccxt/issues/94)
 - Started work on orders/trades unification, [issue #71](https://github.com/kroitor/ccxt/issues/71), [pull request #102](https://github.com/kroitor/ccxt/pull/102)
 - Added support for a new exchange: [BTC Markets](https://btcmarkets.net) (Australia)
