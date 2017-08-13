@@ -4,34 +4,33 @@ from setuptools import setup, find_packages
 from codecs import open
 from os import path
 import json
-import sys
 
-here = path.abspath (path.dirname (__file__))
+here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with open (path.join (here, 'README.rst'), encoding='utf-8') as f:
+with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
-# Get the version number and all other params from package.json    
-with open (path.join (here, 'package.json'), encoding = 'utf-8') as f:
-    package = json.load (f)
- 
-setup (
+# Get the version number and all other params from package.json
+with open(path.join(here, 'package.json'), encoding='utf-8') as f:
+    package = json.load(f)
 
-    name = package['name'],
-    version = package['version'],
-    
-    description = package['description'],
-    long_description = long_description,
-    
-    url = package['homepage'],
-    
-    author = package['author']['name'],
-    author_email = package['author']['email'],
-    
-    license = package['license'],
+setup(
 
-    classifiers = [
+    name=package['name'],
+    version=package['version'],
+
+    description=package['description'],
+    long_description=long_description,
+
+    url=package['homepage'],
+
+    author=package['author']['name'],
+    author_email=package['author']['email'],
+
+    license=package['license'],
+
+    classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Intended Audience :: Financial and Insurance Industry',
@@ -52,6 +51,6 @@ setup (
         'Environment :: Console'
     ],
 
-    keywords = package['keywords'],
-    packages = find_packages ()
+    keywords=package['keywords'],
+    packages=find_packages()
 )
