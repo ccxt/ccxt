@@ -13970,8 +13970,9 @@ var yunbi = {
 
     async fetchTrades (market) {
         await this.loadMarkets ();
+        let m = this.market (market);
         return this.publicGetTrades ({
-            'pair': this.marketId (market),
+            'market': m['id'],
         });
     },
 
