@@ -1901,7 +1901,7 @@ class bitcoincoid (Exchange):
         response = self.fetch(url, method, headers, body)
         if 'error' in response:
             raise ExchangeError(self.id + ' ' + response['error'])
-        return response        
+        return response
 
 #------------------------------------------------------------------------------
 
@@ -2247,7 +2247,7 @@ class bitflyer (Exchange):
             }
             if currency in balances:
                 account['total'] = balances[currency]['amount']
-                account['free'] = balances[currency]['available']                
+                account['free'] = balances[currency]['available']
                 account['used'] = account['total'] - account['free']
             result[currency] = account
         return result
@@ -2528,7 +2528,7 @@ class bitlish (Exchange):
             }
             if currency in balance:
                 account['free'] = float(balance[currency]['funds'])
-                account['used'] = float(balance[currency]['holded'])                
+                account['used'] = float(balance[currency]['holded'])
                 account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
         return result
@@ -3567,7 +3567,7 @@ class bittrex (Exchange):
                 quote, base = id.split('-')
                 base = self.commonCurrencyCode(base)
                 quote = self.commonCurrencyCode(quote)
-                symbol = base + '/' + quote                
+                symbol = base + '/' + quote
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
@@ -3916,7 +3916,7 @@ class bl3p (Exchange):
     def fetch_ticker(self, market):
         ticker = self.publicGetMarketTicker({
             'market': self.market_id(market),
-        })        
+        })
         timestamp = ticker['timestamp'] * 1000
         return {
             'timestamp': timestamp,
@@ -4164,7 +4164,7 @@ class btcchina (Exchange):
         self.loadMarkets()
         market = params['market'] # TODO fixme
         return self.privatePostCancelOrder(self.extend({
-            'params': [id, market], 
+            'params': [id, market],
         }, params))
 
     def nonce(self):
@@ -4618,7 +4618,7 @@ class btcmarkets (Exchange):
             if 'success' in response:
                 if not response['success']:
                     raise ExchangeError(self.id + ' ' + self.json(response))
-            return response            
+            return response
         return response
 
 #------------------------------------------------------------------------------
@@ -4645,7 +4645,6 @@ class btctrader (Exchange):
                         'orderbook',
                         'ticker',
                         'trades',   # ?last=COUNT (max 50)
-        
                     ],
                 },
                 'private': {
@@ -4653,7 +4652,6 @@ class btctrader (Exchange):
                         'balance',
                         'openOrders',
                         'userTransactions', # ?offset=0&limit=25&sort=asc
-        
                     ],
                     'post': [
                         'buy',
@@ -4864,7 +4862,7 @@ class btctradeua (Exchange):
         response = self.privatePostBalance()
         result = {'info': response}
         if 'accounts' in result:
-            accounts = response['accounts']        
+            accounts = response['accounts']
             for b in range(0, len(accounts)):
                 account = accounts[b]
                 currency = account['currency']
@@ -5383,7 +5381,7 @@ class bter (Exchange):
         if 'result' in response:
             if response['result'] != 'true':
                 raise ExchangeError(self.id + ' ' + self.json(response))
-        return response        
+        return response
 
 #------------------------------------------------------------------------------
 
@@ -5946,7 +5944,7 @@ class cex (Exchange):
         for t in range(0, len(tickers)):
             ticker = tickers[t]
             symbol = ticker['pair'].replace(':', '/')
-            market = self.markets[symbol]            
+            market = self.markets[symbol]
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
@@ -6177,16 +6175,16 @@ class chbtc (Exchange):
         return self.milliseconds()
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api] 
+        url = self.urls['api'][api]
         if api == 'public':
             url += '/' + self.version + '/' + path
             if params:
                 url += '?' + _urlencode.urlencode(params)
         else:
-            paramsLength = len(params) # params should be a string herenot 
-            nonce = self.nonce()            
-            auth = 'method=' + path            
-            auth += '&accesskey=' + self.apiKey            
+            paramsLength = len(params) # params should be a string here
+            nonce = self.nonce()
+            auth = 'method=' + path
+            auth += '&accesskey=' + self.apiKey
             auth += params if paramsLength else ''
             secret = self.hash(self.encode(self.secret), 'sha1')
             signature = self.hmac(self.encode(auth), self.encode(secret), hashlib.md5)
@@ -6414,7 +6412,7 @@ class coincheck (Exchange):
             if query:
                 body = _urlencode.urlencode(self.keysort(query))
                 length = len(body)
-            auth = nonce + url +(body or '')
+            auth = nonce + url + (body or '')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': length,
@@ -6613,7 +6611,7 @@ class coingi (Exchange):
             }, query)
             auth = str(nonce) + '$' + self.apiKey
             request['signature'] = self.hmac(self.encode(auth), self.encode(self.secret))
-            body = self.json(request)            
+            body = self.json(request)
             headers = {
                 'Content-Type': 'application/json',
                 'Content-Length': len(body),
@@ -6679,7 +6677,7 @@ class coinmarketcap (Exchange):
         for p in range(0, len(markets)):
             market = markets[p]
             for c in range(0, len(self.currencies)):
-                base = market['symbol']                
+                base = market['symbol']
                 baseId = market['id']
                 quote = self.currencies[c]
                 quoteId = quote.lower()
@@ -6817,8 +6815,8 @@ class coinmate (Exchange):
                 },
             },
             'markets': {
-                'BTC/EUR': {'id': 'BTC_EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'  },
-                'BTC/CZK': {'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK'  },
+                'BTC/EUR': {'id': 'BTC_EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
+                'BTC/CZK': {'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK'},
             },
         }
         params.update(config)
@@ -7344,7 +7342,7 @@ class coinspot (Exchange):
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         method = 'privatePostMy' + self.capitalize(side)
-        if type =='market':
+        if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         order = {
             'cointype': self.market_id(market),
@@ -7579,7 +7577,7 @@ class dsx (Exchange):
         if 'success' in response:
             if response['success']:
                 return response
-        raise ExchangeError(self.id + ' ' + self.json(response)) 
+        raise ExchangeError(self.id + ' ' + self.json(response))
 
 #------------------------------------------------------------------------------
 
@@ -7748,7 +7746,7 @@ class exmo (Exchange):
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.loadMarkets()
         prefix = ''
-        if type =='market':
+        if type == 'market':
             prefix = 'market_'
         order = {
             'pair': self.market_id(market),
@@ -7952,7 +7950,7 @@ class flowbtc (Exchange):
         if 'ins' in params:
             return self.privatePostCancelOrder(self.extend({
                 'serverOrderId': id,
-            }, params))            
+            }, params))
         raise ExchangeError(self.id + ' requires `ins` symbol parameter for cancelling an order')
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -8384,7 +8382,7 @@ class gatecoin (Exchange):
             account = {
                 'free': balance['availableBalance'],
                 'used': self.sum(
-                    balance['pendingIncoming'], 
+                    balance['pendingIncoming'],
                     balance['pendingOutgoing'],
                     balance['openOrder']),
                 'total': balance['balance'],
@@ -8722,7 +8720,7 @@ class gdax (Exchange):
             nonce = str(self.nonce())
             if query:
                 body = self.json(query)
-            what = nonce + method + request +(body or '')
+            what = nonce + method + request + (body or '')
             secret = base64.b64decode(self.secret)
             signature = self.hmac(self.encode(what), secret, hashlib.sha256, 'base64')
             headers = {
@@ -9160,7 +9158,7 @@ class hitbtc (Exchange):
                     body = _urlencode.urlencode(query)
             if query:
                 url += '?' + _urlencode.urlencode(query)
-            auth = url +(body or '')
+            auth = url + (body or '')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'X-Signature': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512).lower(),
@@ -9843,7 +9841,7 @@ class kraken (Exchange):
         if darkpool:
             raise ExchangeError(self.id + ' does not provide an order book for darkpool symbol ' + market)
         p = self.market(market)
-        response = self.publicGetDepth  (self.extend({
+        response = self.publicGetDepth(self.extend({
             'pair': p['id'],
         }, params))
         orderbook = response['result'][p['id']]
@@ -10411,7 +10409,7 @@ class livecoin (Exchange):
             else:
                 if query:
                     body = query
-            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)            
+            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
             headers = {
                 'Api-Key': self.apiKey,
                 'Sign': signature.upper(),
@@ -10623,7 +10621,7 @@ class luno (Exchange):
             'baseVolume': None,
             'quoteVolume': float(ticker['rolling_24_hour_volume']),
             'info': ticker,
-        }        
+        }
 
     def fetch_tickers(self):
         self.loadMarkets()
@@ -11173,7 +11171,7 @@ class paymium (Exchange):
         return result
 
     def fetch_order_book(self, market, params={}):
-        orderbook = self.publicGetDataIdDepth  (self.extend({
+        orderbook = self.publicGetDataIdDepth(self.extend({
             'id': self.market_id(market),
         }, params))
         timestamp = self.milliseconds()
@@ -11791,7 +11789,7 @@ class quoine (Exchange):
         balances = self.privateGetAccountsBalance()
         result = {'info': balances}
         for b in range(0, len(balances)):
-            balance = balances[b]            
+            balance = balances[b]
             currency = balance['currency']
             total = float(balance['balance'])
             account = {
@@ -11991,7 +11989,7 @@ class southxchange (Exchange):
         balances = self.privatePostListBalances()
         result = {'info': balances}
         for b in range(0, len(balances)):
-            balance = balances[b]            
+            balance = balances[b]
             currency = balance['Currency']
             uppercase = currency.uppercase
             free = float(balance['Available'])
@@ -12234,11 +12232,11 @@ class therock (Exchange):
         balances = response['balances']
         result = {'info': response}
         for b in range(0, len(balances)):
-            balance = balances[b]            
+            balance = balances[b]
             currency = balance['currency']
             free = balance['trading_balance']
             total = balance['balance']
-            used = total - free            
+            used = total - free
             account = {
                 'free': free,
                 'used': used,
@@ -12463,7 +12461,7 @@ class vaultoro (Exchange):
         balances = response['data']
         result = {'info': balances}
         for b in range(0, len(balances)):
-            balance = balances[b]            
+            balance = balances[b]
             currency = balance['currency_code']
             uppercase = currency.upper()
             free = balance['cash']
@@ -12695,7 +12693,7 @@ class virwox (Exchange):
         balances = response['result']['accountList']
         result = {'info': balances}
         for b in range(0, len(balances)):
-            balance = balances[b]            
+            balance = balances[b]
             currency = balance['currency']
             total = balance['balance']
             account = {
@@ -12947,7 +12945,7 @@ class xbtce (Exchange):
         balances = self.privateGetAsset()
         result = {'info': balances}
         for b in range(0, len(balances)):
-            balance = balances[b]            
+            balance = balances[b]
             currency = balance['Currency']
             uppercase = currency.upper()
             # xbtce names DASH incorrectly as DSH
@@ -13096,7 +13094,7 @@ class xbtce (Exchange):
                     headers['Content-Type'] = 'application/json'
                     body = self.json(query)
                 else:
-                    url += '?' + _urlencode.urlencode(query)                
+                    url += '?' + _urlencode.urlencode(query)
             auth = nonce + self.uid + self.apiKey + method + url
             if body:
                 auth += body
@@ -13429,7 +13427,7 @@ class yunbi (Exchange):
             'baseVolume': None,
             'quoteVolume': float(ticker['vol']),
             'info': ticker,
-        }        
+        }
 
     def fetch_tickers(self):
         self.loadMarkets()
@@ -13626,7 +13624,7 @@ class zaif (Exchange):
 
     def fetch_order_book(self, market, params={}):
         self.loadMarkets()
-        orderbook = self.apiGetDepthPair  (self.extend({
+        orderbook = self.apiGetDepthPair(self.extend({
             'pair': self.market_id(market),
         }, params))
         timestamp = self.milliseconds()

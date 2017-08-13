@@ -1942,7 +1942,7 @@ class bitcoincoid extends Exchange {
                 'www' => 'https://www.bitcoin.co.id',
                 'doc' => array (
                     'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
-                    'https://vip.bitcoin.co.id/trade_api',            
+                    'https://vip.bitcoin.co.id/trade_api',
                 ),
             ),
             'api' => array (
@@ -2108,7 +2108,7 @@ class bitcoincoid extends Exchange {
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('error', $response))
             throw new ExchangeError ($this->id . ' ' . $response['error']);
-        return $response;        
+        return $response;
     }
 }
 
@@ -2477,7 +2477,7 @@ class bitflyer extends Exchange {
             );
             if (array_key_exists ($currency, $balances)) {
                 $account['total'] = $balances[$currency]['amount'];
-                $account['free'] = $balances[$currency]['available'];                
+                $account['free'] = $balances[$currency]['available'];
                 $account['used'] = $account['total'] - $account['free'];
             }
             $result[$currency] = $account;
@@ -2781,7 +2781,7 @@ class bitlish extends Exchange {
             );
             if (array_key_exists ($currency, $balance)) {
                 $account['free'] = floatval ($balance[$currency]['funds']);
-                $account['used'] = floatval ($balance[$currency]['holded']);                
+                $account['used'] = floatval ($balance[$currency]['holded']);
                 $account['total'] = $this->sum ($account['free'], $account['used']);
             }
             $result[$currency] = $account;
@@ -3885,7 +3885,7 @@ class bittrex extends Exchange {
                 list ($quote, $base) = explode ('-', $id);
                 $base = $this->commonCurrencyCode ($base);
                 $quote = $this->commonCurrencyCode ($quote);
-                $symbol = $base . '/' . $quote;                
+                $symbol = $base . '/' . $quote;
             }
             $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
@@ -4265,7 +4265,7 @@ class bl3p extends Exchange {
     public function fetch_ticker ($market) {
         $ticker = $this->publicGetMarketTicker (array (
             'market' => $this->market_id ($market),
-        ));        
+        ));
         $timestamp = $ticker['timestamp'] * 1000;
         return array (
             'timestamp' => $timestamp,
@@ -4528,7 +4528,7 @@ class btcchina extends Exchange {
         $this->loadMarkets ();
         $market = $params['market']; // TODO fixme
         return $this->privatePostCancelOrder (array_merge (array (
-            'params' => array ($id, $market), 
+            'params' => array ($id, $market),
         ), $params));
     }
 
@@ -5015,7 +5015,7 @@ class btcmarkets extends Exchange {
             if (array_key_exists ('success', $response))
                 if (!$response['success'])
                     throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-            return $response;            
+            return $response;
         }
         return $response;
     }
@@ -5045,7 +5045,6 @@ class btctrader extends Exchange {
                         'orderbook',
                         'ticker',
                         'trades',   // ?last=COUNT (max 50)
-        
                     ),
                 ),
                 'private' => array (
@@ -5053,7 +5052,6 @@ class btctrader extends Exchange {
                         'balance',
                         'openOrders',
                         'userTransactions', // ?offset=0&limit=25&sort=asc
-        
                     ),
                     'post' => array (
                         'buy',
@@ -5275,7 +5273,7 @@ class btctradeua extends Exchange {
         $response = $this->privatePostBalance ();
         $result = array ( 'info' => $response );
         if (array_key_exists ('accounts', $result)) {
-            $accounts = $response['accounts'];        
+            $accounts = $response['accounts'];
             for ($b = 0; $b < count ($accounts); $b++) {
                 $account = $accounts[$b];
                 $currency = $account['currency'];
@@ -5840,7 +5838,7 @@ class bter extends Exchange {
         if (array_key_exists ('result', $response))
             if ($response['result'] != 'true')
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        return $response;        
+        return $response;
     }
 }
 
@@ -6441,7 +6439,7 @@ class cex extends Exchange {
         for ($t = 0; $t < count ($tickers); $t++) {
             $ticker = $tickers[$t];
             $symbol = str_replace (':', '/', $ticker['pair']);
-            $market = $this->markets[$symbol];            
+            $market = $this->markets[$symbol];
             $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
@@ -6690,16 +6688,16 @@ class chbtc extends Exchange {
     }
 
     public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
-        $url = $this->urls['api'][$api]; 
+        $url = $this->urls['api'][$api];
         if ($api == 'public') {
             $url .= '/' . $this->version . '/' . $path;
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
-            $paramsLength = count ($params); // $params should be a string here!
-            $nonce = $this->nonce ();            
-            $auth = 'method=' . $path;            
-            $auth .= '&accesskey=' . $this->apiKey;            
+            $paramsLength = count ($params); // $params should be a string here
+            $nonce = $this->nonce ();
+            $auth = 'method=' . $path;
+            $auth .= '&accesskey=' . $this->apiKey;
             $auth .= $paramsLength ? $params : '';
             $secret = $this->hash ($this->encode ($this->secret), 'sha1');
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($secret), 'md5');
@@ -7156,7 +7154,7 @@ class coingi extends Exchange {
             ), $query);
             $auth = (string) $nonce . '$' . $this->apiKey;
             $request['signature'] = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
-            $body = $this->json ($request);            
+            $body = $this->json ($request);
             $headers = array (
                 'Content-Type' => 'application/json',
                 'Content-Length' => strlen ($body),
@@ -7225,7 +7223,7 @@ class coinmarketcap extends Exchange {
         for ($p = 0; $p < count ($markets); $p++) {
             $market = $markets[$p];
             for ($c = 0; $c < count ($this->currencies); $c++) {
-                $base = $market['symbol'];                
+                $base = $market['symbol'];
                 $baseId = $market['id'];
                 $quote = $this->currencies[$c];
                 $quoteId = strtolower ($quote);
@@ -7373,8 +7371,8 @@ class coinmate extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/EUR' => array ( 'id' => 'BTC_EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR'  ),
-                'BTC/CZK' => array ( 'id' => 'BTC_CZK', 'symbol' => 'BTC/CZK', 'base' => 'BTC', 'quote' => 'CZK'  ),
+                'BTC/EUR' => array ( 'id' => 'BTC_EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
+                'BTC/CZK' => array ( 'id' => 'BTC_CZK', 'symbol' => 'BTC/CZK', 'base' => 'BTC', 'quote' => 'CZK' ),
             ),
         ), $options));
     }
@@ -7932,7 +7930,7 @@ class coinspot extends Exchange {
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
         $method = 'privatePostMy' . $this->capitalize ($side);
-        if ($type =='market')
+        if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $order = array (
             'cointype' => $this->market_id ($market),
@@ -8183,7 +8181,7 @@ class dsx extends Exchange {
         if (array_key_exists ('success', $response))
             if ($response['success'])
                 return $response;
-        throw new ExchangeError ($this->id . ' ' . $this->json ($response)); 
+        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
 
@@ -8365,7 +8363,7 @@ class exmo extends Exchange {
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
         $this->loadMarkets ();
         $prefix = '';
-        if ($type =='market')
+        if ($type == 'market')
             $prefix = 'market_';
         $order = array (
             'pair' => $this->market_id ($market),
@@ -8583,7 +8581,7 @@ class flowbtc extends Exchange {
         if (array_key_exists ('ins', $params)) {
             return $this->privatePostCancelOrder (array_merge (array (
                 'serverOrderId' => $id,
-            ), $params));            
+            ), $params));
         }
         throw new ExchangeError ($this->id . ' requires `ins` symbol parameter for cancelling an order');
     }
@@ -8934,7 +8932,7 @@ class gatecoin extends Exchange {
                         'Trade/StopOrders', // Gets all stop orders for the logged in trader. Max 1000 record.
                         'Trade/StopOrdersHistory', // Gets all stop orders for the logged in trader. Max 1000 record.
                         'Trade/Trades', // Gets all transactions of logged in user
-                        'Trade/UserTrades', // Gets all transactions of logged in user            
+                        'Trade/UserTrades', // Gets all transactions of logged in user
                     ),
                     'post' => array (
                         'Account/DocumentAddress', // Upload address proof document
@@ -9032,7 +9030,7 @@ class gatecoin extends Exchange {
             $account = array (
                 'free' => $balance['availableBalance'],
                 'used' => $this->sum (
-                    $balance['pendingIncoming'], 
+                    $balance['pendingIncoming'],
                     $balance['pendingOutgoing'],
                     $balance['openOrder']),
                 'total' => $balance['balance'],
@@ -10587,7 +10585,7 @@ class kraken extends Exchange {
         if ($darkpool)
             throw new ExchangeError ($this->id . ' does not provide an $order book for $darkpool symbol ' . $market);
         $p = $this->market ($market);
-        $response = $this->publicGetDepth  (array_merge (array (
+        $response = $this->publicGetDepth (array_merge (array (
             'pair' => $p['id'],
         ), $params));
         $orderbook = $response['result'][$p['id']];
@@ -11199,7 +11197,7 @@ class livecoin extends Exchange {
             else
                 if ($query)
                     $body = $query;
-            $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha256');            
+            $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha256');
             $headers = array (
                 'Api-Key' => $this->apiKey,
                 'Sign' => strtoupper ($signature),
@@ -11422,7 +11420,7 @@ class luno extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => floatval ($ticker['rolling_24_hour_volume']),
             'info' => $ticker,
-        );        
+        );
     }
 
     public function fetch_tickers () {
@@ -12003,7 +12001,7 @@ class paymium extends Exchange {
     }
 
     public function fetch_order_book ($market, $params=array ()) {
-        $orderbook = $this->publicGetDataIdDepth  (array_merge (array (
+        $orderbook = $this->publicGetDataIdDepth (array_merge (array (
             'id' => $this->market_id ($market),
         ), $params));
         $timestamp = $this->milliseconds ();
@@ -12667,7 +12665,7 @@ class quoine extends Exchange {
         $balances = $this->privateGetAccountsBalance ();
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];            
+            $balance = $balances[$b];
             $currency = $balance['currency'];
             $total = floatval ($balance['balance']);
             $account = array (
@@ -12883,7 +12881,7 @@ class southxchange extends Exchange {
         $balances = $this->privatePostListBalances ();
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];            
+            $balance = $balances[$b];
             $currency = $balance['Currency'];
             $uppercase = $currency.uppercase;
             $free = floatval ($balance['Available']);
@@ -13142,11 +13140,11 @@ class therock extends Exchange {
         $balances = $response['balances'];
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];            
+            $balance = $balances[$b];
             $currency = $balance['currency'];
             $free = $balance['trading_balance'];
             $total = $balance['balance'];
-            $used = $total - $free;            
+            $used = $total - $free;
             $account = array (
                 'free' => $free,
                 'used' => $used,
@@ -13387,7 +13385,7 @@ class vaultoro extends Exchange {
         $balances = $response['data'];
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];            
+            $balance = $balances[$b];
             $currency = $balance['currency_code'];
             $uppercase = strtoupper ($currency);
             $free = $balance['cash'];
@@ -13632,7 +13630,7 @@ class virwox extends Exchange {
         $balances = $response['result']['accountList'];
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];            
+            $balance = $balances[$b];
             $currency = $balance['currency'];
             $total = $balance['balance'];
             $account = array (
@@ -13899,7 +13897,7 @@ class xbtce extends Exchange {
         $balances = $this->privateGetAsset ();
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];            
+            $balance = $balances[$b];
             $currency = $balance['Currency'];
             $uppercase = strtoupper ($currency);
             // xbtce names DASH incorrectly as DSH
@@ -14064,7 +14062,7 @@ class xbtce extends Exchange {
                     $body = $this->json ($query);
                 }
                 else
-                    $url .= '?' . $this->urlencode ($query);                
+                    $url .= '?' . $this->urlencode ($query);
             }
             $auth = $nonce . $this->uid . $this->apiKey . $method . $url;
             if ($body)
@@ -14418,7 +14416,7 @@ class yunbi extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => floatval ($ticker['vol']),
             'info' => $ticker,
-        );        
+        );
     }
 
     public function fetch_tickers () {
@@ -14631,7 +14629,7 @@ class zaif extends Exchange {
 
     public function fetch_order_book ($market, $params=array ()) {
         $this->loadMarkets ();
-        $orderbook = $this->apiGetDepthPair  (array_merge (array (
+        $orderbook = $this->apiGetDepthPair (array_merge (array (
             'pair' => $this->market_id ($market),
         ), $params));
         $timestamp = $this->milliseconds ();

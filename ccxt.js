@@ -6385,7 +6385,7 @@ var chbtc = {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
-            let paramsLength = params.length; // params should be a string here!
+            let paramsLength = params.length; // params should be a string here
             let nonce = this.nonce ();
             let auth = 'method=' + path;
             auth += '&accesskey=' + this.apiKey;
