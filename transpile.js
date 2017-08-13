@@ -81,10 +81,10 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('cancelOrder',      'cancel_order')
                         .replace ('signIn',           'sign_in')
 
-        args = args.length ? args.split (',').map (x => x.trim ()) : []
+        args = args.length ? args.split (',').map (x => x.trim ().replace (' = ', '=')) : []
         let phArgs = args.join (', $').trim ()
         phArgs = phArgs.length ? ('$' + phArgs) : ''
-        let pyArgs = args.join (', ').replace (' = ', '=')
+        let pyArgs = args.join (', ')
 
         let variables = args.map (arg => arg.split ('=').map (x => x.trim ()) [0])
 
@@ -170,9 +170,11 @@ while (exchanges = regex.exec (contents)) {
             [ /Math\.(max|min)\s/g, '$1' ],
             [ /console\.log\s/g, 'print'],
             [ /process\.exit\s+/g, 'sys.exit'],
-            [ /\s+\(/g, '(' ], // remove whitespaces before round brackets
-            [ /\[\s+/g, '[' ], // remove whitespaces after left square brackets
-            [ /\s+\]/g, ']' ], // remove whitespaces before right square brackets
+            [ /\s+\(/g, '(' ], // remove whitespaces before left ( round bracket
+            [ /\[\s+/g, '[' ], // remove whitespaces after left [ square bracket
+            [ /\{\s+/g, '{' ], // remove whitespaces after left { bracket
+            [ /\s+\]/g, ']' ], // remove whitespaces before right ] square bracket
+            [ /\s+\}/g, '}' ], // remove whitespaces before right } bracket
         ]
 
         let phRegex = [
