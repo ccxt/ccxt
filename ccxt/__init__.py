@@ -185,7 +185,7 @@ class Exchange (object):
                         uppercaseMethod  = method.upper()
                         lowercaseMethod  = method.lower()
                         camelcaseMethod  = lowercaseMethod.capitalize()
-                        camelcaseSuffix  = ''.join ([Exchange.capitalize(x) for x in splitPath])
+                        camelcaseSuffix  = ''.join([Exchange.capitalize(x) for x in splitPath])
                         lowercasePath    = [x.strip().lower() for x in splitPath]
                         underscoreSuffix = '_'.join([k for k in lowercasePath if len(k)])
 
@@ -210,7 +210,7 @@ class Exchange (object):
         if error:
             if type(error) is _urllib.HTTPError:
                 details = ' '.join([
-                    str (error.code),
+                    str(error.code),
                     error.msg,
                     error.read().decode('utf-8'),
                     details,
@@ -224,57 +224,57 @@ class Exchange (object):
                 details,
             ]))
         else:
-            raise exception_type(' '.join ([self.id, method, url, details]))
-    
-    def fetch (self, url, method = 'GET', headers = None, body = None):
+            raise exception_type(' '.join([self.id, method, url, details]))
+
+    def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         headers = headers or {}
         if self.userAgent:
-            if type (self.userAgent) is str:
-                headers.update ({ 'User-Agent': self.userAgent })
-            elif (type (self.userAgent) is dict) and ('User-Agent' in self.userAgent):
-                headers.update (self.userAgent)
-        if len (self.proxy):
-            headers.update ({ 'Origin': '*' })
-        headers.update ({ 'Accept-Encoding': 'gzip, deflate' })
+            if type(self.userAgent) is str:
+                headers.update({'User-Agent': self.userAgent})
+            elif (type(self.userAgent) is dict) and ('User-Agent' in self.userAgent):
+                headers.update(self.userAgent)
+        if len(self.proxy):
+            headers.update({'Origin': '*'})
+        headers.update({'Accept-Encoding': 'gzip, deflate'})
         url = self.proxy + url
         if self.verbose:
-            print (url, method, url, "\nRequest:", headers, body)
+            print(url, method, url, "\nRequest:", headers, body)
         if body:
-            body = body.encode ()
-        request = _urllib.Request (url, body, headers)
+            body = body.encode()
+        request = _urllib.Request(url, body, headers)
         request.get_method = lambda: method
         response = None
         text = None
         try: # send request and load response
-            handler = _urllib.HTTPHandler if url.startswith ('http://') else _urllib.HTTPSHandler
-            opener = _urllib.build_opener (handler)
-            response = opener.open (request, timeout = int (self.timeout / 1000))
-            text = response.read ()
+            handler = _urllib.HTTPHandler if url.startswith('http://') else _urllib.HTTPSHandler
+            opener = _urllib.build_opener(handler)
+            response = opener.open(request, timeout = int(self.timeout / 1000))
+            text = response.read()
         except socket.timeout as e:
-            raise RequestTimeout (' '.join ([ self.id, method, url, 'request timeout' ]))
+            raise RequestTimeout(' '.join ([self.id, method, url, 'request timeout']))
         except ssl.SSLError as e:
-            self.raise_error (ExchangeNotAvailable, url, method, e)
+            self.raise_error(ExchangeNotAvailable, url, method, e)
         except _urllib.HTTPError as e:
             error = None
             details = text if text else None
             if e.code == 429:
                 error = DDoSProtection
             elif e.code in [404, 409, 500, 501, 502, 525]:
-                details = e.read ().decode ('utf-8', 'ignore') if e else None
+                details = e.read().decode('utf-8', 'ignore') if e else None
                 error = ExchangeNotAvailable
             elif e.code in [400, 403, 405, 503]:
                 # special case to detect ddos protection
-                reason = e.read ().decode ('utf-8', 'ignore')
-                ddos_protection = re.search ('(cloudflare|incapsula)', reason, flags = re.IGNORECASE)
+                reason = e.read().decode('utf-8', 'ignore')
+                ddos_protection = re.search('(cloudflare|incapsula)', reason, flags=re.IGNORECASE)
                 if ddos_protection:
                     error = DDoSProtection
                 else:
                     error = ExchangeNotAvailable
-                    details = '(possible reasons: ' + ', '.join ([
+                    details = '(possible reasons: ' + ', '.join([
                         'invalid API keys',
                         'bad or old nonce',
-                        'exchange is down or offline', 
+                        'exchange is down or offline',
                         'on maintenance',
                         'DDoS protection',
                         'rate-limiting',
@@ -284,49 +284,49 @@ class Exchange (object):
                 error = RequestTimeout
             elif e.code in [401, 422, 511]:
                 error = AuthenticationError
-            self.raise_error (error, url, method, e, details)
+            self.raise_error(error, url, method, e, details)
         except _urllib.URLError as e:
-            self.raise_error (ExchangeNotAvailable, url, method, e)        
-        encoding = response.info ().get ('Content-Encoding')
+            self.raise_error(ExchangeNotAvailable, url, method, e)
+        encoding = response.info().get('Content-Encoding')
         if encoding in ('gzip', 'x-gzip', 'deflate'):
             if encoding == 'deflate':
-                text = zlib.decompress (text, -zlib.MAX_WBITS)
+                text = zlib.decompress(text, -zlib.MAX_WBITS)
             else:
-                data = gzip.GzipFile ('', 'rb', 9, io.BytesIO (text))
-                text = data.read ()
-        body = text.decode ('utf-8')
+                data = gzip.GzipFile('', 'rb', 9, io.BytesIO(text))
+                text = data.read()
+        body = text.decode('utf-8')
         if self.verbose:
-            print (method, url, "\nResponse:", headers, body)
-        return self.handle_response (url, method, headers, body)
+            print(method, url, "\nResponse:", headers, body)
+        return self.handle_response(url, method, headers, body)
 
-    def handle_response (self, url, method = 'GET', headers = None, body = None):
+    def handle_response(self, url, method='GET', headers=None, body=None):
         try:
-            return json.loads (body)
+            return json.loads(body)
         except Exception as e:
-            ddos_protection = re.search ('(cloudflare|incapsula)', body, flags = re.IGNORECASE)
-            exchange_not_available = re.search ('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', body, flags = re.IGNORECASE)
+            ddos_protection = re.search('(cloudflare|incapsula)', body, flags=re.IGNORECASE)
+            exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', body, flags=re.IGNORECASE)
             if ddos_protection:
-                raise DDoSProtection (' '.join ([ self.id, method, url, body ]))
+                raise DDoSProtection(' '.join([self.id, method, url, body]))
             if exchange_not_available:
                 message = 'exchange downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
-                raise ExchangeNotAvailable (' '.join ([
+                raise ExchangeNotAvailable(' '.join([
                     self.id,
                     method,
-                    url,                
+                    url,
                     body,
                     message,
                 ]))
             raise
 
     @staticmethod
-    def decimal (number):
-        return str (decimal.Decimal (str (number)))
+    def decimal(number):
+        return str(decimal.Decimal(str(number)))
 
     @staticmethod
-    def capitalize (string): # first character only, rest characters unchanged
-        if len (string) > 1:
-            return "%s%s" % (string[0].upper (), string[1:])
-        return string.upper ()
+    def capitalize(string): # first character only, rest characters unchanged
+        if len(string) > 1:
+            return "%s%s" % (string[0].upper(), string[1:])
+        return string.upper()
 
     @staticmethod 
     def keysort (dictionary):
