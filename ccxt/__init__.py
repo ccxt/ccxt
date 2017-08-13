@@ -165,7 +165,7 @@ class Exchange (object):
     markets_by_id = None
     substituteCommonCurrencyCodes = True
 
-    def __init__(self, config = {}):
+    def __init__(self, config={}):
 
         version = '.'.join(map(str, sys.version_info[:3]))
         self.userAgent = {
@@ -185,9 +185,9 @@ class Exchange (object):
                         uppercaseMethod  = method.upper()
                         lowercaseMethod  = method.lower()
                         camelcaseMethod  = lowercaseMethod.capitalize()
-                        camelcaseSuffix  = ''.join ([ Exchange.capitalize(x) for x in splitPath ])
+                        camelcaseSuffix  = ''.join ([Exchange.capitalize(x) for x in splitPath])
                         lowercasePath    = [x.strip().lower() for x in splitPath]
-                        underscoreSuffix = '_'.join([ k for k in lowercasePath if len(k) ])
+                        underscoreSuffix = '_'.join([k for k in lowercasePath if len(k)])
 
                         if camelcaseSuffix.find(camelcaseMethod) == 0:
                             camelcaseSuffix = camelcaseSuffix[len(camelcaseMethod):]
@@ -203,28 +203,28 @@ class Exchange (object):
                         setattr(self, underscore, f)
 
         if self.markets:
-            self.set_markets (self.markets)
+            self.set_markets(self.markets)
 
-    def raise_error (self, exception_type, url, method = 'GET', error = None, details = None):
+    def raise_error(self, exception_type, url, method='GET', error=None, details=None):
         details = details if details else ''
         if error:
-            if type (error) is _urllib.HTTPError:
-                details = ' '.join ([
+            if type(error) is _urllib.HTTPError:
+                details = ' '.join([
                     str (error.code),
                     error.msg,
-                    error.read ().decode ('utf-8'),
+                    error.read().decode('utf-8'),
                     details,
                 ])
             else:
-                details = str (error)
-            raise exception_type (' '.join ([ 
-                self.id, 
+                details = str(error)
+            raise exception_type(' '.join([
+                self.id,
                 method,
                 url,
                 details,
             ]))
         else:
-            raise exception_type (' '.join ([ self.id, method, url, details ]))   
+            raise exception_type(' '.join ([self.id, method, url, details]))
     
     def fetch (self, url, method = 'GET', headers = None, body = None):
         """Perform a HTTP request and return decoded JSON data"""
