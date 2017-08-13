@@ -90,7 +90,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.67'
+__version__ = '1.3.68'
 
 #------------------------------------------------------------------------------
 
@@ -11487,7 +11487,9 @@ class poloniex (Exchange):
         response = self.privatePostReturnTradeHistory ({
             'currencyPair': 'all',
         })
-        result = {}
+        result = {
+            'info': response,
+        }
         ids = list (response.keys ())
         for i in range (0, len (ids)):
             id = ids[i]
