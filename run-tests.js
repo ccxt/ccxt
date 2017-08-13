@@ -91,7 +91,9 @@ const exec = (bin, ...args) =>
 
 let numExchangesTested = 0
 
-/*  ------------------------------------------------------------------------ */
+/*  Tests of different languages for the same exchange should be run
+    sequentially to prevent the interleaving nonces problem.
+    ------------------------------------------------------------------------ */
 
 const sequentialMap = async (input, fn) => {
 
