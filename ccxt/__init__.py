@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding=utf-8
 
 exchanges = [
     '_1broker',
@@ -90,7 +90,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.68'
+__version__ = '1.3.72'
 
 #------------------------------------------------------------------------------
 
@@ -126,9 +126,9 @@ except ImportError:
 #------------------------------------------------------------------------------
 
 try:
-    basestring  # Python 3
+    basestring # Python 3
 except NameError:
-    basestring = str  # Python 2
+    basestring = str # Python 2
 
 #------------------------------------------------------------------------------
 
@@ -145,8 +145,8 @@ class ExchangeNotAvailable (NetworkError): pass
 class Exchange (object):
 
     id         = None
-    rateLimit  = 2000   # milliseconds = seconds * 1000
-    timeout    = 10000  # milliseconds = seconds * 1000
+    rateLimit  = 2000  # milliseconds = seconds * 1000
+    timeout    = 10000 # milliseconds = seconds * 1000
     userAgent  = False
     verbose    = False
     markets    = None
@@ -260,7 +260,7 @@ class Exchange (object):
             details = text if text else None
             if e.code == 429:
                 error = DDoSProtection
-            elif e.code in [500, 501, 502, 404, 525]:
+            elif e.code in [404, 409, 500, 501, 502, 525]:
                 details = e.read().decode('utf-8', 'ignore') if e else None
                 error = ExchangeNotAvailable
             elif e.code in [400, 403, 405, 503]:
@@ -452,9 +452,9 @@ class Exchange (object):
     @staticmethod
     def iso8601(timestamp):
         return (datetime
-            .datetime
-            .utcfromtimestamp(int(round(timestamp / 1000)))
-            .strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z')
+                .datetime
+                .utcfromtimestamp(int(round(timestamp / 1000)))
+                .strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z')
 
     @staticmethod
     def yyyymmddhhmmss(timestamp):
@@ -700,7 +700,7 @@ class _1broker (Exchange):
         return categories['response']
 
     def fetch_markets(self):
-        self_ = self # workaround for Babel bug (not passing `self` to _recursive() call)
+        self_ = self # workaround for Babel bug(not passing `self` to _recursive() call)
         categories = self.fetchCategories()
         result = []
         for c in range(0, len(categories)):
@@ -714,7 +714,7 @@ class _1broker (Exchange):
                 symbol = None
                 base = None
                 quote = None
-                if (category == 'FOREX') or (category == 'CRYPTO'):
+                if(category == 'FOREX') or(category == 'CRYPTO'):
                     symbol = market['name']
                     parts = symbol.split('/')
                     base = parts[0]
@@ -769,7 +769,7 @@ class _1broker (Exchange):
         }
 
     def fetch_trades(self, market):
-        raise ExchangeError(self.id + ' fetchTrades () method not implemented yet')
+        raise ExchangeError(self.id + ' fetchTrades() method not implemented yet')
 
     def fetch_ticker(self, market):
         self.loadMarkets()
@@ -805,7 +805,7 @@ class _1broker (Exchange):
         order = {
             'symbol': self.market_id(market),
             'margin': amount,
-            'direction': 'short' if (side == 'sell') else 'long',
+            'direction': 'short' if(side == 'sell') else 'long',
             'leverage': 1,
             'type': side,
         }
@@ -2538,7 +2538,7 @@ class bitlish (Exchange):
         self.loadMarkets()
         order = {
             'pair_id': self.market_id(market),
-            'dir': 'bid' if (side == 'buy') else 'ask',
+            'dir': 'bid' if(side == 'buy') else 'ask',
             'amount': amount,
         }
         if type == 'limit':
@@ -2686,6 +2686,7 @@ class bitmarket (Exchange):
             'datetime': self.iso8601(timestamp),
         }
         return result
+
 
     def fetch_ticker(self, market):
         ticker = self.publicGetJsonMarketTicker({
@@ -2872,7 +2873,7 @@ class bitmex (Exchange):
             isFuturesContract = id != (base + quote)
             base = self.commonCurrencyCode(base)
             quote = self.commonCurrencyCode(quote)
-            symbol = id if isFuturesContract else (base + '/' + quote)
+            symbol = id if isFuturesContract else(base + '/' + quote)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -2916,7 +2917,7 @@ class bitmex (Exchange):
         }
         for o in range(0, len(orderbook)):
             order = orderbook[o]
-            side = 'asks' if (order['side'] == 'Sell') else 'bids'
+            side = 'asks' if(order['side'] == 'Sell') else 'bids'
             amount = order['size']
             price = order['price']
             result[side].append([price, amount])
@@ -3604,7 +3605,7 @@ class bittrex (Exchange):
         self.loadMarkets()
         response = self.accountGetOrder({'uuid': id})
         orderInfo = response['result']
-        orderType = 'buy' if (orderInfo['Type'] == 'LIMIT_BUY') else 'sell'
+        orderType = 'buy' if(orderInfo['Type'] == 'LIMIT_BUY') else 'sell'
         result = {
             'info': response,
             'type': orderType,
@@ -3625,7 +3626,7 @@ class bittrex (Exchange):
         else:
             nonce = self.nonce()
             url += api + '/'
-            if ((api == 'account') and (path != 'withdraw')) or (path == 'openorders'):
+            if((api == 'account') and(path != 'withdraw')) or(path == 'openorders'):
                 url += method.lower()
             url += path + '?' + _urlencode.urlencode(self.extend({
                 'nonce': nonce,
@@ -3943,7 +3944,7 @@ class bl3p (Exchange):
             'market': p['id'],
             'amount_int': amount,
             'fee_currency': p['quote'],
-            'type': 'bid' if (side == 'buy') else 'ask',
+            'type': 'bid' if(side == 'buy') else 'ask',
         }
         if type == 'limit':
             order['price_int'] = price
@@ -4376,7 +4377,7 @@ class btce (Exchange):
         response = self.privatePostOrderInfo({'order_id': id})
         orderInfo = response['return'][id]
         isCanceled = False
-        if (orderInfo['status'] == 2) or (orderInfo['status'] == 3):
+        if(orderInfo['status'] == 2) or(orderInfo['status'] == 3):
             isCanceled = True
         result = {
             'info': response,
@@ -4558,16 +4559,16 @@ class btcmarkets (Exchange):
         m = self.market(market)
         multiplier = 100000000 # for price and volume
         # does BTC Markets support market orders at all?
-        orderSide = 'Bid' if (side == 'buy') else 'Ask'
-        order = self.ordered([
-            ('currency', m['quote']),
-            ('instrument', m['base']),
-            ('price', price * multiplier),
-            ('volume', amount * multiplier),
-            ('orderSide', orderSide),
-            ('ordertype', self.capitalize(type)),
-            ('clientRequestId', str(self.nonce())),
-        ])
+        orderSide = 'Bid' if(side == 'buy') else 'Ask'
+        order = self.ordered({
+            'currency': m['quote'],
+            'instrument': m['base'],
+            'price': price * multiplier,
+            'volume': amount * multiplier,
+            'orderSide': orderSide,
+            'ordertype': self.capitalize(type),
+            'clientRequestId': str(self.nonce()),
+        })
         response = self.privatePostOrderCreate(self.extend(order, params))
         return {
             'info': response,
@@ -4729,8 +4730,8 @@ class btctrader (Exchange):
     def create_order(self, market, type, side, amount, price=None, params={}):
         method = 'privatePost' + self.capitalize(side)
         order = {
-            'Type': 'BuyBtc' if (side == 'buy') else 'SelBtc',
-            'IsMarketOrder': 1 if (type == 'market') else 0,
+            'Type': 'BuyBtc' if(side == 'buy') else 'SelBtc',
+            'IsMarketOrder': 1 if(type == 'market') else 0,
         }
         if type == 'market':
             if side == 'buy':
@@ -4938,9 +4939,9 @@ class btctradeua (Exchange):
                 candle = ticker[t]
                 if result['open'] is None:
                     result['open'] = candle[1]
-                if (result['high'] is None) or (result['high'] < candle[2]):
+                if(result['high'] is None) or(result['high'] < candle[2]):
                     result['high'] = candle[2]
-                if (result['low'] is None) or (result['low'] > candle[3]):
+                if(result['low'] is None) or(result['low'] > candle[3]):
                     result['low'] = candle[3]
                 if result['quoteVolume'] is None:
                     result['quoteVolume'] = -candle[5]
@@ -5357,7 +5358,7 @@ class bter (Exchange):
         return self.privatePostCancelOrder({'orderNumber': id})
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        prefix = (api + '/') if (api == 'private') else ''
+        prefix = (api + '/') if(api == 'private') else ''
         url = self.urls['api'][api] + self.version + '/1/' + prefix + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -6146,7 +6147,7 @@ class chbtc (Exchange):
     def create_order(self, market, type, side, amount, price=None, params={}):
         paramString = '&price=' + str(price)
         paramString += '&amount=' + str(amount)
-        tradeType = '1' if (side == 'buy') else '0'
+        tradeType = '1' if(side == 'buy') else '0'
         paramString += '&tradeType=' + tradeType
         paramString += '&currency=' + self.market_id(market)
         response = self.privatePostOrder(paramString)
@@ -6381,7 +6382,7 @@ class coincheck (Exchange):
         if type == 'market':
             order_type = type + '_' + side
             order['order_type'] = order_type
-            prefix = (order_type + '_') if (side == 'buy') else ''
+            prefix = (order_type + '_') if(side == 'buy') else ''
             order[prefix + 'amount'] = amount
         else:
             order['order_type'] = side
@@ -6582,7 +6583,7 @@ class coingi (Exchange):
             'currencyPair': self.market_id(market),
             'volume': amount,
             'price': price,
-            'orderType': 0 if (side == 'buy') else 1,
+            'orderType': 0 if(side == 'buy') else 1,
         }
         response = self.userPostAddOrder(self.extend(order, params))
         return {
@@ -7179,7 +7180,7 @@ class coinsecure (Exchange):
             else:
                 order['maxVol'] = amount
         else:
-            direction = 'Bid' if (side == 'buy') else 'Ask'
+            direction = 'Bid' if(side == 'buy') else 'Ask'
             method += direction + 'New'
             order['rate'] = price
             order['vol'] = amount
@@ -7190,7 +7191,7 @@ class coinsecure (Exchange):
         }
 
     def cancel_order(self, id):
-        raise ExchangeError(self.id + ' cancelOrder () is not fully implemented yet')
+        raise ExchangeError(self.id + ' cancelOrder() is not fully implemented yet')
         method = 'privateDeleteUserExchangeAskCancelOrderId' # TODO fixme, have to specify order side here
         return getattr(self, method)({'orderID': id})
 
@@ -7348,7 +7349,7 @@ class coinspot (Exchange):
         return getattr(self, method)(self.extend(order, params))
 
     def cancel_order(self, id, params={}):
-        raise ExchangeError(self.id + ' cancelOrder () is not fully implemented yet')
+        raise ExchangeError(self.id + ' cancelOrder() is not fully implemented yet')
         method = 'privatePostMyBuy'
         return getattr(self, method)({'id': id})
 
@@ -7548,7 +7549,7 @@ class dsx (Exchange):
 
     def request(self, path, api='mapi', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
-        if (api == 'mapi') or (api == 'dwapi'):
+        if(api == 'mapi') or(api == 'dwapi'):
             url += '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'mapi':
@@ -7927,7 +7928,7 @@ class flowbtc (Exchange):
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.loadMarkets()
-        orderType = 1 if (type == 'market') else 0
+        orderType = 1 if(type == 'market') else 0
         order = {
             'ins': self.market_id(market),
             'side': side,
@@ -8464,7 +8465,7 @@ class gatecoin (Exchange):
         self.loadMarkets()
         order = {
             'Code': self.market_id(market),
-            'Way': 'Bid' if (side == 'buy') else 'Ask',
+            'Way': 'Bid' if(side == 'buy') else 'Ask',
             'Amount': amount,
         }
         if type == 'limit':
@@ -8492,7 +8493,7 @@ class gatecoin (Exchange):
                 url += '?' + _urlencode.urlencode(query)
         else:
             nonce = self.nonce()
-            contentType = '' if (method == 'GET') else 'application/json'
+            contentType = '' if(method == 'GET') else 'application/json'
             auth = method + url + contentType + str(nonce)
             auth = auth.lower()
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
@@ -9813,14 +9814,14 @@ class kraken (Exchange):
             market = markets['result'][id]
             base = market['base']
             quote = market['quote']
-            if (base[0] == 'X') or (base[0] == 'Z'):
+            if(base[0] == 'X') or(base[0] == 'Z'):
                 base = base[1:]
-            if (quote[0] == 'X') or (quote[0] == 'Z'):
+            if(quote[0] == 'X') or(quote[0] == 'Z'):
                 quote = quote[1:]
             base = self.commonCurrencyCode(base)
             quote = self.commonCurrencyCode(quote)
             darkpool = id.find('.d') >= 0
-            symbol = market['altname'] if darkpool else (base + '/' + quote)
+            symbol = market['altname'] if darkpool else(base + '/' + quote)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -9959,7 +9960,7 @@ class kraken (Exchange):
             order['price'] = price
         response = self.privatePostAddOrder(self.extend(order, params))
         length = len(response['txid'])
-        id = response['txid'] if (length > 1) else response['txid'][0]
+        id = response['txid'] if(length > 1) else response['txid'][0]
         return {
             'info': response,
             'id': id,
@@ -13194,8 +13195,8 @@ class yobit (Exchange):
         }, params))
         orderbook = response[p['id']]
         timestamp = self.milliseconds()
-        bids = orderbook['bids'] if ('bids' in list(orderbook.keys())) else []
-        asks = orderbook['asks'] if ('asks' in list(orderbook.keys())) else []
+        bids = orderbook['bids'] if('bids' in list(orderbook.keys())) else []
+        asks = orderbook['asks'] if('asks' in list(orderbook.keys())) else []
         result = {
             'bids': bids,
             'asks': asks,
@@ -13459,8 +13460,9 @@ class yunbi (Exchange):
 
     def fetch_trades(self, market):
         self.loadMarkets()
+        m = self.market(market)
         return self.publicGetTrades({
-            'pair': self.market_id(market),
+            'market': m['id'],
         })
 
     def create_order(self, market, type, side, amount, price=None, params={}):
@@ -13669,7 +13671,7 @@ class zaif (Exchange):
             raise ExchangeError(self.id + ' allows limit orders only')
         response = self.tapiPostTrade(self.extend({
             'currency_pair': self.market_id(market),
-            'action': 'bid' if (side == 'buy') else 'ask',
+            'action': 'bid' if(side == 'buy') else 'ask',
             'amount': amount,
             'price': price,
         }, params))
