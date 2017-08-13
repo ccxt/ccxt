@@ -117,18 +117,18 @@ import decimal
 #------------------------------------------------------------------------------
 
 try: 
-    import urllib.parse   as _urlencode  # Python 3
+    import urllib.parse   as _urlencode # Python 3
     import urllib.request as _urllib
-except ImportError: 
-    import urllib  as _urlencode         # Python 2
+except ImportError:
+    import urllib  as _urlencode        # Python 2
     import urllib2 as _urllib
 
 #------------------------------------------------------------------------------
 
 try:
-  basestring # Python 3
+    basestring # Python 3
 except NameError:
-  basestring = str # Python 2
+    basestring = str # Python 2
 
 #------------------------------------------------------------------------------
 
