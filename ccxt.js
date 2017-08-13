@@ -13507,13 +13507,13 @@ var xbtce = {
         let ids = Object.keys (tickers);
         let result = {};
         for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
             let market = undefined;
             let symbol = undefined;
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
                 symbol = market['symbol'];
             } else {
-                let id = ids[i];
                 let base = id.slice (0, 3);
                 let quote = id.slice (3, 6);
                 if (base == 'DSH')
