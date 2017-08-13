@@ -678,7 +678,9 @@ var _1broker = {
         await this.loadMarkets ();
         let balance = await this.privateGetUserOverview ();
         let response = balance['response'];
-        let result = { 'info': response };
+        let result = {
+            'info': response,
+        };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             result[currency] = {

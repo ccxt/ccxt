@@ -84,7 +84,7 @@ while (exchanges = regex.exec (contents)) {
         args = args.length ? args.split (',').map (x => x.trim ()) : []
         let phArgs = args.join (', $').trim ()
         phArgs = phArgs.length ? ('$' + phArgs) : ''
-        let pyArgs = args.join (', ')
+        let pyArgs = args.join (', ').replace (' = ', '=')
 
         let variables = args.map (arg => arg.split ('=').map (x => x.trim ()) [0])
 
