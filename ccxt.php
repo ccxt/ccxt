@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.73';
+$version = '1.3.74';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -13987,8 +13987,20 @@ class xbtce extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
+            $market = null;
+            $symbol = null;
+            if (array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+            } else {
+                $base = mb_substr ($id, 0, 3);
+                $quote = mb_substr ($id, 3, 6);
+                if ($base == 'DSH')
+                    $base = 'DASH';
+                if ($quote == 'DSH')
+                    $quote = 'DASH';
+                $symbol = $base . '/' . $quote;
+            }
             $ticker = $tickers[$id];
             $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }

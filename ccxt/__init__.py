@@ -90,7 +90,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.73'
+__version__ = '1.3.74'
 
 #------------------------------------------------------------------------------
 
@@ -13027,8 +13027,19 @@ class xbtce (Exchange):
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
+            market = None
+            symbol = None
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+            else:
+                base = id[0:3]
+                quote = id[3:6]
+                if base == 'DSH':
+                    base = 'DASH'
+                if quote == 'DSH':
+                    quote = 'DASH'
+                symbol = base + '/' + quote
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
         return result
