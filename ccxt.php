@@ -1213,7 +1213,7 @@ class anxpro extends Exchange {
         parent::__construct (array_merge(array (
             'id' => 'anxpro',
             'name' => 'ANXPro',
-            'countries' => array ( 'JP', 'SG', 'HK', 'NZ', ),
+            'countries' => array ( 'JP', 'SG', 'HK', 'NZ' ),
             'version' => '2',
             'rateLimit' => 1500,
             'urls' => array (
@@ -1588,7 +1588,7 @@ class bitbay extends Exchange {
         parent::__construct (array_merge(array (
             'id' => 'bitbay',
             'name' => 'BitBay',
-            'countries' => array ( 'PL', 'EU', ), // Poland
+            'countries' => array ( 'PL', 'EU' ), // Poland
             'rateLimit' => 1000,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
@@ -2599,7 +2599,7 @@ class bitlish extends Exchange {
         parent::__construct (array_merge(array (
             'id' => 'bitlish',
             'name' => 'bitlish',
-            'countries' => array ( 'GB', 'EU', 'RU', ),
+            'countries' => array ( 'GB', 'EU', 'RU' ),
             'rateLimit' => 1500,
             'version' => 'v1',
             'urls' => array (
@@ -2838,7 +2838,7 @@ class bitmarket extends Exchange {
         parent::__construct (array_merge(array (
             'id' => 'bitmarket',
             'name' => 'BitMarket',
-            'countries' => array ( 'PL', 'EU', ),
+            'countries' => array ( 'PL', 'EU' ),
             'rateLimit' => 1500,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg',
@@ -5458,7 +5458,7 @@ class btcx extends Exchange {
         parent::__construct (array_merge(array (
             'id' => 'btcx',
             'name' => 'BTCX',
-            'countries' => array ( 'IS', 'US', 'EU', ),
+            'countries' => array ( 'IS', 'US', 'EU' ),
             'rateLimit' => 1500, // support in english is very poor, unable to tell rate limits
             'version' => 'v1',
             'urls' => array (
@@ -6092,7 +6092,7 @@ class ccex extends Exchange {
         parent::__construct (array_merge(array (
             'id' => 'ccex',
             'name' => 'C-CEX',
-            'countries' => array ( 'DE', 'EU', ),
+            'countries' => array ( 'DE', 'EU' ),
             'rateLimit' => 1500,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
@@ -6306,7 +6306,7 @@ class cex extends Exchange {
         parent::__construct (array_merge(array (
             'id' => 'cex',
             'name' => 'CEX.IO',
-            'countries' => array ( 'GB', 'EU', 'CY', 'RU', ),
+            'countries' => array ( 'GB', 'EU', 'CY', 'RU' ),
             'rateLimit' => 1500,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -6748,7 +6748,7 @@ class coincheck extends Exchange {
         parent::__construct (array_merge(array (
             'id' => 'coincheck',
             'name' => 'coincheck',
-            'countries' => array ( 'JP', 'ID', ),
+            'countries' => array ( 'JP', 'ID' ),
             'rateLimit' => 1500,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
@@ -8195,7 +8195,7 @@ class exmo extends Exchange {
         parent::__construct (array_merge(array (
             'id' => 'exmo',
             'name' => 'EXMO',
-            'countries' => array ( 'ES', 'RU', ), // Spain, Russia
+            'countries' => array ( 'ES', 'RU' ), // Spain, Russia
             'rateLimit' => 1000, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version' => 'v1',
             'urls' => array (
@@ -11222,7 +11222,7 @@ class liqui extends btce {
         parent::__construct (array_merge(array (
             'id' => 'liqui',
             'name' => 'Liqui',
-            'countries' => array ( 'UA', ),
+            'countries' => 'UA',
             'rateLimit' => 1000,
             'version' => '3',
             'urls' => array (
@@ -11273,7 +11273,7 @@ class luno extends Exchange {
         parent::__construct (array_merge(array (
             'id' => 'luno',
             'name' => 'luno',
-            'countries' => array ( 'GB', 'SG', 'ZA', ),
+            'countries' => array ( 'GB', 'SG', 'ZA' ),
             'rateLimit' => 3000,
             'version' => '1',
             'urls' => array (
@@ -11927,7 +11927,7 @@ class paymium extends Exchange {
         parent::__construct (array_merge(array (
             'id' => 'paymium',
             'name' => 'Paymium',
-            'countries' => array ( 'FR', 'EU', ),
+            'countries' => array ( 'FR', 'EU' ),
             'rateLimit' => 2000,
             'version' => 'v1',
             'urls' => array (

@@ -1066,7 +1066,7 @@ class anxpro (Exchange):
         params = {
             'id': 'anxpro',
             'name': 'ANXPro',
-            'countries': ['JP', 'SG', 'HK', 'NZ',],
+            'countries': ['JP', 'SG', 'HK', 'NZ'],
             'version': '2',
             'rateLimit': 1500,
             'urls': {
@@ -1415,7 +1415,7 @@ class bitbay (Exchange):
         params = {
             'id': 'bitbay',
             'name': 'BitBay',
-            'countries': ['PL', 'EU',], # Poland
+            'countries': ['PL', 'EU'], # Poland
             'rateLimit': 1000,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
@@ -2356,7 +2356,7 @@ class bitlish (Exchange):
         params = {
             'id': 'bitlish',
             'name': 'bitlish',
-            'countries': ['GB', 'EU', 'RU',],
+            'countries': ['GB', 'EU', 'RU'],
             'rateLimit': 1500,
             'version': 'v1',
             'urls': {
@@ -2576,7 +2576,7 @@ class bitmarket (Exchange):
         params = {
             'id': 'bitmarket',
             'name': 'BitMarket',
-            'countries': ['PL', 'EU',],
+            'countries': ['PL', 'EU'],
             'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg',
@@ -5030,7 +5030,7 @@ class btcx (Exchange):
         params = {
             'id': 'btcx',
             'name': 'BTCX',
-            'countries': ['IS', 'US', 'EU',],
+            'countries': ['IS', 'US', 'EU'],
             'rateLimit': 1500, # support in english is very poor, unable to tell rate limits
             'version': 'v1',
             'urls': {
@@ -5616,7 +5616,7 @@ class ccex (Exchange):
         params = {
             'id': 'ccex',
             'name': 'C-CEX',
-            'countries': ['DE', 'EU',],
+            'countries': ['DE', 'EU'],
             'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
@@ -5816,7 +5816,7 @@ class cex (Exchange):
         params = {
             'id': 'cex',
             'name': 'CEX.IO',
-            'countries': ['GB', 'EU', 'CY', 'RU',],
+            'countries': ['GB', 'EU', 'CY', 'RU'],
             'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -6232,7 +6232,7 @@ class coincheck (Exchange):
         params = {
             'id': 'coincheck',
             'name': 'coincheck',
-            'countries': ['JP', 'ID',],
+            'countries': ['JP', 'ID'],
             'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
@@ -7589,7 +7589,7 @@ class exmo (Exchange):
         params = {
             'id': 'exmo',
             'name': 'EXMO',
-            'countries': ['ES', 'RU',], # Spain, Russia
+            'countries': ['ES', 'RU'], # Spain, Russia
             'rateLimit': 1000, # once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1',
             'urls': {
@@ -10431,7 +10431,7 @@ class liqui (btce):
         params = {
             'id': 'liqui',
             'name': 'Liqui',
-            'countries': ['UA',],
+            'countries': 'UA',
             'rateLimit': 1000,
             'version': '3',
             'urls': {
@@ -10480,7 +10480,7 @@ class luno (Exchange):
         params = {
             'id': 'luno',
             'name': 'luno',
-            'countries': ['GB', 'SG', 'ZA',],
+            'countries': ['GB', 'SG', 'ZA'],
             'rateLimit': 3000,
             'version': '1',
             'urls': {
@@ -11098,7 +11098,7 @@ class paymium (Exchange):
         params = {
             'id': 'paymium',
             'name': 'Paymium',
-            'countries': ['FR', 'EU',],
+            'countries': ['FR', 'EU'],
             'rateLimit': 2000,
             'version': 'v1',
             'urls': {
