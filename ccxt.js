@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.3.67'
+var version = '1.3.68'
 var isNode  = (typeof window === 'undefined')
 var isReactNative = (typeof navigator !== 'undefined') && navigator &&
     navigator.product && navigator.product == 'ReactNative' || false
@@ -11910,7 +11910,9 @@ var poloniex = {
         let response = await this.privatePostReturnTradeHistory ({
             'currencyPair': 'all',
         });
-        let result = {};
+        let result = {
+            'info': response,
+        };
         let ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
