@@ -116,7 +116,7 @@ import decimal
 
 #------------------------------------------------------------------------------
 
-try: 
+try:
     import urllib.parse   as _urlencode # Python 3
     import urllib.request as _urllib
 except ImportError:
@@ -165,42 +165,42 @@ class Exchange (object):
     markets_by_id = None
     substituteCommonCurrencyCodes = True
 
-    def __init__ (self, config = {}):
+    def __init__(self, config = {}):
 
-        version = '.'.join (map (str, sys.version_info[:3]))
+        version = '.'.join(map(str, sys.version_info[:3]))
         self.userAgent = {
             'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/kroitor/ccxt) Python/' + version
         }
 
         for key in config:
-            setattr (self, key, config[key])
+            setattr(self, key, config[key])
 
         if self.api:
-            for apiType, methods in self.api.items ():
-                for method, urls in methods.items ():
+            for apiType, methods in self.api.items():
+                for method, urls in methods.items():
                     for url in urls:
-                        url = url.strip ()
-                        splitPath = re.compile ('[^a-zA-Z0-9]').split (url)
+                        url = url.strip()
+                        splitPath = re.compile('[^a-zA-Z0-9]').split(url)
 
-                        uppercaseMethod  = method.upper ()
-                        lowercaseMethod  = method.lower ()
-                        camelcaseMethod  = lowercaseMethod.capitalize ()
-                        camelcaseSuffix  = ''.join ([ Exchange.capitalize (x) for x in splitPath ])
-                        lowercasePath    = [ x.strip ().lower () for x in splitPath ]
-                        underscoreSuffix = '_'.join ([ k for k in lowercasePath if len (k) ])
+                        uppercaseMethod  = method.upper()
+                        lowercaseMethod  = method.lower()
+                        camelcaseMethod  = lowercaseMethod.capitalize()
+                        camelcaseSuffix  = ''.join ([ Exchange.capitalize(x) for x in splitPath ])
+                        lowercasePath    = [x.strip().lower() for x in splitPath]
+                        underscoreSuffix = '_'.join([ k for k in lowercasePath if len(k) ])
 
-                        if camelcaseSuffix.find (camelcaseMethod) == 0:
-                            camelcaseSuffix = camelcaseSuffix[len (camelcaseMethod):]
+                        if camelcaseSuffix.find(camelcaseMethod) == 0:
+                            camelcaseSuffix = camelcaseSuffix[len(camelcaseMethod):]
 
-                        if underscoreSuffix.find (lowercaseMethod) == 0:
-                            underscoreSuffix = underscoreSuffix[len (lowercaseMethod):]
+                        if underscoreSuffix.find(lowercaseMethod) == 0:
+                            underscoreSuffix = underscoreSuffix[len(lowercaseMethod):]
 
-                        camelcase  = apiType + camelcaseMethod + Exchange.capitalize (camelcaseSuffix)
-                        underscore = apiType + '_' + lowercaseMethod + '_' + underscoreSuffix.lower ()
+                        camelcase  = apiType + camelcaseMethod + Exchange.capitalize(camelcaseSuffix)
+                        underscore = apiType + '_' + lowercaseMethod + '_' + underscoreSuffix.lower()
 
-                        f = functools.partial (self.request, url, apiType, uppercaseMethod)
-                        setattr (self, camelcase,  f)
-                        setattr (self, underscore, f)
+                        f = functools.partial(self.request, url, apiType, uppercaseMethod)
+                        setattr(self, camelcase, f)
+                        setattr(self, underscore, f)
 
         if self.markets:
             self.set_markets (self.markets)
