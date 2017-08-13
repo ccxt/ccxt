@@ -6589,7 +6589,7 @@ var coincheck = {
         if (type == 'market') {
             let order_type = type + '_' + side;
             order['order_type'] = order_type;
-            let prefix = (side == buy) ? (order_type + '_') : '';
+            let prefix = (side == 'buy') ? (order_type + '_') : '';
             order[prefix + 'amount'] = amount;
         } else {
             order['order_type'] = side;
@@ -7416,7 +7416,7 @@ var coinsecure = {
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePutUserExchange';
         let order = {};
-        if (api == 'market') {
+        if (type == 'market') {
             method += 'Instant' + this.capitalize (side);
             if (side == 'buy')
                 order['maxFiat'] = amount;
