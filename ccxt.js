@@ -11910,7 +11910,9 @@ var poloniex = {
         let response = await this.privatePostReturnTradeHistory ({
             'currencyPair': 'all',
         });
-        let result = {};
+        let result = {
+            'info': response,
+        };
         let ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
