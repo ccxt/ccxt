@@ -63,23 +63,23 @@ while (exchanges = regex.exec (contents)) {
         let method = matches[2]
         let args = matches[3].trim ()
 
-        method = method.replace ('fetchBalance ',      'fetch_balance')
+        method = method.replace ('fetchBalance',      'fetch_balance')
                         // .replace ('fetchCategories', 'fetch_categories')
-                        .replace ('fetchMarkets ',     'fetch_markets')
-                        .replace ('fetchOrderBook ',   'fetch_order_book')
-                        .replace ('fetchTickers ',     'fetch_tickers')
-                        .replace ('fetchTicker ',      'fetch_ticker')
-                        .replace ('parseTicker ',      'parse_ticker')
-                        .replace ('parseTrades ',      'parse_trades')
-                        .replace ('parseTrade ',       'parse_trade')
-                        .replace ('parseBidAsks ',     'parse_bidasks')
-                        .replace ('parseBidAsk ',      'parse_bidask')                        
-                        .replace ('fetchTrades ',      'fetch_trades')
-                        .replace ('fetchMyTrades ',    'fetch_my_trades')
-                        .replace ('fetchAllMyTrades ', 'fetch_all_my_trades')
-                        .replace ('createOrder ',      'create_order')
-                        .replace ('cancelOrder ',      'cancel_order')
-                        .replace ('signIn ',           'sign_in')
+                        .replace ('fetchMarkets',     'fetch_markets')
+                        .replace ('fetchOrderBook',   'fetch_order_book')
+                        .replace ('fetchTickers',     'fetch_tickers')
+                        .replace ('fetchTicker',      'fetch_ticker')
+                        .replace ('parseTicker',      'parse_ticker')
+                        .replace ('parseTrades',      'parse_trades')
+                        .replace ('parseTrade',       'parse_trade')
+                        .replace ('parseBidAsks',     'parse_bidasks')
+                        .replace ('parseBidAsk',      'parse_bidask')                        
+                        .replace ('fetchTrades',      'fetch_trades')
+                        .replace ('fetchMyTrades',    'fetch_my_trades')
+                        .replace ('fetchAllMyTrades', 'fetch_all_my_trades')
+                        .replace ('createOrder',      'create_order')
+                        .replace ('cancelOrder',      'cancel_order')
+                        .replace ('signIn',           'sign_in')
 
         args = args.length ? args.split (',').map (x => x.trim ()) : []
         let phArgs = args.join (', $').trim ()
@@ -251,7 +251,7 @@ while (exchanges = regex.exec (contents)) {
         }
 
         py.push ('');
-        py.push ('    def ' + method + ' (self' + (pyArgs.length ? ', ' + pyArgs.replace (/undefined/g, 'None') : '') + '):');
+        py.push ('    def ' + method + '(self' + (pyArgs.length ? ', ' + pyArgs.replace (/undefined/g, 'None') : '') + '):');
         py.push (pyBody);
       
         let phBody = regexAll (body, phRegex.concat (phVarsRegex))
