@@ -126,9 +126,9 @@ except ImportError:
 #------------------------------------------------------------------------------
 
 try:
-  basestring # Python 3
+    basestring  # Python 3
 except NameError:
-  basestring = str # Python 2
+    basestring = str  # Python 2
 
 #------------------------------------------------------------------------------
 
@@ -145,8 +145,8 @@ class ExchangeNotAvailable (NetworkError): pass
 class Exchange (object):
 
     id         = None
-    rateLimit  = 2000  # milliseconds = seconds * 1000
-    timeout    = 10000 # milliseconds = seconds * 1000
+    rateLimit  = 2000   # milliseconds = seconds * 1000
+    timeout    = 10000  # milliseconds = seconds * 1000
     userAgent  = False
     verbose    = False
     markets    = None
@@ -225,7 +225,7 @@ class Exchange (object):
             ]))
         else:
             raise exception_type(' '.join([self.id, method, url, details]))
-    
+
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         headers = headers or {}
@@ -416,35 +416,35 @@ class Exchange (object):
     @staticmethod
     def s():
         return Exchange.seconds()
-    
+
     @staticmethod
     def sec():
         return Exchange.seconds()
-    
+
     @staticmethod
     def ms():
         return Exchange.milliseconds()
-    
+
     @staticmethod
     def msec():
         return Exchange.milliseconds()
-    
+
     @staticmethod
     def us():
         return Exchange.microseconds()
-    
+
     @staticmethod
     def usec():
         return Exchange.microseconds()
-    
+
     @staticmethod
     def seconds():
         return int(time.time())
-    
+
     @staticmethod
     def milliseconds():
         return int(time.time() * 1000)
-    
+
     @staticmethod
     def microseconds():
         return int(time.time() * 1000000)
@@ -583,7 +583,7 @@ class Exchange (object):
 
     def fetch_markets(self):
         return self.markets
-    
+
     def fetchMarkets(self):
         return self.fetch_markets()
 
@@ -612,13 +612,13 @@ class Exchange (object):
 
     def fetchBalance(self):
         return self.fetch_balance()
-    
+
     def fetchOrderBook(self, market):
         return self.fetch_order_book(market)
-    
+
     def fetchTicker(self, market):
         return self.fetch_ticker(market)
-    
+
     def fetchTrades(self, market):
         return self.fetch_trades(market)
 
@@ -2687,7 +2687,6 @@ class bitmarket (Exchange):
         }
         return result
 
-
     def fetch_ticker(self, market):
         ticker = self.publicGetJsonMarketTicker({
             'market': self.market_id(market),
@@ -4640,7 +4639,7 @@ class btctrader (Exchange):
                         'orderbook',
                         'ticker',
                         'trades',   # ?last=COUNT (max 50)
-        
+
                     ],
                 },
                 'private': {
@@ -4648,7 +4647,7 @@ class btctrader (Exchange):
                         'balance',
                         'openOrders',
                         'userTransactions', # ?offset=0&limit=25&sort=asc
-        
+
                     ],
                     'post': [
                         'buy',
@@ -7339,7 +7338,7 @@ class coinspot (Exchange):
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         method = 'privatePostMy' + self.capitalize(side)
-        if type =='market':
+        if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         order = {
             'cointype': self.market_id(market),
@@ -7743,7 +7742,7 @@ class exmo (Exchange):
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.loadMarkets()
         prefix = ''
-        if type =='market':
+        if type == 'market':
             prefix = 'market_'
         order = {
             'pair': self.market_id(market),
@@ -11490,8 +11489,8 @@ class poloniex (Exchange):
         result = {
             'info': response,
         }
-        ids = list (response.keys())
-        for i in range (0, len(ids)):
+        ids = list(response.keys())
+        for i in range(0, len(ids)):
             id = ids[i]
             trades = response[id]
             market = self.markets_by_id[id]
