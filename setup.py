@@ -52,5 +52,10 @@ setup(
     ],
 
     keywords=package['keywords'],
-    packages=find_packages()
+    packages=find_packages(),
+    extras_require={
+        'qa': [
+            'flake8'
+        ]
+    },
 )
