@@ -90,7 +90,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.71'
+__version__ = '1.3.72'
 
 #------------------------------------------------------------------------------
 
@@ -13460,8 +13460,9 @@ class yunbi (Exchange):
 
     def fetch_trades(self, market):
         self.loadMarkets()
+        m = self.market(market)
         return self.publicGetTrades({
-            'pair': self.market_id(market),
+            'market': m['id'],
         })
 
     def create_order(self, market, type, side, amount, price = None, params = {}):

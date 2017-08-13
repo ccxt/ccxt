@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.71';
+$version = '1.3.72';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -14457,8 +14457,9 @@ class yunbi extends Exchange {
 
     public function fetch_trades ($market) {
         $this->loadMarkets ();
+        $m = $this->market ($market);
         return $this->publicGetTrades (array (
-            'pair' => $this->market_id ($market),
+            'market' => $m['id'],
         ));
     }
 
