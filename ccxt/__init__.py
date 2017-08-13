@@ -6381,7 +6381,7 @@ class coincheck (Exchange):
         if type == 'market':
             order_type = type + '_' + side
             order['order_type'] = order_type
-            prefix = (order_type + '_') if (side == buy) else ''
+            prefix = (order_type + '_') if (side == 'buy') else ''
             order[prefix + 'amount'] = amount
         else:
             order['order_type'] = side
@@ -7172,7 +7172,7 @@ class coinsecure (Exchange):
     def create_order(self, market, type, side, amount, price=None, params={}):
         method = 'privatePutUserExchange'
         order = {}
-        if api == 'market':
+        if type == 'market':
             method += 'Instant' + self.capitalize(side)
             if side == 'buy':
                 order['maxFiat'] = amount
