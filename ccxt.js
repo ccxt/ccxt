@@ -8099,7 +8099,7 @@ var exmo = {
                 return response;
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
-        return response;        
+        return response;
     },
 }
 
