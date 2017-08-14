@@ -11894,7 +11894,7 @@ var poloniex = {
         await this.loadMarkets ();
         let m = this.market (market);
         let trades = await this.publicGetReturnTradeHistory (this.extend ({
-            'currencyPair': m['id'],            
+            'currencyPair': m['id'],
             'end': this.seconds (), // last 50000 trades by default
         }, params));
         return this.parseTrades (trades, m);
@@ -11917,7 +11917,7 @@ var poloniex = {
         let ids = Object.keys (trades);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let trades = trads[id];
+            let trades = trades[id];
             let market = this.markets_by_id[id];
             let symbol = market['symbol'];
             result[symbol] = this.parseTrades (trades, market);
@@ -11947,7 +11947,7 @@ var poloniex = {
         let method = 'privatePost' + this.capitalize (side);
         let m = this.market (market);
         let response = await this[method] (this.extend ({
-            'currencyPair': m['id'], 
+            'currencyPair': m['id'],
             'rate': price,
             'amount': amount,
         }, params));
@@ -11978,7 +11978,7 @@ var poloniex = {
         let trades = await this.privatePostReturnOrderTrades (this.extend ({
             'orderNumber': id,
         }, params));
-        return this.parseTrades (trades); 
+        return this.parseTrades (trades);
     },
     
     async cancelOrder (id, params = {}) {
