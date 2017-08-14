@@ -13575,6 +13575,9 @@ var xbtce = {
         let tickers = await this.publicGetTickerFilter ({
             'filter': p['id'],
         });
+        let length = tickers.length;
+        if (length < 1)
+            throw new ExchangeError (this.id + ' fetchTicker returned empty response, xBTCe public API error')
         tickers = this.indexBy (tickers, 'Symbol');
         let ticker = tickers[p['id']];
         return this.parseTicker (ticker, p);

@@ -43,7 +43,7 @@ let proxies = [
 
 // instantiate all exchanges
 ccxt.exchanges.forEach (id => {
-    exchanges[id] = new (ccxt)[id] ({ verbose: false })
+    exchanges[id] = new (ccxt)[id] ({ verbose: true })
 })
 
 // load api keys from config
