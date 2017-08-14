@@ -11967,7 +11967,6 @@ var poloniex = {
 
     async fetchOrder (id) {
         await this.loadMarkets ();
-        return this.orders[id];
         let found = (id in this.orders);
         if (!found)
             throw new ExchangeError (this.id + ' order ' + id + ' not found');

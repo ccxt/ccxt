@@ -11275,6 +11275,7 @@ class poloniex (Exchange):
             'name': 'Poloniex',
             'countries': 'US',
             'rateLimit': 500, # 6 calls per second
+            'orderCache': {},
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
                 'api': {
@@ -11444,7 +11445,7 @@ class poloniex (Exchange):
         ticker = tickers[m['id']]
         return self.parse_ticker(ticker, m)
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['date'])
         id = None
         order = None
@@ -11465,57 +11466,95 @@ class poloniex (Exchange):
             'amount': float(trade['amount']),
         }
 
-    def parse_trades(self, trades, market):
+    def parse_trades(self, trades, market=None):
         result = []
         for t in range(0, len(trades)):
             result.append(self.parse_trade(trades[t], market))
         return result
 
-    def fetch_trades(self, market):
+    def fetch_trades(self, market, params={}):
         self.loadMarkets()
         m = self.market(market)
-        trades = self.publicGetReturnTradeHistory({
-            'currencyPair': m['id'],
-        })
+        trades = self.publicGetReturnTradeHistory(self.extend({
+            'currencyPair': m['id'],            
+            'end': self.seconds(), # last 50000 trades by default
+        }, params))
         return self.parse_trades(trades, m)
 
-    def fetch_my_trades(self, market):
-        m = self.market(market)
-        trades = self.privatePostReturnTradeHistory({
-            'currencyPair': m['id'],
-        })
-        return self.parse_trades(trades, m)
-
-    def fetch_all_my_trades(self):
-        response = self.privatePostReturnTradeHistory({
+    def fetch_my_trades(self, market=None, params={}):
+        now = self.seconds()
+        request = self.extend({
             'currencyPair': 'all',
-        })
-        result = {
-            'info': response,
-        }
-        ids = list(response.keys())
+            'end': self.seconds(), # last 50000 trades by default
+        }, params)
+        if market:
+            m = self.market(market)
+            request['currencyPair'] = m['id']
+        trades = self.privatePostReturnTradeHistory(request)
+        if market:
+            return self.parse_trades(trades, m)
+        result = {'info': trades}
+        ids = list(trades.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            trades = response[id]
+            trades = trads[id]
             market = self.markets_by_id[id]
             symbol = market['symbol']
             result[symbol] = self.parse_trades(trades, market)
         return result
+
+    def parseOrder(self, order, market):
+        return {
+            'id': order['orderNumber'],
+            'timestamp': order['timestamp'],
+            'datetime': self.iso8601(order['timestamp']),
+            'status': order['status'],
+            'symbol': market['symbol'],
+            'type': order['type'],
+            'side': order['side'],
+            'price': order['price'],
+            'amount': order['amount'],
+            'trades': self.parse_trades(order['resultingTrades'], market),
+        }
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         self.loadMarkets()
         method = 'privatePost' + self.capitalize(side)
+        m = self.market(market)
         response = getattr(self, method)(self.extend({
-            'currencyPair': self.market_id(market),
+            'currencyPair': m['id'], 
             'rate': price,
             'amount': amount,
         }, params))
-        return {
-            'info': response,
-            'id': response['orderNumber'],
-        }
+        timestamp = self.milliseconds()
+        order = self.parseOrder(self.extend({
+            'timestamp': timestamp,
+            'status': 'open',
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+        }, response), m)
+        id = order['id']
+        self.orders[id] = order
+        return self.extend({'info': response}, order)
+
+    def fetchOrder(self, id):
+        self.loadMarkets()
+        return self.orders[id]
+        found = (id in list(self.orders.keys()))
+        if not found:
+            raise ExchangeError(self.id + ' order ' + id + ' not found')
+        return self.orders[id]
+
+    def fetchOrderTrades(self, id, params={}):
+        self.loadMarkets()
+        trades = self.privatePostReturnOrderTrades(self.extend({
+            'orderNumber': id,
+        }, params))
+        return self.parse_trades(trades) 
 
     def cancel_order(self, id, params={}):
         self.loadMarkets()
