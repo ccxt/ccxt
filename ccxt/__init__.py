@@ -90,7 +90,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.74'
+__version__ = '1.3.75'
 
 #------------------------------------------------------------------------------
 
@@ -11476,7 +11476,7 @@ class poloniex (Exchange):
         self.loadMarkets()
         m = self.market(market)
         trades = self.publicGetReturnTradeHistory(self.extend({
-            'currencyPair': m['id'],            
+            'currencyPair': m['id'],
             'end': self.seconds(), # last 50000 trades by default
         }, params))
         return self.parse_trades(trades, m)
@@ -11497,7 +11497,7 @@ class poloniex (Exchange):
         ids = list(trades.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            trades = trads[id]
+            trades = trades[id]
             market = self.markets_by_id[id]
             symbol = market['symbol']
             result[symbol] = self.parse_trades(trades, market)
@@ -11524,7 +11524,7 @@ class poloniex (Exchange):
         method = 'privatePost' + self.capitalize(side)
         m = self.market(market)
         response = getattr(self, method)(self.extend({
-            'currencyPair': m['id'], 
+            'currencyPair': m['id'],
             'rate': price,
             'amount': amount,
         }, params))
@@ -11543,7 +11543,6 @@ class poloniex (Exchange):
 
     def fetchOrder(self, id):
         self.loadMarkets()
-        return self.orders[id]
         found = (id in list(self.orders.keys()))
         if not found:
             raise ExchangeError(self.id + ' order ' + id + ' not found')
@@ -11554,7 +11553,7 @@ class poloniex (Exchange):
         trades = self.privatePostReturnOrderTrades(self.extend({
             'orderNumber': id,
         }, params))
-        return self.parse_trades(trades) 
+        return self.parse_trades(trades)
 
     def cancel_order(self, id, params={}):
         self.loadMarkets()
@@ -13089,6 +13088,9 @@ class xbtce (Exchange):
         tickers = self.publicGetTickerFilter({
             'filter': p['id'],
         })
+        length = len(tickers)
+        if length < 1:
+            raise ExchangeError(self.id + ' fetchTicker returned empty response, xBTCe public API error')
         tickers = self.index_by(tickers, 'Symbol')
         ticker = tickers[p['id']]
         return self.parse_ticker(ticker, p)

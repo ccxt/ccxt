@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.74';
+$version = '1.3.75';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12331,7 +12331,7 @@ class poloniex extends Exchange {
         $this->loadMarkets ();
         $m = $this->market ($market);
         $trades = $this->publicGetReturnTradeHistory (array_merge (array (
-            'currencyPair' => $m['id'],            
+            'currencyPair' => $m['id'],
             'end' => $this->seconds (), // last 50000 $trades by default
         ), $params));
         return $this->parse_trades ($trades, $m);
@@ -12354,7 +12354,7 @@ class poloniex extends Exchange {
         $ids = array_keys ($trades);
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $trades = trads[$id];
+            $trades = $trades[$id];
             $market = $this->markets_by_id[$id];
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_trades ($trades, $market);
@@ -12384,7 +12384,7 @@ class poloniex extends Exchange {
         $method = 'privatePost' . $this->capitalize ($side);
         $m = $this->market ($market);
         $response = $this->$method (array_merge (array (
-            'currencyPair' => $m['id'], 
+            'currencyPair' => $m['id'],
             'rate' => $price,
             'amount' => $amount,
         ), $params));
@@ -12404,7 +12404,6 @@ class poloniex extends Exchange {
 
     public function fetchOrder ($id) {
         $this->loadMarkets ();
-        return $this->orders[$id];
         $found = (array_key_exists ($id, $this->orders));
         if (!$found)
             throw new ExchangeError ($this->id . ' order ' . $id . ' not found');
@@ -12416,7 +12415,7 @@ class poloniex extends Exchange {
         $trades = $this->privatePostReturnOrderTrades (array_merge (array (
             'orderNumber' => $id,
         ), $params));
-        return $this->parse_trades ($trades); 
+        return $this->parse_trades ($trades);
     }
 
     public function cancel_order ($id, $params=array ()) {
@@ -14055,6 +14054,9 @@ class xbtce extends Exchange {
         $tickers = $this->publicGetTickerFilter (array (
             'filter' => $p['id'],
         ));
+        $length = count ($tickers);
+        if ($length < 1)
+            throw new ExchangeError ($this->id . ' fetchTicker returned empty response, xBTCe public API error')
         $tickers = $this->index_by ($tickers, 'Symbol');
         $ticker = $tickers[$p['id']];
         return $this->parse_ticker ($ticker, $p);
