@@ -237,6 +237,7 @@ let testExchangeBalance = async (exchange, symbol) => {
 //-----------------------------------------------------------------------------
 
 let loadExchange = async exchange => {
+    
     let markets  = await exchange.loadMarkets ()
     let symbols = [
         'BTC/USD',
@@ -258,6 +259,7 @@ let loadExchange = async exchange => {
         'BTC/UAH',
         'LTC/BTC',
     ]
+
     let result = exchange.symbols.filter (symbol => symbols.indexOf (symbol) >= 0)
     if (result.length > 0)
         if (exchange.symbols.length > result.length)
