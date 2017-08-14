@@ -45,7 +45,7 @@ The contents of the repository are structured as follows:
 /README.rst          # slave reStructuredText for PyPI
 /ccxt/               # Python ccxt module/package folder for PyPI
 /ccxt/__init__.py    # slave Python-version of the ccxt library
-/ccxt.es5.js         # slave JavaScript ES5 version of the ccxt library
+/ccxt-es5.js         # slave JavaScript ES5 version of the ccxt library
 /ccxt.js             # master JS ES6 version of the ccxt library
 /ccxt.php            # slave PHP version of the ccxt library
 /countries.js        # a list of ISO 2-letter country codes in JS for testing, not very important
@@ -75,7 +75,7 @@ The ccxt library includes one single file per each language:
 
 ```shell
 /ccxt/__init__.py  # slave Python-version of the ccxt library
-/ccxt.es5.js       # slave JavaScript ES5 version of the ccxt library
+/ccxt-es5.js       # slave JavaScript ES5 version of the ccxt library
 /ccxt.js           # master JS ES6 version of the ccxt library
 /ccxt.php          # slave PHP version of the ccxt library
 ```
@@ -146,9 +146,11 @@ Below are key notes on how to keep the JS code transpileable:
 
 - do not use language-specific code syntax sugar, even if you really want to
 - unfold all maps and comprehensions to basic for-loops
+- every opening bracket like `(` or `{` should have a space before it!
 - always use Python-style indentation, it is preserved as is for all languages
-- always put a semicolon (`;`) at the end of each statement, as in PHP/C-style
-- all associative keys must be single-quoted strings everywhere (`array['good'], array.bad`)
+- indent with spaces, avoid tabs
+- always put a semicolon `;` at the end of each statement, as in PHP/C-style
+- all associative keys must be single-quoted strings everywhere, `array['good'], array.bad`
 - all local variables should be declared with the `let` keyword
 - do everything with base class methods only
 - if you need another base method you will have to implement it in all three languages

@@ -3,7 +3,7 @@
 /*  ------------------------------------------------------------------------ */
 
 const [processPath, , exchangeId = null, exchangeSymbol = null] = process.argv.filter (x => !x.startsWith ('--'))
-const ccxtFile = process.argv.includes ('--es6') ? 'ccxt.js' : 'ccxt.es5.js'
+const ccxtFile = process.argv.includes ('--es6') ? 'ccxt.js' : 'ccxt-es5.js'
 
 /*  ------------------------------------------------------------------------ */
 
@@ -136,7 +136,7 @@ let testExchangeSymbolOrderbook = async (exchange, symbol) => {
 let testExchangeSymbolTrades = async (exchange, symbol) => {
     log (exchange.id.green, symbol.green, 'fetching trades...')
     let trades = await exchange.fetchTrades (symbol)
-    log (exchange.id, symbol.green, Object.values (trades).length)
+    log (exchange.id.green, symbol.green, 'fetched', Object.values (trades).length.toString ().green, 'trades')
     return trades
 }
 
@@ -150,7 +150,17 @@ let testExchangeSymbol = async (exchange, symbol) => {
         log (await exchange.fetchGlobal ());
     } else {
         await testExchangeSymbolOrderbook (exchange, symbol)
-        // await testExchangeSymbolTrades (exchange, symbol)
+
+        try {
+            await testExchangeSymbolTrades (exchange, symbol)    
+        } catch (e) {
+            if (e instanceof ccxt.ExchangeError) {
+                warn (exchange.id, '[Exchange Error] ' + e.message)
+            } else {
+                throw e;
+            }
+        }
+        
     }
     try {
         log (exchange.id.green, 'fetching all tickers at once...')

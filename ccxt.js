@@ -4,7 +4,7 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.3.43'
+var version = '1.3.74'
 var isNode  = (typeof window === 'undefined')
 var isReactNative = (typeof navigator !== 'undefined') && navigator &&
     navigator.product && navigator.product == 'ReactNative' || false
@@ -293,6 +293,9 @@ const Exchange = function (config) {
 
     this.init = function () {
 
+        this.orders = {}
+        this.trades = {}
+
         if (this.api)
             Object.keys (this.api).forEach (type => {
                 Object.keys (this.api[type]).forEach (method => {
@@ -367,7 +370,7 @@ const Exchange = function (config) {
                     let details = text
                     if ([ 429 ].indexOf (response.status) >= 0) {
                         error = DDoSProtection
-                    } else if ([ 500, 501, 502, 404, 525 ].indexOf (response.status) >= 0) {
+                    } else if ([ 404, 409, 500, 501, 502, 525 ].indexOf (response.status) >= 0) {
                         error = ExchangeNotAvailable
                     } else if ([ 400, 403, 405, 503 ].indexOf (response.status) >= 0) {
                         let ddosProtection = text.match (/cloudflare|incapsula/i)
@@ -675,7 +678,9 @@ var _1broker = {
         await this.loadMarkets ();
         let balance = await this.privateGetUserOverview ();
         let response = balance['response'];
-        let result = { 'info': response };
+        let result = {
+            'info': response,
+        };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             result[currency] = {
@@ -706,6 +711,10 @@ var _1broker = {
             'bids': [ bid ],
             'asks': [ ask ],
         };
+    },
+
+    async fetchTrades (market) {
+        throw new ExchangeError (this.id + ' fetchTrades () method not implemented yet');
     },
 
     async fetchTicker (market) {
@@ -968,35 +977,35 @@ var _1btcxe = extend (cryptocapital, {
         'doc': 'https://1btcxe.com/api-docs.php',
     },
     'markets': {
-        'BTC/USD': { 'id': 'USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', },
-        'BTC/EUR': { 'id': 'EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', },
-        'BTC/CNY': { 'id': 'CNY', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', },
-        'BTC/RUB': { 'id': 'RUB', 'symbol': 'BTC/RUB', 'base': 'BTC', 'quote': 'RUB', },
-        'BTC/CHF': { 'id': 'CHF', 'symbol': 'BTC/CHF', 'base': 'BTC', 'quote': 'CHF', },
-        'BTC/JPY': { 'id': 'JPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', },
-        'BTC/GBP': { 'id': 'GBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP', },
-        'BTC/CAD': { 'id': 'CAD', 'symbol': 'BTC/CAD', 'base': 'BTC', 'quote': 'CAD', },
-        'BTC/AUD': { 'id': 'AUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', },
-        'BTC/AED': { 'id': 'AED', 'symbol': 'BTC/AED', 'base': 'BTC', 'quote': 'AED', },
-        'BTC/BGN': { 'id': 'BGN', 'symbol': 'BTC/BGN', 'base': 'BTC', 'quote': 'BGN', },
-        'BTC/CZK': { 'id': 'CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK', },
-        'BTC/DKK': { 'id': 'DKK', 'symbol': 'BTC/DKK', 'base': 'BTC', 'quote': 'DKK', },
-        'BTC/HKD': { 'id': 'HKD', 'symbol': 'BTC/HKD', 'base': 'BTC', 'quote': 'HKD', },
-        'BTC/HRK': { 'id': 'HRK', 'symbol': 'BTC/HRK', 'base': 'BTC', 'quote': 'HRK', },
-        'BTC/HUF': { 'id': 'HUF', 'symbol': 'BTC/HUF', 'base': 'BTC', 'quote': 'HUF', },
-        'BTC/ILS': { 'id': 'ILS', 'symbol': 'BTC/ILS', 'base': 'BTC', 'quote': 'ILS', },
-        'BTC/INR': { 'id': 'INR', 'symbol': 'BTC/INR', 'base': 'BTC', 'quote': 'INR', },
-        'BTC/MUR': { 'id': 'MUR', 'symbol': 'BTC/MUR', 'base': 'BTC', 'quote': 'MUR', },
-        'BTC/MXN': { 'id': 'MXN', 'symbol': 'BTC/MXN', 'base': 'BTC', 'quote': 'MXN', },
-        'BTC/NOK': { 'id': 'NOK', 'symbol': 'BTC/NOK', 'base': 'BTC', 'quote': 'NOK', },
-        'BTC/NZD': { 'id': 'NZD', 'symbol': 'BTC/NZD', 'base': 'BTC', 'quote': 'NZD', },
-        'BTC/PLN': { 'id': 'PLN', 'symbol': 'BTC/PLN', 'base': 'BTC', 'quote': 'PLN', },
-        'BTC/RON': { 'id': 'RON', 'symbol': 'BTC/RON', 'base': 'BTC', 'quote': 'RON', },
-        'BTC/SEK': { 'id': 'SEK', 'symbol': 'BTC/SEK', 'base': 'BTC', 'quote': 'SEK', },
-        'BTC/SGD': { 'id': 'SGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD', },
-        'BTC/THB': { 'id': 'THB', 'symbol': 'BTC/THB', 'base': 'BTC', 'quote': 'THB', },
-        'BTC/TRY': { 'id': 'TRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY', },
-        'BTC/ZAR': { 'id': 'ZAR', 'symbol': 'BTC/ZAR', 'base': 'BTC', 'quote': 'ZAR', },
+        'BTC/USD': { 'id': 'USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+        'BTC/EUR': { 'id': 'EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+        'BTC/CNY': { 'id': 'CNY', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY' },
+        'BTC/RUB': { 'id': 'RUB', 'symbol': 'BTC/RUB', 'base': 'BTC', 'quote': 'RUB' },
+        'BTC/CHF': { 'id': 'CHF', 'symbol': 'BTC/CHF', 'base': 'BTC', 'quote': 'CHF' },
+        'BTC/JPY': { 'id': 'JPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY' },
+        'BTC/GBP': { 'id': 'GBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP' },
+        'BTC/CAD': { 'id': 'CAD', 'symbol': 'BTC/CAD', 'base': 'BTC', 'quote': 'CAD' },
+        'BTC/AUD': { 'id': 'AUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD' },
+        'BTC/AED': { 'id': 'AED', 'symbol': 'BTC/AED', 'base': 'BTC', 'quote': 'AED' },
+        'BTC/BGN': { 'id': 'BGN', 'symbol': 'BTC/BGN', 'base': 'BTC', 'quote': 'BGN' },
+        'BTC/CZK': { 'id': 'CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK' },
+        'BTC/DKK': { 'id': 'DKK', 'symbol': 'BTC/DKK', 'base': 'BTC', 'quote': 'DKK' },
+        'BTC/HKD': { 'id': 'HKD', 'symbol': 'BTC/HKD', 'base': 'BTC', 'quote': 'HKD' },
+        'BTC/HRK': { 'id': 'HRK', 'symbol': 'BTC/HRK', 'base': 'BTC', 'quote': 'HRK' },
+        'BTC/HUF': { 'id': 'HUF', 'symbol': 'BTC/HUF', 'base': 'BTC', 'quote': 'HUF' },
+        'BTC/ILS': { 'id': 'ILS', 'symbol': 'BTC/ILS', 'base': 'BTC', 'quote': 'ILS' },
+        'BTC/INR': { 'id': 'INR', 'symbol': 'BTC/INR', 'base': 'BTC', 'quote': 'INR' },
+        'BTC/MUR': { 'id': 'MUR', 'symbol': 'BTC/MUR', 'base': 'BTC', 'quote': 'MUR' },
+        'BTC/MXN': { 'id': 'MXN', 'symbol': 'BTC/MXN', 'base': 'BTC', 'quote': 'MXN' },
+        'BTC/NOK': { 'id': 'NOK', 'symbol': 'BTC/NOK', 'base': 'BTC', 'quote': 'NOK' },
+        'BTC/NZD': { 'id': 'NZD', 'symbol': 'BTC/NZD', 'base': 'BTC', 'quote': 'NZD' },
+        'BTC/PLN': { 'id': 'PLN', 'symbol': 'BTC/PLN', 'base': 'BTC', 'quote': 'PLN' },
+        'BTC/RON': { 'id': 'RON', 'symbol': 'BTC/RON', 'base': 'BTC', 'quote': 'RON' },
+        'BTC/SEK': { 'id': 'SEK', 'symbol': 'BTC/SEK', 'base': 'BTC', 'quote': 'SEK' },
+        'BTC/SGD': { 'id': 'SGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD' },
+        'BTC/THB': { 'id': 'THB', 'symbol': 'BTC/THB', 'base': 'BTC', 'quote': 'THB' },
+        'BTC/TRY': { 'id': 'TRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY' },
+        'BTC/ZAR': { 'id': 'ZAR', 'symbol': 'BTC/ZAR', 'base': 'BTC', 'quote': 'ZAR' },
     },
 })
 
@@ -1006,7 +1015,7 @@ var anxpro = {
 
     'id': 'anxpro',
     'name': 'ANXPro',
-    'countries': [ 'JP', 'SG', 'HK', 'NZ', ],
+    'countries': [ 'JP', 'SG', 'HK', 'NZ' ],
     'version': '2',
     'rateLimit': 1500,
     'urls': {
@@ -1373,7 +1382,7 @@ var bitbay = {
 
     'id': 'bitbay',
     'name': 'BitBay',
-    'countries': [ 'PL', 'EU', ], // Poland
+    'countries': [ 'PL', 'EU' ], // Poland
     'rateLimit': 1000,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
@@ -1719,7 +1728,7 @@ var bitcoincoid = {
         'www': 'https://www.bitcoin.co.id',
         'doc': [
             'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
-            'https://vip.bitcoin.co.id/trade_api',            
+            'https://vip.bitcoin.co.id/trade_api',
         ],
     },
     'api': {
@@ -1883,7 +1892,7 @@ var bitcoincoid = {
         let response = await this.fetch (url, method, headers, body);
         if ('error' in response)
             throw new ExchangeError (this.id + ' ' + response['error']);
-        return response;        
+        return response;
     },
 }
 
@@ -2244,7 +2253,7 @@ var bitflyer = {
             };
             if (currency in balances) {
                 account['total'] = balances[currency]['amount'];
-                account['free'] = balances[currency]['available'];                
+                account['free'] = balances[currency]['available'];
                 account['used'] = account['total'] - account['free'];
             }
             result[currency] = account;
@@ -2364,7 +2373,7 @@ var bitlish = {
 
     'id': 'bitlish',
     'name': 'bitlish',
-    'countries': [ 'GB', 'EU', 'RU', ],
+    'countries': [ 'GB', 'EU', 'RU' ],
     'rateLimit': 1500,
     'version': 'v1',
     'urls': {
@@ -2544,7 +2553,7 @@ var bitlish = {
             };
             if (currency in balance) {
                 account['free'] = parseFloat (balance[currency]['funds']);
-                account['used'] = parseFloat (balance[currency]['holded']);                
+                account['used'] = parseFloat (balance[currency]['holded']);
                 account['total'] = this.sum (account['free'], account['used']);
             }
             result[currency] = account;
@@ -2599,7 +2608,7 @@ var bitmarket = {
 
     'id': 'bitmarket',
     'name': 'BitMarket',
-    'countries': [ 'PL', 'EU', ],
+    'countries': [ 'PL', 'EU' ],
     'rateLimit': 1500,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg',
@@ -3629,7 +3638,7 @@ var bittrex = {
                 let [ quote, base ] = id.split ('-');
                 base = this.commonCurrencyCode (base);
                 quote = this.commonCurrencyCode (quote);
-                symbol = base + '/' + quote;                
+                symbol = base + '/' + quote;
             }
             result[symbol] = this.parseTicker (ticker, market);
         }
@@ -3761,11 +3770,11 @@ var blinktrade = {
         },
     },
     'markets': {
-        'BTC/VEF': { 'id': 'BTCVEF', 'symbol': 'BTC/VEF', 'base': 'BTC', 'quote': 'VEF', 'brokerId': 1, 'broker': 'SurBitcoin', },
-        'BTC/VND': { 'id': 'BTCVND', 'symbol': 'BTC/VND', 'base': 'BTC', 'quote': 'VND', 'brokerId': 3, 'broker': 'VBTC', },
-        'BTC/BRL': { 'id': 'BTCBRL', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'brokerId': 4, 'broker': 'FoxBit', },
-        'BTC/PKR': { 'id': 'BTCPKR', 'symbol': 'BTC/PKR', 'base': 'BTC', 'quote': 'PKR', 'brokerId': 8, 'broker': 'UrduBit', },
-        'BTC/CLP': { 'id': 'BTCCLP', 'symbol': 'BTC/CLP', 'base': 'BTC', 'quote': 'CLP', 'brokerId': 9, 'broker': 'ChileBit', },
+        'BTC/VEF': { 'id': 'BTCVEF', 'symbol': 'BTC/VEF', 'base': 'BTC', 'quote': 'VEF', 'brokerId': 1, 'broker': 'SurBitcoin' },
+        'BTC/VND': { 'id': 'BTCVND', 'symbol': 'BTC/VND', 'base': 'BTC', 'quote': 'VND', 'brokerId': 3, 'broker': 'VBTC' },
+        'BTC/BRL': { 'id': 'BTCBRL', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'brokerId': 4, 'broker': 'FoxBit' },
+        'BTC/PKR': { 'id': 'BTCPKR', 'symbol': 'BTC/PKR', 'base': 'BTC', 'quote': 'PKR', 'brokerId': 8, 'broker': 'UrduBit' },
+        'BTC/CLP': { 'id': 'BTCCLP', 'symbol': 'BTC/CLP', 'base': 'BTC', 'quote': 'CLP', 'brokerId': 9, 'broker': 'ChileBit' },
     },
 
     async fetchBalance () {
@@ -4001,7 +4010,7 @@ var bl3p = {
     async fetchTicker (market) {
         let ticker = await this.publicGetMarketTicker ({
             'market': this.marketId (market),
-        });        
+        });
         let timestamp = ticker['timestamp'] * 1000;
         return {
             'timestamp': timestamp,
@@ -4260,7 +4269,7 @@ var btcchina = {
         await this.loadMarkets ();
         let market = params['market']; // TODO fixme
         return this.privatePostCancelOrder (this.extend ({
-            'params': [ id, market ], 
+            'params': [ id, market ],
         }, params));
     },
 
@@ -4739,7 +4748,7 @@ var btcmarkets = {
             if ('success' in response)
                 if (!response['success'])
                     throw new ExchangeError (this.id + ' ' + this.json (response));
-            return response;            
+            return response;
         }
         return response;
     },
@@ -4767,7 +4776,6 @@ var btctrader = {
                 'orderbook',
                 'ticker',
                 'trades',   // ?last=COUNT (max 50)
-
             ],
         },
         'private': {
@@ -4775,7 +4783,6 @@ var btctrader = {
                 'balance',
                 'openOrders',
                 'userTransactions', // ?offset=0&limit=25&sort=asc
-
             ],
             'post': [
                 'buy',
@@ -4987,7 +4994,7 @@ var btctradeua = {
         let response = await this.privatePostBalance ();
         let result = { 'info': response };
         if ('accounts' in result) {
-            let accounts = response['accounts'];        
+            let accounts = response['accounts'];
             for (let b = 0; b < accounts.length; b++) {
                 let account = accounts[b];
                 let currency = account['currency'];
@@ -5164,7 +5171,7 @@ var btcx = {
 
     'id': 'btcx',
     'name': 'BTCX',
-    'countries': [ 'IS', 'US', 'EU', ],
+    'countries': [ 'IS', 'US', 'EU' ],
     'rateLimit': 1500, // support in english is very poor, unable to tell rate limits
     'version': 'v1',
     'urls': {
@@ -5539,7 +5546,7 @@ var bter = {
         if ('result' in response)
             if (response['result'] != 'true')
                 throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;        
+        return response;
     },
 }
 
@@ -5785,7 +5792,7 @@ var ccex = {
 
     'id': 'ccex',
     'name': 'C-CEX',
-    'countries': [ 'DE', 'EU', ],
+    'countries': [ 'DE', 'EU' ],
     'rateLimit': 1500,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
@@ -5995,7 +6002,7 @@ var cex = {
 
     'id': 'cex',
     'name': 'CEX.IO',
-    'countries': [ 'GB', 'EU', 'CY', 'RU', ],
+    'countries': [ 'GB', 'EU', 'CY', 'RU' ],
     'rateLimit': 1500,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -6128,7 +6135,7 @@ var cex = {
         for (let t = 0; t < tickers.length; t++) {
             let ticker = tickers[t];
             let symbol = ticker['pair'].replace (':', '/');
-            let market = this.markets[symbol];            
+            let market = this.markets[symbol];
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
@@ -6253,12 +6260,12 @@ var chbtc = {
         },
     },
     'markets': {
-        'BTC/CNY': { 'id': 'btc_cny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', },
-        'LTC/CNY': { 'id': 'ltc_cny', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', },
-        'ETH/CNY': { 'id': 'eth_cny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY', },
-        'ETC/CNY': { 'id': 'etc_cny', 'symbol': 'ETC/CNY', 'base': 'ETC', 'quote': 'CNY', },
-        'BTS/CNY': { 'id': 'bts_cny', 'symbol': 'BTS/CNY', 'base': 'BTS', 'quote': 'CNY', },
-        'EOS/CNY': { 'id': 'eos_cny', 'symbol': 'EOS/CNY', 'base': 'EOS', 'quote': 'CNY', },
+        'BTC/CNY': { 'id': 'btc_cny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY' },
+        'LTC/CNY': { 'id': 'ltc_cny', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY' },
+        'ETH/CNY': { 'id': 'eth_cny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY' },
+        'ETC/CNY': { 'id': 'etc_cny', 'symbol': 'ETC/CNY', 'base': 'ETC', 'quote': 'CNY' },
+        'BTS/CNY': { 'id': 'bts_cny', 'symbol': 'BTS/CNY', 'base': 'BTS', 'quote': 'CNY' },
+        'EOS/CNY': { 'id': 'eos_cny', 'symbol': 'EOS/CNY', 'base': 'EOS', 'quote': 'CNY' },
     },
 
     async fetchBalance () {
@@ -6372,16 +6379,16 @@ var chbtc = {
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api]; 
+        let url = this.urls['api'][api];
         if (api == 'public') {
             url += '/' + this.version + '/' + path;
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
-            let paramsLength = params.length; // params should be a string here!
-            let nonce = this.nonce ();            
-            let auth = 'method=' + path;            
-            auth += '&accesskey=' + this.apiKey;            
+            let paramsLength = params.length; // params should be a string here
+            let nonce = this.nonce ();
+            let auth = 'method=' + path;
+            auth += '&accesskey=' + this.apiKey;
             auth += paramsLength ? params : '';
             let secret = this.hash (this.encode (this.secret), 'sha1');
             let signature = this.hmac (this.encode (auth), this.encode (secret), 'md5');
@@ -6413,7 +6420,7 @@ var chilebit = extend (blinktrade, {
     },
     'comment': 'Blinktrade API',
     'markets': {
-        'BTC/CLP': { 'id': 'BTCCLP', 'symbol': 'BTC/CLP', 'base': 'BTC', 'quote': 'CLP', 'brokerId': 9, 'broker': 'ChileBit', },
+        'BTC/CLP': { 'id': 'BTCCLP', 'symbol': 'BTC/CLP', 'base': 'BTC', 'quote': 'CLP', 'brokerId': 9, 'broker': 'ChileBit' },
     },
 })
 
@@ -6423,7 +6430,7 @@ var coincheck = {
 
     'id': 'coincheck',
     'name': 'coincheck',
-    'countries': [ 'JP', 'ID', ],
+    'countries': [ 'JP', 'ID' ],
     'rateLimit': 1500,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
@@ -6582,7 +6589,7 @@ var coincheck = {
         if (type == 'market') {
             let order_type = type + '_' + side;
             order['order_type'] = order_type;
-            let prefix = (side == buy) ? (order_type + '_') : '';
+            let prefix = (side == 'buy') ? (order_type + '_') : '';
             order[prefix + 'amount'] = amount;
         } else {
             order['order_type'] = side;
@@ -6786,10 +6793,11 @@ var coingi = {
         throw new ExchangeError (this.id + ' ' + symbol + ' ticker not found');
     },
 
-    async fetchTrades (market) {
-        return this.publicGetTransactionsPairMaxCount ({
+    async fetchTrades (market, params = {}) {
+        return this.currentGetTransactionsPairMaxCount (this.extend ({
             'pair': this.marketId (market),
-        });
+            'maxCount': 128,
+        }, params));
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
@@ -6824,7 +6832,7 @@ var coingi = {
             }, query);
             let auth = nonce.toString () + '$' + this.apiKey;
             request['signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
-            body = this.json (request);            
+            body = this.json (request);
             headers = {
                 'Content-Type': 'application/json',
                 'Content-Length': body.length,
@@ -6889,7 +6897,7 @@ var coinmarketcap = {
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             for (let c = 0; c < this.currencies.length; c++) {
-                let base = market['symbol'];                
+                let base = market['symbol'];
                 let baseId = market['id'];
                 let quote = this.currencies[c];
                 let quoteId = quote.toLowerCase ();
@@ -7035,8 +7043,8 @@ var coinmate = {
         },
     },
     'markets': {
-        'BTC/EUR': { 'id': 'BTC_EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'  },
-        'BTC/CZK': { 'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK'  },
+        'BTC/EUR': { 'id': 'BTC_EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+        'BTC/CZK': { 'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK' },
     },
 
     async fetchBalance () {
@@ -7408,7 +7416,7 @@ var coinsecure = {
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePutUserExchange';
         let order = {};
-        if (api == 'market') {
+        if (type == 'market') {
             method += 'Instant' + this.capitalize (side);
             if (side == 'buy')
                 order['maxFiat'] = amount;
@@ -7492,9 +7500,9 @@ var coinspot = {
         },
     },
     'markets': {
-        'BTC/AUD': { 'id': 'BTC', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', },
-        'LTC/AUD': { 'id': 'LTC', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', },
-        'DOGE/AUD': { 'id': 'DOGE', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD', },
+        'BTC/AUD': { 'id': 'BTC', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD' },
+        'LTC/AUD': { 'id': 'LTC', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD' },
+        'DOGE/AUD': { 'id': 'DOGE', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD' },
     },
 
     async fetchBalance () {
@@ -7584,7 +7592,7 @@ var coinspot = {
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePostMy' + this.capitalize (side);
-        if (type =='market')
+        if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let order = {
             'cointype': this.marketId (market),
@@ -7831,7 +7839,7 @@ var dsx = {
         if ('success' in response)
             if (response['success'])
                 return response;
-        throw new ExchangeError (this.id + ' ' + this.json (response)); 
+        throw new ExchangeError (this.id + ' ' + this.json (response));
     },
 }
 
@@ -7841,7 +7849,7 @@ var exmo = {
 
     'id': 'exmo',
     'name': 'EXMO',
-    'countries': [ 'ES', 'RU', ], // Spain, Russia
+    'countries': [ 'ES', 'RU' ], // Spain, Russia
     'rateLimit': 1000, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
     'version': 'v1',
     'urls': {
@@ -8009,7 +8017,7 @@ var exmo = {
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let prefix = '';
-        if (type =='market')
+        if (type == 'market')
             prefix = 'market_';
         let order = {
             'pair': this.marketId (market),
@@ -8194,11 +8202,11 @@ var flowbtc = {
         };
     },
 
-    async fetchTrades (market) {
+    async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
-        return this.publicPostGetTrades ({
-            'productPair': this.marketId (market),
-        });
+        return this.publicPostGetTrades (this.extend ({
+            'ins': this.marketId (market),
+        }, params));
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
@@ -8223,7 +8231,7 @@ var flowbtc = {
         if ('ins' in params) {
             return this.privatePostCancelOrder (this.extend ({
                 'serverOrderId': id,
-            }, params));            
+            }, params));
         }
         throw new ExchangeError (this.id + ' requires `ins` symbol parameter for cancelling an order');
     },
@@ -8275,7 +8283,7 @@ var foxbit = extend (blinktrade, {
     },
     'comment': 'Blinktrade API',
     'markets': {
-        'BTC/BRL': { 'id': 'BTCBRL', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'brokerId': 4, 'broker': 'FoxBit', },
+        'BTC/BRL': { 'id': 'BTCBRL', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'brokerId': 4, 'broker': 'FoxBit' },
     },
 })
 
@@ -8553,7 +8561,7 @@ var gatecoin = {
                 'Trade/StopOrders', // Gets all stop orders for the logged in trader. Max 1000 record.
                 'Trade/StopOrdersHistory', // Gets all stop orders for the logged in trader. Max 1000 record.
                 'Trade/Trades', // Gets all transactions of logged in user
-                'Trade/UserTrades', // Gets all transactions of logged in user            
+                'Trade/UserTrades', // Gets all transactions of logged in user
             ],
             'post': [
                 'Account/DocumentAddress', // Upload address proof document
@@ -8649,7 +8657,7 @@ var gatecoin = {
             let account = {
                 'free': balance['availableBalance'],
                 'used': this.sum (
-                    balance['pendingIncoming'], 
+                    balance['pendingIncoming'],
                     balance['pendingOutgoing'],
                     balance['openOrder']),
                 'total': balance['balance'],
@@ -9539,9 +9547,9 @@ var huobi = {
         },
     },
     'markets': {
-        'BTC/CNY': { 'id': 'btc', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', 'type': 'staticmarket', 'coinType': 1, },
-        'LTC/CNY': { 'id': 'ltc', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', 'type': 'staticmarket', 'coinType': 2, },
-        'BTC/USD': { 'id': 'btc', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'usdmarket',    'coinType': 1, },
+        'BTC/CNY': { 'id': 'btc', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', 'type': 'staticmarket', 'coinType': 1 },
+        'LTC/CNY': { 'id': 'ltc', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', 'type': 'staticmarket', 'coinType': 2 },
+        'BTC/USD': { 'id': 'btc', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'usdmarket',    'coinType': 1 },
     },
     
     async fetchBalance () {
@@ -10175,7 +10183,7 @@ var kraken = {
         if (darkpool)
             throw new ExchangeError (this.id + ' does not provide an order book for darkpool symbol ' + market);
         let p = this.market (market);
-        let response = await this.publicGetDepth  (this.extend ({
+        let response = await this.publicGetDepth (this.extend ({
             'pair': p['id'],
         }, params));
         let orderbook = response['result'][p['id']];
@@ -10779,7 +10787,7 @@ var livecoin = {
             else
                 if (query)
                     body = query;
-            let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');            
+            let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');
             headers = {
                 'Api-Key': this.apiKey,
                 'Sign': signature.toUpperCase (),
@@ -10799,7 +10807,7 @@ var livecoin = {
 var liqui = extend (btce, {
     'id': 'liqui',
     'name': 'Liqui',
-    'countries': [ 'UA', ],
+    'countries': 'UA',
     'rateLimit': 1000,
     'version': '3',
     'urls': {
@@ -10846,7 +10854,7 @@ var luno = {
 
     'id': 'luno',
     'name': 'luno',
-    'countries': [ 'GB', 'SG', 'ZA', ],
+    'countries': [ 'GB', 'SG', 'ZA' ],
     'rateLimit': 3000,
     'version': '1',
     'urls': {
@@ -10993,7 +11001,7 @@ var luno = {
             'baseVolume': undefined,
             'quoteVolume': parseFloat (ticker['rolling_24_hour_volume']),
             'info': ticker,
-        };        
+        };
     },
 
     async fetchTickers () {
@@ -11402,7 +11410,11 @@ var okcoin = {
             order['price'] = price;
         else
             order['type'] += '_market';
-        return this.privatePostTrade (this.extend (order, params));
+        let response  = await this.privatePostTrade (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['order_id'].toString (),
+        };
     },
 
     async cancelOrder (id, params = {}) {
@@ -11471,6 +11483,8 @@ var okcoinusd = extend (okcoin, {
     'markets': {
         'BTC/USD': { 'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
         'LTC/USD': { 'id': 'ltc_usd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD' },
+        'ETH/USD': { 'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD' },
+        'ETC/USD': { 'id': 'etc_usd', 'symbol': 'ETC/USD', 'base': 'ETC', 'quote': 'USD' },
     },
 })
 
@@ -11480,7 +11494,7 @@ var paymium = {
 
     'id': 'paymium',
     'name': 'Paymium',
-    'countries': [ 'FR', 'EU', ],
+    'countries': [ 'FR', 'EU' ],
     'rateLimit': 2000,
     'version': 'v1',
     'urls': {
@@ -11554,7 +11568,7 @@ var paymium = {
     },
 
     async fetchOrderBook (market, params = {}) {
-        let orderbook = await this.publicGetDataIdDepth  (this.extend ({
+        let orderbook = await this.publicGetDataIdDepth (this.extend ({
             'id': this.marketId (market),
         }, params));
         let timestamp = this.milliseconds ();
@@ -11621,7 +11635,11 @@ var paymium = {
         };
         if (type == 'market')
             order['price'] = price;
-        return this.privatePostUserOrders (this.extend (order, params));
+        let response = await this.privatePostUserOrders (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['uuid'],
+        };
     },
 
     async cancelOrder (id, params = {}) {
@@ -11842,14 +11860,74 @@ var poloniex = {
         return this.parseTicker (ticker, m);
     },
 
+    parseTrade (trade, market) {
+        let timestamp = this.parse8601 (trade['date']);
+        let id = undefined;
+        let order = undefined;
+        if ('tradeID' in trade)
+            id = trade['tradeID'];
+        if ('orderNumber' in trade)
+            order = trade['orderNumber'];
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'id': id,
+            'order': order,
+            'type': 'limit',
+            'side': trade['type'],
+            'price': parseFloat (trade['rate']),
+            'amount': parseFloat (trade['amount']),
+        };
+    },
+
+    parseTrades (trades, market) {
+        let result = [];
+        for (let t = 0; t < trades.length; t++) {
+            result.push (this.parseTrade (trades[t], market));
+        }
+        return result;
+    },
+
     async fetchTrades (market) {
         await this.loadMarkets ();
-        return this.publicGetReturnTradeHistory ({
-            'currencyPair': this.marketId (market),
+        let m = this.market (market);
+        let trades = await this.publicGetReturnTradeHistory ({
+            'currencyPair': m['id'],
         });
+        return this.parseTrades (trades, m);
+    },
+
+    async fetchMyTrades (market) {
+        let m = this.market (market);
+        let trades = await this.privatePostReturnTradeHistory ({
+            'currencyPair': m['id'],
+        });
+        return this.parseTrades (trades, m);
+    },
+
+    async fetchAllMyTrades () {
+        let response = await this.privatePostReturnTradeHistory ({
+            'currencyPair': 'all',
+        });
+        let result = {
+            'info': response,
+        };
+        let ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let trades = response[id];
+            let market = this.markets_by_id[id];
+            let symbol = market['symbol'];
+            result[symbol] = this.parseTrades (trades, market);
+        }
+        return result;
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
+        if (type == 'market')
+            throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let method = 'privatePost' + this.capitalize (side);
         let symbol = this.marketId (market);
@@ -11867,11 +11945,10 @@ var poloniex = {
             'symbol': symbol
         };
         this.orderCache[orderId] = order;
-        let result = {
+        return {
             'info': response,
             'id': orderId,
         };
-        return result;
     },
 
     async cancelOrder (id, params = {}) {
@@ -12074,7 +12151,11 @@ var quadrigacx = {
         };
         if (type == 'limit')
             order['price'] = price;
-        return this[method] (this.extend (order, params));
+        let response = await this[method] (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['id'].toString (),
+        };
     },
 
     async cancelOrder (id, params = {}) {
@@ -12195,7 +12276,7 @@ var quoine = {
         let balances = await this.privateGetAccountsBalance ();
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];            
+            let balance = balances[b];
             let currency = balance['currency'];
             let total = parseFloat (balance['balance']);
             let account = {
@@ -12286,7 +12367,7 @@ var quoine = {
     async fetchTrades (market) {
         await this.loadMarkets ();
         return this.publicGetExecutions ({
-            'market_id': this.marketId (market),
+            'product_id': this.marketId (market),
         });
     },
 
@@ -12300,9 +12381,13 @@ var quoine = {
         };
         if (type == 'limit')
             order['price'] = price;
-        return this.privatePostOrders (this.extend ({
+        let response = await this.privatePostOrders (this.extend ({
             'order': order,
         }, params));
+        return {
+            'info': response,
+            'id': response['id'].toString (),
+        };
     },
 
     async cancelOrder (id, params = {}) {
@@ -12403,7 +12488,7 @@ var southxchange = {
         let balances = await this.privatePostListBalances ();
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];            
+            let balance = balances[b];
             let currency = balance['Currency'];
             let uppercase = currency.uppercase;
             let free = parseFloat (balance['Available']);
@@ -12513,7 +12598,11 @@ var southxchange = {
         };
         if (type == 'limit')
             order['limitPrice'] = price;
-        return this.privatePostPlaceOrder (this.extend (order, params));
+        let response = await this.privatePostPlaceOrder (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response.toString (),
+        };
     },
 
     async cancelOrder (id, params = {}) {
@@ -12562,7 +12651,7 @@ var surbitcoin = extend (blinktrade, {
     },
     'comment': 'Blinktrade API',
     'markets': {
-        'BTC/VEF': { 'id': 'BTCVEF', 'symbol': 'BTC/VEF', 'base': 'BTC', 'quote': 'VEF', 'brokerId': 1, 'broker': 'SurBitcoin', },
+        'BTC/VEF': { 'id': 'BTCVEF', 'symbol': 'BTC/VEF', 'base': 'BTC', 'quote': 'VEF', 'brokerId': 1, 'broker': 'SurBitcoin' },
     },
 })
 
@@ -12649,11 +12738,11 @@ var therock = {
         let balances = response['balances'];
         let result = { 'info': response };
         for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];            
+            let balance = balances[b];
             let currency = balance['currency'];
             let free = balance['trading_balance'];
             let total = balance['balance'];
-            let used = total - free;            
+            let used = total - free;
             let account = {
                 'free': free,
                 'used': used,
@@ -12749,12 +12838,16 @@ var therock = {
         await this.loadMarkets ();
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
-        return this.privatePostFundsFundIdOrders (this.extend ({
+        let response = await this.privatePostFundsFundIdOrders (this.extend ({
             'fund_id': this.marketId (market),
             'side': side,
             'amount': amount,
             'price': price,
         }, params));
+        return {
+            'info': response,
+            'id': response['id'].toString (),
+        };
     },
 
     async cancelOrder (id, params = {}) {
@@ -12804,7 +12897,7 @@ var urdubit = extend (blinktrade, {
     },
     'comment': 'Blinktrade API',
     'markets': {
-        'BTC/PKR': { 'id': 'BTCPKR', 'symbol': 'BTC/PKR', 'base': 'BTC', 'quote': 'PKR', 'brokerId': 8, 'broker': 'UrduBit', },
+        'BTC/PKR': { 'id': 'BTCPKR', 'symbol': 'BTC/PKR', 'base': 'BTC', 'quote': 'PKR', 'brokerId': 8, 'broker': 'UrduBit' },
     },
 })
 
@@ -12881,7 +12974,7 @@ var vaultoro = {
         let balances = response['data'];
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];            
+            let balance = balances[b];
             let currency = balance['currency_code'];
             let uppercase = currency.toUpperCase ();
             let free = balance['cash'];
@@ -12965,12 +13058,16 @@ var vaultoro = {
         await this.loadMarkets ();
         let p = this.market (market);
         let method = 'privatePost' + this.capitalize (side) + 'SymbolType';
-        return this[method] (this.extend ({
+        let response = await this[method] (this.extend ({
             'symbol': p['quoteId'].toLowerCase (),
             'type': type,
             'gld': amount,
             'price': price || 1,
         }, params));
+        return {
+            'info': response,
+            'id': response['data']['Order_ID'],
+        };
     },
 
     async cancelOrder (id, params = {}) {
@@ -13018,7 +13115,7 @@ var vbtc = extend (blinktrade, {
     },
     'comment': 'Blinktrade API',
     'markets': {
-        'BTC/VND': { 'id': 'BTCVND', 'symbol': 'BTC/VND', 'base': 'BTC', 'quote': 'VND', 'brokerId': 3, 'broker': 'VBTC', },
+        'BTC/VND': { 'id': 'BTCVND', 'symbol': 'BTC/VND', 'base': 'BTC', 'quote': 'VND', 'brokerId': 3, 'broker': 'VBTC' },
     },
 })
 
@@ -13114,7 +13211,7 @@ var virwox = {
         let balances = response['result']['accountList'];
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];            
+            let balance = balances[b];
             let currency = balance['currency'];
             let total = balance['balance'];
             let account = {
@@ -13219,7 +13316,11 @@ var virwox = {
         };
         if (type == 'limit')
             order['price'] = price;
-        return this.privatePostPlaceOrder (this.extend (order, params));
+        let response = await this.privatePostPlaceOrder (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['orderID'].toString (),
+        };
     },
 
     async cancelOrder (id, params = {}) {
@@ -13373,7 +13474,7 @@ var xbtce = {
         let balances = await this.privateGetAsset ();
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];            
+            let balance = balances[b];
             let currency = balance['Currency'];
             let uppercase = currency.toUpperCase ();
             // xbtce names DASH incorrectly as DSH
@@ -13463,8 +13564,20 @@ var xbtce = {
         let result = {};
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
+            let market = undefined;
+            let symbol = undefined;
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
+                symbol = market['symbol'];
+            } else {
+                let base = id.slice (0, 3);
+                let quote = id.slice (3, 6);
+                if (base == 'DSH')
+                    base = 'DASH';
+                if (quote == 'DSH')
+                    quote = 'DASH';
+                symbol = base + '/' + quote;
+            }
             let ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
@@ -13492,12 +13605,16 @@ var xbtce = {
         await this.loadMarkets ();
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
-        return this.tapiPostTrade (this.extend ({
+        let response = await this.tapiPostTrade (this.extend ({
             'pair': this.marketId (market),
             'type': side,
             'amount': amount,
             'rate': price,
         }, params));
+        return {
+            'info': response,
+            'id': response['Id'].toString (),
+        };
     },
 
     async cancelOrder (id, params = {}) {
@@ -13534,7 +13651,7 @@ var xbtce = {
                     body = this.json (query);
                 }
                 else
-                    url += '?' + this.urlencode (query);                
+                    url += '?' + this.urlencode (query);
             }
             let auth = nonce + this.uid + this.apiKey + method + url;
             if (body)
@@ -13692,12 +13809,16 @@ var yobit = {
         await this.loadMarkets ();
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
-        return this.tapiPostTrade (this.extend ({
+        let response = await this.tapiPostTrade (this.extend ({
             'pair': this.marketId (market),
             'type': side,
             'amount': amount,
             'rate': price,
         }, params));
+        return {
+            'info': response,
+            'id': response['return']['order_id'].toString (),
+        };
     },
 
     async cancelOrder (id, params = {}) {
@@ -13876,7 +13997,7 @@ var yunbi = {
             'baseVolume': undefined,
             'quoteVolume': parseFloat (ticker['vol']),
             'info': ticker,
-        };        
+        };
     },
 
     async fetchTickers () {
@@ -13917,8 +14038,9 @@ var yunbi = {
 
     async fetchTrades (market) {
         await this.loadMarkets ();
+        let m = this.market (market);
         return this.publicGetTrades ({
-            'pair': this.marketId (market),
+            'market': m['id'],
         });
     },
 
@@ -13933,7 +14055,11 @@ var yunbi = {
         if (type == 'limit') {
             order['price'] = price.toString ();
         }
-        return this.privatePostOrders (this.extend (order, params));
+        let response = await this.privatePostOrders (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['id'].toString (),
+        };
     },
 
     async cancelOrder (id) {
@@ -14080,7 +14206,7 @@ var zaif = {
 
     async fetchOrderBook (market, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.apiGetDepthPair  (this.extend ({
+        let orderbook = await this.apiGetDepthPair (this.extend ({
             'pair': this.marketId (market),
         }, params));
         let timestamp = this.milliseconds ();
@@ -14131,12 +14257,16 @@ var zaif = {
         await this.loadMarkets ();
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
-        return this.tapiPostTrade (this.extend ({
+        let response = await this.tapiPostTrade (this.extend ({
             'currency_pair': this.marketId (market),
             'action': (side == 'buy') ? 'bid' : 'ask',
             'amount': amount,
             'price': price,
         }, params));
+        return {
+            'info': response,
+            'id': response['return']['order_id'].toString (),
+        };
     },
 
     async cancelOrder (id, params = {}) {

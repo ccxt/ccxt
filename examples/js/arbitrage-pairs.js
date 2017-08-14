@@ -67,13 +67,13 @@ let proxies = [
                 } catch (e) { // rotate proxies in case of connectivity errors, catch all other exceptions
 
                     // swallow connectivity exceptions only
-                    if (e instanceof ccxt.DDoSProtectionError || e.message.includes ('ECONNRESET')) {
+                    if (e instanceof ccxt.DDoSProtection || e.message.includes ('ECONNRESET')) {
                         log.bright.yellow ('[DDoS Protection Error] ' + e.message)
-                    } else if (e instanceof ccxt.TimeoutError) {
+                    } else if (e instanceof ccxt.RequestTimeout) {
                         log.bright.yellow ('[Timeout Error] ' + e.message)
                     } else if (e instanceof ccxt.AuthenticationError) {
                         log.bright.yellow ('[Authentication Error] ' + e.message)
-                    } else if (e instanceof ccxt.ExchangeNotAvailableError) {
+                    } else if (e instanceof ccxt.ExchangeNotAvailable) {
                         log.bright.yellow ('[Exchange Not Available Error] ' + e.message)
                     } else if (e instanceof ccxt.ExchangeError) {
                         log.bright.yellow ('[Exchange Error] ' + e.message)
