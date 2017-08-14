@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Added experimental `fetchOrders ()` workaround and other private methods for Poloniex (WIP), [pull request #102](https://github.com/kroitor/ccxt/pull/102)
 - Python pip is now cached in Travis CI, [pull request #108](https://github.com/kroitor/ccxt/pull/108)
 - Tox is now enforcing Python PEP8 with flask8 upon each build in Travis CI, [pull request #107](https://github.com/kroitor/ccxt/pull/107)
 - Added ETH markets to OKCoin USD, [pull request #103](https://github.com/kroitor/ccxt/pull/103)
