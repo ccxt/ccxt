@@ -144,23 +144,23 @@ class ExchangeNotAvailable (NetworkError): pass
 
 class Exchange (object):
 
-    id         = None
-    rateLimit  = 2000  # milliseconds = seconds * 1000
-    timeout    = 10000 # milliseconds = seconds * 1000
-    userAgent  = False
-    verbose    = False
-    markets    = None
-    symbols    = None
+    id = None
+    rateLimit = 2000 # milliseconds = seconds * 1000
+    timeout = 10000 # milliseconds = seconds * 1000
+    userAgent = False
+    verbose = False
+    markets = None
+    symbols = None
     currencies = None
-    tickers    = None
-    orders     = {}
-    trades     = {}
-    proxy      = ''
-    apiKey     = ''
-    secret     = ''
-    password   = ''
-    uid        = ''
-    twofa      = False
+    tickers = None
+    orders = {}
+    trades = {}
+    proxy = ''
+    apiKey = ''
+    secret = ''
+    password = ''
+    uid = ''
+    twofa = False
     marketsById = None
     markets_by_id = None
     substituteCommonCurrencyCodes = True
@@ -182,11 +182,11 @@ class Exchange (object):
                         url = url.strip()
                         splitPath = re.compile('[^a-zA-Z0-9]').split(url)
 
-                        uppercaseMethod  = method.upper()
-                        lowercaseMethod  = method.lower()
-                        camelcaseMethod  = lowercaseMethod.capitalize()
-                        camelcaseSuffix  = ''.join([Exchange.capitalize(x) for x in splitPath])
-                        lowercasePath    = [x.strip().lower() for x in splitPath]
+                        uppercaseMethod = method.upper()
+                        lowercaseMethod = method.lower()
+                        camelcaseMethod = lowercaseMethod.capitalize()
+                        camelcaseSuffix = ''.join([Exchange.capitalize(x) for x in splitPath])
+                        lowercasePath = [x.strip().lower() for x in splitPath]
                         underscoreSuffix = '_'.join([k for k in lowercasePath if len(k)])
 
                         if camelcaseSuffix.find(camelcaseMethod) == 0:
@@ -195,7 +195,7 @@ class Exchange (object):
                         if underscoreSuffix.find(lowercaseMethod) == 0:
                             underscoreSuffix = underscoreSuffix[len(lowercaseMethod):]
 
-                        camelcase  = apiType + camelcaseMethod + Exchange.capitalize(camelcaseSuffix)
+                        camelcase = apiType + camelcaseMethod + Exchange.capitalize(camelcaseSuffix)
                         underscore = apiType + '_' + lowercaseMethod + '_' + underscoreSuffix.lower()
 
                         f = functools.partial(self.request, url, apiType, uppercaseMethod)
@@ -459,10 +459,8 @@ class Exchange (object):
 
     @staticmethod
     def iso8601(timestamp):
-        return (datetime
-            .datetime
-            .utcfromtimestamp(int(round(timestamp / 1000)))
-            .strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z')
+        utc = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        return (utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z')
 
     @staticmethod
     def yyyymmddhhmmss(timestamp):
@@ -471,12 +469,12 @@ class Exchange (object):
     @staticmethod
     def parse8601(timestamp):
         yyyy = '([0-9]{4})-?'
-        mm   = '([0-9]{2})-?'
-        dd   = '([0-9]{2})(?:T|[\s])?'
-        h    = '([0-9]{2}):?'
-        m    = '([0-9]{2}):?'
-        s    = '([0-9]{2})'
-        ms   = '(\.[0-9]{3})?'
+        mm = '([0-9]{2})-?'
+        dd = '([0-9]{2})(?:T|[\s])?'
+        h = '([0-9]{2}):?'
+        m = '([0-9]{2}):?'
+        s = '([0-9]{2})'
+        ms = '(\.[0-9]{3})?'
         tz = '(?:(\+|\-)([0-9]{2})\:?([0-9]{2})|Z)?'
         regex = r'' + yyyy + mm + dd + h + m + s + ms + tz
         match = re.search(regex, timestamp, re.IGNORECASE)
@@ -10866,7 +10864,7 @@ class mercado (Exchange):
                 'tapi_method': path,
                 'tapi_nonce': nonce,
             }, params))
-            auth = '/tapi/' + self.version  + '/' + '?' + body
+            auth = '/tapi/' + self.version + '/' + '?' + body
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'TAPI-ID': self.apiKey,
@@ -11024,7 +11022,7 @@ class okcoin (Exchange):
             order['price'] = price
         else:
             order['type'] += '_market'
-        response  = self.privatePostTrade(self.extend(order, params))
+        response = self.privatePostTrade(self.extend(order, params))
         return {
             'info': response,
             'id': str(response['order_id']),

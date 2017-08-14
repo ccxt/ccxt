@@ -11259,7 +11259,7 @@ var mercado = {
                 'tapi_method': path,
                 'tapi_nonce': nonce,
             }, params));
-            let auth = '/tapi/' + this.version  + '/' + '?' + body;
+            let auth = '/tapi/' + this.version + '/' + '?' + body;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'TAPI-ID': this.apiKey,
@@ -11428,7 +11428,7 @@ var okcoin = {
             order['price'] = price;
         else
             order['type'] += '_market';
-        let response  = await this.privatePostTrade (this.extend (order, params));
+        let response = await this.privatePostTrade (this.extend (order, params));
         return {
             'info': response,
             'id': response['order_id'].toString (),

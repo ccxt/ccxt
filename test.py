@@ -44,27 +44,31 @@ def test_exchange_symbol_orderbook(exchange, symbol):
     time.sleep(delay)
     dump(green(exchange.id), green(symbol), 'fetching order book...')
     orderbook = exchange.fetch_order_book(symbol)
-    dump(green(exchange.id), green(symbol), 'order book',
+    dump(
+        green(exchange.id),
+        green(symbol),
+        'order book',
         orderbook['datetime'],
         'bid: ' +       str(orderbook['bids'][0][0] if len(orderbook['bids']) else 'N/A'),
         'bidVolume: ' + str(orderbook['bids'][0][1] if len(orderbook['bids']) else 'N/A'),
         'ask: ' +       str(orderbook['asks'][0][0] if len(orderbook['asks']) else 'N/A'),
-        'askVolume: ' + str(orderbook['asks'][0][1] if len(orderbook['asks']) else 'N/A'),
-    )
+        'askVolume: ' + str(orderbook['asks'][0][1] if len(orderbook['asks']) else 'N/A'))
 
 def test_exchange_symbol_ticker(exchange, symbol):
     delay = int(exchange.rateLimit / 1000)
     time.sleep(delay)
     dump(green(exchange.id), green(symbol), 'fetching ticker...')
     ticker = exchange.fetch_ticker(symbol)
-    dump(green(exchange.id), green(symbol), 'ticker',
+    dump(
+        green(exchange.id),
+        green(symbol),
+        'ticker',
         ticker['datetime'],
         'high: ' +   str(ticker['high']),
         'low: ' +    str(ticker['low']),
         'bid: ' +    str(ticker['bid']),
         'ask: ' +    str(ticker['ask']),
-        'volume: ' + str(ticker['quoteVolume']),
-    )
+        'volume: ' + str(ticker['quoteVolume']))
 
 def test_exchange_symbol(exchange, symbol):
     dump(green('SYMBOL: ' + symbol))

@@ -32,14 +32,16 @@ def print_usage():
 
 def print_ticker(exchange, symbol):
     ticker = exchange.fetch_ticker(symbol)
-    dump(green(exchange.id), yellow(symbol), 'ticker',
+    dump(
+        green(exchange.id),
+        yellow(symbol),
+        'ticker',
         ticker['datetime'],
         'high: ' +   str(ticker['high']),
         'low: ' +    str(ticker['low']),
         'bid: ' +    str(ticker['bid']),
         'ask: ' +    str(ticker['ask']),
-        'volume: ' + str(ticker['quoteVolume']),
-    )
+        'volume: ' + str(ticker['quoteVolume']))
 
 try:
 

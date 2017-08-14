@@ -11685,7 +11685,7 @@ class mercado extends Exchange {
                 'tapi_method' => $path,
                 'tapi_nonce' => $nonce,
             ), $params));
-            $auth = '/tapi/' . $this->version  . '/' . '?' . $body;
+            $auth = '/tapi/' . $this->version . '/' . '?' . $body;
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'TAPI-ID' => $this->apiKey,
@@ -11850,7 +11850,7 @@ class okcoin extends Exchange {
             $order['price'] = $price;
         else
             $order['type'] .= '_market';
-        $response  = $this->privatePostTrade (array_merge ($order, $params));
+        $response = $this->privatePostTrade (array_merge ($order, $params));
         return array (
             'info' => $response,
             'id' => (string) $response['order_id'],
