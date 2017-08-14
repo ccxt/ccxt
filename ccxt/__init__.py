@@ -387,9 +387,9 @@ class Exchange (object):
         return Exchange.implode_params(string, params)
 
     @staticmethod
-    def url(path, params = {}):
+    def url(path, params={}):
         result = Exchange.implode_params(path, params)
-        query = Exchange.omit(params, Exchange.extract_params (path))
+        query = Exchange.omit(params, Exchange.extract_params(path))
         if query:
             result += '?' + _urlencode.urlencode(query)
         return result
@@ -592,7 +592,7 @@ class Exchange (object):
     def loadMarkets(self, reload=False):
         return self.load_markets()
 
-    def getMarketURL(self, market, params = {}):
+    def getMarketURL(self, market, params={}):
         return self.get_market_url(market, params)
 
     def fetch_markets(self):
