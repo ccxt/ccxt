@@ -143,30 +143,41 @@ let testExchangeSymbolTrades = async (exchange, symbol) => {
 //-----------------------------------------------------------------------------
 
 let testExchangeSymbol = async (exchange, symbol) => {
+
     await sleep (exchange.rateLimit) 
     await testExchangeSymbolTicker (exchange, symbol)
+    
     if (exchange.id == 'coinmarketcap') {
+    
         // log (await exchange.fetchTickers ());
         log (await exchange.fetchGlobal ());
+    
     } else {
+    
         await testExchangeSymbolOrderbook (exchange, symbol)
 
         try {
+    
             await testExchangeSymbolTrades (exchange, symbol)    
+    
         } catch (e) {
+    
             if (e instanceof ccxt.ExchangeError) {
                 warn (exchange.id, '[Exchange Error] ' + e.message)
             } else {
                 throw e;
             }
         }
-        
     }
+
     try {
+
         log (exchange.id.green, 'fetching all tickers at once...')
         let tickers = await exchange.fetchTickers ()
         log (exchange.id.green, 'fetched', Object.keys (tickers).length.toString ().green, 'tickers...')
+
     } catch (e) {
+
         if (e instanceof ccxt.ExchangeError) {
             log (exchange.id.green, 'fetching all tickers at once not supported.')
             // do nothing
