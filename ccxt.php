@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.78';
+$version = '1.3.79';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3776,12 +3776,9 @@ class bittrex extends Exchange {
     public function get_market_url ($market, $params=array ()) {
         $this->loadMarkets ();
         $m = $this->market ($market);
-        var_dump ($m);
-        $result = $this->url ($this->urls['market'], array_merge (array (
+        return $this->url ($this->urls['market'], array_merge (array (
             'MarketName' => $m['id'],
         ), $params));
-        var_dump ($result);
-        exit ();
     }
 
     public function fetch_markets () {
