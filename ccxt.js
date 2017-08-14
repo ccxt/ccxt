@@ -11680,6 +11680,7 @@ var poloniex = {
     'name': 'Poloniex',
     'countries': 'US',
     'rateLimit': 500, // 6 calls per second
+    'orderCache': { },
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
         'api': {
@@ -11859,7 +11860,7 @@ var poloniex = {
         return this.parseTicker (ticker, m);
     },
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['date']);
         let id = undefined;
         let order = undefined;
@@ -11881,7 +11882,7 @@ var poloniex = {
         };
     },
 
-    parseTrades (trades, market) {
+    parseTrades (trades, market = undefined) {
         let result = [];
         for (let t = 0; t < trades.length; t++) {
             result.push (this.parseTrade (trades[t], market));
@@ -11889,34 +11890,34 @@ var poloniex = {
         return result;
     },
 
-    async fetchTrades (market) {
+    async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
         let m = this.market (market);
-        let trades = await this.publicGetReturnTradeHistory ({
-            'currencyPair': m['id'],
-        });
+        let trades = await this.publicGetReturnTradeHistory (this.extend ({
+            'currencyPair': m['id'],            
+            'end': this.seconds (), // last 50000 trades by default
+        }, params));
         return this.parseTrades (trades, m);
     },
 
-    async fetchMyTrades (market) {
-        let m = this.market (market);
-        let trades = await this.privatePostReturnTradeHistory ({
-            'currencyPair': m['id'],
-        });
-        return this.parseTrades (trades, m);
-    },
-
-    async fetchAllMyTrades () {
-        let response = await this.privatePostReturnTradeHistory ({
+    async fetchMyTrades (market = undefined, params = {}) {
+        let now = this.seconds ();
+        let request = this.extend ({
             'currencyPair': 'all',
-        });
-        let result = {
-            'info': response,
-        };
-        let ids = Object.keys (response);
+            'end': this.seconds (), // last 50000 trades by default
+        }, params);
+        if (market) {
+            let m = this.market (market);
+            request['currencyPair'] = m['id'];
+        }
+        let trades = await this.privatePostReturnTradeHistory (request);
+        if (market)
+            return this.parseTrades (trades, m);
+        let result = { 'info': trades };
+        let ids = Object.keys (trades);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let trades = response[id];
+            let trades = trads[id];
             let market = this.markets_by_id[id];
             let symbol = market['symbol'];
             result[symbol] = this.parseTrades (trades, market);
@@ -11924,22 +11925,63 @@ var poloniex = {
         return result;
     },
 
+    parseOrder (order, market) {
+        return {
+            'id': order['orderNumber'],
+            'timestamp': order['timestamp'],
+            'datetime': this.iso8601 (order['timestamp']),
+            'status': order['status'],
+            'symbol': market['symbol'],
+            'type': order['type'],
+            'side': order['side'],
+            'price': order['price'],
+            'amount': order['amount'],
+            'trades': this.parseTrades (order['resultingTrades'], market),
+        };
+    },
+
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let method = 'privatePost' + this.capitalize (side);
+        let m = this.market (market);
         let response = await this[method] (this.extend ({
-            'currencyPair': this.marketId (market),
+            'currencyPair': m['id'], 
             'rate': price,
             'amount': amount,
         }, params));
-        return {
-            'info': response,
-            'id': response['orderNumber'],
-        };
+        let timestamp = this.milliseconds ();
+        let order = this.parseOrder (this.extend ({
+            'timestamp': timestamp,
+            'status': 'open',
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+        }, response), m);
+        let id = order['id'];
+        this.orders[id] = order;
+        return this.extend ({ 'info': response }, order);
     },
 
+    async fetchOrder (id) {
+        await this.loadMarkets ();
+        return this.orders[id];
+        let found = (id in this.orders);
+        if (!found)
+            throw new ExchangeError (this.id + ' order ' + id + ' not found');
+        return this.orders[id];
+    },
+
+    async fetchOrderTrades (id, params = {}) {
+        await this.loadMarkets ();
+        let trades = await this.privatePostReturnOrderTrades (this.extend ({
+            'orderNumber': id,
+        }, params));
+        return this.parseTrades (trades); 
+    },
+    
     async cancelOrder (id, params = {}) {
         await this.loadMarkets ();
         return this.privatePostCancelOrder (this.extend ({
