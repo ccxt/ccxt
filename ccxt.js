@@ -15,7 +15,7 @@ class CCXTError extends Error {
     constructor (message) {
         super (message)
         // a workaround to make `instanceof CCXTError` work in ES5
-        this.constructor = CCXTError 
+        this.constructor = CCXTError
         this.__proto__   = CCXTError.prototype
         this.message     = message
     }
@@ -27,7 +27,7 @@ class ExchangeError extends CCXTError {
         this.constructor = ExchangeError
         this.__proto__   = ExchangeError.prototype
         this.message     = message
-    }    
+    }
 }
 
 class AuthenticationError extends CCXTError {
@@ -36,7 +36,7 @@ class AuthenticationError extends CCXTError {
         this.constructor = AuthenticationError
         this.__proto__   = AuthenticationError.prototype
         this.message     = message
-    }    
+    }
 }
 
 class NetworkError extends CCXTError {
@@ -45,13 +45,13 @@ class NetworkError extends CCXTError {
         this.constructor = NetworkError
         this.__proto__   = NetworkError.prototype
         this.message     = message
-    }    
+    }
 }
 
 class DDoSProtection extends NetworkError {
     constructor (message) {
         super (message)
-        this.constructor = DDoSProtection 
+        this.constructor = DDoSProtection
         this.__proto__   = DDoSProtection.prototype
         this.message     = message
     }
@@ -60,7 +60,7 @@ class DDoSProtection extends NetworkError {
 class RequestTimeout extends NetworkError {
     constructor (message) {
         super (message)
-        this.constructor = RequestTimeout 
+        this.constructor = RequestTimeout
         this.__proto__   = RequestTimeout.prototype
         this.message     = message
     }
@@ -72,7 +72,7 @@ class ExchangeNotAvailable extends NetworkError {
         this.constructor = ExchangeNotAvailable
         this.__proto__   = ExchangeNotAvailable.prototype
         this.message     = message
-    }    
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -154,7 +154,7 @@ const urlencode = object => qs.stringify (object)
 
 const sum = (...args) => {
     const result = args.filter (arg => typeof arg != 'undefined')
-    return (result.length > 0) ? 
+    return (result.length > 0) ?
         result.reduce ((sum, value) => sum + value, 0) : undefined
 }
 
@@ -171,14 +171,14 @@ if (isNode) {
 
 } else if (isReactNative) {
 
-    var CryptoJS = require ('crypto-js')    
+    var CryptoJS = require ('crypto-js')
     var fetch    = window.fetch
     var qs       = require ('qs')
 
 } else {
 
     // a quick fetch polyfill
-    
+
     var fetch = function (url, options, verbose = false) {
 
         return new Promise ((resolve, reject) => {
@@ -360,7 +360,7 @@ const Exchange = function (config) {
 
                 if (typeof response == 'string')
                     return response
-                
+
                 return response.text ().then (text => {
                     if (this.verbose)
                         console.log (this.id, method, url, text ? ("\nResponse:\n" + text) : '')
@@ -381,7 +381,7 @@ const Exchange = function (config) {
                             details = text + ' (possible reasons: ' + [
                                 'invalid API keys',
                                 'bad or old nonce',
-                                'exchange is down or offline', 
+                                'exchange is down or offline',
                                 'on maintenance',
                                 'DDoS protection',
                                 'rate-limiting',
@@ -395,7 +395,7 @@ const Exchange = function (config) {
                         error = Error
                     }
                     throw new error ([ this.id, method, url, response.status, response.statusText, details ].join (' '))
-                })                
+                })
             }).then (response => this.handleResponse (url, method, headers, response)))
     }
 
@@ -447,7 +447,7 @@ const Exchange = function (config) {
             if (!this.marketsById) {
                 return new Promise ((resolve, reject) => resolve (this.setMarkets (this.markets)))
             }
-            return new Promise ((resolve, reject) => resolve (this.markets))             
+            return new Promise ((resolve, reject) => resolve (this.markets))
         }
         return this.fetchMarkets ().then (markets => {
             return this.setMarkets (markets)
@@ -485,7 +485,7 @@ const Exchange = function (config) {
     this.market = function (market) {
         return (((typeof market === 'string') &&
             (typeof this.markets != 'undefined') &&
-            (typeof this.markets[market] != 'undefined')) ? 
+            (typeof this.markets[market] != 'undefined')) ?
                 this.markets[market] :
                 market)
     }
@@ -575,13 +575,13 @@ const Exchange = function (config) {
 
     if (isNode)
         this.userAgent = {
-            'User-Agent': 'ccxt/' + version + 
-                ' (+https://github.com/kroitor/ccxt)' + 
+            'User-Agent': 'ccxt/' + version +
+                ' (+https://github.com/kroitor/ccxt)' +
                 ' Node.js/' + this.nodeVersion + ' (JavaScript)'
         }
 
     // prepended to URL, like https://proxy.com/https://exchange.com/api...
-    this.proxy = '' 
+    this.proxy = ''
 
     for (var property in config)
         this[property] = config[property]
@@ -3661,7 +3661,7 @@ var bittrex = {
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
-    },    
+    },
 
     async fetchTicker (market) {
         await this.loadMarkets ();
@@ -3701,7 +3701,7 @@ var bittrex = {
         await this.loadMarkets ();
         return this.marketGetCancel ({ 'uuid': id });
     },
-    
+
     async fetchOrder (id) {
         await this.loadMarkets ();
         let response = await this.accountGetOrder ({ 'uuid': id });
@@ -4509,7 +4509,7 @@ var btce = {
         await this.loadMarkets ();
         return this.privatePostCancelOrder ({ 'order_id': id });
     },
-    
+
     async fetchOrder (id) {
         await this.loadMarkets ();
         let response = await this.privatePostOrderInfo ({ 'order_id': id });
@@ -4813,7 +4813,7 @@ var btctrader = {
     async fetchBalance () {
         let response = await this.privateGetBalance ();
         let result = { 'info': response };
-        let base = { 
+        let base = {
             'free': response['bitcoin_available'],
             'used': response['bitcoin_reserved'],
             'total': response['bitcoin_balance'],
@@ -6801,7 +6801,7 @@ var coingi = {
             let quote = ticker['currencyPair']['counter'].toUpperCase ();
             let symbol = base + '/' + quote;
             tickers[symbol] = ticker;
-        }        
+        }
         let p = this.market (market);
         let symbol = p['symbol'];
         if (symbol in tickers) {
@@ -6978,10 +6978,10 @@ var coinmarketcap = {
         };
     },
 
-    async fetchTickers (currency = 'USD') { 
+    async fetchTickers (currency = 'USD') {
         await this.loadMarkets ();
         let request = {};
-        if (currency) 
+        if (currency)
             request['convert'] = currency;
         let response = await this.publicGetTicker (request);
         let tickers = {};
@@ -7080,7 +7080,7 @@ var coinmate = {
                 account['free'] = balances[currency]['available'];
                 account['used'] = balances[currency]['reserved'];
                 account['total'] = balances[currency]['balance'];
-            }            
+            }
             result[currency] = account;
         }
         return result;
@@ -7723,7 +7723,7 @@ var dsx = {
         }
         return result;
     },
-  
+
     async fetchBalance () {
         await this.loadMarkets ();
         let response = await this.tapiPostGetInfo ();
@@ -8003,7 +8003,7 @@ var exmo = {
         };
     },
 
-    async fetchTickers (currency = 'USD') { 
+    async fetchTickers (currency = 'USD') {
         await this.loadMarkets ();
         let response = await this.publicGetTicker ();
         let result = {};
@@ -8486,7 +8486,7 @@ var fybsg = extend (fyb, {
 //-----------------------------------------------------------------------------
 
 var gatecoin = {
-    
+
     'id': 'gatecoin',
     'name': 'Gatecoin',
     'rateLimit': 2000,
@@ -9569,7 +9569,7 @@ var huobi = {
         'LTC/CNY': { 'id': 'ltc', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', 'type': 'staticmarket', 'coinType': 2 },
         'BTC/USD': { 'id': 'btc', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'usdmarket',    'coinType': 1 },
     },
-    
+
     async fetchBalance () {
         let balances = await this.tradePostGetAccountInfo ();
         let result = { 'info': balances };
@@ -9594,7 +9594,7 @@ var huobi = {
             result[currency] = account;
         }
         return result;
-    }, 
+    },
 
     async fetchOrderBook (market, params = {}) {
         let p = this.market (market);
@@ -9987,8 +9987,8 @@ var jubi = {
             result[currency] = account;
         }
         return result;
-    }, 
-         
+    },
+
     async fetchOrderBook (market, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetDepth (this.extend ({
@@ -11220,7 +11220,7 @@ var mercado = {
                 account['free'] = parseFloat (balances[lowercase]['available']);
                 account['total'] = parseFloat (balances[lowercase]['total']);
                 account['used'] = account['total'] - account['free'];
-            }           
+            }
             result[currency] = account;
         }
         return result;
@@ -12007,7 +12007,7 @@ var poloniex = {
         }, params));
         return this.parseTrades (trades);
     },
-    
+
     async cancelOrder (id, params = {}) {
         await this.loadMarkets ();
         return this.privatePostCancelOrder (this.extend ({
@@ -14406,7 +14406,7 @@ let defineAllExchanges = function (exchanges) {
 }
 
 if (isNode || isReactNative) {
-    
+
     Object.assign (module.exports = defineAllExchanges (exchanges), {
 
         version,
@@ -14418,9 +14418,9 @@ if (isNode || isReactNative) {
         AuthenticationError,
         NetworkError,
         DDoSProtection,
-        RequestTimeout,       
+        RequestTimeout,
         ExchangeNotAvailable,
-        
+
         // common utility functions
 
         sleep,
@@ -14440,7 +14440,7 @@ if (isNode || isReactNative) {
 
         // underscore aliases
 
-        index_by: indexBy, 
+        index_by: indexBy,
         sort_by: sortBy,
 
         // crypto functions
