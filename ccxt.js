@@ -8094,12 +8094,12 @@ var exmo = {
             };
         }
         let response = await this.fetch (url, method, headers, body);
-        if (api == 'public')
-            return response;
-        if ('result' in response)
+        if ('result' in response) {
             if (response['result'])
                 return response;
-        throw new ExchangeError (this.id + ' ' + this.json (response));
+            throw new ExchangeError (this.id + ' ' + this.json (response));
+        }
+        return response;        
     },
 }
 
