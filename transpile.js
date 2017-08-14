@@ -88,6 +88,7 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('createOrder',      'create_order')
                         .replace ('cancelOrder',      'cancel_order')
                         .replace ('signIn',           'sign_in')
+                        .replace ('getMarketURL',     'get_market_url')
 
         args = args.length ? args.split (',').map (x => x.trim ().replace (' = ', '=')) : []
         let phArgs = args.join (', $').trim ()

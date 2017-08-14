@@ -516,6 +516,14 @@ const Exchange = function (config) {
         return string
     }
 
+    this.url = function (path, params = {}) {
+        let result = this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (Object.keys (query).length)
+            result += '?' + this.urlencode (query);
+        return result;
+    }
+
     this.create_limit_buy_order =
     this.createLimitBuyOrder = function (market, amount, price, params = {}) {
         return this.createOrder  (market, 'limit', 'buy', amount, price, params)
@@ -582,6 +590,7 @@ const Exchange = function (config) {
     this.fetch_order_book = this.fetchOrderBook
     this.fetch_ticker     = this.fetchTicker
     this.fetch_trades     = this.fetchTrades
+    this.get_market_url   = this.getMarketURL
 
     this.init ()
 }
@@ -3472,6 +3481,7 @@ var bittrex = {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
         'api': 'https://bittrex.com/api',
         'www': 'https://bittrex.com',
+        'market': 'https://bittrex.com/Market/Index',
         'doc': [
             'https://bittrex.com/Home/Api',
             'https://www.npmjs.org/package/node.bittrex.api',
@@ -3511,6 +3521,14 @@ var bittrex = {
                 'sellmarket',
             ],
         },
+    },
+
+    async getMarketURL (market, params = {}) {
+        await this.loadMarkets ();
+        let m = this.market (market);
+        return this.url (this.urls['market'], this.extend ({
+            'MarketName': m['id'],
+        }, params));
     },
 
     async fetchMarkets () {
@@ -11688,6 +11706,7 @@ var poloniex = {
             'private': 'https://poloniex.com/tradingApi',
         },
         'www': 'https://poloniex.com',
+        'market': 'https://poloniex.com/exchange#{id}',
         'doc': [
             'https://poloniex.com/support/api/',
             'http://pastebin.com/dMX7mZE0',
@@ -11737,6 +11756,14 @@ var poloniex = {
                 'withdraw',
             ],
         },
+    },
+
+    async getMarketURL (market, params = {}) {
+        await this.loadMarkets ();
+        let m = this.market (market);
+        return this.url (this.urls['market'], this.extend ({
+            'id': m['id'].toLowerCase (),
+        }, params));
     },
 
     async fetchMarkets () {
@@ -13577,7 +13604,7 @@ var xbtce = {
         });
         let length = tickers.length;
         if (length < 1)
-            throw new ExchangeError (this.id + ' fetchTicker returned empty response, xBTCe public API error')
+            throw new ExchangeError (this.id + ' fetchTicker returned empty response, xBTCe public API error');
         tickers = this.indexBy (tickers, 'Symbol');
         let ticker = tickers[p['id']];
         return this.parseTicker (ticker, p);

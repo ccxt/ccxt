@@ -387,6 +387,14 @@ class Exchange (object):
         return Exchange.implode_params(string, params)
 
     @staticmethod
+    def url(path, params = {}):
+        result = Exchange.implode_params(path, params)
+        query = Exchange.omit(params, Exchange.extract_params (path))
+        if query:
+            result += '?' + _urlencode.urlencode(query)
+        return result
+
+    @staticmethod
     def omit(d, *args):
         result = d.copy()
         for arg in args:
@@ -583,6 +591,9 @@ class Exchange (object):
 
     def loadMarkets(self, reload=False):
         return self.load_markets()
+
+    def getMarketURL(self, market, params = {}):
+        return self.get_market_url(market, params)
 
     def fetch_markets(self):
         return self.markets
@@ -3409,6 +3420,7 @@ class bittrex (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
                 'api': 'https://bittrex.com/api',
                 'www': 'https://bittrex.com',
+                'market': 'https://bittrex.com/Market/Index',
                 'doc': [
                     'https://bittrex.com/Home/Api',
                     'https://www.npmjs.org/package/node.bittrex.api',
@@ -3452,6 +3464,13 @@ class bittrex (Exchange):
         }
         params.update(config)
         super(bittrex, self).__init__(params)
+
+    def get_market_url(self, market, params={}):
+        self.loadMarkets()
+        m = self.market(market)
+        return self.url(self.urls['market'], self.extend({
+            'MarketName': m['id'],
+        }, params))
 
     def fetch_markets(self):
         markets = self.publicGetMarkets()
@@ -11283,6 +11302,7 @@ class poloniex (Exchange):
                     'private': 'https://poloniex.com/tradingApi',
                 },
                 'www': 'https://poloniex.com',
+                'market': 'https://poloniex.com/exchange#{id}',
                 'doc': [
                     'https://poloniex.com/support/api/',
                     'http://pastebin.com/dMX7mZE0',
@@ -11336,6 +11356,13 @@ class poloniex (Exchange):
         }
         params.update(config)
         super(poloniex, self).__init__(params)
+
+    def get_market_url(self, market, params={}):
+        self.loadMarkets()
+        m = self.market(market)
+        return self.url(self.urls['market'], self.extend({
+            'id': m['id'].lower(),
+        }, params))
 
     def fetch_markets(self):
         markets = self.publicGetReturnTicker()

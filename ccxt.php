@@ -277,6 +277,14 @@ class Exchange {
     public static function urlencode ($string) {
         return http_build_query ($string);
     }
+
+    public static function url ($path, $params = array ()) {
+        $result = Exchange::implode_params ($path, $params);
+        $query = Exchange::omit ($params, Exchange::extract_params ($path));
+        if ($query)
+            $result .= '?' . Exchange::urlencode ($query);
+        return $result;
+    }
    
     public static function seconds () {
         return time ();
@@ -658,6 +666,10 @@ class Exchange {
         }
         $markets = $this->fetch_markets ();
         return $this->set_markets ($markets);
+    }
+
+    public function getMarketURL ($market, $params = array ()) {
+        return $this->get_market_url ($market, $params);
     }
 
     public function fetch_tickers () { // stub
@@ -3717,6 +3729,7 @@ class bittrex extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
                 'api' => 'https://bittrex.com/api',
                 'www' => 'https://bittrex.com',
+                'market' => 'https://bittrex.com/Market/Index',
                 'doc' => array (
                     'https://bittrex.com/Home/Api',
                     'https://www.npmjs.org/package/node.bittrex.api',
@@ -3758,6 +3771,17 @@ class bittrex extends Exchange {
                 ),
             ),
         ), $options));
+    }
+
+    public function get_market_url ($market, $params=array ()) {
+        $this->loadMarkets ();
+        $m = $this->market ($market);
+        var_dump ($m);
+        $result = $this->url ($this->urls['market'], array_merge (array (
+            'MarketName' => $m['id'],
+        ), $params));
+        var_dump ($result);
+        exit ();
     }
 
     public function fetch_markets () {
@@ -12123,6 +12147,7 @@ class poloniex extends Exchange {
                     'private' => 'https://poloniex.com/tradingApi',
                 ),
                 'www' => 'https://poloniex.com',
+                'market' => 'https://poloniex.com/exchange#{id}',
                 'doc' => array (
                     'https://poloniex.com/support/api/',
                     'http://pastebin.com/dMX7mZE0',
@@ -12174,6 +12199,14 @@ class poloniex extends Exchange {
                 ),
             ),
         ), $options));
+    }
+
+    public function get_market_url ($market, $params=array ()) {
+        $this->loadMarkets ();
+        $m = $this->market ($market);
+        return $this->url ($this->urls['market'], array_merge (array (
+            'id' => strtolower ($m['id']),
+        ), $params));
     }
 
     public function fetch_markets () {
@@ -14056,7 +14089,7 @@ class xbtce extends Exchange {
         ));
         $length = count ($tickers);
         if ($length < 1)
-            throw new ExchangeError ($this->id . ' fetchTicker returned empty response, xBTCe public API error')
+            throw new ExchangeError ($this->id . ' fetchTicker returned empty response, xBTCe public API error');
         $tickers = $this->index_by ($tickers, 'Symbol');
         $ticker = $tickers[$p['id']];
         return $this->parse_ticker ($ticker, $p);
