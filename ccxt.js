@@ -10320,11 +10320,39 @@ var kraken = {
         return this.parseTicker (ticker, p);
     },
 
-    async fetchTrades (market) {
+    parseTrade (trade, market) {
+        let timestamp = parseInt (trade[2] * 1000);
+        let side = (trade[3] == 's') ? 'sell' : 'buy';
+        let type = (trade[4] == 'l') ? 'limit' : 'market';
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': type,
+            'side': side,
+            'price': parseFloat (trade[0]),
+            'amount': parseFloat (trade[1]),
+        };
+    },
+
+    parseTrades (trades, market) {
+        let result = [];
+        for (let t = 0; t < trades.length; t++) {
+            result.push (this.parseTrade (trades[t], market));
+        }
+        return result;
+    },
+
+    async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
-        return this.publicGetTrades ({
-            'pair': this.marketId (market),
-        });
+        let m = this.market (market);
+        let id = m['id'];
+        let response = await this.publicGetTrades (this.extend ({
+            'pair': id,
+        }, params));
+        let trades = response['result'][id];
+        return this.parseTrades (trades, m);
     },
 
     async fetchBalance () {
