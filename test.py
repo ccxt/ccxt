@@ -102,7 +102,7 @@ def test_exchange_symbol_trades(exchange, symbol):
 def test_exchange_symbol(exchange, symbol):
     dump(green('SYMBOL: ' + symbol))
     test_exchange_symbol_ticker(exchange, symbol)
-    
+
     if exchange.id == 'coinmarketcap':
         dump(green(exchange.fetchGlobal()))
     else:
