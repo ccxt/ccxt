@@ -103,15 +103,15 @@ Developer team is open to collaboration and available for hiring and outsourcing
 
 ## Install
 
-This library is shipped as a single-file (all-in-one module) implementation with minimalistic dependencies and requirements.
+The easiest way to install the ccxt library is to use builtin package managers:
+- npm: [ccxt for Node.js](http://npmjs.com/package/ccxt) and web browsers
+- pip: [ccxt in PyPI](https://pypi.python.org/pypi/ccxt) (works in both Python 2 and 3)
 
-The main file is:
+This library is shipped as a single-file (all-in-one module) implementation with minimalistic dependencies and requirements:
 
-- `ccxt.js` in JavaScript ([ccxt for Node.js](http://npmjs.com/package/ccxt) and web browsers)
-- `ccxt/__init__.py` in Python (works in both Python 2 and 3, [ccxt in PyPI](https://pypi.python.org/pypi/ccxt))
-- `ccxt.php` in PHP
-
-The easiest way to install the ccxt library is to use builtin package managers. 
+- [./ccxt.js](https://github.com/kroitor/ccxt/blob/master/ccxt.js) in JavaScript 
+- [./ccxt/__init__.py](https://github.com/kroitor/ccxt/blob/master/ccxt/__init__.py) in Python
+- [./build/ccxt.php](https://github.com/kroitor/ccxt/blob/master/build/ccxt.php) in PHP
 
 You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/kroitor/ccxt):
 
@@ -119,7 +119,7 @@ You can also clone it into your project directory from [ccxt GitHub repository](
 git clone https://github.com/kroitor/ccxt.git
 ```
 
-An alternative way of installing this library into your code is to copy a single `ccxt.*` file manually into your working directory with language extension appropriate for your environment. 
+An alternative way of installing this library into your code is to copy a single file manually into your working directory with language extension appropriate for your environment. 
 
 ### Node.js (npm)
 
