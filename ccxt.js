@@ -5675,9 +5675,11 @@ var bxinth = {
         let result = [];
         for (let p = 0; p < keys.length; p++) {
             let market = markets[keys[p]];
-            let id = market['pairing_id'];
+            let id = market['pairing_id'].toString ();
             let base = market['primary_currency'];
             let quote = market['secondary_currency'];
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
