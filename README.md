@@ -154,11 +154,10 @@ print(ccxt.exchanges) # print a list of all available exchange classes
 
 ### PHP
 
-```shell
-git clone https://github.com/kroitor/ccxt.git
-```
+The ccxt library in PHP: [**`ccxt.php`**](https://raw.githubusercontent.com/kroitor/ccxt/master/build/ccxt.php)
 
-The ccxt library in PHP requires common PHP modules:
+It requires common PHP modules:
+
 - cURL
 - mbstring (using UTF-8 is highly recommended)
 - PCRE
