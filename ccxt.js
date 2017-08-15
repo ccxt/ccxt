@@ -5,9 +5,16 @@
 //-----------------------------------------------------------------------------
 
 var version = '1.3.92'
-var isNode  = (typeof window === 'undefined')
-var isReactNative = (typeof navigator !== 'undefined') && navigator &&
-    navigator.product && navigator.product == 'ReactNative' || false
+
+var isNode = (typeof window === 'undefined')
+
+var isCommonJS = (typeof module !== 'undefined') &&
+                 (typeof require !== 'undefined')
+
+var isReactNative = (typeof navigator !== 'undefined') &&
+                    navigator &&
+                    navigator.product &&
+                    navigator.product === 'ReactNative' || false
 
 //-----------------------------------------------------------------------------
 
@@ -14474,62 +14481,71 @@ let defineAllExchanges = function (exchanges) {
     return result
 }
 
-if (isNode || isReactNative) {
+//-----------------------------------------------------------------------------
 
-    Object.assign (module.exports = defineAllExchanges (exchanges), {
+const ccxt = Object.assign (defineAllExchanges (exchanges), {
 
-        version,
+    version,
 
-        // exceptions
+    // exceptions
 
-        CCXTError,
-        ExchangeError,
-        AuthenticationError,
-        NetworkError,
-        DDoSProtection,
-        RequestTimeout,
-        ExchangeNotAvailable,
+    CCXTError,
+    ExchangeError,
+    AuthenticationError,
+    NetworkError,
+    DDoSProtection,
+    RequestTimeout,
+    ExchangeNotAvailable,
 
-        // common utility functions
+    // common utility functions
 
-        sleep,
-        timeout,
-        capitalize,
-        keysort,
-        extend,
-        omit,
-        indexBy,
-        sortBy,
-        flatten,
-        unique,
-        pluck,
-        urlencode,
-        sum,
-        decimal,
+    sleep,
+    timeout,
+    capitalize,
+    keysort,
+    extend,
+    omit,
+    indexBy,
+    sortBy,
+    flatten,
+    unique,
+    pluck,
+    urlencode,
+    sum,
+    decimal,
 
-        // underscore aliases
+    // underscore aliases
 
-        index_by: indexBy,
-        sort_by: sortBy,
+    index_by: indexBy,
+    sort_by: sortBy,
 
-        // crypto functions
+    // crypto functions
 
-        binaryConcat,
-        stringToBinary,
-        binaryToString,
-        stringToBase64,
-        utf16ToBase64,
-        base64ToBinary,
-        base64ToString,
-        urlencodeBase64,
-        hash,
-        hmac,
-        jwt,
+    binaryConcat,
+    stringToBinary,
+    binaryToString,
+    stringToBase64,
+    utf16ToBase64,
+    base64ToBinary,
+    base64ToString,
+    urlencodeBase64,
+    hash,
+    hmac,
+    jwt,
 
-    })
+})
 
-} else
+//-----------------------------------------------------------------------------
 
-    window.ccxt = defineAllExchanges (exchanges)
+if (isCommonJS) {
 
-}) ()
+    module.exports = ccxt
+
+} else {
+
+    window.ccxt = ccxt
+}
+
+//-----------------------------------------------------------------------------
+
+}) () // end of namespace
