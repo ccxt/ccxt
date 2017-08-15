@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Isolated code genome into `ccxt.js`, `ccxt.php` and `ccxt.py`, added `build` folder for generated files
 - Fixed Bter BCC vs BCH in fetchTickers, [#83](https://github.com/kroitor/ccxt/issues/83)
 - Fixed Python byte-encoding with Gemini, [#30](https://github.com/kroitor/ccxt/issues/30), [#113](https://github.com/kroitor/ccxt/issues/113),
 - Added experimental `fetchOrders ()` workaround and other private methods for Poloniex (WIP), [#102](https://github.com/kroitor/ccxt/pull/102)
