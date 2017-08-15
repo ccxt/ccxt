@@ -90,7 +90,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.85'
+__version__ = '1.3.86'
 
 #------------------------------------------------------------------------------
 
@@ -5283,6 +5283,7 @@ class bter (Exchange):
         result = {'info': balance}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
+            code = self.commonCurrencyCode(currency)
             account = {
                 'free': None,
                 'used': None,
@@ -5295,7 +5296,7 @@ class bter (Exchange):
                 if currency in balance['locked']:
                     account['used'] = float(balance['locked'][currency])
             account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            result[code] = account
         return result
 
     def fetch_order_book(self, market, params={}):
@@ -5354,6 +5355,8 @@ class bter (Exchange):
             baseId, quoteId = id.split('_')
             base = baseId.upper()
             quote = quoteId.upper()
+            base = self.commonCurrencyCode(base)
+            quote = self.commonCurrencyCode(quote)
             symbol = base + '/' + quote
             ticker = tickers[id]
             market = self.markets[symbol]

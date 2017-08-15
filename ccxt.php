@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.85';
+$version = '1.3.86';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5727,6 +5727,7 @@ class bter extends Exchange {
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
+            $code = $this->commonCurrencyCode ($currency);
             $account = array (
                 'free' => null,
                 'used' => null,
@@ -5743,7 +5744,7 @@ class bter extends Exchange {
                 }
             }
             $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $result;
     }
@@ -5808,6 +5809,8 @@ class bter extends Exchange {
             list ($baseId, $quoteId) = explode ('_', $id);
             $base = strtoupper ($baseId);
             $quote = strtoupper ($quoteId);
+            $base = $this->commonCurrencyCode ($base);
+            $quote = $this->commonCurrencyCode ($quote);
             $symbol = $base . '/' . $quote;
             $ticker = $tickers[$id];
             $market = $this->markets[$symbol];
