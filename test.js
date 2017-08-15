@@ -3,7 +3,7 @@
 /*  ------------------------------------------------------------------------ */
 
 const [processPath, , exchangeId = null, exchangeSymbol = null] = process.argv.filter (x => !x.startsWith ('--'))
-const ccxtFile = process.argv.includes ('--es6') ? 'ccxt.js' : 'ccxt-es5.js'
+const ccxtFile = process.argv.includes ('--es6') ? 'ccxt.js' : 'build/ccxt.es5.js'
 
 if (!exchangeId) {
 

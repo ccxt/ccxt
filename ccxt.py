@@ -1,0 +1,663 @@
+# coding=utf-8
+
+exchanges = [
+    '_1broker',
+    '_1btcxe',
+    'anxpro',
+    'bit2c',
+    'bitbay',
+    'bitbays',
+    'bitcoincoid',
+    'bitfinex',
+    'bitflyer',
+    'bitlish',
+    'bitmarket',
+    'bitmex',
+    'bitso',
+    'bitstamp',
+    'bittrex',
+    'bl3p',
+    'btcchina',
+    'btce',
+    'btcexchange',
+    'btcmarkets',
+    'btctradeua',
+    'btcturk',
+    'btcx',
+    'bter',
+    'bxinth',
+    'ccex',
+    'cex',
+    'chbtc',
+    'chilebit',
+    'coincheck',
+    'coingi',
+    'coinmarketcap',
+    'coinmate',
+    'coinsecure',
+    'coinspot',
+    'dsx',
+    'exmo',
+    'flowbtc',
+    'foxbit',
+    'fybse',
+    'fybsg',
+    'gatecoin',
+    'gdax',
+    'gemini',
+    'hitbtc',
+    'huobi',
+    'itbit',
+    'jubi',
+    'kraken',
+    'lakebtc',
+    'livecoin',
+    'liqui',
+    'luno',
+    'mercado',
+    'okcoincny',
+    'okcoinusd',
+    'paymium',
+    'poloniex',
+    'quadrigacx',
+    'quoine',
+    'southxchange',
+    'surbitcoin',
+    'therock',
+    'urdubit',
+    'vaultoro',
+    'vbtc',
+    'virwox',
+    'xbtce',
+    'yobit',
+    'yunbi',
+    'zaif',
+]
+
+#------------------------------------------------------------------------------
+
+__all__ = exchanges + [
+    'exchanges',
+    'Exchange',
+    'CCXTError',
+    'ExchangeError',
+    'AuthenticationError',
+    'NetworkError',
+    'DDoSProtection',
+    'RequestTimeout',
+    'ExchangeNotAvailable',
+]
+
+#------------------------------------------------------------------------------
+
+__version__ = '1.3.90'
+
+#------------------------------------------------------------------------------
+
+# Python 2 & 3
+import base64
+import calendar
+import collections
+import datetime
+import functools
+import gzip
+import hashlib
+import hmac
+import io
+import json
+import math
+import re
+import socket
+import ssl
+import sys
+import time
+import zlib
+import decimal
+
+#------------------------------------------------------------------------------
+
+try:
+    import urllib.parse   as _urlencode # Python 3
+    import urllib.request as _urllib
+except ImportError:
+    import urllib  as _urlencode        # Python 2
+    import urllib2 as _urllib
+
+#------------------------------------------------------------------------------
+
+try:
+    basestring # Python 3
+except NameError:
+    basestring = str # Python 2
+
+#------------------------------------------------------------------------------
+
+class CCXTError            (Exception):    pass
+class ExchangeError        (CCXTError):    pass
+class AuthenticationError  (CCXTError):    pass
+class NetworkError         (CCXTError):    pass
+class DDoSProtection       (NetworkError): pass
+class RequestTimeout       (NetworkError): pass
+class ExchangeNotAvailable (NetworkError): pass
+
+#------------------------------------------------------------------------------
+
+class Exchange (object):
+
+    id = None
+    rateLimit = 2000 # milliseconds = seconds * 1000
+    timeout = 10000 # milliseconds = seconds * 1000
+    userAgent = False
+    verbose = False
+    markets = None
+    symbols = None
+    currencies = None
+    tickers = None
+    orders = {}
+    trades = {}
+    proxy = ''
+    apiKey = ''
+    secret = ''
+    password = ''
+    uid = ''
+    twofa = False
+    marketsById = None
+    markets_by_id = None
+    substituteCommonCurrencyCodes = True
+
+    def __init__(self, config={}):
+
+        version = '.'.join(map(str, sys.version_info[:3]))
+        self.userAgent = {
+            'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/kroitor/ccxt) Python/' + version
+        }
+
+        for key in config:
+            setattr(self, key, config[key])
+
+        if self.api:
+            for apiType, methods in self.api.items():
+                for method, urls in methods.items():
+                    for url in urls:
+                        url = url.strip()
+                        splitPath = re.compile('[^a-zA-Z0-9]').split(url)
+
+                        uppercaseMethod = method.upper()
+                        lowercaseMethod = method.lower()
+                        camelcaseMethod = lowercaseMethod.capitalize()
+                        camelcaseSuffix = ''.join([Exchange.capitalize(x) for x in splitPath])
+                        lowercasePath = [x.strip().lower() for x in splitPath]
+                        underscoreSuffix = '_'.join([k for k in lowercasePath if len(k)])
+
+                        if camelcaseSuffix.find(camelcaseMethod) == 0:
+                            camelcaseSuffix = camelcaseSuffix[len(camelcaseMethod):]
+
+                        if underscoreSuffix.find(lowercaseMethod) == 0:
+                            underscoreSuffix = underscoreSuffix[len(lowercaseMethod):]
+
+                        camelcase = apiType + camelcaseMethod + Exchange.capitalize(camelcaseSuffix)
+                        underscore = apiType + '_' + lowercaseMethod + '_' + underscoreSuffix.lower()
+
+                        f = functools.partial(self.request, url, apiType, uppercaseMethod)
+                        setattr(self, camelcase, f)
+                        setattr(self, underscore, f)
+
+        if self.markets:
+            self.set_markets(self.markets)
+
+    def raise_error(self, exception_type, url, method='GET', error=None, details=None):
+        details = details if details else ''
+        if error:
+            if type(error) is _urllib.HTTPError:
+                details = ' '.join([
+                    str(error.code),
+                    error.msg,
+                    error.read().decode('utf-8'),
+                    details,
+                ])
+            else:
+                details = str(error)
+            raise exception_type(' '.join([
+                self.id,
+                method,
+                url,
+                details,
+            ]))
+        else:
+            raise exception_type(' '.join([self.id, method, url, details]))
+
+    def fetch(self, url, method='GET', headers=None, body=None):
+        """Perform a HTTP request and return decoded JSON data"""
+        headers = headers or {}
+        if self.userAgent:
+            if type(self.userAgent) is str:
+                headers.update({'User-Agent': self.userAgent})
+            elif (type(self.userAgent) is dict) and ('User-Agent' in self.userAgent):
+                headers.update(self.userAgent)
+        if len(self.proxy):
+            headers.update({'Origin': '*'})
+        headers.update({'Accept-Encoding': 'gzip, deflate'})
+        url = self.proxy + url
+        if self.verbose:
+            print(url, method, url, "\nRequest:", headers, body)
+        if body:
+            body = body.encode()
+        request = _urllib.Request(url, body, headers)
+        request.get_method = lambda: method
+        response = None
+        text = None
+        try: # send request and load response
+            handler = _urllib.HTTPHandler if url.startswith('http://') else _urllib.HTTPSHandler
+            opener = _urllib.build_opener(handler)
+            response = opener.open(request, timeout=int(self.timeout / 1000))
+            text = response.read()
+        except socket.timeout as e:
+            raise RequestTimeout(' '.join([self.id, method, url, 'request timeout']))
+        except ssl.SSLError as e:
+            self.raise_error(ExchangeNotAvailable, url, method, e)
+        except _urllib.HTTPError as e:
+            error = None
+            details = text if text else None
+            if e.code == 429:
+                error = DDoSProtection
+            elif e.code in [404, 409, 500, 501, 502, 521, 525]:
+                details = e.read().decode('utf-8', 'ignore') if e else None
+                error = ExchangeNotAvailable
+            elif e.code in [400, 403, 405, 503]:
+                # special case to detect ddos protection
+                reason = e.read().decode('utf-8', 'ignore')
+                ddos_protection = re.search('(cloudflare|incapsula)', reason, flags=re.IGNORECASE)
+                if ddos_protection:
+                    error = DDoSProtection
+                else:
+                    error = ExchangeNotAvailable
+                    details = '(possible reasons: ' + ', '.join([
+                        'invalid API keys',
+                        'bad or old nonce',
+                        'exchange is down or offline',
+                        'on maintenance',
+                        'DDoS protection',
+                        'rate-limiting',
+                        reason,
+                    ]) + ')'
+            elif e.code in [408, 504]:
+                error = RequestTimeout
+            elif e.code in [401, 422, 511]:
+                error = AuthenticationError
+            self.raise_error(error, url, method, e, details)
+        except _urllib.URLError as e:
+            self.raise_error(ExchangeNotAvailable, url, method, e)
+        encoding = response.info().get('Content-Encoding')
+        if encoding in ('gzip', 'x-gzip', 'deflate'):
+            if encoding == 'deflate':
+                text = zlib.decompress(text, -zlib.MAX_WBITS)
+            else:
+                data = gzip.GzipFile('', 'rb', 9, io.BytesIO(text))
+                text = data.read()
+        body = text.decode('utf-8')
+        if self.verbose:
+            print(method, url, "\nResponse:", headers, body)
+        return self.handle_response(url, method, headers, body)
+
+    def handle_response(self, url, method='GET', headers=None, body=None):
+        try:
+            return json.loads(body)
+        except Exception as e:
+            ddos_protection = re.search('(cloudflare|incapsula)', body, flags=re.IGNORECASE)
+            exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', body, flags=re.IGNORECASE)
+            if ddos_protection:
+                raise DDoSProtection(' '.join([self.id, method, url, body]))
+            if exchange_not_available:
+                message = 'exchange downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
+                raise ExchangeNotAvailable(' '.join([
+                    self.id,
+                    method,
+                    url,
+                    body,
+                    message,
+                ]))
+            raise
+
+    @staticmethod
+    def decimal(number):
+        return str(decimal.Decimal(str(number)))
+
+    @staticmethod
+    def capitalize(string): # first character only, rest characters unchanged
+        if len(string) > 1:
+            return "%s%s" % (string[0].upper(), string[1:])
+        return string.upper()
+
+    @staticmethod
+    def keysort(dictionary):
+        return collections.OrderedDict(sorted(dictionary.items(), key=lambda t: t[0]))
+
+    @staticmethod
+    def extend(*args):
+        if args is not None:
+            result = None
+            if type(args[0]) is collections.OrderedDict:
+                result = collections.OrderedDict()
+            else:
+                result = {}
+            for arg in args:
+                result.update(arg)
+            return result
+        return {}
+
+    @staticmethod
+    def index_by(array, key):
+        result = {}
+        if type(array) is dict:
+            array = list(Exchange.keysort(array).items())
+        for element in array:
+            if (key in element) and (element[key] is not None):
+                k = element[key]
+                result[k] = element
+        return result
+
+    @staticmethod
+    def indexBy(l, key):
+        return Exchange.index_by(l, key)
+
+    @staticmethod
+    def sort_by(l, key, descending=False):
+        return sorted(l, key=lambda k: k[key], reverse=descending)
+
+    @staticmethod
+    def sortBy(l, key, descending=False):
+        return Exchange.sort_by(l, key, descending)
+
+    @staticmethod
+    def extract_params(string):
+        return re.findall(r'{([a-zA-Z0-9_]+?)}', string)
+
+    @staticmethod
+    def implode_params(string, params):
+        for key in params:
+            string = string.replace('{' + key + '}', str(params[key]))
+        return string
+
+    @staticmethod
+    def extractParams(string):
+        return Exchange.extract_params(string)
+
+    @staticmethod
+    def implodeParams(string, params):
+        return Exchange.implode_params(string, params)
+
+    @staticmethod
+    def url(path, params={}):
+        result = Exchange.implode_params(path, params)
+        query = Exchange.omit(params, Exchange.extract_params(path))
+        if query:
+            result += '?' + _urlencode.urlencode(query)
+        return result
+
+    @staticmethod
+    def omit(d, *args):
+        result = d.copy()
+        for arg in args:
+            if type(arg) is list:
+                for key in arg:
+                    if key in result: del result[key]
+            else:
+                if arg in result: del result[arg]
+        return result
+
+    @staticmethod
+    def unique(array):
+        return list(set(array))
+
+    @staticmethod
+    def pluck(array, key):
+        return [element[key] for element in array if (key in element) and (element[key] is not None)]
+
+    @staticmethod
+    def sum(*args):
+        return sum([arg for arg in args if isinstance(arg, int) or isinstance(arg, float)])
+
+    @staticmethod
+    def ordered(array):
+        return collections.OrderedDict(array)
+
+    @staticmethod
+    def s():
+        return Exchange.seconds()
+
+    @staticmethod
+    def sec():
+        return Exchange.seconds()
+
+    @staticmethod
+    def ms():
+        return Exchange.milliseconds()
+
+    @staticmethod
+    def msec():
+        return Exchange.milliseconds()
+
+    @staticmethod
+    def us():
+        return Exchange.microseconds()
+
+    @staticmethod
+    def usec():
+        return Exchange.microseconds()
+
+    @staticmethod
+    def seconds():
+        return int(time.time())
+
+    @staticmethod
+    def milliseconds():
+        return int(time.time() * 1000)
+
+    @staticmethod
+    def microseconds():
+        return int(time.time() * 1000000)
+
+    @staticmethod
+    def iso8601(timestamp):
+        utc = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        return (utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z')
+
+    @staticmethod
+    def yyyymmddhhmmss(timestamp):
+        return datetime.datetime.fromtimestamp(int(round(timestamp / 1000))).strftime('%Y-%m-%d %H:%M:%S')
+
+    @staticmethod
+    def parse8601(timestamp):
+        yyyy = '([0-9]{4})-?'
+        mm = '([0-9]{2})-?'
+        dd = '([0-9]{2})(?:T|[\s])?'
+        h = '([0-9]{2}):?'
+        m = '([0-9]{2}):?'
+        s = '([0-9]{2})'
+        ms = '(\.[0-9]{3})?'
+        tz = '(?:(\+|\-)([0-9]{2})\:?([0-9]{2})|Z)?'
+        regex = r'' + yyyy + mm + dd + h + m + s + ms + tz
+        match = re.search(regex, timestamp, re.IGNORECASE)
+        yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
+        ms = ms or '.000'
+        sign = sign or ''
+        sign = int(sign + '1')
+        hours = int(hours or 0) * sign
+        minutes = int(minutes or 0) * sign
+        offset = datetime.timedelta(hours=hours, minutes=minutes)
+        string = yyyy + mm + dd + h + m + s + ms + 'Z'
+        dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
+        dt = dt + offset
+        return calendar.timegm(dt.utctimetuple()) * 1000
+
+    @staticmethod
+    def hash(request, algorithm='md5', digest='hex'):
+        h = hashlib.new(algorithm, request)
+        if digest == 'hex':
+            return h.hexdigest()
+        elif digest == 'base64':
+            return base64.b64encode(h.digest())
+        return h.digest()
+
+    @staticmethod
+    def hmac(request, secret, algorithm=hashlib.sha256, digest='hex'):
+        h = hmac.new(secret, request, algorithm)
+        if digest == 'hex':
+            return h.hexdigest()
+        elif digest == 'base64':
+            return base64.b64encode(h.digest())
+        return h.digest()
+
+    @staticmethod
+    def binary_concat(*args):
+        result = bytes()
+        for arg in args:
+            result = result + arg
+        return result
+
+    @staticmethod
+    def binary_to_string(s):
+        return s.decode('ascii')
+
+    @staticmethod
+    def base64urlencode(s):
+        return Exchange.decode(base64.urlsafe_b64encode(s)).replace('=', '')
+
+    @staticmethod
+    def jwt(request, secret, algorithm=hashlib.sha256, alg='HS256'):
+        header = Exchange.encode(Exchange.json({
+            'alg': alg,
+            'typ': 'JWT',
+        }))
+        encodedHeader = Exchange.base64urlencode(header)
+        encodedData = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
+        token = encodedHeader + '.' + encodedData
+        hmac = Exchange.hmac(Exchange.encode(token), Exchange.encode(secret), algorithm, 'binary')
+        signature = Exchange.base64urlencode(hmac)
+        return token + '.' + signature
+
+    @staticmethod
+    def json(input):
+        return json.dumps(input, separators=(',', ':'))
+
+    @staticmethod
+    def encode(string):
+        return string.encode()
+
+    @staticmethod
+    def decode(string):
+        return string.decode()
+
+    def nonce(self):
+        return Exchange.seconds()
+
+    def commonCurrencyCode(self, currency):
+        if not self.substituteCommonCurrencyCodes:
+            return currency
+        if currency == 'XBT':
+            return 'BTC'
+        if currency == 'BCC':
+            return 'BCH'
+        if currency == 'DRK':
+            return 'DASH'
+        return currency
+
+    def set_markets(self, markets):
+        values = markets
+        if type(values) is dict:
+            values = list(markets.values())
+        self.markets = self.indexBy(values, 'symbol')
+        self.markets_by_id = Exchange.indexBy(values, 'id')
+        self.marketsById = self.markets_by_id
+        self.symbols = sorted(list(self.markets.keys()))
+        base = self.pluck([market for market in values if 'base' in market], 'base')
+        quote = self.pluck([market for market in values if 'quote' in market], 'quote')
+        self.currencies = sorted(self.unique(base + quote))
+        return self.markets
+
+    def setMarkets(self, markets):
+        return self.set_markets(markets)
+
+    def load_markets(self, reload=False):
+        if not reload:
+            if self.markets:
+                if not self.markets_by_id:
+                    return self.set_markets(self.markets)
+                return self.markets
+        markets = self.fetch_markets()
+        return self.set_markets(markets)
+
+    def loadMarkets(self, reload=False):
+        return self.load_markets()
+
+    def getMarketURL(self, market, params={}):
+        return self.get_market_url(market, params)
+
+    def fetch_markets(self):
+        return self.markets
+
+    def fetchMarkets(self):
+        return self.fetch_markets()
+
+    def fetch_tickers(self):
+        raise ExchangeError(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
+
+    def fetchTickers(self):
+        return self.fetch_tickers()
+
+    def market(self, market):
+        isString = isinstance(market, basestring)
+        if isString and self.markets and (market in self.markets):
+            return self.markets[market]
+        return market
+
+    def market_id(self, market):
+        p = self.market(market)
+        return p['id'] if type(p) is dict else market
+
+    def marketId(self, market):
+        return self.market_id(market)
+
+    def symbol(self, market):
+        p = self.market(market)
+        return p['symbol'] if type(p) is dict else market
+
+    def fetchBalance(self):
+        return self.fetch_balance()
+
+    def fetchOrderBook(self, market):
+        return self.fetch_order_book(market)
+
+    def fetchTicker(self, market):
+        return self.fetch_ticker(market)
+
+    def fetchTrades(self, market):
+        return self.fetch_trades(market)
+
+    def create_limit_buy_order(self, market, amount, price, params={}):
+        return self.create_order(market, 'limit', 'buy', amount, price, params)
+
+    def create_limit_sell_order(self, market, amount, price, params={}):
+        return self.create_order(market, 'limit', 'sell', amount, price, params)
+
+    def create_market_buy_order(self, market, amount, params={}):
+        return self.create_order(market, 'market', 'buy', amount, None, params)
+
+    def create_market_sell_order(self, market, amount, params={}):
+        return self.create_order(market, 'market', 'sell', amount, None, params)
+
+    def createLimitBuyOrder(self, market, amount, price, params={}):
+        return self.create_limit_buy_order(market, amount, price, params)
+
+    def createLimitSellOrder(self, market, amount, price, params={}):
+        return self.create_limit_sell_order(market, amount, price, params)
+
+    def createMarketBuyOrder(self, market, amount, params={}):
+        return self.create_market_buy_order(market, amount, params)
+
+    def createMarketSellOrder(self, market, amount, params={}):
+        return self.create_market_sell_order(market, amount, params)
+
+#==============================================================================
+
+# This comment is a placeholder for transpiled derived exchange implementations
