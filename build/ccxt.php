@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.98';
+$version = '1.3.99';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5983,6 +5983,8 @@ class bxinth extends Exchange {
             $id = (string) $market['pairing_id'];
             $base = $market['primary_currency'];
             $quote = $market['secondary_currency'];
+            $base = $this->commonCurrencyCode ($base);
+            $quote = $this->commonCurrencyCode ($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -6081,7 +6083,6 @@ class bxinth extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $ticker = $tickers[$id];
-            var_dump ($id, $this->markets_by_id);
             $market = $this->markets_by_id[$id];
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker ($ticker, $market);

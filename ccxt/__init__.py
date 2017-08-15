@@ -120,7 +120,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.98'
+__version__ = '1.3.99'
 
 #------------------------------------------------------------------------------
 
@@ -5519,6 +5519,8 @@ class bxinth (Exchange):
             id = str(market['pairing_id'])
             base = market['primary_currency']
             quote = market['secondary_currency']
+            base = self.commonCurrencyCode(base)
+            quote = self.commonCurrencyCode(quote)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -5608,7 +5610,6 @@ class bxinth (Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             ticker = tickers[id]
-            print(id, self.markets_by_id)
             market = self.markets_by_id[id]
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
