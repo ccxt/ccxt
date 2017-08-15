@@ -582,7 +582,7 @@ class Exchange {
                 'check your API keys', $details);
         }
 
-        if (in_array ($http_status_code, array (400, 403, 405, 503, 525))) {
+        if (in_array ($http_status_code, array (400, 403, 405, 503, 521, 525))) {
 
             if (preg_match ('#cloudflare|incapsula#i', $result)) {
         
