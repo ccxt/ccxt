@@ -4,17 +4,17 @@
 
 //-----------------------------------------------------------------------------
 
-var version = '1.3.92'
+const version = '1.3.92'
 
-var isNode = (typeof window === 'undefined')
+const isNode = (typeof window === 'undefined')
 
-var isCommonJS = (typeof module !== 'undefined') &&
-                 (typeof require !== 'undefined')
+const isCommonJS = (typeof module !== 'undefined') &&
+                   (typeof require !== 'undefined')
 
-var isReactNative = (typeof navigator !== 'undefined') &&
-                    navigator &&
-                    navigator.product &&
-                    navigator.product === 'ReactNative' || false
+const isReactNative = (typeof navigator !== 'undefined') &&
+                        navigator &&
+                        navigator.product &&
+                        navigator.product === 'ReactNative' || false
 
 //-----------------------------------------------------------------------------
 
