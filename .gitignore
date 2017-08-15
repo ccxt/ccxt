@@ -6,6 +6,7 @@ config.py
 config.php
 dist/
 build/
+ccxt/
 ccxt.egg-info/
 tmp/
 *.pyc
