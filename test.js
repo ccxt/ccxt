@@ -39,7 +39,6 @@ log.bright ('\nTESTING', ccxtFile.magenta, { exchange: exchangeId, symbol: excha
 
 /*  ------------------------------------------------------------------------ */
 
-let exchanges = {}
 let proxies = [
     '',
     'https://cors-anywhere.herokuapp.com/',
@@ -47,22 +46,19 @@ let proxies = [
     // 'http://cors-proxy.htmldriven.com/?url=', // we don't want this for now
 ]
 
-// instantiate all exchanges
-ccxt.exchanges.forEach (id => {
-    exchanges[id] = new (ccxt)[id] ({ verbose: false })
-})
+/*  ------------------------------------------------------------------------ */
 
-// load api keys from config
-let config = JSON.parse (fs.readFileSync ('./keys.json', 'utf8'))
+const exchange = new (ccxt)[exchangeId] ({ verbose: false })
 
-// set up api keys appropriately
-for (let id in config)
-    for (let key in config[id])
-        if (typeof exchanges[id] != 'undefined')
-            exchanges[id][key] = config[id][key]
+//-----------------------------------------------------------------------------
 
-// move gdax to sandbox
-exchanges['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
+let apiKeys = JSON.parse (fs.readFileSync ('./keys.json', 'utf8'))[exchangeId]
+
+Object.assign (exchange, apiKeys)
+
+if (exchangeId === 'gdax') {
+    exchange.urls['api'] = 'https://api-public.sandbox.gdax.com' // move gdax to sandbox
+}
 
 //-----------------------------------------------------------------------------
 
@@ -406,41 +402,23 @@ let tryAllProxies = async function (exchange, proxies) {
 
 //-----------------------------------------------------------------------------
 
-var test = async function () {
+;(async function test () {
   
     // printExchangesTable ()   
-
-    if (exchangeId) {
-
-        const exchange = exchanges[exchangeId]
-        
-        if (!exchange)
-            throw new Error ('Exchange `' + exchangeId + '` not found')
-                
-        if (exchangeSymbol) {
-
-            await loadExchange (exchange)
-            await (exchangeSymbol == 'balance') ? 
-                testExchangeBalance (exchange) :
-                testExchangeSymbol (exchange, exchangeSymbol)
-        
-        } else {
-        
-            await tryAllProxies (exchange, proxies)
-        }
-
-    } else {
-
-        for (const id of Object.keys (exchanges)) {
     
-            log.bright.green ('EXCHANGE:', id)
-            const exchange = exchanges[id]
-            await tryAllProxies (exchange, proxies)
+    if (exchangeSymbol) {
 
-        }
+        await loadExchange (exchange)
+        await (exchangeSymbol == 'balance') ? 
+            testExchangeBalance (exchange) :
+            testExchangeSymbol (exchange, exchangeSymbol)
+    
+    } else {
+    
+        await tryAllProxies (exchange, proxies)
     }
 
-    process.exit ();
+    process.exit ()
 
-} ()
+}) ()
 
