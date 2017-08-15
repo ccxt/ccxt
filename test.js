@@ -395,7 +395,6 @@ let tryAllProxies = async function (exchange, proxies) {
                 throw e;
             }
         }
-
     }
 }
 
