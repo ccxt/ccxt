@@ -5521,7 +5521,6 @@ var bter = {
             let market = this.markets[symbol];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        console.log (result);
         return result;
     },
 
