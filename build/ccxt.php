@@ -12853,6 +12853,14 @@ class quoine extends Exchange {
 
     public function parse_ticker ($ticker, $market) {
         $timestamp = $this->milliseconds ();
+        $last = null;
+        if (array_key_exists ('last_traded_price', $ticker)) {
+            if ($ticker['last_traded_price']) {
+                $length = count ($ticker['last_traded_price']);
+                if ($length > 0)
+                    $last = floatval ($ticker['last_traded_price']);
+            }
+        }
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -12864,7 +12872,7 @@ class quoine extends Exchange {
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval ($ticker['last_traded_price']),
+            'last' => $last,
             'change' => null,
             'percentage' => null,
             'average' => null,

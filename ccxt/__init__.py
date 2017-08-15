@@ -11960,6 +11960,12 @@ class quoine (Exchange):
 
     def parse_ticker(self, ticker, market):
         timestamp = self.milliseconds()
+        last = None
+        if 'last_traded_price' in ticker:
+            if ticker['last_traded_price']:
+                length = len(ticker['last_traded_price'])
+                if length > 0:
+                    last = float(ticker['last_traded_price'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -11971,7 +11977,7 @@ class quoine (Exchange):
             'open': None,
             'close': None,
             'first': None,
-            'last': float(ticker['last_traded_price']),
+            'last': last,
             'change': None,
             'percentage': None,
             'average': None,

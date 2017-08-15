@@ -12399,6 +12399,14 @@ var quoine = {
 
     parseTicker (ticker, market) {
         let timestamp = this.milliseconds ();
+        let last = undefined;
+        if ('last_traded_price' in ticker) {
+            if (ticker['last_traded_price']) {
+                let length = ticker['last_traded_price'].length;
+                if (length > 0)
+                    last = parseFloat (ticker['last_traded_price']);
+            }
+        }
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -12410,7 +12418,7 @@ var quoine = {
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': parseFloat (ticker['last_traded_price']),
+            'last': last,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
