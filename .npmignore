@@ -1,4 +1,3 @@
-!ccxt/ccxt.es5.js
 ccxt/
 node_modules/
 npm-debug.log
@@ -19,3 +18,4 @@ ccxt.wiki/
 package-lock.json
 exchanges.json
 ccxt.sublime-workspace
+!build/ccxt.es5.js
