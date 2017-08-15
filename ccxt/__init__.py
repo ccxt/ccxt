@@ -5368,6 +5368,8 @@ class bter (Exchange):
             market = None
             if symbol in self.markets:
                 market = self.markets[symbol]
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
@@ -12162,13 +12164,21 @@ class southxchange (Exchange):
 
     def parse_ticker(self, ticker, market):
         timestamp = self.milliseconds()
+        bid = None
+        ask = None
+        if 'Bid' in ticker:
+            if ticker['Bid']:
+                bid = float(ticker['Bid'])
+        if 'Ask' in ticker:
+            if ticker['Ask']:
+                ask = float(ticker['Ask'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': float(ticker['Bid']),
-            'ask': float(ticker['Ask']),
+            'bid': bid,
+            'ask': ask,
             'vwap': None,
             'open': None,
             'close': None,
@@ -12248,8 +12258,8 @@ class southxchange (Exchange):
                 'Hash': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
         response = self.fetch(url, method, headers, body)
-        if not response:
-            raise ExchangeError(self.id + ' ' + self.json(response))
+        # if not response:
+        #     raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
 #------------------------------------------------------------------------------

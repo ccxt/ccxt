@@ -151,6 +151,7 @@ def test_exchange(exchange):
     if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
         return
 
+    dump(green(exchange.id), 'fetching balance...')
     balance = exchange.fetch_balance()
     dump(green(exchange.id), 'balance', balance)
     # time.sleep(delay)

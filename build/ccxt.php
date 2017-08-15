@@ -5822,6 +5822,8 @@ class bter extends Exchange {
             $market = null;
             if (array_key_exists ($symbol, $this->markets))
                 $market = $this->markets[$symbol];
+            if (array_key_exists ($id, $this->markets_by_id))
+                $market = $this->markets_by_id[$id];
             $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
@@ -13071,13 +13073,21 @@ class southxchange extends Exchange {
 
     public function parse_ticker ($ticker, $market) {
         $timestamp = $this->milliseconds ();
+        $bid = null;
+        $ask = null;
+        if (array_key_exists ('Bid', $ticker))
+            if ($ticker['Bid'])
+                $bid = floatval ($ticker['Bid']);
+        if (array_key_exists ('Ask', $ticker))
+            if ($ticker['Ask'])
+                $ask = floatval ($ticker['Ask']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval ($ticker['Bid']),
-            'ask' => floatval ($ticker['Ask']),
+            'bid' => $bid,
+            'ask' => $ask,
             'vwap' => null,
             'open' => null,
             'close' => null,
@@ -13165,8 +13175,8 @@ class southxchange extends Exchange {
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
-        if (!$response)
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        // if (!$response)
+        //     throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }

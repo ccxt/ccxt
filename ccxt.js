@@ -5521,6 +5521,8 @@ var bter = {
             let market = undefined;
             if (symbol in this.markets)
                 market = this.markets[symbol];
+            if (id in this.markets_by_id)
+                market = this.markets_by_id[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
@@ -12613,13 +12615,21 @@ var southxchange = {
 
     parseTicker (ticker, market) {
         let timestamp = this.milliseconds ();
+        let bid = undefined;
+        let ask = undefined;
+        if ('Bid' in ticker)
+            if (ticker['Bid'])
+                bid = parseFloat (ticker['Bid']);
+        if ('Ask' in ticker)
+            if (ticker['Ask'])
+                ask = parseFloat (ticker['Ask']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': parseFloat (ticker['Bid']),
-            'ask': parseFloat (ticker['Ask']),
+            'bid': bid,
+            'ask': ask,
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
@@ -12707,8 +12717,8 @@ var southxchange = {
             };
         }
         let response = await this.fetch (url, method, headers, body);
-        if (!response)
-            throw new ExchangeError (this.id + ' ' + this.json (response));
+        // if (!response)
+        //     throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     },
 }
