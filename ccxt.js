@@ -5432,6 +5432,7 @@ var bter = {
         let result = { 'info': balance };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
+            let code = this.commonCurrencyCode (currency);
             let account = {
                 'free': undefined,
                 'used': undefined,
@@ -5448,7 +5449,7 @@ var bter = {
                 }
             }
             account['total'] = this.sum (account['free'], account['used']);
-            result[currency] = account;
+            result[code] = account;
         }
         return result;
     },
@@ -5513,11 +5514,14 @@ var bter = {
             let [ baseId, quoteId ] = id.split ('_');
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             let ticker = tickers[id];
             let market = this.markets[symbol];
             result[symbol] = this.parseTicker (ticker, market);
         }
+        console.log (result);
         return result;
     },
 
