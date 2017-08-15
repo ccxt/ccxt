@@ -5,6 +5,12 @@
 const [processPath, , marketId = null, marketSymbol = null] = process.argv.filter (x => !x.startsWith ('--'))
 const ccxtFile = process.argv.includes ('--es6') ? 'ccxt.js' : 'ccxt.es5.js'
 
+if (!marketId) {
+
+    console.log ('Usage: node test [--es6] market [symbol]')
+    process.exit (1)
+}
+
 /*  ------------------------------------------------------------------------ */
 
 const ccxt      = require ('./' + ccxtFile)
@@ -29,7 +35,7 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit 
 
 /*  ------------------------------------------------------------------------ */
 
-log.bright ('\nTESTING', ccxtFile.magenta, { market: marketId || 'all', symbol: marketSymbol || 'all' }, '\n')
+log.bright ('\nTESTING', ccxtFile.magenta, { market: marketId, symbol: marketSymbol || 'all' }, '\n')
 
 /*  ------------------------------------------------------------------------ */
 
