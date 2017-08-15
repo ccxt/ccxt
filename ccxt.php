@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.84';
+$version = '1.3.85';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9647,8 +9647,7 @@ class gemini extends Exchange {
                 'nonce' => $nonce,
             ), $query);
             $payload = $this->json ($request);
-            $payload = base64_encode ($payload);
-            $payload = $this->encode ($payload);
+            $payload = base64_encode ($this->encode ($payload));
             $signature = $this->hmac ($payload, $this->encode ($this->secret), 'sha384');
             $headers = array (
                 'Content-Type' => 'text/plain',

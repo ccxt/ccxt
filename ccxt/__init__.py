@@ -90,7 +90,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.84'
+__version__ = '1.3.85'
 
 #------------------------------------------------------------------------------
 
@@ -8954,8 +8954,7 @@ class gemini (Exchange):
                 'nonce': nonce,
             }, query)
             payload = self.json(request)
-            payload = base64.b64encode(payload)
-            payload = self.encode(payload)
+            payload = base64.b64encode(self.encode(payload))
             signature = self.hmac(payload, self.encode(self.secret), hashlib.sha384)
             headers = {
                 'Content-Type': 'text/plain',
