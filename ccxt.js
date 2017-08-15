@@ -30,7 +30,7 @@ SOFTWARE.
 
 //-----------------------------------------------------------------------------
 
-var version = '1.3.99'
+var version = '1.3.100'
 var isNode  = (typeof window === 'undefined')
 var isReactNative = (typeof navigator !== 'undefined') && navigator &&
     navigator.product && navigator.product == 'ReactNative' || false
