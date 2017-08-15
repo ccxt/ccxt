@@ -192,8 +192,9 @@ Install
 -------
 
 The easiest way to install the ccxt library is to use builtin package managers:
-- npm: `ccxt for Node.js <http://npmjs.com/package/ccxt>`__ and web browsers
-- pip: `ccxt in PyPI <https://pypi.python.org/pypi/ccxt>`__ (works in both Python 2 and 3)
+
+-  `ccxt in **NPM** <http://npmjs.com/package/ccxt>`__ (JavaScript / Node)
+-  `ccxt in **PyPI** <https://pypi.python.org/pypi/ccxt>`__ (Python 2 and 3)
 
 This library is shipped as a single-file (all-in-one module) implementation with minimalistic dependencies and requirements:
 
