@@ -109,9 +109,9 @@ The easiest way to install the ccxt library is to use builtin package managers:
 
 This library is shipped as a single-file (all-in-one module) implementation with minimalistic dependencies and requirements:
 
-- [./ccxt.js](https://github.com/kroitor/ccxt/blob/master/ccxt.js) in JavaScript 
-- [./ccxt/__init__.py](https://github.com/kroitor/ccxt/blob/master/ccxt/__init__.py) in Python
-- [./build/ccxt.php](https://github.com/kroitor/ccxt/blob/master/build/ccxt.php) in PHP
+- [`ccxt.js`](https://github.com/kroitor/ccxt/blob/master/ccxt.js) in JavaScript
+- [`ccxt/__init__.py`](https://github.com/kroitor/ccxt/blob/master/ccxt/__init__.py) in Python (generated from JS)
+- [`build/ccxt.php`](https://github.com/kroitor/ccxt/blob/master/build/ccxt.php) in PHP (generated from JS)
 
 You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/kroitor/ccxt):
 
