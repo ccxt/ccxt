@@ -15,4 +15,5 @@ coverage
 travis-keys.sh
 ccxt.wiki/
 package-lock.json
-markets.json
+exchanges.json
+ccxt.sublime-workspace

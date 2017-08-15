@@ -16,11 +16,11 @@ let rstNew =
     rst.replace (/\`([^\`]+)\s\<\#[^\`]+\>\`\_\_/g, '$1') // PyPI doesn't like urls containing anchor hash symbol '#', strip it off to plain text
         .replace (/\\\|/g, '|') // PyPI doesn't like escaped vertical bars
 
-let rstMarketTableRegex = /([\s\S]+?)APIs:[\n][\n](\+\-\-[\s\S]+\-\-\+)[\n][\n]([\s\S]+)/
-let match = rstMarketTableRegex.exec (rstNew)
-let rstMarketTableLines = match[2].split ("\n")
+let rstExchangeTableRegex = /([\s\S]+?)APIs:[\n][\n](\+\-\-[\s\S]+\-\-\+)[\n][\n]([\s\S]+)/
+let match = rstExchangeTableRegex.exec (rstNew)
+let rstExchangeTableLines = match[2].split ("\n")
 
-let newRstMarketTable = rstMarketTableLines.map (line => {
+let newRstExchangeTable = rstExchangeTableLines.map (line => {
     return line.replace (/(\||\+)(.).+?(\s|\=|\-)(\||\+)/, '$1') // replace ascii table graphics
 }).join ("\n")
 
@@ -38,7 +38,7 @@ let scrutinizerImage    = ".. image:: https://img.shields.io/scrutinizer/g/kroit
 let scrutinizerTarget   = "   :target: https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master"
 let runkitImage         = ".. image:: https://badge.runkitcdn.com/ccxt.svg\n"
 let runkitTarget        = "   :target: https://npm.runkit.com/ccxt"
-let exchangesImage      = ".. image:: https://img.shields.io/badge/exchanges-" + ccxt.markets.length + "-blue.svg\n"
+let exchangesImage      = ".. image:: https://img.shields.io/badge/exchanges-" + ccxt.exchanges.length + "-blue.svg\n"
 let exchangesTarget     = "   :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets"
 
 let travisBadgeRST   = travisBadgeImage   + ' ' + travisBadgeTarget
@@ -61,7 +61,7 @@ let badges = [
     exchangesRST,
 ].join ("\n")
 
-rstNew = match[1] + "APIs:\n\n" + newRstMarketTable + "\n\n" + match[3]
+rstNew = match[1] + "APIs:\n\n" + newRstExchangeTable + "\n\n" + match[3]
 rstNew = rstNew.replace (/\.\.[^\n]+image\:\:[^\n]+[\n]/g, '')
 rstNew = rstNew.replace ('|Build Status| |npm| |PyPI| |NPM Downloads| |Scrutinizer Code Quality| |Try ccxt on RunKit| |Supported Exchanges|', badges)
 rstNew = rstNew.replace (/   :target[^#]+$/g, '')
@@ -76,7 +76,7 @@ log.bright.cyan ('Updating badges →', readmeMd.yellow)
 
 let md = fs.readFileSync (readmeMd, 'utf8')
 let mdNew = 
-    md.replace (/shields\.io\/badge\/exchanges\-[0-9]+\-blue/g, 'shields.io/badge/exchanges-' + ccxt.markets.length + '-blue')
+    md.replace (/shields\.io\/badge\/exchanges\-[0-9]+\-blue/g, 'shields.io/badge/exchanges-' + ccxt.exchanges.length + '-blue')
 
 fs.truncateSync (readmeMd)
 fs.writeFileSync (readmeMd, mdNew)

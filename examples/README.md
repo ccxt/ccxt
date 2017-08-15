@@ -13,7 +13,6 @@ To run the ccxt examples from any folder type one of the following commands in c
 ```shell
 node path/to/example.js # substitute for actual filename here
 ```
-
 ## Python
 
 [Python Examples](https://github.com/kroitor/ccxt/tree/master/examples/py) (work in progress)
@@ -29,3 +28,17 @@ python path/to/example.py # substitute for actual filename here
 ```shell
 php -f path/to/example.php # substitute for actual filename here
 ```
+
+-------------------------------------------------------------------------------
+
+## See Also
+
+[bitcoin-chart-cli](https://github.com/madnight/bitcoin-chart-cli) by [madnight](https://github.com/madnight) – a command-line console util that draws Bitcoin, Ether, Litecoin and many altcoin charts right in the terminal! 
+  
+![bitcoin-chart-cli](https://camo.githubusercontent.com/494806efd925c4cd56d8370c1d4e8b751812030a/68747470733a2f2f692e696d6775722e636f6d2f635474467879362e706e67)
+  
+It uses the [asciichart](https://github.com/kroitor/asciichart) JavaScript module by [kroitor](https://github.com/kroitor) for nice-looking lightweight ASCII line charting )) Both packages are available in npm!
+
+![asciichart](https://cloud.githubusercontent.com/assets/1294454/22818709/9f14e1c2-ef7f-11e6-978f-34b5b595fb63.png)
+
+Special thx to [MitchTalmadge](https://github.com/MitchTalmadge) for porting this package to Java! If you're a Java-guy, check it out here: [ASCIIGraph](https://github.com/MitchTalmadge/ASCIIGraph).

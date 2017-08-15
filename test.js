@@ -2,10 +2,10 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const [processPath, , marketId = null, marketSymbol = null] = process.argv.filter (x => !x.startsWith ('--'))
-const ccxtFile = process.argv.includes ('--es6') ? 'ccxt.js' : 'ccxt.es5.js'
+const [processPath, , exchangeId = null, exchangeSymbol = null] = process.argv.filter (x => !x.startsWith ('--'))
+const ccxtFile = process.argv.includes ('--es6') ? 'ccxt.js' : 'ccxt-es5.js'
 
-if (!marketId) {
+if (!exchangeId) {
 
     console.log ('Usage: node test [--es6] market [symbol]')
     process.exit (1)
@@ -35,11 +35,11 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit 
 
 /*  ------------------------------------------------------------------------ */
 
-log.bright ('\nTESTING', ccxtFile.magenta, { market: marketId, symbol: marketSymbol || 'all' }, '\n')
+log.bright ('\nTESTING', ccxtFile.magenta, { exchange: exchangeId, symbol: exchangeSymbol || 'all' }, '\n')
 
 /*  ------------------------------------------------------------------------ */
 
-let markets = {}
+let exchanges = {}
 let proxies = [
     '',
     'https://cors-anywhere.herokuapp.com/',
@@ -47,9 +47,9 @@ let proxies = [
     // 'http://cors-proxy.htmldriven.com/?url=', // we don't want this for now
 ]
 
-// instantiate all markets
-ccxt.markets.forEach (id => {
-    markets[id] = new (ccxt)[id] ({ verbose: true })
+// instantiate all exchanges
+ccxt.exchanges.forEach (id => {
+    exchanges[id] = new (ccxt)[id] ({ verbose: false })
 })
 
 // load api keys from config
@@ -58,10 +58,11 @@ let config = JSON.parse (fs.readFileSync ('./keys.json', 'utf8'))
 // set up api keys appropriately
 for (let id in config)
     for (let key in config[id])
-        markets[id][key] = config[id][key]
+        if (typeof exchanges[id] != 'undefined')
+            exchanges[id][key] = config[id][key]
 
 // move gdax to sandbox
-markets['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
+exchanges['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
 
 //-----------------------------------------------------------------------------
 
@@ -81,11 +82,11 @@ let human_value = function (price) {
 
 //-----------------------------------------------------------------------------
 
-let testMarketSymbolTicker = async (market, symbol) => {
-    await sleep (market.rateLimit)
-    log (market.id.green, symbol.green, 'fetching ticker...')
-    let ticker = await market.fetchTicker (symbol)
-    log (market.id.green, symbol.green, 'ticker',
+let testExchangeSymbolTicker = async (exchange, symbol) => {
+    await sleep (exchange.rateLimit)
+    log (exchange.id.green, symbol.green, 'fetching ticker...')
+    let ticker = await exchange.fetchTicker (symbol)
+    log (exchange.id.green, symbol.green, 'ticker',
         ticker['datetime'],
         'high: '    + human_value (ticker['high']),
         'low: '     + human_value (ticker['low']),
@@ -99,11 +100,11 @@ let testMarketSymbolTicker = async (market, symbol) => {
     return ticker;
 }
 
-let testMarketSymbolOrderbook = async (market, symbol) => {
-    await sleep (market.rateLimit) 
-    log (market.id.green, symbol.green, 'fetching order book...')
-    let orderbook = await market.fetchOrderBook (symbol)
-    log (market.id.green, symbol.green,
+let testExchangeSymbolOrderbook = async (exchange, symbol) => {
+    await sleep (exchange.rateLimit) 
+    log (exchange.id.green, symbol.green, 'fetching order book...')
+    let orderbook = await exchange.fetchOrderBook (symbol)
+    log (exchange.id.green, symbol.green,
         orderbook['datetime'],
         'bid: '       + ((orderbook.bids.length > 0) ? human_value (orderbook.bids[0][0]) : 'N/A'), 
         'bidVolume: ' + ((orderbook.bids.length > 0) ? human_value (orderbook.bids[0][1]) : 'N/A'),
@@ -115,18 +116,18 @@ let testMarketSymbolOrderbook = async (market, symbol) => {
         let first = 0
         let last = bids.length - 1
         if (bids[first][0] < bids[last][0])
-            log (market.id, symbol, 'bids reversed!'.red.bright, bids[first][0], bids[last][0])
+            log (exchange.id, symbol, 'bids reversed!'.red.bright, bids[first][0], bids[last][0])
         else if (bids[first][0] > bids[last][0])
-            log (market.id.green, symbol.green, 'bids ok')
+            log (exchange.id.green, symbol.green, 'bids ok')
     }
     let asks = orderbook.asks
     if (asks.length > 1) {
         let first = 0
         let last = asks.length - 1
         if (asks[first][0] > asks[last][0])
-            log (market.id, symbol, 'asks reversed!'.red.bright, asks[first][0], asks[last][0])
+            log (exchange.id, symbol, 'asks reversed!'.red.bright, asks[first][0], asks[last][0])
         else if (asks[first][0] < asks[last][0])
-            log (market.id.green, symbol.green, 'asks ok')
+            log (exchange.id.green, symbol.green, 'asks ok')
     }
 
     if (bids.length && asks.length)
@@ -138,33 +139,66 @@ let testMarketSymbolOrderbook = async (market, symbol) => {
 
 //-----------------------------------------------------------------------------
 
-let testMarketSymbolTrades = async (market, symbol) => {
-    log (market.id.green, symbol.green, 'fetching trades...')
-    let trades = await market.fetchTrades (symbol)
-    log (market.id, symbol.green, Object.values (trades).length)
+let testExchangeSymbolTrades = async (exchange, symbol) => {
+    log (exchange.id.green, symbol.green, 'fetching trades...')
+    let trades = await exchange.fetchTrades (symbol)
+    log (exchange.id.green, symbol.green, 'fetched', Object.values (trades).length.toString ().green, 'trades')
     return trades
 }
 
 //-----------------------------------------------------------------------------
 
-let testMarketSymbol = async (market, symbol) => {
-    await sleep (market.rateLimit) 
-    await testMarketSymbolTicker (market, symbol)
-    if (market.id == 'coinmarketcap') {
-        // log (await market.fetchTickers ());
-        log (await market.fetchGlobal ());
+let testExchangeSymbol = async (exchange, symbol) => {
+
+    await sleep (exchange.rateLimit) 
+    await testExchangeSymbolTicker (exchange, symbol)
+    
+    if (exchange.id == 'coinmarketcap') {
+    
+        // log (await exchange.fetchTickers ());
+        log (await exchange.fetchGlobal ());
+    
     } else {
-        await testMarketSymbolOrderbook (market, symbol)
-        // await testMarketSymbolTrades (market, symbol)
+    
+        await testExchangeSymbolOrderbook (exchange, symbol)
+
+        try {
+    
+            await testExchangeSymbolTrades (exchange, symbol)    
+    
+        } catch (e) {
+    
+            if (e instanceof ccxt.ExchangeError) {
+                warn (exchange.id, '[Exchange Error] ' + e.message)
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    try {
+
+        log (exchange.id.green, 'fetching all tickers at once...')
+        let tickers = await exchange.fetchTickers ()
+        log (exchange.id.green, 'fetched', Object.keys (tickers).length.toString ().green, 'tickers...')
+
+    } catch (e) {
+
+        if (e instanceof ccxt.ExchangeError) {
+            log (exchange.id.green, 'fetching all tickers at once not supported.')
+            // do nothing
+        } else {
+            throw e // rethrow
+        }
     }
 }
 
 //-----------------------------------------------------------------------------
 
-let testMarketBalance = async (market, symbol) => {
-    await sleep (market.rateLimit)
-    log (market.id.green, 'fetching balance...')
-    let balance = await market.fetchBalance ()
+let testExchangeBalance = async (exchange, symbol) => {
+    await sleep (exchange.rateLimit)
+    log (exchange.id.green, 'fetching balance...')
+    let balance = await exchange.fetchBalance ()
 
     let currencies = [
         'USD',
@@ -176,6 +210,8 @@ let testMarketBalance = async (market, symbol) => {
         'LTC',
         'DASH',
         'DOGE',
+        'UAH',
+        'RUB',
     ]
 
     if ('info' in balance) {
@@ -186,7 +222,7 @@ let testMarketBalance = async (market, symbol) => {
 
         if (result.length > 0) {
             result = result.map (currency => currency + ': ' + human_value (balance[currency]['total']))
-            if (market.currencies.length > result.length)
+            if (exchange.currencies.length > result.length)
                 result = result.join (', ') + ' + more...'
             else
                 result = result.join (', ')
@@ -196,26 +232,26 @@ let testMarketBalance = async (market, symbol) => {
             result = 'zero balance'
         }
 
-        log (market.id.green, result)
+        log (exchange.id.green, result)
 
     } else {
 
-        log (market.id.green, market.omit (balance, 'info'))    
+        log (exchange.id.green, exchange.omit (balance, 'info'))    
     }    
 }
 
 //-----------------------------------------------------------------------------
 
-let loadMarket = async market => {
-    let products  = await market.loadProducts ()
+let loadExchange = async exchange => {
+    
+    let markets  = await exchange.loadMarkets ()
     let symbols = [
         'BTC/USD',
         'BTC/CNY',
         'BTC/EUR',
         'BTC/ETH',
         'ETH/BTC',
-        'BTC/JPY',
-        'LTC/BTC',
+        'BTC/JPY',        
         'ETH/EUR',
         'ETH/JPY',
         'ETH/CNY',
@@ -224,22 +260,27 @@ let loadMarket = async market => {
         'DOGE/BTC',
         'BTC/AUD',
         'BTC/PLN',
+        'USD/SLL',
+        'BTC/RUB',
+        'BTC/UAH',
+        'LTC/BTC',
     ]
-    let result = market.symbols.filter (symbol => symbols.indexOf (symbol) >= 0)
+
+    let result = exchange.symbols.filter (symbol => symbols.indexOf (symbol) >= 0)
     if (result.length > 0)
-        if (market.symbols.length > result.length)
+        if (exchange.symbols.length > result.length)
             result = result.join (', ') + ' + more...'
         else
             result = result.join (', ')
-    log (market.id.green, market.symbols.length.toString ().bright.green, 'symbols', result)
+    log (exchange.id.green, exchange.symbols.length.toString ().bright.green, 'symbols', result)
 }
 
 //-----------------------------------------------------------------------------
 
-let testMarket = async market => {
+let testExchange = async exchange => {
 
-    let delay = market.rateLimit
-    let symbol = market.symbols[0]
+    let delay = exchange.rateLimit
+    let symbol = exchange.symbols[0]
     let symbols = [
         'BTC/USD',
         'BTC/CNY',
@@ -250,7 +291,7 @@ let testMarket = async market => {
         'LTC/BTC',
     ]
     for (let s in symbols) {
-        if (market.symbols.includes (symbols[s])) {
+        if (exchange.symbols.includes (symbols[s])) {
             symbol = symbols[s]
             break
         }
@@ -258,45 +299,45 @@ let testMarket = async market => {
 
     log.green ('SYMBOL:', symbol)
     if ((symbol.indexOf ('.d') < 0)) {
-        await testMarketSymbol (market, symbol)
+        await testExchangeSymbol (exchange, symbol)
     }
 
-    if (!market.apiKey || (market.apiKey.length < 1))
+    if (!exchange.apiKey || (exchange.apiKey.length < 1))
         return true
 
-    await testMarketBalance (market)
+    await testExchangeBalance (exchange)
 
     // sleep (delay)
     // try {
     //     let marketSellOrder = 
-    //         await market.createMarketSellOrder (market.symbols[0], 1)
-    //     console.log (market.id, 'ok', marketSellOrder)
+    //         await exchange.createMarketSellOrder (exchange.symbols[0], 1)
+    //     console.log (exchange.id, 'ok', marketSellOrder)
     // } catch (e) {
-    //     console.log (market.id, 'error', 'market sell', e)
+    //     console.log (exchange.id, 'error', 'market sell', e)
     // }
 
     // sleep (delay)
     // try {
-    //     let marketBuyOrder = await market.createMarketBuyOrder (market.symbols[0], 1)
-    //     console.log (market.id, 'ok', marketBuyOrder)
+    //     let marketBuyOrder = await exchange.createMarketBuyOrder (exchange.symbols[0], 1)
+    //     console.log (exchange.id, 'ok', marketBuyOrder)
     // } catch (e) {
-    //     console.log (market.id, 'error', 'market buy', e)
+    //     console.log (exchange.id, 'error', 'market buy', e)
     // }
 
     // sleep (delay)
     // try {
-    //     let limitSellOrder = await market.createLimitSellOrder (market.symbols[0], 1, 3000)
-    //     console.log (market.id, 'ok', limitSellOrder)
+    //     let limitSellOrder = await exchange.createLimitSellOrder (exchange.symbols[0], 1, 3000)
+    //     console.log (exchange.id, 'ok', limitSellOrder)
     // } catch (e) {
-    //     console.log (market.id, 'error', 'limit sell', e)
+    //     console.log (exchange.id, 'error', 'limit sell', e)
     // }
 
     // sleep (delay)
     // try {
-    //     let limitBuyOrder = await market.createLimitBuyOrder (market.symbols[0], 1, 3000)
-    //     console.log (market.id, 'ok', limitBuyOrder)
+    //     let limitBuyOrder = await exchange.createLimitBuyOrder (exchange.symbols[0], 1, 3000)
+    //     console.log (exchange.id, 'ok', limitBuyOrder)
     // } catch (e) {
-    //     console.log (market.id, 'error', 'limit buy', e)
+    //     console.log (exchange.id, 'error', 'limit buy', e)
     // }
 
 }
@@ -305,19 +346,19 @@ let testMarket = async market => {
 
 let printExchangesTable = function () {
     let astable = asTable.configure ({ delimiter: ' | ' }) 
-    console.log (astable (Object.values (markets).map (market => {
-        let website = Array.isArray (market.urls.www) ? 
-            market.urls.www[0] :
-            market.urls.www
-        let countries = Array.isArray (market.countries) ? 
-            market.countries.map (countryName).join (', ') :
-            countryName (market.countries)
-        let doc = Array.isArray (market.urls.doc) ? 
-            market.urls.doc[0] :
-            market.urls.doc
+    console.log (astable (Object.values (exchanges).map (exchange => {
+        let website = Array.isArray (exchange.urls.www) ? 
+            exchange.urls.www[0] :
+            exchange.urls.www
+        let countries = Array.isArray (exchange.countries) ? 
+            exchange.countries.map (countryName).join (', ') :
+            countryName (exchange.countries)
+        let doc = Array.isArray (exchange.urls.doc) ? 
+            exchange.urls.doc[0] :
+            exchange.urls.doc
         return {
-            'id':        market.id,
-            'name':      market.name,
+            'id':        exchange.id,
+            'name':      exchange.name,
             'countries': countries,
         }        
     })))
@@ -325,44 +366,41 @@ let printExchangesTable = function () {
 
 //-----------------------------------------------------------------------------
 
-let tryAllProxies = async function (market, proxies) {
+let tryAllProxies = async function (exchange, proxies) {
 
     let currentProxy = 0
     let maxRetries   = proxies.length
 
     // a special case for ccex
-    if (market.id == 'ccex')
+    if (exchange.id == 'ccex')
         currentProxy = 1
     
     for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
 
         try {
 
-            market.proxy = proxies[currentProxy]
-            await loadMarket (market)
-            await testMarket (market)
+            exchange.proxy = proxies[currentProxy]
+            await loadExchange (exchange)
+            await testExchange (exchange)
             break
 
         } catch (e) {
 
             currentProxy = ++currentProxy % proxies.length
-            if (e instanceof ccxt.DDoSProtectionError) {
-                warn (market.id, '[DDoS Protection Error] ' + e.message)
-            } else if (e instanceof ccxt.TimeoutError) {
-                warn (market.id, '[Timeout Error] ' + e.message)
+            if (e instanceof ccxt.DDoSProtection) {
+                warn (exchange.id, '[DDoS Protection] ' + e.message)
+            } else if (e instanceof ccxt.RequestTimeout) {
+                warn (exchange.id, '[Request Timeout] ' + e.message)
             } else if (e instanceof ccxt.AuthenticationError) {
-                warn (market.id, '[Authentication Error] ' + e.message)
-            } else if (e instanceof ccxt.MarketNotAvailableError) {
-                warn (market.id, '[Market Not Available Error] ' + e.message)
-            } else if (e instanceof ccxt.EndpointError) {
-                warn (market.id, '[Endpoint Error] ' + e.message)
-            } else if (e instanceof ccxt.MarketError) {
-                warn (market.id, '[Market Error] ' + e.message)
+                warn (exchange.id, '[Authentication Error] ' + e.message)
+            } else if (e instanceof ccxt.ExchangeNotAvailable) {
+                warn (exchange.id, '[Exchange Not Available] ' + e.message)
+            } else if (e instanceof ccxt.ExchangeError) {
+                warn (exchange.id, '[Exchange Error] ' + e.message)
             } else {
                 throw e;
             }
         }
-
     }
 }
 
@@ -372,32 +410,32 @@ var test = async function () {
   
     // printExchangesTable ()   
 
-    if (marketId) {
+    if (exchangeId) {
 
-        const market = markets[marketId]
+        const exchange = exchanges[exchangeId]
         
-        if (!market)
-            throw new Error ('Market `' + marketId + '` not found')
+        if (!exchange)
+            throw new Error ('Exchange `' + exchangeId + '` not found')
                 
-        if (marketSymbol) {
+        if (exchangeSymbol) {
 
-            await loadMarket (market)
-            await (marketSymbol == 'balance') ? 
-                testMarketBalance (market) :
-                testMarketSymbol (market, marketSymbol)
+            await loadExchange (exchange)
+            await (exchangeSymbol == 'balance') ? 
+                testExchangeBalance (exchange) :
+                testExchangeSymbol (exchange, exchangeSymbol)
         
         } else {
         
-            await tryAllProxies (market, proxies)
+            await tryAllProxies (exchange, proxies)
         }
 
     } else {
 
-        for (const id of Object.keys (markets)) {
+        for (const id of Object.keys (exchanges)) {
     
-            log.bright.green ('MARKET:', id)
-            const market = markets[id]
-            await tryAllProxies (market, proxies)
+            log.bright.green ('EXCHANGE:', id)
+            const exchange = exchanges[id]
+            await tryAllProxies (exchange, proxies)
 
         }
     }

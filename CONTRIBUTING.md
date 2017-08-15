@@ -4,6 +4,18 @@
 - This file is a work in progress, contribution guidelines are being developed right now!
 ```
 
+If you want to submit an issue and you want your issue to be resolved quickly, here's a basic checklist for you:
+
+- Read the [Manual](https://github.com/kroitor/ccxt/wiki/Manual).
+- Read the [Troubleshooting](https://github.com/kroitor/ccxt/wiki/Manual#troubleshooting) section and follow  troubleshooting steps.
+- Read the [API docs](https://github.com/kroitor/ccxt/wiki/Exchange-Markets) for your exchange.
+- Search for similar issues first to avoid duplicates.
+- If your issue is unique, along with a basic description of the failure, please, provide the following information:
+  - your language version, ccxt library version
+  - which exchange it is and which method you're trying to call
+  - a code snippet you're having difficulties with
+  - the output of that snippet in verbose mode
+
 Below are the rules for contributing to the ccxt library codebase.
 
 ## What You Need To Have
@@ -11,6 +23,7 @@ Below are the rules for contributing to the ccxt library codebase.
 - Node.js (version 8 or higher)
 - Python 2/3
 - PHP 5.3+
+- [Pandoc](https://pandoc.org/installing.html)
 
 ## What You Need To Know
 
@@ -19,104 +32,50 @@ Below are the rules for contributing to the ccxt library codebase.
 The contents of the repository are structured as follows:
 
 ```shell
-/                  # root directory aka npm module/package folder for Node.js
-/.babelrc          # babel config used for making the ES5 version of the library
-/.eslintrc         # linter
-/.gitignore        # ignore it
-/.travis.yml       # a YAML config for travis-ci (continuous integration)
-/CONTRIBUTING.md   # this file
-/LICENSE.txt       # MIT
-/MANIFEST.in       # a PyPI-package file listing extra package files (license, configs, etc...)
-/README.md         # master markdown for GitHub, npmjs.com, npms.io, yarn and others
-/README.rst        # slave reStructuredText for PyPI
-/ccxt/             # Python ccxt module/package folder for PyPI
-/ccxt/__init__.py  # slave Python-version of the ccxt library
-/ccxt.es5.js       # slave JavaScript ES5 version of the ccxt library
-/ccxt.js           # master JS ES6 version of the ccxt library
-/ccxt.php          # slave PHP version of the ccxt library
-/countries.js      # a list of ISO 2-letter country codes in JS for testing, not very important
-/examples/         # self-descripting
-/examples/js       # ...
-/examples/php      # ...
-/examples/py       # ...
-/export-markets.js # used to create tables of markets in the docs during the build
-/package.json      # npm package file, also used in setup.py for version single-sourcing
-/setup.cfg         # wheels config file for the Python package
-/test.js           # a test in JavaScript that runs through all markets and calls basic APIs
-/test.php          # same in PHP
-/test.py           # same in Python
-/tox.ini           # tox config for Python
-/transpile.js      # the transpilation script
-/vss.js            # reads single-sourced version from package.json and writes it everywhere
+/                    # root directory aka npm module/package folder for Node.js
+/.babelrc            # babel config used for making the ES5 version of the library
+/.eslintrc           # linter
+/.gitignore          # ignore it
+/.npmignore          # ignore it npm-style
+/.travis.yml         # a YAML config for travis-ci (continuous integration)
+/CONTRIBUTING.md     # this file
+/LICENSE.txt         # MIT
+/MANIFEST.in         # a PyPI-package file listing extra package files (license, configs, etc...)
+/README.md           # master markdown for GitHub, npmjs.com, npms.io, yarn and others
+/README.rst          # slave reStructuredText for PyPI
+/ccxt/               # Python ccxt module/package folder for PyPI
+/ccxt/__init__.py    # slave Python-version of the ccxt library
+/ccxt-es5.js         # slave JavaScript ES5 version of the ccxt library
+/ccxt.js             # master JS ES6 version of the ccxt library
+/ccxt.php            # slave PHP version of the ccxt library
+/countries.js        # a list of ISO 2-letter country codes in JS for testing, not very important
+/examples/           # self-explaining
+/examples/js         # ...
+/examples/php        # ...
+/examples/py         # ...
+/export-exchanges.js # used to create tables of exchanges in the docs during the build
+/package.json        # npm package file, also used in setup.py for version single-sourcing
+/setup.cfg           # wheels config file for the Python package
+/run-tests.js        # a front-end to run invididual tests of all exchanges in all languages (JS/PHP/Python)
+/test.js             # invididual tests in JS
+/test.php            # same in PHP
+/test.py             # same in Python
+/tox.ini             # tox config for Python
+/transpile.js        # the transpilation script
+/vss.js              # reads single-sourced version from package.json and writes it everywhere
 ```
 
 ### Multilanguage Support
 
-The ccxt library is available in three different languages (more to come). One of the primary objectives for developers is to design *portable* code, so that a single-language user can read code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
+The ccxt library is available in three different languages (more to come). We encourage developers to design *portable* code, so that a single-language user can read code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
 At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *master/slave* process. There is now a single master version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the master version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the master version as well.
-
-### Continuous Integration
-
-Builds are automated by [travis-ci](https://travis-ci.org/kroitor/ccxt/builds). Code coverage is analyzed with [coveralls.io](https://coveralls.io). All build steps are described in the [`.travis.yml`](https://github.com/kroitor/ccxt/blob/master/.travis.yml) file. A build consists of the following:
-
-1. Install dependencies
-2. Increment version number _(not triggered by pull requests)_
-3. Transpile JavaScript → Python/PHP and wiki documentation from the master source file
-4. Run tests and collect code coverage analytics
-5. Send coverage report to [coveralls.io](https://coveralls.io)
-6. Push built files back to GitHub _(not triggered by pull requests)_
-7. Push generated wiki documentation files back to a separate GitHub repo _(not triggered by pull requests)_
-
-You can also execute build steps manually to make sure everything works before committing your changes.
-
-#### Install Dependencies
-
-You will need the latest version of `pandoc` supporting `--wrap=preserve` option. On OSX it can be installed easily with `brew install pandoc` (you will need [brew](https://brew.sh/) as well). For other options see [Installing pandoc](http://pandoc.org/installing.html).
-
-#### Increment Version Number
-
-The version number is single-sourced from the main NPM package file `package.json` to JavaScript, Python and PHP. It gets incremented by the standard `npm version patch` command upon each release and then the updated version number is injected into all source files.
-
-#### Transpile Sources And Documentation
-
-Everything is done by the `npm run build` command. The transpilation is performed by a custom utility script in the root of the repository, named `transpile.js` that derives slave versions in other languages from the master code. The script converts language syntax from JS to Python/PHP and it is itself written in JavaScript. The transpiler does its job by sequentially applying series of regexp substitutions to perform one-to-one (line-to-line) mapping from JS to other languages.
-
-Read [Master/Slave Code](https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md#masterslave-code) below for more details before hacking the actual source code.
-
-#### Run Tests And Collect Coverage
-
-Run the standard `npm test` command to see test results and code coverage analytics. The coverage analysis is also available in HTML (see the generated `coverage` folder). A transpilation is triggered automatically by the `npm test` command, so there is no need to execute the `npm run build` manually before.
-
-To speed up test execution you can use the `npm run fasttest` command. It will only test the master `ccxt.js` file, and thus does not require the `npm run build` to be executed first. You can also pass a market name and an symbol (optional), to test a part of code or a single market. A partial test is usually many times faster than the full test:
-
-```bash
-npm test                         # runs the full test
-npm test kraken                  # runs a partial test for Kraken
-npm test kraken BTC/USD          # partial test for BTC/USD @ Kraken
-npm run fasttest                 # full test of master source file only
-npm run fasttest gdax            # partial test of master source file only for GDAX
-npm run fasttest gdax BTC/USD    # partial test only for the BTC/USD pair on GDAX exchange
-```
-
-Other languages can also be tested by running the following scripts (`npm run build` is required in prior):
-
-```bash
-python test.py
-python test.py kraken
-python test.py kraken BTC/USD
-php -f test.php
-php -f test.php gdax
-php -f test.php gdax BTC/USD
-```
-
-## Master/Slave Code
 
 The ccxt library includes one single file per each language:
 
 ```shell
 /ccxt/__init__.py  # slave Python-version of the ccxt library
-/ccxt.es5.js       # slave JavaScript ES5 version of the ccxt library
+/ccxt-es5.js       # slave JavaScript ES5 version of the ccxt library
 /ccxt.js           # master JS ES6 version of the ccxt library
 /ccxt.php          # slave PHP version of the ccxt library
 ```
@@ -126,35 +85,35 @@ Slave files and docs are partially-generated from the master `ccxt.js` file by t
 The structure of the master/slave file can be outlined like this:
 
 ```
-        +--------------------------+ ← beginning of file
-h   ╭   |                          |
-e   │   |  common stuff            |
-a   │   |                          |  
-d  ─┤   //-------------------------+ ← thin horizontal ruler comment is used to separate code blocks 
-e   │   |                          |
-r   │   |  base market class       |   above this first bold line all code is language-specific
-    ╰   |                          |                    ↑
-        //=========================+ ← first 'bold' horizontal ruler comment
-    ╭   |                          |                    ↓
-    │   |  derived market class A  |   below this line all code can be ported to other languages
-    │   |                          |
-b   │   //-------------------------+ ← thin horizontal ruler used to separate derived classes
-o   │   |                          |
-d  ─┤   |  derived market class B  |
-y   │   |                          |
-    │   //-------------------------+
-    │   |                          |
-    │   | ...                      |   above this line all code is transpileable
-    ╰   |                          |                    ↑
-        //=========================+ ← second 'bold' horizontal ruler comment
-f   ╭   |                          |                    ↓
-o   │   |  other code              |   below this second bold line all code is language-specific
-o   │   |                          |
-t  ─┤   //-------------------------+ ← thin horizontal ruler comment is used to separate code blocks 
-e   │   |                          |   
-r   │   |  other code              |   
-    ╰   |                          |
-        //-------------------------+ ← end of file
+        +----------------------------+  ←  beginning of file
+h   ╭   |                            |
+e   │   |  globals                   |
+a   │   |                            |  
+d  ─┤   //---------------------------+  ←  thin horizontal ruler comment is used to separate code blocks 
+e   │   |                            |
+r   │   |  base exchange class       |     above this first bold line all code is language-specific
+    ╰   |                            |                    ↑
+        //===========================+  ←  first bold horizontal ruler comment
+    ╭   |                            |                    ↓
+    │   |  derived exchange class A  |     below this line all code can be ported to other languages
+    │   |                            |
+b   │   //---------------------------+  ←  thin horizontal ruler used to separate derived classes
+o   │   |                            |
+d  ─┤   |  derived exchange class B  |
+y   │   |                            |
+    │   //---------------------------+
+    │   |                            |
+    │   | ...                        |     above this line all code is transpileable
+    ╰   |                            |                    ↑
+        //===========================+  ←  second bold horizontal ruler comment
+f   ╭   |                            |                    ↓
+o   │   |  other code                |     below this second bold line all code is language-specific
+o   │   |                            |
+t  ─┤   //---------------------------+  ←  thin horizontal ruler comment is used to separate code blocks 
+e   │   |                            |   
+r   │   |  other code                |   
+    ╰   |                            |
+        //---------------------------+  ←  end of file
 ```
 
 Key notes on the structure of the library file:
@@ -181,15 +140,17 @@ Key notes on the structure of the library file:
 
 ```UNDER CONSTRUCTION```
 
-### Derived Market Classes
+### Derived Exchange Classes
 
 Below are key notes on how to keep the JS code transpileable:
 
 - do not use language-specific code syntax sugar, even if you really want to
 - unfold all maps and comprehensions to basic for-loops
+- every opening bracket like `(` or `{` should have a space before it!
 - always use Python-style indentation, it is preserved as is for all languages
-- always put a semicolon (`;`) at the end of each statement, as in PHP/C-style
-- all associative keys must be single-quoted strings everywhere (`array['good'], array.bad`)
+- indent with spaces, avoid tabs
+- always put a semicolon `;` at the end of each statement, as in PHP/C-style
+- all associative keys must be single-quoted strings everywhere, `array['good'], array.bad`
 - all local variables should be declared with the `let` keyword
 - do everything with base class methods only
 - if you need another base method you will have to implement it in all three languages
@@ -198,15 +159,15 @@ Below are key notes on how to keep the JS code transpileable:
 - do not use conditional statements that are too complex (heavy if-bracketing)
 - do not use heavy ternary conditionals
 - put an empty line between each of your methods
-- don't put empty lines in schema in the beginning of each market
+- don't put empty lines in schema in the beginning of each exchange
 - don't put empty lines inside your methods
 - avoid mixed comment styles, use double-slash `//` in JS for line comments
 - avoid multi-line comments
 - ...
 
-**If you want to add (support for) another market or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn by example, take a look at how same things are implemented in other markets and try to copy the code flow and style.**
+**If you want to add (support for) another exchange or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn from example, take a look at how same things are implemented in other exchanges and try to copy the code flow and style.**
 
-The basic JSON-skeleton for a new market integration is as follows:
+The basic JSON-skeleton for a new exchange integration is as follows:
 
 ```JSON
 {
@@ -245,4 +206,43 @@ The basic JSON-skeleton for a new market integration is as follows:
 
 ```UNDER CONSTRUCTION```
 
+### Continuous Integration
 
+Builds are automated by [travis-ci](https://travis-ci.org/kroitor/ccxt/builds). All build steps are described in the [`.travis.yml`](https://github.com/kroitor/ccxt/blob/master/.travis.yml) file.
+
+Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [travis-ci.org/kroitor/ccxt/builds](https://travis-ci.org/kroitor/ccxt/builds).
+
+### How To Build & Run Tests On Your Local Machine
+
+The command below will build everything and generate slave PHP/Python versions from master `ccxt.js` file:
+
+```
+npm run build
+```
+
+The following command will test the built slave source files (for all exchanges, symbols and languages):
+
+```
+node run-tests
+```
+
+You can restrict tests to a specific language, a particular exchange or symbol:
+
+```
+node run-tests [--php] [--js] [--python] [--python3] [--es6] [exchange] [symbol]
+```
+
+For example, the first of the following lines will only test the single master ES6-version of source (`ccxt.js`). It does not require an `npm run build` before running it (can be useful if you need to verify quickly whether your changes break the code or not):
+
+```shell
+
+node run-tests --js --es6       # test ES6 master ccxt.js, all exchanges
+
+# other examples require the 'npm run build' to run
+
+node run-tests --python         # test Python 2 version, all exchanges
+node run-tests --php bitfinex   # test Bitfinex with PHP
+node run-tests --python3 kraken # test Kraken with Python 3, requires 'npm run build'
+```
+
+```UNDER CONSTRUCTION```

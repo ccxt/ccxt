@@ -1,8 +1,7 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 
 import ccxt
 import time
-import sys
 import json
 
 import argparse
@@ -11,79 +10,84 @@ import argparse
 class Argv (object):
     pass
 
-argv = Argv ()
 
-parser = argparse.ArgumentParser ()
-parser.add_argument ('--nonce', type = int, help = 'integer')
-parser.add_argument ('market', type = str, help = 'market id in lowercase', nargs = '?')
-parser.add_argument ('symbol', type = str, help = 'symbol in uppercase', nargs = '?')
-parser.parse_args (namespace = argv)
+argv = Argv()
 
-markets = {}
+parser = argparse.ArgumentParser()
+parser.add_argument('--nonce', type=int, help='integer')
+parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
+parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
+parser.parse_args(namespace=argv)
 
-#------------------------------------------------------------------------------
+exchanges = {}
+
+# ------------------------------------------------------------------------------
 # string coloring functions
 
-def style     (s, style): return style + str (s) + '\033[0m'
-def green     (s): return style (s, '\033[92m')
-def blue      (s): return style (s, '\033[94m')
-def yellow    (s): return style (s, '\033[93m')
-def red       (s): return style (s, '\033[91m')
-def pink      (s): return style (s, '\033[95m')
-def bold      (s): return style (s, '\033[1m')
-def underline (s): return style (s, '\033[4m')
+def style(s, style): return str(s)  # style + str (s) + '\033[0m'
+def green(s): return style(s, '\033[92m')
+def blue(s): return style(s, '\033[94m')
+def yellow(s): return style(s, '\033[93m')
+def red(s): return style(s, '\033[91m')
+def pink(s): return style(s, '\033[95m')
+def bold(s): return style(s, '\033[1m')
+def underline(s): return style(s, '\033[4m')
 
 # print a colored string
-def dump (*args):
-    print (' '.join ([str (arg) for arg in args]))
+def dump(*args):
+    print(' '.join([str(arg) for arg in args]))
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-def test_market_symbol_orderbook (market, symbol):
-    delay = int (market.rateLimit / 1000)
-    time.sleep (delay)
-    dump (green (market.id), green (symbol), 'fetching order book...')
-    orderbook = market.fetch_order_book (symbol)
-    dump (green (market.id), green (symbol), 'order book',
+def test_exchange_symbol_orderbook(exchange, symbol):
+    delay = int(exchange.rateLimit / 1000)
+    time.sleep(delay)
+    dump(green(exchange.id), green(symbol), 'fetching order book...')
+    orderbook = exchange.fetch_order_book(symbol)
+    dump(
+        green(exchange.id),
+        green(symbol),
+        'order book',
         orderbook['datetime'],
-        'bid: ' +       str (orderbook['bids'][0][0] if len (orderbook['bids']) else 'N/A'), 
-        'bidVolume: ' + str (orderbook['bids'][0][1] if len (orderbook['bids']) else 'N/A'),
-        'ask: '       + str (orderbook['asks'][0][0] if len (orderbook['asks']) else 'N/A'),
-        'askVolume: ' + str (orderbook['asks'][0][1] if len (orderbook['asks']) else 'N/A'),
-    )
+        'bid: ' +       str(orderbook['bids'][0][0] if len(orderbook['bids']) else 'N/A'),
+        'bidVolume: ' + str(orderbook['bids'][0][1] if len(orderbook['bids']) else 'N/A'),
+        'ask: ' +       str(orderbook['asks'][0][0] if len(orderbook['asks']) else 'N/A'),
+        'askVolume: ' + str(orderbook['asks'][0][1] if len(orderbook['asks']) else 'N/A'))
 
-def test_market_symbol_ticker (market, symbol):
-    delay = int (market.rateLimit / 1000)
-    time.sleep (delay)
-    dump (green (market.id), green (symbol), 'fetching ticker...')
-    ticker = market.fetch_ticker (symbol)
-    dump (green (market.id), green (symbol), 'ticker',
+def test_exchange_symbol_ticker(exchange, symbol):
+    delay = int(exchange.rateLimit / 1000)
+    time.sleep(delay)
+    dump(green(exchange.id), green(symbol), 'fetching ticker...')
+    ticker = exchange.fetch_ticker(symbol)
+    dump(
+        green(exchange.id),
+        green(symbol),
+        'ticker',
         ticker['datetime'],
-        'high: '    + str (ticker['high']),
-        'low: '     + str (ticker['low']),
-        'bid: '     + str (ticker['bid']),
-        'ask: '     + str (ticker['ask']),
-        'volume: '  + str (ticker['quoteVolume']),
-    )
+        'high: ' +   str(ticker['high']),
+        'low: ' +    str(ticker['low']),
+        'bid: ' +    str(ticker['bid']),
+        'ask: ' +    str(ticker['ask']),
+        'volume: ' + str(ticker['quoteVolume']))
 
-def test_market_symbol (market, symbol):
-    dump (green ('SYMBOL: ' + symbol))
-    test_market_symbol_ticker (market, symbol)
-    if market.id == 'coinmarketcap':
-        dump (green (market.fetchGlobal ()))
+def test_exchange_symbol(exchange, symbol):
+    dump(green('SYMBOL: ' + symbol))
+    test_exchange_symbol_ticker(exchange, symbol)
+    if exchange.id == 'coinmarketcap':
+        dump(green(exchange.fetchGlobal()))
     else:
-        test_market_symbol_orderbook (market, symbol)
+        test_exchange_symbol_orderbook(exchange, symbol)
 
-def load_market (market):
-    products = market.load_products ()
+def load_exchange(exchange):
+    exchange.load_markets()
 
-def test_market (market):
+def test_exchange(exchange):
 
-    dump (green ('MARKET: ' + market.id))
-    delay = 2
-    keys = list (market.products.keys ())
+    dump(green('EXCHANGE: ' + exchange.id))
+    # delay = 2
+    keys = list(exchange.markets.keys())
 
-    #..........................................................................
+    # ..........................................................................
     # public API
 
     symbol = keys[0]
@@ -95,6 +99,7 @@ def test_market (market):
         'ETH/BTC',
         'BTC/JPY',
         'LTC/BTC',
+        'USD/SLL',
     ]
 
     for s in symbols:
@@ -102,67 +107,65 @@ def test_market (market):
             symbol = s
             break
 
-    if symbol.find ('.d') < 0:
-        test_market_symbol (market, symbol)
+    if symbol.find('.d') < 0:
+        test_exchange_symbol(exchange, symbol)
 
-    #..........................................................................
+    # ..........................................................................
     # private API
 
-    if (not hasattr (market, 'apiKey') or (len (market.apiKey) < 1)):
-        return 
+    if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
+        return
 
-    balance = market.fetch_balance ()
-    dump (green (market.id), 'balance', balance)
-    # time.sleep (delay)
+    balance = exchange.fetch_balance()
+    dump(green(exchange.id), 'balance', balance)
+    # time.sleep(delay)
 
-    amount = 1
-    price = 0.0161
+    # amount = 1
+    # price = 0.0161
 
-    # marketBuy = market.create_market_buy_order (symbol, amount)
-    # print (marketBuy)
-    # time.sleep (delay)
+    # marketBuy = exchange.create_market_buy_order(symbol, amount)
+    # print(marketBuy)
+    # time.sleep(delay)
 
-    # marketSell = market.create_market_sell_order (symbol, amount)
-    # print (marketSell)
-    # time.sleep (delay)
+    # marketSell = exchange.create_market_sell_order(symbol, amount)
+    # print(marketSell)
+    # time.sleep(delay)
 
-    # limitBuy = market.create_limit_buy_order (symbol, amount, price)
-    # print (limitBuy)
-    # time.sleep (delay)
+    # limitBuy = exchange.create_limit_buy_order(symbol, amount, price)
+    # print(limitBuy)
+    # time.sleep(delay)
 
-    # limitSell = market.create_limit_sell_order (symbol, amount, price)
-    # print (limitSell)
-    # time.sleep (delay)
+    # limitSell = exchange.create_limit_sell_order(symbol, amount, price)
+    # print(limitSell)
+    # time.sleep(delay)
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-def try_all_proxies (market, proxies):
+def try_all_proxies(exchange, proxies):
     current_proxy = 0
-    max_retries = len (proxies)
+    max_retries = len(proxies)
     # a special case for ccex
-    if market.id == 'ccex':
-        currentProxy = 1
-    for num_retries in range (0, max_retries):    
+    if exchange.id == 'ccex':
+        current_proxy = 1
+    for num_retries in range(0, max_retries):
         try:
-            market.proxy = proxies[current_proxy]
-            current_proxy = (current_proxy + 1) % len (proxies)
-            load_market (market)
-            test_market (market)
+            exchange.proxy = proxies[current_proxy]
+            current_proxy = (current_proxy + 1) % len(proxies)
+            load_exchange(exchange)
+            test_exchange(exchange)
             break
-        except ccxt.DDoSProtectionError as e:
-            dump (yellow (type (e).__name__), e.args)
-        except ccxt.TimeoutError as e:
-            dump (yellow (type (e).__name__), str (e))
-        except ccxt.MarketNotAvailableError as e:
-            dump (yellow (type (e).__name__), e.args)
-        except ccxt.EndpointError as e:
-            dump (yellow (type (e).__name__), e.args)
-        except ccxt.MarketError as e:
-            dump (yellow (type (e).__name__), e.args)
+        except ccxt.ExchangeError as e:
+            dump(yellow(type(e).__name__), e.args)
         except ccxt.AuthenticationError as e:
-            dump (yellow (type (e).__name__), str (e))
+            dump(yellow(type(e).__name__), str(e))
+        except ccxt.DDoSProtection as e:
+            dump(yellow(type(e).__name__), e.args)
+        except ccxt.RequestTimeout as e:
+            dump(yellow(type(e).__name__), str(e))
+        except ccxt.ExchangeNotAvailable as e:
+            dump(yellow(type(e).__name__), e.args)
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 proxies = [
     '',
@@ -172,38 +175,38 @@ proxies = [
 ]
 
 # load the api keys from config
-with open ('./keys.json') as file:    
-    config = json.load (file)
+with open('./keys.json') as file:
+    config = json.load(file)
 
-# instantiate all markets
-for id in ccxt.markets:
-    market = getattr (ccxt, id)
-    markets[id] = market ({ 'verbose': False })
+# instantiate all exchanges
+for id in ccxt.exchanges:
+    exchange = getattr(ccxt, id)
+    exchanges[id] = exchange({'verbose': False})
 
 # set up api keys appropriately
-tuples = list (ccxt.Market.keysort (config).items ())
+tuples = list(ccxt.Exchange.keysort(config).items())
 for (id, params) in tuples:
-    options = list (params.items ())
+    options = list(params.items())
     for key in params:
-        setattr (markets[id], key, params[key])
+        setattr(exchanges[id], key, params[key])
 
 # move gdax to sandbox
-markets['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
+exchanges['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
 
-if argv.market:
+if argv.exchange:
 
-    market = markets[argv.market]
+    exchange = exchanges[argv.exchange]
     symbol = argv.symbol
-        
+
     if symbol:
-        load_market (market)
-        test_market_symbol (market, symbol)
+        load_exchange(exchange)
+        test_exchange_symbol(exchange, symbol)
     else:
-        try_all_proxies (market, proxies)
+        try_all_proxies(exchange, proxies)
 
 else:
 
-    tuples = list (ccxt.Market.keysort (markets).items ())
+    tuples = list(ccxt.Exchange.keysort(exchanges).items())
     for (id, params) in tuples:
-        market = markets[id]
-        try_all_proxies (market, proxies)
+        exchange = exchanges[id]
+        try_all_proxies(exchange, proxies)

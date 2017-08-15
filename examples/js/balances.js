@@ -33,7 +33,7 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
 
     try { 
 
-        // fetch account balance from exchange market
+        // fetch account balance from the exchange 
         let gdaxBalance = await gdax.fetchBalance ()
 
         // output the result
@@ -53,14 +53,18 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
 
     } catch (e) {
 
-        if (e instanceof ccxt.DDoSProtectionError || e.message.includes ('ECONNRESET')) {
-            log.bright.yellow ('[DDoS Protection Error] ' + e.message)
-        } else if (e instanceof ccxt.TimeoutError) {
-            log.bright.yellow ('[Timeout Error] ' + e.message)
+        if (e instanceof ccxt.DDoSProtection || e.message.includes ('ECONNRESET')) {
+            log.bright.yellow ('[DDoS Protection] ' + e.message)
+        } else if (e instanceof ccxt.RequestTimeout) {
+            log.bright.yellow ('[Request Timeout] ' + e.message)
         } else if (e instanceof ccxt.AuthenticationError) {
             log.bright.yellow ('[Authentication Error] ' + e.message)
-        } else if (e instanceof ccxt.MarketNotAvailableError) {
-            log.bright.yellow ('[Market Not Available Error] ' + e.message)
+        } else if (e instanceof ccxt.ExchangeNotAvailable) {
+            log.bright.yellow ('[Exchange Not Available Error] ' + e.message)
+        } else if (e instanceof ccxt.ExchangeError) {
+            log.bright.yellow ('[Exchange Error] ' + e.message)
+        } else if (e instanceof ccxt.NetworkError) {
+            log.bright.yellow ('[Network Error] ' + e.message)
         } else {
             throw e;
         }

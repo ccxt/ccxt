@@ -1,11 +1,11 @@
 let ccxt = require ('ccxt')
 
 let exchange = new ccxt.bitfinex ({
-    apiKey: '5A1VikyEtDpmFkrzX4e52LsaVgCxXyMnY9JElqvNMxo', 
-    secret: 'Rgxxw1BGnq6NLTLq1hn0oQ5FBDRLYFFVRzyEKYbz1io',
+    apiKey: '4FlEDtxDl35gdEiobnfZ72vJeZteE4Bb7JdvqzjIjHq', 
+    secret: 'D4DXM8DZdHuAq9YptUsb42aWT1XBnGlIJgLi8a7tzFH',
 })
 
-await exchange.loadProducts ()
+await exchange.loadMarkets ()
 console.log (exchange.symbols)
 
 let symbol = exchange.symbols[0]

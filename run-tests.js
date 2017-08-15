@@ -2,10 +2,10 @@
 
 /*  ---------------------------------------------------------------------------
 
-    A tests launcher. Runs tests for all languages and all markets, in
+    A tests launcher. Runs tests for all languages and all exchanges, in
     parallel, with a humanized error reporting.
 
-    Usage: node run-tests [--php] [--js] [--python] [--es6] [market] [symbol]
+    Usage: node run-tests [--php] [--js] [--python] [--es6] [exchange] [symbol]
 
     --------------------------------------------------------------------------- */
 
@@ -26,30 +26,31 @@ const keys = {
 
     '--js': false,      // run JavaScript tests only
     '--php': false,     // run PHP tests only
-    '--python': false,  // run Python tests only
-    '--es6': false,     // run JS tests against ccxt.js instead of ccxt.es5.js (no need to `npm run build` before)
+    '--python': false,  // run Python 2 tests only
+    '--python3': false, // run Python 3 tests only
+    '--es6': false,     // run JS tests against ccxt.js instead of ccxt-es5.js (no need to `npm run build` before)
 }
 
-let markets = []
+let exchanges = []
 let symbol = 'all'
 
 for (const arg of args) {
     if (arg.startsWith ('--'))   { keys[arg] = true }
     else if (arg.includes ('/')) { symbol = arg }
-    else                         { markets.push (arg) }
+    else                         { exchanges.push (arg) }
 }
 
 /*  --------------------------------------------------------------------------- */
 
-if (!markets.length) {
+if (!exchanges.length) {
 
-    if (!fs.existsSync ('markets.json')) {
+    if (!fs.existsSync ('exchanges.json')) {
 
-        log.bright.red ('\n\tNo', 'markets.json'.white, 'found, please run', 'npm run build'.white, 'to generate it!\n')
+        log.bright.red ('\n\tNo', 'exchanges.json'.white, 'found, please run', 'npm run build'.white, 'to generate it!\n')
         process.exit (1)
     }
 
-    markets = JSON.parse (fs.readFileSync ('markets.json')).ids
+    exchanges = JSON.parse (fs.readFileSync ('exchanges.json')).ids
 }
 
 /*  --------------------------------------------------------------------------- */
@@ -88,9 +89,11 @@ const exec = (bin, ...args) =>
 
 /*  ------------------------------------------------------------------------ */
 
-let numMarketsTested = 0
+let numExchangesTested = 0
 
-/*  ------------------------------------------------------------------------ */
+/*  Tests of different languages for the same exchange should be run
+    sequentially to prevent the interleaving nonces problem.
+    ------------------------------------------------------------------------ */
 
 const sequentialMap = async (input, fn) => {
 
@@ -101,17 +104,18 @@ const sequentialMap = async (input, fn) => {
 
 /*  ------------------------------------------------------------------------ */
 
-const testMarket = async (market) => {
+const testExchange = async (exchange) => {
 
     const nonce = Date.now ()
 
 /*  Run tests for all/selected languages (in parallel)     */
 
-    const args = [market, ...symbol === 'all' ? [] : symbol]
+    const args = [exchange, ...symbol === 'all' ? [] : symbol]
         , allTests = [
 
             { language: 'JavaScript', key: '--js',      exec: ['node',      'test.js',  ...args, ...keys['--es6'] ? ['--es6'] : []] },
             { language: 'Python',     key: '--python',  exec: ['python',    'test.py',  ...args]                                    },
+            { language: 'Python 3',   key: '--python3', exec: ['python3',   'test.py',  ...args]                                    },
             { language: 'PHP',        key: '--php',     exec: ['php', '-f', 'test.php', ...args]                                    }
         ]
         , selectedTests  = allTests.filter (t => keys[t.key])
@@ -123,27 +127,27 @@ const testMarket = async (market) => {
 
 /*  Print interactive log output    */
 
-    numMarketsTested++
+    numExchangesTested++
 
-    const percentsDone = ((numMarketsTested / markets.length) * 100).toFixed (0) + '%'
+    const percentsDone = ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%'
 
-    log.bright (('[' + percentsDone + ']').dim, 'Testing', market.cyan, (failed      ? 'FAIL'.red :
-                                                                        (hasWarnings ? (warnings.length ? warnings.join (' ') : 'WARN').yellow
-                                                                                     : 'OK'.green)))
+    log.bright (('[' + percentsDone + ']').dim, 'Testing', exchange.cyan, (failed      ? 'FAIL'.red :
+                                                                          (hasWarnings ? (warnings.length ? warnings.join (' ') : 'WARN').yellow
+                                                                                       : 'OK'.green)))
 
 /*  Return collected data to main loop     */
 
     return {
 
-        market,
+        exchange,
         failed,
         hasWarnings,
         explain () {
             for (const { language, failed, output, hasWarnings } of completeTests) {
                 if (failed || hasWarnings) {
 
-                    if (failed) { log.bright ('\nFAILED'.bgBrightRed.white, market.red,    '(' + language + '):\n') }
-                    else        { log.bright ('\nWARN'.yellow.inverse,      market.yellow, '(' + language + '):\n') }
+                    if (failed) { log.bright ('\nFAILED'.bgBrightRed.white, exchange.red,    '(' + language + '):\n') }
+                    else        { log.bright ('\nWARN'.yellow.inverse,      exchange.yellow, '(' + language + '):\n') }
 
                     log.indent (1) (output)
                 }
@@ -156,9 +160,9 @@ const testMarket = async (market) => {
 
 (async function () {
 
-    log.bright.magenta.noPretty ('Testing'.white, { markets, symbol, keys })
+    log.bright.magenta.noPretty ('Testing'.white, { exchanges, symbol, keys })
 
-    const tested   = await Promise.all (markets.map (testMarket))
+    const tested   = await Promise.all (exchanges.map (testExchange))
         , warnings = tested.filter  (t => !t.failed && t.hasWarnings)
         , failed   = tested.filter  (t =>  t.failed)
         , succeeded = tested.filter (t => !t.failed && !t.hasWarnings)
@@ -170,8 +174,8 @@ const testMarket = async (market) => {
 
     log.newline ()
 
-    if (failed.length)   { log.noPretty.bright.red    ('FAIL'.bgBrightRed.white,    failed  .map (t => t.market)) }
-    if (warnings.length) { log.noPretty.bright.yellow ('WARN'.inverse, warnings.map (t => t.market)) }
+    if (failed.length)   { log.noPretty.bright.red    ('FAIL'.bgBrightRed.white,    failed  .map (t => t.exchange)) }
+    if (warnings.length) { log.noPretty.bright.yellow ('WARN'.inverse, warnings.map (t => t.exchange)) }
     
     log.newline ()
 

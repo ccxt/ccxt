@@ -8,9 +8,9 @@ require ('ansicolor').nice;
 
 //-----------------------------------------------------------------------------
 
-// this script loads products from all markets
-// if it cannot connect to an exchange market, it falls back to an alternative route via proxy
-// it will retry to load a market until it either reaches the exchange or runs out of proxies
+// this script loads markets from all exchanges
+// if it cannot connect to an exchange, it falls back to an alternative route via proxy
+// it will retry to load a exchange until it either reaches the exchange or runs out of proxies
 
 //-----------------------------------------------------------------------------
 
@@ -19,45 +19,47 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit 
 
 //-----------------------------------------------------------------------------
 
-let loadMarket = async market => {
-    await market.loadProducts ()
-    log (market.id.green, 'loaded', 
-        market.symbols.length.toString ().bright.green, 'symbols', 
-        (market.proxy ? market.proxy : '_').blue)
+let loadExchange = async exchange => {
+    await exchange.loadMarkets ()
+    log (exchange.id.green, 'loaded', 
+        exchange.symbols.length.toString ().bright.green, 'symbols', 
+        (exchange.proxy ? exchange.proxy : '_').blue)
 }
 
 //-----------------------------------------------------------------------------
 
-let tryAllProxies = async function (market, proxies) {
+let tryAllProxies = async function (exchange, proxies) {
 
     let currentProxy = 0
     let maxRetries   = proxies.length
 
     // a special case for ccex
-    if (market.id == 'ccex')
+    if (exchange.id == 'ccex')
         currentProxy = 1
     
     for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
 
         try {
 
-            market.proxy = proxies[currentProxy]
-            await loadMarket (market)
+            exchange.proxy = proxies[currentProxy]
+            await loadExchange (exchange)
             break
 
         } catch (e) {
 
             currentProxy = ++currentProxy % proxies.length
-            if (e instanceof ccxt.DDoSProtectionError) {
-                log.bright.yellow (market.id, '[DDoS Protection Error] ' + e.message)
-            } else if (e instanceof ccxt.TimeoutError) {
-                log.bright.yellow (market.id, '[Timeout Error] ' + e.message)
+            if (e instanceof ccxt.DDoSProtection) {
+                log.bright.yellow (exchange.id, '[DDoS Protection] ' + e.message)
+            } else if (e instanceof ccxt.RequestTimeout) {
+                log.bright.yellow (exchange.id, '[Request Timeout] ' + e.message)
             } else if (e instanceof ccxt.AuthenticationError) {
-                log.bright.yellow (market.id, '[Authentication Error] ' + e.message)
-            } else if (e instanceof ccxt.MarketNotAvailableError) {
-                log.bright.yellow (market.id, '[Market Not Available Error] ' + e.message)
-            } else if (e instanceof ccxt.EndpointNotAvailableError) {
-                log.bright.yellow (market.id, '[Endpoint Not Available Error] ' + e.message)
+                log.bright.yellow (exchange.id, '[Authentication Error] ' + e.message)
+            } else if (e instanceof ccxt.ExchangeNotAvailable) {
+                log.bright.yellow (exchange.id, '[Exchange Not Available] ' + e.message)
+            } else if (e instanceof ccxt.ExchangeError) {
+                log.bright.yellow (exchange.id, '[Exchange Error] ' + e.message)
+            } else if (e instanceof ccxt.NetworkError) {
+                log.bright.yellow (exchange.id, '[Network Error] ' + e.message)
             } else {
                 throw e;
             }
@@ -74,20 +76,20 @@ let proxies = [
     'https://crossorigin.me/',
 ]
 
-let markets = []
+let exchanges = []
 
 async function main () {
-    // instantiate all markets
-    await Promise.all (ccxt.markets.map (async id => {
-        let market = new (ccxt)[id] ()
-        markets.push (market)
-        await tryAllProxies (market, proxies)
+    // instantiate all exchanges
+    await Promise.all (ccxt.exchanges.map (async id => {
+        let exchange = new (ccxt)[id] ()
+        exchanges.push (exchange)
+        await tryAllProxies (exchange, proxies)
     }))
 
-    let succeeded = markets.filter (market => market.products ? true : false).length .toString ().bright.green
-    let failed = markets.filter (market => market.products ? false : true).length
-    let total = ccxt.markets.length.toString ().bright.white
-    console.log (succeeded, 'of', total, 'markets loaded', ('(' + failed + ' errors)').red)
+    let succeeded = exchanges.filter (exchange => exchange.markets ? true : false).length .toString ().bright.green
+    let failed = exchanges.filter (exchange => exchange.markets ? false : true).length
+    let total = ccxt.exchanges.length.toString ().bright.white
+    console.log (succeeded, 'of', total, 'exchanges loaded', ('(' + failed + ' errors)').red)
 }
 
 main ()

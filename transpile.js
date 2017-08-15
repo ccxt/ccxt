@@ -14,18 +14,18 @@ function regexAll (text, array) {
 
 let ccxtjs = fs.readFileSync ('ccxt.js', 'utf8')
 let contents = ccxtjs.match (/\/\/====(?:[\s\S]+?)\/\/====/) [0]
-let markets
-let regex = /^var ([\S]+) =\s*(?:extend\s*\(([^\,]+)\,\s*)?{([\s\S]+?)^}/gm // market class
+let exchanges
+let regex = /^var ([\S]+) =\s*(?:extend\s*\(([^\,]+)\,\s*)?{([\s\S]+?)^}/gm // exchange class
 let python = []
 let php = []
 
-while (markets = regex.exec (contents)) {
+while (exchanges = regex.exec (contents)) {
 
-    let id = markets[1]
+    let id = exchanges[1]
 
-    let parent = markets[2]
+    let parent = exchanges[2]
 
-    let all = markets[3].trim ().split (/\,\s*\n\s*\n/)
+    let all = exchanges[3].trim ().split (/\,\s*\n\s*\n/)
     let params = '    ' + all[0]
     let methods = all.slice (1)
 
@@ -33,47 +33,64 @@ while (markets = regex.exec (contents)) {
     let ph = []
 
     params = params.split ("\n")
-    
+
+    let pyParams = params
+        .join ("\n        ")
+        .replace (/ \/\//g, ' #')
+        .replace (/\{ /g, '{')              // PEP8 E201
+        .replace (/\[ /g, '[')              // PEP8 E201
+        .replace (/([^\s]+) \]/g, '$1]')    // PEP8 E202
+        .replace (/([^\s]+) \}\,/g, '$1},') // PEP8 E202
+
     py.push ('')
-    py.push ('class ' + id + ' (' + (parent ? parent : 'Market') + '):')
+    py.push ('class ' + id + ' (' + (parent ? parent : 'Exchange') + '):')
     py.push ('')
-    py.push ('    def __init__ (self, config = {}):')
+    py.push ('    def __init__(self, config={}):')
     py.push ('        params = {')
-    py.push ('        ' + params.join ("\n        ").replace (/ \/\//g, ' #') + ((all.length > 1) ? ',' : ''))
+    py.push ('        ' + pyParams + ((all.length > 1) ? ',' : ''))
     py.push ('        }')
-    py.push ('        params.update (config)')
-    py.push ('        super (' + id + ', self).__init__ (params)')
+    py.push ('        params.update(config)')
+    py.push ('        super(' + id + ', self).__init__(params)')
 
     ph.push ('')
-    ph.push ('class ' + id + ' extends ' + (parent ? parent : 'Market') + ' {')
+    ph.push ('class ' + id + ' extends ' + (parent ? parent : 'Exchange') + ' {')
     ph.push ('')
     ph.push ('    public function __construct ($options = array ()) {')
-    ph.push ('        parent::__construct (array_merge (array (')
+    ph.push ('        parent::__construct (array_merge(array (')
     ph.push ('        ' + params.join ("\n        ").replace (/': /g, "' => ").replace (/ {/g, ' array (').replace (/ \[/g, ' array (').replace (/\}([\,\n]|$)/g, ')$1').replace (/\]/g, ')') + ((all.length > 1) ? ',' : ''))
     ph.push ('        ), $options));')
     ph.push ('    }')
 
     for (let i = 0; i < methods.length; i++) {
-        let part = methods[i].trim ()       
+        let part = methods[i].trim ()
         let lines = part.split ("\n")
         let header = lines[0].trim ()
-        let regex2 = /(async |)([\S]+)\s\(([^)]*)\)\s*{/g // market method
+        let regex2 = /(async |)([\S]+)\s\(([^)]*)\)\s*{/g // exchange method
         let matches = regex2.exec (header)
         let keyword = matches[1]
         let method = matches[2]
         let args = matches[3].trim ()
 
-        method = method.replace ('fetchBalance', 'fetch_balance')
+        method = method.replace ('fetchBalance',      'fetch_balance')
                         // .replace ('fetchCategories', 'fetch_categories')
-                        .replace ('fetchProducts', 'fetch_products')
-                        .replace ('fetchOrderBook', 'fetch_order_book')
-                        .replace ('fetchTicker', 'fetch_ticker')
-                        .replace ('fetchTrades', 'fetch_trades')
-                        .replace ('createOrder', 'create_order')
-                        .replace ('cancelOrder', 'cancel_order')
-                        .replace ('signIn', 'sign_in')
+                        .replace ('fetchMarkets',     'fetch_markets')
+                        .replace ('fetchOrderBook',   'fetch_order_book')
+                        .replace ('fetchTickers',     'fetch_tickers')
+                        .replace ('fetchTicker',      'fetch_ticker')
+                        .replace ('parseTicker',      'parse_ticker')
+                        .replace ('parseTrades',      'parse_trades')
+                        .replace ('parseTrade',       'parse_trade')
+                        .replace ('parseBidAsks',     'parse_bidasks')
+                        .replace ('parseBidAsk',      'parse_bidask')
+                        .replace ('fetchTrades',      'fetch_trades')
+                        .replace ('fetchMyTrades',    'fetch_my_trades')
+                        .replace ('fetchAllMyTrades', 'fetch_all_my_trades')
+                        .replace ('createOrder',      'create_order')
+                        .replace ('cancelOrder',      'cancel_order')
+                        .replace ('signIn',           'sign_in')
+                        .replace ('getMarketURL',     'get_market_url')
 
-        args = args.length ? args.split (',').map (x => x.trim ()) : []
+        args = args.length ? args.split (',').map (x => x.trim ().replace (' = ', '=')) : []
         let phArgs = args.join (', $').trim ()
         phArgs = phArgs.length ? ('$' + phArgs) : ''
         let pyArgs = args.join (', ')
@@ -91,33 +108,42 @@ while (markets = regex.exec (contents)) {
             m.forEach (x => variables.push (x.trim ()))
             variables.push (localVariablesMatches[1])
         }
-        
+
         let phVarsRegex = variables.map (x => [ "([^$$a-zA-Z0-9\\.\\>'_])" + x + "([^a-zA-Z0-9'_])", '$1$$' + x + '$2' ])
 
         let pyRegex = [
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\s+\'undefined\'/g, '$1[$2] is None' ],
             [ /undefined/g, 'None' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
-            [ /this\.stringToBase64/g, 'base64.b64encode' ],
-            [ /this\.base64ToBinary/g, 'base64.b64decode' ],
-            [ /\.binaryConcat/g, '.binary_concat'],
-            [ /\.implodeParams/g, '.implode_params'],
-            [ /\.extractParams/g, '.extract_params'],
-            [ /\.indexBy/g, '.index_by'],
-            [ /\.sortBy/g, '.sort_by'],
-            [ /\.productId/g, '.product_id'],
+            [ /this\.stringToBase64\s/g, 'base64.b64encode' ],
+            [ /this\.base64ToBinary\s/g, 'base64.b64decode' ],
+            [ /\.binaryConcat\s/g, '.binary_concat'],
+            [ /\.binaryToString\s/g, '.binary_to_string' ],
+            [ /\.implodeParams\s/g, '.implode_params'],
+            [ /\.extractParams\s/g, '.extract_params'],
+            [ /\.parseTicker\s/g, '.parse_ticker'],
+            [ /\.parseTrades\s/g, '.parse_trades'],
+            [ /\.parseTrade\s/g, '.parse_trade'],
+            [ /\.parseBidAsks\s/g, '.parse_bidasks'],
+            [ /\.parseBidAsk\s/g, '.parse_bidask'],
+            [ /\.indexBy\s/g, '.index_by'],
+            [ /\.sortBy\s/g, '.sort_by'],
+            [ /\.marketId\s/g, '.market_id'],
             [ /this\.urlencode\s/g, '_urlencode.urlencode ' ],
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z])this([^a-zA-Z])/g, '$1self$2' ],
             [ /([^a-zA-Z0-9_])let\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
-            [ /([^a-zA-Z0-9_])let\s/g, '$1' ],              
+            [ /([^a-zA-Z0-9_])let\s/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
-            [ /Object\.keys\s*\((.*)\)/g, 'list ($1.keys ())' ],
-            [ /\[([^\]]+)\]\.join\s*\(([^\)]+)\)/g, "$2.join ([$1])" ],
-            [ /hash \(([^,]+)\, \'(sha[0-9])\'/g, "hash ($1, '$2'" ],
-            [ /hmac \(([^,]+)\, ([^,]+)\, \'(md5)\'/g, 'hmac ($1, $2, hashlib.$3' ],
-            [ /hmac \(([^,]+)\, ([^,]+)\, \'(sha[0-9]+)\'/g, 'hmac ($1, $2, hashlib.$3' ],
-            [ /throw new ([\S]+) \((.*)\)/g, 'raise $1 ($2)'],
+            [ /Object\.keys\s*\((.*)\)/g, 'list($1.keys())' ],
+            [ /\[([^\]]+)\]\.join\s*\(([^\)]+)\)/g, "$2.join([$1])" ],
+            [ /hash \(([^,]+)\, \'(sha[0-9])\'/g, "hash($1, '$2'" ],
+            [ /hmac \(([^,]+)\, ([^,]+)\, \'(md5)\'/g, 'hmac($1, $2, hashlib.$3' ],
+            [ /hmac \(([^,]+)\, ([^,]+)\, \'(sha[0-9]+)\'/g, 'hmac($1, $2, hashlib.$3' ],
+            [ /throw new ([\S]+) \((.*)\)/g, 'raise $1($2)'],
+            [ /throw ([\S]+)/g, 'raise $1'],
+            [ /try {/g, 'try:'],
+            [ /\}\s+catch \(([\S]+)\) {/g, 'except Exception as $1:'],
             [ /(\s)await(\s)/g, '$1' ],
             [ /([\s\(])extend(\s)/g, '$1self.extend$2' ],
             [ /\} else if/g, 'elif' ],
@@ -125,33 +151,42 @@ while (markets = regex.exec (contents)) {
             [ /if\s+\((.*)\)\s*[\n]/g, "if $1:\n" ],
             [ /\}\s*else\s*\{/g, 'else:' ],
             [ /else\s*[\n]/g, "else:\n" ],
-            [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\.length\s*\;[^\)]+\)\s*{/g, 'for $1 in range ($2, len ($3)):'],
+            [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\.length\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, len($3)):'],
             [ /\s\|\|\s/g, ' or ' ],
             [ /\s\&\&\s/g, ' and ' ],
             [ /\!([^\=])/g, 'not $1'],
-            [ /([^\s]+)\.length/g, 'len ($1)' ],
-            [ /\.push\s*\(([\s\S]+?)\);/g, '.append ($1);' ],
+            [ /([^\s]+)\.length/g, 'len($1)' ],
+            [ /\.push\s*\(([\s\S]+?)\);/g, '.append($1);' ],
             [ /^\s*}\s*[\n]/gm, '' ],
             [ /;/g, '' ],
-            [ /\.toUpperCase/g, '.upper' ],
-            [ /\.toLowerCase/g, '.lower' ],
-            [ /JSON\.stringify/g, 'json.dumps' ],
-            [ /parseFloat\s/g, 'float '],
-            [ /parseInt\s/g, 'int '],
-            [ /self\[([^\]+]+)\]/g, 'getattr (self, $1)' ],
+            [ /\.toUpperCase\s*/g, '.upper' ],
+            [ /\.toLowerCase\s*/g, '.lower' ],
+            [ /JSON\.stringify\s*/g, 'json.dumps' ],
+            [ /parseFloat\s*/g, 'float'],
+            [ /parseInt\s*/g, 'int'],
+            [ /self\[([^\]+]+)\]/g, 'getattr(self, $1)' ],
             [ /([^\s]+).slice \(([^\,\)]+)\,\s?([^\)]+)\)/g, '$1[$2:$3]' ],
             [ /([^\s]+).slice \(([^\)\:]+)\)/g, '$1[$2:]' ],
-            [ /Math\.floor\s*\(([^\)]+)\)/g, 'int (math.floor ($1))' ],
+            [ /Math\.floor\s*\(([^\)]+)\)/g, 'int(math.floor($1))' ],
+            [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs($1)' ],
+            [ /Math\.round\s*\(([^\)]+)\)/g, 'int(round($1))' ],
             [ /(\([^\)]+\)|[^\s]+)\s*\?\s*(\([^\)]+\)|[^\s]+)\s*\:\s*(\([^\)]+\)|[^\s]+)/g, '$2 if $1 else $3'],
             [/ \/\//g, ' #' ],
             [ /\.indexOf/g, '.find'],
             [ /\strue/g, ' True'],
             [ /\sfalse/g, ' False'],
-            [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '($1 in list ($2.keys ()))' ],
-            [ /([^\s]+\s*\(\))\.toString \(\)/g, 'str ($1)' ],
-            [ /([^\s]+)\.toString \(\)/g, 'str ($1)' ],                
-            [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$2.join ($1)' ],
-            [ /Math\.(max|min)/g, '$1' ],
+            [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '($1 in list($2.keys()))' ],
+            [ /([^\s]+\s*\(\))\.toString\s+\(\)/g, 'str($1)' ],
+            [ /([^\s]+)\.toString \(\)/g, 'str($1)' ],
+            [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$2.join($1)' ],
+            [ /Math\.(max|min)\s/g, '$1' ],
+            [ /console\.log\s/g, 'print'],
+            [ /process\.exit\s+/g, 'sys.exit'],
+            [ /([^+=\s]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
+            [ /\[ /g, '[' ],             // PEP8 E201 remove whitespaces after left [ square bracket
+            [ /\{ /g, '{' ],             // PEP8 E201 remove whitespaces after left { bracket
+            [ /([^\s]+) \]/g, '$1]' ],   // PEP8 E202 remove whitespaces before right ] square bracket
+            [ /([^\s]+) \}/g, '$1}' ],   // PEP8 E202 remove whitespaces before right } bracket
         ]
 
         let phRegex = [
@@ -161,12 +196,18 @@ while (markets = regex.exec (contents)) {
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64/g, 'base64_encode' ],
             [ /this\.base64ToBinary/g, 'base64_decode' ],
+            [ /\.parseTicker/g, '.parse_ticker'],
+            [ /\.parseTrades/g, '.parse_trades'],
+            [ /\.parseTrade/g, '.parse_trade'],
+            [ /\.parseBidAsks/g, '.parse_bidasks'],
+            [ /\.parseBidAsk/g, '.parse_bidask'],
             [ /\.binaryConcat/g, '.binary_concat'],
+            [ /\.binaryToString/g, '.binary_to_string' ],
             [ /\.implodeParams/g, '.implode_params'],
             [ /\.extractParams/g, '.extract_params'],
             [ /\.indexBy/g, '.index_by'],
             [ /\.sortBy/g, '.sort_by'],
-            [ /\.productId/g, '.product_id'],
+            [ /\.marketId/g, '.market_id'],
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
             [ /this_\./g, '$this_->' ],
@@ -178,7 +219,7 @@ while (markets = regex.exec (contents)) {
             [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)/g, 'array_keys ($1)' ],
             [ /([^\s]+\s*\(\))\.toString \(\)/g, '(string) $1' ],
-            [ /([^\s]+)\.toString \(\)/g, '(string) $1' ],                
+            [ /([^\s]+)\.toString \(\)/g, '(string) $1' ],
             [ /throw new Error \((.*)\)/g, 'throw new \\Exception ($1)'],
             [ /throw new ([\S]+) \((.*)\)/g, 'throw new $1 ($2)'],
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\.length\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 count ($4);$5) {'],
@@ -203,18 +244,32 @@ while (markets = regex.exec (contents)) {
             [ /([^\s]+).slice \(([^\,\)]+)\,\s*([^\)]+)\)/g, 'mb_substr ($1, $2, $3)' ],
             [ /([^\s]+).split \(([^\,]+?)\)/g, 'explode ($2, $1)' ],
             [ /Math\.floor\s*\(([^\)]+)\)/g, '(int) floor ($1)' ],
+            [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs ($1)' ],
+            [ /Math\.round\s*\(([^\)]+)\)/g, '(int) round ($1)' ],
+            [ /([^\(\s]+)\s+%\s+([^\s\)]+)/g, 'fmod ($1, $2)' ],
             [ /([^\s]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0/g, 'mb_strpos ($1, $2) !== false' ],
             [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '(array_key_exists ($1, $2))' ],
             [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode ($2, $1)' ],
             [ /Math\.(max|min)/g, '$1' ],
+            [ /console\.log/g, 'var_dump'],
+            [ /process\.exit/g, 'exit'],
         ]
 
         let pyBody = regexAll (body, pyRegex)
 
+        // special case for Python OrderedDicts
+
+        let orderedRegex = /\.ordered\s+\(\{([^\}]+)\}\)/g
+        let orderedMatches = undefined
+        while (orderedMatches = orderedRegex.exec (pyBody)) {
+            let replaced = orderedMatches[1].replace (/^(\s+)([^\:]+)\:\s*([^\,]+)\,$/gm, '$1($2, $3),')
+            pyBody = pyBody.replace (orderedRegex, '\.ordered ([' + replaced + '])')
+        }
+
         py.push ('');
-        py.push ('    def ' + method + ' (self' + (pyArgs.length ? ', ' + pyArgs.replace (/undefined/g, 'None') : '') + '):');
+        py.push ('    def ' + method + '(self' + (pyArgs.length ? ', ' + pyArgs.replace (/undefined/g, 'None') : '') + '):');
         py.push (pyBody);
-      
+
         let phBody = regexAll (body, phRegex.concat (phVarsRegex))
 
         ph.push ('');
@@ -265,11 +320,9 @@ ccxtpy +=
 
 ccxtphp +=
     "\n//=============================================================================\n" +
-    php.join ("\n//-----------------------------------------------------------------------------\n") + 
+    php.join ("\n//-----------------------------------------------------------------------------\n") +
     "\n?>"
 
-// fs.createReadStream (oldNamePy).pipe (fs.createWriteStream (newNamePy))
-// fs.createReadStream (oldNamePHP).pipe (fs.createWriteStream (newNamePHP))
 fs.truncateSync (oldNamePy)
 fs.truncateSync (oldNamePHP)
 fs.writeFileSync (oldNamePy, ccxtpy)
