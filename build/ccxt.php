@@ -1,5 +1,11 @@
 <?php
 
+//-----------------------------------------------------------------------------
+// This file is for PHP base code
+// It contains the base exchange class, common functions and definitions
+// See https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md for details
+//-----------------------------------------------------------------------------
+
 namespace ccxt;
 
 class CCXTError            extends \Exception {}
@@ -10,7 +16,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.92';
+$version = '1.3.93';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
