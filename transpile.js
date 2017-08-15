@@ -302,10 +302,10 @@ mm = mm < 10 ? ('0' + mm) : mm
 ss = ss < 10 ? ('0' + ss) : ss
 let dateString = [ yyyy, MM, dd, hh, mm, ss ].join ('.')
 
-let oldNamePy = 'ccxt/__init__.py'
+let oldNamePy = 'ccxt.py'
 let oldNamePHP = 'ccxt.php'
-let newNamePy = 'tmp/ccxt.' + dateString + '.py'
-let newNamePHP = 'tmp/ccxt.' + dateString + '.php'
+let newNamePy = 'ccxt/__init__.py'
+let newNamePHP = 'build/ccxt.php'
 
 let ccxtpy = fs.readFileSync (oldNamePy, 'utf8')
 let ccxtphp = fs.readFileSync (oldNamePHP, 'utf8')
@@ -323,9 +323,9 @@ ccxtphp +=
     php.join ("\n//-----------------------------------------------------------------------------\n") +
     "\n?>"
 
-fs.truncateSync (oldNamePy)
-fs.truncateSync (oldNamePHP)
-fs.writeFileSync (oldNamePy, ccxtpy)
-fs.writeFileSync (oldNamePHP, ccxtphp)
+fs.truncateSync (newNamePy)
+fs.truncateSync (newNamePHP)
+fs.writeFileSync (newNamePy, ccxtpy)
+fs.writeFileSync (newNamePHP, ccxtphp)
 
 log.bright.green ('Transpiled successfully.')
