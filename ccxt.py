@@ -1,5 +1,11 @@
 # coding=utf-8
 
+#------------------------------------------------------------------------------
+# This file is for Python 2/3 base code
+# It contains the base exchange class, common functions and definitions
+# See https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md for details
+#------------------------------------------------------------------------------
+
 exchanges = [
     '_1broker',
     '_1btcxe',
@@ -661,3 +667,4 @@ class Exchange (object):
 #==============================================================================
 
 # This comment is a placeholder for transpiled derived exchange implementations
+# See https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md for details
