@@ -43,12 +43,12 @@ The contents of the repository are structured as follows:
 /MANIFEST.in         # a PyPI-package file listing extra package files (license, configs, etc...)
 /README.md           # master markdown for GitHub, npmjs.com, npms.io, yarn and others
 /README.rst          # slave reStructuredText for PyPI
-/build/              # a folder for the generated sources
+/build/              # a folder for the generated slave source files
 /build/ccxt.es5.js   # slave generated JavaScript ES5 version of the ccxt library
 /build/ccxt.php      # slave generated PHP version of the ccxt library
 /ccxt.js             # master JS ES6 version of the ccxt library
-/ccxt.php            # slave base code for the PHP version of the ccxt library
-/ccxt.py             # slave base code for the Python version of the ccxt library
+/ccxt.php            # base code for the PHP version of the ccxt library
+/ccxt.py             # base code for the Python version of the ccxt library
 /ccxt/               # Python ccxt module/package folder for PyPI
 /ccxt/__init__.py    # slave generated Python-version of the ccxt library
 /countries.js        # a list of ISO 2-letter country codes in JS for testing, not very important

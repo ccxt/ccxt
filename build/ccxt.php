@@ -5782,7 +5782,7 @@ class bter extends Exchange {
         return $result;
     }
 
-    public function parse_ticker ($ticker, $market) {
+    public function parse_ticker ($ticker, $market=null) {
         $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
@@ -5819,7 +5819,9 @@ class bter extends Exchange {
             $quote = $this->commonCurrencyCode ($quote);
             $symbol = $base . '/' . $quote;
             $ticker = $tickers[$id];
-            $market = $this->markets[$symbol];
+            $market = null;
+            if (array_key_exists ($symbol, $this->markets))
+                $market = $this->markets[$symbol];
             $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;

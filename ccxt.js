@@ -5481,7 +5481,7 @@ var bter = {
         return result;
     },
 
-    parseTicker (ticker, market) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
         return {
             'timestamp': timestamp,
@@ -5518,7 +5518,9 @@ var bter = {
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             let ticker = tickers[id];
-            let market = this.markets[symbol];
+            let market = undefined;
+            if (symbol in this.markets)
+                market = this.markets[symbol];
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;

@@ -5329,7 +5329,7 @@ class bter (Exchange):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
         return {
             'timestamp': timestamp,
@@ -5365,7 +5365,9 @@ class bter (Exchange):
             quote = self.commonCurrencyCode(quote)
             symbol = base + '/' + quote
             ticker = tickers[id]
-            market = self.markets[symbol]
+            market = None
+            if symbol in self.markets:
+                market = self.markets[symbol]
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
