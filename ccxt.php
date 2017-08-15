@@ -10,7 +10,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.86';
+$version = '1.3.87';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10725,11 +10725,39 @@ class kraken extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = intval ($trade[2] * 1000);
+        $side = ($trade[3] == 's') ? 'sell' : 'buy';
+        $type = ($trade[4] == 'l') ? 'limit' : 'market';
+        return array (
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => $type,
+            'side' => $side,
+            'price' => floatval ($trade[0]),
+            'amount' => floatval ($trade[1]),
+        );
+    }
+
+    public function parse_trades ($trades, $market) {
+        $result = array ();
+        for ($t = 0; $t < count ($trades); $t++) {
+            $result[] = $this->parse_trade ($trades[$t], $market);
+        }
+        return $result;
+    }
+
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetTrades (array (
-            'pair' => $this->market_id ($market),
-        ));
+        $m = $this->market ($market);
+        $id = $m['id'];
+        $response = $this->publicGetTrades (array_merge (array (
+            'pair' => $id,
+        ), $params));
+        $trades = $response['result'][$id];
+        return $this->parse_trades ($trades, $m);
     }
 
     public function fetch_balance () {

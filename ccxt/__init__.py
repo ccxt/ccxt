@@ -90,7 +90,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.86'
+__version__ = '1.3.87'
 
 #------------------------------------------------------------------------------
 
@@ -9968,11 +9968,36 @@ class kraken (Exchange):
         ticker = response['result'][p['id']]
         return self.parse_ticker(ticker, p)
 
-    def fetch_trades(self, market):
+    def parse_trade(self, trade, market):
+        timestamp = int(trade[2] * 1000)
+        side = 'sell' if(trade[3] == 's') else 'buy'
+        type = 'limit' if(trade[4] == 'l') else 'market'
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': type,
+            'side': side,
+            'price': float(trade[0]),
+            'amount': float(trade[1]),
+        }
+
+    def parse_trades(self, trades, market):
+        result = []
+        for t in range(0, len(trades)):
+            result.append(self.parse_trade(trades[t], market))
+        return result
+
+    def fetch_trades(self, market, params={}):
         self.loadMarkets()
-        return self.publicGetTrades({
-            'pair': self.market_id(market),
-        })
+        m = self.market(market)
+        id = m['id']
+        response = self.publicGetTrades(self.extend({
+            'pair': id,
+        }, params))
+        trades = response['result'][id]
+        return self.parse_trades(trades, m)
 
     def fetch_balance(self):
         self.loadMarkets()
