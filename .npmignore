@@ -6,6 +6,7 @@ config.js
 config.py
 config.php
 dist/
+!build/ccxt.es5.js
 build/
 ccxt.egg-info/
 tmp/
@@ -18,4 +19,3 @@ ccxt.wiki/
 package-lock.json
 exchanges.json
 ccxt.sublime-workspace
-!build/ccxt.es5.js
