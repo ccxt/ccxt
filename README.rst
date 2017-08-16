@@ -27,7 +27,7 @@ Current featurelist:
 -  all currencies, altcoins and symbols, prices, order books, trades, tickers, etc...
 -  optional normalised data for cross-exchange or cross-currency analytics and arbitrage
 -  an out-of-the box unified all-in-one API extremely easy to integrate
--  works in Node 6+, Python 2 and 3, PHP 5.3+
+-  works in Node 6+, Python 2 and 3, PHP 5.3+, web browsers
 
 `ccxt on GitHub <https://github.com/kroitor/ccxt>`__ | Install | Usage | `Manual <https://github.com/kroitor/ccxt/wiki>`__ | `Examples <https://github.com/kroitor/ccxt/tree/master/examples>`__ | Contributing | **Public Offer**
 
@@ -212,8 +212,10 @@ You can also clone it into your project directory from `ccxt GitHub repository <
 
 An alternative way of installing this library into your code is to copy a single file manually into your working directory with language extension appropriate for your environment.
 
-Node.js (npm)
-~~~~~~~~~~~~~
+JavaScript (NPM)
+~~~~~~~~~~~~~~~~
+
+JavaScript version of ccxt works both in Node and web browsers.
 
 `ccxt crypto trading library in npm <http://npmjs.com/package/ccxt>`__
 
@@ -221,11 +223,25 @@ Node.js (npm)
 
     npm install ccxt
 
-Node version of the ccxt library requires `crypto-js <https://www.npmjs.com/package/crypto-js>`__ and `node-fetch <https://www.npmjs.com/package/node-fetch>`__, both of them are installed automatically by npm.
-
 .. code:: javascript
 
     var ccxt = require ('ccxt')
+
+    console.log (ccxt.exchanges) // print all available exchanges
+
+JavaScript (for use with the ``<script>`` tag):
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`All-in-one browser bundle <https://unpkg.com/ccxt>`__ (dependencies included), served from `unpkg CDN <https://unpkg.com/>`__, which is a is a fast, global content delivery network for everything on NPM.
+
+.. code:: html
+
+    <script type="text/javascript" src="https://unpkg.com/ccxt"></script>
+
+Creates a global ``ccxt`` object:
+
+.. code:: javascript
+
     console.log (ccxt.exchanges) // print all available exchanges
 
 Python
@@ -242,6 +258,7 @@ Python version of the ccxt library does not require any additional dependencies 
 .. code:: python
 
     import ccxt
+
     print(ccxt.exchanges) # print a list of all available exchange classes
 
 PHP
@@ -260,37 +277,6 @@ It requires common PHP modules:
 
     include "ccxt.php";
     var_dump (\cxxt\Exchange::$exchanges); // print a list of all available exchange classes
-
-Web Browsers
-~~~~~~~~~~~~
-
-The ccxt library can also be used in web browser client-side JavaScript for various purposes.
-
-.. code:: shell
-
-    git clone https://github.com/kroitor/ccxt.git
-
-The client-side JavaScript version also requires CryptoJS. Download and unpack `CryptoJS <https://code.google.com/archive/p/crypto-js/>`__ into your working directory or clone `CryptoJS from GitHub <https://github.com/sytelus/CryptoJS>`__.
-
-.. code:: shell
-
-    git clone https://github.com/sytelus/CryptoJS
-
-Finally, add links to CryptoJS components and ccxt to your HTML page code:
-
-.. code:: html
-
-    <script src="crypto-js/rollups/sha256.js"></script>
-    <script src="crypto-js/rollups/hmac-sha256.js"></script>
-    <script src="crypto-js/rollups/hmac-sha512.js"></script>
-    <script src="crypto-js/components/enc-base64-min.js"></script>
-    <script src="crypto-js/components/enc-utf16-min.js"></script>
-
-    <script type="text/javascript" src="ccxt.js"></script>
-    <script type="text/javascript">
-        // print all available exchanges
-        document.addEventListener ('DOMContentLoaded', () => console.log (ccxt))
-    </script>
 
 Usage
 -----
