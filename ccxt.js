@@ -6783,9 +6783,10 @@ var coinfloor = {
         },
     },
     'markets': {
-        'BTC/GBP': { 'id': 'BTC/GBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP' },
-        'BTC/EUR': { 'id': 'BTC/EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
-        'BTC/USD': { 'id': 'BTC/USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+        'BTC/GBP': { 'id': 'XBT/GBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP' },
+        'BTC/EUR': { 'id': 'XBT/EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+        'BTC/USD': { 'id': 'XBT/USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+        'BTC/PLN': { 'id': 'XBT/PLN', 'symbol': 'BTC/PLN', 'base': 'BTC', 'quote': 'PLN' },
         'BCH/GBP': { 'id': 'BCH/GBP', 'symbol': 'BCH/GBP', 'base': 'BCH', 'quote': 'GBP' },
     },
 
@@ -6852,14 +6853,14 @@ var coinfloor = {
         return this.parseTicker (ticker, m);
     },
 
-    async fetchTrades (product) {
+    async fetchTrades (market) {
         return this.publicGetIdTransactions ({
-            'id': this.marketId (product),
+            'id': this.marketId (market),
         });
     },
 
-    async createOrder (product, type, side, amount, price = undefined, params = {}) {
-        let order = { 'id': this.marketId (product) };
+    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+        let order = { 'id': this.marketId (market) };
         let method = 'privatePostId' + this.capitalize (side);
         if (type =='market') {
             order['quantity'] = amount;

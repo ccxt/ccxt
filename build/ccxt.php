@@ -7116,23 +7116,24 @@ class coinfloor extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/GBP' => array ( 'id' => 'BTC/GBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP' ),
-                'BTC/EUR' => array ( 'id' => 'BTC/EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
-                'BTC/USD' => array ( 'id' => 'BTC/USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
+                'BTC/GBP' => array ( 'id' => 'XBT/GBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP' ),
+                'BTC/EUR' => array ( 'id' => 'XBT/EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
+                'BTC/USD' => array ( 'id' => 'XBT/USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
+                'BTC/PLN' => array ( 'id' => 'XBT/PLN', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
                 'BCH/GBP' => array ( 'id' => 'BCH/GBP', 'symbol' => 'BCH/GBP', 'base' => 'BCH', 'quote' => 'GBP' ),
             ),
         ), $options));
     }
 
-    public function fetch_balance ($product) {
+    public function fetch_balance ($market) {
         return $this->privatePostIdBalance (array (
-            'id' => $this->productId ($product),
+            'id' => $this->market_id ($market),
         ));
     }
 
-    public function fetch_order_book ($product) {
+    public function fetch_order_book ($market) {
         $orderbook = $this->publicGetIdOrderBook (array (
-            'id' => $this->productId ($product),
+            'id' => $this->market_id ($market),
         ));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -7155,10 +7156,7 @@ class coinfloor extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($product) {
-        $ticker = $this->publicGetIdTicker (array (
-            'id' => $this->productId ($product),
-        ));
+    public function parse_ticker ($ticker, $market) {
         // rewrite to get the $timestamp from HTTP headers
         $timestamp = $this->milliseconds ();
         return array (
@@ -7182,14 +7180,22 @@ class coinfloor extends Exchange {
         );
     }
 
+    public function fetch_ticker ($market) {
+        $m = $this->market ($market);
+        $ticker = $this->publicGetIdTicker (array (
+            'id' => $m['id'],
+        ));
+        return $this->parse_ticker ($ticker, $m);
+    }
+
     public function fetch_trades ($product) {
         return $this->publicGetIdTransactions (array (
-            'id' => $this->productId ($product),
+            'id' => $this->market_id ($product),
         ));
     }
 
     public function create_order ($product, $type, $side, $amount, $price=null, $params=array ()) {
-        $order = array ( 'id' => $this->productId ($product) );
+        $order = array ( 'id' => $this->market_id ($product) );
         $method = 'privatePostId' . $this->capitalize ($side);
         if ($type =='market') {
             $order['quantity'] = $amount;

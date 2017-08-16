@@ -6576,23 +6576,24 @@ class coinfloor (Exchange):
                 },
             },
             'markets': {
-                'BTC/GBP': {'id': 'BTC/GBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP'},
-                'BTC/EUR': {'id': 'BTC/EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
-                'BTC/USD': {'id': 'BTC/USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD'},
+                'BTC/GBP': {'id': 'XBT/GBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP'},
+                'BTC/EUR': {'id': 'XBT/EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
+                'BTC/USD': {'id': 'XBT/USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD'},
+                'BTC/PLN': {'id': 'XBT/PLN', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD'},
                 'BCH/GBP': {'id': 'BCH/GBP', 'symbol': 'BCH/GBP', 'base': 'BCH', 'quote': 'GBP'},
             },
         }
         params.update(config)
         super(coinfloor, self).__init__(params)
 
-    def fetch_balance(self, product):
+    def fetch_balance(self, market):
         return self.privatePostIdBalance({
-            'id': self.productId(product),
+            'id': self.market_id(market),
         })
 
-    def fetch_order_book(self, product):
+    def fetch_order_book(self, market):
         orderbook = self.publicGetIdOrderBook({
-            'id': self.productId(product),
+            'id': self.market_id(market),
         })
         timestamp = self.milliseconds()
         result = {
@@ -6612,10 +6613,7 @@ class coinfloor (Exchange):
                 result[side].append([price, amount])
         return result
 
-    def fetch_ticker(self, product):
-        ticker = self.publicGetIdTicker({
-            'id': self.productId(product),
-        })
+    def parse_ticker(self, ticker, market):
         # rewrite to get the timestamp from HTTP headers
         timestamp = self.milliseconds()
         return {
@@ -6638,13 +6636,20 @@ class coinfloor (Exchange):
             'info': ticker,
         }
 
+    def fetch_ticker(self, market):
+        m = self.market(market)
+        ticker = self.publicGetIdTicker({
+            'id': m['id'],
+        })
+        return self.parse_ticker(ticker, m)
+
     def fetch_trades(self, product):
         return self.publicGetIdTransactions({
-            'id': self.productId(product),
+            'id': self.market_id(product),
         })
 
     def create_order(self, product, type, side, amount, price=None, params={}):
-        order = {'id': self.productId(product)}
+        order = {'id': self.market_id(product)}
         method = 'privatePostId' + self.capitalize(side)
         if type =='market':
             order['quantity'] = amount
