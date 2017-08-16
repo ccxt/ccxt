@@ -550,6 +550,7 @@ const Exchange = function (config) {
         return result;
     }
 
+    this.parse_trades =
     this.parseTrades = function (trades, market = undefined) {
         let result = [];
         for (let t = 0; t < trades.length; t++) {
