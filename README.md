@@ -139,7 +139,7 @@ var ccxt = require ('ccxt')
 console.log (ccxt.exchanges) // print all available exchanges
 ```
 
-### JavaScript (for use with `<script>` tag):
+### JavaScript (for use with the `<script>` tag):
 
 [All-in-one browser bundle](https://unpkg.com/ccxt) (dependencies included), served from [unpkg CDN](https://unpkg.com/), which is a is a fast, global content delivery network for everything on NPM.
 
