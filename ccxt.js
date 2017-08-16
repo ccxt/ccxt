@@ -30,7 +30,7 @@ SOFTWARE.
 
 //-----------------------------------------------------------------------------
 
-const version = '1.3.109'
+const version = '1.3.111'
 
 const isNode = (typeof window === 'undefined')
 
