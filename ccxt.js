@@ -550,6 +550,14 @@ const Exchange = function (config) {
         return result;
     }
 
+    this.parseTrades = function (trades, market = undefined) {
+        let result = [];
+        for (let t = 0; t < trades.length; t++) {
+            result.push (this.parseTrade (trades[t], market));
+        }
+        return result;
+    }
+
     this.create_limit_buy_order =
     this.createLimitBuyOrder = function (market, amount, price, params = {}) {
         return this.createOrder  (market, 'limit', 'buy', amount, price, params)
@@ -10368,14 +10376,6 @@ var kraken = {
         };
     },
 
-    parseTrades (trades, market) {
-        let result = [];
-        for (let t = 0; t < trades.length; t++) {
-            result.push (this.parseTrade (trades[t], market));
-        }
-        return result;
-    },
-
     async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
         let m = this.market (market);
@@ -12002,14 +12002,6 @@ var poloniex = {
             'price': parseFloat (trade['rate']),
             'amount': parseFloat (trade['amount']),
         };
-    },
-
-    parseTrades (trades, market = undefined) {
-        let result = [];
-        for (let t = 0; t < trades.length; t++) {
-            result.push (this.parseTrade (trades[t], market));
-        }
-        return result;
     },
 
     async fetchTrades (market, params = {}) {
