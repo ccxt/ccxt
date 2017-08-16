@@ -29,7 +29,7 @@
     "fybse":         { "apiKey": "gY7y57RlYqKN5ZI50O5C", "secret": "1qm63Ojf5a" },
     "gdax":          { "apiKey": "6a3ceca8ad6e73dcee3c0a90eefddc74", "secret": "UOKC7tmMleIgi2U4MgDUTu0/NYms4ZhkrhgBnpKG3KomskOH8pyLqNqJFhkD5s41NdZbfXETkJID9ISw+B8V4g==", "password": "ie8qhkjg4l" },
     "hitbtc":        { "apiKey": "18339694544745d9357f9e7c0f7c41bb", "secret": "8340a60fb4e9fc73a169c26c7a7926f5" },
-    "huobi":         { "apiKey": "09bdde40-cc179779-1941272a-433a7", "secret": "ce6487f4-f078c39f-018ea6ce-01922" },
+    "huobi":         { "apiKey": "5d8afad0-05eb1e1d-8399a6ee-7761d", "secret": "e207f2af-7a2138a5-6343ed1e-7f22d" },
     "jubi":          { "apiKey": "icbh6-v163t-6ravj-7ezbg-1yab2-pun37-qmj25", "secret": "W&b%~-(5Xi(-pytmY-.nVaO-X,Cx^-RaHhd-S(6;." },
     "kraken":        { "apiKey": "hEvQNMDIeoCJbr7W/ZBb5CGOrx3G0lWF5B3zqa1JBxdZlEaL8EK+D0Mw", "secret": "JaE9wI6Nwgh5oRxiHcVxurwzwBxwc05W/qv/k1srGg4s3EYuXPpNkLLM5NYbbWpM8rCyijIeDavRuqWbU0ZV9A==" },
     "liqui":         { "apiKey": "3CCPNOH2-7W0SYD8F-UNEVV304-NDU3MVJE-Z43H2I05", "secret": "9c6aad97f1e0b97b58fc3a69ac88b57483215f9b4037c668151d946871e177f4" },
