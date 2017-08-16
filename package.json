@@ -17,7 +17,7 @@
     "mdrst": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=README.rst README.md",
     "transpile": "node transpile",
     "vss": "node vss",
-    "babel": "babel ccxt.js --source-maps inline --out-file build/ccxt.es5.js",
+    "babel": "babel ccxt.js --compact=false --source-maps inline --out-file build/ccxt.es5.js",
     "browserify": "browserify --debug ./ccxt.browser.js > ./build/ccxt.browser.js"
   },
   "dependencies": {
