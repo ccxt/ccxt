@@ -3647,11 +3647,29 @@ class bittrex (Exchange):
         ticker = response['result'][0]
         return self.parse_ticker(ticker, m)
 
+    def parse_trade(self, trade, market=None):
+        timestamp = self.parse8601(trade['TimeStamp'])
+        side = 'buy' if(trade['OrderType'] == 'BUY') else 'sell'
+        type = None
+        return {
+            'id': str(trade['Id']),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': type,
+            'side': side,
+            'price': trade['Price'],
+            'amount': trade['Quantity'],
+        }
+
     def fetch_trades(self, market):
         self.loadMarkets()
-        return self.publicGetMarkethistory({
-            'market': self.market_id(market),
+        m = self.market(market)
+        response = self.publicGetMarkethistory({
+            'market': m['id'],
         })
+        return self.parse_trades(response['result'], m)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.loadMarkets()

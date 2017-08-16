@@ -3978,11 +3978,30 @@ class bittrex extends Exchange {
         return $this->parse_ticker ($ticker, $m);
     }
 
+    public function parse_trade ($trade, $market=null) {
+        $timestamp = $this->parse8601 ($trade['TimeStamp']);
+        $side = ($trade['OrderType'] == 'BUY') ? 'buy' => 'sell';
+        $type = null;
+        return array (
+            'id' => (string) $trade['Id'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => $type,
+            'side' => $side,
+            'price' => $trade['Price'],
+            'amount' => $trade['Quantity'],
+        );
+    }
+
     public function fetch_trades ($market) {
         $this->loadMarkets ();
-        return $this->publicGetMarkethistory (array (
-            'market' => $this->market_id ($market),
+        $m = $this->market ($market);
+        $response = $this->publicGetMarkethistory (array (
+            'market' => $m['id'],
         ));
+        return $this->parse_trades ($response['result'], $m);
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
