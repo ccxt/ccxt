@@ -121,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.108'
+__version__ = '1.3.109'
 
 #------------------------------------------------------------------------------
 
@@ -2139,10 +2139,6 @@ class bitfinex (Exchange):
 
     def parse_trade(self, trade, market):
         timestamp = trade['timestamp'] * 1000
-        if trade['OrderType'] == 'BUY':
-            side = 'buy'
-        elif trade['OrderType'] == 'SELL':
-            side = 'sell'
         type = None
         return {
             'id': str(trade['tid']),

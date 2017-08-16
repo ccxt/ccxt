@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.108';
+$version = '1.3.109';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2366,11 +2366,6 @@ class bitfinex extends Exchange {
 
     public function parse_trade ($trade, $market) {
         $timestamp = $trade['timestamp'] * 1000;
-        if ($trade['OrderType'] == 'BUY') {
-            side = 'buy';
-        } else if ($trade['OrderType'] == 'SELL') {
-            side = 'sell';
-        }
         $type = null;
         return array (
             'id' => (string) $trade['tid'],
