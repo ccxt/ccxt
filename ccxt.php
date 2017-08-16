@@ -164,6 +164,7 @@ class Exchange {
         'chbtc',
         'chilebit',
         'coincheck',
+        'coinfloor',
         'coingi',
         'coinmarketcap',
         'coinmate',

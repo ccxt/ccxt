@@ -61,6 +61,7 @@ exchanges = [
     'chbtc',
     'chilebit',
     'coincheck',
+    'coinfloor',
     'coingi',
     'coinmarketcap',
     'coinmate',

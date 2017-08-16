@@ -61,6 +61,7 @@ exchanges = [
     'chbtc',
     'chilebit',
     'coincheck',
+    'coinfloor',
     'coingi',
     'coinmarketcap',
     'coinmate',
@@ -6533,6 +6534,147 @@ class coincheck (Exchange):
             if response['success']:
                 return response
         raise ExchangeError(self.id + ' ' + self.json(response))
+
+#------------------------------------------------------------------------------
+
+class coinfloor (Exchange):
+
+    def __init__(self, config={}):
+        params = {
+            'id': 'coinfloor',
+            'countries': 'UK',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',
+                'api': 'https://webapi.coinfloor.co.uk:8090/bist',
+                'www': 'https://www.coinfloor.co.uk',
+                'doc': [
+                    'https://github.com/coinfloor/api',
+                    'https://www.coinfloor.co.uk/api',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        '{id}/ticker/',
+                        '{id}/order_book/',
+                        '{id}/transactions/',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        '{id}/balance/',
+                        '{id}/user_transactions/',
+                        '{id}/open_orders/',
+                        '{id}/cancel_order/',
+                        '{id}/buy/',
+                        '{id}/sell/',
+                        '{id}/buy_market/',
+                        '{id}/sell_market/',
+                        '{id}/estimate_sell_market/',
+                        '{id}/estimate_buy_market/',
+                    ],
+                },
+            },
+            'markets': {
+                'BTC/GBP': {'id': 'BTC/GBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP'},
+                'BTC/EUR': {'id': 'BTC/EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
+                'BTC/USD': {'id': 'BTC/USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD'},
+                'BCH/GBP': {'id': 'BCH/GBP', 'symbol': 'BCH/GBP', 'base': 'BCH', 'quote': 'GBP'},
+            },
+        }
+        params.update(config)
+        super(coinfloor, self).__init__(params)
+
+    def fetch_balance(self, product):
+        return self.privatePostIdBalance({
+            'id': self.productId(product),
+        })
+
+    def fetch_order_book(self, product):
+        orderbook = self.publicGetIdOrderBook({
+            'id': self.productId(product),
+        })
+        timestamp = self.milliseconds()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+        sides = ['bids', 'asks']
+        for s in range(0, len(sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range(0, len(orders)):
+                order = orders[i]
+                price = float(order[0])
+                amount = float(order[1])
+                result[side].append([price, amount])
+        return result
+
+    def fetch_ticker(self, product):
+        ticker = self.publicGetIdTicker({
+            'id': self.productId(product),
+        })
+        # rewrite to get the timestamp from HTTP headers
+        timestamp = self.milliseconds()
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': float(ticker['high']),
+            'low': float(ticker['low']),
+            'bid': float(ticker['bid']),
+            'ask': float(ticker['ask']),
+            'vwap': float(ticker['vwap']),
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float(ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float(ticker['volume']),
+            'info': ticker,
+        }
+
+    def fetch_trades(self, product):
+        return self.publicGetIdTransactions({
+            'id': self.productId(product),
+        })
+
+    def create_order(self, product, type, side, amount, price=None, params={}):
+        order = {'id': self.productId(product)}
+        method = 'privatePostId' + self.capitalize(side)
+        if type =='market':
+            order['quantity'] = amount
+            method += 'Market'
+        else:
+            order['price'] = price
+            order['amount'] = amount
+        return getattr(self, method)(self.extend(order, params))
+
+    def cancel_order(self, id):
+        return self.privatePostIdCancelOrder({'id': id})
+
+    def request(self, path, type='public', method='GET', params={}, headers=None, body=None):
+        # curl -k -u '[User ID]/[API key]:[Passphrase]' https://webapi.coinfloor.co.uk:8090/bist/XBT/GBP/balance/
+        url = self.urls['api'] + '/' + self.implode_params(path, params)
+        query = self.omit(params, self.extract_params(path, params))
+        if type == 'public':
+            if query:
+                url += '?' + _urlencode.urlencode(query)
+        else:
+            nonce = self.nonce()
+            body = _urlencode.urlencode(self.extend({'nonce': nonce}, query))
+            auth = self.uid + '/' + self.apiKey + ':' + self.password
+            signature = base64.b64encode(auth)
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': len(body),
+                'Authorization': 'Basic ' + signature,
+            }
+        return self.fetch(url, method, headers, body)
 
 #------------------------------------------------------------------------------
 

@@ -164,6 +164,7 @@ class Exchange {
         'chbtc',
         'chilebit',
         'coincheck',
+        'coinfloor',
         'coingi',
         'coinmarketcap',
         'coinmate',
@@ -7071,6 +7072,158 @@ class coincheck extends Exchange {
             if ($response['success'])
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+class coinfloor extends Exchange {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge(array (
+            'id' => 'coinfloor',
+            'countries' => 'UK',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',
+                'api' => 'https://webapi.coinfloor.co.uk:8090/bist',
+                'www' => 'https://www.coinfloor.co.uk',
+                'doc' => array (
+                    'https://github.com/coinfloor/api',
+                    'https://www.coinfloor.co.uk/api',
+                ),
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        '{id}/ticker/',
+                        '{id}/order_book/',
+                        '{id}/transactions/',
+                    ),
+                ),
+                'private' => array (
+                    'post' => array (
+                        '{id}/balance/',
+                        '{id}/user_transactions/',
+                        '{id}/open_orders/',
+                        '{id}/cancel_order/',
+                        '{id}/buy/',
+                        '{id}/sell/',
+                        '{id}/buy_market/',
+                        '{id}/sell_market/',
+                        '{id}/estimate_sell_market/',
+                        '{id}/estimate_buy_market/',
+                    ),
+                ),
+            ),
+            'markets' => array (
+                'BTC/GBP' => array ( 'id' => 'BTC/GBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP' ),
+                'BTC/EUR' => array ( 'id' => 'BTC/EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
+                'BTC/USD' => array ( 'id' => 'BTC/USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
+                'BCH/GBP' => array ( 'id' => 'BCH/GBP', 'symbol' => 'BCH/GBP', 'base' => 'BCH', 'quote' => 'GBP' ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_balance ($product) {
+        return $this->privatePostIdBalance (array (
+            'id' => $this->productId ($product),
+        ));
+    }
+
+    public function fetch_order_book ($product) {
+        $orderbook = $this->publicGetIdOrderBook (array (
+            'id' => $this->productId ($product),
+        ));
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ('bids', 'asks');
+        for ($s = 0; $s < count ($sides); $s++) {
+            $side = $sides[$s];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$side][] = array ($price, $amount);
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($product) {
+        $ticker = $this->publicGetIdTicker (array (
+            'id' => $this->productId ($product),
+        ));
+        // rewrite to get the $timestamp from HTTP headers
+        $timestamp = $this->milliseconds ();
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['high']),
+            'low' => floatval ($ticker['low']),
+            'bid' => floatval ($ticker['bid']),
+            'ask' => floatval ($ticker['ask']),
+            'vwap' => floatval ($ticker['vwap']),
+            'open' => null,
+            'close' => null,
+            'first' => null,
+            'last' => floatval ($ticker['last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['volume']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_trades ($product) {
+        return $this->publicGetIdTransactions (array (
+            'id' => $this->productId ($product),
+        ));
+    }
+
+    public function create_order ($product, $type, $side, $amount, $price=null, $params=array ()) {
+        $order = array ( 'id' => $this->productId ($product) );
+        $method = 'privatePostId' . $this->capitalize ($side);
+        if ($type =='market') {
+            $order['quantity'] = $amount;
+            $method .= 'Market';
+        } else {
+            $order['price'] = $price;
+            $order['amount'] = $amount;
+        }        
+        return $this->$method (array_merge ($order, $params));
+    }
+
+    public function cancel_order ($id) {
+        return $this->privatePostIdCancelOrder (array ( 'id' => $id ));
+    }
+
+    public function request ($path, $type='public', $method='GET', $params=array (), $headers=null, $body=null) {
+        // curl -k -u '[User ID]/[API key]:[Passphrase]' https://webapi.coinfloor.co.uk:8090/bist/XBT/GBP/balance/
+        $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
+        $query = $this->omit ($params, $this->extract_params ($path, $params));
+        if ($type == 'public') {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
+        } else {
+            $nonce = $this->nonce ();
+            $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $query));
+            $auth = $this->uid . '/' . $this->apiKey . ':' . $this->password;
+            $signature = base64_encode ($auth);
+            $headers = array (
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body),
+                'Authorization' => 'Basic ' . $signature,
+            );
+        }
+        return $this->fetch ($url, $method, $headers, $body);
     }
 }
 

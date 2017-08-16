@@ -6746,6 +6746,159 @@ var coincheck = {
 
 //-----------------------------------------------------------------------------
 
+var coinfloor = {
+
+    'id': 'coinfloor',
+    'countries': 'UK',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',
+        'api': 'https://webapi.coinfloor.co.uk:8090/bist',
+        'www': 'https://www.coinfloor.co.uk',
+        'doc': [
+            'https://github.com/coinfloor/api',
+            'https://www.coinfloor.co.uk/api',
+        ],
+    },
+    'api': {
+        'public': {
+            'get': [
+                '{id}/ticker/',
+                '{id}/order_book/',
+                '{id}/transactions/',
+            ],
+        },
+        'private': {
+            'post': [
+                '{id}/balance/',
+                '{id}/user_transactions/',
+                '{id}/open_orders/',
+                '{id}/cancel_order/',
+                '{id}/buy/',
+                '{id}/sell/',
+                '{id}/buy_market/',
+                '{id}/sell_market/',
+                '{id}/estimate_sell_market/',
+                '{id}/estimate_buy_market/',
+            ],
+        },
+    },
+    'markets': {
+        'BTC/GBP': { 'id': 'BTC/GBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP' },
+        'BTC/EUR': { 'id': 'BTC/EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+        'BTC/USD': { 'id': 'BTC/USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+        'BCH/GBP': { 'id': 'BCH/GBP', 'symbol': 'BCH/GBP', 'base': 'BCH', 'quote': 'GBP' },
+    },
+
+    async fetchBalance (market) {
+        return this.privatePostIdBalance ({
+            'id': this.marketId (market),
+        });
+    },
+
+    async fetchOrderBook (market) {
+        let orderbook = await this.publicGetIdOrderBook ({
+            'id': this.marketId (market),
+        });
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order[0]);
+                let amount = parseFloat (order[1]);
+                result[side].push ([ price, amount ]);
+            }
+        }
+        return result;
+    },
+
+    parseTicker (ticker, market) {
+        // rewrite to get the timestamp from HTTP headers
+        let timestamp = this.milliseconds ();
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['bid']),
+            'ask': parseFloat (ticker['ask']),
+            'vwap': parseFloat (ticker['vwap']),
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['volume']),
+            'info': ticker,
+        };
+    },
+
+    async fetchTicker (market) {
+        let m = this.market (market);
+        let ticker = await this.publicGetIdTicker ({
+            'id': m['id'],
+        });
+        return this.parseTicker (ticker, m);
+    },
+
+    async fetchTrades (product) {
+        return this.publicGetIdTransactions ({
+            'id': this.marketId (product),
+        });
+    },
+
+    async createOrder (product, type, side, amount, price = undefined, params = {}) {
+        let order = { 'id': this.marketId (product) };
+        let method = 'privatePostId' + this.capitalize (side);
+        if (type =='market') {
+            order['quantity'] = amount;
+            method += 'Market';
+        } else {
+            order['price'] = price;
+            order['amount'] = amount;
+        }        
+        return this[method] (this.extend (order, params));
+    },
+
+    async cancelOrder (id) {
+        return this.privatePostIdCancelOrder ({ 'id': id });
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        // curl -k -u '[User ID]/[API key]:[Passphrase]' https://webapi.coinfloor.co.uk:8090/bist/XBT/GBP/balance/
+        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path, params));
+        if (type == 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            let nonce = this.nonce ();
+            body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
+            let auth = this.uid + '/' + this.apiKey + ':' + this.password;
+            let signature = this.stringToBase64 (auth);
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': body.length,
+                'Authorization': 'Basic ' + signature,
+            };
+        }
+        return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var coingi = {
 
     'id': 'coingi',
@@ -14486,6 +14639,7 @@ var exchanges = {
     'chbtc':         chbtc,
     'chilebit':      chilebit,
     'coincheck':     coincheck,
+    'coinfloor':     coinfloor,
     'coingi':        coingi,
     'coinmarketcap': coinmarketcap,
     'coinmate':      coinmate,

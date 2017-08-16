@@ -13,7 +13,7 @@ CCXT – CryptoCurrency eXchange Trading Library
     :target: https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master
 .. image:: https://badge.runkitcdn.com/ccxt.svg
     :target: https://npm.runkit.com/ccxt
-.. image:: https://img.shields.io/badge/exchanges-71-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-72-blue.svg
     :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
@@ -34,7 +34,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 71 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 72 cryptocurrency exchange markets and trading APIs:
 
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id              | name                                                      | ver   | doc                                                                                              | countries                                  |
@@ -98,6 +98,8 @@ The ccxt library currently supports the following 71 cryptocurrency exchange mar
 | chilebit        | `ChileBit <https://chilebit.net>`__                       | 1     | `API <https://blinktrade.com/docs>`__                                                            | Chile                                      |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | coincheck       | `coincheck <https://coincheck.com>`__                     | \*    | `API <https://coincheck.com/documents/exchange/api>`__                                           | Japan, Indonesia                           |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| coinfloor       | `undefined <https://www.coinfloor.co.uk>`__               | \*    | `API <https://github.com/coinfloor/api>`__                                                       | UK                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | coingi          | `Coingi <https://coingi.com>`__                           | \*    | `API <http://docs.coingi.apiary.io/>`__                                                          | Panama, Bulgaria, China, US                |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
