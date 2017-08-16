@@ -2364,11 +2364,34 @@ class bitfinex extends Exchange {
         );
     }
 
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['timestamp'] * 1000;
+        if ($trade['OrderType'] == 'BUY') {
+            side = 'buy';
+        } else if ($trade['OrderType'] == 'SELL') {
+            side = 'sell';
+        }
+        $type = null;
+        return array (
+            'id' => (string) $trade['tid'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['type'],
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
+        );
+    }
+
     public function fetch_trades ($market) {
         $this->loadMarkets ();
-        return $this->publicGetTradesSymbol (array (
-            'symbol' => $this->market_id ($market),
+        $m = $this->market ($market);
+        $trades = $this->publicGetTradesSymbol (array (
+            'symbol' => $m['id'],
         ));
+        return $this->parse_trades ($trades, $m);
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -3994,7 +4017,7 @@ class bittrex extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
-            'type' => $type,
+            'type' => null,
             'side' => $side,
             'price' => $trade['Price'],
             'amount' => $trade['Quantity'],
@@ -12632,7 +12655,7 @@ class poloniex extends Exchange {
             'symbol' => $market['symbol'],
             'id' => $id,
             'order' => $order,
-            'type' => 'limit',
+            'type' => null,
             'side' => $trade['type'],
             'price' => floatval ($trade['rate']),
             'amount' => floatval ($trade['amount']),

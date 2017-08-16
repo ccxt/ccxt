@@ -2137,11 +2137,32 @@ class bitfinex (Exchange):
             'info': ticker,
         }
 
+    def parse_trade(self, trade, market):
+        timestamp = trade['timestamp'] * 1000
+        if trade['OrderType'] == 'BUY':
+            side = 'buy'
+        elif trade['OrderType'] == 'SELL':
+            side = 'sell'
+        type = None
+        return {
+            'id': str(trade['tid']),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['type'],
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
+        }
+
     def fetch_trades(self, market):
         self.loadMarkets()
-        return self.publicGetTradesSymbol({
-            'symbol': self.market_id(market),
+        m = self.market(market)
+        trades = self.publicGetTradesSymbol({
+            'symbol': m['id'],
         })
+        return self.parse_trades(trades, m)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.loadMarkets()
@@ -3662,7 +3683,7 @@ class bittrex (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
-            'type': type,
+            'type': None,
             'side': side,
             'price': trade['Price'],
             'amount': trade['Quantity'],
@@ -11754,7 +11775,7 @@ class poloniex (Exchange):
             'symbol': market['symbol'],
             'id': id,
             'order': order,
-            'type': 'limit',
+            'type': None,
             'side': trade['type'],
             'price': float(trade['rate']),
             'amount': float(trade['amount']),
