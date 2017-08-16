@@ -7199,7 +7199,7 @@ class coinfloor extends Exchange {
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
         $order = array ( 'id' => $this->market_id ($market) );
         $method = 'privatePostId' . $this->capitalize ($side);
-        if ($type =='market') {
+        if ($type == 'market') {
             $order['quantity'] = $amount;
             $method .= 'Market';
         } else {

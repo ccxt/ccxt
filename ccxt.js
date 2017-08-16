@@ -6864,7 +6864,7 @@ var coinfloor = {
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         let order = { 'id': this.marketId (market) };
         let method = 'privatePostId' + this.capitalize (side);
-        if (type =='market') {
+        if (type == 'market') {
             order['quantity'] = amount;
             method += 'Market';
         } else {
