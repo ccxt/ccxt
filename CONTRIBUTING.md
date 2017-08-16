@@ -86,8 +86,8 @@ The ccxt library includes one single file per each language:
 ```
 
 The module entry points are:
-- `ccxt/__init__.py`   for the ccxt Python package
-- `/build/ccxt.es5.js` for the
+- `/ccxt/__init__.py`   for the Python pip package
+- `/build/ccxt.es5.js`  for the Node.js npm package and browsers
 
 Slave files and docs are partially-generated from the master `ccxt.js` file by the `npm run build` command.
 
