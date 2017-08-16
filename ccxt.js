@@ -5622,10 +5622,12 @@ var bter = {
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
+        if (type == 'market')
+            throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let method = 'privatePost' + this.capitalize (side);
         let order = {
-            'currencyPair': this.symbol (market),
+            'currencyPair': this.marketId (market),
             'rate': price,
             'amount': amount,
         };
