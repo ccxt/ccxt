@@ -133,7 +133,6 @@ let testExchangeSymbolTrades = async (exchange, symbol) => {
     log (exchange.id.green, symbol.green, 'fetching trades...')
     let trades = await exchange.fetchTrades (symbol)
     log (exchange.id.green, symbol.green, 'fetched', Object.values (trades).length.toString ().green, 'trades')
-    log (asTable (trades))
     return trades
 }
 
