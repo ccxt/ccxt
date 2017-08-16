@@ -2131,11 +2131,34 @@ var bitfinex = {
         };
     },
 
+    parseTrade (trade, market) {
+        let timestamp = trade['timestamp'] * 1000;
+        if (trade['OrderType'] == 'BUY') {
+            side = 'buy';
+        } else if (trade['OrderType'] == 'SELL') {
+            side = 'sell';
+        }
+        let type = undefined;
+        return {
+            'id': trade['tid'].toString (),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade['type'],
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
+        };
+    },
+
     async fetchTrades (market) {
         await this.loadMarkets ();
-        return this.publicGetTradesSymbol ({
-            'symbol': this.marketId (market),
+        let m = this.market (market);
+        let trades = await this.publicGetTradesSymbol ({
+            'symbol': m['id'],
         });
+        return this.parseTrades (trades, m);
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
@@ -3734,7 +3757,7 @@ var bittrex = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'type': type,
+            'type': undefined,
             'side': side,
             'price': trade['Price'],
             'amount': trade['Quantity'],
@@ -12178,7 +12201,7 @@ var poloniex = {
             'symbol': market['symbol'],
             'id': id,
             'order': order,
-            'type': 'limit',
+            'type': undefined,
             'side': trade['type'],
             'price': parseFloat (trade['rate']),
             'amount': parseFloat (trade['amount']),
