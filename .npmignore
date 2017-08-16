@@ -1,3 +1,4 @@
+ccxt/
 node_modules/
 npm-debug.log
 .DS_Store
@@ -6,6 +7,7 @@ config.py
 config.php
 dist/
 build/
+!build/ccxt.es5.js
 ccxt.egg-info/
 tmp/
 *.pyc

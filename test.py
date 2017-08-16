@@ -44,35 +44,74 @@ def test_exchange_symbol_orderbook(exchange, symbol):
     time.sleep(delay)
     dump(green(exchange.id), green(symbol), 'fetching order book...')
     orderbook = exchange.fetch_order_book(symbol)
-    dump(green(exchange.id), green(symbol), 'order book',
+    dump(
+        green(exchange.id),
+        green(symbol),
+        'order book',
         orderbook['datetime'],
         'bid: ' +       str(orderbook['bids'][0][0] if len(orderbook['bids']) else 'N/A'),
         'bidVolume: ' + str(orderbook['bids'][0][1] if len(orderbook['bids']) else 'N/A'),
         'ask: ' +       str(orderbook['asks'][0][0] if len(orderbook['asks']) else 'N/A'),
-        'askVolume: ' + str(orderbook['asks'][0][1] if len(orderbook['asks']) else 'N/A'),
-    )
+        'askVolume: ' + str(orderbook['asks'][0][1] if len(orderbook['asks']) else 'N/A'))
+
+# ------------------------------------------------------------------------------
+
+def test_exchange_all_tickers(exchange):
+    delay = int(exchange.rateLimit / 1000)
+    time.sleep(delay)
+    dump(green(exchange.id), 'fetching all tickers at once...')
+    try:
+        tickers = exchange.fetch_tickers()
+        dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
+    except ccxt.ExchangeError as e:
+        dump(yellow(type(e).__name__), e.args)
+
+# ------------------------------------------------------------------------------
 
 def test_exchange_symbol_ticker(exchange, symbol):
     delay = int(exchange.rateLimit / 1000)
     time.sleep(delay)
     dump(green(exchange.id), green(symbol), 'fetching ticker...')
     ticker = exchange.fetch_ticker(symbol)
-    dump(green(exchange.id), green(symbol), 'ticker',
+    dump(
+        green(exchange.id),
+        green(symbol),
+        'ticker',
         ticker['datetime'],
         'high: ' +   str(ticker['high']),
         'low: ' +    str(ticker['low']),
         'bid: ' +    str(ticker['bid']),
         'ask: ' +    str(ticker['ask']),
-        'volume: ' + str(ticker['quoteVolume']),
-    )
+        'volume: ' + str(ticker['quoteVolume']))
+
+# ------------------------------------------------------------------------------
+
+def test_exchange_symbol_trades(exchange, symbol):
+
+    delay = int(exchange.rateLimit / 1000)
+    time.sleep(delay)
+    dump(green(exchange.id), green(symbol), 'fetching trades...')
+    try:
+        trades = exchange.fetch_trades(symbol)
+        dump(green(exchange.id), green(symbol), 'fetched', green(len(list(trades))), 'trades')
+    except ccxt.ExchangeError as e:
+        dump(yellow(type(e).__name__), e.args)
+
+# ------------------------------------------------------------------------------
 
 def test_exchange_symbol(exchange, symbol):
     dump(green('SYMBOL: ' + symbol))
     test_exchange_symbol_ticker(exchange, symbol)
+
     if exchange.id == 'coinmarketcap':
         dump(green(exchange.fetchGlobal()))
     else:
         test_exchange_symbol_orderbook(exchange, symbol)
+        test_exchange_symbol_trades(exchange, symbol)
+
+    test_exchange_all_tickers(exchange)
+
+# ------------------------------------------------------------------------------
 
 def load_exchange(exchange):
     exchange.load_markets()
@@ -112,6 +151,7 @@ def test_exchange(exchange):
     if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
         return
 
+    dump(green(exchange.id), 'fetching balance...')
     balance = exchange.fetch_balance()
     dump(green(exchange.id), 'balance', balance)
     # time.sleep(delay)
@@ -188,6 +228,8 @@ for (id, params) in tuples:
 
 # move gdax to sandbox
 exchanges['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
+
+# ------------------------------------------------------------------------------
 
 if argv.exchange:
 

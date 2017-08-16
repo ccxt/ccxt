@@ -1,6 +1,6 @@
 # CCXT – CryptoCurrency eXchange Trading Library
 
-[![Build Status](https://travis-ci.org/kroitor/ccxt.svg?branch=master)](https://travis-ci.org/kroitor/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Scrutinizer Code Quality](https://img.shields.io/scrutinizer/g/kroitor/ccxt.svg)](https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master) [![Try ccxt on RunKit](https://badge.runkitcdn.com/ccxt.svg)](https://npm.runkit.com/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-71-blue.svg)](https://github.com/kroitor/ccxt/wiki/Exchange-Markets)
+[![Build Status](https://travis-ci.org/kroitor/ccxt.svg?branch=master)](https://travis-ci.org/kroitor/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Scrutinizer Code Quality](https://img.shields.io/scrutinizer/g/kroitor/ccxt.svg)](https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master) [![Try ccxt on RunKit](https://badge.runkitcdn.com/ccxt.svg)](https://npm.runkit.com/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-72-blue.svg)](https://github.com/kroitor/ccxt/wiki/Exchange-Markets)
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
@@ -19,7 +19,7 @@ Current featurelist:
 
 ## Supported Cryptocurrency Exchange Markets
 
-The ccxt library currently supports the following 71 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 72 cryptocurrency exchange markets and trading APIs:
 
 |                                                                                                                      | id            | name                                                 | ver | doc                                                                                         | countries                               |
 |----------------------------------------------------------------------------------------------------------------------|---------------|------------------------------------------------------|:---:|:-------------------------------------------------------------------------------------------:|-----------------------------------------|
@@ -53,6 +53,7 @@ The ccxt library currently supports the following 71 cryptocurrency exchange mar
 |![chbtc](https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg)         | chbtc         | [CHBTC](https://trade.chbtc.com/api)                 | 1   | [API](https://www.chbtc.com/i/developer)                                                    | China                                   |
 |![chilebit](https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg)      | chilebit      | [ChileBit](https://chilebit.net)                     | 1   | [API](https://blinktrade.com/docs)                                                          | Chile                                   |
 |![coincheck](https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg)     | coincheck     | [coincheck](https://coincheck.com)                   | *   | [API](https://coincheck.com/documents/exchange/api)                                         | Japan, Indonesia                        |
+|![coinfloor](https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg)     | coinfloor     | [coinfloor](https://www.coinfloor.co.uk)             | *   | [API](https://github.com/coinfloor/api)                                                     | UK                                      |
 |![coingi](https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg)        | coingi        | [Coingi](https://coingi.com)                         | *   | [API](http://docs.coingi.apiary.io/)                                                        | Panama, Bulgaria, China, US             |
 |![coinmarketcap](https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg) | coinmarketcap | [CoinMarketCap](https://coinmarketcap.com)           | 1   | [API](https://coinmarketcap.com/api)                                                        | US                                      |
 |![coinmate](https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg)      | coinmate      | [CoinMate](https://coinmate.io)                      | *   | [API](http://docs.coinmate.apiary.io)                                                       | UK, Czech Republic                      |
@@ -97,21 +98,22 @@ The ccxt library currently supports the following 71 cryptocurrency exchange mar
 
 The list above is updated frequently, new crypto markets, altcoin exchanges, bug fixes, API endpoints are introduced and added on regular basis. See the [Manual](https://github.com/kroitor/ccxt/wiki) for details. If you don't find a cryptocurrency exchange market in the list above and/or want another exchange to be added, post or send us a link to it by opening an issue here on GitHub or via email.
 
-The library is under MIT license, that means it's absolutely free for any developer to build commercial and opensource software on top of it, but use it at your own risk with no warranties, as is.
+The library is under [MIT license](https://github.com/kroitor/ccxt/blob/master/LICENSE.txt), that means it's absolutely free for any developer to build commercial and opensource software on top of it, but use it at your own risk with no warranties, as is.
 
 Developer team is open to collaboration and available for hiring and outsourcing. If you're interested in integrating this software into an existing project or in developing new opensource and commercial projects we welcome you to read our [Public Offer](#public-offer).
 
 ## Install
 
-This library is shipped as a single-file (all-in-one module) implementation with minimalistic dependencies and requirements.
+The easiest way to install the ccxt library is to use builtin package managers:
 
-The main file is:
+- [ccxt in **NPM**](http://npmjs.com/package/ccxt) (JavaScript / Node)
+- [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 2 and 3)
 
-- `ccxt.js` in JavaScript ([ccxt for Node.js](http://npmjs.com/package/ccxt) and web browsers)
-- `ccxt/__init__.py` in Python (works in both Python 2 and 3, [ccxt in PyPI](https://pypi.python.org/pypi/ccxt))
-- `ccxt.php` in PHP
+This library is shipped as a single-file (all-in-one module) implementation with minimalistic dependencies and requirements:
 
-The easiest way to install the ccxt library is to use builtin package managers. 
+- [`ccxt.js`](https://github.com/kroitor/ccxt/blob/master/ccxt.js) in JavaScript
+- [`ccxt/__init__.py`](https://github.com/kroitor/ccxt/blob/master/ccxt/__init__.py) in Python (generated from JS)
+- [`build/ccxt.php`](https://github.com/kroitor/ccxt/blob/master/build/ccxt.php) in PHP (generated from JS)
 
 You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/kroitor/ccxt):
 
@@ -119,7 +121,7 @@ You can also clone it into your project directory from [ccxt GitHub repository](
 git clone https://github.com/kroitor/ccxt.git
 ```
 
-An alternative way of installing this library into your code is to copy a single `ccxt.*` file manually into your working directory with language extension appropriate for your environment. 
+An alternative way of installing this library into your code is to copy a single file manually into your working directory with language extension appropriate for your environment. 
 
 ### Node.js (npm)
 
@@ -153,11 +155,10 @@ print(ccxt.exchanges) # print a list of all available exchange classes
 
 ### PHP
 
-```shell
-git clone https://github.com/kroitor/ccxt.git
-```
+The ccxt library in PHP: [**`ccxt.php`**](https://raw.githubusercontent.com/kroitor/ccxt/master/build/ccxt.php)
 
-The ccxt library in PHP requires common PHP modules:
+It requires common PHP modules:
+
 - cURL
 - mbstring (using UTF-8 is highly recommended)
 - PCRE

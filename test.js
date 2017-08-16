@@ -3,7 +3,7 @@
 /*  ------------------------------------------------------------------------ */
 
 const [processPath, , exchangeId = null, exchangeSymbol = null] = process.argv.filter (x => !x.startsWith ('--'))
-const ccxtFile = process.argv.includes ('--es6') ? 'ccxt.js' : 'ccxt-es5.js'
+const ccxtFile = process.argv.includes ('--es6') ? 'ccxt.js' : 'build/ccxt.es5.js'
 
 /*  ------------------------------------------------------------------------ */
 
@@ -29,11 +29,10 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit 
 
 /*  ------------------------------------------------------------------------ */
 
-log.bright ('\nTESTING', ccxtFile.magenta, { exchange: exchangeId || 'all', symbol: exchangeSymbol || 'all' }, '\n')
+log.bright ('\nTESTING', ccxtFile.magenta, { exchange: exchangeId, symbol: exchangeSymbol || 'all' }, '\n')
 
 /*  ------------------------------------------------------------------------ */
 
-let exchanges = {}
 let proxies = [
     '',
     'https://cors-anywhere.herokuapp.com/',
@@ -41,22 +40,19 @@ let proxies = [
     // 'http://cors-proxy.htmldriven.com/?url=', // we don't want this for now
 ]
 
-// instantiate all exchanges
-ccxt.exchanges.forEach (id => {
-    exchanges[id] = new (ccxt)[id] ({ verbose: false })
-})
+/*  ------------------------------------------------------------------------ */
 
-// load api keys from config
-let config = JSON.parse (fs.readFileSync ('./keys.json', 'utf8'))
+const exchange = new (ccxt)[exchangeId] ({ verbose: false })
 
-// set up api keys appropriately
-for (let id in config)
-    for (let key in config[id])
-        if (typeof exchanges[id] != 'undefined')
-            exchanges[id][key] = config[id][key]
+//-----------------------------------------------------------------------------
 
-// move gdax to sandbox
-exchanges['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
+let apiKeys = JSON.parse (fs.readFileSync ('./keys.json', 'utf8'))[exchangeId]
+
+Object.assign (exchange, apiKeys)
+
+if (exchangeId === 'gdax') {
+    exchange.urls['api'] = 'https://api-public.sandbox.gdax.com' // move gdax to sandbox
+}
 
 //-----------------------------------------------------------------------------
 
@@ -143,30 +139,41 @@ let testExchangeSymbolTrades = async (exchange, symbol) => {
 //-----------------------------------------------------------------------------
 
 let testExchangeSymbol = async (exchange, symbol) => {
+
     await sleep (exchange.rateLimit) 
     await testExchangeSymbolTicker (exchange, symbol)
+    
     if (exchange.id == 'coinmarketcap') {
+    
         // log (await exchange.fetchTickers ());
         log (await exchange.fetchGlobal ());
+    
     } else {
+    
         await testExchangeSymbolOrderbook (exchange, symbol)
 
         try {
+    
             await testExchangeSymbolTrades (exchange, symbol)    
+    
         } catch (e) {
+    
             if (e instanceof ccxt.ExchangeError) {
                 warn (exchange.id, '[Exchange Error] ' + e.message)
             } else {
                 throw e;
             }
         }
-        
     }
+
     try {
+
         log (exchange.id.green, 'fetching all tickers at once...')
         let tickers = await exchange.fetchTickers ()
         log (exchange.id.green, 'fetched', Object.keys (tickers).length.toString ().green, 'tickers...')
+
     } catch (e) {
+
         if (e instanceof ccxt.ExchangeError) {
             log (exchange.id.green, 'fetching all tickers at once not supported.')
             // do nothing
@@ -226,6 +233,7 @@ let testExchangeBalance = async (exchange, symbol) => {
 //-----------------------------------------------------------------------------
 
 let loadExchange = async exchange => {
+    
     let markets  = await exchange.loadMarkets ()
     let symbols = [
         'BTC/USD',
@@ -247,6 +255,7 @@ let loadExchange = async exchange => {
         'BTC/UAH',
         'LTC/BTC',
     ]
+
     let result = exchange.symbols.filter (symbol => symbols.indexOf (symbol) >= 0)
     if (result.length > 0)
         if (exchange.symbols.length > result.length)
@@ -382,47 +391,28 @@ let tryAllProxies = async function (exchange, proxies) {
                 throw e;
             }
         }
-
     }
 }
 
 //-----------------------------------------------------------------------------
 
-var test = async function () {
+;(async function test () {
   
     // printExchangesTable ()   
-
-    if (exchangeId) {
-
-        const exchange = exchanges[exchangeId]
-        
-        if (!exchange)
-            throw new Error ('Exchange `' + exchangeId + '` not found')
-                
-        if (exchangeSymbol) {
-
-            await loadExchange (exchange)
-            await (exchangeSymbol == 'balance') ? 
-                testExchangeBalance (exchange) :
-                testExchangeSymbol (exchange, exchangeSymbol)
-        
-        } else {
-        
-            await tryAllProxies (exchange, proxies)
-        }
-
-    } else {
-
-        for (const id of Object.keys (exchanges)) {
     
-            log.bright.green ('EXCHANGE:', id)
-            const exchange = exchanges[id]
-            await tryAllProxies (exchange, proxies)
+    if (exchangeSymbol) {
 
-        }
+        await loadExchange (exchange)
+        await (exchangeSymbol == 'balance') ? 
+            testExchangeBalance (exchange) :
+            testExchangeSymbol (exchange, exchangeSymbol)
+    
+    } else {
+    
+        await tryAllProxies (exchange, proxies)
     }
 
-    process.exit ();
+    process.exit ()
 
-} ()
+}) ()
 

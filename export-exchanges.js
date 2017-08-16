@@ -26,6 +26,8 @@ try {
 
 } catch (e) {
 
+    log.bright.cyan ('Exporting exchanges → ./ccxt.js'.yellow)
+
     let ccxtjs = fs.readFileSync ('./ccxt.js', 'utf8')
     let exchangesMatches = /var exchanges \= \{([^\}]+)\}/g.exec (ccxtjs)
     let idRegex = /\'([^\'\n\s]+)\'/g
@@ -36,12 +38,16 @@ try {
     }
     let idString = "    '" + ids.join ("',\n    '") + "',"
 
-    let ccxtpyFilename = './ccxt/__init__.py'
+    log.bright.cyan ('Exporting exchanges → ./ccxt.py'.yellow)
+
+    let ccxtpyFilename = './ccxt.py'
     let ccxtpy = fs.readFileSync (ccxtpyFilename, 'utf8')
     let ccxtpyParts = ccxtpy.split (/exchanges \= \[[^\]]+\]/)
     let ccxtpyNewContent = ccxtpyParts[0] + "exchanges = [\n" + idString + "\n]" + ccxtpyParts[1]
     fs.truncateSync (ccxtpyFilename)
     fs.writeFileSync (ccxtpyFilename, ccxtpyNewContent)
+
+    log.bright.cyan ('Exporting exchanges → ./ccxt.php'.yellow)
 
     idString = "        '" + ids.join ("',\n        '") + "',"
     let ccxtphpFilename = './ccxt.php'
@@ -55,6 +61,8 @@ try {
     ids.forEach (id => {
         exchanges[id] = { 'verbose': verbose, 'apiKey': '', 'secret': '' }
     })
+
+    log.bright.green ('Base sources updated successfully.')
 }
 
 for (let id in exchanges) {

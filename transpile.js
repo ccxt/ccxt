@@ -33,7 +33,7 @@ while (exchanges = regex.exec (contents)) {
     let ph = []
 
     params = params.split ("\n")
-    
+
     let pyParams = params
         .join ("\n        ")
         .replace (/ \/\//g, ' #')
@@ -62,7 +62,7 @@ while (exchanges = regex.exec (contents)) {
     ph.push ('    }')
 
     for (let i = 0; i < methods.length; i++) {
-        let part = methods[i].trim ()       
+        let part = methods[i].trim ()
         let lines = part.split ("\n")
         let header = lines[0].trim ()
         let regex2 = /(async |)([\S]+)\s\(([^)]*)\)\s*{/g // exchange method
@@ -81,13 +81,14 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('parseTrades',      'parse_trades')
                         .replace ('parseTrade',       'parse_trade')
                         .replace ('parseBidAsks',     'parse_bidasks')
-                        .replace ('parseBidAsk',      'parse_bidask')                        
+                        .replace ('parseBidAsk',      'parse_bidask')
                         .replace ('fetchTrades',      'fetch_trades')
                         .replace ('fetchMyTrades',    'fetch_my_trades')
                         .replace ('fetchAllMyTrades', 'fetch_all_my_trades')
                         .replace ('createOrder',      'create_order')
                         .replace ('cancelOrder',      'cancel_order')
                         .replace ('signIn',           'sign_in')
+                        .replace ('getMarketURL',     'get_market_url')
 
         args = args.length ? args.split (',').map (x => x.trim ().replace (' = ', '=')) : []
         let phArgs = args.join (', $').trim ()
@@ -107,7 +108,7 @@ while (exchanges = regex.exec (contents)) {
             m.forEach (x => variables.push (x.trim ()))
             variables.push (localVariablesMatches[1])
         }
-        
+
         let phVarsRegex = variables.map (x => [ "([^$$a-zA-Z0-9\\.\\>'_])" + x + "([^a-zA-Z0-9'_])", '$1$$' + x + '$2' ])
 
         let pyRegex = [
@@ -122,9 +123,9 @@ while (exchanges = regex.exec (contents)) {
             [ /\.extractParams\s/g, '.extract_params'],
             [ /\.parseTicker\s/g, '.parse_ticker'],
             [ /\.parseTrades\s/g, '.parse_trades'],
-            [ /\.parseTrade\s/g, '.parse_trade'],            
+            [ /\.parseTrade\s/g, '.parse_trade'],
             [ /\.parseBidAsks\s/g, '.parse_bidasks'],
-            [ /\.parseBidAsk\s/g, '.parse_bidask'],            
+            [ /\.parseBidAsk\s/g, '.parse_bidask'],
             [ /\.indexBy\s/g, '.index_by'],
             [ /\.sortBy\s/g, '.sort_by'],
             [ /\.marketId\s/g, '.market_id'],
@@ -132,7 +133,7 @@ while (exchanges = regex.exec (contents)) {
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z])this([^a-zA-Z])/g, '$1self$2' ],
             [ /([^a-zA-Z0-9_])let\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
-            [ /([^a-zA-Z0-9_])let\s/g, '$1' ],              
+            [ /([^a-zA-Z0-9_])let\s/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)/g, 'list($1.keys())' ],
             [ /\[([^\]]+)\]\.join\s*\(([^\)]+)\)/g, "$2.join([$1])" ],
@@ -197,9 +198,9 @@ while (exchanges = regex.exec (contents)) {
             [ /this\.base64ToBinary/g, 'base64_decode' ],
             [ /\.parseTicker/g, '.parse_ticker'],
             [ /\.parseTrades/g, '.parse_trades'],
-            [ /\.parseTrade/g, '.parse_trade'],            
+            [ /\.parseTrade/g, '.parse_trade'],
             [ /\.parseBidAsks/g, '.parse_bidasks'],
-            [ /\.parseBidAsk/g, '.parse_bidask'],            
+            [ /\.parseBidAsk/g, '.parse_bidask'],
             [ /\.binaryConcat/g, '.binary_concat'],
             [ /\.binaryToString/g, '.binary_to_string' ],
             [ /\.implodeParams/g, '.implode_params'],
@@ -218,7 +219,7 @@ while (exchanges = regex.exec (contents)) {
             [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)/g, 'array_keys ($1)' ],
             [ /([^\s]+\s*\(\))\.toString \(\)/g, '(string) $1' ],
-            [ /([^\s]+)\.toString \(\)/g, '(string) $1' ],                
+            [ /([^\s]+)\.toString \(\)/g, '(string) $1' ],
             [ /throw new Error \((.*)\)/g, 'throw new \\Exception ($1)'],
             [ /throw new ([\S]+) \((.*)\)/g, 'throw new $1 ($2)'],
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\.length\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 count ($4);$5) {'],
@@ -268,7 +269,7 @@ while (exchanges = regex.exec (contents)) {
         py.push ('');
         py.push ('    def ' + method + '(self' + (pyArgs.length ? ', ' + pyArgs.replace (/undefined/g, 'None') : '') + '):');
         py.push (pyBody);
-      
+
         let phBody = regexAll (body, phRegex.concat (phVarsRegex))
 
         ph.push ('');
@@ -301,10 +302,10 @@ mm = mm < 10 ? ('0' + mm) : mm
 ss = ss < 10 ? ('0' + ss) : ss
 let dateString = [ yyyy, MM, dd, hh, mm, ss ].join ('.')
 
-let oldNamePy = 'ccxt/__init__.py'
+let oldNamePy = 'ccxt.py'
 let oldNamePHP = 'ccxt.php'
-let newNamePy = 'tmp/ccxt.' + dateString + '.py'
-let newNamePHP = 'tmp/ccxt.' + dateString + '.php'
+let newNamePy = 'ccxt/__init__.py'
+let newNamePHP = 'build/ccxt.php'
 
 let ccxtpy = fs.readFileSync (oldNamePy, 'utf8')
 let ccxtphp = fs.readFileSync (oldNamePHP, 'utf8')
@@ -319,12 +320,12 @@ ccxtpy +=
 
 ccxtphp +=
     "\n//=============================================================================\n" +
-    php.join ("\n//-----------------------------------------------------------------------------\n") + 
+    php.join ("\n//-----------------------------------------------------------------------------\n") +
     "\n?>"
 
-fs.truncateSync (oldNamePy)
-fs.truncateSync (oldNamePHP)
-fs.writeFileSync (oldNamePy, ccxtpy)
-fs.writeFileSync (oldNamePHP, ccxtphp)
+fs.truncateSync (newNamePy)
+fs.truncateSync (newNamePHP)
+fs.writeFileSync (newNamePy, ccxtpy)
+fs.writeFileSync (newNamePHP, ccxtphp)
 
 log.bright.green ('Transpiled successfully.')
