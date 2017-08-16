@@ -185,13 +185,6 @@ include "ccxt.php";
 var_dump (\cxxt\Exchange::$exchanges); // print a list of all available exchange classes
 ```
 
-### JavaScript / 
-
-The ccxt library can also be used in web browser client-side JavaScript for various purposes. Here's a b
-
-Finally, add links to CryptoJS components and ccxt to your HTML page code:
-
-
 ## Usage
 
 ### Intro
