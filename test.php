@@ -2,7 +2,7 @@
 
 date_default_timezone_set ('UTC');
 
-include 'ccxt.php';
+include 'build/ccxt.php';
 
 date_default_timezone_set ('UTC');
 

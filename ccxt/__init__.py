@@ -1,5 +1,35 @@
 # coding=utf-8
 
+'''
+MIT License
+
+Copyright (c) 2017 Igor Kroitor
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+'''
+
+#------------------------------------------------------------------------------
+# This file is for Python 2/3 base code
+# It contains the base exchange class, common functions and definitions
+# See https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md for details
+#------------------------------------------------------------------------------
+
 exchanges = [
     '_1broker',
     '_1btcxe',
@@ -31,6 +61,7 @@ exchanges = [
     'chbtc',
     'chilebit',
     'coincheck',
+    'coinfloor',
     'coingi',
     'coinmarketcap',
     'coinmate',
@@ -90,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.92'
+__version__ = '1.3.109'
 
 #------------------------------------------------------------------------------
 
@@ -604,6 +635,15 @@ class Exchange (object):
 
     def fetchTickers(self):
         return self.fetch_tickers()
+
+    def parse_trades(self, trades, market=None):
+        result = []
+        for t in range(0, len(trades)):
+            result.append(self.parse_trade(trades[t], market))
+        return result
+
+    def parseTrades(self, trades, market=None):
+        return self.parse_trades(trades, market)
 
     def market(self, market):
         isString = isinstance(market, basestring)
@@ -2097,11 +2137,28 @@ class bitfinex (Exchange):
             'info': ticker,
         }
 
+    def parse_trade(self, trade, market):
+        timestamp = trade['timestamp'] * 1000
+        type = None
+        return {
+            'id': str(trade['tid']),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['type'],
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
+        }
+
     def fetch_trades(self, market):
         self.loadMarkets()
-        return self.publicGetTradesSymbol({
-            'symbol': self.market_id(market),
+        m = self.market(market)
+        trades = self.publicGetTradesSymbol({
+            'symbol': m['id'],
         })
+        return self.parse_trades(trades, m)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.loadMarkets()
@@ -3608,11 +3665,33 @@ class bittrex (Exchange):
         ticker = response['result'][0]
         return self.parse_ticker(ticker, m)
 
+    def parse_trade(self, trade, market=None):
+        timestamp = self.parse8601(trade['TimeStamp'])
+        side = None
+        if trade['OrderType'] == 'BUY':
+            side = 'buy'
+        elif trade['OrderType'] == 'SELL':
+            side = 'sell'
+        type = None
+        return {
+            'id': str(trade['Id']),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': side,
+            'price': trade['Price'],
+            'amount': trade['Quantity'],
+        }
+
     def fetch_trades(self, market):
         self.loadMarkets()
-        return self.publicGetMarkethistory({
-            'market': self.market_id(market),
+        m = self.market(market)
+        response = self.publicGetMarkethistory({
+            'market': m['id'],
         })
+        return self.parse_trades(response['result'], m)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.loadMarkets()
@@ -5323,7 +5402,7 @@ class bter (Exchange):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
         return {
             'timestamp': timestamp,
@@ -5359,7 +5438,11 @@ class bter (Exchange):
             quote = self.commonCurrencyCode(quote)
             symbol = base + '/' + quote
             ticker = tickers[id]
-            market = self.markets[symbol]
+            market = None
+            if symbol in self.markets:
+                market = self.markets[symbol]
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
@@ -5482,9 +5565,11 @@ class bxinth (Exchange):
         result = []
         for p in range(0, len(keys)):
             market = markets[keys[p]]
-            id = market['pairing_id']
+            id = str(market['pairing_id'])
             base = market['primary_currency']
             quote = market['secondary_currency']
+            base = self.commonCurrencyCode(base)
+            quote = self.commonCurrencyCode(quote)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -6466,6 +6551,154 @@ class coincheck (Exchange):
             if response['success']:
                 return response
         raise ExchangeError(self.id + ' ' + self.json(response))
+
+#------------------------------------------------------------------------------
+
+class coinfloor (Exchange):
+
+    def __init__(self, config={}):
+        params = {
+            'id': 'coinfloor',
+            'name': 'coinfloor',
+            'rateLimit': 1000,
+            'countries': 'UK',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',
+                'api': 'https://webapi.coinfloor.co.uk:8090/bist',
+                'www': 'https://www.coinfloor.co.uk',
+                'doc': [
+                    'https://github.com/coinfloor/api',
+                    'https://www.coinfloor.co.uk/api',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        '{id}/ticker/',
+                        '{id}/order_book/',
+                        '{id}/transactions/',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        '{id}/balance/',
+                        '{id}/user_transactions/',
+                        '{id}/open_orders/',
+                        '{id}/cancel_order/',
+                        '{id}/buy/',
+                        '{id}/sell/',
+                        '{id}/buy_market/',
+                        '{id}/sell_market/',
+                        '{id}/estimate_sell_market/',
+                        '{id}/estimate_buy_market/',
+                    ],
+                },
+            },
+            'markets': {
+                'BTC/GBP': {'id': 'XBT/GBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP'},
+                'BTC/EUR': {'id': 'XBT/EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
+                'BTC/USD': {'id': 'XBT/USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD'},
+                'BTC/PLN': {'id': 'XBT/PLN', 'symbol': 'BTC/PLN', 'base': 'BTC', 'quote': 'PLN'},
+                'BCH/GBP': {'id': 'BCH/GBP', 'symbol': 'BCH/GBP', 'base': 'BCH', 'quote': 'GBP'},
+            },
+        }
+        params.update(config)
+        super(coinfloor, self).__init__(params)
+
+    def fetch_balance(self, market):
+        return self.privatePostIdBalance({
+            'id': self.market_id(market),
+        })
+
+    def fetch_order_book(self, market):
+        orderbook = self.publicGetIdOrderBook({
+            'id': self.market_id(market),
+        })
+        timestamp = self.milliseconds()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+        sides = ['bids', 'asks']
+        for s in range(0, len(sides)):
+            side = sides[s]
+            orders = orderbook[side]
+            for i in range(0, len(orders)):
+                order = orders[i]
+                price = float(order[0])
+                amount = float(order[1])
+                result[side].append([price, amount])
+        return result
+
+    def parse_ticker(self, ticker, market):
+        # rewrite to get the timestamp from HTTP headers
+        timestamp = self.milliseconds()
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': float(ticker['high']),
+            'low': float(ticker['low']),
+            'bid': float(ticker['bid']),
+            'ask': float(ticker['ask']),
+            'vwap': float(ticker['vwap']),
+            'open': None,
+            'close': None,
+            'first': None,
+            'last': float(ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float(ticker['volume']),
+            'info': ticker,
+        }
+
+    def fetch_ticker(self, market):
+        m = self.market(market)
+        ticker = self.publicGetIdTicker({
+            'id': m['id'],
+        })
+        return self.parse_ticker(ticker, m)
+
+    def fetch_trades(self, market):
+        return self.publicGetIdTransactions({
+            'id': self.market_id(market),
+        })
+
+    def create_order(self, market, type, side, amount, price=None, params={}):
+        order = {'id': self.market_id(market)}
+        method = 'privatePostId' + self.capitalize(side)
+        if type == 'market':
+            order['quantity'] = amount
+            method += 'Market'
+        else:
+            order['price'] = price
+            order['amount'] = amount
+        return getattr(self, method)(self.extend(order, params))
+
+    def cancel_order(self, id):
+        return self.privatePostIdCancelOrder({'id': id})
+
+    def request(self, path, type='public', method='GET', params={}, headers=None, body=None):
+        # curl -k -u '[User ID]/[API key]:[Passphrase]' https://webapi.coinfloor.co.uk:8090/bist/XBT/GBP/balance/
+        url = self.urls['api'] + '/' + self.implode_params(path, params)
+        query = self.omit(params, self.extract_params(path))
+        if type == 'public':
+            if query:
+                url += '?' + _urlencode.urlencode(query)
+        else:
+            nonce = self.nonce()
+            body = _urlencode.urlencode(self.extend({'nonce': nonce}, query))
+            auth = self.uid + '/' + self.apiKey + ':' + self.password
+            signature = base64.b64encode(auth)
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': len(body),
+                'Authorization': 'Basic ' + signature,
+            }
+        return self.fetch(url, method, headers, body)
 
 #------------------------------------------------------------------------------
 
@@ -8720,6 +8953,21 @@ class gdax (Exchange):
             'info': ticker,
         }
 
+    def parse_trade(self, trade, market):
+        timestamp = self.parse8601(['time'])
+        type = None
+        return {
+            'id': str(trade['trade_id']),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['side'],
+            'price': float(trade['price']),
+            'amount': float(trade['size']),
+        }
+
     def fetch_trades(self, market):
         self.loadMarkets()
         return self.publicGetProductsIdTrades({
@@ -9982,12 +10230,6 @@ class kraken (Exchange):
             'price': float(trade[0]),
             'amount': float(trade[1]),
         }
-
-    def parse_trades(self, trades, market):
-        result = []
-        for t in range(0, len(trades)):
-            result.append(self.parse_trade(trades[t], market))
-        return result
 
     def fetch_trades(self, market, params={}):
         self.loadMarkets()
@@ -11544,17 +11786,11 @@ class poloniex (Exchange):
             'symbol': market['symbol'],
             'id': id,
             'order': order,
-            'type': 'limit',
+            'type': None,
             'side': trade['type'],
             'price': float(trade['rate']),
             'amount': float(trade['amount']),
         }
-
-    def parse_trades(self, trades, market=None):
-        result = []
-        for t in range(0, len(trades)):
-            result.append(self.parse_trade(trades[t], market))
-        return result
 
     def fetch_trades(self, market, params={}):
         self.loadMarkets()
@@ -11950,6 +12186,12 @@ class quoine (Exchange):
 
     def parse_ticker(self, ticker, market):
         timestamp = self.milliseconds()
+        last = None
+        if 'last_traded_price' in ticker:
+            if ticker['last_traded_price']:
+                length = len(ticker['last_traded_price'])
+                if length > 0:
+                    last = float(ticker['last_traded_price'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -11961,7 +12203,7 @@ class quoine (Exchange):
             'open': None,
             'close': None,
             'first': None,
-            'last': float(ticker['last_traded_price']),
+            'last': last,
             'change': None,
             'percentage': None,
             'average': None,
@@ -12154,13 +12396,21 @@ class southxchange (Exchange):
 
     def parse_ticker(self, ticker, market):
         timestamp = self.milliseconds()
+        bid = None
+        ask = None
+        if 'Bid' in ticker:
+            if ticker['Bid']:
+                bid = float(ticker['Bid'])
+        if 'Ask' in ticker:
+            if ticker['Ask']:
+                ask = float(ticker['Ask'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': float(ticker['Bid']),
-            'ask': float(ticker['Ask']),
+            'bid': bid,
+            'ask': ask,
             'vwap': None,
             'open': None,
             'close': None,
@@ -12240,8 +12490,8 @@ class southxchange (Exchange):
                 'Hash': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
         response = self.fetch(url, method, headers, body)
-        if not response:
-            raise ExchangeError(self.id + ' ' + self.json(response))
+        # if not response:
+        #     raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
 #------------------------------------------------------------------------------

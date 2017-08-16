@@ -1,5 +1,37 @@
 <?php
 
+/*
+
+MIT License
+
+Copyright (c) 2017 Igor Kroitor
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+*/
+
+//-----------------------------------------------------------------------------
+// This file is for PHP base code
+// It contains the base exchange class, common functions and definitions
+// See https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md for details
+//-----------------------------------------------------------------------------
+
 namespace ccxt;
 
 class CCXTError            extends \Exception {}
@@ -10,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.92';
+$version = '1.3.109';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -132,6 +164,7 @@ class Exchange {
         'chbtc',
         'chilebit',
         'coincheck',
+        'coinfloor',
         'coingi',
         'coinmarketcap',
         'coinmate',
@@ -672,6 +705,18 @@ class Exchange {
         return $this->get_market_url ($market, $params);
     }
 
+    public function parse_trades ($trades, $market = null) {
+        $result = array ();
+        for ($t = 0; $t < count ($trades); $t++) {
+            $result[] = $this->parse_trade ($trades[$t], $market);
+        }
+        return $result;
+    }
+
+    public function parseTrades ($trades, $market = null) {
+        return $this->parse_trades ($trades, $market);
+    }
+
     public function fetch_tickers () { // stub
         $exception = '\\ccxt\\ExchangeError';
         throw new $exception ($this->id . ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now');
@@ -785,5 +830,6 @@ class Exchange {
 //=============================================================================
 
 // This comment is a placeholder for transpiled derived exchange implementations
+// See https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md for details
 
 ?>

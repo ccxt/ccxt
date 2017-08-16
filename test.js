@@ -5,12 +5,6 @@
 const [processPath, , exchangeId = null, exchangeSymbol = null] = process.argv.filter (x => !x.startsWith ('--'))
 const ccxtFile = process.argv.includes ('--es6') ? 'ccxt.js' : 'build/ccxt.es5.js'
 
-if (!exchangeId) {
-
-    console.log ('Usage: node test [--es6] market [symbol]')
-    process.exit (1)
-}
-
 /*  ------------------------------------------------------------------------ */
 
 const ccxt      = require ('./' + ccxtFile)

@@ -1,7 +1,7 @@
 # Contributing To The CCXT Library
 
 ```diff
-- This file is a work in progress, contribution guidelines are being developed right now!
+- This file is a work in progress, guidelines for contributing are being developed right now!
 ```
 
 If you want to submit an issue and you want your issue to be resolved quickly, here's a basic checklist for you:
@@ -43,11 +43,14 @@ The contents of the repository are structured as follows:
 /MANIFEST.in         # a PyPI-package file listing extra package files (license, configs, etc...)
 /README.md           # master markdown for GitHub, npmjs.com, npms.io, yarn and others
 /README.rst          # slave reStructuredText for PyPI
-/ccxt/               # Python ccxt module/package folder for PyPI
-/ccxt/__init__.py    # slave Python-version of the ccxt library
-/ccxt-es5.js         # slave JavaScript ES5 version of the ccxt library
+/build/              # a folder for the generated slave source files
+/build/ccxt.es5.js   # slave generated JavaScript ES5 version of the ccxt library
+/build/ccxt.php      # slave generated PHP version of the ccxt library
 /ccxt.js             # master JS ES6 version of the ccxt library
-/ccxt.php            # slave PHP version of the ccxt library
+/ccxt.php            # base code for the PHP version of the ccxt library
+/ccxt.py             # base code for the Python version of the ccxt library
+/ccxt/               # Python ccxt module/package folder for PyPI
+/ccxt/__init__.py    # slave generated Python-version of the ccxt library
 /countries.js        # a list of ISO 2-letter country codes in JS for testing, not very important
 /examples/           # self-explaining
 /examples/js         # ...
@@ -74,11 +77,17 @@ At first, all language-specific versions were developed in parallel, but separat
 The ccxt library includes one single file per each language:
 
 ```shell
-/ccxt/__init__.py  # slave Python-version of the ccxt library
-/ccxt-es5.js       # slave JavaScript ES5 version of the ccxt library
 /ccxt.js           # master JS ES6 version of the ccxt library
-/ccxt.php          # slave PHP version of the ccxt library
+/ccxt.py           # base code for the slave Python version of the ccxt library
+/ccxt.php          # base code for the slave PHP version of the ccxt library
+/ccxt/__init__.py  # slave Python-version of the ccxt library
+/build/ccxt.es5.js # slave JavaScript ES5 version of the ccxt library
+/build/ccxt.php    # slave PHP-version of the ccxt library
 ```
+
+The module entry points are:
+- `/ccxt/__init__.py`   for the Python pip package
+- `/build/ccxt.es5.js`  for the Node.js npm package and browsers
 
 Slave files and docs are partially-generated from the master `ccxt.js` file by the `npm run build` command.
 

@@ -1,5 +1,35 @@
 # coding=utf-8
 
+'''
+MIT License
+
+Copyright (c) 2017 Igor Kroitor
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+'''
+
+#------------------------------------------------------------------------------
+# This file is for Python 2/3 base code
+# It contains the base exchange class, common functions and definitions
+# See https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md for details
+#------------------------------------------------------------------------------
+
 exchanges = [
     '_1broker',
     '_1btcxe',
@@ -31,6 +61,7 @@ exchanges = [
     'chbtc',
     'chilebit',
     'coincheck',
+    'coinfloor',
     'coingi',
     'coinmarketcap',
     'coinmate',
@@ -90,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.90'
+__version__ = '1.3.109'
 
 #------------------------------------------------------------------------------
 
@@ -605,6 +636,15 @@ class Exchange (object):
     def fetchTickers(self):
         return self.fetch_tickers()
 
+    def parse_trades(self, trades, market=None):
+        result = []
+        for t in range(0, len(trades)):
+            result.append(self.parse_trade(trades[t], market))
+        return result
+
+    def parseTrades(self, trades, market=None):
+        return self.parse_trades(trades, market)
+
     def market(self, market):
         isString = isinstance(market, basestring)
         if isString and self.markets and (market in self.markets):
@@ -661,3 +701,4 @@ class Exchange (object):
 #==============================================================================
 
 # This comment is a placeholder for transpiled derived exchange implementations
+# See https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md for details
