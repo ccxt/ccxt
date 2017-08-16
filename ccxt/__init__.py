@@ -120,7 +120,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.104'
+__version__ = '1.3.105'
 
 #------------------------------------------------------------------------------
 
@@ -634,6 +634,15 @@ class Exchange (object):
 
     def fetchTickers(self):
         return self.fetch_tickers()
+
+    def parse_trades(self, trades, market=None):
+        result = []
+        for t in range(0, len(trades)):
+            result.append(self.parse_trade(trades[t], market))
+        return result
+
+    def parseTrades(self, trades, market=None):
+        return self.parse_trades(trades, market)
 
     def market(self, market):
         isString = isinstance(market, basestring)
@@ -10019,12 +10028,6 @@ class kraken (Exchange):
             'amount': float(trade[1]),
         }
 
-    def parse_trades(self, trades, market):
-        result = []
-        for t in range(0, len(trades)):
-            result.append(self.parse_trade(trades[t], market))
-        return result
-
     def fetch_trades(self, market, params={}):
         self.loadMarkets()
         m = self.market(market)
@@ -11585,12 +11588,6 @@ class poloniex (Exchange):
             'price': float(trade['rate']),
             'amount': float(trade['amount']),
         }
-
-    def parse_trades(self, trades, market=None):
-        result = []
-        for t in range(0, len(trades)):
-            result.append(self.parse_trade(trades[t], market))
-        return result
 
     def fetch_trades(self, market, params={}):
         self.loadMarkets()

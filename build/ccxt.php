@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.104';
+$version = '1.3.105';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -702,6 +702,18 @@ class Exchange {
 
     public function getMarketURL ($market, $params = array ()) {
         return $this->get_market_url ($market, $params);
+    }
+
+    public function parse_trades ($trades, $market = null) {
+        $result = array ();
+        for ($t = 0; $t < count ($trades); $t++) {
+            $result[] = $this->parse_trade ($trades[$t], $market);
+        }
+        return $result;
+    }
+
+    public function parseTrades ($trades, $market = null) {
+        return $this->parse_trades ($trades, $market);
     }
 
     public function fetch_tickers () { // stub
@@ -10779,14 +10791,6 @@ class kraken extends Exchange {
         );
     }
 
-    public function parse_trades ($trades, $market) {
-        $result = array ();
-        for ($t = 0; $t < count ($trades); $t++) {
-            $result[] = $this->parse_trade ($trades[$t], $market);
-        }
-        return $result;
-    }
-
     public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
         $m = $this->market ($market);
@@ -12448,14 +12452,6 @@ class poloniex extends Exchange {
             'price' => floatval ($trade['rate']),
             'amount' => floatval ($trade['amount']),
         );
-    }
-
-    public function parse_trades ($trades, $market=null) {
-        $result = array ();
-        for ($t = 0; $t < count ($trades); $t++) {
-            $result[] = $this->parse_trade ($trades[$t], $market);
-        }
-        return $result;
     }
 
     public function fetch_trades ($market, $params=array ()) {
