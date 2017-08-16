@@ -1,7 +1,7 @@
 # Contributing To The CCXT Library
 
 ```diff
-- This file is a work in progress, contribution guidelines are being developed right now!
+- This file is a work in progress, guidelines for contributing are being developed right now!
 ```
 
 If you want to submit an issue and you want your issue to be resolved quickly, here's a basic checklist for you:
