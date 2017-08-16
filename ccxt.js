@@ -2133,11 +2133,6 @@ var bitfinex = {
 
     parseTrade (trade, market) {
         let timestamp = trade['timestamp'] * 1000;
-        if (trade['OrderType'] == 'BUY') {
-            side = 'buy';
-        } else if (trade['OrderType'] == 'SELL') {
-            side = 'sell';
-        }
         let type = undefined;
         return {
             'id': trade['tid'].toString (),
