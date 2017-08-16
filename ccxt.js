@@ -29,18 +29,21 @@ SOFTWARE.
 (function () {
 
 //-----------------------------------------------------------------------------
+// dependencies
+
+const CryptoJS = require ('crypto-js')
+    , qs       = require ('qs')
+
+//-----------------------------------------------------------------------------
+// this is updated by vss.js when building
 
 const version = '1.3.111'
 
-const isNode = (typeof window === 'undefined')
+//-----------------------------------------------------------------------------
+// platform detection
 
-const isCommonJS = (typeof module !== 'undefined') &&
-                   (typeof require !== 'undefined')
-
-const isReactNative = (typeof navigator !== 'undefined') &&
-                        navigator &&
-                        navigator.product &&
-                        navigator.product === 'ReactNative' || false
+const isNode     = (typeof window === 'undefined')
+    , isCommonJS = (typeof module !== 'undefined') && (typeof require !== 'undefined')
 
 //-----------------------------------------------------------------------------
 
@@ -194,53 +197,38 @@ const sum = (...args) => {
 const ordered = x => x // a stub to keep assoc keys in order, in JS it does nothing, it's mostly for Python
 
 //-----------------------------------------------------------------------------
-// platform-specific code (Node.js / Web Browsers)
+// a cross-platform Fetch API
 
-if (isNode) {
+const nodeFetch   = isNode && module.require ('node-fetch')         // using module.require to prevent Webpack / React Native from trying to include it
+    , windowFetch = (typeof window !== 'undefined' && window.fetch) // native Fetch API (in newer browsers)
+    , xhrFetch    = (url, options, verbose = false) =>              // a quick ad-hoc polyfill (for older browsers)
+                        new Promise ((resolve, reject) => {
 
-    var CryptoJS = module.require ('crypto-js')
-    var fetch    = module.require ('node-fetch')
-    var qs       = module.require ('qs')
+                            if (verbose)
+                                console.log (url, options)
 
-} else if (isReactNative) {
+                            const xhr = new XMLHttpRequest ()
+                            const method = options.method || 'GET'
 
-    var CryptoJS = require ('crypto-js')
-    var fetch    = window.fetch
-    var qs       = require ('qs')
+                            xhr.open (method, url, true)
+                            xhr.onreadystatechange = () => {
+                                if (xhr.readyState == 4) {
+                                    if (xhr.status == 200)
+                                        resolve (xhr.responseText)
+                                    else { // [403, 404, ...].indexOf (xhr.status) >= 0
+                                        throw new Error (method, url, xhr.status, xhr.responseText)
+                                    }
+                                }
+                            }
 
-} else {
+                            if (typeof options.headers != 'undefined')
+                                for (var header in options.headers)
+                                    xhr.setRequestHeader (header, options.headers[header])
 
-    // a quick fetch polyfill
+                            xhr.send (options.body)
+                        })
 
-    var fetch = function (url, options, verbose = false) {
-
-        return new Promise ((resolve, reject) => {
-
-            if (verbose)
-                console.log (url, options)
-
-            var xhr = new XMLHttpRequest ()
-            var method = options.method || 'GET'
-
-            xhr.open (method, url, true)
-            xhr.onreadystatechange = () => {
-                if (xhr.readyState == 4) {
-                    if (xhr.status == 200)
-                        resolve (xhr.responseText)
-                    else { // [403, 404, ...].indexOf (xhr.status) >= 0
-                        throw new Error (method, url, xhr.status, xhr.responseText)
-                    }
-                }
-            }
-
-            if (typeof options.headers != 'undefined')
-                for (var header in options.headers)
-                    xhr.setRequestHeader (header, options.headers[header])
-
-            xhr.send (options.body)
-        })
-    }
-}
+const fetch = nodeFetch || windowFetch || xhrFetch
 
 //-----------------------------------------------------------------------------
 // string ←→ binary ←→ base64 conversion routines
