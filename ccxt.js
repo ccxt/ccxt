@@ -3789,15 +3789,23 @@ var bittrex = {
         await this.loadMarkets ();
         let response = await this.accountGetOrder ({ 'uuid': id });
         let orderInfo = response['result'];
-        let orderType = (orderInfo['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
+        let orderSide = (orderInfo['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
+        let isOpen = orderInfo['IsOpen'];
+        let cancelInitiated = orderInfo['CancelInitiated'];
+        let status;
+        if (isOpen)
+            status = 'open';
+        else if (cancelInitiated)
+            status = 'cancelled';
+        else
+            status = 'closed';
         let result = {
             'info': response,
-            'type': orderType,
+            'side': orderSide,
             'rate': orderInfo['PricePerUnit'],
             'startingAmount': orderInfo['Quantity'],
             'remaining': orderInfo['QuantityRemaining'],
-            'isOpen': orderInfo['IsOpen'],
-            'isCanceled': orderInfo['CancelInitiated'],
+            'status': status
         };
         return result;
     },
@@ -4598,17 +4606,21 @@ var btce = {
         await this.loadMarkets ();
         let response = await this.privatePostOrderInfo ({ 'order_id': id });
         let orderInfo = response['return'][id];
-        let isCanceled = false;
-        if ((orderInfo['status'] == 2) || (orderInfo['status'] == 3))
-            isCanceled = true;
+        let statusCode = orderInfo['status'];
+        let status;
+        if (statusCode == 0)
+            status = 'open';
+        else if (statusCode == 2) || statusCode == 3)
+            status = 'cancelled';
+        else
+            status = 'closed';
         let result = {
             'info': response,
-            'type': orderInfo['type'],
+            'side': orderInfo['type'],
             'rate': orderInfo['rate'],
             'startingAmount': orderInfo['start_amount'],
             'remaining': orderInfo['amount'],
-            'isOpen': orderInfo['status'] == 0,
-            'isCanceled': isCanceled,
+            'satus': status
         };
         return result;
     },
