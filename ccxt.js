@@ -3719,11 +3719,30 @@ var bittrex = {
         return this.parseTicker (ticker, m);
     },
 
+    parseTrade (trade, market = udnefined) {
+        let timestamp = this.parse8601 (trade['TimeStamp']);
+        let side = (trade['OrderType'] == 'BUY') ? 'buy': 'sell';
+        let type = undefined;
+        return {
+            'id': trade['Id'].toString (),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': type,
+            'side': side,
+            'price': trade['Price'],
+            'amount': trade['Quantity'],
+        };
+    },
+
     async fetchTrades (market) {
         await this.loadMarkets ();
-        return this.publicGetMarkethistory ({
-            'market': this.marketId (market),
+        let m = this.market (market);
+        let response = await this.publicGetMarkethistory ({
+            'market': m['id'],
         });
+        return this.parseTrades (response['result'], m);
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
