@@ -9255,6 +9255,22 @@ var gdax = {
         };
     },
 
+    parseTrade (trade, market) {
+        let timestamp = this.parse8601 (['time']);
+        let type = undefined;
+        return {
+            'id': trade['trade_id'].toString (),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade['side'],
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['size']),
+        };
+    },
+
     async fetchTrades (market) {
         await this.loadMarkets ();
         return this.publicGetProductsIdTrades ({

@@ -2139,10 +2139,6 @@ class bitfinex (Exchange):
 
     def parse_trade(self, trade, market):
         timestamp = trade['timestamp'] * 1000
-        if trade['OrderType'] == 'BUY':
-            side = 'buy'
-        elif trade['OrderType'] == 'SELL':
-            side = 'sell'
         type = None
         return {
             'id': str(trade['tid']),
@@ -8955,6 +8951,21 @@ class gdax (Exchange):
             'baseVolume': None,
             'quoteVolume': float(ticker['volume']),
             'info': ticker,
+        }
+
+    def parse_trade(self, trade, market):
+        timestamp = self.parse8601(['time'])
+        type = None
+        return {
+            'id': str(trade['trade_id']),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['side'],
+            'price': float(trade['price']),
+            'amount': float(trade['size']),
         }
 
     def fetch_trades(self, market):

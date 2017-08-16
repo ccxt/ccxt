@@ -2366,11 +2366,6 @@ class bitfinex extends Exchange {
 
     public function parse_trade ($trade, $market) {
         $timestamp = $trade['timestamp'] * 1000;
-        if ($trade['OrderType'] == 'BUY') {
-            side = 'buy';
-        } else if ($trade['OrderType'] == 'SELL') {
-            side = 'sell';
-        }
         $type = null;
         return array (
             'id' => (string) $trade['tid'],
@@ -9652,6 +9647,22 @@ class gdax extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
+        );
+    }
+
+    public function parse_trade ($trade, $market) {
+        $timestamp = $this->parse8601 (['time']);
+        $type = null;
+        return array (
+            'id' => (string) $trade['trade_id'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['side'],
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['size']),
         );
     }
 
