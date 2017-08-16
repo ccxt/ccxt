@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.116';
+$version = '1.3.117';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5927,10 +5927,12 @@ class bter extends Exchange {
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+        if ($type == 'market')
+            throw new ExchangeError ($this->id . ' allows limit orders only');
         $this->loadMarkets ();
         $method = 'privatePost' . $this->capitalize ($side);
         $order = array (
-            'currencyPair' => $this->symbol ($market),
+            'currencyPair' => $this->market_id ($market),
             'rate' => $price,
             'amount' => $amount,
         );

@@ -121,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.116'
+__version__ = '1.3.117'
 
 #------------------------------------------------------------------------------
 
@@ -5461,10 +5461,12 @@ class bter (Exchange):
         })
 
     def create_order(self, market, type, side, amount, price=None, params={}):
+        if type == 'market':
+            raise ExchangeError(self.id + ' allows limit orders only')
         self.loadMarkets()
         method = 'privatePost' + self.capitalize(side)
         order = {
-            'currencyPair': self.symbol(market),
+            'currencyPair': self.market_id(market),
             'rate': price,
             'amount': amount,
         }
