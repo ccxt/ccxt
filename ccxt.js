@@ -6879,7 +6879,7 @@ var coinfloor = {
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         // curl -k -u '[User ID]/[API key]:[Passphrase]' https://webapi.coinfloor.co.uk:8090/bist/XBT/GBP/balance/
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path, params));
+        let query = this.omit (params, this.extractParams (path));
         if (type == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);

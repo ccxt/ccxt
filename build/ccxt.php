@@ -7119,7 +7119,7 @@ class coinfloor extends Exchange {
                 'BTC/GBP' => array ( 'id' => 'XBT/GBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP' ),
                 'BTC/EUR' => array ( 'id' => 'XBT/EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
                 'BTC/USD' => array ( 'id' => 'XBT/USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
-                'BTC/PLN' => array ( 'id' => 'XBT/PLN', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
+                'BTC/PLN' => array ( 'id' => 'XBT/PLN', 'symbol' => 'BTC/PLN', 'base' => 'BTC', 'quote' => 'PLN' ),
                 'BCH/GBP' => array ( 'id' => 'BCH/GBP', 'symbol' => 'BCH/GBP', 'base' => 'BCH', 'quote' => 'GBP' ),
             ),
         ), $options));
@@ -7188,14 +7188,14 @@ class coinfloor extends Exchange {
         return $this->parse_ticker ($ticker, $m);
     }
 
-    public function fetch_trades ($product) {
+    public function fetch_trades ($market) {
         return $this->publicGetIdTransactions (array (
-            'id' => $this->market_id ($product),
+            'id' => $this->market_id ($market),
         ));
     }
 
-    public function create_order ($product, $type, $side, $amount, $price=null, $params=array ()) {
-        $order = array ( 'id' => $this->market_id ($product) );
+    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+        $order = array ( 'id' => $this->market_id ($market) );
         $method = 'privatePostId' . $this->capitalize ($side);
         if ($type =='market') {
             $order['quantity'] = $amount;
@@ -7214,7 +7214,7 @@ class coinfloor extends Exchange {
     public function request ($path, $type='public', $method='GET', $params=array (), $headers=null, $body=null) {
         // curl -k -u '[User ID]/[API key]:[Passphrase]' https://webapi.coinfloor.co.uk:8090/bist/XBT/GBP/balance/
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
-        $query = $this->omit ($params, $this->extract_params ($path, $params));
+        $query = $this->omit ($params, $this->extract_params ($path));
         if ($type == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);

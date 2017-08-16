@@ -6579,7 +6579,7 @@ class coinfloor (Exchange):
                 'BTC/GBP': {'id': 'XBT/GBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP'},
                 'BTC/EUR': {'id': 'XBT/EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
                 'BTC/USD': {'id': 'XBT/USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD'},
-                'BTC/PLN': {'id': 'XBT/PLN', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD'},
+                'BTC/PLN': {'id': 'XBT/PLN', 'symbol': 'BTC/PLN', 'base': 'BTC', 'quote': 'PLN'},
                 'BCH/GBP': {'id': 'BCH/GBP', 'symbol': 'BCH/GBP', 'base': 'BCH', 'quote': 'GBP'},
             },
         }
@@ -6643,13 +6643,13 @@ class coinfloor (Exchange):
         })
         return self.parse_ticker(ticker, m)
 
-    def fetch_trades(self, product):
+    def fetch_trades(self, market):
         return self.publicGetIdTransactions({
-            'id': self.market_id(product),
+            'id': self.market_id(market),
         })
 
-    def create_order(self, product, type, side, amount, price=None, params={}):
-        order = {'id': self.market_id(product)}
+    def create_order(self, market, type, side, amount, price=None, params={}):
+        order = {'id': self.market_id(market)}
         method = 'privatePostId' + self.capitalize(side)
         if type =='market':
             order['quantity'] = amount
@@ -6665,7 +6665,7 @@ class coinfloor (Exchange):
     def request(self, path, type='public', method='GET', params={}, headers=None, body=None):
         # curl -k -u '[User ID]/[API key]:[Passphrase]' https://webapi.coinfloor.co.uk:8090/bist/XBT/GBP/balance/
         url = self.urls['api'] + '/' + self.implode_params(path, params)
-        query = self.omit(params, self.extract_params(path, params))
+        query = self.omit(params, self.extract_params(path))
         if type == 'public':
             if query:
                 url += '?' + _urlencode.urlencode(query)
