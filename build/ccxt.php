@@ -3980,7 +3980,12 @@ class bittrex extends Exchange {
 
     public function parse_trade ($trade, $market=null) {
         $timestamp = $this->parse8601 ($trade['TimeStamp']);
-        $side = ($trade['OrderType'] == 'BUY') ? 'buy' => 'sell';
+        $side = null;
+        if ($trade['OrderType'] == 'BUY') {
+            $side = 'buy';
+        } else if ($trade['OrderType'] == 'SELL') {
+            $side = 'sell';
+        }
         $type = null;
         return array (
             'id' => (string) $trade['Id'],

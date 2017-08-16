@@ -3649,7 +3649,11 @@ class bittrex (Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['TimeStamp'])
-        side = 'buy' if(trade['OrderType'] == 'BUY') else 'sell'
+        side = None
+        if trade['OrderType'] == 'BUY':
+            side = 'buy'
+        elif trade['OrderType'] == 'SELL':
+            side = 'sell'
         type = None
         return {
             'id': str(trade['Id']),

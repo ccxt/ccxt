@@ -3721,7 +3721,12 @@ var bittrex = {
 
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['TimeStamp']);
-        let side = (trade['OrderType'] == 'BUY') ? 'buy': 'sell';
+        let side = undefined;
+        if (trade['OrderType'] == 'BUY') {
+            side = 'buy';
+        } else if (trade['OrderType'] == 'SELL') {
+            side = 'sell';
+        }
         let type = undefined;
         return {
             'id': trade['Id'].toString (),
