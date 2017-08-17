@@ -18,9 +18,11 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
   - a code snippet you're having difficulties with
   - the output of that snippet in verbose mode
 
-## Pending Tasks
+## How To Contribute Code
 
-Below is a list of tasks we would like to have implemented in the library in the first place. Most of these tasks are already in progress:
+### Pending Tasks
+
+Below is a list of functionality we would like to have implemented in the library in the first place. If you want to contribute by submitting partial implementations be sure to look up examples of how it's done inside the library (where implemented already) and copy the adopted practices. Most of these tasks are already in progress:
 
 - Unified OHLC(v) series
 - Unified fetchTrades (public)
@@ -33,9 +35,7 @@ Below is a list of tasks we would like to have implemented in the library in the
 - Unified deposit methods
 - Unified withdrawal methods
 
-## How To Contribute Code
-
-Below are the rules for contributing to the ccxt library codebase.
+The following is a set of rules for contributing to the ccxt library codebase.
 
 ### What You Need To Have
 
