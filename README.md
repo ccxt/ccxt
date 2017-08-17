@@ -141,7 +141,7 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 ### JavaScript (for use with the `<script>` tag):
 
-[All-in-one browser bundle](https://unpkg.com/ccxt) (dependencies included), served from [unpkg CDN](https://unpkg.com/), which is a is a fast, global content delivery network for everything on NPM.
+[All-in-one browser bundle](https://unpkg.com/ccxt) (dependencies included), served from [unpkg CDN](https://unpkg.com/), which is a fast, global content delivery network for everything on NPM.
 
 ```HTML
 <script type="text/javascript" src="https://unpkg.com/ccxt"></script>
