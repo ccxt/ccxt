@@ -12744,7 +12744,7 @@ var quoine = {
     async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
         return this.publicGetExecutions (this.extend ({
-            'id': this.marketId (market),
+            'product_id': this.marketId (market),
         }, params));
     },
 
