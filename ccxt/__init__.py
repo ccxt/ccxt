@@ -121,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.6'
+__version__ = '1.4.7'
 
 #------------------------------------------------------------------------------
 
@@ -8998,7 +8998,7 @@ class gdax (Exchange):
             ohlcv[5],
         ]
 
-    def fetchOHLCV(self, market, timeframe=60, since=None, limit=None):
+    def fetch_ohlcv(self, market, timeframe=60, since=None, limit=None):
         m = self.market(market)
         response = self.publicGetProductsIdCandles({
             'id': m['id'],
@@ -9006,7 +9006,7 @@ class gdax (Exchange):
             'start': since,
             'end': limit,
         })
-        return self.parseOHLCVs(m, response, timeframe, since, limit)
+        return self.parse_ohlcvs(m, response, timeframe, since, limit)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.loadMarkets()
@@ -10261,6 +10261,26 @@ class kraken (Exchange):
             'amount': float(trade[1]),
         }
 
+    def parseOHLCV(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+        return [
+            ohlcv[0],
+            ohlcv[1],
+            ohlcv[2],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[6],
+        ]
+
+    def fetch_ohlcv(self, market, timeframe=60, since=None, limit=None):
+        m = self.market(market)
+        response = self.publicGetOHLC({
+            'pair': m['id'],
+            'interval': int(timeframe / 60),
+            'since': since,
+        })
+        ohlcvs = response[m['id']]
+        return self.parse_ohlcvs(m, ohlcvs, timeframe, since, limit)
+
     def fetch_trades(self, market, params={}):
         self.loadMarkets()
         m = self.market(market)
@@ -11319,7 +11339,7 @@ class okcoin (Exchange):
             'symbol': self.market_id(market),
         })
 
-    def fetchOHLCV(self, market, timeframe=60, since=None, limit=None):
+    def fetch_ohlcv(self, market, timeframe=60, since=None, limit=None):
         m = self.market(market)
         response = self.publicGetKline({
             'symbol': m['id'],
@@ -11327,7 +11347,7 @@ class okcoin (Exchange):
             'since': since,
             'size': int(limit),
         })
-        return self.parseOHLCVs(m, response, timeframe, since, limit)
+        return self.parse_ohlcvs(m, response, timeframe, since, limit)
 
     def fetch_balance(self):
         response = self.privatePostUserinfo()

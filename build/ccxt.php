@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.6';
+$version = '1.4.7';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9708,7 +9708,7 @@ class gdax extends Exchange {
         ];
     }
 
-    public function fetchOHLCV ($market, $timeframe=60, $since=null, $limit=null) {
+    public function fetch_ohlcv ($market, $timeframe=60, $since=null, $limit=null) {
         $m = $this->market ($market);
         $response = $this->publicGetProductsIdCandles (array (
             'id' => $m['id'],
@@ -9716,7 +9716,7 @@ class gdax extends Exchange {
             'start' => $since,
             'end' => $limit,
         ));
-        return $this->parseOHLCVs ($m, $response, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs ($m, $response, $timeframe, $since, $limit);
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -11052,6 +11052,28 @@ class kraken extends Exchange {
         );
     }
 
+    public function parseOHLCV ($ohlcv, $market=null, $timeframe=60, $since=null, $limit=null) {
+        return [
+            $ohlcv[0],
+            $ohlcv[1],
+            $ohlcv[2],
+            $ohlcv[3],
+            $ohlcv[4],
+            $ohlcv[6],
+        ];
+    }
+
+    public function fetch_ohlcv ($market, $timeframe=60, $since=null, $limit=null) {
+        $m = $this->market ($market);
+        $response = $this->publicGetOHLC (array (
+            'pair' => $m['id'],
+            'interval' => intval ($timeframe / 60),
+            'since' => $since,
+        ));
+        $ohlcvs = $response[$m['id']];
+        return $this->parse_ohlcvs ($m, $ohlcvs, $timeframe, $since, $limit);
+    }
+
     public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
         $m = $this->market ($market);
@@ -12180,7 +12202,7 @@ class okcoin extends Exchange {
         ));
     }
 
-    public function fetchOHLCV ($market, $timeframe=60, $since=null, $limit=null) {
+    public function fetch_ohlcv ($market, $timeframe=60, $since=null, $limit=null) {
         $m = $this->market ($market);
         $response = $this->publicGetKline (array (
             'symbol' => $m['id'],
@@ -12188,7 +12210,7 @@ class okcoin extends Exchange {
             'since' => $since,
             'size' => intval ($limit),
         ));
-        return $this->parseOHLCVs ($m, $response, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs ($m, $response, $timeframe, $since, $limit);
     }
 
     public function fetch_balance () {
