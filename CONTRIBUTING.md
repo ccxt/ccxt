@@ -38,7 +38,7 @@ Below is a list of functionality we would like to have implemented in the librar
 If you want to contribute by submitting partial implementations be sure to look up examples of how it's done inside the library (where implemented already) and copy the adopted practices.
 
 If your proposal, suggestion or improvement does not relate to the above list of tasks before submitting it make sure:
-1. it is really needed by all users of the library
+1. it is really needed by the majority of ccxt users
 2. it is done in a generalised way compatible with all exchanges
 3. it is portable (available in all supported languages)
 
