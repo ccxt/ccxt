@@ -1,5 +1,7 @@
 # Сhangelog
 
+- Added experimental unified fetchOHLCV method to OKCoin
+
 ## Version 1.4.x 2017-08-17
 
 - Added unified fetchOrder to Bittrex and Liqui, [#116](https://github.com/kroitor/ccxt/issues/116)

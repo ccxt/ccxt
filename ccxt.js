@@ -11760,6 +11760,7 @@ var okcoin = {
         let m = this.market (market);
         let response = await this.publicGetKline ({
             'symbol': m['id'],
+            'type': '1min',
             'since': since,
             'size': parseInt (limit),
         });
