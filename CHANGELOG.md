@@ -4,7 +4,7 @@
 
 - Added unified fetchOrder to Bittrex and Liqui, [#116](https://github.com/kroitor/ccxt/issues/116)
 - Fixed Bter createOrder, [#115](https://github.com/kroitor/ccxt/issues/115)
-- [Added browser bundle](https://github.com/kroitor/ccxt#javascript-for-use-with-the-script-tag) for use with the `<script>` tag, served from the [unpkg CDN](https://unpkg.com/)
+- Added [Browser Bundle](https://github.com/kroitor/ccxt#javascript-for-use-with-the-script-tag) for use with the `<script>` tag, served from the [unpkg CDN](https://unpkg.com/)
 - Refactored imports / exports handling, making it compatible with JavaScript module bundlers
 - Added initial support for a new exchange: [coinfloor](https://www.coinfloor.co.uk) UK (still under development)
 - Isolated code genome into `ccxt.js`, `ccxt.php` and `ccxt.py`, added `build` folder for generated files
