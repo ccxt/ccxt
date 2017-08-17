@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Added experimental unified fetchOHLCV to GDAX
 - Added experimental unified fetchOHLCV method to OKCoin
 
 ## Version 1.4.x 2017-08-17
