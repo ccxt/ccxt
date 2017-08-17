@@ -121,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.8'
+__version__ = '1.4.9'
 
 #------------------------------------------------------------------------------
 
@@ -2177,7 +2177,7 @@ class bitfinex (Exchange):
         if type == 'market':
             order['price'] = str(self.nonce())
         else:
-            order['price'] = price
+            order['price'] = str(price)
         result = self.privatePostOrderNew(self.extend(order, params))
         return {
             'info': result,

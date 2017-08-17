@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.8';
+$version = '1.4.9';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2413,7 +2413,7 @@ class bitfinex extends Exchange {
         if ($type == 'market') {
             $order['price'] = (string) $this->nonce ();
         } else {
-            $order['price'] = $price;
+            $order['price'] = (string) $price;
         }
         $result = $this->privatePostOrderNew (array_merge ($order, $params));
         return array (
