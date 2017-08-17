@@ -1,5 +1,7 @@
 # Сhangelog
 
+## Version 1.4.x 2017-08-17
+
 - [Added browser bundle](https://github.com/kroitor/ccxt#javascript-for-use-with-the-script-tag) for use with the `<script>` tag, served from the [unpkg CDN](https://unpkg.com/)
 - Refactored imports / exports handling, making it compatible with JavaScript module bundlers
 - Added initial support for a new exchange: [coinfloor](https://www.coinfloor.co.uk) UK (still under development)
