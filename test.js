@@ -54,8 +54,8 @@ if (exchangeId === 'gdax') {
     exchange.urls['api'] = 'https://api-public.sandbox.gdax.com' // move gdax to sandbox
 }
 
-if ([ 'jubi'].indexOf (exchange.id) >= 0) {
-    exchange.verbose = true // for debugging
+if ([ 'jubi', 'gdax' ].indexOf (exchange.id) >= 0) {
+    exchange.verbose = true
 }
 
 //-----------------------------------------------------------------------------
