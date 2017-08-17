@@ -32,8 +32,8 @@ Below is a list of functionality we would like to have implemented in the librar
 - Concurrency in Python with async/await (with respect to 2.7)
 - WebSocket interfaces
 - REST long-poller
-- Unified deposit methods
-- Unified withdrawal methods
+- Unified deposit method
+- Unified withdraw method
 
 If you want to contribute by submitting partial implementations be sure to look up examples of how it's done inside the library (where implemented already) and copy the adopted practices.
 
