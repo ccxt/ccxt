@@ -121,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.3'
+__version__ = '1.4.4'
 
 #------------------------------------------------------------------------------
 
@@ -11346,6 +11346,7 @@ class okcoin (Exchange):
         m = self.market(market)
         response = self.publicGetKline({
             'symbol': m['id'],
+            'type': '1min',
             'since': since,
             'size': int(limit),
         })

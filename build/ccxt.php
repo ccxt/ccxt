@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.3';
+$version = '1.4.4';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12207,6 +12207,7 @@ class okcoin extends Exchange {
         $m = $this->market ($market);
         $response = $this->publicGetKline (array (
             'symbol' => $m['id'],
+            'type' => '1min',
             'since' => $since,
             'size' => intval ($limit),
         ));
