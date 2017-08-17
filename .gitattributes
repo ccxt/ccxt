@@ -1,6 +1,6 @@
 build/ccxt.php linguist-generated=true
 build/ccxt.es5.js linguist-generated=true
 ccxt/__init__.py linguist-generated=false
-ccxt.js linguis-generated=false
-ccxt.php linguis-generated=false
-ccxt.py linguis-generated=false
+ccxt.js linguist-generated=false
+ccxt.php linguist-generated=false
+ccxt.py linguist-generated=false
