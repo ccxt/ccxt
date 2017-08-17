@@ -36,7 +36,7 @@ Below is a list of functionality we would like to have implemented in the librar
   - Pub: Methods for trading and private calls where supported
   - Sub: Real-time balance, orderbooks and other properties with each exchange
 - REST long-poller
-- Round-robin scheduler
+- Round-robin REST scheduler
 - Improved proxy support
 
 If you want to contribute by submitting partial implementations be sure to look up examples of how it's done inside the library (where implemented already) and copy the adopted practices.
