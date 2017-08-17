@@ -3450,7 +3450,7 @@ var bitstamp = {
         };
     },
 
-    async fetchTrades (market, params= {}) {
+    async fetchTrades (market, params = {}) {
         return this.publicGetTransactionsId (this.extend ({
             'id': this.marketId (market),
         }, params));
@@ -4147,7 +4147,7 @@ var bl3p = {
         };
     },
 
-    async fetchTrades (market, params= {}) {
+    async fetchTrades (market, params = {}) {
         return this.publicGetMarketTrades (this.extend ({
             'market': this.marketId (market),
         }, params));
@@ -9291,7 +9291,7 @@ var gdax = {
     async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
         return this.publicGetProductsIdTrades (this.extend ({
-            'id': this.marketId (market),// fixes issue #2
+            'id': this.marketId (market), // fixes issue #2
         }, params));
     },
 
@@ -12965,7 +12965,7 @@ var southxchange = {
         return this.parseTicker (ticker, p);
     },
 
-    async fetchTrades (market) {
+    async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
         return this.publicGetTradesSymbol (this.extend ({
             'symbol': this.marketId (market),
@@ -14636,7 +14636,7 @@ var zaif = {
 
     async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
-        return this.apiGetTradesPair  (this.extend ({
+        return this.apiGetTradesPair (this.extend ({
             'pair': this.marketId (market),
         }, params));
     },
