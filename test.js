@@ -55,7 +55,7 @@ if (exchangeId === 'gdax') {
 }
 
 if ([ 'jubi'].indexOf (exchange.id) >= 0) {
-    exchange.verbose = true
+    exchange.verbose = true // for debugging
 }
 
 //-----------------------------------------------------------------------------
