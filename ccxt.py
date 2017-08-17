@@ -121,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.111'
+__version__ = '1.4.8'
 
 #------------------------------------------------------------------------------
 
@@ -621,9 +621,6 @@ class Exchange (object):
     def loadMarkets(self, reload=False):
         return self.load_markets()
 
-    def getMarketURL(self, market, params={}):
-        return self.get_market_url(market, params)
-
     def fetch_markets(self):
         return self.markets
 
@@ -635,6 +632,18 @@ class Exchange (object):
 
     def fetchTickers(self):
         return self.fetch_tickers()
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+        return ohlcv
+
+    def parse_ohlcvs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None):
+        result = []
+        for t in range(0, len(ohlcvs)):
+            result.append(self.parse_ohlcv(ohlcvs[t], market, timeframe, since, limit))
+        return result
+
+    def parseOHLCVs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None):
+        return self.parse_ohlcvs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None)
 
     def parse_trades(self, trades, market=None):
         result = []

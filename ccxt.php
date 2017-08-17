@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.111';
+$version = '1.4.8';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -701,8 +701,24 @@ class Exchange {
         return $this->set_markets ($markets);
     }
 
-    public function getMarketURL ($market, $params = array ()) {
-        return $this->get_market_url ($market, $params);
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
+        return $ohlcv;
+    }
+
+    public function parseOHLCV ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
+        return $this->parse_ohlcv ($ohlcv, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcvs ($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
+        $result = array ();
+        for ($t = 0; $t < count ($ohlcvs); $t++) {
+            $result[] = $this->parse_ohlcv ($ohlcvs[$t], $market, $timeframe, $since, $limit);
+        }
+        return $result;
+    }
+
+    public function parseOHLCVs ($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
+        return $this->parse_ohlcvs ($ohlcv, $market, $timeframe, $since, $limit);
     }
 
     public function parse_trades ($trades, $market = null) {

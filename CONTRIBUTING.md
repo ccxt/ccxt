@@ -4,6 +4,8 @@
 - This file is a work in progress, guidelines for contributing are being developed right now!
 ```
 
+## How To Submit An Issue
+
 If you want to submit an issue and you want your issue to be resolved quickly, here's a basic checklist for you:
 
 - Read the [Manual](https://github.com/kroitor/ccxt/wiki/Manual).
@@ -16,18 +18,49 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
   - a code snippet you're having difficulties with
   - the output of that snippet in verbose mode
 
-Below are the rules for contributing to the ccxt library codebase.
+## How To Contribute Code
 
-## What You Need To Have
+### Pending Tasks
+
+Below is a list of functionality we would like to have implemented in the library in the first place. Most of these tasks are already in progress, implemented for some exchanges, but not all of them:
+
+- Unified OHLC(v) series
+- Unified fetchTrades (public)
+- Unified fetchOrder
+- Unified fetchMyOrders, fetchMyOpenOrders, fetchMyClosedOrders
+- Unified fetchMyTrades, fetchOrderTrades
+- Unified deposit method
+- Unified withdraw method
+- Concurrency in Python with async/await (with respect to 2.7)
+- WebSocket interfaces:
+  - Pub: Methods for trading and private calls where supported
+  - Sub: Real-time balance, orderbooks and other properties with each exchange
+- REST long-poller with round-robin scheduler for HTTP requests
+- Improved proxy support
+
+If you want to contribute by submitting partial implementations be sure to look up examples of how it's done inside the library (where implemented already) and copy the adopted practices.
+
+If your proposal, suggestion or improvement does not relate to the above list of tasks before submitting it make sure it is:
+1. really needed by the majority of ccxt users
+2. designed to be a general-purpose solution, not hardcoded for your specific needs
+3. done in a generalized way compatible with all exchanges (not exchange-specific)
+4. portable (available in all supported languages)
+5. robust
+6. explicit in what it's doing
+7. doesn't break anything
+
+The following is a set of rules for contributing to the ccxt library codebase.
+
+### What You Need To Have
 
 - Node.js (version 8 or higher)
 - Python 2/3
 - PHP 5.3+
 - [Pandoc](https://pandoc.org/installing.html)
 
-## What You Need To Know
+### What You Need To Know
 
-### Repository Structure
+#### Repository Structure
 
 The contents of the repository are structured as follows:
 
@@ -35,9 +68,11 @@ The contents of the repository are structured as follows:
 /                    # root directory aka npm module/package folder for Node.js
 /.babelrc            # babel config used for making the ES5 version of the library
 /.eslintrc           # linter
+/.gitattributes      # contains linguist settings for language detection in repo
 /.gitignore          # ignore it
 /.npmignore          # ignore it npm-style
 /.travis.yml         # a YAML config for travis-ci (continuous integration)
+/CHANGELOG.md        # says itself
 /CONTRIBUTING.md     # this file
 /LICENSE.txt         # MIT
 /MANIFEST.in         # a PyPI-package file listing extra package files (license, configs, etc...)
@@ -59,16 +94,18 @@ The contents of the repository are structured as follows:
 /export-exchanges.js # used to create tables of exchanges in the docs during the build
 /package.json        # npm package file, also used in setup.py for version single-sourcing
 /setup.cfg           # wheels config file for the Python package
+/setup.py            # pip/setuptools script (build/install) for ccxt in Python
 /run-tests.js        # a front-end to run invididual tests of all exchanges in all languages (JS/PHP/Python)
 /test.js             # invididual tests in JS
 /test.php            # same in PHP
 /test.py             # same in Python
 /tox.ini             # tox config for Python
 /transpile.js        # the transpilation script
+/update-badges.js    # a JS script to update badges in the README and in docs
 /vss.js              # reads single-sourced version from package.json and writes it everywhere
 ```
 
-### Multilanguage Support
+#### Multilanguage Support
 
 The ccxt library is available in three different languages (more to come). We encourage developers to design *portable* code, so that a single-language user can read code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
@@ -77,17 +114,21 @@ At first, all language-specific versions were developed in parallel, but separat
 The ccxt library includes one single file per each language:
 
 ```shell
-/ccxt.js           # master JS ES6 version of the ccxt library
-/ccxt.py           # base code for the slave Python version of the ccxt library
-/ccxt.php          # base code for the slave PHP version of the ccxt library
-/ccxt/__init__.py  # slave Python-version of the ccxt library
-/build/ccxt.es5.js # slave JavaScript ES5 version of the ccxt library
-/build/ccxt.php    # slave PHP-version of the ccxt library
+/ccxt.js               # master JS ES6 version of the ccxt library
+/ccxt.py               # base code for the slave Python version of the ccxt library
+/ccxt.browser.js       # base code for the browserified version of the library
+/ccxt.php              # base code for the slave PHP version of the ccxt library
+/ccxt/__init__.py      # slave Python-version of the ccxt library
+/build/ccxt.es5.js     # slave JavaScript ES5 version of the ccxt library
+/build/ccxt.browser.js # slave browser bundle of the ccxt library
+/build/ccxt.php        # slave PHP-version of the ccxt library
 ```
 
 The module entry points are:
-- `/ccxt/__init__.py`   for the Python pip package
-- `/build/ccxt.es5.js`  for the Node.js npm package and browsers
+- `./ccxt/__init__.py` for the Python pip package
+- `./build/ccxt.es5.js` for the Node.js npm package
+- `./build/ccxt.browser.js` for the browser bundle
+- `./build/ccxt.php` for PHP
 
 Slave files and docs are partially-generated from the master `ccxt.js` file by the `npm run build` command.
 
@@ -133,23 +174,23 @@ Key notes on the structure of the library file:
 - the second bold ruler and footer are optional
 - ...
 
-#### JavaScript
+##### JavaScript
 
 ```UNDER CONSTRUCTION```
 
-#### Python
+##### Python
 
 ```UNDER CONSTRUCTION```
 
-#### PHP
+##### PHP
 
 ```UNDER CONSTRUCTION```
 
-### Base Class
+#### Base Class
 
 ```UNDER CONSTRUCTION```
 
-### Derived Exchange Classes
+#### Derived Exchange Classes
 
 Below are key notes on how to keep the JS code transpileable:
 
@@ -215,13 +256,13 @@ The basic JSON-skeleton for a new exchange integration is as follows:
 
 ```UNDER CONSTRUCTION```
 
-### Continuous Integration
+#### Continuous Integration
 
 Builds are automated by [travis-ci](https://travis-ci.org/kroitor/ccxt/builds). All build steps are described in the [`.travis.yml`](https://github.com/kroitor/ccxt/blob/master/.travis.yml) file.
 
 Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [travis-ci.org/kroitor/ccxt/builds](https://travis-ci.org/kroitor/ccxt/builds).
 
-### How To Build & Run Tests On Your Local Machine
+#### How To Build & Run Tests On Your Local Machine
 
 The command below will build everything and generate slave PHP/Python versions from master `ccxt.js` file:
 

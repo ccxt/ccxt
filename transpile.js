@@ -1,7 +1,10 @@
 "use strict";
 
-const fs = require ('fs')
-const log = require ('ololog')
+const fs   = require ('fs')
+const log  = require ('ololog')
+const ansi = require ('ansicolor').nice
+
+//-----------------------------------------------------------------------------
 
 function regexAll (text, array) {
     for (let i in array) {
@@ -12,12 +15,16 @@ function regexAll (text, array) {
     return text
 }
 
+//-----------------------------------------------------------------------------
+
 let ccxtjs = fs.readFileSync ('ccxt.js', 'utf8')
 let contents = ccxtjs.match (/\/\/====(?:[\s\S]+?)\/\/====/) [0]
 let exchanges
 let regex = /^var ([\S]+) =\s*(?:extend\s*\(([^\,]+)\,\s*)?{([\s\S]+?)^}/gm // exchange class
 let python = []
 let php = []
+
+//-----------------------------------------------------------------------------
 
 while (exchanges = regex.exec (contents)) {
 
@@ -75,6 +82,7 @@ while (exchanges = regex.exec (contents)) {
                         // .replace ('fetchCategories', 'fetch_categories')
                         .replace ('fetchMarkets',     'fetch_markets')
                         .replace ('fetchOrderBook',   'fetch_order_book')
+                        .replace ('fetchOHLCV',       'fetch_ohlcv')
                         .replace ('fetchTickers',     'fetch_tickers')
                         .replace ('fetchTicker',      'fetch_ticker')
                         .replace ('parseTicker',      'parse_ticker')
@@ -88,7 +96,6 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('createOrder',      'create_order')
                         .replace ('cancelOrder',      'cancel_order')
                         .replace ('signIn',           'sign_in')
-                        .replace ('getMarketURL',     'get_market_url')
 
         args = args.length ? args.split (',').map (x => x.trim ().replace (' = ', '=')) : []
         let phArgs = args.join (', $').trim ()
@@ -121,6 +128,8 @@ while (exchanges = regex.exec (contents)) {
             [ /\.binaryToString\s/g, '.binary_to_string' ],
             [ /\.implodeParams\s/g, '.implode_params'],
             [ /\.extractParams\s/g, '.extract_params'],
+            [ /\.parseOHLCVs/g, '.parse_ohlcvs'],
+            [ /\.parseOHLCV/g, '.parse_ohlcv'],
             [ /\.parseTicker\s/g, '.parse_ticker'],
             [ /\.parseTrades\s/g, '.parse_trades'],
             [ /\.parseTrade\s/g, '.parse_trade'],
@@ -196,6 +205,8 @@ while (exchanges = regex.exec (contents)) {
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64/g, 'base64_encode' ],
             [ /this\.base64ToBinary/g, 'base64_decode' ],
+            [ /\.parseOHLCVs/g, '.parse_ohlcvs'],
+            [ /\.parseOHLCV/g, '.parse_ohlcv'],
             [ /\.parseTicker/g, '.parse_ticker'],
             [ /\.parseTrades/g, '.parse_trades'],
             [ /\.parseTrade/g, '.parse_trade'],
@@ -288,44 +299,24 @@ while (exchanges = regex.exec (contents)) {
     php.push (ph.join ("\n"))
 }
 
-let date = new Date ()
-let yyyy = date.getUTCFullYear ()
-let MM = date.getUTCMonth ()
-let dd = date.getUTCDay ()
-let hh = date.getUTCHours ()
-let mm = date.getUTCMinutes ()
-let ss = date.getUTCSeconds ()
-MM = MM < 10 ? ('0' + MM) : MM
-dd = dd < 10 ? ('0' + dd) : dd
-hh = hh < 10 ? ('0' + hh) : hh
-mm = mm < 10 ? ('0' + mm) : mm
-ss = ss < 10 ? ('0' + ss) : ss
-let dateString = [ yyyy, MM, dd, hh, mm, ss ].join ('.')
+//-----------------------------------------------------------------------------
 
-let oldNamePy = 'ccxt.py'
-let oldNamePHP = 'ccxt.php'
-let newNamePy = 'ccxt/__init__.py'
-let newNamePHP = 'build/ccxt.php'
+function transpile (oldName, newName, content, comment = '//') {
+    log.bright.cyan ('Transpiling ' + oldName.yellow + ' → ' + newName.yellow)
+    let fileContents = fs.readFileSync (oldName, 'utf8')
+    fileContents = fileContents.split ("\n" + comment + "====") [0]
+    fileContents +=
+        "\n" + comment + "==============================================================================\n" +
+        content.join ("\n" + comment + "------------------------------------------------------------------------------\n")
+    fs.truncateSync (newName)
+    fs.writeFileSync (newName, fileContents)
+}
 
-let ccxtpy = fs.readFileSync (oldNamePy, 'utf8')
-let ccxtphp = fs.readFileSync (oldNamePHP, 'utf8')
+//-----------------------------------------------------------------------------
 
-ccxtpy = ccxtpy.split ("\n#====") [0]
-ccxtphp = ccxtphp.split ("\n//====") [0]
+transpile ('./ccxt.py',  './ccxt/__init__.py', python, '#')
+transpile ('./ccxt.php', './build/ccxt.php',   php,    '//')
 
-ccxtpy +=
-    "\n#==============================================================================\n" +
-    python.join ("\n#------------------------------------------------------------------------------\n")
-
-
-ccxtphp +=
-    "\n//=============================================================================\n" +
-    php.join ("\n//-----------------------------------------------------------------------------\n") +
-    "\n?>"
-
-fs.truncateSync (newNamePy)
-fs.truncateSync (newNamePHP)
-fs.writeFileSync (newNamePy, ccxtpy)
-fs.writeFileSync (newNamePHP, ccxtphp)
+//-----------------------------------------------------------------------------
 
 log.bright.green ('Transpiled successfully.')

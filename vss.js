@@ -32,8 +32,8 @@ log.bright ('New version: '.cyan, version)
 log.bright.cyan ('Single-sourcing version', version, './package.json → ./ccxt.js'.yellow)
 let ccxtjsFilename = './ccxt.js'
 let ccxtjs = fs.readFileSync (ccxtjsFilename, 'utf8')
-let ccxtjsParts = ccxtjs.split (/var version \= \'[^\']+\'/)
-let ccxtjsNewContent = ccxtjsParts[0] + "var version = '" + version + "'" + ccxtjsParts[1]
+let ccxtjsParts = ccxtjs.split (/const version \= \'[^\']+\'/)
+let ccxtjsNewContent = ccxtjsParts[0] + "const version = '" + version + "'" + ccxtjsParts[1]
 fs.truncateSync (ccxtjsFilename)
 fs.writeFileSync (ccxtjsFilename, ccxtjsNewContent)
 

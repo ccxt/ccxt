@@ -121,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.111'
+__version__ = '1.4.8'
 
 #------------------------------------------------------------------------------
 
@@ -621,9 +621,6 @@ class Exchange (object):
     def loadMarkets(self, reload=False):
         return self.load_markets()
 
-    def getMarketURL(self, market, params={}):
-        return self.get_market_url(market, params)
-
     def fetch_markets(self):
         return self.markets
 
@@ -635,6 +632,18 @@ class Exchange (object):
 
     def fetchTickers(self):
         return self.fetch_tickers()
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+        return ohlcv
+
+    def parse_ohlcvs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None):
+        result = []
+        for t in range(0, len(ohlcvs)):
+            result.append(self.parse_ohlcv(ohlcvs[t], market, timeframe, since, limit))
+        return result
+
+    def parseOHLCVs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None):
+        return self.parse_ohlcvs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None)
 
     def parse_trades(self, trades, market=None):
         result = []
@@ -713,7 +722,6 @@ class _1broker (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg',
                 'api': 'https://1broker.com/api',
                 'www': 'https://1broker.com',
-                'market': 'https://1broker.com/?c=en/content/markets',
                 'doc': 'https://1broker.com/?c=en/content/api-documentation',
             },
             'api': {
@@ -1071,7 +1079,6 @@ class _1btcxe (cryptocapital):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg',
                 'api': 'https://1btcxe.com/api',
                 'www': 'https://1btcxe.com',
-                'market': 'https://1btcxe.com/order-book.php?currency=rub',
                 'doc': 'https://1btcxe.com/api-docs.php',
             },
             'markets': {
@@ -1311,7 +1318,6 @@ class bit2c (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
                 'api': 'https://www.bit2c.co.il',
                 'www': 'https://www.bit2c.co.il',
-                'market': 'https://www.bit2c.co.il/order/index?pair=LtcBtc',
                 'doc': [
                     'https://www.bit2c.co.il/home/api',
                     'https://github.com/OferE/bit2c',
@@ -1472,7 +1478,6 @@ class bitbay (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
                 'www': 'https://bitbay.net',
-                'market': 'https://bitbay.net/market',
                 'api': {
                     'public': 'https://bitbay.net/API/Public',
                     'private': 'https://bitbay.net/API/Trading/tradingApi.php',
@@ -1634,7 +1639,6 @@ class bitbays (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27808599-983687d2-6051-11e7-8d95-80dfcbe5cbb4.jpg',
                 'api': 'https://bitbays.com/api',
                 'www': 'https://bitbays.com',
-                'market': 'https://bitbays.com/trade/?market=btc_usd',
                 'doc': 'https://bitbays.com/help/api/',
             },
             'api': {
@@ -1972,7 +1976,6 @@ class bitfinex (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
                 'api': 'https://api.bitfinex.com',
                 'www': 'https://www.bitfinex.com',
-                'market': 'https://www.bitfinex.com/trading/DSHBTC',
                 'doc': [
                     'https://bitfinex.readme.io/v1/docs',
                     'https://bitfinex.readme.io/v2/docs',
@@ -2435,7 +2438,6 @@ class bitlish (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
                 'api': 'https://bitlish.com/api',
                 'www': 'https://bitlish.com',
-                'market': 'https://bitlish.com/trade/btceur',
                 'doc': 'https://bitlish.com/api',
             },
             'api': {
@@ -2661,7 +2663,6 @@ class bitmarket (Exchange):
                     'https://www.bitmarket.pl',
                     'https://www.bitmarket.net',
                 ],
-                'market': 'https://www.bitmarket.net/market.php?market=BTCEUR',
                 'doc': [
                     'https://www.bitmarket.net/docs.php?file=api_public.html',
                     'https://www.bitmarket.net/docs.php?file=api_private.html',
@@ -2846,7 +2847,6 @@ class bitmex (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
                 'api': 'https://www.bitmex.com',
                 'www': 'https://www.bitmex.com',
-                'market': 'https://www.bitmex.com/app/trade/XBTUSD',
                 'doc': [
                     'https://www.bitmex.com/app/apiOverview',
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
@@ -3100,7 +3100,6 @@ class bitso (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
                 'api': 'https://api.bitso.com',
                 'www': 'https://bitso.com',
-                'market': 'https://bitso.com/trade/market/btc/mxn',
                 'doc': 'https://bitso.com/api_info',
             },
             'api': {
@@ -3300,7 +3299,6 @@ class bitstamp (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
                 'api': 'https://www.bitstamp.net/api',
                 'www': 'https://www.bitstamp.net',
-                'market': 'https://www.bitstamp.net/market/tradeview/',
                 'doc': 'https://www.bitstamp.net/api',
             },
             'api': {
@@ -3486,7 +3484,6 @@ class bittrex (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
                 'api': 'https://bittrex.com/api',
                 'www': 'https://bittrex.com',
-                'market': 'https://bittrex.com/Market/Index',
                 'doc': [
                     'https://bittrex.com/Home/Api',
                     'https://www.npmjs.org/package/node.bittrex.api',
@@ -3530,13 +3527,6 @@ class bittrex (Exchange):
         }
         params.update(config)
         super(bittrex, self).__init__(params)
-
-    def get_market_url(self, market, params={}):
-        self.loadMarkets()
-        m = self.market(market)
-        return self.url(self.urls['market'], self.extend({
-            'MarketName': m['id'],
-        }, params))
 
     def fetch_markets(self):
         markets = self.publicGetMarkets()
@@ -3713,21 +3703,38 @@ class bittrex (Exchange):
         self.loadMarkets()
         return self.marketGetCancel({'uuid': id})
 
+    def parseOrder(self, order):
+        side = 'buy' if(order['Type'] == 'LIMIT_BUY') else 'sell'
+        open = order['IsOpen']
+        canceled = order['CancelInitiated']
+        status = None
+        if open:
+            status = 'open'
+        elif canceled:
+            status = 'canceled'
+        else:
+            status = 'closed'
+        timestamp = self.parse8601(order['Opened'])
+        market = self.markets_by_id[order['Exchange']]
+        result = {
+            'info': order,
+            'id': order['OrderUuid'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': 'limit',
+            'side': side,
+            'price': order['PricePerUnit'],
+            'amount': order['Quantity'],
+            'remaining': order['QuantityRemaining'],
+            'status': status,
+        }
+        return result
+
     def fetchOrder(self, id):
         self.loadMarkets()
         response = self.accountGetOrder({'uuid': id})
-        orderInfo = response['result']
-        orderType = 'buy' if(orderInfo['Type'] == 'LIMIT_BUY') else 'sell'
-        result = {
-            'info': response,
-            'type': orderType,
-            'rate': orderInfo['PricePerUnit'],
-            'startingAmount': orderInfo['Quantity'],
-            'remaining': orderInfo['QuantityRemaining'],
-            'isOpen': orderInfo['IsOpen'],
-            'isCanceled': orderInfo['CancelInitiated'],
-        }
-        return result
+        return self.parseOrder(response['result'])
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/'
@@ -4108,7 +4115,6 @@ class btcchina (Exchange):
                     'private': 'https://api.btcchina.com/api_trade_v1.php',
                 },
                 'www': 'https://www.btcchina.com',
-                'market': 'https://www.btcchina.com/exc/trade/cnybtc',
                 'doc': 'https://www.btcchina.com/apidocs'
             },
             'api': {
@@ -4485,23 +4491,37 @@ class btce (Exchange):
         self.loadMarkets()
         return self.privatePostCancelOrder({'order_id': id})
 
+    def parseOrder(self, order):
+        statusCode = order['status']
+        status = None
+        if statusCode == 0:
+            status = 'open'
+        elif(statusCode == 2) or(statusCode == 3):
+            status = 'canceled'
+        else:
+            status = 'closed'
+        timestamp = order['timestamp_created'] * 1000
+        market = self.markets_by_id[order['pair']]
+        result = {
+            'info': order,
+            'id': order['id'],
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'type': 'limit',
+            'side': order['type'],
+            'price': order['rate'],
+            'amount': order['start_amount'],
+            'remaining': order['amount'],
+            'status': status,
+        }
+        return result
+
     def fetchOrder(self, id):
         self.loadMarkets()
         response = self.privatePostOrderInfo({'order_id': id})
-        orderInfo = response['return'][id]
-        isCanceled = False
-        if(orderInfo['status'] == 2) or(orderInfo['status'] == 3):
-            isCanceled = True
-        result = {
-            'info': response,
-            'type': orderInfo['type'],
-            'rate': orderInfo['rate'],
-            'startingAmount': orderInfo['start_amount'],
-            'remaining': orderInfo['amount'],
-            'isOpen': orderInfo['status'] == 0,
-            'isCanceled': isCanceled,
-        }
-        return result
+        order = response['return'][id]
+        return self.parseOrder(self.extend({'id': id}, order))
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
@@ -4521,7 +4541,11 @@ class btce (Exchange):
                 'Key': self.apiKey,
                 'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
-        return self.fetch(url, method, headers, body)
+        response = self.fetch(url, method, headers, body)
+        if 'success' in response:
+            if not response['success']:
+                raise ExchangeError(self.id + ' ' + self.json(response))
+        return response
 
 #------------------------------------------------------------------------------
 
@@ -4919,7 +4943,6 @@ class btctradeua (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
                 'api': 'https://btc-trade.com.ua/api',
                 'www': 'https://btc-trade.com.ua',
-                'market': 'https://btc-trade.com.ua/stock/btc_uah',
                 'doc': 'https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit',
             },
             'api': {
@@ -5144,7 +5167,6 @@ class btcx (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg',
                 'api': 'https://btc-x.is/api',
                 'www': 'https://btc-x.is',
-                'market': 'https://btc-x.is/market/BTC/EUR',
                 'doc': 'https://btc-x.is/custom/api-document.html',
             },
             'api': {
@@ -5297,7 +5319,6 @@ class bter (Exchange):
                     'private': 'https://api.bter.com/api',
                 },
                 'www': 'https://bter.com',
-                'market': 'https://bter.com/trade/ltc_btc',
                 'doc': 'https://bter.com/api2',
             },
             'api': {
@@ -5461,10 +5482,12 @@ class bter (Exchange):
         })
 
     def create_order(self, market, type, side, amount, price=None, params={}):
+        if type == 'market':
+            raise ExchangeError(self.id + ' allows limit orders only')
         self.loadMarkets()
         method = 'privatePost' + self.capitalize(side)
         order = {
-            'currencyPair': self.symbol(market),
+            'currencyPair': self.market_id(market),
             'rate': price,
             'amount': amount,
         }
@@ -5515,7 +5538,6 @@ class bxinth (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
                 'api': 'https://bx.in.th/api',
                 'www': 'https://bx.in.th',
-                'market': 'https://bx.in.th/THB/BTC/',
                 'doc': 'https://bx.in.th/info/api',
             },
             'api': {
@@ -5745,7 +5767,6 @@ class ccex (Exchange):
                     'private': 'https://c-cex.com/t/api.html',
                 },
                 'www': 'https://c-cex.com',
-                'market': 'https://c-cex.com/?p=eth-usd',
                 'doc': 'https://c-cex.com/?id=api',
             },
             'api': {
@@ -5942,7 +5963,6 @@ class cex (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
                 'api': 'https://cex.io/api',
                 'www': 'https://cex.io',
-                'market': 'https://cex.io/btc-usd',
                 'doc': 'https://cex.io/cex-api',
             },
             'api': {
@@ -6359,7 +6379,6 @@ class coincheck (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
                 'api': 'https://coincheck.com/api',
                 'www': 'https://coincheck.com',
-                'market': 'https://coincheck.com/exchange/tradeview',
                 'doc': 'https://coincheck.com/documents/exchange/api',
             },
             'api': {
@@ -6714,7 +6733,6 @@ class coingi (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
                 'api': 'https://api.coingi.com',
                 'www': 'https://coingi.com',
-                'market': 'https://coingi.com/?currencyPairSelector-currencyId=DASH%2FBTC&do=currencyPairSelector-selectCurrency',
                 'doc': 'http://docs.coingi.apiary.io/',
             },
             'api': {
@@ -7234,7 +7252,6 @@ class coinsecure (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg',
                 'api': 'https://api.coinsecure.in',
                 'www': 'https://coinsecure.in',
-                'market': 'https://coinsecure.in/exchange_data',
                 'doc': [
                     'https://api.coinsecure.in',
                     'https://github.com/coinsecure/plugins',
@@ -7503,7 +7520,6 @@ class coinspot (Exchange):
                     'private': 'https://www.coinspot.com.au/api',
                 },
                 'www': 'https://www.coinspot.com.au',
-                'market': 'https://www.coinspot.com.au/trade/btc',
                 'doc': 'https://www.coinspot.com.au/api',
             },
             'api': {
@@ -8477,7 +8493,6 @@ class gatecoin (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/28646817-508457f2-726c-11e7-9eeb-3528d2413a58.jpg',
                 'api': 'https://api.gatecoin.com',
                 'www': 'https://gatecoin.com',
-                'market': 'https://gatecoin.com/marketData',
                 'doc': [
                     'https://gatecoin.com/api',
                     'https://github.com/Gatecoin/RESTful-API-Implementation',
@@ -8806,7 +8821,6 @@ class gdax (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg',
                 'api': 'https://api.gdax.com',
                 'www': 'https://www.gdax.com',
-                'market': 'https://www.gdax.com/trade/BTC-USD',
                 'doc': 'https://docs.gdax.com',
             },
             'api': {
@@ -8973,6 +8987,26 @@ class gdax (Exchange):
         return self.publicGetProductsIdTrades({
             'id': self.market_id(market), # fixes issue #2
         })
+
+    def parseOHLCV(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+        return [
+            ohlcv[0] * 1000,
+            ohlcv[3],
+            ohlcv[2],
+            ohlcv[1],
+            ohlcv[4],
+            ohlcv[5],
+        ]
+
+    def fetch_ohlcv(self, market, timeframe=60, since=None, limit=None):
+        m = self.market(market)
+        response = self.publicGetProductsIdCandles({
+            'id': m['id'],
+            'granularity': timeframe,
+            'start': since,
+            'end': limit,
+        })
+        return self.parse_ohlcvs(m, response, timeframe, since, limit)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.loadMarkets()
@@ -9236,7 +9270,6 @@ class hitbtc (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api': 'http://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
-                'market': 'https://hitbtc.com/exchange/BTC-to-USD',
                 'doc': [
                     'https://hitbtc.com/api',
                     'http://hitbtc-com.github.io/hitbtc-api',
@@ -9401,11 +9434,11 @@ class hitbtc (Exchange):
             raise ExchangeError(self.id + ' ' + ticker['message'])
         return self.parse_ticker(ticker, p)
 
-    def fetch_trades(self, market):
+    def fetch_trades(self, market, params={}):
         self.loadMarkets()
-        return self.publicGetSymbolTrades({
+        return self.publicGetSymbolTrades(self.extend({
             'symbol': self.market_id(market),
-        })
+        }, params))
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.loadMarkets()
@@ -9664,7 +9697,6 @@ class itbit (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
                 'api': 'https://api.itbit.com',
                 'www': 'https://www.itbit.com',
-                'market': 'https://exchange.itbit.com/markets',
                 'doc': [
                     'https://api.itbit.com/docs',
                     'https://www.itbit.com/api',
@@ -9861,7 +9893,6 @@ class jubi (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg',
                 'api': 'https://www.jubi.com/api',
                 'www': 'https://www.jubi.com',
-                'market': 'https://www.jubi.com/coin/btc/',
                 'doc': 'https://www.jubi.com/help/api.html',
             },
             'api': {
@@ -10055,7 +10086,6 @@ class kraken (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
                 'api': 'https://api.kraken.com',
                 'www': 'https://www.kraken.com',
-                'market': 'https://www.kraken.com/charts',
                 'doc': [
                     'https://www.kraken.com/en-us/help/api',
                     'https://github.com/nothingisdead/npm-kraken-api',
@@ -10231,6 +10261,26 @@ class kraken (Exchange):
             'amount': float(trade[1]),
         }
 
+    def parseOHLCV(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+        return [
+            ohlcv[0],
+            ohlcv[1],
+            ohlcv[2],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[6],
+        ]
+
+    def fetch_ohlcv(self, market, timeframe=60, since=None, limit=None):
+        m = self.market(market)
+        response = self.publicGetOHLC({
+            'pair': m['id'],
+            'interval': int(timeframe / 60),
+            'since': since,
+        })
+        ohlcvs = response[m['id']]
+        return self.parse_ohlcvs(m, ohlcvs, timeframe, since, limit)
+
     def fetch_trades(self, market, params={}):
         self.loadMarkets()
         m = self.market(market)
@@ -10328,7 +10378,6 @@ class lakebtc (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
                 'api': 'https://api.lakebtc.com',
                 'www': 'https://www.lakebtc.com',
-                'market': 'https://www.lakebtc.com/orders/bid?symbol=btcusd',
                 'doc': [
                     'https://www.lakebtc.com/s/api',
                     'https://www.lakebtc.com/s/api_v2',
@@ -10524,7 +10573,6 @@ class livecoin (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
                 'api': 'https://api.livecoin.net',
                 'www': 'https://www.livecoin.net',
-                'market': 'https://www.livecoin.net/en/trade/orderbook',
                 'doc': 'https://www.livecoin.net/api?lang=en',
             },
             'api': {
@@ -10755,7 +10803,6 @@ class liqui (btce):
                     'private': 'https://api.liqui.io/tapi',
                 },
                 'www': 'https://liqui.io',
-                'market': 'https://liqui.io/#/exchange/PAY_BTC',
                 'doc': 'https://liqui.io/api',
             },
         }
@@ -10802,7 +10849,6 @@ class luno (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
                 'api': 'https://api.mybitx.com/api',
                 'www': 'https://www.luno.com',
-                'market': 'https://www.luno.com/trade/XBTMYR',
                 'doc': [
                     'https://www.luno.com/en/api',
                     'https://npmjs.org/package/bitx',
@@ -11293,6 +11339,16 @@ class okcoin (Exchange):
             'symbol': self.market_id(market),
         })
 
+    def fetch_ohlcv(self, market, timeframe=60, since=None, limit=None):
+        m = self.market(market)
+        response = self.publicGetKline({
+            'symbol': m['id'],
+            'type': '1min',
+            'since': since,
+            'size': int(limit),
+        })
+        return self.parse_ohlcvs(m, response, timeframe, since, limit)
+
     def fetch_balance(self):
         response = self.privatePostUserinfo()
         balances = response['info']['funds']
@@ -11335,7 +11391,7 @@ class okcoin (Exchange):
         }, params))
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = '/api/' + self.version + '/' + path + '.do'
+        url = '/' + 'api' + '/' + self.version + '/' + path + '.do'
         if api == 'public':
             if params:
                 url += '?' + _urlencode.urlencode(params)
@@ -11601,7 +11657,6 @@ class poloniex (Exchange):
                     'private': 'https://poloniex.com/tradingApi',
                 },
                 'www': 'https://poloniex.com',
-                'market': 'https://poloniex.com/exchange#{id}',
                 'doc': [
                     'https://poloniex.com/support/api/',
                     'http://pastebin.com/dMX7mZE0',
@@ -11655,13 +11710,6 @@ class poloniex (Exchange):
         }
         params.update(config)
         super(poloniex, self).__init__(params)
-
-    def get_market_url(self, market, params={}):
-        self.loadMarkets()
-        m = self.market(market)
-        return self.url(self.urls['market'], self.extend({
-            'id': m['id'].lower(),
-        }, params))
 
     def fetch_markets(self):
         markets = self.publicGetReturnTicker()
@@ -11914,7 +11962,6 @@ class quadrigacx (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg',
                 'api': 'https://api.quadrigacx.com',
                 'www': 'https://www.quadrigacx.com',
-                'market': 'https://www.quadrigacx.com/market/btc/cad',
                 'doc': 'https://www.quadrigacx.com/api_info',
             },
             'api': {
@@ -12303,7 +12350,6 @@ class southxchange (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
                 'api': 'https://www.southxchange.com/api',
                 'www': 'https://www.southxchange.com',
-                'market': 'https://www.southxchange.com/Market/Book/ETH/BTC',
                 'doc': 'https://www.southxchange.com/Home/Api',
             },
             'api': {
@@ -12535,7 +12581,6 @@ class therock (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
                 'api': 'https://api.therocktrading.com',
                 'www': 'https://therocktrading.com',
-                'market': 'https://therocktrading.com/en/offers/BTCUSD',
                 'doc': [
                     'https://api.therocktrading.com/doc/v1/index.html',
                     'https://api.therocktrading.com/doc/',
@@ -13507,7 +13552,6 @@ class yobit (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
                 'api': 'https://yobit.net',
                 'www': 'https://www.yobit.net',
-                'market': 'https://www.yobit.net/en/trade/BTC/USD',
                 'doc': 'https://www.yobit.net/en/api/',
             },
             'api': {
@@ -13689,7 +13733,6 @@ class yunbi (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg',
                 'api': 'https://yunbi.com',
                 'www': 'https://yunbi.com',
-                'market': 'https://yunbi.com/markets/btccny',
                 'doc': [
                     'https://yunbi.com/documents/api/guide',
                     'https://yunbi.com/swagger/',
@@ -13923,7 +13966,6 @@ class zaif (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
                 'api': 'https://api.zaif.jp',
                 'www': 'https://zaif.jp',
-                'market': 'https://zaif.jp/token_trade/xcp_jpy',
                 'doc': [
                     'http://techbureau-api-document.readthedocs.io/ja/latest/index.html',
                     'https://corp.zaif.jp/api-docs',
