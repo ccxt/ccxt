@@ -42,7 +42,7 @@ If you want to contribute by submitting partial implementations be sure to look 
 
 If your proposal, suggestion or improvement does not relate to the above list of tasks before submitting it make sure:
 1. it is really needed by the majority of ccxt users
-2. it is done in a generalised way compatible with all exchanges (not exchange-specific)
+2. it is done in a generalized way compatible with all exchanges (not exchange-specific)
 3. it is portable (available in all supported languages)
 4. it is robust and explicit in what it's doing
 
