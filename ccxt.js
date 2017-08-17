@@ -4669,7 +4669,7 @@ var btce = {
         }
         let response = await this.fetch (url, method, headers, body);
         if ('success' in response)
-            if (!reponse['success'])
+            if (!response['success'])
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     },
