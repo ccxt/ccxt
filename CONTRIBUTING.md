@@ -29,11 +29,21 @@ Below is a list of functionality we would like to have implemented in the librar
 - Unified fetchOrder
 - Unified fetchMyOrders, fetchMyOpenOrders, fetchMyClosedOrders
 - Unified fetchMyTrades, fetchOrderTrades
-- Concurrency in Python with async/await (with respect to 2.7)
-- WebSocket interfaces
-- REST long-poller
 - Unified deposit method
 - Unified withdraw method
+- Concurrency in Python with async/await (with respect to 2.7)
+- WebSocket interfaces:
+  - Methods for trading where supported (pub)
+  - Real-time properties with each exchange (sub):
+    - balance
+    - orders
+    - trades
+    - ohlcv
+    - tickers
+    - orderbooks
+- REST long-poller
+- Round-robin scheduler
+- Improved proxy support
 
 If you want to contribute by submitting partial implementations be sure to look up examples of how it's done inside the library (where implemented already) and copy the adopted practices.
 
