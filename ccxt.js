@@ -957,10 +957,10 @@ var cryptocapital = {
         };
     },
 
-    async fetchTrades (market) {
-        return this.publicGetTransactions ({
+    async fetchTrades (market, params = {}) {
+        return this.publicGetTransactions (this.extend ({
             'currency': this.marketId (market),
-        });
+        }, params));
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
@@ -2154,7 +2154,7 @@ var bitfinex = {
         await this.loadMarkets ();
         let m = this.market (market);
         let trades = await this.publicGetTradesSymbol (this.extend ({
-            'symbol': this.marketId (market),
+            'symbol': m['id'],
         }, params));
         return this.parseTrades (trades, m);
     },
@@ -3752,7 +3752,7 @@ var bittrex = {
         await this.loadMarkets ();
         let m = this.market (market);
         let response = await this.publicGetMarkethistory (this.extend ({
-            'market': this.marketId (market),
+            'market': m['id'],
         }, params));
         return this.parseTrades (response['result'], m);
     },
@@ -4149,7 +4149,7 @@ var bl3p = {
 
     async fetchTrades (market, params= {}) {
         return this.publicGetMarketTrades (this.extend ({
-            'market': p['id'],
+            'market': this.marketId (market),
         }, params));
     },
 
@@ -4582,7 +4582,7 @@ var btce = {
     async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
         return this.publicGetTradesPair (this.extend ({
-            'pair': p['id'],
+            'pair': this.marketId (market),
         }, params));
     },
 
@@ -4813,7 +4813,7 @@ var btcmarkets = {
         await this.loadMarkets ();
         return this.publicGetMarketIdTrades (this.extend ({
             // 'since': 59868345231,
-            'id': m['id'],
+            'id': this.marketId (market),
         }, params));
     },
 
@@ -5234,7 +5234,7 @@ var btctradeua = {
 
     async fetchTrades (market, params = {}) {
         return this.publicGetDealsSymbol (this.extend ({
-            'symbol': p['id'],
+            'symbol': this.marketId (market),
         }, params));
     },
 
@@ -6488,7 +6488,7 @@ var chbtc = {
 
     async fetchTrades (market, params = {}) {
         return this.publicGetTrades (this.extend ({
-            'currency': p['id'],
+            'currency': this.marketId (market),
         }, params));
     },
 
@@ -7887,7 +7887,7 @@ var coinspot = {
 
     async fetchTrades (market, params = {}) {
         return this.privatePostOrdersHistory (this.extend ({
-            'cointype': p['id'],
+            'cointype': this.marketId (market),
         }, params));
     },
 
@@ -8086,7 +8086,7 @@ var dsx = {
     async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
         return this.mapiGetTradesId (this.extend ({
-            'id': p['id'],
+            'id': this.marketId (market),
         }, params));
     },
 
@@ -8312,7 +8312,7 @@ var exmo = {
     async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
         return this.publicGetTrades (this.extend ({
-            'pair': p['id'],
+            'pair': this.marketId (market),
         }, params));
     },
 
@@ -9047,7 +9047,7 @@ var gatecoin = {
     async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
         return this.publicGetPublicTransactionsCurrencyPair (this.extend ({
-            'CurrencyPair': p['id'],
+            'CurrencyPair': this.marketId (market),
         }, params));
     },
 
@@ -14145,7 +14145,7 @@ var yobit = {
     async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
         return this.apiGetTradesPairs (this.extend ({
-            'pairs': p['id'],
+            'pairs': this.marketId (market),
         }, params));
     },
 
