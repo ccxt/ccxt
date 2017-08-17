@@ -121,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.7'
+__version__ = '1.4.8'
 
 #------------------------------------------------------------------------------
 
@@ -9434,11 +9434,11 @@ class hitbtc (Exchange):
             raise ExchangeError(self.id + ' ' + ticker['message'])
         return self.parse_ticker(ticker, p)
 
-    def fetch_trades(self, market):
+    def fetch_trades(self, market, params={}):
         self.loadMarkets()
-        return self.publicGetSymbolTrades({
+        return self.publicGetSymbolTrades(self.extend({
             'symbol': self.market_id(market),
-        })
+        }, params))
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.loadMarkets()

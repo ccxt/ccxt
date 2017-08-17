@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.7';
+$version = '1.4.8';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10173,11 +10173,11 @@ class hitbtc extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetSymbolTrades (array (
+        return $this->publicGetSymbolTrades (array_merge (array (
             'symbol' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
