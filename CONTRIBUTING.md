@@ -56,9 +56,11 @@ The contents of the repository are structured as follows:
 /                    # root directory aka npm module/package folder for Node.js
 /.babelrc            # babel config used for making the ES5 version of the library
 /.eslintrc           # linter
+/.gitattributes      # contains linguist settings for language detection in repo
 /.gitignore          # ignore it
 /.npmignore          # ignore it npm-style
 /.travis.yml         # a YAML config for travis-ci (continuous integration)
+/CHANGELOG.md        # says itself
 /CONTRIBUTING.md     # this file
 /LICENSE.txt         # MIT
 /MANIFEST.in         # a PyPI-package file listing extra package files (license, configs, etc...)
@@ -80,12 +82,14 @@ The contents of the repository are structured as follows:
 /export-exchanges.js # used to create tables of exchanges in the docs during the build
 /package.json        # npm package file, also used in setup.py for version single-sourcing
 /setup.cfg           # wheels config file for the Python package
+/setup.py            # Python pip/setuptools setup script (build/install)
 /run-tests.js        # a front-end to run invididual tests of all exchanges in all languages (JS/PHP/Python)
 /test.js             # invididual tests in JS
 /test.php            # same in PHP
 /test.py             # same in Python
 /tox.ini             # tox config for Python
 /transpile.js        # the transpilation script
+/update-badges.js    # a JS script to update badges in the README and in docs
 /vss.js              # reads single-sourced version from package.json and writes it everywhere
 ```
 
