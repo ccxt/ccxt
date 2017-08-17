@@ -9761,11 +9761,11 @@ var hitbtc = {
         return this.parseTicker (ticker, p);
     },
 
-    async fetchTrades (market) {
+    async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
-        return this.publicGetSymbolTrades ({
+        return this.publicGetSymbolTrades (this.extend ({
             'symbol': this.marketId (market),
-        });
+        }, params));
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
