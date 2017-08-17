@@ -121,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.1'
+__version__ = '1.4.2'
 
 #------------------------------------------------------------------------------
 
@@ -635,6 +635,18 @@ class Exchange (object):
 
     def fetchTickers(self):
         return self.fetch_tickers()
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+        return ohlcv
+
+    def parse_ohlcvs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None):
+        result = []
+        for t in range(0, len(ohlcvs)):
+            result.append(self.parse_ohlcv(ohlcvs[t], market, timeframe, since, limit))
+        return result
+
+    def parseOHLCVs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None):
+        return self.parse_ohlcvs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None)
 
     def parse_trades(self, trades, market=None):
         result = []
@@ -11330,6 +11342,15 @@ class okcoin (Exchange):
             'symbol': self.market_id(market),
         })
 
+    def fetchOHLCV(self, market, timeframe=60, since=None, limit=None):
+        m = self.market(market)
+        response = self.publicGetKline({
+            'symbol': m['id'],
+            'since': since,
+            'size': int(limit),
+        })
+        return self.parseOHLCVs(m, response, timeframe, since, limit)
+
     def fetch_balance(self):
         response = self.privatePostUserinfo()
         balances = response['info']['funds']
@@ -11372,7 +11393,7 @@ class okcoin (Exchange):
         }, params))
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = '/api/' + self.version + '/' + path + '.do'
+        url = '/' + 'api' + '/' + self.version + '/' + path + '.do'
         if api == 'public':
             if params:
                 url += '?' + _urlencode.urlencode(params)
