@@ -82,7 +82,7 @@ The contents of the repository are structured as follows:
 /export-exchanges.js # used to create tables of exchanges in the docs during the build
 /package.json        # npm package file, also used in setup.py for version single-sourcing
 /setup.cfg           # wheels config file for the Python package
-/setup.py            # pip/setuptools script (build/install) for the ccxt module/package in Python
+/setup.py            # pip/setuptools script (build/install) for ccxt in Python
 /run-tests.js        # a front-end to run invididual tests of all exchanges in all languages (JS/PHP/Python)
 /test.js             # invididual tests in JS
 /test.php            # same in PHP
