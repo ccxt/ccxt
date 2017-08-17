@@ -102,12 +102,14 @@ At first, all language-specific versions were developed in parallel, but separat
 The ccxt library includes one single file per each language:
 
 ```shell
-/ccxt.js           # master JS ES6 version of the ccxt library
-/ccxt.py           # base code for the slave Python version of the ccxt library
-/ccxt.php          # base code for the slave PHP version of the ccxt library
-/ccxt/__init__.py  # slave Python-version of the ccxt library
-/build/ccxt.es5.js # slave JavaScript ES5 version of the ccxt library
-/build/ccxt.php    # slave PHP-version of the ccxt library
+/ccxt.js               # master JS ES6 version of the ccxt library
+/ccxt.py               # base code for the slave Python version of the ccxt library
+/ccxt.browser.js       # base code for the browserified version of the library
+/ccxt.php              # base code for the slave PHP version of the ccxt library
+/ccxt/__init__.py      # slave Python-version of the ccxt library
+/build/ccxt.es5.js     # slave JavaScript ES5 version of the ccxt library
+/build/ccxt.browser.js # slave browser bundle of the ccxt library
+/build/ccxt.php        # slave PHP-version of the ccxt library
 ```
 
 The module entry points are:
