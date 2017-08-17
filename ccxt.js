@@ -2172,7 +2172,7 @@ var bitfinex = {
         if (type == 'market') {
             order['price'] = this.nonce ().toString ();
         } else {
-            order['price'] = price;
+            order['price'] = price.toString ();
         }
         let result = await this.privatePostOrderNew (this.extend (order, params));
         return {
