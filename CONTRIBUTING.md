@@ -35,7 +35,9 @@ Below is a list of functionality we would like to have implemented in the librar
 - Unified deposit methods
 - Unified withdrawal methods
 
-If you want to contribute by submitting partial implementations be sure to look up examples of how it's done inside the library (where implemented already) and copy the adopted practices. If it does not relate to the above list of tasks before submitting it make sure:
+If you want to contribute by submitting partial implementations be sure to look up examples of how it's done inside the library (where implemented already) and copy the adopted practices.
+
+If your proposal, suggestion or improvement does not relate to the above list of tasks before submitting it make sure:
 1. it is really needed by all users of the library
 2. it is done in a generalised way compatible with all exchanges
 3. it is portable (available in all supported languages)
