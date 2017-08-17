@@ -121,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.5'
+__version__ = '1.4.6'
 
 #------------------------------------------------------------------------------
 
@@ -8987,6 +8987,26 @@ class gdax (Exchange):
         return self.publicGetProductsIdTrades({
             'id': self.market_id(market), # fixes issue #2
         })
+
+    def parseOHLCV(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+        return [
+            ohlcv[0] * 1000,
+            ohlcv[3],
+            ohlcv[2],
+            ohlcv[1],
+            ohlcv[4],
+            ohlcv[5],
+        ]
+
+    def fetchOHLCV(self, market, timeframe=60, since=None, limit=None):
+        m = self.market(market)
+        response = self.publicGetProductsIdCandles({
+            'id': m['id'],
+            'granularity': timeframe,
+            'start': since,
+            'end': limit,
+        })
+        return self.parseOHLCVs(m, response, timeframe, since, limit)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.loadMarkets()
