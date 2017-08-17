@@ -42,9 +42,10 @@ If you want to contribute by submitting partial implementations be sure to look 
 
 If your proposal, suggestion or improvement does not relate to the above list of tasks before submitting it make sure:
 1. it is really needed by the majority of ccxt users
-2. it is done in a generalized way compatible with all exchanges (not exchange-specific)
-3. it is portable (available in all supported languages)
-4. it is robust and explicit in what it's doing
+2. it is designed to be a general-purpose solution, not hardcoded for your specific needs
+3. it is done in a generalized way compatible with all exchanges (not exchange-specific)
+4. it is portable (available in all supported languages)
+5. it is robust and explicit in what it's doing
 
 The following is a set of rules for contributing to the ccxt library codebase.
 
