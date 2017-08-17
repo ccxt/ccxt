@@ -636,6 +636,18 @@ class Exchange (object):
     def fetchTickers(self):
         return self.fetch_tickers()
 
+    def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+        return ohlcv
+
+    def parse_ohlcvs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None):
+        result = []
+        for t in range(0, len(ohlcvs)):
+            result.append(self.parse_ohlcv(ohlcvs[t], market, timeframe, since, limit))
+        return result
+
+    def parseOHLCVs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None):
+        return this.parse_ohlcvs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None)
+
     def parse_trades(self, trades, market=None):
         result = []
         for t in range(0, len(trades)):

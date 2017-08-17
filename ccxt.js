@@ -539,19 +539,33 @@ const Exchange = function (config) {
 
     this.url = function (path, params = {}) {
         let result = this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+        let query = this.omit (params, this.extractParams (path))
         if (Object.keys (query).length)
-            result += '?' + this.urlencode (query);
-        return result;
+            result += '?' + this.urlencode (query)
+        return result
     }
 
     this.parse_trades =
     this.parseTrades = function (trades, market = undefined) {
-        let result = [];
+        let result = []
         for (let t = 0; t < trades.length; t++) {
-            result.push (this.parseTrade (trades[t], market));
+            result.push (this.parseTrade (trades[t], market))
         }
-        return result;
+        return result
+    }
+
+    this.parse_ohlcv =
+    this.parseOHLCV = function (ohlcv, market = undefined, timeframe = 60, since = undefined, limit = undefined) {
+        return ohlcv
+    }
+
+    this.parse_ohlcvs =
+    this.parseOHLCVs = function (ohlcvs, market = undefined, timeframe = 60, since = undefined, limit = undefined) {
+        let result = []
+        for (let t = 0; t < ohlcvs.length; t++) {
+            result.push (this.parseOHLCV (ohlcvs[t], market, timeframe, since, limit))
+        }
+        return result
     }
 
     this.create_limit_buy_order =
@@ -11742,6 +11756,16 @@ var okcoin = {
         });
     },
 
+    async fetchOHLCV (market, timeframe = 60, since = undefined, limit = undefined) {
+        let m = this.market (market);
+        let response = await this.publicGetKline ({
+            'symbol': m['id'],
+            'since': since,
+            'size': parseInt (limit),
+        });
+        return this.parseOHLCVs (m, response, timeframe, since, limit);
+    },
+
     async fetchBalance () {
         let response = await this.privatePostUserinfo ();
         let balances = response['info']['funds'];
@@ -11788,7 +11812,7 @@ var okcoin = {
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = '/api/' + this.version + '/' + path + '.do';
+        let url = '/' + 'api' + '/' + this.version + '/' + path + '.do';
         if (api == 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
