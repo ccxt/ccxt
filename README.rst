@@ -232,7 +232,7 @@ JavaScript version of ccxt works both in Node and web browsers.
 JavaScript (for use with the ``<script>`` tag):
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-`All-in-one browser bundle <https://unpkg.com/ccxt>`__ (dependencies included), served from `unpkg CDN <https://unpkg.com/>`__, which is a is a fast, global content delivery network for everything on NPM.
+`All-in-one browser bundle <https://unpkg.com/ccxt>`__ (dependencies included), served from `unpkg CDN <https://unpkg.com/>`__, which is a fast, global content delivery network for everything on NPM.
 
 .. code:: html
 
