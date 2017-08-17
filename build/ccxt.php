@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.3.117';
+$version = '1.3.118';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -4950,7 +4950,7 @@ class btce extends Exchange {
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('success', $response))
-            if (!reponse['success'])
+            if (!$response['success'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }

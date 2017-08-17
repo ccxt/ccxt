@@ -121,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.3.117'
+__version__ = '1.3.118'
 
 #------------------------------------------------------------------------------
 
@@ -4554,7 +4554,7 @@ class btce (Exchange):
             }
         response = self.fetch(url, method, headers, body)
         if 'success' in response:
-            if not reponse['success']:
+            if not response['success']:
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
