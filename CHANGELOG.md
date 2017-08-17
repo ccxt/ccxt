@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Added parameterization to unified fetchTrades, [#118](https://github.com/kroitor/ccxt/pull/118)
 - Added parseOHLCVs, parseOLHCV base methods
 - Added experimental unified fetchOHLCV to GDAX
 - Added experimental unified fetchOHLCV method to OKCoin
