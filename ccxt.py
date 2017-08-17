@@ -646,7 +646,7 @@ class Exchange (object):
         return result
 
     def parseOHLCVs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None):
-        return this.parse_ohlcvs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None)
+        return self.parse_ohlcvs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None)
 
     def parse_trades(self, trades, market=None):
         result = []
