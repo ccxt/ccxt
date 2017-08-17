@@ -33,14 +33,8 @@ Below is a list of functionality we would like to have implemented in the librar
 - Unified withdraw method
 - Concurrency in Python with async/await (with respect to 2.7)
 - WebSocket interfaces:
-  - Methods for trading where supported (pub)
-  - Real-time properties with each exchange (sub):
-    - balance
-    - orders
-    - trades
-    - ohlcv
-    - tickers
-    - orderbooks
+  - Pub: Methods for trading and private calls where supported
+  - Sub: Real-time balance, orders, tickers, orderbooks and other properties with each exchange
 - REST long-poller
 - Round-robin scheduler
 - Improved proxy support
