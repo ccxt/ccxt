@@ -9294,6 +9294,28 @@ var gdax = {
         });
     },
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = 60, since = undefined, limit = undefined) {
+        return [
+            ohlcv[0] * 1000,
+            ohlcv[3],
+            ohlcv[2],
+            ohlcv[1],
+            ohlcv[4],
+            ohlcv[5],
+        ];
+    },
+
+    async fetchOHLCV (market, timeframe = 60, since = undefined, limit = undefined) {
+        let m = this.market (market);
+        let response = await this.publicGetProductsIdCandles ({
+            'id': m['id'],
+            'granularity': timeframe,
+            'start': since,
+            'end': limit,
+        });
+        return this.parseOHLCVs (m, response, timeframe, since, limit);
+    },
+
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let oid = this.nonce ().toString ();
