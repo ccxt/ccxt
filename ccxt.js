@@ -3785,21 +3785,40 @@ var bittrex = {
         return this.marketGetCancel ({ 'uuid': id });
     },
 
+    parseOrder (order) {
+        let side = (order['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
+        let open = order['IsOpen'];
+        let canceled = order['CancelInitiated'];
+        let status = undefined;
+        if (open) {
+            status = 'open';
+        } else if (canceled) {
+            status = 'canceled';
+        } else {
+            status = 'closed';
+        }
+        let timestamp = this.parse8601 (order['Opened']);
+        let market = this.markets_by_id[order['Exchange']];
+        let result = {
+            'info': order,
+            'id': order['OrderUuid'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': 'limit',
+            'side': side,
+            'price': order['PricePerUnit'],
+            'amount': order['Quantity'],
+            'remaining': order['QuantityRemaining'],
+            'status': status,
+        };
+        return result;
+    },
+
     async fetchOrder (id) {
         await this.loadMarkets ();
         let response = await this.accountGetOrder ({ 'uuid': id });
-        let orderInfo = response['result'];
-        let orderType = (orderInfo['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
-        let result = {
-            'info': response,
-            'type': orderType,
-            'rate': orderInfo['PricePerUnit'],
-            'startingAmount': orderInfo['Quantity'],
-            'remaining': orderInfo['QuantityRemaining'],
-            'isOpen': orderInfo['IsOpen'],
-            'isCanceled': orderInfo['CancelInitiated'],
-        };
-        return result;
+        return this.parseOrder (response['result']);
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -4594,26 +4613,42 @@ var btce = {
         return this.privatePostCancelOrder ({ 'order_id': id });
     },
 
-    async fetchOrder (id) {
-        await this.loadMarkets ();
-        let response = await this.privatePostOrderInfo ({ 'order_id': id });
-        let orderInfo = response['return'][id];
-        let isCanceled = false;
-        if ((orderInfo['status'] == 2) || (orderInfo['status'] == 3))
-            isCanceled = true;
+    parseOrder (order) {
+        let statusCode = order['status'];
+        let status = undefined;
+        if (statusCode == 0) {
+            status = 'open';
+        } else if ((statusCode == 2) || (statusCode == 3)) {
+            status = 'canceled';
+        } else {
+            status = 'closed';
+        }
+        let timestamp = order['timestamp_created'] * 1000;
+        let market = this.markets_by_id[order['pair']];
         let result = {
-            'info': response,
-            'type': orderInfo['type'],
-            'rate': orderInfo['rate'],
-            'startingAmount': orderInfo['start_amount'],
-            'remaining': orderInfo['amount'],
-            'isOpen': orderInfo['status'] == 0,
-            'isCanceled': isCanceled,
+            'info': order,
+            'id': order['id'],
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'type': 'limit',
+            'side': order['type'],
+            'price': order['rate'],
+            'amount': order['start_amount'],
+            'remaining': order['amount'],
+            'status': status,
         };
         return result;
     },
 
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async fetchOrder (id) {
+        await this.loadMarkets ();
+        let response = await this.privatePostOrderInfo ({ 'order_id': id });
+        let order = response['return'][id];
+        return this.parseOrder (this.extend ({ 'id': id }, order));
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api == 'public') {
@@ -4632,7 +4667,11 @@ var btce = {
                 'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('success' in response)
+            if (!reponse['success'])
+                throw new ExchangeError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 

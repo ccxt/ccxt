@@ -4050,21 +4050,40 @@ class bittrex extends Exchange {
         return $this->marketGetCancel (array ( 'uuid' => $id ));
     }
 
+    public function parseOrder ($order) {
+        $side = ($order['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
+        $open = $order['IsOpen'];
+        $canceled = $order['CancelInitiated'];
+        $status = null;
+        if ($open) {
+            $status = 'open';
+        } else if ($canceled) {
+            $status = 'canceled';
+        } else {
+            $status = 'closed';
+        }
+        $timestamp = $this->parse8601 ($order['Opened']);
+        $market = $this->markets_by_id[$order['Exchange']];
+        $result = array (
+            'info' => $order,
+            'id' => $order['OrderUuid'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => 'limit',
+            'side' => $side,
+            'price' => $order['PricePerUnit'],
+            'amount' => $order['Quantity'],
+            'remaining' => $order['QuantityRemaining'],
+            'status' => $status,
+        );
+        return $result;
+    }
+
     public function fetchOrder ($id) {
         $this->loadMarkets ();
         $response = $this->accountGetOrder (array ( 'uuid' => $id ));
-        $orderInfo = $response['result'];
-        $orderType = ($orderInfo['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
-        $result = array (
-            'info' => $response,
-            'type' => $orderType,
-            'rate' => $orderInfo['PricePerUnit'],
-            'startingAmount' => $orderInfo['Quantity'],
-            'remaining' => $orderInfo['QuantityRemaining'],
-            'isOpen' => $orderInfo['IsOpen'],
-            'isCanceled' => $orderInfo['CancelInitiated'],
-        );
-        return $result;
+        return $this->parseOrder ($response['result']);
     }
 
     public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
@@ -4875,23 +4894,39 @@ class btce extends Exchange {
         return $this->privatePostCancelOrder (array ( 'order_id' => $id ));
     }
 
+    public function parseOrder ($order) {
+        $statusCode = $order['status'];
+        $status = null;
+        if ($statusCode == 0) {
+            $status = 'open';
+        } else if (($statusCode == 2) || ($statusCode == 3)) {
+            $status = 'canceled';
+        } else {
+            $status = 'closed';
+        }
+        $timestamp = $order['timestamp_created'] * 1000;
+        $market = $this->markets_by_id[$order['pair']];
+        $result = array (
+            'info' => $order,
+            'id' => $order['id'],
+            'symbol' => $market['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'type' => 'limit',
+            'side' => $order['type'],
+            'price' => $order['rate'],
+            'amount' => $order['start_amount'],
+            'remaining' => $order['amount'],
+            'status' => $status,
+        );
+        return $result;
+    }
+
     public function fetchOrder ($id) {
         $this->loadMarkets ();
         $response = $this->privatePostOrderInfo (array ( 'order_id' => $id ));
-        $orderInfo = $response['return'][$id];
-        $isCanceled = false;
-        if (($orderInfo['status'] == 2) || ($orderInfo['status'] == 3))
-            $isCanceled = true;
-        $result = array (
-            'info' => $response,
-            'type' => $orderInfo['type'],
-            'rate' => $orderInfo['rate'],
-            'startingAmount' => $orderInfo['start_amount'],
-            'remaining' => $orderInfo['amount'],
-            'isOpen' => $orderInfo['status'] == 0,
-            'isCanceled' => $isCanceled,
-        );
-        return $result;
+        $order = $response['return'][$id];
+        return $this->parseOrder (array_merge (array ( 'id' => $id ), $order));
     }
 
     public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
@@ -4913,7 +4948,11 @@ class btce extends Exchange {
                 'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('success', $response))
+            if (!reponse['success'])
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 
