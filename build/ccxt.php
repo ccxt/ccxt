@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.10';
+$version = '1.4.11';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -1170,10 +1170,10 @@ class cryptocapital extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
-        return $this->publicGetTransactions (array (
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->publicGetTransactions (array_merge (array (
             'currency' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -1422,12 +1422,12 @@ class anxpro extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $error = $this->id . ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/$market-data/currencypairmoneytradefetch-disabled';
         throw new ExchangeError ($error);
-        return $this->publicGetCurrencyPairMoneyTradeFetch (array (
+        return $this->publicGetCurrencyPairMoneyTradeFetch (array_merge (array (
             'currency_pair' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -1604,10 +1604,10 @@ class bit2c extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
-        return $this->publicGetExchangesPairTrades (array (
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->publicGetExchangesPairTrades (array_merge (array (
             'pair' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -1781,10 +1781,11 @@ class bitbay extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
-        return $this->publicGetIdTrades (array (
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->publicGetIdTrades (array_merge (array (
             'id' => $this->market_id ($market),
-        ));
+        ), $params));
+
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -1943,10 +1944,10 @@ class bitbays extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
-        return $this->publicGetTrades (array (
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->publicGetTrades (array_merge (array (
             'market' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -2134,10 +2135,10 @@ class bitcoincoid extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
-        return $this->publicGetPairTrades (array (
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->publicGetPairTrades (array_merge (array (
             'pair' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -2390,12 +2391,12 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
         $m = $this->market ($market);
-        $trades = $this->publicGetTradesSymbol (array (
+        $trades = $this->publicGetTradesSymbol (array_merge (array (
             'symbol' => $m['id'],
-        ));
+        ), $params));
         return $this->parse_trades ($trades, $m);
     }
 
@@ -2629,11 +2630,11 @@ class bitflyer extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetExecutions (array (
+        return $this->publicGetExecutions (array_merge (array (
             'product_code' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -2841,11 +2842,11 @@ class bitlish extends Exchange {
         return $result;
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetTradesHistory (array (
+        return $this->publicGetTradesHistory (array_merge (array (
             'pair_id' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function fetch_balance () {
@@ -3074,10 +3075,10 @@ class bitmarket extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
-        return $this->publicGetJsonMarketTrades (array (
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->publicGetJsonMarketTrades (array_merge (array (
             'market' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -3334,11 +3335,11 @@ class bitmex extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetTrade (array (
+        return $this->publicGetTrade (array_merge (array (
             'symbol' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -3545,11 +3546,11 @@ class bitso extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetTrades (array (
+        return $this->publicGetTrades (array_merge (array (
             'book' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -3713,10 +3714,10 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
-        return $this->publicGetTransactionsId (array (
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->publicGetTransactionsId (array_merge (array (
             'id' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function fetch_balance () {
@@ -4015,12 +4016,12 @@ class bittrex extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
         $m = $this->market ($market);
-        $response = $this->publicGetMarkethistory (array (
+        $response = $this->publicGetMarkethistory (array_merge (array (
             'market' => $m['id'],
-        ));
+        ), $params));
         return $this->parse_trades ($response['result'], $m);
     }
 
@@ -4225,12 +4226,12 @@ class blinktrade extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $p = $this->market ($market);
-        return $this->publicGetCurrencyTrades (array (
+        return $this->publicGetCurrencyTrades (array_merge (array (
             'currency' => $p['quote'],
             'crypto_currency' => $p['base'],
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -4422,10 +4423,10 @@ class bl3p extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
-        return $this->publicGetMarketTrades (array (
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->publicGetMarketTrades (array_merge (array (
             'market' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -4633,11 +4634,11 @@ class btcchina extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetTrades (array (
+        return $this->publicGetTrades (array_merge (array (
             'market' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -4862,11 +4863,11 @@ class btce extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetTradesPair (array (
+        return $this->publicGetTradesPair (array_merge (array (
             'pair' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -5096,12 +5097,12 @@ class btcmarkets extends Exchange {
         return $this->parse_ticker ($ticker, $m);
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetMarketIdTrades (array (
+        return $this->publicGetMarketIdTrades (array_merge (array (
             // 'since' => 59868345231,
             'id' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -5284,9 +5285,9 @@ class btctrader extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $maxCount = 50;
-        return $this->publicGetTrades ();
+        return $this->publicGetTrades ($params);
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -5531,10 +5532,10 @@ class btctradeua extends Exchange {
         return $result;
     }
 
-    public function fetch_trades ($market) {
-        return $this->publicGetDealsSymbol (array (
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->publicGetDealsSymbol (array_merge (array (
             'symbol' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -5715,11 +5716,11 @@ class btcx extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
-        return $this->publicGetTradeIdLimit (array (
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->publicGetTradeIdLimit (array_merge (array (
             'id' => $this->market_id ($market),
-            'limit' => 100,
-        ));
+            'limit' => 1000,
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -5950,11 +5951,11 @@ class bter extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetTradeHistoryId (array (
+        return $this->publicGetTradeHistoryId (array_merge (array (
             'id' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -6186,11 +6187,11 @@ class bxinth extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetTrade (array (
+        return $this->publicGetTrade (array_merge (array (
             'pairing' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -6405,13 +6406,13 @@ class ccex extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetMarkethistory (array (
+        return $this->publicGetMarkethistory (array_merge (array (
             'market' => $this->market_id ($market),
             'type' => 'both',
             'depth' => 100,
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -6619,11 +6620,11 @@ class cex extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetTradeHistoryPair (array (
+        return $this->publicGetTradeHistoryPair (array_merge (array (
             'pair' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -6815,10 +6816,10 @@ class chbtc extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
-        return $this->publicGetTrades (array (
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->publicGetTrades (array_merge (array (
             'currency' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -7060,8 +7061,8 @@ class coincheck extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
-        return $this->publicGetTrades ();
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->publicGetTrades ($params);
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -7237,10 +7238,10 @@ class coinfloor extends Exchange {
         return $this->parse_ticker ($ticker, $m);
     }
 
-    public function fetch_trades ($market) {
-        return $this->publicGetIdTransactions (array (
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->publicGetIdTransactions (array_merge (array (
             'id' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -7777,11 +7778,11 @@ class coinmate extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
-        return $this->publicGetTransactions (array (
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->publicGetTransactions (array_merge (array (
             'currencyPair' => $this->market_id ($market),
             'minutesIntoHistory' => 10,
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -8068,8 +8069,8 @@ class coinsecure extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
-        return $this->publicGetExchangeTrades ();
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->publicGetExchangeTrades ($params);
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -8247,10 +8248,10 @@ class coinspot extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
-        return $this->privatePostOrdersHistory (array (
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->privatePostOrdersHistory (array_merge (array (
             'cointype' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -8449,11 +8450,11 @@ class dsx extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->mapiGetTradesId (array (
+        return $this->mapiGetTradesId (array_merge (array (
             'id' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -8679,11 +8680,11 @@ class exmo extends Exchange {
         return $this->parse_ticker ($response[$p['id']], $p);
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetTrades (array (
+        return $this->publicGetTrades (array_merge (array (
             'pair' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -9074,8 +9075,8 @@ class fyb extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
-        return $this->publicGetTrades ();
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->publicGetTrades ($params);
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -9441,11 +9442,11 @@ class gatecoin extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetPublicTransactionsCurrencyPair (array (
+        return $this->publicGetPublicTransactionsCurrencyPair (array_merge (array (
             'CurrencyPair' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -9690,11 +9691,11 @@ class gdax extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetProductsIdTrades (array (
+        return $this->publicGetProductsIdTrades (array_merge (array (
             'id' => $this->market_id ($market), // fixes issue #2
-        ));
+        ), $params));
     }
 
     public function parseOHLCV ($ohlcv, $market=null, $timeframe=60, $since=null, $limit=null) {
@@ -9903,11 +9904,11 @@ class gemini extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetTradesSymbol (array (
+        return $this->publicGetTradesSymbol (array_merge (array (
             'symbol' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function fetch_balance () {
@@ -10373,10 +10374,10 @@ class huobi extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $p = $this->market ($market);
         $method = $p['type'] . 'GetDetailId';
-        return $this->$method (array ( 'id' => $p['id'] ));
+        return $this->$method (array_merge (array ( 'id' => $p['id'] ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -10553,10 +10554,10 @@ class itbit extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
-        return $this->publicGetMarketsSymbolTrades (array (
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->publicGetMarketsSymbolTrades (array_merge (array (
             'symbol' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function fetch_balance () {
@@ -10796,11 +10797,11 @@ class jubi extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetOrders (array (
+        return $this->publicGetOrders (array_merge (array (
             'coin' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -11307,11 +11308,11 @@ class lakebtc extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetBctrades (array (
-            'symbol' => $this->market_id ($market)
-        ));
+        return $this->publicGetBctrades (array_merge (array (
+            'symbol' => $this->market_id ($market),
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -11559,11 +11560,11 @@ class livecoin extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetExchangeLastTrades (array (
-            'currencyPair' => $this->market_id ($market)
-        ));
+        return $this->publicGetExchangeLastTrades (array_merge (array (
+            'currencyPair' => $this->market_id ($market),
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -11853,11 +11854,11 @@ class luno extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetTrades (array (
-            'pair' => $this->market_id ($market)
-        ));
+        return $this->publicGetTrades (array_merge (array (
+            'pair' => $this->market_id ($market),
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -12008,10 +12009,10 @@ class mercado extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $p = $this->market ($market);
         $method = 'publicGetTrades' . $this->capitalize ($p['suffix']);
-        return $this->$method ();
+        return $this->$method ($params);
     }
 
     public function fetch_balance () {
@@ -12196,10 +12197,10 @@ class okcoin extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
-        return $this->publicGetTrades (array (
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->publicGetTrades (array_merge (array (
             'symbol' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function fetch_ohlcv ($market, $timeframe=60, $since=null, $limit=null) {
@@ -12469,10 +12470,10 @@ class paymium extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
-        return $this->publicGetDataIdTrades (array (
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->publicGetDataIdTrades (array_merge (array (
             'id' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -12971,10 +12972,10 @@ class quadrigacx extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
-        return $this->publicGetTransactions (array (
+    public function fetch_trades ($market, $params=array ()) {
+        return $this->publicGetTransactions (array_merge (array (
             'book' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -13210,11 +13211,11 @@ class quoine extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetExecutions (array (
+        return $this->publicGetExecutions (array_merge (array (
             'product_id' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -13438,11 +13439,11 @@ class southxchange extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetTradesSymbol (array (
+        return $this->publicGetTradesSymbol (array_merge (array (
             'symbol' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -13694,11 +13695,11 @@ class therock extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetFundsIdTrades (array (
+        return $this->publicGetFundsIdTrades (array_merge (array (
             'id' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -13925,9 +13926,9 @@ class vaultoro extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetTransactionsDay ();
+        return $this->publicGetTransactionsDay ($params);
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -14183,12 +14184,12 @@ class virwox extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->publicGetRawTradeData (array (
+        return $this->publicGetRawTradeData(array_merge (array (
             'instrument' => $this->symbol ($market),
             'timespan' => 3600,
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -14486,10 +14487,10 @@ class xbtce extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
         // no method for trades?
-        return $this->privateGetTrade ();
+        return $this->privateGetTrade ($params);
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -14693,11 +14694,11 @@ class yobit extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->apiGetTradesPairs (array (
+        return $this->apiGetTradesPairs (array_merge (array (
             'pairs' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -14935,12 +14936,12 @@ class yunbi extends Exchange {
         return $this->parse_ticker ($response, $p);
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
         $m = $this->market ($market);
-        return $this->publicGetTrades (array (
+        return $this->publicGetTrades (array_merge (array (
             'market' => $m['id'],
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
@@ -15149,11 +15150,11 @@ class zaif extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($market, $params=array ()) {
         $this->loadMarkets ();
-        return $this->apiGetTradesPair (array (
+        return $this->apiGetTradesPair (array_merge (array (
             'pair' => $this->market_id ($market),
-        ));
+        ), $params));
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
