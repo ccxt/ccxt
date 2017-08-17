@@ -621,9 +621,6 @@ class Exchange (object):
     def loadMarkets(self, reload=False):
         return self.load_markets()
 
-    def getMarketURL(self, market, params={}):
-        return self.get_market_url(market, params)
-
     def fetch_markets(self):
         return self.markets
 

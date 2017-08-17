@@ -701,10 +701,6 @@ class Exchange {
         return $this->set_markets ($markets);
     }
 
-    public function getMarketURL ($market, $params = array ()) {
-        return $this->get_market_url ($market, $params);
-    }
-
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
         return $ohlcv;
     }
