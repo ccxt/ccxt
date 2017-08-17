@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.5';
+$version = '1.4.6';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9695,6 +9695,28 @@ class gdax extends Exchange {
         return $this->publicGetProductsIdTrades (array (
             'id' => $this->market_id ($market), // fixes issue #2
         ));
+    }
+
+    public function parseOHLCV ($ohlcv, $market=null, $timeframe=60, $since=null, $limit=null) {
+        return [
+            $ohlcv[0] * 1000,
+            $ohlcv[3],
+            $ohlcv[2],
+            $ohlcv[1],
+            $ohlcv[4],
+            $ohlcv[5],
+        ];
+    }
+
+    public function fetchOHLCV ($market, $timeframe=60, $since=null, $limit=null) {
+        $m = $this->market ($market);
+        $response = $this->publicGetProductsIdCandles (array (
+            'id' => $m['id'],
+            'granularity' => $timeframe,
+            'start' => $since,
+            'end' => $limit,
+        ));
+        return $this->parseOHLCVs ($m, $response, $timeframe, $since, $limit);
     }
 
     public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
