@@ -4,6 +4,8 @@
 - This file is a work in progress, guidelines for contributing are being developed right now!
 ```
 
+## How To Submit An Issue
+
 If you want to submit an issue and you want your issue to be resolved quickly, here's a basic checklist for you:
 
 - Read the [Manual](https://github.com/kroitor/ccxt/wiki/Manual).
@@ -16,18 +18,35 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
   - a code snippet you're having difficulties with
   - the output of that snippet in verbose mode
 
+## Pending Tasks
+
+Below is a list of tasks we would like to have implemented in the library in the first place. Most of these tasks are already in progress:
+
+- Unified OHLC(v) series
+- Unified fetchTrades (public)
+- Unified fetchOrder
+- Unified fetchMyOrders, fetchMyOpenOrders, fetchMyClosedOrders
+- Unified fetchMyTrades, fetchOrderTrades
+- Concurrency in Python with async/await (with respect to 2.7)
+- WebSocket interfaces
+- REST long-poller
+- Unified deposit methods
+- Unified withdrawal methods
+
+## How To Contribute Code
+
 Below are the rules for contributing to the ccxt library codebase.
 
-## What You Need To Have
+### What You Need To Have
 
 - Node.js (version 8 or higher)
 - Python 2/3
 - PHP 5.3+
 - [Pandoc](https://pandoc.org/installing.html)
 
-## What You Need To Know
+### What You Need To Know
 
-### Repository Structure
+#### Repository Structure
 
 The contents of the repository are structured as follows:
 
@@ -68,7 +87,7 @@ The contents of the repository are structured as follows:
 /vss.js              # reads single-sourced version from package.json and writes it everywhere
 ```
 
-### Multilanguage Support
+#### Multilanguage Support
 
 The ccxt library is available in three different languages (more to come). We encourage developers to design *portable* code, so that a single-language user can read code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
@@ -133,23 +152,23 @@ Key notes on the structure of the library file:
 - the second bold ruler and footer are optional
 - ...
 
-#### JavaScript
+##### JavaScript
 
 ```UNDER CONSTRUCTION```
 
-#### Python
+##### Python
 
 ```UNDER CONSTRUCTION```
 
-#### PHP
+##### PHP
 
 ```UNDER CONSTRUCTION```
 
-### Base Class
+#### Base Class
 
 ```UNDER CONSTRUCTION```
 
-### Derived Exchange Classes
+#### Derived Exchange Classes
 
 Below are key notes on how to keep the JS code transpileable:
 
@@ -215,13 +234,13 @@ The basic JSON-skeleton for a new exchange integration is as follows:
 
 ```UNDER CONSTRUCTION```
 
-### Continuous Integration
+#### Continuous Integration
 
 Builds are automated by [travis-ci](https://travis-ci.org/kroitor/ccxt/builds). All build steps are described in the [`.travis.yml`](https://github.com/kroitor/ccxt/blob/master/.travis.yml) file.
 
 Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [travis-ci.org/kroitor/ccxt/builds](https://travis-ci.org/kroitor/ccxt/builds).
 
-### How To Build & Run Tests On Your Local Machine
+#### How To Build & Run Tests On Your Local Machine
 
 The command below will build everything and generate slave PHP/Python versions from master `ccxt.js` file:
 
