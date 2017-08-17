@@ -10625,6 +10625,28 @@ var kraken = {
         };
     },
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = 60, since = undefined, limit = undefined) {
+        return [
+            ohlcv[0],
+            ohlcv[1],
+            ohlcv[2],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[6],
+        ];
+    },
+
+    async fetchOHLCV (market, timeframe = 60, since = undefined, limit = undefined) {
+        let m = this.market (market);
+        let response = await this.publicGetOHLC ({
+            'pair': m['id'],
+            'interval': parseInt (timeframe / 60),
+            'since': since,
+        });
+        let ohlcvs = response[m['id']];
+        return this.parseOHLCVs (m, ohlcvs, timeframe, since, limit);
+    },
+
     async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
         let m = this.market (market);

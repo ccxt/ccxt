@@ -82,6 +82,7 @@ while (exchanges = regex.exec (contents)) {
                         // .replace ('fetchCategories', 'fetch_categories')
                         .replace ('fetchMarkets',     'fetch_markets')
                         .replace ('fetchOrderBook',   'fetch_order_book')
+                        .replace ('fetchOHLCV',       'fetch_ohlcv')
                         .replace ('fetchTickers',     'fetch_tickers')
                         .replace ('fetchTicker',      'fetch_ticker')
                         .replace ('parseTicker',      'parse_ticker')
@@ -95,7 +96,6 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('createOrder',      'create_order')
                         .replace ('cancelOrder',      'cancel_order')
                         .replace ('signIn',           'sign_in')
-                        .replace ('getMarketURL',     'get_market_url')
 
         args = args.length ? args.split (',').map (x => x.trim ().replace (' = ', '=')) : []
         let phArgs = args.join (', $').trim ()
@@ -128,6 +128,8 @@ while (exchanges = regex.exec (contents)) {
             [ /\.binaryToString\s/g, '.binary_to_string' ],
             [ /\.implodeParams\s/g, '.implode_params'],
             [ /\.extractParams\s/g, '.extract_params'],
+            [ /\.parseOHLCVs/g, '.parse_ohlcvs'],
+            [ /\.parseOHLCV/g, '.parse_ohlcv'],
             [ /\.parseTicker\s/g, '.parse_ticker'],
             [ /\.parseTrades\s/g, '.parse_trades'],
             [ /\.parseTrade\s/g, '.parse_trade'],
@@ -203,6 +205,8 @@ while (exchanges = regex.exec (contents)) {
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64/g, 'base64_encode' ],
             [ /this\.base64ToBinary/g, 'base64_decode' ],
+            [ /\.parseOHLCVs/g, '.parse_ohlcvs'],
+            [ /\.parseOHLCV/g, '.parse_ohlcv'],
             [ /\.parseTicker/g, '.parse_ticker'],
             [ /\.parseTrades/g, '.parse_trades'],
             [ /\.parseTrade/g, '.parse_trade'],
