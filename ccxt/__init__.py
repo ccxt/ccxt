@@ -3713,21 +3713,38 @@ class bittrex (Exchange):
         self.loadMarkets()
         return self.marketGetCancel({'uuid': id})
 
+    def parseOrder(self, order):
+        side = 'buy' if(order['Type'] == 'LIMIT_BUY') else 'sell'
+        open = order['IsOpen']
+        canceled = order['CancelInitiated']
+        status = None
+        if open:
+            status = 'open'
+        elif canceled:
+            status = 'canceled'
+        else:
+            status = 'closed'
+        timestamp = self.parse8601(order['Opened'])
+        market = self.markets_by_id[order['Exchange']]
+        result = {
+            'info': order,
+            'id': order['OrderUuid'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': 'limit',
+            'side': side,
+            'price': order['PricePerUnit'],
+            'amount': order['Quantity'],
+            'remaining': order['QuantityRemaining'],
+            'status': status,
+        }
+        return result
+
     def fetchOrder(self, id):
         self.loadMarkets()
         response = self.accountGetOrder({'uuid': id})
-        orderInfo = response['result']
-        orderType = 'buy' if(orderInfo['Type'] == 'LIMIT_BUY') else 'sell'
-        result = {
-            'info': response,
-            'type': orderType,
-            'rate': orderInfo['PricePerUnit'],
-            'startingAmount': orderInfo['Quantity'],
-            'remaining': orderInfo['QuantityRemaining'],
-            'isOpen': orderInfo['IsOpen'],
-            'isCanceled': orderInfo['CancelInitiated'],
-        }
-        return result
+        return self.parseOrder(response['result'])
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/'
@@ -4485,23 +4502,37 @@ class btce (Exchange):
         self.loadMarkets()
         return self.privatePostCancelOrder({'order_id': id})
 
+    def parseOrder(self, order):
+        statusCode = order['status']
+        status = None
+        if statusCode == 0:
+            status = 'open'
+        elif(statusCode == 2) or(statusCode == 3):
+            status = 'canceled'
+        else:
+            status = 'closed'
+        timestamp = order['timestamp_created'] * 1000
+        market = self.markets_by_id[order['pair']]
+        result = {
+            'info': order,
+            'id': order['id'],
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'type': 'limit',
+            'side': order['type'],
+            'price': order['rate'],
+            'amount': order['start_amount'],
+            'remaining': order['amount'],
+            'status': status,
+        }
+        return result
+
     def fetchOrder(self, id):
         self.loadMarkets()
         response = self.privatePostOrderInfo({'order_id': id})
-        orderInfo = response['return'][id]
-        isCanceled = False
-        if(orderInfo['status'] == 2) or(orderInfo['status'] == 3):
-            isCanceled = True
-        result = {
-            'info': response,
-            'type': orderInfo['type'],
-            'rate': orderInfo['rate'],
-            'startingAmount': orderInfo['start_amount'],
-            'remaining': orderInfo['amount'],
-            'isOpen': orderInfo['status'] == 0,
-            'isCanceled': isCanceled,
-        }
-        return result
+        order = response['return'][id]
+        return self.parseOrder(self.extend({'id': id}, order))
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
@@ -4521,7 +4552,11 @@ class btce (Exchange):
                 'Key': self.apiKey,
                 'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
-        return self.fetch(url, method, headers, body)
+        response = self.fetch(url, method, headers, body)
+        if 'success' in response:
+            if not reponse['success']:
+                raise ExchangeError(self.id + ' ' + self.json(response))
+        return response
 
 #------------------------------------------------------------------------------
 
