@@ -7263,6 +7263,11 @@ var coinmarketcap = {
         let changeKey = 'percent_change_24h';
         if (ticker[changeKey])
             change = parseFloat (ticker[changeKey]);
+        let last = undefined;
+        if (price in ticker)
+            if (ticker[price])
+                last = parseFloat (ticker[price]);
+        console.log (ticker);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -7274,7 +7279,7 @@ var coinmarketcap = {
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': parseFloat (ticker[price]),
+            'last': last,
             'change': change,
             'percentage': undefined,
             'average': undefined,

@@ -3714,10 +3714,29 @@ class bitstamp extends Exchange {
         );
     }
 
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['date'] * 1000;
+        $side = ($trade['type'] == 0) ? 'buy' : 'sell';
+        return array (
+            'id' => (string) $trade['tid'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $side,
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
+        );
+    }
+
     public function fetch_trades ($market, $params=array ()) {
-        return $this->publicGetTransactionsId (array_merge (array (
-            'id' => $this->market_id ($market),
+        $m = $this->market ($market);
+        $response = $this->publicGetTransactionsId (array_merge (array (
+            'id' => $m['id'],
+            'time' => 'minute',
         ), $params));
+        return $this->parse_trades ($response, $m);
     }
 
     public function fetch_balance () {
@@ -3790,7 +3809,11 @@ class bitstamp extends Exchange {
                 'Content-Length' => strlen ($body),
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('status', $response))
+            if ($response['status'] == 'error')
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 
@@ -7591,6 +7614,11 @@ class coinmarketcap extends Exchange {
         $changeKey = 'percent_change_24h';
         if ($ticker[$changeKey])
             $change = floatval ($ticker[$changeKey]);
+        $last = null;
+        if (array_key_exists ($price, $ticker))
+            if ($ticker[$price])
+                $last = floatval ($ticker[$price]);
+        var_dump ($ticker);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -7602,7 +7630,7 @@ class coinmarketcap extends Exchange {
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval ($ticker[$price]),
+            'last' => $last,
             'change' => $change,
             'percentage' => null,
             'average' => null,

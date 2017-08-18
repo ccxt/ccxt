@@ -3398,10 +3398,28 @@ class bitstamp (Exchange):
             'info': ticker,
         }
 
+    def parse_trade(self, trade, market):
+        timestamp = trade['date'] * 1000
+        side = 'buy' if(trade['type'] == 0) else 'sell'
+        return {
+            'id': str(trade['tid']),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': side,
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
+        }
+
     def fetch_trades(self, market, params={}):
-        return self.publicGetTransactionsId(self.extend({
-            'id': self.market_id(market),
+        m = self.market(market)
+        response = self.publicGetTransactionsId(self.extend({
+            'id': m['id'],
+            'time': 'minute',
         }, params))
+        return self.parse_trades(response, m)
 
     def fetch_balance(self):
         balance = self.privatePostBalance()
@@ -3468,7 +3486,11 @@ class bitstamp (Exchange):
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len(body),
             }
-        return self.fetch(url, method, headers, body)
+        response = self.fetch(url, method, headers, body)
+        if 'status' in response:
+            if response['status'] == 'error':
+                raise ExchangeError(self.id + ' ' + self.json(response))
+        return response
 
 #------------------------------------------------------------------------------
 
@@ -7007,6 +7029,11 @@ class coinmarketcap (Exchange):
         changeKey = 'percent_change_24h'
         if ticker[changeKey]:
             change = float(ticker[changeKey])
+        last = None
+        if price in ticker:
+            if ticker[price]:
+                last = float(ticker[price])
+        print(ticker)
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -7018,7 +7045,7 @@ class coinmarketcap (Exchange):
             'open': None,
             'close': None,
             'first': None,
-            'last': float(ticker[price]),
+            'last': last,
             'change': change,
             'percentage': None,
             'average': None,
