@@ -2416,9 +2416,10 @@ var bitflyer = {
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + this.version + '/' + path;
+        let request = '/' + this.version + '/';
         if (api == 'private')
-            request = '/me' + request;
+            request += 'me/';
+        request += path;
         let url = this.urls['api'] + request;
         if (api == 'public') {
             if (Object.keys (params).length)
