@@ -3451,7 +3451,7 @@ var bitstamp = {
     },
 
     parseTrade (trade, market) {
-        let timestamp = trade['date'] * 1000;
+        let timestamp = parseInt (trade['date']);
         let side = (trade['type'] == 0) ? 'buy' : 'sell';
         return {
             'id': trade['tid'].toString (),
