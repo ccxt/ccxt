@@ -7267,7 +7267,6 @@ var coinmarketcap = {
         if (price in ticker)
             if (ticker[price])
                 last = parseFloat (ticker[price]);
-        console.log (ticker);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

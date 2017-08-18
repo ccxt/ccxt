@@ -7033,7 +7033,6 @@ class coinmarketcap (Exchange):
         if price in ticker:
             if ticker[price]:
                 last = float(ticker[price])
-        print(ticker)
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

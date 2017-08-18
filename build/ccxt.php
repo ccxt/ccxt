@@ -7618,7 +7618,6 @@ class coinmarketcap extends Exchange {
         if (array_key_exists ($price, $ticker))
             if ($ticker[$price])
                 $last = floatval ($ticker[$price]);
-        var_dump ($ticker);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
