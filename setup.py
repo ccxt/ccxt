@@ -53,6 +53,9 @@ setup(
 
     keywords=package['keywords'],
     packages=find_packages(),
+    install_requires=[
+        'setuptools'
+    ],
     extras_require={
         'qa': [
             'flake8'
