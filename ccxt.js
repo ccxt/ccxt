@@ -3450,10 +3450,29 @@ var bitstamp = {
         };
     },
 
+    parseTrade (trade, market) {
+        let timestamp = trade['date'] * 1000;
+        let side = (trade['type'] == 0) ? 'buy' : 'sell';
+        return {
+            'id': trade['tid'].toString (),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': side,
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
+        };
+    },
+
     async fetchTrades (market, params = {}) {
-        return this.publicGetTransactionsId (this.extend ({
-            'id': this.marketId (market),
+        let m = this.market (market);
+        let response = await this.publicGetTransactionsId (this.extend ({
+            'id': m['id'],
+            'time': 'minute',
         }, params));
+        return this.parseTrades (response, m);
     },
 
     async fetchBalance () {
