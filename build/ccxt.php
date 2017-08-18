@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.12';
+$version = '1.4.13';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3715,7 +3715,7 @@ class bitstamp extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        $timestamp = $trade['date'] * 1000;
+        $timestamp = intval ($trade['date']);
         $side = ($trade['type'] == 0) ? 'buy' : 'sell';
         return array (
             'id' => (string) $trade['tid'],

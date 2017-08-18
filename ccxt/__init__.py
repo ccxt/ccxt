@@ -121,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.12'
+__version__ = '1.4.13'
 
 #------------------------------------------------------------------------------
 
@@ -3399,7 +3399,7 @@ class bitstamp (Exchange):
         }
 
     def parse_trade(self, trade, market):
-        timestamp = trade['date'] * 1000
+        timestamp = int(trade['date'])
         side = 'buy' if(trade['type'] == 0) else 'sell'
         return {
             'id': str(trade['tid']),
