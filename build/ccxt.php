@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.14';
+$version = '1.4.15';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2661,9 +2661,10 @@ class bitflyer extends Exchange {
     }
 
     public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
-        $request = '/' . $this->version . '/' . $path;
+        $request = '/' . $this->version . '/';
         if ($api == 'private')
-            $request = '/me' . $request;
+            $request .= 'me/';
+        $request .= $path;
         $url = $this->urls['api'] . $request;
         if ($api == 'public') {
             if ($params)

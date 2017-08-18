@@ -121,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.14'
+__version__ = '1.4.15'
 
 #------------------------------------------------------------------------------
 
@@ -2405,9 +2405,10 @@ class bitflyer (Exchange):
         }, params))
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/' + self.version + '/' + path
+        request = '/' + self.version + '/'
         if api == 'private':
-            request = '/me' + request
+            request += 'me/'
+        request += path
         url = self.urls['api'] + request
         if api == 'public':
             if params:
