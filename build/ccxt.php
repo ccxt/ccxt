@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.16';
+$version = '1.4.17';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12563,7 +12563,6 @@ class poloniex extends Exchange {
             'name' => 'Poloniex',
             'countries' => 'US',
             'rateLimit' => 500, // 6 calls per second
-            'orderCache' => array ( ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
                 'api' => array (
@@ -14740,7 +14739,7 @@ class yobit extends Exchange {
             'pair' => $this->market_id ($market),
             'type' => $side,
             'amount' => $amount,
-            'rate' => $price,
+            'rate' => $this->decimal ($price),
         ), $params));
         return array (
             'info' => $response,

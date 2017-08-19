@@ -121,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.16'
+__version__ = '1.4.17'
 
 #------------------------------------------------------------------------------
 
@@ -11680,7 +11680,6 @@ class poloniex (Exchange):
             'name': 'Poloniex',
             'countries': 'US',
             'rateLimit': 500, # 6 calls per second
-            'orderCache': {},
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
                 'api': {
@@ -13715,7 +13714,7 @@ class yobit (Exchange):
             'pair': self.market_id(market),
             'type': side,
             'amount': amount,
-            'rate': price,
+            'rate': self.decimal(price),
         }, params))
         return {
             'info': response,
