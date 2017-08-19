@@ -142,6 +142,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.indexBy\s/g, '.index_by'],
             [ /\.sortBy\s/g, '.sort_by'],
             [ /\.marketId\s/g, '.market_id'],
+            [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z])this([^a-zA-Z])/g, '$1self$2' ],
@@ -223,6 +224,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.indexBy/g, '.index_by'],
             [ /\.sortBy/g, '.sort_by'],
             [ /\.marketId/g, '.market_id'],
+            [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
             [ /this_\./g, '$this_->' ],

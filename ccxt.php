@@ -312,6 +312,10 @@ class Exchange {
         return http_build_query ($string);
     }
 
+    public static function encode_uri_component ($string) {
+        return urlencode ($string);
+    }
+
     public static function url ($path, $params = array ()) {
         $result = Exchange::implode_params ($path, $params);
         $query = Exchange::omit ($params, Exchange::extract_params ($path));
