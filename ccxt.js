@@ -7966,7 +7966,7 @@ var cryptopia = {
     'rateLimit': 1500,
     'countries': 'NZ', // New Zealand
     'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/29483974-98c3ed94-84bd-11e7-8fcc-f328f7533df5.jpg',
+        'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
         'api': 'https://www.cryptopia.co.nz/api',
         'www': 'https://www.cryptopia.co.nz',
         'doc': [
