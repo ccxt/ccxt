@@ -432,6 +432,12 @@ class Exchange (object):
         return result
 
     @staticmethod
+    def urlencode(params={}):
+        if type(params) is dict:
+            return _urlencode.urlencode(params)
+        return params
+
+    @staticmethod
     def omit(d, *args):
         result = d.copy()
         for arg in args:

@@ -140,7 +140,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.indexBy\s/g, '.index_by'],
             [ /\.sortBy\s/g, '.sort_by'],
             [ /\.marketId\s/g, '.market_id'],
-            [ /this\.urlencode\s/g, '_urlencode.urlencode ' ],
+            // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z])this([^a-zA-Z])/g, '$1self$2' ],
             [ /([^a-zA-Z0-9_])let\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
