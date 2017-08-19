@@ -121,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.21'
+__version__ = '1.4.22'
 
 #------------------------------------------------------------------------------
 
@@ -3764,7 +3764,7 @@ class bittrex (Exchange):
         }
         return result
 
-    def fetchOrder(self, id):
+    def fetch_order(self, id):
         self.loadMarkets()
         response = self.accountGetOrder({'uuid': id})
         return self.parseOrder(response['result'])
@@ -4550,7 +4550,7 @@ class btce (Exchange):
         }
         return result
 
-    def fetchOrder(self, id):
+    def fetch_order(self, id):
         self.loadMarkets()
         response = self.privatePostOrderInfo({'order_id': id})
         order = response['return'][id]
@@ -6341,7 +6341,7 @@ class chbtc (Exchange):
             paramString += '&currency=' + params['currency']
         return self.privatePostCancelOrder(paramString)
 
-    def fetchOrder(self, id, params={}):
+    def fetch_order(self, id, params={}):
         paramString = '&id=' + str(id)
         if 'currency' in params:
             paramString += '&currency=' + params['currency']
@@ -11945,14 +11945,14 @@ class poloniex (Exchange):
         self.orders[id] = order
         return self.extend({'info': response}, order)
 
-    def fetchOrder(self, id):
+    def fetch_order(self, id):
         self.loadMarkets()
         found = (id in list(self.orders.keys()))
         if not found:
             raise ExchangeError(self.id + ' order ' + id + ' not found')
         return self.orders[id]
 
-    def fetchOrderTrades(self, id, params={}):
+    def fetch_orderTrades(self, id, params={}):
         self.loadMarkets()
         trades = self.privatePostReturnOrderTrades(self.extend({
             'orderNumber': id,
