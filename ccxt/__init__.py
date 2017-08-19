@@ -122,7 +122,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.30'
+__version__ = '1.4.31'
 
 #------------------------------------------------------------------------------
 
@@ -9615,9 +9615,6 @@ class hitbtc (Exchange):
             step = float(market['step'])
             base = self.commonCurrencyCode(base)
             quote = self.commonCurrencyCode(quote)
-            # looks like they now have it correct
-            # if base == 'DSH':
-            #     base = 'DASH'
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -9746,9 +9743,11 @@ class hitbtc (Exchange):
             'id': response['ExecutionReport']['orderId'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, params={}):
         self.loadMarkets()
-        return self.tradingPostCancelOrder({'clientOrderId': id})
+        return self.tradingPostCancelOrder(self.extend({
+            'clientOrderId': id,
+        }, params))
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + 'api' + '/' + self.version + '/' + api + '/' + self.implode_params(path, params)
