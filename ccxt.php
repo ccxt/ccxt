@@ -170,6 +170,7 @@ class Exchange {
         'coinmate',
         'coinsecure',
         'coinspot',
+        'cryptopia',
         'dsx',
         'exmo',
         'flowbtc',
