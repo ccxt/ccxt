@@ -10063,7 +10063,7 @@ var hitbtc = {
             'type': type,
         };
         if (type == 'limit')
-            order['price'] = this.decimal (price);
+            order['price'] = '%.10f'.sprintf (price);
         let response = await this.tradingPostNewOrder (this.extend (order, params));
         return {
             'info': response,
