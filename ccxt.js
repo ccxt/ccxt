@@ -9927,9 +9927,6 @@ var hitbtc = {
             let step = parseFloat (market['step']);
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
-            // looks like they now have it correct
-            // if (base == 'DSH')
-            //     base = 'DASH';
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
