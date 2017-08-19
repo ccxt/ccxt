@@ -440,7 +440,7 @@ class Exchange (object):
 
     @staticmethod
     def encode_uri_component(uri):
-        return _urlencode.quote(uri)
+        return _urlencode.quote(uri, safe="~()*!.'")
 
     @staticmethod
     def omit(d, *args):

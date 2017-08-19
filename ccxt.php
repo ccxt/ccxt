@@ -386,7 +386,7 @@ class Exchange {
     }
 
     public static function json ($input) {
-        return json_encode ($input);
+        return json_encode ($input, JSON_FORCE_OBJECT);
     }
 
     public static function encode ($input) {
