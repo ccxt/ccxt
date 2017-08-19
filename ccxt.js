@@ -8003,7 +8003,7 @@ var cryptopia = {
                 'SubmitTip',
                 'SubmitTrade',
                 'SubmitTransfer',
-                'SubmitWithdraw',                
+                'SubmitWithdraw',
             ],
         },
     },
