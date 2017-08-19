@@ -8150,6 +8150,29 @@ var cryptopia = {
         return result;
     },
 
+    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        let order = {
+            'Market': this.marketId (market),
+            'Type': this.capitalize (side),
+            'Rate': price,
+            'Amount': amount,
+        };
+        let response = await this.privatePostSubmitTrade (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['Data']['OrderId'].toString (),
+        };
+    },
+
+    async cancelOrder (id) {
+        await this.loadMarkets ();
+        return this.privatePostCancelTrade ({
+            'Type': 'Trade',
+            'OrderId': id,
+        });
+    },
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
