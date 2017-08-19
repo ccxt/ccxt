@@ -121,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.12'
+__version__ = '1.4.22'
 
 #------------------------------------------------------------------------------
 
@@ -148,6 +148,8 @@ import decimal
 #------------------------------------------------------------------------------
 
 try:
+    import aiohttp
+    import asyncio
     import urllib.parse   as _urlencode # Python 3
     import urllib.request as _urllib
 except ImportError:
@@ -178,6 +180,8 @@ class Exchange (object):
     id = None
     rateLimit = 2000 # milliseconds = seconds * 1000
     timeout = 10000 # milliseconds = seconds * 1000
+    asyncio_loop = None
+    aiohttp_session = None
     userAgent = False
     verbose = False
     markets = None
@@ -347,6 +351,8 @@ class Exchange (object):
                     body,
                     message,
                 ]))
+            if isinstance(e, ValueError):
+                raise ExchangeError(' '.join([self.id, method, url, body, str(e)]))
             raise
 
     @staticmethod

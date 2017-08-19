@@ -37,7 +37,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.4.12'
+const version = '1.4.22'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -2554,9 +2554,10 @@ var bitflyer = {
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + this.version + '/' + path;
+        let request = '/' + this.version + '/';
         if (api == 'private')
-            request = '/me' + request;
+            request += 'me/';
+        request += path;
         let url = this.urls['api'] + request;
         if (api == 'public') {
             if (Object.keys (params).length)
@@ -3535,6 +3536,9 @@ var bitstamp = {
         'LTC/USD': { 'id': 'ltcusd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD' },
         'LTC/EUR': { 'id': 'ltceur', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
         'LTC/BTC': { 'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+        'ETH/USD': { 'id': 'ethusd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD' },
+        'ETH/EUR': { 'id': 'etheur', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR' },
+        'ETH/BTC': { 'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
     },
 
     async fetchOrderBook (market, params = {}) {
@@ -3588,10 +3592,29 @@ var bitstamp = {
         };
     },
 
+    parseTrade (trade, market) {
+        let timestamp = parseInt (trade['date']);
+        let side = (trade['type'] == 0) ? 'buy' : 'sell';
+        return {
+            'id': trade['tid'].toString (),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': side,
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
+        };
+    },
+
     async fetchTrades (market, params = {}) {
-        return this.publicGetTransactionsId (this.extend ({
-            'id': this.marketId (market),
+        let m = this.market (market);
+        let response = await this.publicGetTransactionsId (this.extend ({
+            'id': m['id'],
+            'time': 'minute',
         }, params));
+        return this.parseTrades (response, m);
     },
 
     async fetchBalance () {
@@ -3641,7 +3664,7 @@ var bitstamp = {
         return this.privatePostCancelOrder ({ 'id': id });
     },
 
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api == 'public') {
@@ -3664,7 +3687,11 @@ var bitstamp = {
                 'Content-Length': body.length,
             };
         }
-        return this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
+        if ('status' in response)
+            if (response['status'] == 'error')
+                throw new ExchangeError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 
@@ -7378,6 +7405,10 @@ var coinmarketcap = {
         let changeKey = 'percent_change_24h';
         if (ticker[changeKey])
             change = parseFloat (ticker[changeKey]);
+        let last = undefined;
+        if (price in ticker)
+            if (ticker[price])
+                last = parseFloat (ticker[price]);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -7389,7 +7420,7 @@ var coinmarketcap = {
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': parseFloat (ticker[price]),
+            'last': last,
             'change': change,
             'percentage': undefined,
             'average': undefined,
@@ -12210,7 +12241,6 @@ var poloniex = {
     'name': 'Poloniex',
     'countries': 'US',
     'rateLimit': 500, // 6 calls per second
-    'orderCache': { },
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
         'api': {
@@ -14339,7 +14369,7 @@ var yobit = {
             'pair': this.marketId (market),
             'type': side,
             'amount': amount,
-            'rate': price,
+            'rate': this.decimal (price),
         }, params));
         return {
             'info': response,

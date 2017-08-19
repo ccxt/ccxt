@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.12';
+$version = '1.4.22';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2661,9 +2661,10 @@ class bitflyer extends Exchange {
     }
 
     public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
-        $request = '/' . $this->version . '/' . $path;
+        $request = '/' . $this->version . '/';
         if ($api == 'private')
-            $request = '/me' . $request;
+            $request .= 'me/';
+        $request .= $path;
         $url = $this->urls['api'] . $request;
         if ($api == 'public') {
             if ($params)
@@ -3659,6 +3660,9 @@ class bitstamp extends Exchange {
                 'LTC/USD' => array ( 'id' => 'ltcusd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD' ),
                 'LTC/EUR' => array ( 'id' => 'ltceur', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR' ),
                 'LTC/BTC' => array ( 'id' => 'ltcbtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                'ETH/USD' => array ( 'id' => 'ethusd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD' ),
+                'ETH/EUR' => array ( 'id' => 'etheur', 'symbol' => 'ETH/EUR', 'base' => 'ETH', 'quote' => 'EUR' ),
+                'ETH/BTC' => array ( 'id' => 'ethbtc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC' ),
             ),
         ), $options));
     }
@@ -3714,10 +3718,29 @@ class bitstamp extends Exchange {
         );
     }
 
+    public function parse_trade ($trade, $market) {
+        $timestamp = intval ($trade['date']);
+        $side = ($trade['type'] == 0) ? 'buy' : 'sell';
+        return array (
+            'id' => (string) $trade['tid'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $side,
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
+        );
+    }
+
     public function fetch_trades ($market, $params=array ()) {
-        return $this->publicGetTransactionsId (array_merge (array (
-            'id' => $this->market_id ($market),
+        $m = $this->market ($market);
+        $response = $this->publicGetTransactionsId (array_merge (array (
+            'id' => $m['id'],
+            'time' => 'minute',
         ), $params));
+        return $this->parse_trades ($response, $m);
     }
 
     public function fetch_balance () {
@@ -3790,7 +3813,11 @@ class bitstamp extends Exchange {
                 'Content-Length' => strlen ($body),
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('status', $response))
+            if ($response['status'] == 'error')
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        return $response;
     }
 }
 
@@ -4077,7 +4104,7 @@ class bittrex extends Exchange {
         return $result;
     }
 
-    public function fetchOrder ($id) {
+    public function fetch_order ($id) {
         $this->loadMarkets ();
         $response = $this->accountGetOrder (array ( 'uuid' => $id ));
         return $this->parseOrder ($response['result']);
@@ -4918,7 +4945,7 @@ class btce extends Exchange {
         return $result;
     }
 
-    public function fetchOrder ($id) {
+    public function fetch_order ($id) {
         $this->loadMarkets ();
         $response = $this->privatePostOrderInfo (array ( 'order_id' => $id ));
         $order = $response['return'][$id];
@@ -6842,7 +6869,7 @@ class chbtc extends Exchange {
         return $this->privatePostCancelOrder ($paramString);
     }
 
-    public function fetchOrder ($id, $params=array ()) {
+    public function fetch_order ($id, $params=array ()) {
         $paramString = '&$id=' . (string) $id;
         if (array_key_exists ('currency', $params))
             $paramString .= '&currency=' . $params['currency'];
@@ -7591,6 +7618,10 @@ class coinmarketcap extends Exchange {
         $changeKey = 'percent_change_24h';
         if ($ticker[$changeKey])
             $change = floatval ($ticker[$changeKey]);
+        $last = null;
+        if (array_key_exists ($price, $ticker))
+            if ($ticker[$price])
+                $last = floatval ($ticker[$price]);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -7602,7 +7633,7 @@ class coinmarketcap extends Exchange {
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval ($ticker[$price]),
+            'last' => $last,
             'change' => $change,
             'percentage' => null,
             'average' => null,
@@ -12532,7 +12563,6 @@ class poloniex extends Exchange {
             'name' => 'Poloniex',
             'countries' => 'US',
             'rateLimit' => 500, // 6 calls per second
-            'orderCache' => array ( ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
                 'api' => array (
@@ -12811,7 +12841,7 @@ class poloniex extends Exchange {
         return array_merge (array ( 'info' => $response ), $order);
     }
 
-    public function fetchOrder ($id) {
+    public function fetch_order ($id) {
         $this->loadMarkets ();
         $found = (array_key_exists ($id, $this->orders));
         if (!$found)
@@ -12819,7 +12849,7 @@ class poloniex extends Exchange {
         return $this->orders[$id];
     }
 
-    public function fetchOrderTrades ($id, $params=array ()) {
+    public function fetch_orderTrades ($id, $params=array ()) {
         $this->loadMarkets ();
         $trades = $this->privatePostReturnOrderTrades (array_merge (array (
             'orderNumber' => $id,
@@ -14709,7 +14739,7 @@ class yobit extends Exchange {
             'pair' => $this->market_id ($market),
             'type' => $side,
             'amount' => $amount,
-            'rate' => $price,
+            'rate' => $this->decimal ($price),
         ), $params));
         return array (
             'info' => $response,

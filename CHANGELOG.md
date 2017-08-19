@@ -1,5 +1,8 @@
 # Сhangelog
 
+- Fixed Yobit low price in exponential format, [#122](https://github.com/kroitor/ccxt/issues/122)
+- Fixed Bitflyer private API, [#121](https://github.com/kroitor/ccxt/issues/121)
+- Added new Bitstamp markets: ETH/USD, ETH/EUR and ETH/BTC, [#120](https://github.com/kroitor/ccxt/issues/120)
 - Added parameterization to unified fetchTrades, [#118](https://github.com/kroitor/ccxt/pull/118)
 - Added parseOHLCVs, parseOLHCV base methods
 - Added experimental unified fetchOHLCV to GDAX

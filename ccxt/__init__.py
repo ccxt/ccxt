@@ -121,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.12'
+__version__ = '1.4.22'
 
 #------------------------------------------------------------------------------
 
@@ -148,6 +148,8 @@ import decimal
 #------------------------------------------------------------------------------
 
 try:
+    import aiohttp
+    import asyncio
     import urllib.parse   as _urlencode # Python 3
     import urllib.request as _urllib
 except ImportError:
@@ -178,6 +180,8 @@ class Exchange (object):
     id = None
     rateLimit = 2000 # milliseconds = seconds * 1000
     timeout = 10000 # milliseconds = seconds * 1000
+    asyncio_loop = None
+    aiohttp_session = None
     userAgent = False
     verbose = False
     markets = None
@@ -347,6 +351,8 @@ class Exchange (object):
                     body,
                     message,
                 ]))
+            if isinstance(e, ValueError):
+                raise ExchangeError(' '.join([self.id, method, url, body, str(e)]))
             raise
 
     @staticmethod
@@ -2405,9 +2411,10 @@ class bitflyer (Exchange):
         }, params))
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/' + self.version + '/' + path
+        request = '/' + self.version + '/'
         if api == 'private':
-            request = '/me' + request
+            request += 'me/'
+        request += path
         url = self.urls['api'] + request
         if api == 'public':
             if params:
@@ -3346,6 +3353,9 @@ class bitstamp (Exchange):
                 'LTC/USD': {'id': 'ltcusd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD'},
                 'LTC/EUR': {'id': 'ltceur', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR'},
                 'LTC/BTC': {'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
+                'ETH/USD': {'id': 'ethusd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD'},
+                'ETH/EUR': {'id': 'etheur', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR'},
+                'ETH/BTC': {'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC'},
             },
         }
         params.update(config)
@@ -3398,10 +3408,28 @@ class bitstamp (Exchange):
             'info': ticker,
         }
 
+    def parse_trade(self, trade, market):
+        timestamp = int(trade['date'])
+        side = 'buy' if(trade['type'] == 0) else 'sell'
+        return {
+            'id': str(trade['tid']),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': side,
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
+        }
+
     def fetch_trades(self, market, params={}):
-        return self.publicGetTransactionsId(self.extend({
-            'id': self.market_id(market),
+        m = self.market(market)
+        response = self.publicGetTransactionsId(self.extend({
+            'id': m['id'],
+            'time': 'minute',
         }, params))
+        return self.parse_trades(response, m)
 
     def fetch_balance(self):
         balance = self.privatePostBalance()
@@ -3468,7 +3496,11 @@ class bitstamp (Exchange):
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len(body),
             }
-        return self.fetch(url, method, headers, body)
+        response = self.fetch(url, method, headers, body)
+        if 'status' in response:
+            if response['status'] == 'error':
+                raise ExchangeError(self.id + ' ' + self.json(response))
+        return response
 
 #------------------------------------------------------------------------------
 
@@ -3732,7 +3764,7 @@ class bittrex (Exchange):
         }
         return result
 
-    def fetchOrder(self, id):
+    def fetch_order(self, id):
         self.loadMarkets()
         response = self.accountGetOrder({'uuid': id})
         return self.parseOrder(response['result'])
@@ -4518,7 +4550,7 @@ class btce (Exchange):
         }
         return result
 
-    def fetchOrder(self, id):
+    def fetch_order(self, id):
         self.loadMarkets()
         response = self.privatePostOrderInfo({'order_id': id})
         order = response['return'][id]
@@ -6309,7 +6341,7 @@ class chbtc (Exchange):
             paramString += '&currency=' + params['currency']
         return self.privatePostCancelOrder(paramString)
 
-    def fetchOrder(self, id, params={}):
+    def fetch_order(self, id, params={}):
         paramString = '&id=' + str(id)
         if 'currency' in params:
             paramString += '&currency=' + params['currency']
@@ -7007,6 +7039,10 @@ class coinmarketcap (Exchange):
         changeKey = 'percent_change_24h'
         if ticker[changeKey]:
             change = float(ticker[changeKey])
+        last = None
+        if price in ticker:
+            if ticker[price]:
+                last = float(ticker[price])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -7018,7 +7054,7 @@ class coinmarketcap (Exchange):
             'open': None,
             'close': None,
             'first': None,
-            'last': float(ticker[price]),
+            'last': last,
             'change': change,
             'percentage': None,
             'average': None,
@@ -11650,7 +11686,6 @@ class poloniex (Exchange):
             'name': 'Poloniex',
             'countries': 'US',
             'rateLimit': 500, # 6 calls per second
-            'orderCache': {},
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
                 'api': {
@@ -11910,14 +11945,14 @@ class poloniex (Exchange):
         self.orders[id] = order
         return self.extend({'info': response}, order)
 
-    def fetchOrder(self, id):
+    def fetch_order(self, id):
         self.loadMarkets()
         found = (id in list(self.orders.keys()))
         if not found:
             raise ExchangeError(self.id + ' order ' + id + ' not found')
         return self.orders[id]
 
-    def fetchOrderTrades(self, id, params={}):
+    def fetch_orderTrades(self, id, params={}):
         self.loadMarkets()
         trades = self.privatePostReturnOrderTrades(self.extend({
             'orderNumber': id,
@@ -13685,7 +13720,7 @@ class yobit (Exchange):
             'pair': self.market_id(market),
             'type': side,
             'amount': amount,
-            'rate': price,
+            'rate': self.decimal(price),
         }, params))
         return {
             'info': response,
