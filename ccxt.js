@@ -10088,10 +10088,7 @@ var hitbtc = {
             if (method == 'POST')
                 if (Object.keys (query).length)
                     body = this.urlencode (query);
-            url += '?' + this.urlencode ({
-                'nonce': nonce,
-                'apikey': this.apiKey,
-            });
+            url += '?' + this.urlencode (query);
             let auth = url + (body || '');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
