@@ -121,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.19'
+__version__ = '1.4.20'
 
 #------------------------------------------------------------------------------
 
@@ -337,8 +337,6 @@ class Exchange (object):
     def handle_response(self, url, method='GET', headers=None, body=None):
         try:
             return json.loads(body)
-        except ValueError as e:
-            raise ExchangeError(' '.join([self.id, method, url, body, str(e)]))
         except Exception as e:
             ddos_protection = re.search('(cloudflare|incapsula)', body, flags=re.IGNORECASE)
             exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', body, flags=re.IGNORECASE)
@@ -353,6 +351,8 @@ class Exchange (object):
                     body,
                     message,
                 ]))
+            if isinstance(e, ValueError):
+                raise ExchangeError(' '.join([self.id, method, url, body, str(e)]))
             raise
 
     @staticmethod
