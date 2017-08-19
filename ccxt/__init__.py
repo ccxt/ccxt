@@ -121,7 +121,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.22'
+__version__ = '1.4.23'
 
 #------------------------------------------------------------------------------
 
@@ -433,7 +433,7 @@ class Exchange (object):
 
     @staticmethod
     def urlencode(params={}):
-        if type(params) is dict:
+        if (type(params) is dict) or isinstance(params, collections.OrderedDict):
             return _urlencode.urlencode(params)
         return params
 

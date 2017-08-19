@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.22';
+$version = '1.4.23';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -955,7 +955,7 @@ class _1broker extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $response = $this->privateGetMarketQuotes (array_merge (array (
             'symbols' => $this->market_id ($market),
@@ -1008,7 +1008,7 @@ class _1broker extends Exchange {
         );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $order = array (
             'symbol' => $this->market_id ($market),
@@ -1033,7 +1033,7 @@ class _1broker extends Exchange {
         return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!$this->apiKey)
             throw new AuthenticationError ($this->id . ' requires apiKey for all requests');
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path . '.php';
@@ -1115,7 +1115,7 @@ class cryptocapital extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $response = $this->publicGetOrderBook (array_merge (array (
             'currency' => $this->market_id ($market),
         ), $params));
@@ -1170,13 +1170,13 @@ class cryptocapital extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->publicGetTransactions (array_merge (array (
             'currency' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $order = array (
             'side' => $side,
             'type' => $type,
@@ -1196,7 +1196,7 @@ class cryptocapital extends Exchange {
         return $this->privatePostOrdersCancel (array ( 'id' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if ($this->id == 'cryptocapital')
             throw new ExchangeError ($this->id . ' is an abstract base API for _1btcxe');
         $url = $this->urls['api'] . '/' . $path;
@@ -1362,7 +1362,7 @@ class anxpro extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $response = $this->publicGetCurrencyPairMoneyDepthFull (array_merge (array (
             'currency_pair' => $this->market_id ($market),
         ), $params));
@@ -1422,7 +1422,7 @@ class anxpro extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $error = $this->id . ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/$market-data/currencypairmoneytradefetch-disabled';
         throw new ExchangeError ($error);
         return $this->publicGetCurrencyPairMoneyTradeFetch (array_merge (array (
@@ -1430,7 +1430,7 @@ class anxpro extends Exchange {
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $order = array (
             'currency_pair' => $this->market_id ($market),
             'amount_int' => $amount,
@@ -1453,7 +1453,7 @@ class anxpro extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         $url = $this->urls['api'] . '/' . $this->version . '/' . $request;
@@ -1553,7 +1553,7 @@ class bit2c extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $orderbook = $this->publicGetExchangesPairOrderbook (array_merge (array (
             'pair' => $this->market_id ($market),
         ), $params));
@@ -1604,13 +1604,13 @@ class bit2c extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->publicGetExchangesPairTrades (array_merge (array (
             'pair' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePostOrderAddOrder';
         $order = array (
             'Amount' => $amount,
@@ -1634,7 +1634,7 @@ class bit2c extends Exchange {
         return $this->privatePostOrderCancelOrder (array ( 'id' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         if ($api == 'public') {
             $url .= '.json';
@@ -1741,7 +1741,7 @@ class bitbay extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $orderbook = $this->publicGetIdOrderbook (array_merge (array (
             'id' => $this->market_id ($market),
         ), $params));
@@ -1781,14 +1781,14 @@ class bitbay extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->publicGetIdTrades (array_merge (array (
             'id' => $this->market_id ($market),
         ), $params));
 
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $p = $this->market ($market);
         return $this->privatePostTrade (array_merge (array (
             'type' => $side,
@@ -1803,7 +1803,7 @@ class bitbay extends Exchange {
         return $this->privatePostCancel (array ( 'id' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         if ($api == 'public') {
             $url .= '/' . $this->implode_params ($path, $params) . '.json';
@@ -1891,7 +1891,7 @@ class bitbays extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $response = $this->publicGetDepth (array_merge (array (
             'market' => $this->market_id ($market),
         ), $params));
@@ -1944,13 +1944,13 @@ class bitbays extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->publicGetTrades (array_merge (array (
             'market' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $order = array (
             'market' => $this->market_id ($market),
             'op' => $side,
@@ -1973,7 +1973,7 @@ class bitbays extends Exchange {
         return $this->privatePostCancel (array ( 'id' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api == 'public') {
             if ($params)
@@ -2078,7 +2078,7 @@ class bitcoincoid extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $orderbook = $this->publicGetPairDepth (array_merge (array (
             'pair' => $this->market_id ($market),
         ), $params));
@@ -2135,13 +2135,13 @@ class bitcoincoid extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->publicGetPairTrades (array_merge (array (
             'pair' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $p = $this->market ($market);
         $order = array (
             'pair' => $p['id'],
@@ -2157,13 +2157,13 @@ class bitcoincoid extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         return $this->privatePostCancelOrder (array_merge (array (
             'id' => $id,
         ), $params));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         if ($api == 'public') {
             $url .= '/' . $this->implode_params ($path, $params);
@@ -2321,7 +2321,7 @@ class bitfinex extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook = $this->publicGetBookSymbol (array_merge (array (
             'symbol' => $this->market_id ($market),
@@ -2391,7 +2391,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         $m = $this->market ($market);
         $trades = $this->publicGetTradesSymbol (array_merge (array (
@@ -2400,7 +2400,7 @@ class bitfinex extends Exchange {
         return $this->parse_trades ($trades, $m);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $order = array (
             'symbol' => $this->market_id ($market),
@@ -2432,7 +2432,7 @@ class bitfinex extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         $url = $this->urls['api'] . $request;
@@ -2577,7 +2577,7 @@ class bitflyer extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook = $this->publicGetBoard (array_merge (array (
             'product_code' => $this->market_id ($market),
@@ -2630,14 +2630,14 @@ class bitflyer extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetExecutions (array_merge (array (
             'product_code' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $order = array (
             'product_code' => $this->market_id ($market),
@@ -2653,14 +2653,14 @@ class bitflyer extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         $this->loadMarkets ();
         return $this->privatePostCancelchildorder (array_merge (array (
             'parent_order_id' => $id,
         ), $params));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->version . '/';
         if ($api == 'private')
             $request .= 'me/';
@@ -2815,7 +2815,7 @@ class bitlish extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook = $this->publicGetTradesDepth (array_merge (array (
             'pair_id' => $this->market_id ($market),
@@ -2843,7 +2843,7 @@ class bitlish extends Exchange {
         return $result;
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetTradesHistory (array_merge (array (
             'pair_id' => $this->market_id ($market),
@@ -2889,7 +2889,7 @@ class bitlish extends Exchange {
         ));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $order = array (
             'pair_id' => $this->market_id ($market),
@@ -2910,7 +2910,7 @@ class bitlish extends Exchange {
         return $this->privatePostCancelTrade (array ( 'id' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api == 'public') {
             if ($params)
@@ -3035,7 +3035,7 @@ class bitmarket extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $orderbook = $this->publicGetJsonMarketOrderbook (array_merge (array (
             'market' => $this->market_id ($market),
         ), $params));
@@ -3076,13 +3076,13 @@ class bitmarket extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->publicGetJsonMarketTrades (array_merge (array (
             'market' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $response = $this->privatePostTrade (array_merge (array (
             'market' => $this->market_id ($market),
             'type' => $side,
@@ -3101,7 +3101,7 @@ class bitmarket extends Exchange {
         return $this->privatePostCancel (array ( 'id' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         if ($api == 'public') {
             $url .= '/' . $this->implode_params ($path . '.json', $params);
@@ -3276,7 +3276,7 @@ class bitmex extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook = $this->publicGetOrderBookL2 (array_merge (array (
             'symbol' => $this->market_id ($market),
@@ -3336,14 +3336,14 @@ class bitmex extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetTrade (array_merge (array (
             'symbol' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $order = array (
             'symbol' => $this->market_id ($market),
@@ -3365,7 +3365,7 @@ class bitmex extends Exchange {
         return $this->privateDeleteOrder (array ( 'orderID' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = '/$api/' . $this->version . '/' . $path;
         if ($params)
             $query .= '?' . $this->urlencode ($params);
@@ -3492,7 +3492,7 @@ class bitso extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $response = $this->publicGetOrderBook (array_merge (array (
             'book' => $this->market_id ($market),
@@ -3547,14 +3547,14 @@ class bitso extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetTrades (array_merge (array (
             'book' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $order = array (
             'book' => $this->market_id ($market),
@@ -3576,7 +3576,7 @@ class bitso extends Exchange {
         return $this->privateDeleteOrders (array ( 'oid' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $url = $this->urls['api'] . $query;
         if ($api == 'public') {
@@ -3667,7 +3667,7 @@ class bitstamp extends Exchange {
         ), $options));
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $orderbook = $this->publicGetOrderBookId (array_merge (array (
             'id' => $this->market_id ($market),
         ), $params));
@@ -3734,7 +3734,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $m = $this->market ($market);
         $response = $this->publicGetTransactionsId (array_merge (array (
             'id' => $m['id'],
@@ -3768,7 +3768,7 @@ class bitstamp extends Exchange {
         return $result;
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePost' . $this->capitalize ($side);
         $order = array (
             'id' => $this->market_id ($market),
@@ -3790,7 +3790,7 @@ class bitstamp extends Exchange {
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
@@ -3939,7 +3939,7 @@ class bittrex extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $response = $this->publicGetOrderbook (array_merge (array (
             'market' => $this->market_id ($market),
@@ -4021,7 +4021,7 @@ class bittrex extends Exchange {
         return $this->parse_ticker ($ticker, $m);
     }
 
-    public function parse_trade ($trade, $market=null) {
+    public function parse_trade ($trade, $market = null) {
         $timestamp = $this->parse8601 ($trade['TimeStamp']);
         $side = null;
         if ($trade['OrderType'] == 'BUY') {
@@ -4043,7 +4043,7 @@ class bittrex extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         $m = $this->market ($market);
         $response = $this->publicGetMarkethistory (array_merge (array (
@@ -4052,7 +4052,7 @@ class bittrex extends Exchange {
         return $this->parse_trades ($response['result'], $m);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $method = 'marketGet' . $this->capitalize ($side) . $type;
         $order = array (
@@ -4110,7 +4110,7 @@ class bittrex extends Exchange {
         return $this->parseOrder ($response['result']);
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/';
         if ($api == 'public') {
             $url .= $api . '/' . strtolower ($method) . $path;
@@ -4196,7 +4196,7 @@ class blinktrade extends Exchange {
         ));
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $p = $this->market ($market);
         $orderbook = $this->publicGetCurrencyOrderbook (array_merge (array (
             'currency' => $p['quote'],
@@ -4253,7 +4253,7 @@ class blinktrade extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $p = $this->market ($market);
         return $this->publicGetCurrencyTrades (array_merge (array (
             'currency' => $p['quote'],
@@ -4261,7 +4261,7 @@ class blinktrade extends Exchange {
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $p = $this->market ($market);
@@ -4281,13 +4281,13 @@ class blinktrade extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         return $this->privatePostF (array_merge (array (
             'ClOrdID' => $id,
         ), $params));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
@@ -4397,7 +4397,7 @@ class bl3p extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $p = $this->market ($market);
         $response = $this->publicGetMarketOrderbook (array_merge (array (
             'market' => $p['id'],
@@ -4450,13 +4450,13 @@ class bl3p extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->publicGetMarketTrades (array_merge (array (
             'market' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $p = $this->market ($market);
         $order = array (
             'market' => $p['id'],
@@ -4477,7 +4477,7 @@ class bl3p extends Exchange {
         return $this->privatePostMarketMoneyOrderCancel (array ( 'order_id' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = $this->implode_params ($path, $params);
         $url = $this->urls['api'] . '/' . $this->version . '/' . $request;
         $query = $this->omit ($params, $this->extract_params ($path));
@@ -4616,7 +4616,7 @@ class btcchina extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook = $this->publicGetOrderbook (array_merge (array (
             'market' => $this->market_id ($market),
@@ -4661,14 +4661,14 @@ class btcchina extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetTrades (array_merge (array (
             'market' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $method = 'privatePost' . $this->capitalize ($side) . 'Order2';
@@ -4686,7 +4686,7 @@ class btcchina extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         $this->loadMarkets ();
         $market = $params['market']; // TODO fixme
         return $this->privatePostCancelOrder (array_merge (array (
@@ -4698,7 +4698,7 @@ class btcchina extends Exchange {
         return $this->microseconds ();
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api == 'public') {
             if ($params)
@@ -4839,7 +4839,7 @@ class btce extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $response = $this->publicGetDepthPair (array_merge (array (
@@ -4890,14 +4890,14 @@ class btce extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetTradesPair (array_merge (array (
             'pair' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $order = array (
             'pair' => $this->market_id ($market),
@@ -4952,7 +4952,7 @@ class btce extends Exchange {
         return $this->parseOrder (array_merge (array ( 'id' => $id ), $order));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
@@ -5071,7 +5071,7 @@ class btcmarkets extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $m = $this->market ($market);
         $orderbook = $this->publicGetMarketIdOrderbook (array_merge (array (
@@ -5124,7 +5124,7 @@ class btcmarkets extends Exchange {
         return $this->parse_ticker ($ticker, $m);
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetMarketIdTrades (array_merge (array (
             // 'since' => 59868345231,
@@ -5132,7 +5132,7 @@ class btcmarkets extends Exchange {
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $m = $this->market ($market);
         $multiplier = 100000000; // for $price and volume
@@ -5168,7 +5168,7 @@ class btcmarkets extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $uri = '/' . $this->implode_params ($path, $params);
         $url = $this->urls['api'] . $uri;
         $query = $this->omit ($params, $this->extract_params ($path));
@@ -5265,7 +5265,7 @@ class btctrader extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $orderbook = $this->publicGetOrderbook ($params);
         $timestamp = intval ($orderbook['timestamp'] * 1000);
         $result = array (
@@ -5312,12 +5312,12 @@ class btctrader extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $maxCount = 50;
         return $this->publicGetTrades ($params);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePost' . $this->capitalize ($side);
         $order = array (
             'Type' => ($side == 'buy') ? 'BuyBtc' : 'SelBtc',
@@ -5343,7 +5343,7 @@ class btctrader extends Exchange {
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if ($this->id == 'btctrader')
             throw new ExchangeError ($this->id . ' is an abstract base API for BTCExchange, BTCTurk');
         $url = $this->urls['api'] . '/' . $path;
@@ -5470,7 +5470,7 @@ class btctradeua extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $p = $this->market ($market);
         $bids = $this->publicGetTradesBuySymbol (array_merge (array (
             'symbol' => $p['id'],
@@ -5559,13 +5559,13 @@ class btctradeua extends Exchange {
         return $result;
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->publicGetDealsSymbol (array_merge (array (
             'symbol' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $p = $this->market ($market);
@@ -5583,7 +5583,7 @@ class btctradeua extends Exchange {
         return $this->privatePostRemoveOrderId (array ( 'id' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
@@ -5691,7 +5691,7 @@ class btcx extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $orderbook = $this->publicGetDepthIdLimit (array_merge (array (
             'id' => $this->market_id ($market),
             'limit' => 1000,
@@ -5743,14 +5743,14 @@ class btcx extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->publicGetTradeIdLimit (array_merge (array (
             'id' => $this->market_id ($market),
             'limit' => 1000,
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $response = $this->privatePostTrade (array_merge (array (
             'type' => strtoupper ($side),
             'market' => $this->market_id ($market),
@@ -5767,7 +5767,7 @@ class btcx extends Exchange {
         return $this->privatePostCancel (array ( 'order' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/';
         if ($api == 'public') {
             $url .= $this->implode_params ($path, $params);
@@ -5895,7 +5895,7 @@ class bter extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook = $this->publicGetOrderBookId (array_merge (array (
             'id' => $this->market_id ($market),
@@ -5922,7 +5922,7 @@ class bter extends Exchange {
         return $result;
     }
 
-    public function parse_ticker ($ticker, $market=null) {
+    public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->milliseconds ();
         return array (
             'timestamp' => $timestamp,
@@ -5978,14 +5978,14 @@ class bter extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetTradeHistoryId (array_merge (array (
             'id' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $this->loadMarkets ();
@@ -6007,7 +6007,7 @@ class bter extends Exchange {
         return $this->privatePostCancelOrder (array ( 'orderNumber' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $prefix = ($api == 'private') ? ($api . '/') : '';
         $url = $this->urls['api'][$api] . $this->version . '/1/' . $prefix . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
@@ -6141,7 +6141,7 @@ class bxinth extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook = $this->publicGetOrderbook (array_merge (array (
             'pairing' => $this->market_id ($market),
@@ -6214,14 +6214,14 @@ class bxinth extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetTrade (array_merge (array (
             'pairing' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $response = $this->privatePostOrder (array_merge (array (
             'pairing' => $this->market_id ($market),
@@ -6244,7 +6244,7 @@ class bxinth extends Exchange {
         ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/';
         if ($path)
             $url .= $path . '/';
@@ -6369,7 +6369,7 @@ class ccex extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $response = $this->publicGetOrderbook (array_merge (array (
             'market' => $this->market_id ($market),
@@ -6433,7 +6433,7 @@ class ccex extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetMarkethistory (array_merge (array (
             'market' => $this->market_id ($market),
@@ -6442,7 +6442,7 @@ class ccex extends Exchange {
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $method = 'privateGet' . $this->capitalize ($side) . $type;
         $response = $this->$method (array_merge (array (
@@ -6461,7 +6461,7 @@ class ccex extends Exchange {
         return $this->privateGetCancel (array ( 'uuid' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         if ($api == 'private') {
             $nonce = (string) $this->nonce ();
@@ -6583,7 +6583,7 @@ class cex extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook =  $this->publicGetOrderBookPair (array_merge (array (
             'pair' => $this->market_id ($market),
@@ -6647,14 +6647,14 @@ class cex extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetTradeHistoryPair (array_merge (array (
             'pair' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $order = array (
             'pair' => $this->market_id ($market),
@@ -6677,7 +6677,7 @@ class cex extends Exchange {
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
@@ -6791,7 +6791,7 @@ class chbtc extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $p = $this->market ($market);
         $orderbook = $this->publicGetDepth (array_merge (array (
             'currency' => $p['id'],
@@ -6843,13 +6843,13 @@ class chbtc extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->publicGetTrades (array_merge (array (
             'currency' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $paramString = '&$price=' . (string) $price;
         $paramString .= '&$amount=' . (string) $amount;
         $tradeType = ($side == 'buy') ? '1' : '0';
@@ -6862,14 +6862,14 @@ class chbtc extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         $paramString = '&$id=' . (string) $id;
         if (array_key_exists ('currency', $params))
             $paramString .= '&currency=' . $params['currency'];
         return $this->privatePostCancelOrder ($paramString);
     }
 
-    public function fetch_order ($id, $params=array ()) {
+    public function fetch_order ($id, $params = array ()) {
         $paramString = '&$id=' . (string) $id;
         if (array_key_exists ('currency', $params))
             $paramString .= '&currency=' . $params['currency'];
@@ -6880,7 +6880,7 @@ class chbtc extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         if ($api == 'public') {
             $url .= '/' . $this->version . '/' . $path;
@@ -7041,7 +7041,7 @@ class coincheck extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $orderbook =  $this->publicGetOrderBooks ($params);
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -7088,11 +7088,11 @@ class coincheck extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->publicGetTrades ($params);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $prefix = '';
         $order = array (
             'pair' => $this->market_id ($market),
@@ -7118,7 +7118,7 @@ class coincheck extends Exchange {
         return $this->privateDeleteExchangeOrdersId (array ( 'id' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
@@ -7265,13 +7265,13 @@ class coinfloor extends Exchange {
         return $this->parse_ticker ($ticker, $m);
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->publicGetIdTransactions (array_merge (array (
             'id' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $order = array ( 'id' => $this->market_id ($market) );
         $method = 'privatePostId' . $this->capitalize ($side);
         if ($type == 'market') {
@@ -7288,7 +7288,7 @@ class coinfloor extends Exchange {
         return $this->privatePostIdCancelOrder (array ( 'id' => $id ));
     }
 
-    public function request ($path, $type='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         // curl -k -u '[User ID]/[API key]:[Passphrase]' https://webapi.coinfloor.co.uk:8090/bist/XBT/GBP/balance/
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
@@ -7382,7 +7382,7 @@ class coingi extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $p = $this->market ($market);
         $orderbook = $this->currentGetOrderBookPairAskCountBidCountDepth (array_merge (array (
             'pair' => $p['id'],
@@ -7468,14 +7468,14 @@ class coingi extends Exchange {
         throw new ExchangeError ($this->id . ' ' . $symbol . ' $ticker not found');
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->currentGetTransactionsPairMaxCount (array_merge (array (
             'pair' => $this->market_id ($market),
             'maxCount' => 128,
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $order = array (
             'currencyPair' => $this->market_id ($market),
             'volume' => $amount,
@@ -7493,7 +7493,7 @@ class coingi extends Exchange {
         return $this->userPostCancelOrder (array ( 'orderId' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $api . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'current') {
@@ -7566,7 +7566,7 @@ class coinmarketcap extends Exchange {
         ), $options));
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         throw new ExchangeError ('Fetching order books is not supported by the API of ' . $this->id);
     }
 
@@ -7596,7 +7596,7 @@ class coinmarketcap extends Exchange {
         return $result;
     }
 
-    public function fetchGlobal ($currency='USD') {
+    public function fetchGlobal ($currency = 'USD') {
         $this->loadMarkets ();
         $request = array ();
         if ($currency)
@@ -7643,7 +7643,7 @@ class coinmarketcap extends Exchange {
         );
     }
 
-    public function fetch_tickers ($currency='USD') {
+    public function fetch_tickers ($currency = 'USD') {
         $this->loadMarkets ();
         $request = array ();
         if ($currency)
@@ -7672,7 +7672,7 @@ class coinmarketcap extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($query)
@@ -7755,7 +7755,7 @@ class coinmate extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $response = $this->publicGetOrderBook (array_merge (array (
             'currencyPair' => $this->market_id ($market),
             'groupByPriceLimit' => 'False',
@@ -7809,14 +7809,14 @@ class coinmate extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->publicGetTransactions (array_merge (array (
             'currencyPair' => $this->market_id ($market),
             'minutesIntoHistory' => 10,
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePost' . $this->capitalize ($side);
         $order = array (
             'currencyPair' => $this->market_id ($market),
@@ -7843,7 +7843,7 @@ class coinmate extends Exchange {
         return $this->privatePostCancelOrder (array ( 'orderId' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
         if ($api == 'public') {
             if ($params)
@@ -8047,7 +8047,7 @@ class coinsecure extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $bids = $this->publicGetExchangeBidOrders ($params);
         $asks = $this->publicGetExchangeAskOrders ($params);
         $orderbook = array (
@@ -8100,11 +8100,11 @@ class coinsecure extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->publicGetExchangeTrades ($params);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePutUserExchange';
         $order = array ();
         if ($type == 'market') {
@@ -8132,7 +8132,7 @@ class coinsecure extends Exchange {
         return $this->$method (array ( 'orderID' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'private') {
@@ -8222,7 +8222,7 @@ class coinspot extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $p = $this->market ($market);
         $orderbook = $this->privatePostOrders (array_merge (array (
             'cointype' => $p['id'],
@@ -8279,13 +8279,13 @@ class coinspot extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->privatePostOrdersHistory (array_merge (array (
             'cointype' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePostMy' . $this->capitalize ($side);
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
@@ -8297,13 +8297,13 @@ class coinspot extends Exchange {
         return $this->$method (array_merge ($order, $params));
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         throw new ExchangeError ($this->id . ' cancelOrder () is not fully implemented yet');
         $method = 'privatePostMyBuy';
         return $this->$method (array ( 'id' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!$this->apiKey)
             throw new AuthenticationError ($this->id . ' requires apiKey for all requests');
         $url = $this->urls['api'][$api] . '/' . $path;
@@ -8424,7 +8424,7 @@ class dsx extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $response = $this->mapiGetDepthId (array_merge (array (
@@ -8481,14 +8481,14 @@ class dsx extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->mapiGetTradesId (array_merge (array (
             'id' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
@@ -8510,7 +8510,7 @@ class dsx extends Exchange {
         return $this->tapiPostCancelOrder (array ( 'orderId' => $id ));
     }
 
-    public function request ($path, $api='mapi', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'mapi', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         if (($api == 'mapi') || ($api == 'dwapi'))
             $url .= '/' . $this->implode_params ($path, $params);
@@ -8636,7 +8636,7 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $response = $this->publicGetOrderBook (array_merge (array (
@@ -8689,7 +8689,7 @@ class exmo extends Exchange {
         );
     }
 
-    public function fetch_tickers ($currency='USD') {
+    public function fetch_tickers ($currency = 'USD') {
         $this->loadMarkets ();
         $response = $this->publicGetTicker ();
         $result = array ();
@@ -8711,14 +8711,14 @@ class exmo extends Exchange {
         return $this->parse_ticker ($response[$p['id']], $p);
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetTrades (array_merge (array (
             'pair' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $prefix = '';
         if ($type == 'market')
@@ -8741,7 +8741,7 @@ class exmo extends Exchange {
         return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api == 'public') {
             if ($params)
@@ -8855,7 +8855,7 @@ class flowbtc extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $orderbook = $this->publicPostGetOrderBook (array_merge (array (
@@ -8910,14 +8910,14 @@ class flowbtc extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicPostGetTrades (array_merge (array (
             'ins' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $orderType = ($type == 'market') ? 1 : 0;
         $order = array (
@@ -8934,7 +8934,7 @@ class flowbtc extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         $this->loadMarkets ();
         if (array_key_exists ('ins', $params)) {
             return $this->privatePostCancelOrder (array_merge (array (
@@ -8944,7 +8944,7 @@ class flowbtc extends Exchange {
         throw new ExchangeError ($this->id . ' requires `ins` symbol parameter for cancelling an order');
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api == 'public') {
             if ($params) {
@@ -9053,7 +9053,7 @@ class fyb extends Exchange {
         return $accounts;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $orderbook = $this->publicGetOrderbook ($params);
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -9106,11 +9106,11 @@ class fyb extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->publicGetTrades ($params);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $response = $this->privatePostPlaceorder (array_merge (array (
             'qty' => $amount,
             'price' => $price,
@@ -9126,7 +9126,7 @@ class fyb extends Exchange {
         return $this->privatePostCancelpendingorder (array ( 'orderNo' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
         if ($api == 'public') {
             $url .= '.json';
@@ -9398,7 +9398,7 @@ class gatecoin extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $orderbook = $this->publicGetPublicMarketDepthCurrencyPair (array_merge (array (
@@ -9473,14 +9473,14 @@ class gatecoin extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetPublicTransactionsCurrencyPair (array_merge (array (
             'CurrencyPair' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $order = array (
             'Code' => $this->market_id ($market),
@@ -9507,7 +9507,7 @@ class gatecoin extends Exchange {
         return $this->privateDeleteTradeOrdersOrderID (array ( 'OrderID' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
@@ -9642,7 +9642,7 @@ class gdax extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook = $this->publicGetProductsIdBook (array_merge (array (
             'id' => $this->market_id ($market),
@@ -9722,14 +9722,14 @@ class gdax extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetProductsIdTrades (array_merge (array (
             'id' => $this->market_id ($market), // fixes issue #2
         ), $params));
     }
 
-    public function parseOHLCV ($ohlcv, $market=null, $timeframe=60, $since=null, $limit=null) {
+    public function parseOHLCV ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
         return [
             $ohlcv[0] * 1000,
             $ohlcv[3],
@@ -9740,7 +9740,7 @@ class gdax extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($market, $timeframe=60, $since=null, $limit=null) {
+    public function fetch_ohlcv ($market, $timeframe = 60, $since = null, $limit = null) {
         $m = $this->market ($market);
         $response = $this->publicGetProductsIdCandles (array (
             'id' => $m['id'],
@@ -9751,7 +9751,7 @@ class gdax extends Exchange {
         return $this->parse_ohlcvs ($m, $response, $timeframe, $since, $limit);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $oid = (string) $this->nonce ();
         $order = array (
@@ -9774,7 +9774,7 @@ class gdax extends Exchange {
         return $this->privateDeleteOrdersId (array ( 'id' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->implode_params ($path, $params);
         $url = $this->urls['api'] . $request;
         $query = $this->omit ($params, $this->extract_params ($path));
@@ -9878,7 +9878,7 @@ class gemini extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook = $this->publicGetBookSymbol (array_merge (array (
             'symbol' => $this->market_id ($market),
@@ -9935,7 +9935,7 @@ class gemini extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetTradesSymbol (array_merge (array (
             'symbol' => $this->market_id ($market),
@@ -9960,7 +9960,7 @@ class gemini extends Exchange {
         return $result;
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
@@ -9984,7 +9984,7 @@ class gemini extends Exchange {
         return $this->privatePostCancelOrder (array ( 'order_id' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
@@ -10130,7 +10130,7 @@ class hitbtc extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook = $this->publicGetSymbolOrderbook (array_merge (array (
             'symbol' => $this->market_id ($market),
@@ -10205,14 +10205,14 @@ class hitbtc extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetSymbolTrades (array_merge (array (
             'symbol' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $p = $this->market ($market);
         // check if $amount can be evenly divided into lots
@@ -10243,7 +10243,7 @@ class hitbtc extends Exchange {
         return $this->tradingPostCancelOrder (array ( 'clientOrderId' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . 'api' . '/' . $this->version . '/' . $api . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
@@ -10364,7 +10364,7 @@ class huobi extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $p = $this->market ($market);
         $method = $p['type'] . 'GetDepthId';
         $orderbook = $this->$method (array_merge (array ( 'id' => $p['id'] ), $params));
@@ -10405,13 +10405,13 @@ class huobi extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $p = $this->market ($market);
         $method = $p['type'] . 'GetDetailId';
         return $this->$method (array_merge (array ( 'id' => $p['id'] ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $p = $this->market ($market);
         $method = 'tradePost' . $this->capitalize ($side);
         $order = array (
@@ -10434,7 +10434,7 @@ class huobi extends Exchange {
         return $this->tradePostCancelOrder (array ( 'id' => $id ));
     }
 
-    public function request ($path, $api='trade', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'trade', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'];
         if ($api == 'trade') {
             $url .= '/api' . $this->version;
@@ -10526,7 +10526,7 @@ class itbit extends Exchange {
         ), $options));
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $orderbook = $this->publicGetMarketsSymbolOrderBook (array_merge (array (
             'symbol' => $this->market_id ($market),
         ), $params));
@@ -10585,7 +10585,7 @@ class itbit extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->publicGetMarketsSymbolTrades (array_merge (array (
             'symbol' => $this->market_id ($market),
         ), $params));
@@ -10617,7 +10617,7 @@ class itbit extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $amount = (string) $amount;
@@ -10639,13 +10639,13 @@ class itbit extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         return $this->privateDeleteWalletsWalletIdOrdersId (array_merge (array (
             'id' => $id,
         ), $params));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
@@ -10765,7 +10765,7 @@ class jubi extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook = $this->publicGetDepth (array_merge (array (
             'coin' => $this->market_id ($market),
@@ -10828,14 +10828,14 @@ class jubi extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetOrders (array_merge (array (
             'coin' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $response = $this->privatePostTradeAdd (array_merge (array (
             'amount' => $amount,
@@ -10849,14 +10849,14 @@ class jubi extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         $this->loadMarkets ();
         return $this->privateDeleteWalletsWalletIdOrdersId (array_merge (array (
             'id' => $id,
         ), $params));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api == 'public') {
             if ($params)
@@ -10974,7 +10974,7 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $darkpool = mb_strpos ($market, '.d') !== false;
         if ($darkpool)
@@ -11084,7 +11084,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function parseOHLCV ($ohlcv, $market=null, $timeframe=60, $since=null, $limit=null) {
+    public function parseOHLCV ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
         return [
             $ohlcv[0],
             $ohlcv[1],
@@ -11095,7 +11095,7 @@ class kraken extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($market, $timeframe=60, $since=null, $limit=null) {
+    public function fetch_ohlcv ($market, $timeframe = 60, $since = null, $limit = null) {
         $m = $this->market ($market);
         $response = $this->publicGetOHLC (array (
             'pair' => $m['id'],
@@ -11106,7 +11106,7 @@ class kraken extends Exchange {
         return $this->parse_ohlcvs ($m, $ohlcvs, $timeframe, $since, $limit);
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         $m = $this->market ($market);
         $id = $m['id'];
@@ -11144,7 +11144,7 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $order = array (
             'pair' => $this->market_id ($market),
@@ -11168,7 +11168,7 @@ class kraken extends Exchange {
         return $this->privatePostCancelOrder (array ( 'txid' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . $this->version . '/' . $api . '/' . $path;
         if ($api == 'public') {
             if ($params)
@@ -11284,7 +11284,7 @@ class lakebtc extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook = $this->publicGetBcorderbook (array_merge (array (
             'symbol' => $this->market_id ($market),
@@ -11339,14 +11339,14 @@ class lakebtc extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetBctrades (array_merge (array (
             'symbol' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
@@ -11367,7 +11367,7 @@ class lakebtc extends Exchange {
         return $this->privatePostCancelOrder (array ( 'params' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version;
         if ($api == 'public') {
             $url .= '/' . $path;
@@ -11515,7 +11515,7 @@ class livecoin extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook = $this->publicGetExchangeOrderBook (array_merge (array (
             'currencyPair' => $this->market_id ($market),
@@ -11591,14 +11591,14 @@ class livecoin extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetExchangeLastTrades (array_merge (array (
             'currencyPair' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $method = 'privatePostExchange' . $this->capitalize ($side) . $type;
         $order = array (
@@ -11614,14 +11614,14 @@ class livecoin extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         $this->loadMarkets ();
         return $this->privatePostExchangeCancellimit (array_merge (array (
             'orderId' => $id,
         ), $params));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
         if ($api == 'public') {
             if ($params)
@@ -11672,7 +11672,7 @@ class liqui extends btce {
         ), $options));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
@@ -11810,7 +11810,7 @@ class luno extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook = $this->publicGetOrderbook (array_merge (array (
             'pair' => $this->market_id ($market),
@@ -11885,14 +11885,14 @@ class luno extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetTrades (array_merge (array (
             'pair' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $method = 'privatePost';
         $order = array ( 'pair' => $this->market_id ($market) );
@@ -11924,7 +11924,7 @@ class luno extends Exchange {
         return $this->privatePostStoporder (array ( 'order_id' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($query)
@@ -11999,7 +11999,7 @@ class mercado extends Exchange {
         ), $options));
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $p = $this->market ($market);
         $method = 'publicGetOrderbook' . $this->capitalize ($p['suffix']);
         $orderbook = $this->$method ($params);
@@ -12040,7 +12040,7 @@ class mercado extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $p = $this->market ($market);
         $method = 'publicGetTrades' . $this->capitalize ($p['suffix']);
         return $this->$method ($params);
@@ -12068,7 +12068,7 @@ class mercado extends Exchange {
         return $result;
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $method = 'privatePostPlace' . $this->capitalize ($side) . 'Order';
@@ -12084,13 +12084,13 @@ class mercado extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         return $this->privatePostCancelOrder (array_merge (array (
             'order_id' => $id,
         ), $params));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/';
         if ($api == 'public') {
             $url .= $path;
@@ -12187,7 +12187,7 @@ class okcoin extends Exchange {
         ), $options));
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $orderbook = $this->publicGetDepth (array_merge (array (
             'symbol' => $this->market_id ($market),
         ), $params));
@@ -12228,13 +12228,13 @@ class okcoin extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->publicGetTrades (array_merge (array (
             'symbol' => $this->market_id ($market),
         ), $params));
     }
 
-    public function fetch_ohlcv ($market, $timeframe=60, $since=null, $limit=null) {
+    public function fetch_ohlcv ($market, $timeframe = 60, $since = null, $limit = null) {
         $m = $this->market ($market);
         $response = $this->publicGetKline (array (
             'symbol' => $m['id'],
@@ -12267,7 +12267,7 @@ class okcoin extends Exchange {
         return $result;
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $order = array (
             'symbol' => $this->market_id ($market),
             'type' => $side,
@@ -12284,13 +12284,13 @@ class okcoin extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         return $this->privatePostCancelOrder (array_merge (array (
             'order_id' => $id,
         ), $params));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . 'api' . '/' . $this->version . '/' . $path . '.do';
         if ($api == 'public') {
             if ($params)
@@ -12448,7 +12448,7 @@ class paymium extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $orderbook = $this->publicGetDataIdDepth (array_merge (array (
             'id' => $this->market_id ($market),
         ), $params));
@@ -12501,13 +12501,13 @@ class paymium extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->publicGetDataIdTrades (array_merge (array (
             'id' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $order = array (
             'type' => $this->capitalize ($type) . 'Order',
             'currency' => $this->market_id ($market),
@@ -12523,13 +12523,13 @@ class paymium extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         return $this->privatePostCancelOrder (array_merge (array (
             'orderNumber' => $id,
         ), $params));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
@@ -12678,7 +12678,7 @@ class poloniex extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook = $this->publicGetReturnOrderBook (array_merge (array (
             'currencyPair' => $this->market_id ($market),
@@ -12744,7 +12744,7 @@ class poloniex extends Exchange {
         return $this->parse_ticker ($ticker, $m);
     }
 
-    public function parse_trade ($trade, $market=null) {
+    public function parse_trade ($trade, $market = null) {
         $timestamp = $this->parse8601 ($trade['date']);
         $id = null;
         $order = null;
@@ -12766,7 +12766,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         $m = $this->market ($market);
         $trades = $this->publicGetReturnTradeHistory (array_merge (array (
@@ -12776,7 +12776,7 @@ class poloniex extends Exchange {
         return $this->parse_trades ($trades, $m);
     }
 
-    public function fetch_my_trades ($market=null, $params=array ()) {
+    public function fetch_my_trades ($market = null, $params = array ()) {
         $now = $this->seconds ();
         $request = array_merge (array (
             'currencyPair' => 'all',
@@ -12816,7 +12816,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $this->loadMarkets ();
@@ -12849,7 +12849,7 @@ class poloniex extends Exchange {
         return $this->orders[$id];
     }
 
-    public function fetch_orderTrades ($id, $params=array ()) {
+    public function fetch_orderTrades ($id, $params = array ()) {
         $this->loadMarkets ();
         $trades = $this->privatePostReturnOrderTrades (array_merge (array (
             'orderNumber' => $id,
@@ -12857,14 +12857,14 @@ class poloniex extends Exchange {
         return $this->parse_trades ($trades);
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         $this->loadMarkets ();
         return $this->privatePostCancelOrder (array_merge (array (
             'orderNumber' => $id,
         ), $params));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         $query = array_merge (array ( 'command' => $path ), $params);
         if ($api == 'public') {
@@ -12951,7 +12951,7 @@ class quadrigacx extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $orderbook = $this->publicGetOrderBook (array_merge (array (
             'book' => $this->market_id ($market),
         ), $params));
@@ -13002,13 +13002,13 @@ class quadrigacx extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         return $this->publicGetTransactions (array_merge (array (
             'book' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePost' . $this->capitalize ($side);
         $order = array (
             'amount' => $amount,
@@ -13023,13 +13023,13 @@ class quadrigacx extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         return $this->privatePostCancelOrder (array_merge (array (
             'id' => $id,
         ), $params));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api == 'public') {
             $url .= '?' . $this->urlencode ($params);
@@ -13158,7 +13158,7 @@ class quoine extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook = $this->publicGetProductsIdPriceLevels (array_merge (array (
             'id' => $this->market_id ($market),
@@ -13241,14 +13241,14 @@ class quoine extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetExecutions (array_merge (array (
             'product_id' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $order = array (
             'order_type' => $type,
@@ -13267,14 +13267,14 @@ class quoine extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         $this->loadMarkets ();
         return $this->privatePutOrdersIdCancel (array_merge (array (
             'id' => $id,
         ), $params));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         $headers = array (
@@ -13385,7 +13385,7 @@ class southxchange extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook = $this->publicGetBookSymbol (array_merge (array (
             'symbol' => $this->market_id ($market),
@@ -13469,14 +13469,14 @@ class southxchange extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetTradesSymbol (array_merge (array (
             'symbol' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $order = array (
@@ -13494,14 +13494,14 @@ class southxchange extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         $this->loadMarkets ();
         return $this->privatePostCancelOrder (array_merge (array (
             'orderCode' => $id,
         ), $params));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'private') {
@@ -13651,7 +13651,7 @@ class therock extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook = $this->publicGetFundsIdOrderbook (array_merge (array (
             'id' => $this->market_id ($market),
@@ -13725,14 +13725,14 @@ class therock extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetFundsIdTrades (array_merge (array (
             'id' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
@@ -13748,14 +13748,14 @@ class therock extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         $this->loadMarkets ();
         return $this->privateDeleteFundsFundIdOrdersId (array_merge (array (
             'id' => $id,
         ), $params));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'private') {
@@ -13897,7 +13897,7 @@ class vaultoro extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $response = $this->publicGetOrderbook ($params);
         $orderbook = array (
@@ -13956,12 +13956,12 @@ class vaultoro extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetTransactionsDay ($params);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $method = 'privatePost' . $this->capitalize ($side) . 'SymbolType';
@@ -13977,14 +13977,14 @@ class vaultoro extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         $this->loadMarkets ();
         return $this->privatePostCancelId (array_merge (array (
             'id' => $id,
         ), $params));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/';
         if ($api == 'public') {
             $url .= $path;
@@ -14146,7 +14146,7 @@ class virwox extends Exchange {
         ));
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $response = $this->publicPostGetMarketDepth (array_merge (array (
             'symbols' => array ($this->symbol ($market)),
@@ -14214,7 +14214,7 @@ class virwox extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetRawTradeData(array_merge (array (
             'instrument' => $this->symbol ($market),
@@ -14222,7 +14222,7 @@ class virwox extends Exchange {
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $order = array (
             'instrument' => $this->symbol ($market),
@@ -14238,14 +14238,14 @@ class virwox extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         $this->loadMarkets ();
         return $this->privatePostCancelOrder (array_merge (array (
             'orderID' => $id,
         ), $params));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         $auth = array ();
         if ($api == 'private') {
@@ -14410,7 +14410,7 @@ class xbtce extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $orderbook = $this->privateGetLevel2Filter (array_merge (array (
@@ -14517,13 +14517,13 @@ class xbtce extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         // no method for trades?
         return $this->privateGetTrade ($params);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
@@ -14539,7 +14539,7 @@ class xbtce extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         $this->loadMarkets ();
         return $this->privateDeleteTrade (array_merge (array (
             'Type' => 'Cancel',
@@ -14551,7 +14551,7 @@ class xbtce extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function request ($path, $api='api', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!$this->apiKey)
             throw new AuthenticationError ($this->id . ' requires apiKey for all requests, their public API is always busy');
         if (!$this->uid)
@@ -14676,7 +14676,7 @@ class yobit extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $response = $this->apiGetDepthPairs (array_merge (array (
@@ -14724,14 +14724,14 @@ class yobit extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->apiGetTradesPairs (array_merge (array (
             'pairs' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
@@ -14747,14 +14747,14 @@ class yobit extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         $this->loadMarkets ();
         return $this->tapiPostCancelOrder (array_merge (array (
             'order_id' => $id,
         ), $params));
     }
 
-    public function request ($path, $api='api', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $api;
         if ($api == 'api') {
             $url .= '/' . $this->version . '/' . $this->implode_params ($path, $params);
@@ -14876,7 +14876,7 @@ class yunbi extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $p = $this->market ($market);
         $orderbook = $this->publicGetDepth (array_merge (array (
@@ -14966,7 +14966,7 @@ class yunbi extends Exchange {
         return $this->parse_ticker ($response, $p);
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         $m = $this->market ($market);
         return $this->publicGetTrades (array_merge (array (
@@ -14974,7 +14974,7 @@ class yunbi extends Exchange {
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         $order = array (
             'market' => $this->market_id ($market),
@@ -14997,7 +14997,7 @@ class yunbi extends Exchange {
         return $this->privatePostOrderDelete (array ( 'id' => $id ));
     }
 
-    public function request ($path, $api='public', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/$api/' . $this->version . '/' . $this->implode_params ($path, $params) . '.json';
         $query = $this->omit ($params, $this->extract_params ($path));
         $url = $this->urls['api'] . $request;
@@ -15138,7 +15138,7 @@ class zaif extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params=array ()) {
+    public function fetch_order_book ($market, $params = array ()) {
         $this->loadMarkets ();
         $orderbook = $this->apiGetDepthPair (array_merge (array (
             'pair' => $this->market_id ($market),
@@ -15180,14 +15180,14 @@ class zaif extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params=array ()) {
+    public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->apiGetTradesPair (array_merge (array (
             'pair' => $this->market_id ($market),
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price=null, $params=array ()) {
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
@@ -15203,14 +15203,14 @@ class zaif extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params=array ()) {
+    public function cancel_order ($id, $params = array ()) {
         $this->loadMarkets ();
         return $this->tapiPostCancelOrder (array_merge (array (
             'order_id' => $id,
         ), $params));
     }
 
-    public function request ($path, $api='api', $method='GET', $params=array (), $headers=null, $body=null) {
+    public function request ($path, $api = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $api;
         if ($api == 'api') {
             $url .= '/' . $this->version . '/' . $this->implode_params ($path, $params);
