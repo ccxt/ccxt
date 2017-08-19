@@ -122,7 +122,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.27'
+__version__ = '1.4.28'
 
 #------------------------------------------------------------------------------
 
@@ -212,20 +212,20 @@ class Exchange (object):
             setattr(self, key, config[key])
 
         if self.api:
-            self.define_api(self.api, 'request')
+            self.define_rest_api(self.api, 'request')
 
         if self.markets:
             self.set_markets(self.markets)
 
-    def define_api(self, api, f):
+    def define_rest_api(self, api, method_name):
         for apiType, methods in api.items():
-            for method, urls in methods.items():
+            for http_method, urls in methods.items():
                 for url in urls:
                     url = url.strip()
                     splitPath = re.compile('[^a-zA-Z0-9]').split(url)
 
-                    uppercaseMethod = method.upper()
-                    lowercaseMethod = method.lower()
+                    uppercaseMethod = http_method.upper()
+                    lowercaseMethod = http_method.lower()
                     camelcaseMethod = lowercaseMethod.capitalize()
                     camelcaseSuffix = ''.join([Exchange.capitalize(x) for x in splitPath])
                     lowercasePath = [x.strip().lower() for x in splitPath]
@@ -240,7 +240,7 @@ class Exchange (object):
                     camelcase = apiType + camelcaseMethod + Exchange.capitalize(camelcaseSuffix)
                     underscore = apiType + '_' + lowercaseMethod + '_' + underscoreSuffix.lower()
 
-                    partial = functools.partial(getattr(self, f), url, apiType, uppercaseMethod)
+                    partial = functools.partial(getattr(self, method_name), url, apiType, uppercaseMethod)
                     setattr(self, camelcase, partial)
                     setattr(self, underscore, partial)
 
