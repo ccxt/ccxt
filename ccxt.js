@@ -14472,11 +14472,12 @@ var yobit = {
         await this.loadMarkets ();
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
+        let rate = price.toString ();
         let response = await this.tapiPostTrade (this.extend ({
             'pair': this.marketId (market),
             'type': side,
             'amount': amount,
-            'rate': this.decimal (price),
+            'rate': '%.8f'.sprintf (price),
         }, params));
         return {
             'info': response,
