@@ -292,6 +292,7 @@ const Exchange = function (config) {
     this.binaryToString = binaryToString
     this.utf16ToBase64 = utf16ToBase64
     this.urlencode = urlencode
+    this.encodeURIComponent = encodeURIComponent
     this.omit = omit
     this.pluck = pluck
     this.unique = unique
@@ -8132,18 +8133,43 @@ var cryptopia = {
 
     async fetchBalance () {
         await this.loadMarkets ();
-        // todo implement fetchBalance
-        return [];
+        let response = await this.privatePostGetBalance ();
+        let balances = response['Data'];
+        let result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            let balance = balances[i];
+            let currency = balance['Symbol'];
+            let account = {
+                'free': balance['Available'],
+                'used': undefined,
+                'total': balance['Total'],
+            };
+            account['used'] = account['total'] - account['free'];
+            result[currency] = account;
+        }
+        return result;
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (Object.keys (query).length)
-            url += '?' + this.urlencode (query);
-        if (api == 'private') {
-            // todo private API
-            throw new ExchangeError (this.id + ' private API is not implemented yet');
+        if (api == 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);            
+        } else {
+            let nonce = this.nonce ().toString ();
+            body = this.json (query);
+            let hash = this.hash (this.encode (body), 'md5', 'base64');
+            let secret = this.base64ToBinary (this.secret)
+            let uri = this.encodeURIComponent (url);
+            let lowercase = uri.toLowerCase ();
+            let auth = this.apiKey + method + lowercase + nonce + hash;
+            let signature = this.hmac (this.encode (auth), secret, 'sha256', 'base64');
+            headers = {
+                'Content-Type': 'application/json',
+                'Content-Length': body.length,
+                'Authorization': 'amx ' + this.apiKey + ':' + signature + ':' + nonce,
+            };
         }
         let response = await this.fetch (url, method, headers, body);
         if ('Success' in response)

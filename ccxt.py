@@ -439,6 +439,10 @@ class Exchange (object):
         return params
 
     @staticmethod
+    def encode_uri_component(uri):
+        return _urlencode.quote(uri)
+
+    @staticmethod
     def omit(d, *args):
         result = d.copy()
         for arg in args:
