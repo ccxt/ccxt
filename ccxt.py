@@ -351,7 +351,7 @@ class Exchange (object):
                     body,
                     message,
                 ]))
-            if isinstance(e,ValueError):
+            if isinstance(e, ValueError):
                 raise ExchangeError(' '.join([self.id, method, url, body, str(e)]))
             raise
 
