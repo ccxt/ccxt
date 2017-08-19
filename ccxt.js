@@ -8155,7 +8155,7 @@ var cryptopia = {
         let query = this.omit (params, this.extractParams (path));
         if (api == 'public') {
             if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);            
+                url += '?' + this.urlencode (query);
         } else {
             let nonce = this.nonce ().toString ();
             body = this.json (query);
