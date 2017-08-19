@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.21';
+$version = '1.4.22';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -4104,7 +4104,7 @@ class bittrex extends Exchange {
         return $result;
     }
 
-    public function fetchOrder ($id) {
+    public function fetch_order ($id) {
         $this->loadMarkets ();
         $response = $this->accountGetOrder (array ( 'uuid' => $id ));
         return $this->parseOrder ($response['result']);
@@ -4945,7 +4945,7 @@ class btce extends Exchange {
         return $result;
     }
 
-    public function fetchOrder ($id) {
+    public function fetch_order ($id) {
         $this->loadMarkets ();
         $response = $this->privatePostOrderInfo (array ( 'order_id' => $id ));
         $order = $response['return'][$id];
@@ -6869,7 +6869,7 @@ class chbtc extends Exchange {
         return $this->privatePostCancelOrder ($paramString);
     }
 
-    public function fetchOrder ($id, $params=array ()) {
+    public function fetch_order ($id, $params=array ()) {
         $paramString = '&$id=' . (string) $id;
         if (array_key_exists ('currency', $params))
             $paramString .= '&currency=' . $params['currency'];
@@ -12841,7 +12841,7 @@ class poloniex extends Exchange {
         return array_merge (array ( 'info' => $response ), $order);
     }
 
-    public function fetchOrder ($id) {
+    public function fetch_order ($id) {
         $this->loadMarkets ();
         $found = (array_key_exists ($id, $this->orders));
         if (!$found)
@@ -12849,7 +12849,7 @@ class poloniex extends Exchange {
         return $this->orders[$id];
     }
 
-    public function fetchOrderTrades ($id, $params=array ()) {
+    public function fetch_orderTrades ($id, $params=array ()) {
         $this->loadMarkets ();
         $trades = $this->privatePostReturnOrderTrades (array_merge (array (
             'orderNumber' => $id,
