@@ -10052,8 +10052,9 @@ var hitbtc = {
         let difference = quantity - wholeLots;
         if (Math.abs (difference) > p['step'])
             throw new ExchangeError (this.id + ' order amount should be evenly divisible by lot unit size of ' + p['lot'].toString ());
+        let clientOrderId = this.nonce ()
         let order = {
-            'clientOrderId': this.nonce (),
+            'clientOrderId': clientOrderId.toString (),
             'symbol': p['id'],
             'side': side,
             'quantity': wholeLots.toString (), // quantity in integer lot units
@@ -10064,7 +10065,7 @@ var hitbtc = {
         let response = await this.tradingPostNewOrder (this.extend (order, params));
         return {
             'info': response,
-            'id': response['ExecutionReport']['orderId'],
+            'id': response['ExecutionReport']['clientOrderId'],
         };
     },
 
@@ -10087,8 +10088,10 @@ var hitbtc = {
             if (method == 'POST')
                 if (Object.keys (query).length)
                     body = this.urlencode (query);
-            if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
+            url += '?' + this.urlencode ({
+                'nonce': nonce,
+                'apikey': this.apiKey,
+            });
             let auth = url + (body || '');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
