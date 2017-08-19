@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.31';
+$version = '1.4.32';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10475,8 +10475,9 @@ class hitbtc extends Exchange {
         $difference = $quantity - $wholeLots;
         if (abs ($difference) > $p['step'])
             throw new ExchangeError ($this->id . ' $order $amount should be evenly divisible by lot unit size of ' . (string) $p['lot']);
+        $clientOrderId = $this->nonce ()
         $order = array (
-            'clientOrderId' => $this->nonce (),
+            'clientOrderId' => (string) $clientOrderId,
             'symbol' => $p['id'],
             'side' => $side,
             'quantity' => (string) $wholeLots, // $quantity in integer lot units
@@ -10487,7 +10488,7 @@ class hitbtc extends Exchange {
         $response = $this->tradingPostNewOrder (array_merge ($order, $params));
         return array (
             'info' => $response,
-            'id' => $response['ExecutionReport']['orderId'],
+            'id' => $response['ExecutionReport']['clientOrderId'],
         );
     }
 
@@ -10510,8 +10511,10 @@ class hitbtc extends Exchange {
             if ($method == 'POST')
                 if ($query)
                     $body = $this->urlencode ($query);
-            if ($query)
-                $url .= '?' . $this->urlencode ($query);
+            $url .= '?' . $this->urlencode (array (
+                'nonce' => $nonce,
+                'apikey' => $this->apiKey,
+            ));
             $auth = $url . ($body || '');
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',

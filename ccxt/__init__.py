@@ -122,7 +122,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.31'
+__version__ = '1.4.32'
 
 #------------------------------------------------------------------------------
 
@@ -9728,8 +9728,9 @@ class hitbtc (Exchange):
         difference = quantity - wholeLots
         if abs(difference) > p['step']:
             raise ExchangeError(self.id + ' order amount should be evenly divisible by lot unit size of ' + str(p['lot']))
+        clientOrderId = self.nonce()
         order = {
-            'clientOrderId': self.nonce(),
+            'clientOrderId': str(clientOrderId),
             'symbol': p['id'],
             'side': side,
             'quantity': str(wholeLots), # quantity in integer lot units
@@ -9740,7 +9741,7 @@ class hitbtc (Exchange):
         response = self.tradingPostNewOrder(self.extend(order, params))
         return {
             'info': response,
-            'id': response['ExecutionReport']['orderId'],
+            'id': response['ExecutionReport']['clientOrderId'],
         }
 
     def cancel_order(self, id, params={}):
@@ -9761,8 +9762,10 @@ class hitbtc (Exchange):
             if method == 'POST':
                 if query:
                     body = self.urlencode(query)
-            if query:
-                url += '?' + self.urlencode(query)
+            url += '?' + self.urlencode({
+                'nonce': nonce,
+                'apikey': self.apiKey,
+            })
             auth = url + (body or '')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
