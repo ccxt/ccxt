@@ -122,7 +122,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.32'
+__version__ = '1.4.33'
 
 #------------------------------------------------------------------------------
 
@@ -9762,10 +9762,7 @@ class hitbtc (Exchange):
             if method == 'POST':
                 if query:
                     body = self.urlencode(query)
-            url += '?' + self.urlencode({
-                'nonce': nonce,
-                'apikey': self.apiKey,
-            })
+            url += '?' + self.urlencode(query)
             auth = url + (body or '')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

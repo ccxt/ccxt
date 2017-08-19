@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.32';
+$version = '1.4.33';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10511,10 +10511,7 @@ class hitbtc extends Exchange {
             if ($method == 'POST')
                 if ($query)
                     $body = $this->urlencode ($query);
-            $url .= '?' . $this->urlencode (array (
-                'nonce' => $nonce,
-                'apikey' => $this->apiKey,
-            ));
+            $url .= '?' . $this->urlencode ($query);
             $auth = $url . ($body || '');
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
