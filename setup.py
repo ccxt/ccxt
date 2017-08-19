@@ -20,8 +20,9 @@ requirements = ['setuptools']
 if sys.version_info[0] == 3:
     requirements += [
         'aiohttp',
-        # 'cchardet', # reserved for future
-        # 'aiodns', # reserved for future
+        # reserved for future
+        # 'cchardet', 
+        # 'aiodns', 
     ]
 
 setup(
