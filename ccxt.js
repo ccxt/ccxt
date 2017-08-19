@@ -314,44 +314,45 @@ const Exchange = function (config) {
         this.nodeVersion = process.version.match (/\d+\.\d+.\d+/) [0]
 
     this.init = function () {
-
         this.orders = {}
         this.trades = {}
-
         if (this.api)
-            Object.keys (this.api).forEach (type => {
-                Object.keys (this.api[type]).forEach (method => {
-                    var urls = this.api[type][method]
-                    for (var i = 0; i < urls.length; i++) {
-                        let url = urls[i].trim ()
-                        let splitPath = url.split (/[^a-zA-Z0-9]/)
-
-                        let uppercaseMethod  = method.toUpperCase ()
-                        let lowercaseMethod  = method.toLowerCase ()
-                        let camelcaseMethod  = capitalize (lowercaseMethod)
-                        let camelcaseSuffix  = splitPath.map (capitalize).join ('')
-                        let underscoreSuffix = splitPath.map (x => x.trim ().toLowerCase ()).filter (x => x.length > 0).join ('_')
-
-                        if (camelcaseSuffix.indexOf (camelcaseMethod) === 0)
-                            camelcaseSuffix = camelcaseSuffix.slice (camelcaseMethod.length)
-
-                        if (underscoreSuffix.indexOf (lowercaseMethod) === 0)
-                            underscoreSuffix = underscoreSuffix.slice (lowercaseMethod.length)
-
-                        let camelcase  = type + camelcaseMethod + capitalize (camelcaseSuffix)
-                        let underscore = type + '_' + lowercaseMethod + '_' + underscoreSuffix
-
-                        let f = (params => this.request (url, type, uppercaseMethod, params))
-
-                        this[camelcase]  = f
-                        this[underscore] = f
-                    }
-                })
-            })
-
+            this.defineAPI (this.api, 'request');
         if (this.markets)
             this.setMarkets (this.markets);
     }
+
+    this.defineAPI = function (api, f) {
+        Object.keys (api).forEach (type => {
+            Object.keys (api[type]).forEach (method => {
+                let urls = api[type][method]
+                for (let i = 0; i < urls.length; i++) {
+                    let url = urls[i].trim ()
+                    let splitPath = url.split (/[^a-zA-Z0-9]/)
+
+                    let uppercaseMethod  = method.toUpperCase ()
+                    let lowercaseMethod  = method.toLowerCase ()
+                    let camelcaseMethod  = capitalize (lowercaseMethod)
+                    let camelcaseSuffix  = splitPath.map (capitalize).join ('')
+                    let underscoreSuffix = splitPath.map (x => x.trim ().toLowerCase ()).filter (x => x.length > 0).join ('_')
+
+                    if (camelcaseSuffix.indexOf (camelcaseMethod) === 0)
+                        camelcaseSuffix = camelcaseSuffix.slice (camelcaseMethod.length)
+
+                    if (underscoreSuffix.indexOf (lowercaseMethod) === 0)
+                        underscoreSuffix = underscoreSuffix.slice (lowercaseMethod.length)
+
+                    let camelcase  = type + camelcaseMethod + capitalize (camelcaseSuffix)
+                    let underscore = type + '_' + lowercaseMethod + '_' + underscoreSuffix
+
+                    let partial = params => this[f] (url, type, uppercaseMethod, params)
+
+                    this[camelcase]  = partial
+                    this[underscore] = partial
+                }
+            })
+        })
+    },
 
     this.fetch = function (url, method = 'GET', headers = undefined, body = undefined) {
 
