@@ -91,6 +91,8 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('parseBidAsks',     'parse_bidasks')
                         .replace ('parseBidAsk',      'parse_bidask')
                         .replace ('fetchTrades',      'fetch_trades')
+                        .replace ('fetchOrder',       'fetch_order')
+                        .replace ('fetchOrderTrades', 'fetch_order_trades')
                         .replace ('fetchMyTrades',    'fetch_my_trades')
                         .replace ('fetchAllMyTrades', 'fetch_all_my_trades')
                         .replace ('createOrder',      'create_order')
