@@ -317,12 +317,12 @@ const Exchange = function (config) {
         this.orders = {}
         this.trades = {}
         if (this.api)
-            this.defineAPI (this.api, 'request');
+            this.defineRESTAPI (this.api, 'request');
         if (this.markets)
             this.setMarkets (this.markets);
     }
 
-    this.defineAPI = function (api, f) {
+    this.defineRESTAPI = function (api, f) {
         Object.keys (api).forEach (type => {
             Object.keys (api[type]).forEach (method => {
                 let urls = api[type][method]

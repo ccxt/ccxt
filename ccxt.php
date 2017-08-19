@@ -431,38 +431,42 @@ class Exchange {
                 $this->$key = $value;
 
         if ($this->api)
-            foreach ($this->api as $type => $methods)
-                foreach ($methods as $method => $paths)
-                    foreach ($paths as $path) {
-
-                        $splitPath = mb_split ('[^a-zA-Z0-9]', $path);
-                        
-                        $uppercaseMethod  = mb_strtoupper ($method);
-                        $lowercaseMethod  = mb_strtolower ($method);
-                        $camelcaseMethod  = Exchange::capitalize ($lowercaseMethod);
-                        $camelcaseSuffix  = implode (array_map ('\ccxt\Exchange::capitalize', $splitPath));
-                        $lowercasePath    = array_map ('trim', array_map ('strtolower', $splitPath));
-                        $underscoreSuffix = implode ('_', array_filter ($lowercasePath));
-
-                        if (mb_stripos ($camelcaseSuffix, $camelcaseMethod) === 0)
-                            $camelcaseSuffix = mb_substr ($camelcaseSuffix, mb_strlen ($camelcaseMethod));
-
-                        if (mb_stripos ($underscoreSuffix, $lowercaseMethod) === 0)
-                            $underscoreSuffix = trim (mb_substr ($underscoreSuffix, mb_strlen ($lowercaseMethod)), '_');
-
-                        $camelcase  = $type . $camelcaseMethod . Exchange::capitalize ($camelcaseSuffix);
-                        $underscore = $type . '_' . $lowercaseMethod . '_' . mb_strtolower ($underscoreSuffix);
-    
-                        $f = function ($params = array ()) use ($path, $type, $uppercaseMethod) {
-                            return $this->request ($path, $type, $uppercaseMethod, $params);
-                        };
-
-                        $this->$camelcase  = $f;
-                        $this->$underscore = $f;
-                    }
+            $this->define_rest_api ($this->api, 'request');
 
         if ($this->markets)
             $this->set_markets ($this->markets);
+    }
+
+    public function define_rest_api ($api, $method_name) {
+        foreach ($api as $type => $methods)
+            foreach ($methods as $http_method => $paths)
+                foreach ($paths as $path) {
+
+                    $splitPath = mb_split ('[^a-zA-Z0-9]', $path);
+                    
+                    $uppercaseMethod  = mb_strtoupper ($http_method);
+                    $lowercaseMethod  = mb_strtolower ($http_method);
+                    $camelcaseMethod  = Exchange::capitalize ($lowercaseMethod);
+                    $camelcaseSuffix  = implode (array_map ('\ccxt\Exchange::capitalize', $splitPath));
+                    $lowercasePath    = array_map ('trim', array_map ('strtolower', $splitPath));
+                    $underscoreSuffix = implode ('_', array_filter ($lowercasePath));
+
+                    if (mb_stripos ($camelcaseSuffix, $camelcaseMethod) === 0)
+                        $camelcaseSuffix = mb_substr ($camelcaseSuffix, mb_strlen ($camelcaseMethod));
+
+                    if (mb_stripos ($underscoreSuffix, $lowercaseMethod) === 0)
+                        $underscoreSuffix = trim (mb_substr ($underscoreSuffix, mb_strlen ($lowercaseMethod)), '_');
+
+                    $camelcase  = $type . $camelcaseMethod . Exchange::capitalize ($camelcaseSuffix);
+                    $underscore = $type . '_' . $lowercaseMethod . '_' . mb_strtolower ($underscoreSuffix);
+
+                    $partial = function ($params = array ()) use ($path, $type, $uppercaseMethod, $method_name) {
+                        return call_user_func (array ($this, $method_name), $path, $type, $uppercaseMethod, $params);
+                    };
+
+                    $this->$camelcase  = $partial;
+                    $this->$underscore = $partial;
+                }
     }
 
     public function hash ($request, $type = 'md5', $digest = 'hex') {
