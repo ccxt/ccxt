@@ -122,7 +122,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.29'
+__version__ = '1.4.30'
 
 #------------------------------------------------------------------------------
 
@@ -9739,7 +9739,7 @@ class hitbtc (Exchange):
             'type': type,
         }
         if type == 'limit':
-            order['price'] = self.decimal(price)
+            order['price'] = '{:.10f}'.format(price)
         response = self.tradingPostNewOrder(self.extend(order, params))
         return {
             'info': response,

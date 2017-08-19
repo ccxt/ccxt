@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.29';
+$version = '1.4.30';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10486,7 +10486,7 @@ class hitbtc extends Exchange {
             'type' => $type,
         );
         if ($type == 'limit')
-            $order['price'] = $this->decimal ($price);
+            $order['price'] = sprintf ('%.10f', $price);
         $response = $this->tradingPostNewOrder (array_merge ($order, $params));
         return array (
             'info' => $response,
