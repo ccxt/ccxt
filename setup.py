@@ -21,8 +21,8 @@ if sys.version_info[0] == 3:
     requirements += [
         'aiohttp',
         # reserved for future
-        # 'cchardet', 
-        # 'aiodns', 
+        # 'cchardet',
+        # 'aiodns',
     ]
 
 setup(
