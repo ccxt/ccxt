@@ -1016,6 +1016,144 @@ var cryptocapital = {
 
 //-----------------------------------------------------------------------------
 
+var cryptopia = {
+
+    'id': 'cryptopia',
+    'name': 'Cryptopia',
+    'comment': 'Cryptopia API',
+    'rateLimit': 1500,
+    'version': 'v1',
+    'countries': 'NZ', // New Zealand
+    'urls': {
+        'logo': '',
+        'api': 'https://www.cryptopia.co.nz/api/',
+        'www': 'https://www.cryptopia.co.nz/',
+        'doc': '',
+    },
+    'api': {
+        'public': {
+            'get': [
+                'Currencies',
+                'GetTradePairs',
+                'Markets', // Returns all market data Param: baseMarket (optional, default: All), hours (optional, default: 24)
+                'Market', // Returns market data for the specified trade pair. Param: market (Required) (TradePairId or MarketName)
+                'MarketHistory',
+                'MarketOrders',
+                'MarketOrderGroups',
+            ],
+        },
+        'private': {
+            'get': [
+                'Balance',
+                'DepositAddress',
+                'OpenOrders',
+                'TradeHistory',
+                'Transactions',
+                'SubmitTrade',
+                'CancelTrade',
+                'SubmitWithdraw',
+                'SubmitTransfer',
+            ],
+        },
+    },
+
+    async fetchMarkets () {
+        let markets = await this.publicGetMarkets ();
+        let products = []
+        markets.Data.forEach(function (product) {
+            let pair = product.Label.split ('/');
+            products.push({
+                id: product.TradePairId,
+                symbol: product.Label,
+                base: pair[0],
+                quote: pair[1],
+                info: product
+            })
+        })
+        return products;
+    },
+
+    async fetchOrderBook (market, params = {}) {
+        await this.loadMarkets ();
+        let orderbook = await this.publicGetMarketOrders (this.extend ({
+            'symbol': this.marketId (market),
+        }, params));
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = { 'bids': 'Buy', 'asks': 'Sell' };
+        Object.keys(sides).forEach(function (side) {
+            let orders = orderbook.Data[sides[side]];
+            orders.forEach(function(order){
+                let price = parseFloat (order['Price']);
+                let amount = parseFloat (order['Total']);
+                result[side].push ([ price, amount ]);
+            })
+        })
+        return result;
+    },
+
+    async fetchTicker (market) {
+        await this.loadMarkets ();
+        let ticker = await this.publicGetMarket ({
+            'market': this.marketId (market),
+        });
+        let timestamp = this.milliseconds ();
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker.Data['High']),
+            'low': parseFloat (ticker.Data['Low']),
+            'bid': parseFloat (ticker.Data['BidPrice']),
+            'ask': parseFloat (ticker.Data['AskPrice']),
+            'vwap': undefined,
+            'open': parseFloat (ticker.Data['Open']),
+            'close': parseFloat (ticker.Data['Close']),
+            'first': undefined,
+            'last': parseFloat (ticker.Data['LastPrice']),
+            'change': parseFloat (ticker.Data['Change']),
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': parseFloat (ticker.Data['BaseVolume']),
+            'quoteVolume': parseFloat (ticker.Data['Volume']),
+            'info': ticker.Data,
+        };
+    },
+
+    async fetchTrades (market, params = {}) {
+        await this.loadMarkets ();
+        return this.publicGetMarketHistory (this.extend ({
+            'symbol': this.marketId (market),
+        }, params));
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] ;
+        if (api == 'public') {
+            url +=   method.toLowerCase () + path;
+            if (Object.keys (params).length) {
+                Object.keys(params).forEach(function (key) {
+                    url += '/' + params[key];
+                });
+            }
+        } else {
+            // todo private API
+        }
+        let response = await this.fetch (url, method, headers, body);
+        if ('Success' in response)
+            if (response['Success'])
+                return response;
+        throw new ExchangeError (this.id + ' ' + this.json (response));
+    },
+
+}
+
+//-----------------------------------------------------------------------------
+
 var _1btcxe = extend (cryptocapital, {
 
     'id': '_1btcxe',
@@ -14731,6 +14869,7 @@ var exchanges = {
     'coinmate':      coinmate,
     'coinsecure':    coinsecure,
     'coinspot':      coinspot,
+    'cryptopia':     cryptopia,
     'dsx':           dsx,
     'exmo':          exmo,
     'flowbtc':       flowbtc,

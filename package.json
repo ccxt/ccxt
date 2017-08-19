@@ -21,9 +21,9 @@
     "browserify": "browserify --debug ./ccxt.browser.js > ./build/ccxt.browser.js"
   },
   "dependencies": {
-    "crypto-js": "3.1.9-1",
-    "node-fetch": "2.0.0-alpha.8",
-    "qs": "6.5.0"
+    "crypto-js": "^3.1.9-1",
+    "node-fetch": "^2.0.0-alpha.8",
+    "qs": "^6.5.0"
   },
   "devDependencies": {
     "ansicolor": "^1.0.68",
@@ -175,6 +175,7 @@
     "coinspot.com.au",
     "Crypto Capital",
     "cryptocapital.co",
+    "Cryptopia",
     "DSX",
     "dsx.uk",
     "EXMO",
