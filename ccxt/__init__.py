@@ -67,6 +67,7 @@ exchanges = [
     'coinmate',
     'coinsecure',
     'coinspot',
+    'cryptopia',
     'dsx',
     'exmo',
     'flowbtc',
@@ -121,7 +122,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.23'
+__version__ = '1.4.24'
 
 #------------------------------------------------------------------------------
 
@@ -2155,7 +2156,6 @@ class bitfinex (Exchange):
 
     def parse_trade(self, trade, market):
         timestamp = trade['timestamp'] * 1000
-        type = None
         return {
             'id': str(trade['tid']),
             'info': trade,
@@ -7704,6 +7704,192 @@ class coinspot (Exchange):
                 'sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
         return self.fetch(url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
+class cryptopia (Exchange):
+
+    def __init__(self, config={}):
+        params = {
+            'id': 'cryptopia',
+            'name': 'Cryptopia',
+            'rateLimit': 1500,
+            'countries': 'NZ', # New Zealand
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/29483974-98c3ed94-84bd-11e7-8fcc-f328f7533df5.jpg',
+                'api': 'https://www.cryptopia.co.nz/api',
+                'www': 'https://www.cryptopia.co.nz',
+                'doc': [
+                    'https://www.cryptopia.co.nz/Forum/Thread/255',
+                    'https://www.cryptopia.co.nz/Forum/Thread/256',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'GetCurrencies',
+                        'GetTradePairs',
+                        'GetMarkets',
+                        'GetMarkets/{id}',
+                        'GetMarkets/{hours}',
+                        'GetMarkets/{id}/{hours}',
+                        'GetMarket/{id}',
+                        'GetMarket/{id}/{hours}',
+                        'GetMarketHistory/{id}',
+                        'GetMarketHistory/{id}/{hours}',
+                        'GetMarketOrders/{id}',
+                        'GetMarketOrders/{id}/{count}',
+                        'GetMarketOrderGroups/{ids}/{count}',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'CancelTrade',
+                        'GetBalance',
+                        'GetDepositAddress',
+                        'GetOpenOrders',
+                        'GetTradeHistory',
+                        'GetTransactions',
+                        'SubmitTip',
+                        'SubmitTrade',
+                        'SubmitTransfer',
+                        'SubmitWithdraw',
+                    ],
+                },
+            },
+        }
+        params.update(config)
+        super(cryptopia, self).__init__(params)
+
+    def fetch_markets(self):
+        response = self.publicGetMarkets()
+        result = []
+        markets = response['Data']
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = market['TradePairId']
+            symbol = market['Label']
+            base, quote = symbol.split('/')
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': market,
+            })
+        return result
+
+    def fetch_order_book(self, market, params={}):
+        self.loadMarkets()
+        response = self.publicGetMarketOrdersId(self.extend({
+            'id': self.market_id(market),
+        }, params))
+        orderbook = response['Data']
+        timestamp = self.milliseconds()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+        sides = {'bids': 'Buy', 'asks': 'Sell'}
+        keys = list(sides.keys())
+        for k in range(0, len(keys)):
+            key = keys[k]
+            side = sides[key]
+            orders = orderbook[side]
+            for i in range(0, len(orders)):
+                order = orders[i]
+                price = float(order['Price'])
+                amount = float(order['Total'])
+                result[key].append([price, amount])
+        return result
+
+    def parse_ticker(self, ticker, market):
+        timestamp = self.milliseconds()
+        return {
+            'info': ticker,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': float(ticker['High']),
+            'low': float(ticker['Low']),
+            'bid': float(ticker['BidPrice']),
+            'ask': float(ticker['AskPrice']),
+            'vwap': None,
+            'open': float(ticker['Open']),
+            'close': float(ticker['Close']),
+            'first': None,
+            'last': float(ticker['LastPrice']),
+            'change': float(ticker['Change']),
+            'percentage': None,
+            'average': None,
+            'baseVolume': float(ticker['BaseVolume']),
+            'quoteVolume': float(ticker['Volume']),
+        }
+
+    def fetch_ticker(self, market):
+        self.loadMarkets()
+        m = self.market(market)
+        response = self.publicGetMarketId({
+            'id': m['id'],
+        })
+        ticker = response['Data']
+        return self.parse_ticker(ticker, m)
+
+    def fetch_tickers(self):
+        self.loadMarkets()
+        response = self.publicGetMarkets()
+        result = {}
+        tickers = response['Data']
+        for i in range(0, len(tickers)):
+            ticker = tickers[i]
+            id = ticker['TradePairId']
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
+            result[symbol] = self.parse_ticker(ticker, market)
+        return result
+
+    def parse_trade(self, trade, market):
+        timestamp = trade['Timestamp'] * 1000
+        return {
+            'id': None,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['Type'].lower(),
+            'price': trade['Price'],
+            'amount': trade['Amount'],
+        }
+
+    def fetch_trades(self, market, params={}):
+        self.loadMarkets()
+        m = self.market(market)
+        response = self.publicGetMarketHistoryId(self.extend({
+            'id': m['id'],
+        }, params))
+        trades = response['Data']
+        return self.parse_trades(trades, m)
+
+    def fetch_balance(self):
+        self.loadMarkets()
+        # todo implement fetchBalance
+        return []
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        url = self.urls['api'] + '/' + self.implode_params(path, params)
+        query = self.omit(params, self.extract_params(path))
+        if query:
+            url += '?' + self.urlencode(query)
+        if api == 'private':
+            # todo private API
+            raise ExchangeError(self.id + ' private API is not implemented yet')
+        response = self.fetch(url, method, headers, body)
+        if 'Success' in response:
+            if response['Success']:
+                return response
+        raise ExchangeError(self.id + ' ' + self.json(response))
 
 #------------------------------------------------------------------------------
 
