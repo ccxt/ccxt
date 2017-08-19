@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.30';
+$version = '1.4.31';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10350,9 +10350,6 @@ class hitbtc extends Exchange {
             $step = floatval ($market['step']);
             $base = $this->commonCurrencyCode ($base);
             $quote = $this->commonCurrencyCode ($quote);
-            // looks like they now have it correct
-            // if ($base == 'DSH')
-            //     $base = 'DASH';
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -10494,9 +10491,11 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $params = array ()) {
         $this->loadMarkets ();
-        return $this->tradingPostCancelOrder (array ( 'clientOrderId' => $id ));
+        return $this->tradingPostCancelOrder (array_merge (array (
+            'clientOrderId' => $id,
+        ), $params));
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
