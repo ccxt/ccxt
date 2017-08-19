@@ -10071,9 +10071,11 @@ var hitbtc = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, params = {}) {
         await this.loadMarkets ();
-        return this.tradingPostCancelOrder ({ 'clientOrderId': id });
+        return this.tradingPostCancelOrder (this.extend ({
+            'clientOrderId': id,
+        }, params));
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
