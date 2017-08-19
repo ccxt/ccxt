@@ -433,7 +433,7 @@ class Exchange (object):
 
     @staticmethod
     def urlencode(params={}):
-        if type(params) is dict:
+        if (type(params) is dict) or instanceof(params,collections.OrderedDict):
             return _urlencode.urlencode(params)
         return params
 
