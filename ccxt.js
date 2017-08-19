@@ -14231,7 +14231,7 @@ var yobit = {
             'pair': this.marketId (market),
             'type': side,
             'amount': amount,
-            'rate': price,
+            'rate': this.decimal (price),
         }, params));
         return {
             'info': response,
