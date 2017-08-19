@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.28';
+$version = '1.4.29';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -14991,11 +14991,12 @@ class yobit extends Exchange {
         $this->loadMarkets ();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
+        $rate = (string) $price;
         $response = $this->tapiPostTrade (array_merge (array (
             'pair' => $this->market_id ($market),
             'type' => $side,
             'amount' => $amount,
-            'rate' => $this->decimal ($price),
+            'rate' => sprintf ('%.8f', $price),
         ), $params));
         return array (
             'info' => $response,
