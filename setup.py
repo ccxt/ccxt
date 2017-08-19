@@ -4,6 +4,7 @@ from setuptools import setup, find_packages
 from codecs import open
 from os import path
 import json
+import sys
 
 here = path.abspath(path.dirname(__file__))
 
@@ -14,6 +15,14 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 # Get the version number and all other params from package.json
 with open(path.join(here, 'package.json'), encoding='utf-8') as f:
     package = json.load(f)
+
+requirements = ['setuptools']
+if sys.version_info[0] == 3:
+    requirements += [
+        'aiohttp',
+        # 'cchardet', # reserved for future
+        # 'aiodns', # reserved for future
+    ]
 
 setup(
 
@@ -53,9 +62,7 @@ setup(
 
     keywords=package['keywords'],
     packages=find_packages(),
-    install_requires=[
-        'setuptools'
-    ],
+    install_requires=requirements,
     extras_require={
         'qa': [
             'flake8'
