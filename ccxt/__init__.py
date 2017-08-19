@@ -122,7 +122,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.28'
+__version__ = '1.4.29'
 
 #------------------------------------------------------------------------------
 
@@ -13960,11 +13960,12 @@ class yobit (Exchange):
         self.loadMarkets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
+        rate = str(price)
         response = self.tapiPostTrade(self.extend({
             'pair': self.market_id(market),
             'type': side,
             'amount': amount,
-            'rate': self.decimal(price),
+            'rate': '{:.8f}'.format(price),
         }, params))
         return {
             'info': response,
