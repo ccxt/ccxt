@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.25';
+$version = '1.4.26';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8519,6 +8519,29 @@ class cryptopia extends Exchange {
             $result[$currency] = $account;
         }
         return $result;
+    }
+
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->loadMarkets ();
+        $order = array (
+            'Market' => $this->market_id ($market),
+            'Type' => $this->capitalize ($side),
+            'Rate' => $price,
+            'Amount' => $amount,
+        );
+        $response = $this->privatePostSubmitTrade (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response['Data']['OrderId'],
+        );
+    }
+
+    public function cancel_order ($id) {
+        $this->loadMarkets ();
+        return $this->privatePostCancelTrade (array (
+            'Type' => 'Trade',
+            'OrderId' => $id,
+        ));
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

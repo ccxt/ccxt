@@ -122,7 +122,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.25'
+__version__ = '1.4.26'
 
 #------------------------------------------------------------------------------
 
@@ -7892,6 +7892,27 @@ class cryptopia (Exchange):
             account['used'] = account['total'] - account['free']
             result[currency] = account
         return result
+
+    def create_order(self, market, type, side, amount, price=None, params={}):
+        self.loadMarkets()
+        order = {
+            'Market': self.market_id(market),
+            'Type': self.capitalize(side),
+            'Rate': price,
+            'Amount': amount,
+        }
+        response = self.privatePostSubmitTrade(self.extend(order, params))
+        return {
+            'info': response,
+            'id': str(response['Data']['OrderId']),
+        }
+
+    def cancel_order(self, id):
+        self.loadMarkets()
+        return self.privatePostCancelTrade({
+            'Type': 'Trade',
+            'OrderId': id,
+        })
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
