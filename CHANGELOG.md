@@ -1,5 +1,7 @@
 # Сhangelog
 
+- Fixed HitBTC cancel_order issue with clientOrderId vs orderId [#125](https://github.com/kroitor/ccxt/issues/125)
+- Fixed HitBTC price formatting issue, [#122](https://github.com/kroitor/ccxt/issues/122)
 - Added support for a new exchange: [Cryptopia](https://www.cryptopia.co.nz) (New Zealand), [#119](https://github.com/kroitor/ccxt/issues/119), [#123](https://github.com/kroitor/ccxt/pull/123)
 - Fixed Yobit low price in exponential format, [#122](https://github.com/kroitor/ccxt/issues/122)
 - Fixed Bitflyer private API, [#121](https://github.com/kroitor/ccxt/issues/121)
