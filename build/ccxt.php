@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.24';
+$version = '1.4.25';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -312,6 +312,10 @@ class Exchange {
         return http_build_query ($string);
     }
 
+    public static function encode_uri_component ($string) {
+        return urlencode ($string);
+    }
+
     public static function url ($path, $params = array ()) {
         $result = Exchange::implode_params ($path, $params);
         $query = Exchange::omit ($params, Exchange::extract_params ($path));
@@ -382,7 +386,7 @@ class Exchange {
     }
 
     public static function json ($input) {
-        return json_encode ($input);
+        return json_encode ($input, JSON_FORCE_OBJECT);
     }
 
     public static function encode ($input) {
@@ -8332,7 +8336,7 @@ class cryptopia extends Exchange {
             'rateLimit' => 1500,
             'countries' => 'NZ', // New Zealand
             'urls' => array (
-                'logo' => 'https://user-images.githubusercontent.com/1294454/29483974-98c3ed94-84bd-11e7-8fcc-f328f7533df5.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
                 'api' => 'https://www.cryptopia.co.nz/api',
                 'www' => 'https://www.cryptopia.co.nz',
                 'doc' => array (
@@ -8500,18 +8504,43 @@ class cryptopia extends Exchange {
 
     public function fetch_balance () {
         $this->loadMarkets ();
-        // todo implement fetchBalance
-        return array ();
+        $response = $this->privatePostGetBalance ();
+        $balances = $response['Data'];
+        $result = array ( 'info' => $response );
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currency = $balance['Symbol'];
+            $account = array (
+                'free' => $balance['Available'],
+                'used' => null,
+                'total' => $balance['Total'],
+            );
+            $account['used'] = $account['total'] - $account['free'];
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
-        if ($query)
-            $url .= '?' . $this->urlencode ($query);
-        if ($api == 'private') {
-            // todo private API
-            throw new ExchangeError ($this->id . ' private API is not implemented yet');
+        if ($api == 'public') {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
+        } else {
+            $nonce = (string) $this->nonce ();
+            $body = $this->json ($query);
+            $hash = $this->hash ($this->encode ($body), 'md5', 'base64');
+            $secret = base64_decode ($this->secret);
+            $uri = $this->encode_uri_component($url);
+            $lowercase = strtolower ($uri);
+            $auth = $this->apiKey . $method . $lowercase . $nonce . $hash;
+            $signature = $this->hmac ($this->encode ($auth), $secret, 'sha256', 'base64');
+            $headers = array (
+                'Content-Type' => 'application/json',
+                'Content-Length' => strlen ($body),
+                'Authorization' => 'amx ' . $this->apiKey . ':' . $signature . ':' . $nonce,
+            );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('Success', $response))

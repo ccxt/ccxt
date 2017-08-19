@@ -122,7 +122,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.24'
+__version__ = '1.4.25'
 
 #------------------------------------------------------------------------------
 
@@ -437,6 +437,10 @@ class Exchange (object):
         if (type(params) is dict) or isinstance(params, collections.OrderedDict):
             return _urlencode.urlencode(params)
         return params
+
+    @staticmethod
+    def encode_uri_component(uri):
+        return _urlencode.quote(uri, safe="~()*!.'")
 
     @staticmethod
     def omit(d, *args):
@@ -7716,7 +7720,7 @@ class cryptopia (Exchange):
             'rateLimit': 1500,
             'countries': 'NZ', # New Zealand
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/29483974-98c3ed94-84bd-11e7-8fcc-f328f7533df5.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
                 'api': 'https://www.cryptopia.co.nz/api',
                 'www': 'https://www.cryptopia.co.nz',
                 'doc': [
@@ -7874,17 +7878,41 @@ class cryptopia (Exchange):
 
     def fetch_balance(self):
         self.loadMarkets()
-        # todo implement fetchBalance
-        return []
+        response = self.privatePostGetBalance()
+        balances = response['Data']
+        result = {'info': response}
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currency = balance['Symbol']
+            account = {
+                'free': balance['Available'],
+                'used': None,
+                'total': balance['Total'],
+            }
+            account['used'] = account['total'] - account['free']
+            result[currency] = account
+        return result
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if query:
-            url += '?' + self.urlencode(query)
-        if api == 'private':
-            # todo private API
-            raise ExchangeError(self.id + ' private API is not implemented yet')
+        if api == 'public':
+            if query:
+                url += '?' + self.urlencode(query)
+        else:
+            nonce = str(self.nonce())
+            body = self.json(query)
+            hash = self.hash(self.encode(body), 'md5', 'base64')
+            secret = base64.b64decode(self.secret)
+            uri = self.encode_uri_component(url)
+            lowercase = uri.lower()
+            auth = self.apiKey + method + lowercase + nonce + hash
+            signature = self.hmac(self.encode(auth), secret, hashlib.sha256, 'base64')
+            headers = {
+                'Content-Type': 'application/json',
+                'Content-Length': len(body),
+                'Authorization': 'amx ' + self.apiKey + ':' + signature + ':' + nonce,
+            }
         response = self.fetch(url, method, headers, body)
         if 'Success' in response:
             if response['Success']:
