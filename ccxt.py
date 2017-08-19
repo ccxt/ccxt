@@ -67,6 +67,7 @@ exchanges = [
     'coinmate',
     'coinsecure',
     'coinspot',
+    'cryptopia',
     'dsx',
     'exmo',
     'flowbtc',

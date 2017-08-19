@@ -2136,7 +2136,6 @@ var bitfinex = {
 
     parseTrade (trade, market) {
         let timestamp = trade['timestamp'] * 1000;
-        let type = undefined;
         return {
             'id': trade['tid'].toString (),
             'info': trade,
@@ -7955,6 +7954,202 @@ var coinspot = {
             };
         }
         return this.fetch (url, method, headers, body);
+    },
+}
+
+//-----------------------------------------------------------------------------
+
+var cryptopia = {
+
+    'id': 'cryptopia',
+    'name': 'Cryptopia',
+    'rateLimit': 1500,
+    'countries': 'NZ', // New Zealand
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/29483974-98c3ed94-84bd-11e7-8fcc-f328f7533df5.jpg',
+        'api': 'https://www.cryptopia.co.nz/api',
+        'www': 'https://www.cryptopia.co.nz',
+        'doc': [
+            'https://www.cryptopia.co.nz/Forum/Thread/255',
+            'https://www.cryptopia.co.nz/Forum/Thread/256',
+        ],
+    },
+    'api': {
+        'public': {
+            'get': [
+                'GetCurrencies',
+                'GetTradePairs',
+                'GetMarkets',
+                'GetMarkets/{id}',
+                'GetMarkets/{hours}',
+                'GetMarkets/{id}/{hours}',
+                'GetMarket/{id}',
+                'GetMarket/{id}/{hours}',
+                'GetMarketHistory/{id}',
+                'GetMarketHistory/{id}/{hours}',
+                'GetMarketOrders/{id}',
+                'GetMarketOrders/{id}/{count}',
+                'GetMarketOrderGroups/{ids}/{count}',
+            ],
+        },
+        'private': {
+            'post': [
+                'CancelTrade',
+                'GetBalance',
+                'GetDepositAddress',
+                'GetOpenOrders',
+                'GetTradeHistory',
+                'GetTransactions',
+                'SubmitTip',
+                'SubmitTrade',
+                'SubmitTransfer',
+                'SubmitWithdraw',                
+            ],
+        },
+    },
+
+    async fetchMarkets () {
+        let response = await this.publicGetMarkets ();
+        let result = [];
+        let markets = response['Data'];
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
+            let id = market['TradePairId'];
+            let symbol = market['Label'];
+            let [ base, quote ] = symbol.split ('/');
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': market,
+            });
+        }
+        return result;
+    },
+
+    async fetchOrderBook (market, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.publicGetMarketOrdersId (this.extend ({
+            'id': this.marketId (market),
+        }, params));
+        let orderbook = response['Data'];
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = { 'bids': 'Buy', 'asks': 'Sell' };
+        let keys = Object.keys (sides);
+        for (let k = 0; k < keys.length; k++) {
+            let key = keys[k];
+            let side = sides[key];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order['Price']);
+                let amount = parseFloat (order['Total']);
+                result[key].push ([ price, amount ]);
+            }
+        }
+        return result;
+    },
+
+    parseTicker (ticker, market) {
+        let timestamp = this.milliseconds ();
+        return {
+            'info': ticker,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['High']),
+            'low': parseFloat (ticker['Low']),
+            'bid': parseFloat (ticker['BidPrice']),
+            'ask': parseFloat (ticker['AskPrice']),
+            'vwap': undefined,
+            'open': parseFloat (ticker['Open']),
+            'close': parseFloat (ticker['Close']),
+            'first': undefined,
+            'last': parseFloat (ticker['LastPrice']),
+            'change': parseFloat (ticker['Change']),
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': parseFloat (ticker['BaseVolume']),
+            'quoteVolume': parseFloat (ticker['Volume']),
+        };
+    },
+
+    async fetchTicker (market) {
+        await this.loadMarkets ();
+        let m = this.market (market);
+        let response = await this.publicGetMarketId ({
+            'id': m['id'],
+        });
+        let ticker = response['Data'];
+        return this.parseTicker (ticker, m);
+    },
+
+    async fetchTickers () {
+        await this.loadMarkets ();
+        let response = await this.publicGetMarkets ();
+        let result = {};
+        let tickers = response['Data'];
+        for (let i = 0; i < tickers.length; i++) {
+            let ticker = tickers[i];
+            let id = ticker['TradePairId'];
+            let market = this.markets_by_id[id];
+            let symbol = market['symbol'];
+            result[symbol] = this.parseTicker (ticker, market);
+        }
+        return result;
+    },
+
+    parseTrade (trade, market) {
+        let timestamp = trade['Timestamp'] * 1000;
+        return {
+            'id': undefined,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade['Type'].toLowerCase (),
+            'price': trade['Price'],
+            'amount': trade['Amount'],
+        };
+    },
+
+    async fetchTrades (market, params = {}) {
+        await this.loadMarkets ();
+        let m = this.market (market);
+        let response = await this.publicGetMarketHistoryId (this.extend ({
+            'id': m['id'],
+        }, params));
+        let trades = response['Data'];
+        return this.parseTrades (trades, m);
+    },
+
+    async fetchBalance () {
+        await this.loadMarkets ();
+        // todo implement fetchBalance
+        return [];
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (Object.keys (query).length)
+            url += '?' + this.urlencode (query);
+        if (api == 'private') {
+            // todo private API
+            throw new ExchangeError (this.id + ' private API is not implemented yet');
+        }
+        let response = await this.fetch (url, method, headers, body);
+        if ('Success' in response)
+            if (response['Success'])
+                return response;
+        throw new ExchangeError (this.id + ' ' + this.json (response));
     },
 }
 
@@ -14761,6 +14956,7 @@ var exchanges = {
     'coinmate':      coinmate,
     'coinsecure':    coinsecure,
     'coinspot':      coinspot,
+    'cryptopia':     cryptopia,
     'dsx':           dsx,
     'exmo':          exmo,
     'flowbtc':       flowbtc,
