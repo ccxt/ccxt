@@ -99,10 +99,12 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('cancelOrder',      'cancel_order')
                         .replace ('signIn',           'sign_in')
 
-        args = args.length ? args.split (',').map (x => x.trim ().replace (' = ', '=')) : []
+        args = args.length ? args.split (',').map (x => x.trim ()) : []
+
         let phArgs = args.join (', $').trim ()
         phArgs = phArgs.length ? ('$' + phArgs) : ''
-        let pyArgs = args.join (', ')
+
+        let pyArgs = args.map (x => x.replace (' = ', '=')).join (', ')
 
         let variables = args.map (arg => arg.split ('=').map (x => x.trim ()) [0])
 

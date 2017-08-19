@@ -432,6 +432,12 @@ class Exchange (object):
         return result
 
     @staticmethod
+    def urlencode(params={}):
+        if type(params) is dict:
+            return _urlencode.urlencode(params)
+        return params
+
+    @staticmethod
     def omit(d, *args):
         result = d.copy()
         for arg in args:
@@ -897,7 +903,7 @@ class _1broker (Exchange):
             raise AuthenticationError(self.id + ' requires apiKey for all requests')
         url = self.urls['api'] + '/' + self.version + '/' + path + '.php'
         query = self.extend({'token': self.apiKey}, params)
-        url += '?' + _urlencode.urlencode(query)
+        url += '?' + self.urlencode(query)
         response = self.fetch(url, method)
         if 'warning' in response:
             if response['warning']:
@@ -1051,7 +1057,7 @@ class cryptocapital (Exchange):
         url = self.urls['api'] + '/' + path
         if api == 'public':
             if params:
-                url += '?' + _urlencode.urlencode(params)
+                url += '?' + self.urlencode(params)
         else:
             query = self.extend({
                 'api_key': self.apiKey,
@@ -1293,10 +1299,10 @@ class anxpro (Exchange):
         url = self.urls['api'] + '/' + self.version + '/' + request
         if api == 'public':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             nonce = self.nonce()
-            body = _urlencode.urlencode(self.extend({'nonce': nonce}, query))
+            body = self.urlencode(self.extend({'nonce': nonce}, query))
             secret = base64.b64decode(self.secret)
             auth = request + "\0" + body
             headers = {
@@ -1462,7 +1468,7 @@ class bit2c (Exchange):
         else:
             nonce = self.nonce()
             query = self.extend({'nonce': nonce}, params)
-            body = _urlencode.urlencode(query)
+            body = self.urlencode(query)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len(body),
@@ -1619,7 +1625,7 @@ class bitbay (Exchange):
         if api == 'public':
             url += '/' + self.implode_params(path, params) + '.json'
         else:
-            body = _urlencode.urlencode(self.extend({
+            body = self.urlencode(self.extend({
                 'method': path,
                 'moment': self.nonce(),
             }, params))
@@ -1775,10 +1781,10 @@ class bitbays (Exchange):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
             if params:
-                url += '?' + _urlencode.urlencode(params)
+                url += '?' + self.urlencode(params)
         else:
             nonce = self.nonce()
-            body = _urlencode.urlencode(self.extend({
+            body = self.urlencode(self.extend({
                 'nonce': nonce,
             }, params))
             headers = {
@@ -1953,7 +1959,7 @@ class bitcoincoid (Exchange):
         if api == 'public':
             url += '/' + self.implode_params(path, params)
         else:
-            body = _urlencode.urlencode(self.extend({
+            body = self.urlencode(self.extend({
                 'method': path,
                 'nonce': self.nonce(),
             }, params))
@@ -2204,7 +2210,7 @@ class bitfinex (Exchange):
         url = self.urls['api'] + request
         if api == 'public':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             nonce = self.nonce()
             query = self.extend({
@@ -2418,7 +2424,7 @@ class bitflyer (Exchange):
         url = self.urls['api'] + request
         if api == 'public':
             if params:
-                url += '?' + _urlencode.urlencode(params)
+                url += '?' + self.urlencode(params)
         else:
             nonce = str(self.nonce())
             body = self.json(params)
@@ -2645,7 +2651,7 @@ class bitlish (Exchange):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
             if params:
-                url += '?' + _urlencode.urlencode(params)
+                url += '?' + self.urlencode(params)
         else:
             body = self.json(self.extend({'token': self.apiKey}, params))
             headers = {'Content-Type': 'application/json'}
@@ -2833,7 +2839,7 @@ class bitmarket (Exchange):
                 'tonce': nonce,
                 'method': path,
             }, params)
-            body = _urlencode.urlencode(query)
+            body = self.urlencode(query)
             headers = {
                 'API-Key': self.apiKey,
                 'API-Hash': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
@@ -3077,7 +3083,7 @@ class bitmex (Exchange):
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = '/api/' + self.version + '/' + path
         if params:
-            query += '?' + _urlencode.urlencode(params)
+            query += '?' + self.urlencode(params)
         url = self.urls['api'] + query
         if api == 'private':
             nonce = str(self.nonce())
@@ -3277,7 +3283,7 @@ class bitso (Exchange):
         url = self.urls['api'] + query
         if api == 'public':
             if params:
-                url += '?' + _urlencode.urlencode(params)
+                url += '?' + self.urlencode(params)
         else:
             if params:
                 body = self.json(params)
@@ -3479,7 +3485,7 @@ class bitstamp (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             if not self.uid:
                 raise AuthenticationError(self.id + ' requires `' + self.id + '.uid` property for authentication')
@@ -3491,7 +3497,7 @@ class bitstamp (Exchange):
                 'signature': signature.upper(),
                 'nonce': nonce,
             }, query)
-            body = _urlencode.urlencode(query)
+            body = self.urlencode(query)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len(body),
@@ -3764,7 +3770,7 @@ class bittrex (Exchange):
         }
         return result
 
-    def fetchOrder(self, id):
+    def fetch_order(self, id):
         self.loadMarkets()
         response = self.accountGetOrder({'uuid': id})
         return self.parseOrder(response['result'])
@@ -3774,13 +3780,13 @@ class bittrex (Exchange):
         if api == 'public':
             url += api + '/' + method.lower() + path
             if params:
-                url += '?' + _urlencode.urlencode(params)
+                url += '?' + self.urlencode(params)
         else:
             nonce = self.nonce()
             url += api + '/'
             if((api == 'account') and(path != 'withdraw')) or(path == 'openorders'):
                 url += method.lower()
-            url += path + '?' + _urlencode.urlencode(self.extend({
+            url += path + '?' + self.urlencode(self.extend({
                 'nonce': nonce,
                 'apikey': self.apiKey,
             }, params))
@@ -3941,7 +3947,7 @@ class blinktrade (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             nonce = str(self.nonce())
             request = self.extend({'MsgType': path}, query)
@@ -4115,10 +4121,10 @@ class bl3p (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             nonce = self.nonce()
-            body = _urlencode.urlencode(self.extend({'nonce': nonce}, query))
+            body = self.urlencode(self.extend({'nonce': nonce}, query))
             secret = base64.b64decode(self.secret)
             auth = request + "\0" + body
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
@@ -4321,7 +4327,7 @@ class btcchina (Exchange):
         url = self.urls['api'][api] + '/' + path
         if api == 'public':
             if params:
-                url += '?' + _urlencode.urlencode(params)
+                url += '?' + self.urlencode(params)
         else:
             if not self.apiKey:
                 raise AuthenticationError(self.id + ' requires `' + self.id + '.apiKey` property for authentication')
@@ -4550,7 +4556,7 @@ class btce (Exchange):
         }
         return result
 
-    def fetchOrder(self, id):
+    def fetch_order(self, id):
         self.loadMarkets()
         response = self.privatePostOrderInfo({'order_id': id})
         order = response['return'][id]
@@ -4561,10 +4567,10 @@ class btce (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             nonce = self.nonce()
-            body = _urlencode.urlencode(self.extend({
+            body = self.urlencode(self.extend({
                 'nonce': nonce,
                 'method': path,
             }, query))
@@ -4762,7 +4768,7 @@ class btcmarkets (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if params:
-                url += '?' + _urlencode.urlencode(params)
+                url += '?' + self.urlencode(params)
         else:
             nonce = str(self.nonce())
             auth = uri + "\n" + nonce + "\n"
@@ -4772,7 +4778,7 @@ class btcmarkets (Exchange):
                 'timestamp': nonce,
             }
             if method == 'POST':
-                body = _urlencode.urlencode(query)
+                body = self.urlencode(query)
                 headers['Content-Length'] = len(body)
                 auth += body
             secret = base64.b64decode(self.secret)
@@ -4924,10 +4930,10 @@ class btctrader (Exchange):
         url = self.urls['api'] + '/' + path
         if api == 'public':
             if params:
-                url += '?' + _urlencode.urlencode(params)
+                url += '?' + self.urlencode(params)
         else:
             nonce = self.nonce().toString
-            body = _urlencode.urlencode(params)
+            body = self.urlencode(params)
             secret = self.base64ToString(self.secret)
             auth = self.apiKey + nonce
             headers = {
@@ -5149,7 +5155,7 @@ class btctradeua (Exchange):
                 url += self.implode_params(path, query)
         else:
             nonce = self.nonce()
-            body = _urlencode.urlencode(self.extend({
+            body = self.urlencode(self.extend({
                 'out_order_id': nonce,
                 'nonce': nonce,
             }, query))
@@ -5321,7 +5327,7 @@ class btcx (Exchange):
         else:
             nonce = self.nonce()
             url += api
-            body = _urlencode.urlencode(self.extend({
+            body = self.urlencode(self.extend({
                 'Method': path.upper(),
                 'Nonce': nonce,
             }, params))
@@ -5540,11 +5546,11 @@ class bter (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             nonce = self.nonce()
             request = {'nonce': nonce}
-            body = _urlencode.urlencode(self.extend(request, query))
+            body = self.urlencode(self.extend(request, query))
             headers = {
                 'Key': self.apiKey,
                 'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
@@ -5759,12 +5765,12 @@ class bxinth (Exchange):
         if path:
             url += path + '/'
         if params:
-            url += '?' + _urlencode.urlencode(params)
+            url += '?' + self.urlencode(params)
         if api == 'private':
             nonce = self.nonce()
             auth = self.apiKey + str(nonce) + self.secret
             signature = self.hash(self.encode(auth), 'sha256')
-            body = _urlencode.urlencode(self.extend({
+            body = self.urlencode(self.extend({
                 'key': self.apiKey,
                 'nonce': nonce,
                 'signature': signature,
@@ -5966,10 +5972,10 @@ class ccex (Exchange):
                 'apikey': self.apiKey,
                 'nonce': nonce,
             }, params))
-            url += '?' + _urlencode.urlencode(query)
+            url += '?' + self.urlencode(query)
             headers = {'apisign': self.hmac(self.encode(url), self.encode(self.secret), hashlib.sha512)}
         elif api == 'public':
-            url += '?' + _urlencode.urlencode(self.extend({
+            url += '?' + self.urlencode(self.extend({
                 'a': 'get' + path,
             }, params))
         else:
@@ -6164,14 +6170,14 @@ class cex (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             if not self.uid:
                 raise AuthenticationError(self.id + ' requires `' + self.id + '.uid` property for authentication')
             nonce = str(self.nonce())
             auth = nonce + self.uid + self.apiKey
             signature = self.hmac(self.encode(auth), self.encode(self.secret))
-            body = _urlencode.urlencode(self.extend({
+            body = self.urlencode(self.extend({
                 'key': self.apiKey,
                 'signature': signature.upper(),
                 'nonce': nonce,
@@ -6341,7 +6347,7 @@ class chbtc (Exchange):
             paramString += '&currency=' + params['currency']
         return self.privatePostCancelOrder(paramString)
 
-    def fetchOrder(self, id, params={}):
+    def fetch_order(self, id, params={}):
         paramString = '&id=' + str(id)
         if 'currency' in params:
             paramString += '&currency=' + params['currency']
@@ -6355,7 +6361,7 @@ class chbtc (Exchange):
         if api == 'public':
             url += '/' + self.version + '/' + path
             if params:
-                url += '?' + _urlencode.urlencode(params)
+                url += '?' + self.urlencode(params)
         else:
             paramsLength = len(params) # params should be a string here
             nonce = self.nonce()
@@ -6581,12 +6587,12 @@ class coincheck (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             nonce = str(self.nonce())
             length = 0
             if query:
-                body = _urlencode.urlencode(self.keysort(query))
+                body = self.urlencode(self.keysort(query))
                 length = len(body)
             auth = nonce + url + (body or '')
             headers = {
@@ -6739,10 +6745,10 @@ class coinfloor (Exchange):
         query = self.omit(params, self.extract_params(path))
         if type == 'public':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             nonce = self.nonce()
-            body = _urlencode.urlencode(self.extend({'nonce': nonce}, query))
+            body = self.urlencode(self.extend({'nonce': nonce}, query))
             auth = self.uid + '/' + self.apiKey + ':' + self.password
             signature = base64.b64encode(auth)
             headers = {
@@ -6926,7 +6932,7 @@ class coingi (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'current':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             nonce = self.nonce()
             request = self.extend({
@@ -7093,7 +7099,7 @@ class coinmarketcap (Exchange):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if query:
-            url += '?' + _urlencode.urlencode(query)
+            url += '?' + self.urlencode(query)
         return self.fetch(url, method, headers, body)
 
 #------------------------------------------------------------------------------
@@ -7252,14 +7258,14 @@ class coinmate (Exchange):
         url = self.urls['api'] + '/' + path
         if api == 'public':
             if params:
-                url += '?' + _urlencode.urlencode(params)
+                url += '?' + self.urlencode(params)
         else:
             if not self.uid:
                 raise AuthenticationError(self.id + ' requires `' + self.id + '.uid` property for authentication')
             nonce = str(self.nonce())
             auth = nonce + self.uid + self.apiKey
             signature = self.hmac(self.encode(auth), self.encode(self.secret))
-            body = _urlencode.urlencode(self.extend({
+            body = self.urlencode(self.extend({
                 'clientId': self.uid,
                 'nonce': nonce,
                 'publicKey': self.apiKey,
@@ -7885,11 +7891,11 @@ class dsx (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'mapi':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             nonce = self.nonce()
             method = path
-            body = _urlencode.urlencode(self.extend({
+            body = self.urlencode(self.extend({
                 'method': path,
                 'nonce': nonce,
             }, query))
@@ -8097,10 +8103,10 @@ class exmo (Exchange):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
             if params:
-                url += '?' + _urlencode.urlencode(params)
+                url += '?' + self.urlencode(params)
         else:
             nonce = self.nonce()
-            body = _urlencode.urlencode(self.extend({'nonce': nonce}, params))
+            body = self.urlencode(self.extend({'nonce': nonce}, params))
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len(body),
@@ -8458,7 +8464,7 @@ class fyb (Exchange):
             url += '.json'
         else:
             nonce = self.nonce()
-            body = _urlencode.urlencode(self.extend({'timestamp': nonce}, params))
+            body = self.urlencode(self.extend({'timestamp': nonce}, params))
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': self.apiKey,
@@ -8821,7 +8827,7 @@ class gatecoin (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             nonce = self.nonce()
             contentType = '' if(method == 'GET') else 'application/json'
@@ -9072,7 +9078,7 @@ class gdax (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             if not self.apiKey:
                 raise AuthenticationError(self.id + ' requires apiKey property for authentication and trading')
@@ -9268,7 +9274,7 @@ class gemini (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             nonce = self.nonce()
             request = self.extend({
@@ -9511,15 +9517,15 @@ class hitbtc (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             nonce = self.nonce()
             query = self.extend({'nonce': nonce, 'apikey': self.apiKey}, query)
             if method == 'POST':
                 if query:
-                    body = _urlencode.urlencode(query)
+                    body = self.urlencode(query)
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
             auth = url + (body or '')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -9697,11 +9703,11 @@ class huobi (Exchange):
                 'access_key': self.apiKey,
                 'created': self.nonce(),
             }, params))
-            queryString = _urlencode.urlencode(self.omit(query, 'market'))
+            queryString = self.urlencode(self.omit(query, 'market'))
             # secret key must be at the end of query to be signed
             queryString += '&secret_key=' + self.secret
             query['sign'] = self.hash(self.encode(queryString))
-            body = _urlencode.urlencode(query)
+            body = self.urlencode(query)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len(body),
@@ -9710,7 +9716,7 @@ class huobi (Exchange):
             url += '/' + api + '/' + self.implode_params(path, params) + '_json.js'
             query = self.omit(params, self.extract_params(path))
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         response = self.fetch(url, method, headers, body)
         if 'status' in response:
             if response['status'] == 'error':
@@ -9891,7 +9897,7 @@ class itbit (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             if query:
                 body = self.json(query)
@@ -10087,17 +10093,17 @@ class jubi (Exchange):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
             if params:
-                url += '?' + _urlencode.urlencode(params)
+                url += '?' + self.urlencode(params)
         else:
             nonce = str(self.nonce())
             query = self.extend({
                 'key': self.apiKey,
                 'nonce': nonce,
             }, params)
-            request = _urlencode.urlencode(query)
+            request = self.urlencode(query)
             secret = self.hash(self.encode(self.secret))
             query['signature'] = self.hmac(self.encode(request), self.encode(secret))
-            body = _urlencode.urlencode(query)
+            body = self.urlencode(query)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len(body),
@@ -10378,10 +10384,10 @@ class kraken (Exchange):
         url = '/' + self.version + '/' + api + '/' + path
         if api == 'public':
             if params:
-                url += '?' + _urlencode.urlencode(params)
+                url += '?' + self.urlencode(params)
         else:
             nonce = str(self.nonce())
-            body = _urlencode.urlencode(self.extend({'nonce': nonce}, params))
+            body = self.urlencode(self.extend({'nonce': nonce}, params))
             auth = self.encode(nonce + body)
             hash = self.hash(auth, 'sha256', 'binary')
             binary = self.encode(url)
@@ -10564,14 +10570,14 @@ class lakebtc (Exchange):
         if api == 'public':
             url += '/' + path
             if params:
-                url += '?' + _urlencode.urlencode(params)
+                url += '?' + self.urlencode(params)
         else:
             nonce = self.nonce()
             if params:
                 params = ','.join(params)
             else:
                 params = ''
-            query = _urlencode.urlencode({
+            query = self.urlencode({
                 'tonce': nonce,
                 'accesskey': self.apiKey,
                 'requestmethod': method.lower(),
@@ -10801,9 +10807,9 @@ class livecoin (Exchange):
         url = self.urls['api'] + '/' + path
         if api == 'public':
             if params:
-                url += '?' + _urlencode.urlencode(params)
+                url += '?' + self.urlencode(params)
         else:
-            query = _urlencode.urlencode(self.keysort(params))
+            query = self.urlencode(self.keysort(params))
             if method == 'GET':
                 if query:
                     url += '?' + query
@@ -10852,10 +10858,10 @@ class liqui (btce):
         if api == 'public':
             url +=  '/' + self.version + '/' + self.implode_params(path, params)
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             nonce = self.nonce()
-            body = _urlencode.urlencode(self.extend({
+            body = self.urlencode(self.extend({
                 'nonce': nonce,
                 'method': path,
             }, query))
@@ -11085,7 +11091,7 @@ class luno (Exchange):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if query:
-            url += '?' + _urlencode.urlencode(query)
+            url += '?' + self.urlencode(query)
         if api == 'private':
             auth = self.encode(self.apiKey + ':' + self.secret)
             auth = base64.b64encode(auth)
@@ -11244,7 +11250,7 @@ class mercado (Exchange):
         else:
             url += self.version + '/'
             nonce = self.nonce()
-            body = _urlencode.urlencode(self.extend({
+            body = self.urlencode(self.extend({
                 'tapi_method': path,
                 'tapi_nonce': nonce,
             }, params))
@@ -11431,15 +11437,15 @@ class okcoin (Exchange):
         url = '/' + 'api' + '/' + self.version + '/' + path + '.do'
         if api == 'public':
             if params:
-                url += '?' + _urlencode.urlencode(params)
+                url += '?' + self.urlencode(params)
         else:
             query = self.keysort(self.extend({
                 'api_key': self.apiKey,
             }, params))
             # secret key must be at the end of query
-            queryString = _urlencode.urlencode(query) + '&secret_key=' + self.secret
+            queryString = self.urlencode(query) + '&secret_key=' + self.secret
             query['sign'] = self.hash(self.encode(queryString)).upper()
-            body = _urlencode.urlencode(query)
+            body = self.urlencode(query)
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         url = self.urls['api'] + url
         response = self.fetch(url, method, headers, body)
@@ -11660,7 +11666,7 @@ class paymium (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             body = self.json(params)
             nonce = str(self.nonce())
@@ -11945,14 +11951,14 @@ class poloniex (Exchange):
         self.orders[id] = order
         return self.extend({'info': response}, order)
 
-    def fetchOrder(self, id):
+    def fetch_order(self, id):
         self.loadMarkets()
         found = (id in list(self.orders.keys()))
         if not found:
             raise ExchangeError(self.id + ' order ' + id + ' not found')
         return self.orders[id]
 
-    def fetchOrderTrades(self, id, params={}):
+    def fetch_orderTrades(self, id, params={}):
         self.loadMarkets()
         trades = self.privatePostReturnOrderTrades(self.extend({
             'orderNumber': id,
@@ -11969,10 +11975,10 @@ class poloniex (Exchange):
         url = self.urls['api'][api]
         query = self.extend({'command': path}, params)
         if api == 'public':
-            url += '?' + _urlencode.urlencode(query)
+            url += '?' + self.urlencode(query)
         else:
             query['nonce'] = self.nonce()
-            body = _urlencode.urlencode(query)
+            body = self.urlencode(query)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': self.apiKey,
@@ -12122,7 +12128,7 @@ class quadrigacx (Exchange):
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
-            url += '?' + _urlencode.urlencode(params)
+            url += '?' + self.urlencode(params)
         else:
             if not self.uid:
                 raise AuthenticationError(self.id + ' requires `' + self.id + '.uid` property for authentication')
@@ -12355,7 +12361,7 @@ class quoine (Exchange):
         }
         if api == 'public':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             nonce = self.nonce()
             request = {
@@ -13022,7 +13028,7 @@ class vaultoro (Exchange):
                 'nonce': nonce,
                 'apikey': self.apiKey,
             }, self.omit(params, self.extract_params(path)))
-            url += '?' + _urlencode.urlencode(query)
+            url += '?' + self.urlencode(query)
             headers = {
                 'Content-Type': 'application/json',
                 'X-Signature': self.hmac(self.encode(url), self.encode(self.secret))
@@ -13267,7 +13273,7 @@ class virwox (Exchange):
             auth['pass'] = self.password
         nonce = self.nonce()
         if method == 'GET':
-            url += '?' + _urlencode.urlencode(self.extend({
+            url += '?' + self.urlencode(self.extend({
                 'method': path,
                 'id': nonce,
             }, auth, params))
@@ -13555,7 +13561,7 @@ class xbtce (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             headers = {'Accept-Encoding': 'gzip, deflate'}
             nonce = str(self.nonce())
@@ -13564,7 +13570,7 @@ class xbtce (Exchange):
                     headers['Content-Type'] = 'application/json'
                     body = self.json(query)
                 else:
-                    url += '?' + _urlencode.urlencode(query)
+                    url += '?' + self.urlencode(query)
             auth = nonce + self.uid + self.apiKey + method + url
             if body:
                 auth += body
@@ -13739,11 +13745,11 @@ class yobit (Exchange):
             url += '/' + self.version + '/' + self.implode_params(path, params)
             query = self.omit(params, self.extract_params(path))
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             nonce = self.nonce()
             query = self.extend({'method': path, 'nonce': nonce}, params)
-            body = _urlencode.urlencode(query)
+            body = self.urlencode(query)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': self.apiKey,
@@ -13964,10 +13970,10 @@ class yunbi (Exchange):
         url = self.urls['api'] + request
         if api == 'public':
             if query:
-                url += '?' + _urlencode.urlencode(query)
+                url += '?' + self.urlencode(query)
         else:
             nonce = str(self.nonce())
-            query = _urlencode.urlencode(self.keysort(self.extend({
+            query = self.urlencode(self.keysort(self.extend({
                 'access_key': self.apiKey,
                 'tonce': nonce,
             }, params)))
@@ -14165,7 +14171,7 @@ class zaif (Exchange):
             url += '/' + self.version + '/' + self.implode_params(path, params)
         else:
             nonce = self.nonce()
-            body = _urlencode.urlencode(self.extend({
+            body = self.urlencode(self.extend({
                 'method': path,
                 'nonce': nonce,
             }, params))
