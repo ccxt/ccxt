@@ -122,7 +122,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.26'
+__version__ = '1.4.27'
 
 #------------------------------------------------------------------------------
 
@@ -212,34 +212,37 @@ class Exchange (object):
             setattr(self, key, config[key])
 
         if self.api:
-            for apiType, methods in self.api.items():
-                for method, urls in methods.items():
-                    for url in urls:
-                        url = url.strip()
-                        splitPath = re.compile('[^a-zA-Z0-9]').split(url)
-
-                        uppercaseMethod = method.upper()
-                        lowercaseMethod = method.lower()
-                        camelcaseMethod = lowercaseMethod.capitalize()
-                        camelcaseSuffix = ''.join([Exchange.capitalize(x) for x in splitPath])
-                        lowercasePath = [x.strip().lower() for x in splitPath]
-                        underscoreSuffix = '_'.join([k for k in lowercasePath if len(k)])
-
-                        if camelcaseSuffix.find(camelcaseMethod) == 0:
-                            camelcaseSuffix = camelcaseSuffix[len(camelcaseMethod):]
-
-                        if underscoreSuffix.find(lowercaseMethod) == 0:
-                            underscoreSuffix = underscoreSuffix[len(lowercaseMethod):]
-
-                        camelcase = apiType + camelcaseMethod + Exchange.capitalize(camelcaseSuffix)
-                        underscore = apiType + '_' + lowercaseMethod + '_' + underscoreSuffix.lower()
-
-                        f = functools.partial(self.request, url, apiType, uppercaseMethod)
-                        setattr(self, camelcase, f)
-                        setattr(self, underscore, f)
+            self.define_api(self.api, 'request')
 
         if self.markets:
             self.set_markets(self.markets)
+
+    def define_api(self, api, f):
+        for apiType, methods in api.items():
+            for method, urls in methods.items():
+                for url in urls:
+                    url = url.strip()
+                    splitPath = re.compile('[^a-zA-Z0-9]').split(url)
+
+                    uppercaseMethod = method.upper()
+                    lowercaseMethod = method.lower()
+                    camelcaseMethod = lowercaseMethod.capitalize()
+                    camelcaseSuffix = ''.join([Exchange.capitalize(x) for x in splitPath])
+                    lowercasePath = [x.strip().lower() for x in splitPath]
+                    underscoreSuffix = '_'.join([k for k in lowercasePath if len(k)])
+
+                    if camelcaseSuffix.find(camelcaseMethod) == 0:
+                        camelcaseSuffix = camelcaseSuffix[len(camelcaseMethod):]
+
+                    if underscoreSuffix.find(lowercaseMethod) == 0:
+                        underscoreSuffix = underscoreSuffix[len(lowercaseMethod):]
+
+                    camelcase = apiType + camelcaseMethod + Exchange.capitalize(camelcaseSuffix)
+                    underscore = apiType + '_' + lowercaseMethod + '_' + underscoreSuffix.lower()
+
+                    partial = functools.partial(getattr(self, f), url, apiType, uppercaseMethod)
+                    setattr(self, camelcase, partial)
+                    setattr(self, underscore, partial)
 
     def raise_error(self, exception_type, url, method='GET', error=None, details=None):
         details = details if details else ''
