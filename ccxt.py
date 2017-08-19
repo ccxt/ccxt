@@ -338,7 +338,7 @@ class Exchange (object):
         try:
             return json.loads(body)
         except ValueError as e:
-            raise ExchangeError (' '.join([self.id, method, url, body, str(e)]))
+            raise ExchangeError(' '.join([self.id, method, url, body, str(e)]))
         except Exception as e:
             ddos_protection = re.search('(cloudflare|incapsula)', body, flags=re.IGNORECASE)
             exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', body, flags=re.IGNORECASE)
