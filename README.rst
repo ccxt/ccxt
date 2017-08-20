@@ -200,10 +200,10 @@ The easiest way to install the ccxt library is to use builtin package managers:
 -  `ccxt in **NPM** <http://npmjs.com/package/ccxt>`__ (JavaScript / Node)
 -  `ccxt in **PyPI** <https://pypi.python.org/pypi/ccxt>`__ (Python 2 and 3)
 
-This library is shipped as a single-file (all-in-one module) implementation with minimalistic dependencies and requirements:
+This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
 -  ```ccxt.js`` <https://github.com/kroitor/ccxt/blob/master/ccxt.js>`__ in JavaScript
--  ```ccxt/__init__.py`` <https://github.com/kroitor/ccxt/blob/master/ccxt/__init__.py>`__ in Python (generated from JS)
+-  ```ccxt/`` <https://github.com/kroitor/ccxt/blob/master/ccxt/>`__ in Python (generated from JS)
 -  ```build/ccxt.php`` <https://github.com/kroitor/ccxt/blob/master/build/ccxt.php>`__ in PHP (generated from JS)
 
 You can also clone it into your project directory from `ccxt GitHub repository <https://github.com/kroitor/ccxt>`__:
@@ -254,8 +254,6 @@ Python
 .. code:: shell
 
     pip install ccxt
-
-Python version of the ccxt library does not require any additional dependencies and uses builtin modules only.
 
 .. code:: python
 
