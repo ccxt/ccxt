@@ -30,23 +30,15 @@ __version__ = '1.4.36'
 
 #------------------------------------------------------------------------------
 
+from ccxt import errors
+from ccxt import exchange
+
 from ccxt.errors import *
-from ccxt.exchange import Exchange
-from ccxt.exchanges import exchanges
+from ccxt.exchange import *
 from ccxt.exchanges import *
 
 #------------------------------------------------------------------------------
 
-__all__ = exchanges + [
-    'exchanges',
-    'Exchange',
-    'CCXTError',
-    'ExchangeError',
-    'AuthenticationError',
-    'NetworkError',
-    'DDoSProtection',
-    'RequestTimeout',
-    'ExchangeNotAvailable',
-]
+__all__ = exchange.__all__ + exchanges +  errors.__all__
 
 #==============================================================================

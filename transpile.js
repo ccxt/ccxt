@@ -348,13 +348,12 @@ function copyFile (oldName, newName) {
 
 //-----------------------------------------------------------------------------
 
-copyFile ('./ccxt.py', './ccxt/exchange.py')
+// copyFile ('./ccxt.py', './ccxt/exchange.py')
 // copyFile ('./async.py', './ccxt/async.py')
 
-transpile ('./ccxt.py',                 './ccxt/exchanges.py',       python,        '#')
-transpile ('./ccxt/async/exchanges.py', './ccxt/async/exchanges.py', pythonAsync,   '#')
-// transpile ('./async.py',                './ccxt/async.py',           pythonAsync,   '#')
-transpile ('./ccxt.php',                './build/ccxt.php',          php,           '//')
+transpile ('./ccxt/exchanges.py',       './ccxt/exchanges.py',       python,      '#')
+transpile ('./ccxt/async/exchanges.py', './ccxt/async/exchanges.py', pythonAsync, '#')
+transpile ('./ccxt.php',                './build/ccxt.php',          php,         '//')
 
 //-----------------------------------------------------------------------------
 

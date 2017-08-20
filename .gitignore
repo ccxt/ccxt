@@ -3,7 +3,8 @@
 # Please read https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support for details.
 #
 build/*
-ccxt/*
+ccxt/exchanges.py
+ccxt/async/exchanges.py
 
 node_modules/
 npm-debug.log
