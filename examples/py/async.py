@@ -1,14 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import asyncio
 import os
 import sys
-import logging
-
-#------------------------------------------------------------------------------
-
-logging.basicConfig(
-    level=getattr(logging, loglevel),
-    format='%(asctime)s %(levelname)s: %(message)s')
 
 #------------------------------------------------------------------------------
 
@@ -23,8 +17,8 @@ import ccxt.async as ccxt  # noqa: E402
 
 async def main():
     p = ccxt.poloniex()
-    result = await p.fetch_markets()
-    logging.info(result)
+    result = await p.fetch_ticker('ETH/BTC')
+    print(result)
 
 #------------------------------------------------------------------------------
 

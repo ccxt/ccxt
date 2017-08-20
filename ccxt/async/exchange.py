@@ -47,7 +47,18 @@ from ccxt.exchange import Exchange as BaseExchange
 
 #------------------------------------------------------------------------------
 
+__all__ = [
+    'Exchange',
+]
+
+#------------------------------------------------------------------------------
+
 class Exchange (BaseExchange):
+
+    def __init__(self, config={}):
+        super(Exchange, self).__init__(config)
+        self.asyncio_loop = self.asyncio_loop or asyncio.get_event_loop()
+        self.aiohttp_session = self.aiohttp_session or aiohttp.ClientSession(loop=self.asyncio_loop)
 
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
@@ -111,54 +122,54 @@ class Exchange (BaseExchange):
         return self.set_markets(markets)
 
     async def loadMarkets(self, reload=False):
-        return self.load_markets()
+        return await self.load_markets()
 
     async def fetch_markets(self):
         return self.markets
 
     async def fetchMarkets(self):
-        return self.fetch_markets()
+        return await self.fetch_markets()
 
     async def fetch_tickers(self):
         raise ExchangeError(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
 
     async def fetchTickers(self):
-        return self.fetch_tickers()
+        return await self.fetch_tickers()
 
     async def fetchBalance(self):
-        return self.fetch_balance()
+        return await self.fetch_balance()
 
     async def fetchOrderBook(self, market):
-        return self.fetch_order_book(market)
+        return await self.fetch_order_book(market)
 
     async def fetchTicker(self, market):
-        return self.fetch_ticker(market)
+        return await self.fetch_ticker(market)
 
     async def fetchTrades(self, market):
-        return self.fetch_trades(market)
+        return await self.fetch_trades(market)
 
     async def create_limit_buy_order(self, market, amount, price, params={}):
-        return self.create_order(market, 'limit', 'buy', amount, price, params)
+        return await self.create_order(market, 'limit', 'buy', amount, price, params)
 
     async def create_limit_sell_order(self, market, amount, price, params={}):
-        return self.create_order(market, 'limit', 'sell', amount, price, params)
+        return await self.create_order(market, 'limit', 'sell', amount, price, params)
 
     async def create_market_buy_order(self, market, amount, params={}):
-        return self.create_order(market, 'market', 'buy', amount, None, params)
+        return await self.create_order(market, 'market', 'buy', amount, None, params)
 
     async def create_market_sell_order(self, market, amount, params={}):
-        return self.create_order(market, 'market', 'sell', amount, None, params)
+        return await self.create_order(market, 'market', 'sell', amount, None, params)
 
     async def createLimitBuyOrder(self, market, amount, price, params={}):
-        return self.create_limit_buy_order(market, amount, price, params)
+        return await self.create_limit_buy_order(market, amount, price, params)
 
     async def createLimitSellOrder(self, market, amount, price, params={}):
-        return self.create_limit_sell_order(market, amount, price, params)
+        return await self.create_limit_sell_order(market, amount, price, params)
 
     async def createMarketBuyOrder(self, market, amount, params={}):
-        return self.create_market_buy_order(market, amount, params)
+        return await self.create_market_buy_order(market, amount, params)
 
     async def createMarketSellOrder(self, market, amount, params={}):
-        return self.create_market_sell_order(market, amount, params)
+        return await self.create_market_sell_order(market, amount, params)
 
 #==============================================================================

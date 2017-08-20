@@ -30,7 +30,7 @@ __version__ = '1.4.36'
 
 #------------------------------------------------------------------------------
 
-import ccxt.errors
+import ccxt.errors as errors
 import ccxt.async.exchange
 import ccxt.async.exchanges
 
