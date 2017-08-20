@@ -122,7 +122,7 @@ __all__ = exchanges + [
 
 #------------------------------------------------------------------------------
 
-__version__ = '1.4.36'
+__version__ = '1.4.38'
 
 #------------------------------------------------------------------------------
 
@@ -179,6 +179,7 @@ class ExchangeNotAvailable (NetworkError): pass
 class Exchange (object):
 
     id = None
+    version = None
     rateLimit = 2000 # milliseconds = seconds * 1000
     timeout = 10000 # milliseconds = seconds * 1000
     asyncio_loop = None

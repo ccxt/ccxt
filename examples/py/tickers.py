@@ -31,7 +31,7 @@ def print_usage():
     print_exchanges()
 
 def print_ticker(exchange, symbol):
-    ticker = exchange.fetch_ticker(symbol)
+    ticker = exchange.fetch_ticker(symbol.upper())
     dump(
         green(exchange.id),
         yellow(symbol),

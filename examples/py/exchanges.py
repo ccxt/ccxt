@@ -25,7 +25,7 @@ for id in ccxt.exchanges:
 def log(*args):
     print(' '.join([str(arg) for arg in args]))
 
-log('The ccxt library supports', green(len(ccxt.exchanges)), 'exchanges:')
+log('The ccxt library supports', green(str(len(ccxt.exchanges))), 'exchanges:')
 
 # output a table of all exchanges
 log(pink('{:<15} {:<15} {:<15}'.format('id', 'name', 'URL')))
