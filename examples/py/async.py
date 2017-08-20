@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
+import functools
 import os
 import sys
 
@@ -15,12 +16,24 @@ import ccxt.async as ccxt  # noqa: E402
 
 #------------------------------------------------------------------------------
 
-async def main():
-    p = ccxt.poloniex()
-    result = await p.fetch_ticker('ETH/BTC')
-    print(result)
+async def print_ticker(symbol, id):
+    # verbose mode will show the order of execution to verify concurrency
+    print (await getattr (ccxt, id) ({ 'verbose': True }).fetch_ticker(symbol))
 
 #------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    asyncio.get_event_loop().run_until_complete(main())
+
+    symbol = 'ETH/BTC'
+    print_ethbtc_ticker = functools.partial(print_ticker, symbol)
+    [asyncio.ensure_future(print_ethbtc_ticker(id)) for id in [
+        'bitfinex',
+        'poloniex',
+        'kraken',
+        'gdax',
+        'bittrex',
+        'hitbtc',
+    ]]
+    pending = asyncio.Task.all_tasks()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(asyncio.gather(*pending))
