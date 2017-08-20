@@ -43,6 +43,7 @@ import time
 
 #------------------------------------------------------------------------------
 
+from ccxt.errors import * # noqa: F403
 from ccxt.exchange import Exchange as BaseExchange
 
 #------------------------------------------------------------------------------

@@ -33,9 +33,9 @@ __version__ = '1.4.36'
 from ccxt import errors
 from ccxt import exchange
 
-from ccxt.errors import *
-from ccxt.exchange import *
-from ccxt.exchanges import *
+from ccxt.errors import *    # noqa: F403
+from ccxt.exchange import *  # noqa: F403
+from ccxt.exchanges import * # noqa: F403
 
 #------------------------------------------------------------------------------
 

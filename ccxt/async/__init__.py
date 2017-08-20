@@ -35,9 +35,9 @@ import ccxt.async.exchange
 import ccxt.async.exchanges
 
 # from ccxt import __version__
-from ccxt.errors import *
-from ccxt.async.exchange import *
-from ccxt.async.exchanges import *
+from ccxt.errors import *          # noqa: F403
+from ccxt.async.exchange import *  # noqa: F403
+from ccxt.async.exchanges import * # noqa: F403
 
 #------------------------------------------------------------------------------
 
