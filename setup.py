@@ -16,23 +16,6 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 with open(path.join(here, 'package.json'), encoding='utf-8') as f:
     package = json.load(f)
 
-requirements = ['setuptools']
-
-packages = find_packages()
-
-# # Python 3.5+ async/await support
-# if (sys.version_info[0] == 3) and (sys.version_info[1] >= 5):
-#     packages = ['ccxt', 'ccxt.async']
-#     requirements += [
-#         'aiohttp',
-#         'cchardet',
-#         'aiodns',
-#     ]
-
-print(sys.version_info)
-print(packages)
-print(requirements)
-
 setup(
 
     name=package['name'],
@@ -70,9 +53,9 @@ setup(
     ],
 
     keywords=package['keywords'],
-    packages=packages,
+    packages=find_packages(),
 
-    install_requires=requirements,
+    install_requires=['setuptools'],
     extras_require={
         ':python_version>="3.5"': [
             'aiohttp',
