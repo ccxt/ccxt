@@ -38,9 +38,9 @@ try {
     }
     let idString = "    '" + ids.join ("',\n    '") + "',"
 
-    log.bright.cyan ('Exporting exchanges → ./ccxt.py'.yellow)
+    log.bright.cyan ('Exporting exchanges → ./ccxt/exchanges.py'.yellow)
 
-    let ccxtpyFilename = './ccxt.py'
+    let ccxtpyFilename = './ccxt/exchanges.py'
     let ccxtpy = fs.readFileSync (ccxtpyFilename, 'utf8')
     let ccxtpyParts = ccxtpy.split (/exchanges \= \[[^\]]+\]/)
     let ccxtpyNewContent = ccxtpyParts[0] + "exchanges = [\n" + idString + "\n]" + ccxtpyParts[1]

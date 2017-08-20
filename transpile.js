@@ -52,15 +52,20 @@ while (exchanges = regex.exec (contents)) {
         .replace (/([^\s]+) \]/g, '$1]')    // PEP8 E202
         .replace (/([^\s]+) \}\,/g, '$1},') // PEP8 E202
 
-    py.push ('')
-    py.push ('class ' + id + ' (' + (parent ? parent : 'Exchange') + '):')
-    py.push ('')
-    py.push ('    def __init__(self, config={}):')
-    py.push ('        params = {')
-    py.push ('        ' + pyParams + ((all.length > 1) ? ',' : ''))
-    py.push ('        }')
-    py.push ('        params.update(config)')
-    py.push ('        super(' + id + ', self).__init__(params)')
+    function pyAddClass (py) {
+        py.push ('')
+        py.push ('class ' + id + ' (' + (parent ? parent : 'Exchange') + '):')
+        py.push ('')
+        py.push ('    def __init__(self, config={}):')
+        py.push ('        params = {')
+        py.push ('        ' + pyParams + ((all.length > 1) ? ',' : ''))
+        py.push ('        }')
+        py.push ('        params.update(config)')
+        py.push ('        super(' + id + ', self).__init__(params)')        
+    }
+
+    pyAddClass (py);
+    pyAddClass (pyAsync);
 
     ph.push ('')
     ph.push ('class ' + id + ' extends ' + (parent ? parent : 'Exchange') + ' {')
@@ -343,12 +348,13 @@ function copyFile (oldName, newName) {
 
 //-----------------------------------------------------------------------------
 
-// copyFile ('./ccxt.py', './ccxt/exchange.py')
+copyFile ('./ccxt.py', './ccxt/exchange.py')
 // copyFile ('./async.py', './ccxt/async.py')
 
-transpile ('./ccxt.py',   './ccxt/__init__.py', python,      '#')
-// transpile ('./async.py',  './ccxt/async.py',    pythonAsync, '#')
-transpile ('./ccxt.php',  './build/ccxt.php',   php,         '//')
+transpile ('./ccxt.py',                 './ccxt/exchanges.py',       python,        '#')
+transpile ('./ccxt/async/exchanges.py', './ccxt/async/exchanges.py', pythonAsync,   '#')
+// transpile ('./async.py',                './ccxt/async.py',           pythonAsync,   '#')
+transpile ('./ccxt.php',                './build/ccxt.php',          php,           '//')
 
 //-----------------------------------------------------------------------------
 
