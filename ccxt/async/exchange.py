@@ -81,7 +81,8 @@ class Exchange (BaseExchange):
             print(url, method, url, "\nRequest:", headers, body)
         if body:
             body = body.encode()
-        async with self.aiohttp_session.get(url, headers=headers, timeout=(self.timeout / 1000)) as response:
+        session_method = getattr(self.aiohttp_session, method.lower())
+        async with session_method(url, data=body or None, headers=headers, timeout=(self.timeout / 1000)) as response:
             text = await response.text()
             error = None
             details = text if text else None
