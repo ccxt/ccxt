@@ -164,8 +164,13 @@ pip install ccxt
 
 ```Python
 import ccxt
-
 print(ccxt.exchanges) # print a list of all available exchange classes
+```
+
+The library supports concurrent asynchronous mode with asyncio and async/await in Python 3.5+
+
+```Python
+import ccxt.async as ccxt # link against the asynchronous version of ccxt
 ```
 
 ### PHP
