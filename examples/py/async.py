@@ -18,7 +18,8 @@ import ccxt.async as ccxt  # noqa: E402
 
 async def print_ticker(symbol, id):
     # verbose mode will show the order of execution to verify concurrency
-    print (await getattr (ccxt, id) ({ 'verbose': True }).fetch_ticker(symbol))
+    exchange = getattr(ccxt, id)({'verbose': True})
+    print(await exchange.fetch_ticker(symbol))
 
 #------------------------------------------------------------------------------
 
