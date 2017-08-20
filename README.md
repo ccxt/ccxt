@@ -159,9 +159,7 @@ console.log (ccxt.exchanges) // print all available exchanges
 [ccxt algotrading library in PyPI](https://pypi.python.org/pypi/ccxt)
 
 ```shell
-pip install ccxt  # Python 2
-# or
-pip3 install ccxt # Python 3
+pip install ccxt
 ```
 
 ```Python
