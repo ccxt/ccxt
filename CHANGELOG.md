@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Fixed `exchange.version` property in Python [#126](https://github.com/kroitor/ccxt/issues/126)
 - Added initial async/await support to Python 3.5+ [#7](https://github.com/kroitor/ccxt/issues/7)
 - Fixed HitBTC cancel_order issue with clientOrderId vs orderId [#125](https://github.com/kroitor/ccxt/issues/125)
 - Fixed HitBTC price formatting issue, [#122](https://github.com/kroitor/ccxt/issues/122)
