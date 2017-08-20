@@ -39,8 +39,8 @@ fs.writeFileSync (ccxtjsFilename, ccxtjsNewContent)
 
 //-----------------------------------------------------------------------------
 
-log.bright.cyan ('Single-sourcing version', version, './package.json → ./ccxt/__init__.py'.yellow)
-let ccxtpyFilename = './ccxt/__init__.py'
+log.bright.cyan ('Single-sourcing version', version, './package.json → ./ccxt/version.py'.yellow)
+let ccxtpyFilename = './ccxt/version.py'
 let ccxtpy = fs.readFileSync (ccxtpyFilename, 'utf8')
 let ccxtpyParts = ccxtpy.split (/\_\_version\_\_ \= \'[^\']+\'/)
 let ccxtpyNewContent = ccxtpyParts[0] + "__version__ = '" + version + "'" + ccxtpyParts[1]
