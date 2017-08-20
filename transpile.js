@@ -21,8 +21,10 @@ let ccxtjs = fs.readFileSync ('ccxt.js', 'utf8')
 let contents = ccxtjs.match (/\/\/====(?:[\s\S]+?)\/\/====/) [0]
 let exchanges
 let regex = /^var ([\S]+) =\s*(?:extend\s*\(([^\,]+)\,\s*)?{([\s\S]+?)^}/gm // exchange class
-let python = []
-let php = []
+
+let python      = []
+let pythonAsync = []
+let php         = []
 
 //-----------------------------------------------------------------------------
 
@@ -37,6 +39,7 @@ while (exchanges = regex.exec (contents)) {
     let methods = all.slice (1)
 
     let py = []
+    let pyAsync = []
     let ph = []
 
     params = params.split ("\n")
@@ -158,7 +161,6 @@ while (exchanges = regex.exec (contents)) {
             [ /throw ([\S]+)/g, 'raise $1'],
             [ /try {/g, 'try:'],
             [ /\}\s+catch \(([\S]+)\) {/g, 'except Exception as $1:'],
-            [ /(\s)await(\s)/g, '$1' ],
             [ /([\s\(])extend(\s)/g, '$1self.extend$2' ],
             [ /\} else if/g, 'elif' ],
             [ /if\s+\((.*)\)\s+\{/g, 'if $1:' ],
@@ -274,7 +276,12 @@ while (exchanges = regex.exec (contents)) {
             [ /process\.exit/g, 'exit'],
         ]
 
-        let pyBody = regexAll (body, pyRegex)
+        let pyRegexSync = pyRegex.concat ([
+            [ /(\s)await(\s)/g, '$1' ]
+        ])
+
+        let pyBody      = regexAll (body, pyRegexSync)
+        let pyBodyAsync = regexAll (body, pyRegex)
 
         // special case for Python OrderedDicts
 
@@ -289,6 +296,10 @@ while (exchanges = regex.exec (contents)) {
         py.push ('    def ' + method + '(self' + (pyArgs.length ? ', ' + pyArgs.replace (/undefined/g, 'None') : '') + '):');
         py.push (pyBody);
 
+        pyAsync.push ('');
+        pyAsync.push ('    ' + keyword + 'def ' + method + '(self' + (pyArgs.length ? ', ' + pyArgs.replace (/undefined/g, 'None') : '') + '):');
+        pyAsync.push (pyBodyAsync);
+
         let phBody = regexAll (body, phRegex.concat (phVarsRegex))
 
         ph.push ('');
@@ -298,8 +309,10 @@ while (exchanges = regex.exec (contents)) {
     }
 
     py.push ('')
+    pyAsync.push ('')
 
     python.push (py.join ("\n"))
+    pythonAsync.push (pyAsync.join ("\n"))
 
     ph.push ('}')
     ph.push ('')
@@ -322,8 +335,20 @@ function transpile (oldName, newName, content, comment = '//') {
 
 //-----------------------------------------------------------------------------
 
-transpile ('./ccxt.py',  './ccxt/__init__.py', python, '#')
-transpile ('./ccxt.php', './build/ccxt.php',   php,    '//')
+function copyFile (oldName, newName) {
+    let contents = fs.readFileSync (oldName, 'utf8')
+    fs.truncateSync (newName)
+    fs.writeFileSync (newName, contents)
+}
+
+//-----------------------------------------------------------------------------
+
+// copyFile ('./ccxt.py', './ccxt/exchange.py')
+// copyFile ('./async.py', './ccxt/async.py')
+
+transpile ('./ccxt.py',   './ccxt/__init__.py', python,      '#')
+// transpile ('./async.py',  './ccxt/async.py',    pythonAsync, '#')
+transpile ('./ccxt.php',  './build/ccxt.php',   php,         '//')
 
 //-----------------------------------------------------------------------------
 

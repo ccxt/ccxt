@@ -9,6 +9,7 @@
                 "ccxt.egg-info",
                 "dist",
                 ".nyc_output",
+                "__pycache__"
             ],
             "file_exclude_patterns": ["*.pyc"],
             "follow_symlinks": true
