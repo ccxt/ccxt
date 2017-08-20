@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Added initial async/await support to Python 3.5+ [#7](https://github.com/kroitor/ccxt/issues/7)
 - Fixed HitBTC cancel_order issue with clientOrderId vs orderId [#125](https://github.com/kroitor/ccxt/issues/125)
 - Fixed HitBTC price formatting issue, [#122](https://github.com/kroitor/ccxt/issues/122)
 - Added support for a new exchange: [Cryptopia](https://www.cryptopia.co.nz) (New Zealand), [#119](https://github.com/kroitor/ccxt/issues/119), [#123](https://github.com/kroitor/ccxt/pull/123)
