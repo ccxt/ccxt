@@ -70,7 +70,7 @@ setup(
     ],
 
     keywords=package['keywords'],
-    packages=packages(),
+    packages=packages,
 
     install_requires=requirements,
     extras_require={
