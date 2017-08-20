@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.34';
+$version = '1.4.35';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -437,7 +437,7 @@ class Exchange {
             $this->set_markets ($this->markets);
     }
 
-    public function define_rest_api ($api, $method_name) {
+    public function define_rest_api ($api, $method_name, $options = array ()) {
         foreach ($api as $type => $methods)
             foreach ($methods as $http_method => $paths)
                 foreach ($paths as $path) {
@@ -459,6 +459,13 @@ class Exchange {
 
                     $camelcase  = $type . $camelcaseMethod . Exchange::capitalize ($camelcaseSuffix);
                     $underscore = $type . '_' . $lowercaseMethod . '_' . mb_strtolower ($underscoreSuffix);
+
+                    if (array_key_exists ('suffixes', $options)) {
+                        if (array_key_exists ('camelcase', $options['suffixes']))
+                            $camelcase .= $options['suffixes']['camelcase'];
+                        if (array_key_exists ('underscore', $options['suffixes']))
+                            $underscore .= $options['suffixes']['underscore'];
+                    }
 
                     $partial = function ($params = array ()) use ($path, $type, $uppercaseMethod, $method_name) {
                         return call_user_func (array ($this, $method_name), $path, $type, $uppercaseMethod, $params);
@@ -8561,12 +8568,13 @@ class cryptopia extends Exchange {
             $secret = base64_decode ($this->secret);
             $uri = $this->encode_uri_component($url);
             $lowercase = strtolower ($uri);
-            $auth = $this->apiKey . $method . $lowercase . $nonce . $hash;
-            $signature = $this->hmac ($this->encode ($auth), $secret, 'sha256', 'base64');
+            $payload = $this->apiKey . $method . $lowercase . $nonce . $this->binary_to_string ($hash);
+            $signature = $this->hmac ($this->encode ($payload), $secret, 'sha256', 'base64');
+            $auth = 'amx ' . $this->apiKey . ':' . $this->binary_to_string ($signature) . ':' . $nonce;
             $headers = array (
                 'Content-Type' => 'application/json',
                 'Content-Length' => strlen ($body),
-                'Authorization' => 'amx ' . $this->apiKey . ':' . $signature . ':' . $nonce,
+                'Authorization' => $auth,
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
@@ -10475,7 +10483,7 @@ class hitbtc extends Exchange {
         $difference = $quantity - $wholeLots;
         if (abs ($difference) > $p['step'])
             throw new ExchangeError ($this->id . ' $order $amount should be evenly divisible by lot unit size of ' . (string) $p['lot']);
-        $clientOrderId = $this->nonce ()
+        $clientOrderId = $this->nonce ();
         $order = array (
             'clientOrderId' => (string) $clientOrderId,
             'symbol' => $p['id'],
