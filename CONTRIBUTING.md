@@ -32,7 +32,6 @@ Below is a list of functionality we would like to have implemented in the librar
 - Unified deposit method
 - Unified withdraw method
 - Unified fees
-- Concurrency in Python with async/await (with respect to 2.7)
 - WebSocket interfaces:
   - Pub: Methods for trading and private calls where supported
   - Sub: Real-time balance, orderbooks and other properties with each exchange
