@@ -21,12 +21,15 @@ packages = ['ccxt']
 
 # Python 3.5+ async/await support
 if (sys.version_info[0] == 3) and (sys.version_info[1] >= 5):
-    packages = find_packages()
+    packages = ['ccxt', 'ccxt.async']
     requirements += [
         'aiohttp',
         'cchardet',
         'aiodns',
     ]
+
+print(sys.version_info)
+sys.exit()
 
 setup(
 
