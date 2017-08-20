@@ -5,6 +5,7 @@
 build/*
 ccxt/exchanges.py
 ccxt/async/exchanges.py
+ccxt/version.py
 
 node_modules/
 npm-debug.log
