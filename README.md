@@ -259,6 +259,9 @@ var ccxt = require ('ccxt')
 
     // buy 1 BTC/USD for $2500, you pay $2500 and receive 1 BTC when the order is closed
     console.log (okcoinusd.id, await okcoinusd.createLimitBuyOrder ('BTC/USD', 1, 2500.00))
+    
+    // use custom order type, eg Bitfinex trailing sell order at distance 10USD on margin account
+    console.log (bitfinex.id, await bitfinex.createOrder('BTC/USD', 'limit', 'sell', 1, 10, { 'type': 'trailing-stop' }))
 
 }) ()
 ```
