@@ -65,7 +65,7 @@ setup(
     ],
 
     keywords=package['keywords'],
-    packages=find_packages(),
+    packages=packages,
     install_requires=requirements,
     extras_require={
         'qa': [
