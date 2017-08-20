@@ -437,7 +437,7 @@ class Exchange {
             $this->set_markets ($this->markets);
     }
 
-    public function define_rest_api ($api, $method_name) {
+    public function define_rest_api ($api, $method_name, $options = array ()) {
         foreach ($api as $type => $methods)
             foreach ($methods as $http_method => $paths)
                 foreach ($paths as $path) {
@@ -459,6 +459,13 @@ class Exchange {
 
                     $camelcase  = $type . $camelcaseMethod . Exchange::capitalize ($camelcaseSuffix);
                     $underscore = $type . '_' . $lowercaseMethod . '_' . mb_strtolower ($underscoreSuffix);
+
+                    if (array_key_exists ('suffixes', $options)) {
+                        if (array_key_exists ('camelcase', $options['suffixes']))
+                            $camelcase .= $options['suffixes']['camelcase'];
+                        if (array_key_exists ('underscore', $options['suffixes']))
+                            $underscore .= $options['suffixes']['underscore'];
+                    }
 
                     $partial = function ($params = array ()) use ($path, $type, $uppercaseMethod, $method_name) {
                         return call_user_func (array ($this, $method_name), $path, $type, $uppercaseMethod, $params);

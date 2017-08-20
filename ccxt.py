@@ -217,7 +217,7 @@ class Exchange (object):
         if self.markets:
             self.set_markets(self.markets)
 
-    def define_rest_api(self, api, method_name):
+    def define_rest_api(self, api, method_name, options={}):
         for apiType, methods in api.items():
             for http_method, urls in methods.items():
                 for url in urls:
@@ -239,6 +239,12 @@ class Exchange (object):
 
                     camelcase = apiType + camelcaseMethod + Exchange.capitalize(camelcaseSuffix)
                     underscore = apiType + '_' + lowercaseMethod + '_' + underscoreSuffix.lower()
+
+                    if 'suffixes' in options:
+                        if 'camelcase' in options['suffixes']:
+                            camelcase += options['suffixes']['camelcase']
+                        if 'underscore' in options['suffixes']:
+                            underscore += options['suffixes']['underscore']
 
                     partial = functools.partial(getattr(self, method_name), url, apiType, uppercaseMethod)
                     setattr(self, camelcase, partial)

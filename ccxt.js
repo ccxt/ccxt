@@ -322,16 +322,16 @@ const Exchange = function (config) {
             this.setMarkets (this.markets);
     }
 
-    this.defineRESTAPI = function (api, f) {
+    this.defineRESTAPI = function (api, methodName, options = {}) {
         Object.keys (api).forEach (type => {
-            Object.keys (api[type]).forEach (method => {
-                let urls = api[type][method]
+            Object.keys (api[type]).forEach (httpMethod => {
+                let urls = api[type][httpMethod]
                 for (let i = 0; i < urls.length; i++) {
                     let url = urls[i].trim ()
                     let splitPath = url.split (/[^a-zA-Z0-9]/)
 
-                    let uppercaseMethod  = method.toUpperCase ()
-                    let lowercaseMethod  = method.toLowerCase ()
+                    let uppercaseMethod  = httpMethod.toUpperCase ()
+                    let lowercaseMethod  = httpMethod.toLowerCase ()
                     let camelcaseMethod  = capitalize (lowercaseMethod)
                     let camelcaseSuffix  = splitPath.map (capitalize).join ('')
                     let underscoreSuffix = splitPath.map (x => x.trim ().toLowerCase ()).filter (x => x.length > 0).join ('_')
@@ -345,7 +345,19 @@ const Exchange = function (config) {
                     let camelcase  = type + camelcaseMethod + capitalize (camelcaseSuffix)
                     let underscore = type + '_' + lowercaseMethod + '_' + underscoreSuffix
 
-                    let partial = params => this[f] (url, type, uppercaseMethod, params)
+                    if ('suffixes' in options) {
+                        if ('camelcase' in options['suffixes'])
+                            camelcase += options['suffixes']['camelcase']
+                        if ('underscore' in options.suffixes)
+                            underscore += options['suffixes']['underscore']
+                    }
+
+                    if ('underscore_suffix' in options)
+                        underscore += options.underscoreSuffix;
+                    if ('camelcase_suffix' in options)
+                        camelcase += options.camelcaseSuffix;
+
+                    let partial = params => this[methodName] (url, type, uppercaseMethod, params)
 
                     this[camelcase]  = partial
                     this[underscore] = partial
