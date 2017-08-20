@@ -29,7 +29,8 @@ if (sys.version_info[0] == 3) and (sys.version_info[1] >= 5):
     ]
 
 print(sys.version_info)
-sys.exit()
+print(packages)
+print(requirements)
 
 setup(
 
