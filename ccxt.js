@@ -8199,12 +8199,13 @@ var cryptopia = {
             let secret = this.base64ToBinary (this.secret);
             let uri = this.encodeURIComponent (url);
             let lowercase = uri.toLowerCase ();
-            let auth = this.apiKey + method + lowercase + nonce + hash;
-            let signature = this.hmac (this.encode (auth), secret, 'sha256', 'base64');
+            let payload = this.apiKey + method + lowercase + nonce + this.binaryToString (hash);
+            let signature = this.hmac (this.encode (payload), secret, 'sha256', 'base64');
+            let auth = 'amx ' + this.apiKey + ':' + this.binaryToString (signature) + ':' + nonce;
             headers = {
                 'Content-Type': 'application/json',
                 'Content-Length': body.length,
-                'Authorization': 'amx ' + this.apiKey + ':' + signature + ':' + nonce,
+                'Authorization': auth,
             };
         }
         let response = await this.fetch (url, method, headers, body);
