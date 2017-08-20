@@ -357,6 +357,10 @@ JavaScript
 
         // buy 1 BTC/USD for $2500, you pay $2500 and receive 1 BTC when the order is closed
         console.log (okcoinusd.id, await okcoinusd.createLimitBuyOrder ('BTC/USD', 1, 2500.00))
+        
+        // pass custom exchange-specific order params: type, amount, price, or whatever 
+        let params = { 'type': 'trailing-stop' } // use a custom order type here for example
+        console.log (bitfinex.id, await bitfinex.createOrder ('BTC/USD', 'limit', 'sell', 1, 10, params))
 
     }) ()
 
