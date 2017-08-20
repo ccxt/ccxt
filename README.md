@@ -110,10 +110,10 @@ The easiest way to install the ccxt library is to use builtin package managers:
 - [ccxt in **NPM**](http://npmjs.com/package/ccxt) (JavaScript / Node)
 - [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 2 and 3)
 
-This library is shipped as a single-file (all-in-one module) implementation with minimalistic dependencies and requirements:
+This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
 - [`ccxt.js`](https://github.com/kroitor/ccxt/blob/master/ccxt.js) in JavaScript
-- [`ccxt/__init__.py`](https://github.com/kroitor/ccxt/blob/master/ccxt/__init__.py) in Python (generated from JS)
+- [`ccxt/`](https://github.com/kroitor/ccxt/blob/master/ccxt/) in Python (generated from JS)
 - [`build/ccxt.php`](https://github.com/kroitor/ccxt/blob/master/build/ccxt.php) in PHP (generated from JS)
 
 You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/kroitor/ccxt):
@@ -159,10 +159,10 @@ console.log (ccxt.exchanges) // print all available exchanges
 [ccxt algotrading library in PyPI](https://pypi.python.org/pypi/ccxt)
 
 ```shell
-pip install ccxt
+pip install ccxt  # Python 2
+# or
+pip3 install ccxt # Python 3
 ```
-
-Python version of the ccxt library does not require any additional dependencies and uses builtin modules only.
 
 ```Python
 import ccxt
