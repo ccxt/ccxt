@@ -26,21 +26,6 @@ SOFTWARE.
 
 #------------------------------------------------------------------------------
 
-from ccxt.version import __version__
-
-#------------------------------------------------------------------------------
-
-import ccxt.errors as errors
-import ccxt.async.exchange
-import ccxt.async.exchanges
-
-# from ccxt import __version__
-from ccxt.errors import *          # noqa: F403
-from ccxt.async.exchange import *  # noqa: F403
-from ccxt.async.exchanges import * # noqa: F403
-
-#------------------------------------------------------------------------------
-
-__all__ = exchange.__all__ + exchanges + errors.__all__
+__version__ = '1.4.38'
 
 #==============================================================================
