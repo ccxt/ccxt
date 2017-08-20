@@ -19,14 +19,14 @@ with open(path.join(here, 'package.json'), encoding='utf-8') as f:
 requirements = ['setuptools']
 packages = ['ccxt']
 
-# Python 3.5+ async/await support
-if (sys.version_info[0] == 3) and (sys.version_info[1] >= 5):
-    packages = ['ccxt', 'ccxt.async']
-    requirements += [
-        'aiohttp',
-        'cchardet',
-        'aiodns',
-    ]
+# # Python 3.5+ async/await support
+# if (sys.version_info[0] == 3) and (sys.version_info[1] >= 5):
+#     packages = ['ccxt', 'ccxt.async']
+#     requirements += [
+#         'aiohttp',
+#         'cchardet',
+#         'aiodns',
+#     ]
 
 print(sys.version_info)
 print(packages)
