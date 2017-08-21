@@ -3806,6 +3806,15 @@ var bittrex = {
         return this.parseTrades (response['result'], m);
     },
 
+    async fetchMyOpenOrders (market = undefined, params = {}) {
+        let m = this.market (market);
+        throw new ExchangeError (this.id + ' fetchMyOpenOrders not implemented yet')
+        // let orders = await this.privatePostReturnOpenOrders (this.extend ({
+        //     'currencyPair': m['id'],
+        // }));
+        return this.parseOrders (orders, market);
+    },
+
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let method = 'marketGet' + this.capitalize (side) + type;
@@ -12623,7 +12632,7 @@ var poloniex = {
 
     async fetchMyOpenOrders (market = undefined, params = {}) {
         let m = this.market (market);
-        let orders = await this.privatePostReturnTradeHistory (this.extend ({
+        let orders = await this.privatePostReturnOpenOrders (this.extend ({
             'currencyPair': m['id'],
         }));
         return this.parseOrders (orders, market);
