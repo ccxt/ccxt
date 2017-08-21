@@ -12111,12 +12111,18 @@ var okcoin = {
         let order = {
             'symbol': this.marketId (market),
             'type': side,
-            'amount': amount,
         };
-        if (type == 'limit')
+        if (type == 'limit') {
             order['price'] = price;
-        else
+            order['amount'] = amount;
+        } else {
+            if (order.type == 'buy') {
+                order['price'] = params;
+            } else {
+                order['amount'] = amount;
+            }
             order['type'] += '_market';
+        }
         let response = await this.privatePostTrade (this.extend (order, params));
         return {
             'info': response,
