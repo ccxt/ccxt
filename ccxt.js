@@ -12612,6 +12612,10 @@ var poloniex = {
         };
     },
 
+    async fetchMyOpenOrders (market = undefined, params = {}) {
+        throw new ExchangeError (this.id + ' fetchMyOpenOrders not implemented yet')
+    },
+
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');

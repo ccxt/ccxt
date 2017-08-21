@@ -207,6 +207,6 @@ exchangesByCountries = exchangesByCountries.sort ((a, b) => {
 // console.log (asTable.configure ({ delimiter: ' | ' }) (exchangesByCountries))
 
 log.bright ('Exporting exchange ids to'.cyan, 'exchanges.json'.yellow)
-fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids: Object.keys (exchanges) }, null, 4))
+fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids: Object.keys (exchanges).filter (x => x != 'btce') }, null, 4))
 
 log.bright.green ('Exchanges exported successfully.')
