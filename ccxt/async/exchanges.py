@@ -3051,6 +3051,14 @@ class bittrex (Exchange):
         }, params))
         return self.parse_trades(response['result'], m)
 
+    async def fetchMyOpenOrders(self, market=None, params={}):
+        m = self.market(market)
+        raise ExchangeError(self.id + ' fetchMyOpenOrders not implemented yet')
+        # orders = await self.privatePostReturnOpenOrders(self.extend({
+        #     'currencyPair': m['id'],
+        #}))
+        return self.parseOrders(orders, market)
+
     async def create_order(self, market, type, side, amount, price=None, params={}):
         await self.loadMarkets()
         method = 'marketGet' + self.capitalize(side) + type
@@ -11489,7 +11497,11 @@ class poloniex (Exchange):
         }
 
     async def fetchMyOpenOrders(self, market=None, params={}):
-        raise ExchangeError(self.id + ' fetchMyOpenOrders not implemented yet')
+        m = self.market(market)
+        orders = await self.privatePostReturnOpenOrders(self.extend({
+            'currencyPair': m['id'],
+        }))
+        return self.parseOrders(orders, market)
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
         if type == 'market':

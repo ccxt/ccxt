@@ -37,7 +37,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.4.60'
+const version = '1.4.61'
 
 //-----------------------------------------------------------------------------
 // platform detection
