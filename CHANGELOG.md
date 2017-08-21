@@ -34,7 +34,7 @@
 - Unified `createOrder ()` return, [#94](https://github.com/kroitor/ccxt/issues/94)
 - Started work on orders/trades unification, [#71](https://github.com/kroitor/ccxt/issues/71), [#102](https://github.com/kroitor/ccxt/pull/102)
 - Added support for a new exchange: [BTC Markets](https://btcmarkets.net) (Australia)
-- Updated, [CONTRIBUTING](https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md) guidelines
+- Updated [CONTRIBUTING](https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md) guidelines
 - Added a new ad-hoc test-frontend to run individual tests of all exchanges in all languages in parallel, see [How To Build & Run Tests On Your Local Machine](https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md#how-to-build--run-tests-on-your-local-machine)
 - Started adding fetchTickers () (all at once) where applicable, [#7](https://github.com/kroitor/ccxt/issues/7)
 - Fixed Bittrex used/pending balance, [#91](https://github.com/kroitor/ccxt/issues/91)
