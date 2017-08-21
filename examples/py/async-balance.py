@@ -19,7 +19,7 @@ async def test():
     bittrex = ccxt.bittrex({
         'apiKey': "c5af1d0ceeaa4729ad87da1b05d9dfc3",
         'secret': "d055d8e47fdf4c3bbd0ec6c289ea8ffd",
-        'verbose': True,
+        'verbose': True, # switch it to False if you don't want the HTTP log
     })
     print(await bittrex.fetch_balance())
 
