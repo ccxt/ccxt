@@ -7195,7 +7195,7 @@ class cryptopia (Exchange):
     async def fetch_trades(self, market, params={}):
         await self.loadMarkets()
         m = self.market(market)
-        response = await self.publicGetMarketHistoryId(self.extend({
+        response = await self.publicGetMarketHistoryIdHours(self.extend({
             'id': m['id'],
         }, params))
         trades = response['Data']

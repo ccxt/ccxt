@@ -7272,7 +7272,7 @@ class cryptopia (Exchange):
     def fetch_trades(self, market, params={}):
         self.loadMarkets()
         m = self.market(market)
-        response = self.publicGetMarketHistoryId(self.extend({
+        response = self.publicGetMarketHistoryIdHours(self.extend({
             'id': m['id'],
         }, params))
         trades = response['Data']
