@@ -12645,7 +12645,9 @@ var poloniex = {
     },
 
     async fetchMyOpenOrders (market = undefined, params = {}) {
-        let m = (market) ? this.market (market) : market;
+        let m = undefined;
+        if (market)
+            m = this.market (market);
         let pair = m ? m['id'] : 'all';
         let orders = await this.privatePostReturnOpenOrders (this.extend ({
             'currencyPair': pair,
