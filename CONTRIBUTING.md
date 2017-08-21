@@ -15,8 +15,8 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 - If your issue is unique, along with a basic description of the failure, please, provide the following information:
   - your language version, ccxt library version
   - which exchange it is and which method you're trying to call
-  - a code snippet you're having difficulties with
-  - paste the full stacktrace as is of that snippet in verbose mode
+  - a full code snippet you're having difficulties with (avoid one-liners)
+  - paste the full stacktrace of that snippet in verbose mode as is, unchanged
 
 ## How To Contribute Code
 
