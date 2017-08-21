@@ -1550,10 +1550,11 @@ class bitfinex (Exchange):
             query = self.encode(query)
             payload = base64.b64encode(query)
             secret = self.encode(self.secret)
+            signature = self.hmac(payload, secret, hashlib.sha384)
             headers = {
                 'X-BFX-APIKEY': self.apiKey,
-                'X-BFX-PAYLOAD': payload,
-                'X-BFX-SIGNATURE': self.hmac(payload, secret, hashlib.sha384),
+                'X-BFX-PAYLOAD': self.decode(payload),
+                'X-BFX-SIGNATURE': signature,
             }
         response = await self.fetch(url, method, headers, body)
         if 'message' in response:
@@ -9971,7 +9972,7 @@ class kraken (Exchange):
             signature = self.hmac(binhash, secret, hashlib.sha512, 'base64')
             headers = {
                 'API-Key': self.apiKey,
-                'API-Sign': signature,
+                'API-Sign': self.decode(signature),
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
         url = self.urls['api'] + url

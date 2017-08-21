@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.72';
+$version = '1.4.73';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2476,10 +2476,11 @@ class bitfinex extends Exchange {
             $query = $this->encode ($query);
             $payload = base64_encode ($query);
             $secret = $this->encode ($this->secret);
+            $signature = $this->hmac ($payload, $secret, 'sha384')
             $headers = array (
                 'X-BFX-APIKEY' => $this->apiKey,
-                'X-BFX-PAYLOAD' => $payload,
-                'X-BFX-SIGNATURE' => $this->hmac ($payload, $secret, 'sha384'),
+                'X-BFX-PAYLOAD' => $this->decode ($payload),
+                'X-BFX-SIGNATURE' => $signature,
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
@@ -11477,7 +11478,7 @@ class kraken extends Exchange {
             $signature = $this->hmac ($binhash, $secret, 'sha512', 'base64');
             $headers = array (
                 'API-Key' => $this->apiKey,
-                'API-Sign' => $signature,
+                'API-Sign' => $this->decode ($signature),
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
