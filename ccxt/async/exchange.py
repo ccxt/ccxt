@@ -66,7 +66,9 @@ class Exchange (BaseExchange):
         self.aiohttp_session = self.aiohttp_session or aiohttp.ClientSession(loop=self.asyncio_loop)
 
     def __del__(self):
-        self.aiohttp_session.close()
+        print('Debug')
+        if self.aiohttp_session:
+            self.aiohttp_session.close()
 
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
