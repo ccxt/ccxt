@@ -7197,6 +7197,7 @@ class cryptopia (Exchange):
         m = self.market(market)
         response = await self.publicGetMarketHistoryIdHours(self.extend({
             'id': m['id'],
+            'hours': 24, # default
         }, params))
         trades = response['Data']
         return self.parse_trades(trades, m)

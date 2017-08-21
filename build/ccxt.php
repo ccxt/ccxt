@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.53';
+$version = '1.4.54';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8508,6 +8508,7 @@ class cryptopia extends Exchange {
         $m = $this->market ($market);
         $response = $this->publicGetMarketHistoryIdHours (array_merge (array (
             'id' => $m['id'],
+            'hours' => 24, // default
         ), $params));
         $trades = $response['Data'];
         return $this->parse_trades ($trades, $m);
