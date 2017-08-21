@@ -1,6 +1,5 @@
 # Сhangelog
 
-- Fixed the `asyncio unclosed client session` warning in Python, [#139](https://github.com/kroitor/ccxt/issues/139)
 - Python package now includes a bdist wheel (binary distribution for a faster install), [#136](https://github.com/kroitor/ccxt/issues/136)
 - Fixed market orders for OKCoin, [#138](https://github.com/kroitor/ccxt/issues/138)
 - Added fetchMyOpenOrders to Poloniex and Bittrex, [#102](https://github.com/kroitor/ccxt/issues/102)
