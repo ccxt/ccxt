@@ -8139,6 +8139,7 @@ var cryptopia = {
         let m = this.market (market);
         let response = await this.publicGetMarketHistoryIdHours (this.extend ({
             'id': m['id'],
+            'hours': 24, // default
         }, params));
         let trades = response['Data'];
         return this.parseTrades (trades, m);
