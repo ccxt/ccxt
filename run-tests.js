@@ -82,7 +82,7 @@ const exec = (bin, ...args) =>
                 failed: code !== 0,
                 output,
                 hasWarnings,
-                warnings: ansi.strip (stderr).match (/\[[^\]]+\]/g) || []
+                warnings: ansi.strip (stderr).match (/^\[[^\]]+\]/g) || []
             })
         })
     })
