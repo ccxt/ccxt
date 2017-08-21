@@ -7,7 +7,7 @@
 - Added initial async/await support to Python 3.5+, [#7](https://github.com/kroitor/ccxt/issues/7)
 - Fixed HitBTC cancel_order issue with clientOrderId vs orderId, [#125](https://github.com/kroitor/ccxt/issues/125)
 - Fixed HitBTC price formatting issue, [#122](https://github.com/kroitor/ccxt/issues/122)
-- Added support for a new exchange:, [Cryptopia](https://www.cryptopia.co.nz) (New Zealand), [#119](https://github.com/kroitor/ccxt/issues/119), [#123](https://github.com/kroitor/ccxt/pull/123)
+- Added support for a new exchange: [Cryptopia](https://www.cryptopia.co.nz) (New Zealand), [#119](https://github.com/kroitor/ccxt/issues/119), [#123](https://github.com/kroitor/ccxt/pull/123)
 - Fixed Yobit low price in exponential format, [#122](https://github.com/kroitor/ccxt/issues/122)
 - Fixed Bitflyer private API, [#121](https://github.com/kroitor/ccxt/issues/121)
 - Added new Bitstamp markets: ETH/USD, ETH/EUR and ETH/BTC, [#120](https://github.com/kroitor/ccxt/issues/120)
@@ -20,7 +20,7 @@
 
 - Added unified fetchOrder to Bittrex and Liqui, [#116](https://github.com/kroitor/ccxt/issues/116)
 - Fixed Bter createOrder, [#115](https://github.com/kroitor/ccxt/issues/115)
-- Added, [Browser Bundle](https://github.com/kroitor/ccxt#javascript-for-use-with-the-script-tag) for use with the `<script>` tag, served from the, [unpkg CDN](https://unpkg.com/)
+- Added [Browser Bundle](https://github.com/kroitor/ccxt#javascript-for-use-with-the-script-tag) for use with the `<script>` tag, served from the [unpkg CDN](https://unpkg.com/)
 - Refactored imports / exports handling, making it compatible with JavaScript module bundlers
 - Added initial support for a new exchange:, [coinfloor](https://www.coinfloor.co.uk) UK (still under development)
 - Isolated code genome into `ccxt.js`, `ccxt.php` and `ccxt.py`, added `build` folder for generated files
@@ -33,9 +33,9 @@
 - Python codebase is now PEP8-conformant, [#104](https://github.com/kroitor/ccxt/issues/104), [#106](https://github.com/kroitor/ccxt/pull/106)
 - Unified `createOrder ()` return, [#94](https://github.com/kroitor/ccxt/issues/94)
 - Started work on orders/trades unification, [#71](https://github.com/kroitor/ccxt/issues/71), [#102](https://github.com/kroitor/ccxt/pull/102)
-- Added support for a new exchange:, [BTC Markets](https://btcmarkets.net) (Australia)
+- Added support for a new exchange: [BTC Markets](https://btcmarkets.net) (Australia)
 - Updated, [CONTRIBUTING](https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md) guidelines
-- Added a new ad-hoc test-frontend to run individual tests of all exchanges in all languages in parallel, see, [How To Build & Run Tests On Your Local Machine](https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md#how-to-build--run-tests-on-your-local-machine)
+- Added a new ad-hoc test-frontend to run individual tests of all exchanges in all languages in parallel, see [How To Build & Run Tests On Your Local Machine](https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md#how-to-build--run-tests-on-your-local-machine)
 - Started adding fetchTickers () (all at once) where applicable, [#7](https://github.com/kroitor/ccxt/issues/7)
 - Fixed Bittrex used/pending balance, [#91](https://github.com/kroitor/ccxt/issues/91)
 
@@ -45,7 +45,7 @@
 - Version 1.3.x is backward incompatible with previous versions due to a major renaming in the code
 ```
 
-- Renamed basic elements for consistency, this change is backward-incompatible!, [#89](https://github.com/kroitor/ccxt/issues/89)
+- Renamed basic elements for consistency, this change is backward-incompatible, [#89](https://github.com/kroitor/ccxt/issues/89)
   - renamed (M|m)arket[s] → (E|e)xchange[s] everywhere in code, tests, examples and docs
   - renamed (P|p)roduct[s] → (M|m)arket[s] everywhere as well
 - Added optional `substituteCommonCurrencyCodes` exchange parameter (true by default)
@@ -89,7 +89,7 @@
 - Fixed a typo in bitfinex `ocoorder` parameter, [#38](https://github.com/kroitor/ccxt/issues/38)
 - Fixed GDAX orders, [#35](https://github.com/kroitor/ccxt/issues/35)
 - Added missing `method` param to BTC-e private API, [#33](https://github.com/kroitor/ccxt/issues/33)
-- Fixed multiple auth errors due to the missing .encode () in Python, [Yobit issue #26](https://github.com/kroitor/ccxt/issues/26), [Kraken issue #27](https://github.com/kroitor/ccxt/issues/27), [Bter issue #28](https://github.com/kroitor/ccxt/issues/28), [Liqui issue #29](https://github.com/kroitor/ccxt/issues/29), [Gemini issue #30](https://github.com/kroitor/ccxt/issues/30), [Cex.io issue #31](https://github.com/kroitor/ccxt/issues/31), [QuadrigaCX issue #32](https://github.com/kroitor/ccxt/issues/32)
+- Fixed multiple auth errors due to the missing .encode () in Python, [Yobit #26](https://github.com/kroitor/ccxt/issues/26), [Kraken #27](https://github.com/kroitor/ccxt/issues/27), [Bter issue #28](https://github.com/kroitor/ccxt/issues/28), [Liqui issue #29](https://github.com/kroitor/ccxt/issues/29), [Gemini issue #30](https://github.com/kroitor/ccxt/issues/30), [Cex.io #31](https://github.com/kroitor/ccxt/issues/31), [QuadrigaCX #32](https://github.com/kroitor/ccxt/issues/32)
 - Added `__version__` to Python bindings, [#25](https://github.com/kroitor/ccxt/issues/25)
 - Fixed multiple auth errors, [#24](https://github.com/kroitor/ccxt/issues/24)
 - CoinMarketCap API support added (not an exchange), [#22](https://github.com/kroitor/ccxt/issues/22)
