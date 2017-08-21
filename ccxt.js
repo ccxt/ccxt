@@ -2230,10 +2230,11 @@ var bitfinex = {
             query = this.encode (query);
             let payload = this.stringToBase64 (query);
             let secret = this.encode (this.secret);
+            let signature = this.hmac (payload, secret, 'sha384')
             headers = {
                 'X-BFX-APIKEY': this.apiKey,
-                'X-BFX-PAYLOAD': payload,
-                'X-BFX-SIGNATURE': this.hmac (payload, secret, 'sha384'),
+                'X-BFX-PAYLOAD': this.decode (payload),
+                'X-BFX-SIGNATURE': signature,
             };
         }
         let response = await this.fetch (url, method, headers, body);
@@ -11041,7 +11042,7 @@ var kraken = {
             let signature = this.hmac (binhash, secret, 'sha512', 'base64');
             headers = {
                 'API-Key': this.apiKey,
-                'API-Sign': signature,
+                'API-Sign': this.decode (signature),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
