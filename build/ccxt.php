@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.60';
+$version = '1.4.61';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -747,6 +747,18 @@ class Exchange {
 
     public function parseTrades ($trades, $market = null) {
         return $this->parse_trades ($trades, $market);
+    }
+
+    public function parse_orders ($orders, $market = null) {
+        $result = array ();
+        for ($t = 0; $t < count ($orders); $t++) {
+            $result[] = $this->parse_order ($orders[$t], $market);
+        }
+        return $result;
+    }
+
+    public function parseTrades ($orders, $market = null) {
+        return $this->parse_orders ($orders, $market);
     }
 
     public function fetch_tickers () { // stub
@@ -4065,6 +4077,15 @@ class bittrex extends Exchange {
             'market' => $m['id'],
         ), $params));
         return $this->parse_trades ($response['result'], $m);
+    }
+
+    public function fetchMyOpenOrders ($market = null, $params = array ()) {
+        $m = $this->market ($market);
+        throw new ExchangeError ($this->id . ' fetchMyOpenOrders not implemented yet')
+        // $orders = $this->privatePostReturnOpenOrders (array_merge (array (
+        //     'currencyPair' => $m['id'],
+        // )));
+        return $this->parseOrders ($orders, $market);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
@@ -13081,7 +13102,11 @@ class poloniex extends Exchange {
     }
 
     public function fetchMyOpenOrders ($market = null, $params = array ()) {
-        throw new ExchangeError ($this->id . ' fetchMyOpenOrders not implemented yet')
+        $m = $this->market ($market);
+        $orders = $this->privatePostReturnOpenOrders (array_merge (array (
+            'currencyPair' => $m['id'],
+        )));
+        return $this->parseOrders ($orders, $market);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
