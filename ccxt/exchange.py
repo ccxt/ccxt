@@ -30,7 +30,6 @@ from ccxt.version import __version__
 
 #------------------------------------------------------------------------------
 
-from ccxt.errors import DDoSProtection
 from ccxt.errors import CCXTError
 from ccxt.errors import ExchangeError
 from ccxt.errors import AuthenticationError
