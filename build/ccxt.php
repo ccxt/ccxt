@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.62';
+$version = '1.4.63';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -757,7 +757,7 @@ class Exchange {
         return $result;
     }
 
-    public function parseTrades ($orders, $market = null) {
+    public function parseOrders ($orders, $market = null) {
         return $this->parse_orders ($orders, $market);
     }
 
@@ -4081,11 +4081,10 @@ class bittrex extends Exchange {
 
     public function fetchMyOpenOrders ($market = null, $params = array ()) {
         $m = $this->market ($market);
-        throw new ExchangeError ($this->id . ' fetchMyOpenOrders not implemented yet')
-        // $orders = $this->privatePostReturnOpenOrders (array_merge (array (
-        //     'currencyPair' => $m['id'],
-        // )));
-        return $this->parseOrders ($orders, $market);
+        $response = $this->privatePostReturnOpenOrders (array_merge (array (
+            'currencyPair' => $m['id'],
+        )));
+        return $this->parseOrders ($response['result'], $market);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
@@ -4110,7 +4109,7 @@ class bittrex extends Exchange {
         return $this->marketGetCancel (array ( 'uuid' => $id ));
     }
 
-    public function parseOrder ($order) {
+    public function parseOrder ($order, $market = null) {
         $side = ($order['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
         $open = $order['IsOpen'];
         $canceled = $order['CancelInitiated'];
@@ -4122,14 +4121,23 @@ class bittrex extends Exchange {
         } else {
             $status = 'closed';
         }
+        $symbol = null;
+        if ($market) {
+            $symbol = $market['symbol'];
+        } else {
+            $exchange = $order['Exchange'];
+            if (array_key_exists ($exchange, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$exchange];
+                $symbol = ['symbol'];
+            }
+        }
         $timestamp = $this->parse8601 ($order['Opened']);
-        $market = $this->markets_by_id[$order['Exchange']];
         $result = array (
             'info' => $order,
             'id' => $order['OrderUuid'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
             'price' => $order['PricePerUnit'],

@@ -3130,11 +3130,10 @@ class bittrex (Exchange):
 
     def fetchMyOpenOrders(self, market=None, params={}):
         m = self.market(market)
-        raise ExchangeError(self.id + ' fetchMyOpenOrders not implemented yet')
-        # orders = self.privatePostReturnOpenOrders(self.extend({
-        #     'currencyPair': m['id'],
-        #}))
-        return self.parseOrders(orders, market)
+        response = self.privatePostReturnOpenOrders(self.extend({
+            'currencyPair': m['id'],
+        }))
+        return self.parseOrders(response['result'], market)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.loadMarkets()
@@ -3156,7 +3155,7 @@ class bittrex (Exchange):
         self.loadMarkets()
         return self.marketGetCancel({'uuid': id})
 
-    def parseOrder(self, order):
+    def parseOrder(self, order, market=None):
         side = 'buy' if(order['Type'] == 'LIMIT_BUY') else 'sell'
         open = order['IsOpen']
         canceled = order['CancelInitiated']
@@ -3167,14 +3166,21 @@ class bittrex (Exchange):
             status = 'canceled'
         else:
             status = 'closed'
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        else:
+            exchange = order['Exchange']
+            if exchange in self.markets_by_id:
+                market = self.markets_by_id[exchange]
+                symbol = ['symbol']
         timestamp = self.parse8601(order['Opened'])
-        market = self.markets_by_id[order['Exchange']]
         result = {
             'info': order,
             'id': order['OrderUuid'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': 'limit',
             'side': side,
             'price': order['PricePerUnit'],
