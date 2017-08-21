@@ -3560,7 +3560,7 @@ var bitstamp = {
                 throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication');
             let nonce = this.nonce ().toString ();
             let auth = nonce + this.uid + this.apiKey;
-            let signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            let signature = this.encode (this.hmac (this.encode (auth), this.encode (this.secret)));
             query = this.extend ({
                 'key': this.apiKey,
                 'signature': signature.toUpperCase (),
@@ -11530,11 +11530,12 @@ var liqui = extend (btce, {
                 'nonce': nonce,
                 'method': path,
             }, query));
+            let signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
                 'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+                'Sign': this.decode (signature),
             };
         }
         let response = await this.fetch (url, method, headers, body);
