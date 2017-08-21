@@ -12116,7 +12116,7 @@ var okcoin = {
             order['price'] = price;
             order['amount'] = amount;
         } else {
-            if (order.type == 'buy') {
+            if (side == 'buy') {
                 order['price'] = params;
             } else {
                 order['amount'] = amount;
