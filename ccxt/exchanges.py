@@ -11068,11 +11068,15 @@ class okcoin (Exchange):
         order = {
             'symbol': self.market_id(market),
             'type': side,
-            'amount': amount,
         }
         if type == 'limit':
             order['price'] = price
+            order['amount'] = amount
         else:
+            if side == 'buy':
+                order['price'] = params
+            else:
+                order['amount'] = amount
             order['type'] += '_market'
         response = self.privatePostTrade(self.extend(order, params))
         return {
@@ -11580,11 +11584,14 @@ class poloniex (Exchange):
         }
 
     def fetchMyOpenOrders(self, market=None, params={}):
-        m = self.market(market)
+        m = None
+        if market:
+            m = self.market(market)
+        pair = m['id'] if m else 'all'
         orders = self.privatePostReturnOpenOrders(self.extend({
-            'currencyPair': m['id'],
+            'currencyPair': pair,
         }))
-        return self.parseOrders(orders, market)
+        return self.parseOrders(orders, m)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         if type == 'market':

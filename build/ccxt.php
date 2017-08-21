@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.63';
+$version = '1.4.64';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12564,12 +12564,18 @@ class okcoin extends Exchange {
         $order = array (
             'symbol' => $this->market_id ($market),
             'type' => $side,
-            'amount' => $amount,
         );
-        if ($type == 'limit')
+        if ($type == 'limit') {
             $order['price'] = $price;
-        else
+            $order['amount'] = $amount;
+        } else {
+            if ($side == 'buy') {
+                $order['price'] = $params;
+            } else {
+                $order['amount'] = $amount;
+            }
             $order['type'] .= '_market';
+        }
         $response = $this->privatePostTrade (array_merge ($order, $params));
         return array (
             'info' => $response,
@@ -13110,11 +13116,14 @@ class poloniex extends Exchange {
     }
 
     public function fetchMyOpenOrders ($market = null, $params = array ()) {
-        $m = $this->market ($market);
+        $m = null;
+        if ($market)
+            $m = $this->market ($market);
+        $pair = $m ? $m['id'] : 'all';
         $orders = $this->privatePostReturnOpenOrders (array_merge (array (
-            'currencyPair' => $m['id'],
+            'currencyPair' => $pair,
         )));
-        return $this->parseOrders ($orders, $market);
+        return $this->parseOrders ($orders, $m);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
