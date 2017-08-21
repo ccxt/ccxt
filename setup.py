@@ -1,6 +1,7 @@
-# Always prefer setuptools over distutils
+# prefer setuptools over distutils
 from setuptools import setup, find_packages
-# To use a consistent encoding
+
+# use a consistent encoding
 from codecs import open
 from os import path
 import json
@@ -8,11 +9,11 @@ import sys
 
 here = path.abspath(path.dirname(__file__))
 
-# Get the long description from the README file
+# long description from README file
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
-# Get the version number and all other params from package.json
+# version number and all other params from package.json
 with open(path.join(here, 'package.json'), encoding='utf-8') as f:
     package = json.load(f)
 
