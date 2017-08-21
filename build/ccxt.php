@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.58';
+$version = '1.4.59';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -13078,6 +13078,10 @@ class poloniex extends Exchange {
             'amount' => $order['amount'],
             'trades' => $this->parse_trades ($order['resultingTrades'], $market),
         );
+    }
+
+    public function fetchMyOpenOrders ($market = null, $params = array ()) {
+        throw new ExchangeError ($this->id . ' fetchMyOpenOrders not implemented yet')
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {

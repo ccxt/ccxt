@@ -11565,6 +11565,9 @@ class poloniex (Exchange):
             'trades': self.parse_trades(order['resultingTrades'], market),
         }
 
+    def fetchMyOpenOrders(self, market=None, params={}):
+        raise ExchangeError(self.id + ' fetchMyOpenOrders not implemented yet')
+
     def create_order(self, market, type, side, amount, price=None, params={}):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
