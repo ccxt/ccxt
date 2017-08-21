@@ -364,9 +364,8 @@ JavaScript
         console.log (okcoinusd.id, await okcoinusd.createLimitBuyOrder ('BTC/USD', 1, 2500.00))
         
         // pass/redefine custom exchange-specific order params: type, amount, price or whatever 
-        let params = { 'type': 'trailing-stop' } // use a custom order type here for example
-        console.log (bitfinex.id, await bitfinex.createOrder ('BTC/USD', 'limit', 'sell', 1, 10, params))
-
+        // use a custom order type
+        bitfinex.createLimitSellOrder ('BTC/USD', 1, 10, { 'type': 'trailing-stop' })
     }) ()
 
 Python
@@ -404,6 +403,9 @@ Python
     # limit buy BTC/EUR, you pay €2500 and receive 1 BTC when the order is closed
     print(exmo.id, exmo.create_limit_buy_order('BTC/EUR', 1, 2500.00))
 
+    # pass/redefine custom exchange-specific order params: type, amount, price, flags, etc...
+    kraken.create_market_buy_order('BTC/USD', 1, {'trading_agreement': 'agree'})
+
 PHP
 ~~~
 
@@ -437,6 +439,9 @@ PHP
 
     // buy BTC/JPY, you receive 1 BTC for ¥285000 when the order closes
     var_dump ($zaif->id, $zaif->create_limit_buy_order ('BTC/JPY', 1, 285000));
+
+    // add custom user id to your order
+    $hitbtc->create_order('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
 
 Contributing
 ------------
