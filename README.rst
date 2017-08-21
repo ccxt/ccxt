@@ -440,8 +440,8 @@ PHP
     // buy BTC/JPY, you receive 1 BTC for ¥285000 when the order closes
     var_dump ($zaif->id, $zaif->create_limit_buy_order ('BTC/JPY', 1, 285000));
 
-    // add custom user id to your order
-    $hitbtc->create_order('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
+    // set a custom user-defined id to your order
+    $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
 
 Contributing
 ------------
