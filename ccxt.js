@@ -8137,7 +8137,7 @@ var cryptopia = {
     async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
         let m = this.market (market);
-        let response = await this.publicGetMarketHistoryId (this.extend ({
+        let response = await this.publicGetMarketHistoryIdHours (this.extend ({
             'id': m['id'],
         }, params));
         let trades = response['Data'];
