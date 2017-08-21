@@ -583,6 +583,15 @@ class Exchange (object):
     def parseTrades(self, trades, market=None):
         return self.parse_trades(trades, market)
 
+    def parse_orders(self, orders, market=None):
+        result = []
+        for t in range(0, len(orders)):
+            result.append(self.parse_order(orders[t], market))
+        return result
+
+    def parseOrders(self, orders, market=None):
+        return self.parse_orders(orders, market)
+
     def market(self, market):
         isString = isinstance(market, basestring)
         if isString and self.markets and (market in self.markets):

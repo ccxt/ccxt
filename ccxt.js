@@ -568,6 +568,15 @@ const Exchange = function (config) {
         return result
     }
 
+    this.parse_orders =
+    this.parseOrders = function (order, market = undefined) {
+        let result = []
+        for (let t = 0; t < order.length; t++) {
+            result.push (this.parseOrder (order[t], market))
+        }
+        return result
+    }
+
     this.parse_ohlcv =
     this.parseOHLCV = function (ohlcv, market = undefined, timeframe = 60, since = undefined, limit = undefined) {
         return ohlcv
@@ -12613,7 +12622,11 @@ var poloniex = {
     },
 
     async fetchMyOpenOrders (market = undefined, params = {}) {
-        throw new ExchangeError (this.id + ' fetchMyOpenOrders not implemented yet')
+        let m = this.market (market);
+        let orders = await this.privatePostReturnTradeHistory (this.extend ({
+            'currencyPair': m['id'],
+        }));
+        return this.parseOrders (orders, market);
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {

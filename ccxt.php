@@ -749,6 +749,18 @@ class Exchange {
         return $this->parse_trades ($trades, $market);
     }
 
+    public function parse_orders ($orders, $market = null) {
+        $result = array ();
+        for ($t = 0; $t < count ($orders); $t++) {
+            $result[] = $this->parse_order ($orders[$t], $market);
+        }
+        return $result;
+    }
+
+    public function parseTrades ($orders, $market = null) {
+        return $this->parse_orders ($orders, $market);
+    }
+
     public function fetch_tickers () { // stub
         $exception = '\\ccxt\\ExchangeError';
         throw new $exception ($this->id . ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now');
