@@ -47,12 +47,23 @@ from ccxt.version import __version__
 
 #------------------------------------------------------------------------------
 
-from ccxt.errors import * # noqa: F403
+from ccxt.errors import DDoSProtection
+from ccxt.errors import CCXTError
+from ccxt.errors import ExchangeError
+from ccxt.errors import AuthenticationError
+from ccxt.errors import NetworkError
+from ccxt.errors import DDoSProtection
+from ccxt.errors import RequestTimeout
+from ccxt.errors import ExchangeNotAvailable
+
+#------------------------------------------------------------------------------
+
 from ccxt.exchange import Exchange as BaseExchange
 
 #------------------------------------------------------------------------------
 
 __all__ = [
+    'BaseExchange',
     'Exchange',
 ]
 
@@ -91,18 +102,18 @@ class Exchange (BaseExchange):
             error = None
             details = text if text else None
             if response.status == 429:
-                error = ccxt.DDoSProtection
+                error = DDoSProtection
             elif response.status in [404, 409, 500, 501, 502, 521, 522, 525]:
                 details = str(response.status) + ' ' + text
-                error = ccxt.ExchangeNotAvailable
+                error = ExchangeNotAvailable
             elif response.status in [400, 403, 405, 503]:
                 # special case to detect ddos protection
                 reason = text
                 ddos_protection = re.search('(cloudflare|incapsula)', reason, flags=re.IGNORECASE)
                 if ddos_protection:
-                    error = ccxt.DDoSProtection
+                    error = DDoSProtection
                 else:
-                    error = ccxt.ExchangeNotAvailable
+                    error = ExchangeNotAvailable
                     details = '(possible reasons: ' + ', '.join([
                         'invalid API keys',
                         'bad or old nonce',
@@ -113,9 +124,9 @@ class Exchange (BaseExchange):
                         reason,
                     ]) + ')'
             elif response.status in [408, 504]:
-                error = ccxt.RequestTimeout
+                error = RequestTimeout
             elif response.status in [401, 422, 511]:
-                error = ccxt.AuthenticationError
+                error = AuthenticationError
             if error:
                 self.raise_error(error, url, method, str(response.status), details)
         if self.verbose:
