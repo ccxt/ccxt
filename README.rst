@@ -18,7 +18,7 @@ CCXT – CryptoCurrency eXchange Trading Library
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
-The ccxt library is used to connect and trade with cryptocurrency / altcoin exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, webshop integration and related software engineering. It is intended to be used by coders, developers and financial analysts to build trading algorithms on top of it.
+The ccxt library is used to connect and trade with cryptocurrency / altcoin exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, webshop integration and related software engineering. It is intended to be used by coders, developers, technically-skilled traders and financial analysts to build trading algorithms on top of it.
 
 Current featurelist:
 
