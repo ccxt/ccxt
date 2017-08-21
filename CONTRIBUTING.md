@@ -16,7 +16,7 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
   - your language version, ccxt library version
   - which exchange it is and which method you're trying to call
   - a code snippet you're having difficulties with
-  - the output of that snippet in verbose mode
+  - paste the full stacktrace as is of that snippet in verbose mode
 
 ## How To Contribute Code
 
