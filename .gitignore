@@ -25,3 +25,5 @@ ccxt.wiki/
 package-lock.json
 exchanges.json
 ccxt.sublime-workspace
+.idea
+yarn.lock
