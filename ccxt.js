@@ -3808,11 +3808,10 @@ var bittrex = {
 
     async fetchMyOpenOrders (market = undefined, params = {}) {
         let m = this.market (market);
-        throw new ExchangeError (this.id + ' fetchMyOpenOrders not implemented yet')
-        // let orders = await this.privatePostReturnOpenOrders (this.extend ({
-        //     'currencyPair': m['id'],
-        // }));
-        return this.parseOrders (orders, market);
+        let response = await this.privatePostReturnOpenOrders (this.extend ({
+            'currencyPair': m['id'],
+        }));
+        return this.parseOrders (response['result'], market);
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
@@ -3837,7 +3836,7 @@ var bittrex = {
         return this.marketGetCancel ({ 'uuid': id });
     },
 
-    parseOrder (order) {
+    parseOrder (order, market = undefined) {
         let side = (order['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
         let open = order['IsOpen'];
         let canceled = order['CancelInitiated'];
@@ -3849,14 +3848,23 @@ var bittrex = {
         } else {
             status = 'closed';
         }
+        let symbol = undefined;
+        if (market) {
+            symbol = market['symbol'];
+        } else {
+            let exchange = order['Exchange'];
+            if (exchange in this.markets_by_id) {
+                market = this.markets_by_id[exchange];
+                symbol = ['symbol'];
+            }
+        }
         let timestamp = this.parse8601 (order['Opened']);
-        let market = this.markets_by_id[order['Exchange']];
         let result = {
             'info': order,
             'id': order['OrderUuid'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': 'limit',
             'side': side,
             'price': order['PricePerUnit'],

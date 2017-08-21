@@ -757,7 +757,7 @@ class Exchange {
         return $result;
     }
 
-    public function parseTrades ($orders, $market = null) {
+    public function parseOrders ($orders, $market = null) {
         return $this->parse_orders ($orders, $market);
     }
 
