@@ -66,7 +66,6 @@ class Exchange (BaseExchange):
         self.aiohttp_session = self.aiohttp_session or aiohttp.ClientSession(loop=self.asyncio_loop)
 
     def __del__(self):
-        print('Debug')
         if self.aiohttp_session:
             self.aiohttp_session.close()
 

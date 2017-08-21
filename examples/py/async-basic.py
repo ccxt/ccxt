@@ -17,8 +17,8 @@ import ccxt.async as ccxt  # noqa: E402
 
 async def test_gdax():
     gdax = ccxt.gdax()
-    print(await gdax.load_markets())
+    return await gdax.load_markets()
 
 #------------------------------------------------------------------------------
 
-asyncio.get_event_loop().run_until_complete(test_gdax())
+print(asyncio.get_event_loop().run_until_complete(test_gdax()))
