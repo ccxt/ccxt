@@ -2821,7 +2821,7 @@ class bitstamp (Exchange):
                 raise AuthenticationError(self.id + ' requires `' + self.id + '.uid` property for authentication')
             nonce = str(self.nonce())
             auth = nonce + self.uid + self.apiKey
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
+            signature = self.encode(self.hmac(self.encode(auth), self.encode(self.secret)))
             query = self.extend({
                 'key': self.apiKey,
                 'signature': signature.upper(),
@@ -10441,11 +10441,12 @@ class liqui (btce):
                 'nonce': nonce,
                 'method': path,
             }, query))
+            signature = self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len(body),
                 'Key': self.apiKey,
-                'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
+                'Sign': self.decode(signature),
             }
         response = await self.fetch(url, method, headers, body)
         if 'success' in response:
