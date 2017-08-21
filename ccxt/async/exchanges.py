@@ -8670,7 +8670,7 @@ class gdax (Exchange):
             signature = self.hmac(self.encode(what), secret, hashlib.sha256, 'base64')
             headers = {
                 'CB-ACCESS-KEY': self.apiKey,
-                'CB-ACCESS-SIGN': signature,
+                'CB-ACCESS-SIGN': self.decode(signature),
                 'CB-ACCESS-TIMESTAMP': nonce,
                 'CB-ACCESS-PASSPHRASE': self.password,
                 'Content-Type': 'application/json',

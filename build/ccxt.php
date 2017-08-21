@@ -10090,7 +10090,7 @@ class gdax extends Exchange {
             $signature = $this->hmac ($this->encode ($what), $secret, 'sha256', 'base64');
             $headers = array (
                 'CB-ACCESS-KEY' => $this->apiKey,
-                'CB-ACCESS-SIGN' => $signature,
+                'CB-ACCESS-SIGN' => $this->decode ($signature),
                 'CB-ACCESS-TIMESTAMP' => $nonce,
                 'CB-ACCESS-PASSPHRASE' => $this->password,
                 'Content-Type' => 'application/json',
