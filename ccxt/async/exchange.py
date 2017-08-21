@@ -88,7 +88,7 @@ class Exchange (BaseExchange):
             details = text if text else None
             if response.status == 429:
                 error = ccxt.DDoSProtection
-            elif response.status in [404, 409, 500, 501, 502, 521, 525]:
+            elif response.status in [404, 409, 500, 501, 502, 521, 522, 525]:
                 details = str(response.status) + ' ' + text
                 error = ccxt.ExchangeNotAvailable
             elif response.status in [400, 403, 405, 503]:
