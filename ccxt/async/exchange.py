@@ -65,6 +65,9 @@ class Exchange (BaseExchange):
         self.asyncio_loop = self.asyncio_loop or asyncio.get_event_loop()
         self.aiohttp_session = self.aiohttp_session or aiohttp.ClientSession(loop=self.asyncio_loop)
 
+    def __del__(self):
+        self.aiohttp_session.close()
+
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         headers = headers or {}
