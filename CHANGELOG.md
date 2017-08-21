@@ -1,5 +1,7 @@
 # Сhangelog
 
+- Fixed `asyncio Unclosed client session` warning in Python 3.5+ [139](https://github.com/kroitor/ccxt/issues/139)
+- Fixed `asyncio TypeError: must be str, not bytes` encoding-decoding issue in Python 3.5+ with GDAX, Bitfinex and Kraken [139](https://github.com/kroitor/ccxt/issues/139)
 - Python package now includes a bdist wheel (binary distribution for a faster install), [#136](https://github.com/kroitor/ccxt/issues/136)
 - Fixed market orders for OKCoin, [#138](https://github.com/kroitor/ccxt/issues/138)
 - Added fetchMyOpenOrders to Poloniex and Bittrex, [#102](https://github.com/kroitor/ccxt/issues/102)
