@@ -1,6 +1,6 @@
 # Сhangelog
 
-- Python package now includes the binary distribution (bdist) for a faster install [#136](https://github.com/kroitor/ccxt/issues/136)
+- Python package now includes a bdist wheel (binary distribution for a faster install) [#136](https://github.com/kroitor/ccxt/issues/136)
 - Fixed market orders for OKCoin [#138](https://github.com/kroitor/ccxt/issues/138)
 - Added fetchMyOpenOrders to Poloniex and Bittrex [#102](https://github.com/kroitor/ccxt/issues/102)
 - Fixed `exchange.version` property in Python [#126](https://github.com/kroitor/ccxt/issues/126)
