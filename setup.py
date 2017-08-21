@@ -67,7 +67,8 @@ setup(
             'flake8'
         ],
         'doc': [
-            'Sphinx'
+            'Sphinx',
+            'recommonmark'
         ]
-    },
+    }
 )
