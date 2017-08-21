@@ -12639,11 +12639,12 @@ var poloniex = {
     },
 
     async fetchMyOpenOrders (market = undefined, params = {}) {
-        let m = this.market (market);
+        let m = (market) ? this.market (market) : market;
+        let pair = m ? m['id'] : 'all';
         let orders = await this.privatePostReturnOpenOrders (this.extend ({
-            'currencyPair': m['id'],
+            'currencyPair': pair,
         }));
-        return this.parseOrders (orders, market);
+        return this.parseOrders (orders, m);
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
