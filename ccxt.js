@@ -32,7 +32,8 @@ SOFTWARE.
 // dependencies
 
 const CryptoJS = require ('crypto-js')
-    , qs       = require ('qs')
+    , qs       = require ('qs') // querystring
+    // , ws       = require ('ws') // websocket
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
@@ -277,6 +278,24 @@ const jwt = (request, secret, alg = 'HS256', hash = 'sha256') => {
 }
 
 //-----------------------------------------------------------------------------
+// const WebSocket = require('ws')
+// const ws = new WebSocket (this.urls['websocket'])
+// ws.on ('open', function open () {
+//     console.log ('connected')
+//     // ws.send (Date.now ())
+// })
+// ws.on ('close', function close () {
+//     console.log ('disconnected')
+// });
+// ws.on ('message', function incoming (data) {
+//     // console.log (`Roundtrip time: ${Date.now() - data} ms`);
+//     setTimeout (function timeout () {
+//         ws.send (Date.now ())
+//     }, 500)
+// })
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // the base class
 
 const Exchange = function (config) {
@@ -365,6 +384,23 @@ const Exchange = function (config) {
             })
         })
     },
+
+    // this.initializeStreamingAPI = function () {
+    //     this.ws = new WebSocket (this.urls['websocket'])
+    //     ws.on ('open', function open () {
+    //         console.log ('connected')
+    //         // ws.send (Date.now ())
+    //     })
+    //     ws.on ('close', function close () {
+    //         console.log ('disconnected')
+    //     })
+    //     ws.on ('message', function incoming (data) {
+    //         // console.log (`Roundtrip time: ${Date.now() - data} ms`);
+    //         setTimeout (function timeout () {
+    //             ws.send (Date.now ())
+    //         }, 500)
+    //     })
+    // },
 
     this.fetch = function (url, method = 'GET', headers = undefined, body = undefined) {
 
