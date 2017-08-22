@@ -11074,8 +11074,8 @@ var kraken = {
         if (type == 'limit')
             order['price'] = price;
         let response = await this.privatePostAddOrder (this.extend (order, params));
-        let length = response['txid'].length;
-        let id = (length > 1) ? response['txid'] : response['txid'][0];
+        let length = response['result']['txid'].length;
+        let id = (length > 1) ? response['result']['txid'] : response['result']['txid'][0];
         return {
             'info': response,
             'id': id,
