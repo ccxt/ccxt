@@ -3637,6 +3637,7 @@ var bittrex = {
     'countries': 'US',
     'version': 'v1.1',
     'rateLimit': 1500,
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
         'api': 'https://bittrex.com/api',
@@ -5578,6 +5579,7 @@ var bter = {
     'name': 'Bter',
     'countries': [ 'VG', 'CN' ], // British Virgin Islands, China
     'version': '2',
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
         'api': {
@@ -5817,6 +5819,7 @@ var bxinth = {
     'name': 'BX.in.th',
     'countries': 'TH', // Thailand
     'rateLimit': 1500,
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
         'api': 'https://bx.in.th/api',
@@ -6265,6 +6268,7 @@ var cex = {
     'name': 'CEX.IO',
     'countries': [ 'GB', 'EU', 'CY', 'RU' ],
     'rateLimit': 1500,
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
         'api': 'https://cex.io/api',
@@ -7064,6 +7068,7 @@ var coingi = {
     'name': 'Coingi',
     'rateLimit': 1000,
     'countries': [ 'PA', 'BG', 'CN', 'US' ], // Panama, Bulgaria, China, US
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
         'api': 'https://api.coingi.com',
@@ -7271,6 +7276,7 @@ var coinmarketcap = {
     'rateLimit': 10000,
     'version': 'v1',
     'countries': 'US',
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
         'api': 'https://api.coinmarketcap.com',
@@ -8055,6 +8061,7 @@ var cryptopia = {
     'name': 'Cryptopia',
     'rateLimit': 1500,
     'countries': 'NZ', // New Zealand
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
         'api': 'https://www.cryptopia.co.nz/api',
@@ -8519,6 +8526,7 @@ var exmo = {
     'countries': [ 'ES', 'RU' ], // Spain, Russia
     'rateLimit': 1000, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
     'version': 'v1',
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
         'api': 'https://api.exmo.com',
@@ -9142,6 +9150,7 @@ var gatecoin = {
     'rateLimit': 2000,
     'countries': 'HK', // Hong Kong
     'comment': 'a regulated/licensed exchange',
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28646817-508457f2-726c-11e7-9eeb-3528d2413a58.jpg',
         'api': 'https://api.gatecoin.com',
@@ -9952,6 +9961,7 @@ var hitbtc = {
     'countries': 'HK', // Hong Kong
     'rateLimit': 1500,
     'version': '1',
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
         'api': 'http://api.hitbtc.com',
@@ -10600,6 +10610,7 @@ var jubi = {
     'countries': 'CN',
     'rateLimit': 1500,
     'version': 'v1',
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg',
         'api': 'https://www.jubi.com/api',
@@ -10804,6 +10815,7 @@ var kraken = {
     'countries': 'US',
     'version': '0',
     'rateLimit': 1500,
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
         'api': 'https://api.kraken.com',
@@ -11318,6 +11330,7 @@ var livecoin = {
     'name': 'LiveCoin',
     'countries': [ 'US', 'UK', 'RU' ],
     'rateLimit': 1000,
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
         'api': 'https://api.livecoin.net',
@@ -11604,6 +11617,7 @@ var luno = {
     'countries': [ 'GB', 'SG', 'ZA' ],
     'rateLimit': 3000,
     'version': '1',
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
         'api': 'https://api.mybitx.com/api',
@@ -12444,6 +12458,7 @@ var poloniex = {
     'name': 'Poloniex',
     'countries': 'US',
     'rateLimit': 500, // 6 calls per second
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
         'api': {
@@ -12952,6 +12967,7 @@ var quoine = {
     'countries': [ 'JP', 'SG', 'VN' ],
     'version': '2',
     'rateLimit': 1000,
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766844-9615a4e8-5ee8-11e7-8814-fcd004db8cdd.jpg',
         'api': 'https://api.quoine.com',
@@ -13193,6 +13209,7 @@ var southxchange = {
     'name': 'SouthXchange',
     'countries': 'AR', // Argentina
     'rateLimit': 1000,
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
         'api': 'https://www.southxchange.com/api',
@@ -13431,6 +13448,7 @@ var therock = {
     'countries': 'MT',
     'rateLimit': 1000,
     'version': 'v1',
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
         'api': 'https://api.therocktrading.com',
@@ -14136,6 +14154,7 @@ var xbtce = {
     'countries': 'RU',
     'rateLimit': 2000, // responses are cached every 2 seconds
     'version': 'v1',
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
         'api': 'https://cryptottlivewebapi.xbtce.net:8443/api',
@@ -14632,6 +14651,7 @@ var yunbi = {
     'countries': 'CN',
     'rateLimit': 1000,
     'version': 'v2',
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg',
         'api': 'https://yunbi.com',

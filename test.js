@@ -172,23 +172,15 @@ let testExchangeSymbol = async (exchange, symbol) => {
         }
     }
 
-    try {
+    if (exchange.hasFetchTickers) {
 
         log (exchange.id.green, 'fetching all tickers at once...')
         let tickers = await exchange.fetchTickers ()
         log (exchange.id.green, 'fetched', Object.keys (tickers).length.toString ().green, 'tickers...')
 
-    } catch (e) {
+    } else {
 
-        if (e instanceof ccxt.ExchangeError) {
-            log (exchange.id.green, 'fetching all tickers at once not supported.')
-            // do nothing
-        } else if (e instanceof ccxt.NotSupported) {
-            log (exchange.id.green, 'fetching all tickers at once not supported.')
-            // do nothing
-        } else {
-            throw e // rethrow
-        }
+        log (exchange.id.green, 'fetching all tickers at once not supported.')
     }
 }
 
