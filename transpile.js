@@ -46,8 +46,8 @@ while (exchanges = regex.exec (contents)) {
 
     let pyParams = params
         .join ("\n        ")
-        .replace (/ true/g, 'True')
-        .replace (/ false/g, 'False')
+        .replace (/ true/g, ' True')
+        .replace (/ false/g, ' False')
         .replace (/ \/\//g, ' #')
         .replace (/\{ /g, '{')              // PEP8 E201
         .replace (/\[ /g, '[')              // PEP8 E201
