@@ -34,15 +34,16 @@ SOFTWARE.
 
 namespace ccxt;
 
-class CCXTError            extends \Exception {}
-class ExchangeError        extends CCXTError {}
-class AuthenticationError  extends CCXTError {}
-class NetworkError         extends CCXTError {}
-class DDoSProtection       extends NetworkError {}
-class RequestTimeout       extends NetworkError {}
-class ExchangeNotAvailable extends NetworkError {}
+class CCXTError            extends \Exception    {}
+class ExchangeError        extends CCXTError     {}
+class NotSupported         extends ExchangeError {}
+class AuthenticationError  extends CCXTError     {}
+class NetworkError         extends CCXTError     {}
+class DDoSProtection       extends NetworkError  {}
+class RequestTimeout       extends NetworkError  {}
+class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.4.84';
+$version = '1.4.85';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -425,6 +426,7 @@ class Exchange {
         $this->markets_by_id = null;
         $this->userAgent = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
+        $this->hasFetchTickers = false;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -762,7 +764,7 @@ class Exchange {
     }
 
     public function fetch_tickers () { // stub
-        $exception = '\\ccxt\\ExchangeError';
+        $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now');
     }
 
@@ -2723,6 +2725,7 @@ class bitlish extends Exchange {
             'countries' => array ( 'GB', 'EU', 'RU' ),
             'rateLimit' => 1500,
             'version' => 'v1',
+            'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
                 'api' => 'https://bitlish.com/api',
