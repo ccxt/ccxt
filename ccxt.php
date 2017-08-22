@@ -426,6 +426,7 @@ class Exchange {
         $this->markets_by_id = null;
         $this->userAgent = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
+        $this->hasFetchTickers = false;
 
         if ($options)
             foreach ($options as $key => $value)

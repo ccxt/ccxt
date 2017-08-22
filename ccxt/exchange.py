@@ -109,6 +109,7 @@ class Exchange (object):
     twofa = False
     marketsById = None
     markets_by_id = None
+    hasFetchTickers = False
     substituteCommonCurrencyCodes = True
 
     def __init__(self, config={}):

@@ -67,7 +67,7 @@ class ExchangeError extends CCXTError {
     }
 }
 
-class NotSupported extends CCXTError {
+class NotSupported extends ExchangeError {
     constructor (message) {
         super (message)
         this.constructor = NotSupported
@@ -694,6 +694,8 @@ const Exchange = function (config) {
 
     // prepended to URL, like https://proxy.com/https://exchange.com/api...
     this.proxy = ''
+
+    this.hasFetchTickers = false
 
     for (var property in config)
         this[property] = config[property]
@@ -2516,6 +2518,7 @@ var bitlish = {
     'countries': [ 'GB', 'EU', 'RU' ],
     'rateLimit': 1500,
     'version': 'v1',
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
         'api': 'https://bitlish.com/api',

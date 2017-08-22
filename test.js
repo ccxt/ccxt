@@ -164,6 +164,8 @@ let testExchangeSymbol = async (exchange, symbol) => {
     
             if (e instanceof ccxt.ExchangeError) {
                 warn (exchange.id, '[Exchange Error] ' + e.message)
+            } else if (e instanceof ccxt.NotSupported) {
+                warn (exchange.id, '[Not Supported] ' + e.message)
             } else {
                 throw e;
             }
@@ -179,6 +181,9 @@ let testExchangeSymbol = async (exchange, symbol) => {
     } catch (e) {
 
         if (e instanceof ccxt.ExchangeError) {
+            log (exchange.id.green, 'fetching all tickers at once not supported.')
+            // do nothing
+        } else if (e instanceof ccxt.NotSupported) {
             log (exchange.id.green, 'fetching all tickers at once not supported.')
             // do nothing
         } else {
