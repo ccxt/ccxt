@@ -2916,7 +2916,7 @@ class bitstamp (Exchange):
             body = self.urlencode(query)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len(body),
+                'Content-Length': str(len(body)),
             }
         response = self.fetch(url, method, headers, body)
         if 'status' in response:
@@ -10530,9 +10530,9 @@ class liqui (btce):
             signature = self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len(body),
+                'Content-Length': str(len(body)),
                 'Key': self.apiKey,
-                'Sign': self.decode(signature),
+                'Sign': signature,
             }
         response = self.fetch(url, method, headers, body)
         if 'success' in response:

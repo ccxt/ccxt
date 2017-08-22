@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.80';
+$version = '1.4.81';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3838,7 +3838,7 @@ class bitstamp extends Exchange {
             $body = $this->urlencode ($query);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'Content-Length' => strlen ($body),
+                'Content-Length' => (string) strlen ($body),
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
@@ -11982,9 +11982,9 @@ class liqui extends btce {
             $signature = $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512');
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'Content-Length' => strlen ($body),
+                'Content-Length' => (string) strlen ($body),
                 'Key' => $this->apiKey,
-                'Sign' => $this->decode ($signature),
+                'Sign' => $signature,
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
