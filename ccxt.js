@@ -5781,11 +5781,12 @@ var bter = {
             let nonce = this.nonce ();
             let request = { 'nonce': nonce };
             body = this.urlencode (this.extend (request, query));
+            let signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
             headers = {
                 'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+                'Sign': signature,
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
+                'Content-Length': body.length.toString (),
             };
         }
         let response = await this.fetch (url, method, headers, body);
