@@ -67,6 +67,15 @@ class ExchangeError extends CCXTError {
     }
 }
 
+class NotSupported extends CCXTError {
+    constructor (message) {
+        super (message)
+        this.constructor = NotSupported
+        this.__proto__   = NotSupported.prototype
+        this.message     = message
+    }
+}
+
 class AuthenticationError extends CCXTError {
     constructor (message) {
         super (message)
@@ -530,7 +539,7 @@ const Exchange = function (config) {
     }
 
     this.fetchTickers = function () {
-        throw new ExchangeError (this.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
+        throw new NotSupported (this.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
     }
 
     this.fetch_markets = function () {

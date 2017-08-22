@@ -49,6 +49,7 @@ from ccxt.version import __version__
 
 from ccxt.errors import CCXTError
 from ccxt.errors import ExchangeError
+from ccxt.errors import NotSupported
 from ccxt.errors import AuthenticationError
 from ccxt.errors import NetworkError
 from ccxt.errors import DDoSProtection
@@ -151,7 +152,7 @@ class Exchange (BaseExchange):
         return await self.fetch_markets()
 
     async def fetch_tickers(self):
-        raise ExchangeError(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
+        raise NotSupported(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
 
     async def fetchTickers(self):
         return await self.fetch_tickers()

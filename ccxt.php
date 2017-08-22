@@ -34,13 +34,14 @@ SOFTWARE.
 
 namespace ccxt;
 
-class CCXTError            extends \Exception {}
-class ExchangeError        extends CCXTError {}
-class AuthenticationError  extends CCXTError {}
-class NetworkError         extends CCXTError {}
-class DDoSProtection       extends NetworkError {}
-class RequestTimeout       extends NetworkError {}
-class ExchangeNotAvailable extends NetworkError {}
+class CCXTError            extends \Exception    {}
+class ExchangeError        extends CCXTError     {}
+class NotSupported         extends ExchangeError {}
+class AuthenticationError  extends CCXTError     {}
+class NetworkError         extends CCXTError     {}
+class DDoSProtection       extends NetworkError  {}
+class RequestTimeout       extends NetworkError  {}
+class ExchangeNotAvailable extends NetworkError  {}
 
 $version = '1.4.84';
 
@@ -762,7 +763,7 @@ class Exchange {
     }
 
     public function fetch_tickers () { // stub
-        $exception = '\\ccxt\\ExchangeError';
+        $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now');
     }
 
