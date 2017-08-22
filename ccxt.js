@@ -2266,7 +2266,7 @@ var bitfinex = {
             query = this.encode (query);
             let payload = this.stringToBase64 (query);
             let secret = this.encode (this.secret);
-            let signature = this.hmac (payload, secret, 'sha384')
+            let signature = this.hmac (payload, secret, 'sha384');
             headers = {
                 'X-BFX-APIKEY': this.apiKey,
                 'X-BFX-PAYLOAD': this.decode (payload),
