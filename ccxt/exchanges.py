@@ -10046,8 +10046,8 @@ class kraken (Exchange):
         if type == 'limit':
             order['price'] = price
         response = self.privatePostAddOrder(self.extend(order, params))
-        length = len(response['txid'])
-        id = response['txid'] if(length > 1) else response['txid'][0]
+        length = len(response['result']['txid'])
+        id = response['result']['txid'] if(length > 1) else response['result']['txid'][0]
         return {
             'info': response,
             'id': id,
