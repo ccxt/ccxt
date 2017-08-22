@@ -4981,11 +4981,12 @@ class bter (Exchange):
             nonce = self.nonce()
             request = {'nonce': nonce}
             body = self.urlencode(self.extend(request, query))
+            signature = self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512)
             headers = {
                 'Key': self.apiKey,
-                'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
+                'Sign': signature,
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len(body),
+                'Content-Length': str(len(body)),
             }
         response = self.fetch(url, method, headers, body)
         if 'result' in response:
