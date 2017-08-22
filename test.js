@@ -389,6 +389,8 @@ let tryAllProxies = async function (exchange, proxies) {
                 warn (exchange.id, '[Authentication Error] ' + e.message)
             } else if (e instanceof ccxt.ExchangeNotAvailable) {
                 warn (exchange.id, '[Exchange Not Available] ' + e.message)
+            } else if (e instanceof ccxt.NotSupported) {
+                warn (exchange.id, '[Not Supported] ' + e.message)
             } else if (e instanceof ccxt.ExchangeError) {
                 warn (exchange.id, '[Exchange Error] ' + e.message)
             } else {
