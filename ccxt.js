@@ -3605,7 +3605,7 @@ var bitstamp = {
             body = this.urlencode (query);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
+                'Content-Length': body.length.toString (),
             };
         }
         let response = await this.fetch (url, method, headers, body);
@@ -11569,9 +11569,9 @@ var liqui = extend (btce, {
             let signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
+                'Content-Length': body.length.toString (),
                 'Key': this.apiKey,
-                'Sign': this.decode (signature),
+                'Sign': signature,
             };
         }
         let response = await this.fetch (url, method, headers, body);
