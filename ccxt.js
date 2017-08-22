@@ -15173,6 +15173,7 @@ const ccxt = Object.assign (defineAllExchanges (exchanges), {
 
     CCXTError,
     ExchangeError,
+    NotSupported,
     AuthenticationError,
     NetworkError,
     DDoSProtection,
