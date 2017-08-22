@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.81';
+$version = '1.4.82';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -6063,11 +6063,12 @@ class bter extends Exchange {
             $nonce = $this->nonce ();
             $request = array ( 'nonce' => $nonce );
             $body = $this->urlencode (array_merge ($request, $query));
+            $signature = $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512');
             $headers = array (
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
+                'Sign' => $signature,
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'Content-Length' => strlen ($body),
+                'Content-Length' => (string) strlen ($body),
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
