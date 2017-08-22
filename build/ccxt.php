@@ -42,7 +42,7 @@ class DDoSProtection       extends NetworkError {}
 class RequestTimeout       extends NetworkError {}
 class ExchangeNotAvailable extends NetworkError {}
 
-$version = '1.4.82';
+$version = '1.4.83';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2476,7 +2476,7 @@ class bitfinex extends Exchange {
             $query = $this->encode ($query);
             $payload = base64_encode ($query);
             $secret = $this->encode ($this->secret);
-            $signature = $this->hmac ($payload, $secret, 'sha384')
+            $signature = $this->hmac ($payload, $secret, 'sha384');
             $headers = array (
                 'X-BFX-APIKEY' => $this->apiKey,
                 'X-BFX-PAYLOAD' => $this->decode ($payload),
