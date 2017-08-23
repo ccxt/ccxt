@@ -37,13 +37,14 @@ namespace ccxt;
 class CCXTError            extends \Exception    {}
 class ExchangeError        extends CCXTError     {}
 class NotSupported         extends ExchangeError {}
-class AuthenticationError  extends CCXTError     {}
+class AuthenticationError  extends ExchangeError {}
+class InsufficientFunds    extends ExchangeError {}
 class NetworkError         extends CCXTError     {}
 class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.4.89';
+$version = '1.4.90';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
