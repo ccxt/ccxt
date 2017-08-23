@@ -3433,6 +3433,7 @@ var bitstamp = {
                 'liquidation_address/new/',
                 'open_orders/all/',
                 'open_orders/{id}/',
+                'order_status/',
                 'sell/{id}/',
                 'sell/market/{id}/',
                 'transfer-from-main/',
