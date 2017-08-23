@@ -139,6 +139,7 @@ class Exchange {
         '_1broker',
         '_1btcxe',
         'anxpro',
+        'binance',
         'bit2c',
         'bitbay',
         'bitbays',
@@ -1507,6 +1508,455 @@ class anxpro extends Exchange {
             if ($response['result'] == 'success')
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+    }
+}
+
+//------------------------------------------------------------------------------
+
+class binance extends Exchange {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge(array (
+            'id' => 'binance',
+            'name' => 'Binance',
+            'countries' => 'CN', // China
+            'rateLimit' => 1000, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
+            'version' => 'v1',
+            'hasFetchTickers' => true,
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
+                'api' => 'https://www.binance.com/api',
+                'www' => 'https://www.binance.com',
+                'doc' => 'https://www.binance.com/restapipub.html',
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'ping',
+                        'time',
+                        'depth',
+                        'aggTrades',
+                        'klines',
+                        'ticker/24hr',
+                    ),
+                ),
+                'private' => array (
+                    'get' => array (
+                        'order',
+                        'openOrders',
+                        'allOrders',
+                        'account',
+                        'myTrades',
+                    ),
+                    'post' => array (
+                        'order',
+                        'order/test',
+                        'userDataStream',
+                    ),
+                    'put' => array (
+                        'userDataStream'
+                    ),
+                    'delete' => array (
+                        'order',
+                        'userDataStream',
+                    ),
+                ),
+            ),
+            'markets' => array (
+                'BNB/BTC' => array ( 'id' => 'BNBBTC', 'symbol' => 'BNB/BTC', 'base' => 'BNB', 'quote' => 'BTC' ),
+                'NEO/BTC' => array ( 'id' => 'NEOBTC', 'symbol' => 'NEO/BTC', 'base' => 'NEO', 'quote' => 'BTC' ),
+                'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC' ),
+                'HSR/BTC' => array ( 'id' => 'HSRBTC', 'symbol' => 'HSR/BTC', 'base' => 'HSR', 'quote' => 'BTC' ),
+                'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                'GAS/BTC' => array ( 'id' => 'GASBTC', 'symbol' => 'GAS/BTC', 'base' => 'GAS', 'quote' => 'BTC' ),
+                'HCC/BTC' => array ( 'id' => 'HCCBTC', 'symbol' => 'HCC/BTC', 'base' => 'HCC', 'quote' => 'BTC' ),
+                'BCC/BTC' => array ( 'id' => 'BCCBTC', 'symbol' => 'BCC/BTC', 'base' => 'BCC', 'quote' => 'BTC' ),
+                'BNB/ETH' => array ( 'id' => 'BNBETH', 'symbol' => 'BNB/ETH', 'base' => 'BNB', 'quote' => 'ETH' ),
+                'DNT/ETH' => array ( 'id' => 'DNTETH', 'symbol' => 'DNT/ETH', 'base' => 'DNT', 'quote' => 'ETH' ),
+                'OAX/ETH' => array ( 'id' => 'OAXETH', 'symbol' => 'OAX/ETH', 'base' => 'OAX', 'quote' => 'ETH' ),
+                'QTUM/ETH' => array ( 'id' => 'QTUMETH', 'symbol' => 'QTUM/ETH', 'base' => 'QTUM', 'quote' => 'ETH' ),
+                'MCO/ETH' => array ( 'id' => 'MCOETH', 'symbol' => 'MCO/ETH', 'base' => 'MCO', 'quote' => 'ETH' ),
+                'BTM/ETH' => array ( 'id' => 'BTMETH', 'symbol' => 'BTM/ETH', 'base' => 'BTM', 'quote' => 'ETH' ),
+                'SNT/ETH' => array ( 'id' => 'SNTETH', 'symbol' => 'SNT/ETH', 'base' => 'SNT', 'quote' => 'ETH' ),
+                'EOS/ETH' => array ( 'id' => 'EOSETH', 'symbol' => 'EOS/ETH', 'base' => 'EOS', 'quote' => 'ETH' ),
+                'BNT/ETH' => array ( 'id' => 'BNTETH', 'symbol' => 'BNT/ETH', 'base' => 'BNT', 'quote' => 'ETH' ),
+                'ICN/ETH' => array ( 'id' => 'ICNETH', 'symbol' => 'ICN/ETH', 'base' => 'ICN', 'quote' => 'ETH' ),
+                'BTC/USDT' => array ( 'id' => 'BTCUSDT', 'symbol' => 'BTC/USDT', 'base' => 'BTC', 'quote' => 'USDT' ),
+                'ETH/USDT' => array ( 'id' => 'ETHUSDT', 'symbol' => 'ETH/USDT', 'base' => 'ETH', 'quote' => 'USDT' ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_balance () {
+        // Get current $account information.
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // recvWindow  LONG    NO  
+        // timestamp   LONG    YES 
+        // Response:
+        // {
+        //   "makerCommission" => 15,
+        //   "takerCommission" => 15,
+        //   "buyerCommission" => 0,
+        //   "sellerCommission" => 0,
+        //   "canTrade" => true,
+        //   "canWithdraw" => true,
+        //   "canDeposit" => true,
+        //   "balances" => array (        //     array (
+        //       "asset" => "BTC",
+        //       "free" => "4723846.89208129",
+        //       "locked" => "0.00000000"
+        //     ),
+        //     {
+        //       "asset" => "LTC",
+        //       "free" => "4763368.68006011",
+        //       "locked" => "0.00000000"
+        //     }
+        //  )
+        // }
+        $this->loadMarkets ();
+        $response = $this->privatePostUserInfo ();
+        $result = array ( 'info' => $response );
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $account = array (
+                'free' => null,
+                'used' => null,
+                'total' => null,
+            );
+            if (array_key_exists ($currency, $response['balances']))
+                $account['free'] = floatval ($response['balances'][$currency]);
+            if (array_key_exists ($currency, $response['reserved']))
+                $account['used'] = floatval ($response['reserved'][$currency]);
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
+    }
+
+    public function fetch_order_book ($market, $params = array ()) {
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // symbol  STRING  YES 
+        // limit   INT NO  Default 100; max 100.
+        // Response:
+        // {
+        //   "lastUpdateId" => 1027024,
+        //   "bids" => array (        //     [
+        //       "4.00000000",     // PRICE
+        //       "431.00000000",   // QTY
+        //       array ()                // Can be ignored
+        //    )
+        //   ],
+        //   "asks" => array (        //     [
+        //       "4.00000200",
+        //       "12.00000000",
+        //       array ()
+        //    )
+        //   ]
+        // }
+        $this->loadMarkets ();
+        $p = $this->market ($market);
+        $response = $this->publicGetOrderBook (array_merge (array (
+            'pair' => $p['id'],
+        ), $params));
+        $orderbook = $response[$p['id']];
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => array (),
+            'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        $sides = array ( 'bids' => 'bid', 'asks' => 'ask' );
+        $keys = array_keys ($sides);
+        for ($k = 0; $k < count ($keys); $k++) {
+            $key = $keys[$k];
+            $side = $sides[$key];
+            $orders = $orderbook[$side];
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $price = floatval ($order[0]);
+                $amount = floatval ($order[1]);
+                $result[$key][] = array ($price, $amount);
+            }
+        }
+        return $result;
+    }
+
+    public function parse_ticker ($ticker, $market) {
+        $timestamp = $ticker['openTime'];
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['highPrice']),
+            'low' => floatval ($ticker['lowPrice']),
+            'bid' => floatval ($ticker['bidPrice']),
+            'ask' => floatval ($ticker['askPrice']),
+            'vwap' => floatval ($ticker['weightedAvgPrice']),
+            'open' => floatval ($ticker['openPrice']),
+            'close' => floatval ($ticker['prevClosePrice']),
+            'first' => null,
+            'last' => floatval ($ticker['lastPrice']),
+            'change' => floatval ($ticker['priceChangePercent']),
+            'percentage' => null,
+            'average' => floatval ($ticker['avg']),
+            'baseVolume' => floatval ($ticker['vol']),
+            'quoteVolume' => floatval ($ticker['volume']),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_ticker ($market) {
+        $this->loadMarkets ();
+        $response = $this->publicGetTicker24h ();
+        $p = $this->market ($market);
+        var_dump ($response);
+        exit ();
+        return $this->parse_ticker ($response[$p['id']], $p);
+    }
+
+    public function fetch_ohlcv ($market, $timeframe = 60, $since = null, $limit = null) {
+        // Kline/candlestick bars for a symbol. Klines are uniquely identified by their open time.
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // symbol  STRING  YES 
+        // interval    ENUM    YES 
+        // $limit   INT NO  Default 500; max 500.
+        // startTime   LONG    NO  
+        // endTime LONG    NO  
+        // If startTime and endTime are not sent, the most recent klines are returned.
+        // Response:
+        // array (        //   [
+        //     1499040000000,      // Open time
+        //     "0.01634790",       // Open
+        //     "0.80000000",       // High
+        //     "0.01575800",       // Low
+        //     "0.01577100",       // Close
+        //     "148976.11427815",  // Volume
+        //     1499644799999,      // Close time
+        //     "2434.19055334",    // Quote asset volume
+        //     308,                // Number of trades
+        //     "1756.87402397",    // Taker buy base asset volume
+        //     "28.46694368",      // Taker buy quote asset volume
+        //     "17928899.62484339" // Can be ignored
+        //  )
+        // ]
+    }
+
+    public function parse_trade ($trade, $market = null) {
+
+        // Get compressed, aggregate trades. Trades that fill at the time, from the same order, with the same price will have the quantity aggregated.
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // symbol  STRING  YES 
+        // fromId  LONG    NO  ID to get aggregate trades from INCLUSIVE.
+        // startTime   LONG    NO  Timestamp in ms to get aggregate trades from INCLUSIVE.
+        // endTime LONG    NO  Timestamp in ms to get aggregate trades until INCLUSIVE.
+        // limit   INT NO  Default 500; max 500.
+        // If both startTime and endTime are sent, limit should not be sent AND the distance between startTime and endTime must be less than 24 hours.
+        // If frondId, startTime, and endTime are not sent, the most recent aggregate trades will be returned.
+        // Response:
+        // array (        //   {
+        //     "a" => 26129,         // Aggregate tradeId
+        //     "p" => "0.01633102",  // Price
+        //     "q" => "4.70443515",  // Quantity
+        //     "f" => 27781,         // First tradeId
+        //     "l" => 27781,         // Last tradeId
+        //     "T" => 1498793709153, // Timestamp
+        //     "m" => true,          // Was the buyer the maker?
+        //     "M" => true           // Was the $trade the best price match?
+        //   }
+        //)
+
+
+        // Get trades for a specific account and symbol.
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // symbol  STRING  YES 
+        // limit   INT NO  Default 500; max 500.
+        // fromId  LONG    NO  TradeId to fetch from. Default gets most recent trades.
+        // recvWindow  LONG    NO  
+        // timestamp   LONG    YES 
+        // Response:
+        // array (        //   {
+        //     "id" => 28457,
+        //     "price" => "4.00000100",
+        //     "qty" => "12.00000000",
+        //     "commission" => "10.10000000",
+        //     "commissionAsset" => "BNB",
+        //     "time" => 1499865549590,
+        //     "isBuyer" => true,
+        //     "isMaker" => false,
+        //     "isBestMatch" => true
+        //   }
+        //)
+        throw new NotImplemented ($this->id . ' parseTrade is not implemented yet');
+    }
+
+    public function fetch_trades ($market, $params = array ()) {
+        $this->loadMarkets ();
+        return $this->publicGetTrades (array_merge (array (
+            'pair' => $this->market_id ($market),
+        ), $params));
+    }
+
+    public function parseOrder ($order, $market = null) {
+        // Get all account orders; active, canceled, or filled.
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // symbol  STRING  YES 
+        // orderId LONG    NO  
+        // limit   INT NO  Default 500; max 500.
+        // recvWindow  LONG    NO  
+        // timestamp   LONG    YES 
+        // If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
+        // Response:
+        // array (        //   {
+        //     "symbol" => "LTCBTC",
+        //     "orderId" => 1,
+        //     "clientOrderId" => "myOrder1",
+        //     "price" => "0.1",
+        //     "origQty" => "1.0",
+        //     "executedQty" => "0.0",
+        //     "status" => "NEW",
+        //     "timeInForce" => "GTC",
+        //     "type" => "LIMIT",
+        //     "side" => "BUY",
+        //     "stopPrice" => "0.0",
+        //     "icebergQty" => "0.0",
+        //     "time" => 1499827319559
+        //   }
+        //)
+        throw new NotImplemented ($this->id . ' parseOrder is not implemented yet');
+    }
+
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+        // Send in a new $order
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // symbol  STRING  YES 
+        // $side    ENUM    YES 
+        // $type    ENUM    YES 
+        // timeInForce ENUM    YES 
+        // quantity    DECIMAL YES 
+        // $price   DECIMAL YES 
+        // newClientOrderId    STRING  NO  A unique id for the $order. Automatically generated if not sent.
+        // stopPrice   DECIMAL NO  Used with stop orders
+        // icebergQty  DECIMAL NO  Used with iceberg orders
+        // timestamp   LONG    YES 
+        // Response:
+        // {
+        //   "symbol":"LTCBTC",
+        //   "orderId" => 1,
+        //   "clientOrderId" => "myOrder1" // Will be newClientOrderId
+        //   "transactTime" => 1499827319559
+        // }
+        $this->loadMarkets ();
+        $prefix = '';
+        if ($type == 'market')
+            $prefix = 'market_';
+        $order = array (
+            'pair' => $this->market_id ($market),
+            'quantity' => $amount,
+            'price' => $price || 0,
+            'type' => $prefix . $side,
+        );
+        $response = $this->privatePostOrderCreate (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response['order_id'],
+        );
+    }
+
+    public function fetch_order ($id) {
+        // Check an order's status.
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // symbol  STRING  YES 
+        // orderId LONG    NO  
+        // origClientOrderId   STRING  NO  
+        // recvWindow  LONG    NO  
+        // timestamp   LONG    YES 
+        // Either orderId or origClientOrderId must be sent.
+        // Response:
+        // {
+        //   "symbol" => "LTCBTC",
+        //   "orderId" => 1,
+        //   "clientOrderId" => "myOrder1",
+        //   "price" => "0.1",
+        //   "origQty" => "1.0",
+        //   "executedQty" => "0.0",
+        //   "status" => "NEW",
+        //   "timeInForce" => "GTC",
+        //   "type" => "LIMIT",
+        //   "side" => "BUY",
+        //   "stopPrice" => "0.0",
+        //   "icebergQty" => "0.0",
+        //   "time" => 1499827319559
+        // }
+    }
+
+    public function fetch_orders () {
+
+    }
+
+    public function fetchMyOpenOrders () {
+        // Get all open orders on a symbol.
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // symbol  STRING  YES 
+        // recvWindow  LONG    NO  
+        // timestamp   LONG    YES 
+    }
+
+    public function cancel_order ($id) {
+        // Cancel an active order.
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // symbol  STRING  YES 
+        // orderId LONG    NO  
+        // origClientOrderId   STRING  NO  
+        // newClientOrderId    STRING  NO  Used to uniquely identify this cancel. Automatically generated by default.
+        // recvWindow  LONG    NO  
+        // timestamp   LONG    YES 
+        // Response:
+        // {
+        //   "symbol" => "LTCBTC",
+        //   "origClientOrderId" => "myOrder1",
+        //   "orderId" => 1,
+        //   "clientOrderId" => "cancelMyOrder1"
+        // }
+        $this->loadMarkets ();
+        return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
+        if ($api == 'public') {
+            if ($params)
+                $url .= '?' . $this->urlencode ($params);
+        } else {
+            $nonce = $this->nonce ();
+            $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $params));
+            $headers = array (
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Length' => strlen ($body),
+                'Key' => $this->apiKey,
+                'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
+            );
+        }
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('result', $response)) {
+            if ($response['result'])
+                return $response;
+            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        }
+        // {
+        //   "code" => -1121,
+        //   "msg" => "Invalid symbol."
+        // }
+        return $response;
     }
 }
 
@@ -8865,7 +9315,6 @@ class exmo extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
                 'api' => 'https://api.exmo.com',
                 'www' => 'https://exmo.me',
-                'markets' => 'https://exmo.me/en/trade#?pair=BTC_USD',
                 'doc' => array (
                     'https://exmo.me/ru/api_doc',
                     'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',

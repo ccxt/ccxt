@@ -1409,26 +1409,6 @@ var binance = {
         'ETH/USDT': { 'id': 'ETHUSDT', 'symbol': 'ETH/USDT', 'base': 'ETH', 'quote': 'USDT' },
     },
 
-    // async fetchMarkets () {
-    //     let markets = await this.publicGetPairSettings ();
-    //     let keys = Object.keys (markets);
-    //     let result = [];
-    //     for (let p = 0; p < keys.length; p++) {
-    //         let id = keys[p];
-    //         let market = markets[id];
-    //         let symbol = id.replace ('_', '/');
-    //         let [ base, quote ] = symbol.split ('/');
-    //         result.push ({
-    //             'id': id,
-    //             'symbol': symbol,
-    //             'base': base,
-    //             'quote': quote,
-    //             'info': market,
-    //         });
-    //     }
-    //     return result;
-    // },
-
     async fetchBalance () {
         // Get current account information.
         // Parameters:
@@ -1457,7 +1437,6 @@ var binance = {
         //     }
         //   ]
         // }
-        await this.loadMarkets ();
         let response = await this.privatePostUserInfo ();
         let result = { 'info': response };
         for (let c = 0; c < this.currencies.length; c++) {
@@ -1478,34 +1457,11 @@ var binance = {
     },
 
     async fetchOrderBook (market, params = {}) {
-        // Parameters:
-        // Name    Type    Mandatory   Description
-        // symbol  STRING  YES 
-        // limit   INT NO  Default 100; max 100.
-        // Response:
-        // {
-        //   "lastUpdateId": 1027024,
-        //   "bids": [
-        //     [
-        //       "4.00000000",     // PRICE
-        //       "431.00000000",   // QTY
-        //       []                // Can be ignored
-        //     ]
-        //   ],
-        //   "asks": [
-        //     [
-        //       "4.00000200",
-        //       "12.00000000",
-        //       []
-        //     ]
-        //   ]
-        // }
-        await this.loadMarkets ();
-        let p = this.market (market);
-        let response = await this.publicGetOrderBook (this.extend ({
-            'pair': p['id'],
+        let m = this.market (market);
+        let orderbook = await this.publicGetDepth (this.extend ({
+            'symbol': m['id'],
+            // 'limit': 100, // default = maximum = 100
         }, params));
-        let orderbook = response[p['id']];
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -1513,24 +1469,22 @@ var binance = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        let sides = { 'bids': 'bid', 'asks': 'ask' };
-        let keys = Object.keys (sides);
-        for (let k = 0; k < keys.length; k++) {
-            let key = keys[k];
-            let side = sides[key];
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
             let orders = orderbook[side];
             for (let i = 0; i < orders.length; i++) {
                 let order = orders[i];
                 let price = parseFloat (order[0]);
                 let amount = parseFloat (order[1]);
-                result[key].push ([ price, amount ]);
+                result[side].push ([ price, amount ]);
             }
         }
         return result;
     },
 
     parseTicker (ticker, market) {
-        let timestamp = ticker['openTime'];
+        let timestamp = ticker['closeTime'];
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1553,12 +1507,11 @@ var binance = {
     },
 
     async fetchTicker (market) {
-        await this.loadMarkets ();
-        let response = await this.publicGetTicker24h ();
-        let p = this.market (market);
-        console.log (response);
-        process.exit ();
-        return this.parseTicker (response[p['id']], p);
+        let m = this.market (market);
+        let response = await this.publicGetTicker24hr ({
+            'symbol': m['id'],
+        });
+        return this.parseTicker (response, m);
     },
 
     async fetchOHLCV (market, timeframe = 60, since = undefined, limit = undefined) {
@@ -1588,6 +1541,7 @@ var binance = {
         //     "17928899.62484339" // Can be ignored
         //   ]
         // ]
+        throw new NotImplemented (this.id + ' fetchOHLCV is not implemented yet');
     },
 
     parseTrade (trade, market = undefined) {
@@ -1643,10 +1597,11 @@ var binance = {
     },
 
     async fetchTrades (market, params = {}) {
-        await this.loadMarkets ();
-        return this.publicGetTrades (this.extend ({
-            'pair': this.marketId (market),
+        let m = this.market (market);
+        let response = await this.publicGetTrades (this.extend ({
+            'pair': m['id'],
         }, params));
+        return this.parseTrades (response, m);
     },
 
     parseOrder (order, market = undefined) {
@@ -1701,7 +1656,6 @@ var binance = {
         //   "clientOrderId": "myOrder1" // Will be newClientOrderId
         //   "transactTime": 1499827319559
         // }
-        await this.loadMarkets ();
         let prefix = '';
         if (type == 'market')
             prefix = 'market_';
@@ -1776,7 +1730,6 @@ var binance = {
         //   "orderId": 1,
         //   "clientOrderId": "cancelMyOrder1"
         // }
-        await this.loadMarkets ();
         return this.privatePostOrderCancel ({ 'order_id': id });
     },
 
