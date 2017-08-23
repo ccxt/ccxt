@@ -43,7 +43,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.4.86';
+$version = '1.4.87';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -11465,8 +11465,8 @@ class kraken extends Exchange {
         if ($type == 'limit')
             $order['price'] = $price;
         $response = $this->privatePostAddOrder (array_merge ($order, $params));
-        $length = count ($response['txid']);
-        $id = ($length > 1) ? $response['txid'] : $response['txid'][0];
+        $length = count ($response['result']['txid']);
+        $id = ($length > 1) ? $response['result']['txid'] : $response['result']['txid'][0];
         return array (
             'info' => $response,
             'id' => $id,
