@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.4.90';
+$version = '1.4.91';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -13219,8 +13219,12 @@ class poloniex extends Exchange {
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
-        if (array_key_exists ('error', $response))
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        if (array_key_exists ('error', $response)) {
+            $error = $this->id . ' ' . $this->json ($response);
+            if mb_strpos (($response['error'], 'Not enough') !== false)
+                throw new InsufficientFunds ($error);
+            throw new ExchangeError ($error);
+        }
         return $response;
     }
 }
