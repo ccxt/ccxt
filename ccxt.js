@@ -1344,7 +1344,7 @@ var binance = {
     'id': 'binance',
     'name': 'Binance',
     'countries': 'CN', // China
-    'rateLimit': 1000, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
+    'rateLimit': 1000,
     'version': 'v1',
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
@@ -1397,7 +1397,6 @@ var binance = {
         'BNB/ETH': { 'id': 'BNBETH', 'symbol': 'BNB/ETH', 'base': 'BNB', 'quote': 'ETH' },
         'DNT/ETH': { 'id': 'DNTETH', 'symbol': 'DNT/ETH', 'base': 'DNT', 'quote': 'ETH' },
         'OAX/ETH': { 'id': 'OAXETH', 'symbol': 'OAX/ETH', 'base': 'OAX', 'quote': 'ETH' },
-        'QTUM/ETH': { 'id': 'QTUMETH', 'symbol': 'QTUM/ETH', 'base': 'QTUM', 'quote': 'ETH' },
         'MCO/ETH': { 'id': 'MCOETH', 'symbol': 'MCO/ETH', 'base': 'MCO', 'quote': 'ETH' },
         'BTM/ETH': { 'id': 'BTMETH', 'symbol': 'BTM/ETH', 'base': 'BTM', 'quote': 'ETH' },
         'SNT/ETH': { 'id': 'SNTETH', 'symbol': 'SNT/ETH', 'base': 'SNT', 'quote': 'ETH' },
@@ -1406,6 +1405,7 @@ var binance = {
         'ICN/ETH': { 'id': 'ICNETH', 'symbol': 'ICN/ETH', 'base': 'ICN', 'quote': 'ETH' },
         'BTC/USDT': { 'id': 'BTCUSDT', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT' },
         'ETH/USDT': { 'id': 'ETHUSDT', 'symbol': 'ETH/USDT', 'base': 'ETH', 'quote': 'USDT' },
+        'QTUM/ETH': { 'id': 'QTUMETH', 'symbol': 'QTUM/ETH', 'base': 'QTUM', 'quote': 'ETH' },
     },
 
     async fetchBalance () {
@@ -1436,7 +1436,7 @@ var binance = {
         //     }
         //   ]
         // }
-        let response = await this.privatePostUserInfo ();
+        let response = await this.privateGetAccount ();
         let result = { 'info': response };
         let balances = response['balances'];
         for (let i = 0; i < balances.length; i++) {
@@ -1575,51 +1575,6 @@ var binance = {
             'amount': amount,
         };
     },
-
-    // parseTrade (trade, market = undefined) {
-    //     // Get compressed, aggregate trades. Trades that fill at the time, from the same order, with the same price will have the quantity aggregated.
-    //     // Parameters:
-    //     // Name    Type    Mandatory   Description
-    //     // symbol  STRING  YES 
-    //     // If both startTime and endTime are sent, limit should not be sent AND the distance between startTime and endTime must be less than 24 hours.
-    //     // If frondId, startTime, and endTime are not sent, the most recent aggregate trades will be returned.
-    //     // Response:
-    //     // [
-    //     //   {
-    //     //     "a": 26129,         // Aggregate tradeId
-    //     //     "p": "0.01633102",  // Price
-    //     //     "q": "4.70443515",  // Quantity
-    //     //     "f": 27781,         // First tradeId
-    //     //     "l": 27781,         // Last tradeId
-    //     //     "T": 1498793709153, // Timestamp
-    //     //     "m": true,          // Was the buyer the maker?
-    //     //     "M": true           // Was the trade the best price match?
-    //     //   }
-    //     // ]
-    //     // Get trades for a specific account and symbol.
-    //     // Parameters:
-    //     // Name    Type    Mandatory   Description
-    //     // symbol  STRING  YES 
-    //     // limit   INT NO  Default 500; max 500.
-    //     // fromId  LONG    NO  TradeId to fetch from. Default gets most recent trades.
-    //     // recvWindow  LONG    NO  
-    //     // timestamp   LONG    YES 
-    //     // Response:
-    //     // [
-    //     //   {
-    //     //     "id": 28457,
-    //     //     "price": "4.00000100",
-    //     //     "qty": "12.00000000",
-    //     //     "commission": "10.10000000",
-    //     //     "commissionAsset": "BNB",
-    //     //     "time": 1499865549590,
-    //     //     "isBuyer": true,
-    //     //     "isMaker": false,
-    //     //     "isBestMatch": true
-    //     //   }
-    //     // ]
-    //     throw new NotImplemented (this.id + ' parseTrade is not implemented yet');
-    // },
 
     async fetchTrades (market, params = {}) {
         let m = this.market (market);
@@ -1762,6 +1717,10 @@ var binance = {
         return this.privatePostOrderCancel ({ 'order_id': id });
     },
 
+    nonce () {
+        return this.milliseconds ();
+    },
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (api == 'public') {
@@ -1769,24 +1728,54 @@ var binance = {
                 url += '?' + this.urlencode (params);
         } else {
             let nonce = this.nonce ();
-            body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
+            let query = this.urlencode (this.extend ({ 'timestamp': nonce }, params));
+            let auth = this.secret + '|' + query;
+            let signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            query += '&signature=' + signature;
+            if (method == 'GET')
+                url += '?' + query;
+            else
+                body = query;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': body.length,
-                'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+                'X-MBX-APIKEY': this.apiKey,
             };
+
+            // _sign(queryString) {
+            //     return crypto.createHash('sha256')
+            //         .update(this.secret + '|' + queryString)
+            //         .digest('hex');
+            // }
+
+            // const queryString = qs.stringify(query);
+            // const options = {
+            //     url: `${this._baseUrl}${route}`,
+            //     timeout: this.timeout
+            // }
+            // if (queryString) {
+            //     options.url += '?' + queryString;
+            // }
+            // if (security === 'SIGNED') {
+            //     if (options.url.substr(options.url.length - 1) !== '?') {
+            //         options.url += '&';
+            //     }
+            //     options.url += `signature=${this._sign(queryString)}`;
+            // }
+            // if (security === 'API-KEY' || security === 'SIGNED') {
+            //     options.headers = {
+            //     }
+            // }
+            // if (method) {
+            //     options.method = method;
+            // }
+
         }
         let response = await this.fetch (url, method, headers, body);
-        if ('result' in response) {
-            if (response['result'])
-                return response;
-            throw new ExchangeError (this.id + ' ' + this.json (response));
+        if ('code' in response) {
+            if (response['code'] < 0)
+                throw new ExchangeError (this.id + ' ' + this.json (response));
         }
-        // {
-        //   "code": -1121,
-        //   "msg": "Invalid symbol."
-        // }
         return response;
     },
 }
