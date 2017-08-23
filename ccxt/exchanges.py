@@ -30,6 +30,7 @@ exchanges = [
     '_1broker',
     '_1btcxe',
     'anxpro',
+    'binance',
     'bit2c',
     'bitbay',
     'bitbays',
@@ -733,6 +734,437 @@ class anxpro (Exchange):
             if response['result'] == 'success':
                 return response
         raise ExchangeError(self.id + ' ' + self.json(response))
+
+#------------------------------------------------------------------------------
+
+class binance (Exchange):
+
+    def __init__(self, config={}):
+        params = {
+            'id': 'binance',
+            'name': 'Binance',
+            'countries': 'CN', # China
+            'rateLimit': 1000, # once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
+            'version': 'v1',
+            'hasFetchTickers': True,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
+                'api': 'https://www.binance.com/api',
+                'www': 'https://www.binance.com',
+                'doc': 'https://www.binance.com/restapipub.html',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'ping',
+                        'time',
+                        'depth',
+                        'aggTrades',
+                        'klines',
+                        'ticker/24hr',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'order',
+                        'openOrders',
+                        'allOrders',
+                        'account',
+                        'myTrades',
+                    ],
+                    'post': [
+                        'order',
+                        'order/test',
+                        'userDataStream',
+                    ],
+                    'put': [
+                        'userDataStream'
+                    ],
+                    'delete': [
+                        'order',
+                        'userDataStream',
+                    ],
+                },
+            },
+        }
+        params.update(config)
+        super(binance, self).__init__(params)
+
+    def fetch_markets(self):
+        markets = self.publicGetPairSettings()
+        keys = list(markets.keys())
+        result = []
+        for p in range(0, len(keys)):
+            id = keys[p]
+            market = markets[id]
+            symbol = id.replace('_', '/')
+            base, quote = symbol.split('/')
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': market,
+            })
+        return result
+
+    def fetch_balance(self):
+        # Get current account information.
+        # Parameters:
+        # Name    Type    Mandatory   Description
+        # recvWindow  LONG    NO  
+        # timestamp   LONG    YES 
+        # Response:
+        # {
+        #   "makerCommission": 15,
+        #   "takerCommission": 15,
+        #   "buyerCommission": 0,
+        #   "sellerCommission": 0,
+        #   "canTrade": True,
+        #   "canWithdraw": True,
+        #   "canDeposit": True,
+        #   "balances": [
+        #     {
+        #       "asset": "BTC",
+        #       "free": "4723846.89208129",
+        #       "locked": "0.00000000"
+        #     },
+        #     {
+        #       "asset": "LTC",
+        #       "free": "4763368.68006011",
+        #       "locked": "0.00000000"
+        #     }
+        #   ]
+        #}
+        self.loadMarkets()
+        response = self.privatePostUserInfo()
+        result = {'info': response}
+        for c in range(0, len(self.currencies)):
+            currency = self.currencies[c]
+            account = {
+                'free': None,
+                'used': None,
+                'total': None,
+            }
+            if currency in response['balances']:
+                account['free'] = float(response['balances'][currency])
+            if currency in response['reserved']:
+                account['used'] = float(response['reserved'][currency])
+            account['total'] = self.sum(account['free'], account['used'])
+            result[currency] = account
+        return result
+
+    def fetch_order_book(self, market, params={}):
+        # Parameters:
+        # Name    Type    Mandatory   Description
+        # symbol  STRING  YES 
+        # limit   INT NO  Default 100 max 100.
+        # Response:
+        # {
+        #   "lastUpdateId": 1027024,
+        #   "bids": [
+        #     [
+        #       "4.00000000",     # PRICE
+        #       "431.00000000",   # QTY
+        #       []                # Can be ignored
+        #     ]
+        #   ],
+        #   "asks": [
+        #     [
+        #       "4.00000200",
+        #       "12.00000000",
+        #       []
+        #     ]
+        #   ]
+        #}
+        self.loadMarkets()
+        p = self.market(market)
+        response = self.publicGetOrderBook(self.extend({
+            'pair': p['id'],
+        }, params))
+        orderbook = response[p['id']]
+        timestamp = self.milliseconds()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+        sides = {'bids': 'bid', 'asks': 'ask'}
+        keys = list(sides.keys())
+        for k in range(0, len(keys)):
+            key = keys[k]
+            side = sides[key]
+            orders = orderbook[side]
+            for i in range(0, len(orders)):
+                order = orders[i]
+                price = float(order[0])
+                amount = float(order[1])
+                result[key].append([price, amount])
+        return result
+
+    def parse_ticker(self, ticker, market):
+        timestamp = ticker['openTime']
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': float(ticker['highPrice']),
+            'low': float(ticker['lowPrice']),
+            'bid': float(ticker['bidPrice']),
+            'ask': float(ticker['askPrice']),
+            'vwap': float(ticker['weightedAvgPrice']),
+            'open': float(ticker['openPrice']),
+            'close': float(ticker['prevClosePrice']),
+            'first': None,
+            'last': float(ticker['lastPrice']),
+            'change': float(ticker['priceChangePercent']),
+            'percentage': None,
+            'average': float(ticker['avg']),
+            'baseVolume': float(ticker['vol']),
+            'quoteVolume': float(ticker['volume']),
+            'info': ticker,
+        }
+
+    def fetch_ticker(self, market):
+        self.loadMarkets()
+        response = self.publicGetTicker24h()
+        p = self.market(market)
+        return self.parse_ticker(response[p['id']], p)
+
+    def fetch_ohlcv(self, market, timeframe=60, since=None, limit=None):
+        # Kline/candlestick bars for a symbol. Klines are uniquely identified by their open time.
+        # Parameters:
+        # Name    Type    Mandatory   Description
+        # symbol  STRING  YES 
+        # interval    ENUM    YES 
+        # limit   INT NO  Default 500 max 500.
+        # startTime   LONG    NO  
+        # endTime LONG    NO  
+        # If startTime and endTime are not sent, the most recent klines are returned.
+        # Response:
+        # [
+        #   [
+        #     1499040000000,      # Open time
+        #     "0.01634790",       # Open
+        #     "0.80000000",       # High
+        #     "0.01575800",       # Low
+        #     "0.01577100",       # Close
+        #     "148976.11427815",  # Volume
+        #     1499644799999,      # Close time
+        #     "2434.19055334",    # Quote asset volume
+        #     308,                # Number of trades
+        #     "1756.87402397",    # Taker buy base asset volume
+        #     "28.46694368",      # Taker buy quote asset volume
+        #     "17928899.62484339" # Can be ignored
+        #   ]
+        #]
+
+    def parse_trade(self, trade, market=None):
+
+        # Get compressed, aggregate trades. Trades that fill at the time, from the same order, with the same price will have the quantity aggregated.
+        # Parameters:
+        # Name    Type    Mandatory   Description
+        # symbol  STRING  YES 
+        # fromId  LONG    NO  ID to get aggregate trades from INCLUSIVE.
+        # startTime   LONG    NO  Timestamp in ms to get aggregate trades from INCLUSIVE.
+        # endTime LONG    NO  Timestamp in ms to get aggregate trades until INCLUSIVE.
+        # limit   INT NO  Default 500 max 500.
+        # If both startTime and endTime are sent, limit should not be sent AND the distance between startTime and endTime must be less than 24 hours.
+        # If frondId, startTime, and endTime are not sent, the most recent aggregate trades will be returned.
+        # Response:
+        # [
+        #   {
+        #     "a": 26129,         # Aggregate tradeId
+        #     "p": "0.01633102",  # Price
+        #     "q": "4.70443515",  # Quantity
+        #     "f": 27781,         # First tradeId
+        #     "l": 27781,         # Last tradeId
+        #     "T": 1498793709153, # Timestamp
+        #     "m": True,          # Was the buyer the maker?
+        #     "M": True           # Was the trade the best price match?
+        #   }
+        #]
+
+
+        # Get trades for a specific account and symbol.
+        # Parameters:
+        # Name    Type    Mandatory   Description
+        # symbol  STRING  YES 
+        # limit   INT NO  Default 500 max 500.
+        # fromId  LONG    NO  TradeId to fetch from. Default gets most recent trades.
+        # recvWindow  LONG    NO  
+        # timestamp   LONG    YES 
+        # Response:
+        # [
+        #   {
+        #     "id": 28457,
+        #     "price": "4.00000100",
+        #     "qty": "12.00000000",
+        #     "commission": "10.10000000",
+        #     "commissionAsset": "BNB",
+        #     "time": 1499865549590,
+        #     "isBuyer": True,
+        #     "isMaker": False,
+        #     "isBestMatch": True
+        #   }
+        #]
+        raise NotImplemented(self.id + ' parseTrade is not implemented yet')
+
+    def fetch_trades(self, market, params={}):
+        self.loadMarkets()
+        return self.publicGetTrades(self.extend({
+            'pair': self.market_id(market),
+        }, params))
+
+    def parseOrder(self, order, market=None):
+        # Get all account orders active, canceled, or filled.
+        # Parameters:
+        # Name    Type    Mandatory   Description
+        # symbol  STRING  YES 
+        # orderId LONG    NO  
+        # limit   INT NO  Default 500 max 500.
+        # recvWindow  LONG    NO  
+        # timestamp   LONG    YES 
+        # If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
+        # Response:
+        # [
+        #   {
+        #     "symbol": "LTCBTC",
+        #     "orderId": 1,
+        #     "clientOrderId": "myOrder1",
+        #     "price": "0.1",
+        #     "origQty": "1.0",
+        #     "executedQty": "0.0",
+        #     "status": "NEW",
+        #     "timeInForce": "GTC",
+        #     "type": "LIMIT",
+        #     "side": "BUY",
+        #     "stopPrice": "0.0",
+        #     "icebergQty": "0.0",
+        #     "time": 1499827319559
+        #   }
+        #]
+        raise NotImplemented(self.id + ' parseOrder is not implemented yet')
+
+    def create_order(self, market, type, side, amount, price=None, params={}):
+        # Send in a new order
+        # Parameters:
+        # Name    Type    Mandatory   Description
+        # symbol  STRING  YES 
+        # side    ENUM    YES 
+        # type    ENUM    YES 
+        # timeInForce ENUM    YES 
+        # quantity    DECIMAL YES 
+        # price   DECIMAL YES 
+        # newClientOrderId    STRING  NO  A unique id for the order. Automatically generated if not sent.
+        # stopPrice   DECIMAL NO  Used with stop orders
+        # icebergQty  DECIMAL NO  Used with iceberg orders
+        # timestamp   LONG    YES 
+        # Response:
+        # {
+        #   "symbol":"LTCBTC",
+        #   "orderId": 1,
+        #   "clientOrderId": "myOrder1" # Will be newClientOrderId
+        #   "transactTime": 1499827319559
+        #}
+        self.loadMarkets()
+        prefix = ''
+        if type == 'market':
+            prefix = 'market_'
+        order = {
+            'pair': self.market_id(market),
+            'quantity': amount,
+            'price': price or 0,
+            'type': prefix + side,
+        }
+        response = self.privatePostOrderCreate(self.extend(order, params))
+        return {
+            'info': response,
+            'id': str(response['order_id']),
+        }
+
+    def fetch_order(self, id):
+        # Check an order's status.
+        # Parameters:
+        # Name    Type    Mandatory   Description
+        # symbol  STRING  YES 
+        # orderId LONG    NO  
+        # origClientOrderId   STRING  NO  
+        # recvWindow  LONG    NO  
+        # timestamp   LONG    YES 
+        # Either orderId or origClientOrderId must be sent.
+        # Response:
+        # {
+        #   "symbol": "LTCBTC",
+        #   "orderId": 1,
+        #   "clientOrderId": "myOrder1",
+        #   "price": "0.1",
+        #   "origQty": "1.0",
+        #   "executedQty": "0.0",
+        #   "status": "NEW",
+        #   "timeInForce": "GTC",
+        #   "type": "LIMIT",
+        #   "side": "BUY",
+        #   "stopPrice": "0.0",
+        #   "icebergQty": "0.0",
+        #   "time": 1499827319559
+        #}
+
+    def fetch_orders(self):
+
+
+    def fetchMyOpenOrders(self):
+        # Get all open orders on a symbol.
+        # Parameters:
+        # Name    Type    Mandatory   Description
+        # symbol  STRING  YES 
+        # recvWindow  LONG    NO  
+        # timestamp   LONG    YES 
+
+    def cancel_order(self, id):
+        # Cancel an active order.
+        # Parameters:
+        # Name    Type    Mandatory   Description
+        # symbol  STRING  YES 
+        # orderId LONG    NO  
+        # origClientOrderId   STRING  NO  
+        # newClientOrderId    STRING  NO  Used to uniquely identify self cancel. Automatically generated by default.
+        # recvWindow  LONG    NO  
+        # timestamp   LONG    YES 
+        # Response:
+        # {
+        #   "symbol": "LTCBTC",
+        #   "origClientOrderId": "myOrder1",
+        #   "orderId": 1,
+        #   "clientOrderId": "cancelMyOrder1"
+        #}
+        self.loadMarkets()
+        return self.privatePostOrderCancel({'order_id': id})
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        url = self.urls['api'] + '/' + self.version + '/' + path
+        if api == 'public':
+            if params:
+                url += '?' + self.urlencode(params)
+        else:
+            nonce = self.nonce()
+            body = self.urlencode(self.extend({'nonce': nonce}, params))
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': len(body),
+                'Key': self.apiKey,
+                'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
+            }
+        response = self.fetch(url, method, headers, body)
+        if 'result' in response:
+            if response['result']:
+                return response
+            raise ExchangeError(self.id + ' ' + self.json(response))
+        # {
+        #   "code": -1121,
+        #   "msg": "Invalid symbol."
+        #}
+        return response
 
 #------------------------------------------------------------------------------
 
@@ -7603,7 +8035,6 @@ class exmo (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
                 'api': 'https://api.exmo.com',
                 'www': 'https://exmo.me',
-                'markets': 'https://exmo.me/en/trade#?pair=BTC_USD',
                 'doc': [
                     'https://exmo.me/ru/api_doc',
                     'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',

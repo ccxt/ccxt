@@ -13,7 +13,7 @@ CCXT – CryptoCurrency eXchange Trading Library
     :target: https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master
 .. image:: https://badge.runkitcdn.com/ccxt.svg
     :target: https://npm.runkit.com/ccxt
-.. image:: https://img.shields.io/badge/exchanges-73-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-74-blue.svg
     :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
@@ -34,7 +34,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 73 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 74 cryptocurrency exchange markets and trading APIs:
 
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id              | name                                                      | ver   | doc                                                                                              | countries                                  |
@@ -44,6 +44,8 @@ The ccxt library currently supports the following 73 cryptocurrency exchange mar
 | \_1btcxe        | `1BTCXE <https://1btcxe.com>`__                           | \*    | `API <https://1btcxe.com/api-docs.php>`__                                                        | Panama                                     |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | anxpro          | `ANXPro <https://anxpro.com>`__                           | 2     | `API <http://docs.anxv2.apiary.io>`__                                                            | Japan, Singapore, Hong Kong, New Zealand   |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| binance         | `Binance <https://www.binance.com>`__                     | 1     | `API <https://www.binance.com/restapipub.html>`__                                                | China                                      |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bit2c           | `Bit2C <https://www.bit2c.co.il>`__                       | \*    | `API <https://www.bit2c.co.il/home/api>`__                                                       | Israel                                     |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+

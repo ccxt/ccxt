@@ -139,6 +139,7 @@ class Exchange {
         '_1broker',
         '_1btcxe',
         'anxpro',
+        'binance',
         'bit2c',
         'bitbay',
         'bitbays',

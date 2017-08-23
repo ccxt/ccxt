@@ -1349,327 +1349,85 @@ var binance = {
     'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
-        'api': 'https://api.exmo.com',
+        'api': 'https://www.binance.com/api',
         'www': 'https://www.binance.com',
         'doc': 'https://www.binance.com/restapipub.html',
     },
     'api': {
         'public': {
             'get': [
+                'ping',
+                'time',
+                'depth',
+                'aggTrades',
+                'klines',
+                'ticker/24hr',
             ],
         },
         'private': {
+            'get': [
+                'order',
+                'openOrders',
+                'allOrders',
+                'account',
+                'myTrades',
+            ],
             'post': [
+                'order',
+                'order/test',
+                'userDataStream',
+            ],
+            'put': [
+                'userDataStream'
+            ],
+            'delete': [
+                'order',
+                'userDataStream',
             ],
         },
     },
-
-Test connectivity
-
-GET /api/v1/ping
-Test connectivity to the Rest API.
-
-Parameters: NONE
-
-Response:
-
-{}
-Check server time
-
-GET /api/v1/time
-Test connectivity to the Rest API and get the current server time.
-
-Parameters: NONE
-
-Response:
-
-{
-  "serverTime": 1499827319559
-}
-Market Data endpoints
-
-Order book
-
-GET /api/v1/depth
-Parameters:
-
-Name    Type    Mandatory   Description
-symbol  STRING  YES 
-limit   INT NO  Default 100; max 100.
-Response:
-
-{
-  "lastUpdateId": 1027024,
-  "bids": [
-    [
-      "4.00000000",     // PRICE
-      "431.00000000",   // QTY
-      []                // Can be ignored
-    ]
-  ],
-  "asks": [
-    [
-      "4.00000200",
-      "12.00000000",
-      []
-    ]
-  ]
-}
-Compressed/Aggregate trades list
-
-GET /api/v1/aggTrades
-Get compressed, aggregate trades. Trades that fill at the time, from the same order, with the same price will have the quantity aggregated.
-
-Parameters:
-
-Name    Type    Mandatory   Description
-symbol  STRING  YES 
-fromId  LONG    NO  ID to get aggregate trades from INCLUSIVE.
-startTime   LONG    NO  Timestamp in ms to get aggregate trades from INCLUSIVE.
-endTime LONG    NO  Timestamp in ms to get aggregate trades until INCLUSIVE.
-limit   INT NO  Default 500; max 500.
-If both startTime and endTime are sent, limit should not be sent AND the distance between startTime and endTime must be less than 24 hours.
-If frondId, startTime, and endTime are not sent, the most recent aggregate trades will be returned.
-Response:
-
-[
-  {
-    "a": 26129,         // Aggregate tradeId
-    "p": "0.01633102",  // Price
-    "q": "4.70443515",  // Quantity
-    "f": 27781,         // First tradeId
-    "l": 27781,         // Last tradeId
-    "T": 1498793709153, // Timestamp
-    "m": true,          // Was the buyer the maker?
-    "M": true           // Was the trade the best price match?
-  }
-]
-Kline/candlesticks
-
-GET /api/v1/klines
-Kline/candlestick bars for a symbol. Klines are uniquely identified by their open time.
-
-Parameters:
-
-Name    Type    Mandatory   Description
-symbol  STRING  YES 
-interval    ENUM    YES 
-limit   INT NO  Default 500; max 500.
-startTime   LONG    NO  
-endTime LONG    NO  
-If startTime and endTime are not sent, the most recent klines are returned.
-Response:
-
-[
-  [
-    1499040000000,      // Open time
-    "0.01634790",       // Open
-    "0.80000000",       // High
-    "0.01575800",       // Low
-    "0.01577100",       // Close
-    "148976.11427815",  // Volume
-    1499644799999,      // Close time
-    "2434.19055334",    // Quote asset volume
-    308,                // Number of trades
-    "1756.87402397",    // Taker buy base asset volume
-    "28.46694368",      // Taker buy quote asset volume
-    "17928899.62484339" // Can be ignored
-  ]
-]
-24hr ticker price change statistics
-
-GET /api/v1/ticker/24hr
-24 hour price change statistics.
-
-Parameters:
-
-Name    Type    Mandatory   Description
-symbol  STRING  YES 
-Response:
-
-{
-  "priceChange": "-94.99999800",
-  "priceChangePercent": "-95.960",
-  "weightedAvgPrice": "0.29628482",
-  "prevClosePrice": "0.10002000",
-  "lastPrice": "4.00000200",
-  "bidPrice": "4.00000000",
-  "askPrice": "4.00000200",
-  "openPrice": "99.00000000",
-  "highPrice": "100.00000000",
-  "lowPrice": "0.10000000",
-  "volume": "8913.30000000",
-  "openTime": 1499783499040,
-  "closeTime": 1499869899040,
-  "fristId": 28385,   // First tradeId
-  "lastId": 28460,    // Last tradeId
-  "count": 76         // Trade count
-}
-Account endpoints
-
-New order (SIGNED)
-
-POST /api/v1/order
-Send in a new order
-
-Parameters:
-
-Name    Type    Mandatory   Description
-symbol  STRING  YES 
-side    ENUM    YES 
-type    ENUM    YES 
-timeInForce ENUM    YES 
-quantity    DECIMAL YES 
-price   DECIMAL YES 
-newClientOrderId    STRING  NO  A unique id for the order. Automatically generated if not sent.
-stopPrice   DECIMAL NO  Used with stop orders
-icebergQty  DECIMAL NO  Used with iceberg orders
-timestamp   LONG    YES 
-Response:
-
-{
-  "symbol":"LTCBTC",
-  "orderId": 1,
-  "clientOrderId": "myOrder1" // Will be newClientOrderId
-  "transactTime": 1499827319559
-}
-Test new order (SIGNED)
-
-POST /api/v1/order/test
-Test new order creation and signature/recvWindow long. Creates and validates a new order but does not send it into the matching engine.
-
-Parameters:
-
-Name    Type    Mandatory   Description
-symbol  STRING  YES 
-side    ENUM    YES 
-type    ENUM    YES 
-timeInForce ENUM    YES 
-quantity    DECIMAL YES 
-price   DECIMAL YES 
-newClientOrderId    STRING  NO  A unique id for the order. Automatically generated by default.
-stopPrice   DECIMAL NO  Used with STOP orders
-icebergQty  DECIMAL NO  Used with icebergOrders
-recvWindow  LONG    NO  
-timestamp   LONG    YES 
-Response:
-
-{}
-Query order (SIGNED)
-
-GET /api/v1/order
-Check an order's status.
-
-Parameters:
-
-Name    Type    Mandatory   Description
-symbol  STRING  YES 
-orderId LONG    NO  
-origClientOrderId   STRING  NO  
-recvWindow  LONG    NO  
-timestamp   LONG    YES 
-Either orderId or origClientOrderId must be sent.
-
-Response:
-
-{
-  "symbol": "LTCBTC",
-  "orderId": 1,
-  "clientOrderId": "myOrder1",
-  "price": "0.1",
-  "origQty": "1.0",
-  "executedQty": "0.0",
-  "status": "NEW",
-  "timeInForce": "GTC",
-  "type": "LIMIT",
-  "side": "BUY",
-  "stopPrice": "0.0",
-  "icebergQty": "0.0",
-  "time": 1499827319559
-}
-Cancel order (SIGNED)
-
-DELETE /api/v1/order
-Cancel an active order.
-
-Parameters:
-
-Name    Type    Mandatory   Description
-symbol  STRING  YES 
-orderId LONG    NO  
-origClientOrderId   STRING  NO  
-newClientOrderId    STRING  NO  Used to uniquely identify this cancel. Automatically generated by default.
-recvWindow  LONG    NO  
-timestamp   LONG    YES 
-Response:
-
-{
-  "symbol": "LTCBTC",
-  "origClientOrderId": "myOrder1",
-  "orderId": 1,
-  "clientOrderId": "cancelMyOrder1"
-}
-Current open orders (SIGNED)
-
-GET /api/v1/openOrders
-Get all open orders on a symbol.
-
-Parameters:
-
-Name    Type    Mandatory   Description
-symbol  STRING  YES 
-recvWindow  LONG    NO  
-timestamp   LONG    YES 
-Response:
-
-[
-  {
-    "symbol": "LTCBTC",
-    "orderId": 1,
-    "clientOrderId": "myOrder1",
-    "price": "0.1",
-    "origQty": "1.0",
-    "executedQty": "0.0",
-    "status": "NEW",
-    "timeInForce": "GTC",
-    "type": "LIMIT",
-    "side": "BUY",
-    "stopPrice": "0.0",
-    "icebergQty": "0.0",
-    "time": 1499827319559
-  }
-]
-All orders (SIGNED)
-
-
-
-GET /api/v1/allOrders
-GET /api/v1/account
-GET /api/v1/myTrades
-
-POST /api/v1/userDataStream
-PUT /api/v1/userDataStream
-DELETE /api/v1/userDataStream
-
-    async fetchMarkets () {
-        let markets = await this.publicGetPairSettings ();
-        let keys = Object.keys (markets);
-        let result = [];
-        for (let p = 0; p < keys.length; p++) {
-            let id = keys[p];
-            let market = markets[id];
-            let symbol = id.replace ('_', '/');
-            let [ base, quote ] = symbol.split ('/');
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': market,
-            });
-        }
-        return result;
+    'markets': {
+        'BNB/BTC': { 'id': 'BNBBTC', 'symbol': 'BNB/BTC', 'base': 'BNB', 'quote': 'BTC' },
+        'NEO/BTC': { 'id': 'NEOBTC', 'symbol': 'NEO/BTC', 'base': 'NEO', 'quote': 'BTC' },
+        'ETH/BTC': { 'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
+        'HSR/BTC': { 'id': 'HSRBTC', 'symbol': 'HSR/BTC', 'base': 'HSR', 'quote': 'BTC' },
+        'LTC/BTC': { 'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+        'GAS/BTC': { 'id': 'GASBTC', 'symbol': 'GAS/BTC', 'base': 'GAS', 'quote': 'BTC' },
+        'HCC/BTC': { 'id': 'HCCBTC', 'symbol': 'HCC/BTC', 'base': 'HCC', 'quote': 'BTC' },
+        'BCC/BTC': { 'id': 'BCCBTC', 'symbol': 'BCC/BTC', 'base': 'BCC', 'quote': 'BTC' },
+        'BNB/ETH': { 'id': 'BNBETH', 'symbol': 'BNB/ETH', 'base': 'BNB', 'quote': 'ETH' },
+        'DNT/ETH': { 'id': 'DNTETH', 'symbol': 'DNT/ETH', 'base': 'DNT', 'quote': 'ETH' },
+        'OAX/ETH': { 'id': 'OAXETH', 'symbol': 'OAX/ETH', 'base': 'OAX', 'quote': 'ETH' },
+        'QTUM/ETH': { 'id': 'QTUMETH', 'symbol': 'QTUM/ETH', 'base': 'QTUM', 'quote': 'ETH' },
+        'MCO/ETH': { 'id': 'MCOETH', 'symbol': 'MCO/ETH', 'base': 'MCO', 'quote': 'ETH' },
+        'BTM/ETH': { 'id': 'BTMETH', 'symbol': 'BTM/ETH', 'base': 'BTM', 'quote': 'ETH' },
+        'SNT/ETH': { 'id': 'SNTETH', 'symbol': 'SNT/ETH', 'base': 'SNT', 'quote': 'ETH' },
+        'EOS/ETH': { 'id': 'EOSETH', 'symbol': 'EOS/ETH', 'base': 'EOS', 'quote': 'ETH' },
+        'BNT/ETH': { 'id': 'BNTETH', 'symbol': 'BNT/ETH', 'base': 'BNT', 'quote': 'ETH' },
+        'ICN/ETH': { 'id': 'ICNETH', 'symbol': 'ICN/ETH', 'base': 'ICN', 'quote': 'ETH' },
+        'BTC/USDT': { 'id': 'BTCUSDT', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT' },
+        'ETH/USDT': { 'id': 'ETHUSDT', 'symbol': 'ETH/USDT', 'base': 'ETH', 'quote': 'USDT' },
     },
+
+    // async fetchMarkets () {
+    //     let markets = await this.publicGetPairSettings ();
+    //     let keys = Object.keys (markets);
+    //     let result = [];
+    //     for (let p = 0; p < keys.length; p++) {
+    //         let id = keys[p];
+    //         let market = markets[id];
+    //         let symbol = id.replace ('_', '/');
+    //         let [ base, quote ] = symbol.split ('/');
+    //         result.push ({
+    //             'id': id,
+    //             'symbol': symbol,
+    //             'base': base,
+    //             'quote': quote,
+    //             'info': market,
+    //         });
+    //     }
+    //     return result;
+    // },
 
     async fetchBalance () {
         // Get current account information.
@@ -1720,6 +1478,28 @@ DELETE /api/v1/userDataStream
     },
 
     async fetchOrderBook (market, params = {}) {
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // symbol  STRING  YES 
+        // limit   INT NO  Default 100; max 100.
+        // Response:
+        // {
+        //   "lastUpdateId": 1027024,
+        //   "bids": [
+        //     [
+        //       "4.00000000",     // PRICE
+        //       "431.00000000",   // QTY
+        //       []                // Can be ignored
+        //     ]
+        //   ],
+        //   "asks": [
+        //     [
+        //       "4.00000200",
+        //       "12.00000000",
+        //       []
+        //     ]
+        //   ]
+        // }
         await this.loadMarkets ();
         let p = this.market (market);
         let response = await this.publicGetOrderBook (this.extend ({
@@ -1750,51 +1530,93 @@ DELETE /api/v1/userDataStream
     },
 
     parseTicker (ticker, market) {
-        let timestamp = ticker['updated'] * 1000;
+        let timestamp = ticker['openTime'];
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy_price']),
-            'ask': parseFloat (ticker['sell_price']),
-            'vwap': undefined,
-            'open': undefined,
-            'close': undefined,
+            'high': parseFloat (ticker['highPrice']),
+            'low': parseFloat (ticker['lowPrice']),
+            'bid': parseFloat (ticker['bidPrice']),
+            'ask': parseFloat (ticker['askPrice']),
+            'vwap': parseFloat (ticker['weightedAvgPrice']),
+            'open': parseFloat (ticker['openPrice']),
+            'close': parseFloat (ticker['prevClosePrice']),
             'first': undefined,
-            'last': parseFloat (ticker['last_trade']),
-            'change': undefined,
+            'last': parseFloat (ticker['lastPrice']),
+            'change': parseFloat (ticker['priceChangePercent']),
             'percentage': undefined,
             'average': parseFloat (ticker['avg']),
             'baseVolume': parseFloat (ticker['vol']),
-            'quoteVolume': parseFloat (ticker['vol_curr']),
+            'quoteVolume': parseFloat (ticker['volume']),
             'info': ticker,
         };
     },
 
-    async fetchTickers (currency = 'USD') {
-        await this.loadMarkets ();
-        let response = await this.publicGetTicker ();
-        let result = {};
-        let ids = Object.keys (response);
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
-            let ticker = response[id];
-            result[symbol] = this.parseTicker (ticker, market);
-        }
-        return result;
-    },
-
     async fetchTicker (market) {
         await this.loadMarkets ();
-        let response = await this.publicGetTicker ();
+        let response = await this.publicGetTicker24h ();
         let p = this.market (market);
+        console.log (response);
+        process.exit ();
         return this.parseTicker (response[p['id']], p);
     },
 
+    async fetchOHLCV (market, timeframe = 60, since = undefined, limit = undefined) {
+        // Kline/candlestick bars for a symbol. Klines are uniquely identified by their open time.
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // symbol  STRING  YES 
+        // interval    ENUM    YES 
+        // limit   INT NO  Default 500; max 500.
+        // startTime   LONG    NO  
+        // endTime LONG    NO  
+        // If startTime and endTime are not sent, the most recent klines are returned.
+        // Response:
+        // [
+        //   [
+        //     1499040000000,      // Open time
+        //     "0.01634790",       // Open
+        //     "0.80000000",       // High
+        //     "0.01575800",       // Low
+        //     "0.01577100",       // Close
+        //     "148976.11427815",  // Volume
+        //     1499644799999,      // Close time
+        //     "2434.19055334",    // Quote asset volume
+        //     308,                // Number of trades
+        //     "1756.87402397",    // Taker buy base asset volume
+        //     "28.46694368",      // Taker buy quote asset volume
+        //     "17928899.62484339" // Can be ignored
+        //   ]
+        // ]
+    },
+
     parseTrade (trade, market = undefined) {
+
+        // Get compressed, aggregate trades. Trades that fill at the time, from the same order, with the same price will have the quantity aggregated.
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // symbol  STRING  YES 
+        // fromId  LONG    NO  ID to get aggregate trades from INCLUSIVE.
+        // startTime   LONG    NO  Timestamp in ms to get aggregate trades from INCLUSIVE.
+        // endTime LONG    NO  Timestamp in ms to get aggregate trades until INCLUSIVE.
+        // limit   INT NO  Default 500; max 500.
+        // If both startTime and endTime are sent, limit should not be sent AND the distance between startTime and endTime must be less than 24 hours.
+        // If frondId, startTime, and endTime are not sent, the most recent aggregate trades will be returned.
+        // Response:
+        // [
+        //   {
+        //     "a": 26129,         // Aggregate tradeId
+        //     "p": "0.01633102",  // Price
+        //     "q": "4.70443515",  // Quantity
+        //     "f": 27781,         // First tradeId
+        //     "l": 27781,         // Last tradeId
+        //     "T": 1498793709153, // Timestamp
+        //     "m": true,          // Was the buyer the maker?
+        //     "M": true           // Was the trade the best price match?
+        //   }
+        // ]
+
+
         // Get trades for a specific account and symbol.
         // Parameters:
         // Name    Type    Mandatory   Description
@@ -1859,6 +1681,26 @@ DELETE /api/v1/userDataStream
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
+        // Send in a new order
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // symbol  STRING  YES 
+        // side    ENUM    YES 
+        // type    ENUM    YES 
+        // timeInForce ENUM    YES 
+        // quantity    DECIMAL YES 
+        // price   DECIMAL YES 
+        // newClientOrderId    STRING  NO  A unique id for the order. Automatically generated if not sent.
+        // stopPrice   DECIMAL NO  Used with stop orders
+        // icebergQty  DECIMAL NO  Used with iceberg orders
+        // timestamp   LONG    YES 
+        // Response:
+        // {
+        //   "symbol":"LTCBTC",
+        //   "orderId": 1,
+        //   "clientOrderId": "myOrder1" // Will be newClientOrderId
+        //   "transactTime": 1499827319559
+        // }
         await this.loadMarkets ();
         let prefix = '';
         if (type == 'market')
@@ -1876,7 +1718,64 @@ DELETE /api/v1/userDataStream
         };
     },
 
+    async fetchOrder (id) {
+        // Check an order's status.
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // symbol  STRING  YES 
+        // orderId LONG    NO  
+        // origClientOrderId   STRING  NO  
+        // recvWindow  LONG    NO  
+        // timestamp   LONG    YES 
+        // Either orderId or origClientOrderId must be sent.
+        // Response:
+        // {
+        //   "symbol": "LTCBTC",
+        //   "orderId": 1,
+        //   "clientOrderId": "myOrder1",
+        //   "price": "0.1",
+        //   "origQty": "1.0",
+        //   "executedQty": "0.0",
+        //   "status": "NEW",
+        //   "timeInForce": "GTC",
+        //   "type": "LIMIT",
+        //   "side": "BUY",
+        //   "stopPrice": "0.0",
+        //   "icebergQty": "0.0",
+        //   "time": 1499827319559
+        // }
+    },
+
+    async fetchOrders () {
+
+    },
+
+    async fetchMyOpenOrders () {
+        // Get all open orders on a symbol.
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // symbol  STRING  YES 
+        // recvWindow  LONG    NO  
+        // timestamp   LONG    YES 
+    },
+
     async cancelOrder (id) {
+        // Cancel an active order.
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // symbol  STRING  YES 
+        // orderId LONG    NO  
+        // origClientOrderId   STRING  NO  
+        // newClientOrderId    STRING  NO  Used to uniquely identify this cancel. Automatically generated by default.
+        // recvWindow  LONG    NO  
+        // timestamp   LONG    YES 
+        // Response:
+        // {
+        //   "symbol": "LTCBTC",
+        //   "origClientOrderId": "myOrder1",
+        //   "orderId": 1,
+        //   "clientOrderId": "cancelMyOrder1"
+        // }
         await this.loadMarkets ();
         return this.privatePostOrderCancel ({ 'order_id': id });
     },
@@ -1902,6 +1801,10 @@ DELETE /api/v1/userDataStream
                 return response;
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
+        // {
+        //   "code": -1121,
+        //   "msg": "Invalid symbol."
+        // }
         return response;
     },
 }
