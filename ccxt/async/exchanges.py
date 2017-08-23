@@ -11573,9 +11573,13 @@ class poloniex (Exchange):
         await self.loadMarkets()
         orders = await self.fetchMyOpenOrders()
         index = self.index_by(orders, 'id')
-        if id in index:
-            return index[id]
         if id in self.orders:
+            order = self.orders[id]
+        if id in index:
+            self.orders[id] = index[id]
+            return index[id]
+        elif id in self.orders:
+            self.orders[id]['status'] = 'closed'
             return self.orders[id]
         raise ExchangeError(self.id + ' order ' + id + ' not found')
 
