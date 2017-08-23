@@ -43,6 +43,7 @@ from ccxt.errors import CCXTError
 from ccxt.errors import ExchangeError
 from ccxt.errors import NotSupported
 from ccxt.errors import AuthenticationError
+from ccxt.errors import InsufficientFunds
 from ccxt.errors import NetworkError
 from ccxt.errors import DDoSProtection
 from ccxt.errors import RequestTimeout
@@ -11573,9 +11574,13 @@ class poloniex (Exchange):
         await self.loadMarkets()
         orders = await self.fetchMyOpenOrders()
         index = self.index_by(orders, 'id')
-        if id in index:
-            return index[id]
         if id in self.orders:
+            order = self.orders[id]
+        if id in index:
+            self.orders[id] = index[id]
+            return index[id]
+        elif id in self.orders:
+            self.orders[id]['status'] = 'closed'
             return self.orders[id]
         raise ExchangeError(self.id + ' order ' + id + ' not found')
 

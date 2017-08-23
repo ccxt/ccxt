@@ -76,13 +76,22 @@ class NotSupported extends ExchangeError {
     }
 }
 
-class AuthenticationError extends CCXTError {
+class AuthenticationError extends ExchangeError {
     constructor (message) {
         super (message)
         this.constructor = AuthenticationError
         this.__proto__   = AuthenticationError.prototype
         this.message     = message
     }
+}
+
+class InsufficientFunds extends ExchangeError {
+    constructor (message) {
+        super (message)
+        this.constructor = InsufficientFunds
+        this.__proto__   = InsufficientFunds.prototype
+        this.message     = message
+    }   
 }
 
 class NetworkError extends CCXTError {
@@ -15203,6 +15212,7 @@ const ccxt = Object.assign (defineAllExchanges (exchanges), {
     ExchangeError,
     NotSupported,
     AuthenticationError,
+    InsufficientFunds,
     NetworkError,
     DDoSProtection,
     RequestTimeout,
