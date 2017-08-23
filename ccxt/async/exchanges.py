@@ -11612,7 +11612,10 @@ class poloniex (Exchange):
             }
         response = await self.fetch(url, method, headers, body)
         if 'error' in response:
-            raise ExchangeError(self.id + ' ' + self.json(response))
+            error = self.id + ' ' + self.json(response)
+            if response['error'].find('Not enough') >= 0:
+                raise InsufficientFunds(error)
+            raise ExchangeError(error)
         return response
 
 #------------------------------------------------------------------------------
