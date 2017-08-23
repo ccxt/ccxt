@@ -42,7 +42,7 @@ let proxies = [
 
 /*  ------------------------------------------------------------------------ */
 
-const exchange = new (ccxt)[exchangeId] ({ verbose: false })
+const exchange = new (ccxt)[exchangeId] ({ verbose: true })
 
 //-----------------------------------------------------------------------------
 
@@ -144,8 +144,8 @@ let testExchangeSymbolTrades = async (exchange, symbol) => {
 
 let testExchangeSymbol = async (exchange, symbol) => {
 
-    await sleep (exchange.rateLimit) 
-    await testExchangeSymbolTicker (exchange, symbol)
+    // await sleep (exchange.rateLimit) 
+    // await testExchangeSymbolTicker (exchange, symbol)
     
     if (exchange.id == 'coinmarketcap') {
     
@@ -154,11 +154,11 @@ let testExchangeSymbol = async (exchange, symbol) => {
     
     } else {
     
-        await testExchangeSymbolOrderbook (exchange, symbol)
+        // await testExchangeSymbolOrderbook (exchange, symbol)
 
         try {
     
-            await testExchangeSymbolTrades (exchange, symbol)    
+            // await testExchangeSymbolTrades (exchange, symbol)    
     
         } catch (e) {
     
@@ -175,7 +175,7 @@ let testExchangeSymbol = async (exchange, symbol) => {
     if (exchange.hasFetchTickers) {
 
         log (exchange.id.green, 'fetching all tickers at once...')
-        let tickers = await exchange.fetchTickers ()
+        // let tickers = await exchange.fetchTickers ()
         log (exchange.id.green, 'fetched', Object.keys (tickers).length.toString ().green, 'tickers...')
 
     } else {
