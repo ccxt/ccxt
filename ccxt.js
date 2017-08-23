@@ -1356,32 +1356,300 @@ var binance = {
     'api': {
         'public': {
             'get': [
-                'currency',
-                'order_book',
-                'pair_settings',
-                'ticker',
-                'trades',
             ],
         },
         'private': {
             'post': [
-                'user_info',
-                'order_create',
-                'order_cancel',
-                'user_open_orders',
-                'user_trades',
-                'user_cancelled_orders',
-                'order_trades',
-                'required_amount',
-                'deposit_address',
-                'withdraw_crypt',
-                'withdraw_get_txid',
-                'excode_create',
-                'excode_load',
-                'wallet_history',
             ],
         },
     },
+
+Test connectivity
+
+GET /api/v1/ping
+Test connectivity to the Rest API.
+
+Parameters: NONE
+
+Response:
+
+{}
+Check server time
+
+GET /api/v1/time
+Test connectivity to the Rest API and get the current server time.
+
+Parameters: NONE
+
+Response:
+
+{
+  "serverTime": 1499827319559
+}
+Market Data endpoints
+
+Order book
+
+GET /api/v1/depth
+Parameters:
+
+Name    Type    Mandatory   Description
+symbol  STRING  YES 
+limit   INT NO  Default 100; max 100.
+Response:
+
+{
+  "lastUpdateId": 1027024,
+  "bids": [
+    [
+      "4.00000000",     // PRICE
+      "431.00000000",   // QTY
+      []                // Can be ignored
+    ]
+  ],
+  "asks": [
+    [
+      "4.00000200",
+      "12.00000000",
+      []
+    ]
+  ]
+}
+Compressed/Aggregate trades list
+
+GET /api/v1/aggTrades
+Get compressed, aggregate trades. Trades that fill at the time, from the same order, with the same price will have the quantity aggregated.
+
+Parameters:
+
+Name    Type    Mandatory   Description
+symbol  STRING  YES 
+fromId  LONG    NO  ID to get aggregate trades from INCLUSIVE.
+startTime   LONG    NO  Timestamp in ms to get aggregate trades from INCLUSIVE.
+endTime LONG    NO  Timestamp in ms to get aggregate trades until INCLUSIVE.
+limit   INT NO  Default 500; max 500.
+If both startTime and endTime are sent, limit should not be sent AND the distance between startTime and endTime must be less than 24 hours.
+If frondId, startTime, and endTime are not sent, the most recent aggregate trades will be returned.
+Response:
+
+[
+  {
+    "a": 26129,         // Aggregate tradeId
+    "p": "0.01633102",  // Price
+    "q": "4.70443515",  // Quantity
+    "f": 27781,         // First tradeId
+    "l": 27781,         // Last tradeId
+    "T": 1498793709153, // Timestamp
+    "m": true,          // Was the buyer the maker?
+    "M": true           // Was the trade the best price match?
+  }
+]
+Kline/candlesticks
+
+GET /api/v1/klines
+Kline/candlestick bars for a symbol. Klines are uniquely identified by their open time.
+
+Parameters:
+
+Name    Type    Mandatory   Description
+symbol  STRING  YES 
+interval    ENUM    YES 
+limit   INT NO  Default 500; max 500.
+startTime   LONG    NO  
+endTime LONG    NO  
+If startTime and endTime are not sent, the most recent klines are returned.
+Response:
+
+[
+  [
+    1499040000000,      // Open time
+    "0.01634790",       // Open
+    "0.80000000",       // High
+    "0.01575800",       // Low
+    "0.01577100",       // Close
+    "148976.11427815",  // Volume
+    1499644799999,      // Close time
+    "2434.19055334",    // Quote asset volume
+    308,                // Number of trades
+    "1756.87402397",    // Taker buy base asset volume
+    "28.46694368",      // Taker buy quote asset volume
+    "17928899.62484339" // Can be ignored
+  ]
+]
+24hr ticker price change statistics
+
+GET /api/v1/ticker/24hr
+24 hour price change statistics.
+
+Parameters:
+
+Name    Type    Mandatory   Description
+symbol  STRING  YES 
+Response:
+
+{
+  "priceChange": "-94.99999800",
+  "priceChangePercent": "-95.960",
+  "weightedAvgPrice": "0.29628482",
+  "prevClosePrice": "0.10002000",
+  "lastPrice": "4.00000200",
+  "bidPrice": "4.00000000",
+  "askPrice": "4.00000200",
+  "openPrice": "99.00000000",
+  "highPrice": "100.00000000",
+  "lowPrice": "0.10000000",
+  "volume": "8913.30000000",
+  "openTime": 1499783499040,
+  "closeTime": 1499869899040,
+  "fristId": 28385,   // First tradeId
+  "lastId": 28460,    // Last tradeId
+  "count": 76         // Trade count
+}
+Account endpoints
+
+New order (SIGNED)
+
+POST /api/v1/order
+Send in a new order
+
+Parameters:
+
+Name    Type    Mandatory   Description
+symbol  STRING  YES 
+side    ENUM    YES 
+type    ENUM    YES 
+timeInForce ENUM    YES 
+quantity    DECIMAL YES 
+price   DECIMAL YES 
+newClientOrderId    STRING  NO  A unique id for the order. Automatically generated if not sent.
+stopPrice   DECIMAL NO  Used with stop orders
+icebergQty  DECIMAL NO  Used with iceberg orders
+timestamp   LONG    YES 
+Response:
+
+{
+  "symbol":"LTCBTC",
+  "orderId": 1,
+  "clientOrderId": "myOrder1" // Will be newClientOrderId
+  "transactTime": 1499827319559
+}
+Test new order (SIGNED)
+
+POST /api/v1/order/test
+Test new order creation and signature/recvWindow long. Creates and validates a new order but does not send it into the matching engine.
+
+Parameters:
+
+Name    Type    Mandatory   Description
+symbol  STRING  YES 
+side    ENUM    YES 
+type    ENUM    YES 
+timeInForce ENUM    YES 
+quantity    DECIMAL YES 
+price   DECIMAL YES 
+newClientOrderId    STRING  NO  A unique id for the order. Automatically generated by default.
+stopPrice   DECIMAL NO  Used with STOP orders
+icebergQty  DECIMAL NO  Used with icebergOrders
+recvWindow  LONG    NO  
+timestamp   LONG    YES 
+Response:
+
+{}
+Query order (SIGNED)
+
+GET /api/v1/order
+Check an order's status.
+
+Parameters:
+
+Name    Type    Mandatory   Description
+symbol  STRING  YES 
+orderId LONG    NO  
+origClientOrderId   STRING  NO  
+recvWindow  LONG    NO  
+timestamp   LONG    YES 
+Either orderId or origClientOrderId must be sent.
+
+Response:
+
+{
+  "symbol": "LTCBTC",
+  "orderId": 1,
+  "clientOrderId": "myOrder1",
+  "price": "0.1",
+  "origQty": "1.0",
+  "executedQty": "0.0",
+  "status": "NEW",
+  "timeInForce": "GTC",
+  "type": "LIMIT",
+  "side": "BUY",
+  "stopPrice": "0.0",
+  "icebergQty": "0.0",
+  "time": 1499827319559
+}
+Cancel order (SIGNED)
+
+DELETE /api/v1/order
+Cancel an active order.
+
+Parameters:
+
+Name    Type    Mandatory   Description
+symbol  STRING  YES 
+orderId LONG    NO  
+origClientOrderId   STRING  NO  
+newClientOrderId    STRING  NO  Used to uniquely identify this cancel. Automatically generated by default.
+recvWindow  LONG    NO  
+timestamp   LONG    YES 
+Response:
+
+{
+  "symbol": "LTCBTC",
+  "origClientOrderId": "myOrder1",
+  "orderId": 1,
+  "clientOrderId": "cancelMyOrder1"
+}
+Current open orders (SIGNED)
+
+GET /api/v1/openOrders
+Get all open orders on a symbol.
+
+Parameters:
+
+Name    Type    Mandatory   Description
+symbol  STRING  YES 
+recvWindow  LONG    NO  
+timestamp   LONG    YES 
+Response:
+
+[
+  {
+    "symbol": "LTCBTC",
+    "orderId": 1,
+    "clientOrderId": "myOrder1",
+    "price": "0.1",
+    "origQty": "1.0",
+    "executedQty": "0.0",
+    "status": "NEW",
+    "timeInForce": "GTC",
+    "type": "LIMIT",
+    "side": "BUY",
+    "stopPrice": "0.0",
+    "icebergQty": "0.0",
+    "time": 1499827319559
+  }
+]
+All orders (SIGNED)
+
+
+
+GET /api/v1/allOrders
+GET /api/v1/account
+GET /api/v1/myTrades
+
+POST /api/v1/userDataStream
+PUT /api/v1/userDataStream
+DELETE /api/v1/userDataStream
 
     async fetchMarkets () {
         let markets = await this.publicGetPairSettings ();
@@ -1404,6 +1672,33 @@ var binance = {
     },
 
     async fetchBalance () {
+        // Get current account information.
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // recvWindow  LONG    NO  
+        // timestamp   LONG    YES 
+        // Response:
+        // {
+        //   "makerCommission": 15,
+        //   "takerCommission": 15,
+        //   "buyerCommission": 0,
+        //   "sellerCommission": 0,
+        //   "canTrade": true,
+        //   "canWithdraw": true,
+        //   "canDeposit": true,
+        //   "balances": [
+        //     {
+        //       "asset": "BTC",
+        //       "free": "4723846.89208129",
+        //       "locked": "0.00000000"
+        //     },
+        //     {
+        //       "asset": "LTC",
+        //       "free": "4763368.68006011",
+        //       "locked": "0.00000000"
+        //     }
+        //   ]
+        // }
         await this.loadMarkets ();
         let response = await this.privatePostUserInfo ();
         let result = { 'info': response };
@@ -1499,11 +1794,68 @@ var binance = {
         return this.parseTicker (response[p['id']], p);
     },
 
+    parseTrade (trade, market = undefined) {
+        // Get trades for a specific account and symbol.
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // symbol  STRING  YES 
+        // limit   INT NO  Default 500; max 500.
+        // fromId  LONG    NO  TradeId to fetch from. Default gets most recent trades.
+        // recvWindow  LONG    NO  
+        // timestamp   LONG    YES 
+        // Response:
+        // [
+        //   {
+        //     "id": 28457,
+        //     "price": "4.00000100",
+        //     "qty": "12.00000000",
+        //     "commission": "10.10000000",
+        //     "commissionAsset": "BNB",
+        //     "time": 1499865549590,
+        //     "isBuyer": true,
+        //     "isMaker": false,
+        //     "isBestMatch": true
+        //   }
+        // ]
+        throw new NotImplemented (this.id + ' parseTrade is not implemented yet');
+    },
+
     async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
         return this.publicGetTrades (this.extend ({
             'pair': this.marketId (market),
         }, params));
+    },
+
+    parseOrder (order, market = undefined) {
+        // Get all account orders; active, canceled, or filled.
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // symbol  STRING  YES 
+        // orderId LONG    NO  
+        // limit   INT NO  Default 500; max 500.
+        // recvWindow  LONG    NO  
+        // timestamp   LONG    YES 
+        // If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
+        // Response:
+        // [
+        //   {
+        //     "symbol": "LTCBTC",
+        //     "orderId": 1,
+        //     "clientOrderId": "myOrder1",
+        //     "price": "0.1",
+        //     "origQty": "1.0",
+        //     "executedQty": "0.0",
+        //     "status": "NEW",
+        //     "timeInForce": "GTC",
+        //     "type": "LIMIT",
+        //     "side": "BUY",
+        //     "stopPrice": "0.0",
+        //     "icebergQty": "0.0",
+        //     "time": 1499827319559
+        //   }
+        // ]
+        throw new NotImplemented (this.id + ' parseOrder is not implemented yet');
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
@@ -15338,7 +15690,7 @@ var exchanges = {
     '_1broker':      _1broker,
     '_1btcxe':       _1btcxe,
     'anxpro':        anxpro,
-    'binance',       binance,
+    'binance':       binance,
     'bit2c':         bit2c,
     'bitbay':        bitbay,
     'bitbays':       bitbays,
