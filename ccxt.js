@@ -1431,7 +1431,7 @@ var binance = {
         let m = this.market (market);
         let orderbook = await this.publicGetDepth (this.extend ({
             'symbol': m['id'],
-            // 'limit': 100, // default = maximum = 100
+            'limit': 100, // default = maximum = 100
         }, params));
         let timestamp = this.milliseconds ();
         let result = {
@@ -1555,42 +1555,30 @@ var binance = {
         let m = this.market (market);
         let response = await this.publicGetAggTrades (this.extend ({
             'symbol': m['id'],
-            // fromId: 123,    // ID to get aggregate trades from INCLUSIVE.
-            // startTime: 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
-            // endTime: 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-            // limit: 500,     // default = maximum = 500
+            // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
+            // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
+            // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
+            'limit': 500,        // default = maximum = 500
         }, params));
         return this.parseTrades (response, m);
     },
 
-    parseOrder (order, market = undefined) {
-        // Get all account orders; active, canceled, or filled.
-        // Parameters:
-        // Name    Type    Mandatory   Description
-        // symbol  STRING  YES
-        // orderId LONG    NO
-        // limit   INT NO  Default 500; max 500.
-        // recvWindow  LONG    NO
-        // timestamp   LONG    YES
-        // If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
-        // Response:
-        // [
-        //   {
-        //     "symbol": "LTCBTC",
-        //     "orderId": 1,
-        //     "clientOrderId": "myOrder1",
-        //     "price": "0.1",
-        //     "origQty": "1.0",
-        //     "executedQty": "0.0",
-        //     "status": "NEW",
-        //     "timeInForce": "GTC",
-        //     "type": "LIMIT",
-        //     "side": "BUY",
-        //     "stopPrice": "0.0",
-        //     "icebergQty": "0.0",
-        //     "time": 1499827319559
-        //   }
-        // ]
+    parseOrder (order) {
+        // {
+        //   "symbol": "LTCBTC",
+        //   "orderId": 1,
+        //   "clientOrderId": "myOrder1",
+        //   "price": "0.1",
+        //   "origQty": "1.0",
+        //   "executedQty": "0.0",
+        //   "status": "NEW",
+        //   "timeInForce": "GTC",
+        //   "type": "LIMIT",
+        //   "side": "BUY",
+        //   "stopPrice": "0.0",
+        //   "icebergQty": "0.0",
+        //   "time": 1499827319559
+        // }
         throw new NotImplemented (this.id + ' parseOrder is not implemented yet');
     },
 
@@ -1611,36 +1599,25 @@ var binance = {
         };
     },
 
-    async fetchOrder (id) {
-        // Check an order's status.
-        // Parameters:
-        // Name    Type    Mandatory   Description
-        // symbol  STRING  YES
-        // orderId LONG    NO
-        // origClientOrderId   STRING  NO
-        // recvWindow  LONG    NO
-        // timestamp   LONG    YES
-        // Either orderId or origClientOrderId must be sent.
-        // Response:
-        // {
-        //   "symbol": "LTCBTC",
-        //   "orderId": 1,
-        //   "clientOrderId": "myOrder1",
-        //   "price": "0.1",
-        //   "origQty": "1.0",
-        //   "executedQty": "0.0",
-        //   "status": "NEW",
-        //   "timeInForce": "GTC",
-        //   "type": "LIMIT",
-        //   "side": "BUY",
-        //   "stopPrice": "0.0",
-        //   "icebergQty": "0.0",
-        //   "time": 1499827319559
-        // }
-        throw new NotImplemented (this.id + ' fetchOrder not implemented yet');
+    async fetchOrder (id, params = {}) {
+        let symbol = ('symbol' in params);
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol param');
+        let m = this.market (symbol);
+        let response = await this.privateGetOrder (this.extend (params, {
+            'symbol': m['id'],
+            'orderId': id.toString (),
+        }));
+        return this.parseOrder (response);
     },
 
     async fetchOrders () {
+        // symbol  STRING  YES
+        // orderId LONG    NO
+        // limit   INT NO  Default 500; max 500.
+        // recvWindow  LONG    NO
+        // timestamp   LONG    YES
+        // If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
         throw new NotImplemented (this.id + ' fetchOrders not implemented yet');
     },
 

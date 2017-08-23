@@ -754,7 +754,7 @@ class binance (Exchange):
         m = self.market(market)
         orderbook = await self.publicGetDepth(self.extend({
             'symbol': m['id'],
-            # 'limit': 100, # default = maximum = 100
+            'limit': 100, # default = maximum = 100
         }, params))
         timestamp = self.milliseconds()
         result = {
@@ -869,41 +869,29 @@ class binance (Exchange):
         m = self.market(market)
         response = await self.publicGetAggTrades(self.extend({
             'symbol': m['id'],
-            # fromId: 123,    # ID to get aggregate trades from INCLUSIVE.
-            # startTime: 456, # Timestamp in ms to get aggregate trades from INCLUSIVE.
-            # endTime: 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
-            # limit: 500,     # default = maximum = 500
+            # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
+            # 'startTime': 456, # Timestamp in ms to get aggregate trades from INCLUSIVE.
+            # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
+            'limit': 500,        # default = maximum = 500
         }, params))
         return self.parse_trades(response, m)
 
-    def parseOrder(self, order, market=None):
-        # Get all account orders active, canceled, or filled.
-        # Parameters:
-        # Name    Type    Mandatory   Description
-        # symbol  STRING  YES
-        # orderId LONG    NO
-        # limit   INT NO  Default 500 max 500.
-        # recvWindow  LONG    NO
-        # timestamp   LONG    YES
-        # If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
-        # Response:
-        # [
-        #   {
-        #     "symbol": "LTCBTC",
-        #     "orderId": 1,
-        #     "clientOrderId": "myOrder1",
-        #     "price": "0.1",
-        #     "origQty": "1.0",
-        #     "executedQty": "0.0",
-        #     "status": "NEW",
-        #     "timeInForce": "GTC",
-        #     "type": "LIMIT",
-        #     "side": "BUY",
-        #     "stopPrice": "0.0",
-        #     "icebergQty": "0.0",
-        #     "time": 1499827319559
-        #   }
-        #]
+    def parseOrder(self, order):
+        # {
+        #   "symbol": "LTCBTC",
+        #   "orderId": 1,
+        #   "clientOrderId": "myOrder1",
+        #   "price": "0.1",
+        #   "origQty": "1.0",
+        #   "executedQty": "0.0",
+        #   "status": "NEW",
+        #   "timeInForce": "GTC",
+        #   "type": "LIMIT",
+        #   "side": "BUY",
+        #   "stopPrice": "0.0",
+        #   "icebergQty": "0.0",
+        #   "time": 1499827319559
+        #}
         raise NotImplemented(self.id + ' parseOrder is not implemented yet')
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
@@ -922,35 +910,24 @@ class binance (Exchange):
             'id': str(response['orderId']),
         }
 
-    async def fetch_order(self, id):
-        # Check an order's status.
-        # Parameters:
-        # Name    Type    Mandatory   Description
-        # symbol  STRING  YES
-        # orderId LONG    NO
-        # origClientOrderId   STRING  NO
-        # recvWindow  LONG    NO
-        # timestamp   LONG    YES
-        # Either orderId or origClientOrderId must be sent.
-        # Response:
-        # {
-        #   "symbol": "LTCBTC",
-        #   "orderId": 1,
-        #   "clientOrderId": "myOrder1",
-        #   "price": "0.1",
-        #   "origQty": "1.0",
-        #   "executedQty": "0.0",
-        #   "status": "NEW",
-        #   "timeInForce": "GTC",
-        #   "type": "LIMIT",
-        #   "side": "BUY",
-        #   "stopPrice": "0.0",
-        #   "icebergQty": "0.0",
-        #   "time": 1499827319559
-        #}
-        raise NotImplemented(self.id + ' fetchOrder not implemented yet')
+    async def fetch_order(self, id, params={}):
+        symbol = ('symbol' in list(params.keys()))
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchOrder requires a symbol param')
+        m = self.market(symbol)
+        response = await self.privateGetOrder(self.extend(params, {
+            'symbol': m['id'],
+            'orderId': str(id),
+        }))
+        return self.parseOrder(response)
 
     async def fetch_orders(self):
+        # symbol  STRING  YES
+        # orderId LONG    NO
+        # limit   INT NO  Default 500 max 500.
+        # recvWindow  LONG    NO
+        # timestamp   LONG    YES
+        # If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
         raise NotImplemented(self.id + ' fetchOrders not implemented yet')
 
     async def fetchMyOpenOrders(self, market=None, params={}):

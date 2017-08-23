@@ -1609,7 +1609,7 @@ class binance extends Exchange {
         $m = $this->market ($market);
         $orderbook = $this->publicGetDepth (array_merge (array (
             'symbol' => $m['id'],
-            // 'limit' => 100, // default = maximum = 100
+            'limit' => 100, // default = maximum = 100
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -1732,41 +1732,30 @@ class binance extends Exchange {
         $m = $this->market ($market);
         $response = $this->publicGetAggTrades (array_merge (array (
             'symbol' => $m['id'],
-            // fromId => 123,    // ID to get aggregate trades from INCLUSIVE.
-            // startTime => 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
-            // endTime => 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-            // limit => 500,     // default = maximum = 500
+            // 'fromId' => 123,    // ID to get aggregate trades from INCLUSIVE.
+            // 'startTime' => 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
+            // 'endTime' => 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
+            'limit' => 500,        // default = maximum = 500
         ), $params));
         return $this->parse_trades ($response, $m);
     }
 
-    public function parseOrder ($order, $market = null) {
-        // Get all account orders; active, canceled, or filled.
-        // Parameters:
-        // Name    Type    Mandatory   Description
-        // symbol  STRING  YES
-        // orderId LONG    NO
-        // limit   INT NO  Default 500; max 500.
-        // recvWindow  LONG    NO
-        // timestamp   LONG    YES
-        // If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
-        // Response:
-        // array (        //   {
-        //     "symbol" => "LTCBTC",
-        //     "orderId" => 1,
-        //     "clientOrderId" => "myOrder1",
-        //     "price" => "0.1",
-        //     "origQty" => "1.0",
-        //     "executedQty" => "0.0",
-        //     "status" => "NEW",
-        //     "timeInForce" => "GTC",
-        //     "type" => "LIMIT",
-        //     "side" => "BUY",
-        //     "stopPrice" => "0.0",
-        //     "icebergQty" => "0.0",
-        //     "time" => 1499827319559
-        //   }
-        //)
+    public function parseOrder ($order) {
+        // {
+        //   "symbol" => "LTCBTC",
+        //   "orderId" => 1,
+        //   "clientOrderId" => "myOrder1",
+        //   "price" => "0.1",
+        //   "origQty" => "1.0",
+        //   "executedQty" => "0.0",
+        //   "status" => "NEW",
+        //   "timeInForce" => "GTC",
+        //   "type" => "LIMIT",
+        //   "side" => "BUY",
+        //   "stopPrice" => "0.0",
+        //   "icebergQty" => "0.0",
+        //   "time" => 1499827319559
+        // }
         throw new NotImplemented ($this->id . ' parseOrder is not implemented yet');
     }
 
@@ -1787,36 +1776,25 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_order ($id) {
-        // Check an order's status.
-        // Parameters:
-        // Name    Type    Mandatory   Description
-        // symbol  STRING  YES
-        // orderId LONG    NO
-        // origClientOrderId   STRING  NO
-        // recvWindow  LONG    NO
-        // timestamp   LONG    YES
-        // Either orderId or origClientOrderId must be sent.
-        // Response:
-        // {
-        //   "symbol" => "LTCBTC",
-        //   "orderId" => 1,
-        //   "clientOrderId" => "myOrder1",
-        //   "price" => "0.1",
-        //   "origQty" => "1.0",
-        //   "executedQty" => "0.0",
-        //   "status" => "NEW",
-        //   "timeInForce" => "GTC",
-        //   "type" => "LIMIT",
-        //   "side" => "BUY",
-        //   "stopPrice" => "0.0",
-        //   "icebergQty" => "0.0",
-        //   "time" => 1499827319559
-        // }
-        throw new NotImplemented ($this->id . ' fetchOrder not implemented yet');
+    public function fetch_order ($id, $params = array ()) {
+        $symbol = (array_key_exists ('symbol', $params));
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol param');
+        $m = $this->market ($symbol);
+        $response = $this->privateGetOrder (array_merge ($params, array (
+            'symbol' => $m['id'],
+            'orderId' => (string) $id,
+        )));
+        return $this->parseOrder ($response);
     }
 
     public function fetch_orders () {
+        // symbol  STRING  YES
+        // orderId LONG    NO
+        // limit   INT NO  Default 500; max 500.
+        // recvWindow  LONG    NO
+        // timestamp   LONG    YES
+        // If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
         throw new NotImplemented ($this->id . ' fetchOrders not implemented yet');
     }
 
