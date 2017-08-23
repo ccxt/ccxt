@@ -1346,7 +1346,6 @@ var binance = {
     'countries': 'CN', // China
     'rateLimit': 1000, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
     'version': 'v1',
-    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
         'api': 'https://www.binance.com/api',
@@ -1545,61 +1544,92 @@ var binance = {
     },
 
     parseTrade (trade, market = undefined) {
-
-        // Get compressed, aggregate trades. Trades that fill at the time, from the same order, with the same price will have the quantity aggregated.
-        // Parameters:
-        // Name    Type    Mandatory   Description
-        // symbol  STRING  YES 
-        // fromId  LONG    NO  ID to get aggregate trades from INCLUSIVE.
-        // startTime   LONG    NO  Timestamp in ms to get aggregate trades from INCLUSIVE.
-        // endTime LONG    NO  Timestamp in ms to get aggregate trades until INCLUSIVE.
-        // limit   INT NO  Default 500; max 500.
-        // If both startTime and endTime are sent, limit should not be sent AND the distance between startTime and endTime must be less than 24 hours.
-        // If frondId, startTime, and endTime are not sent, the most recent aggregate trades will be returned.
-        // Response:
-        // [
-        //   {
-        //     "a": 26129,         // Aggregate tradeId
-        //     "p": "0.01633102",  // Price
-        //     "q": "4.70443515",  // Quantity
-        //     "f": 27781,         // First tradeId
-        //     "l": 27781,         // Last tradeId
-        //     "T": 1498793709153, // Timestamp
-        //     "m": true,          // Was the buyer the maker?
-        //     "M": true           // Was the trade the best price match?
-        //   }
-        // ]
-
-
-        // Get trades for a specific account and symbol.
-        // Parameters:
-        // Name    Type    Mandatory   Description
-        // symbol  STRING  YES 
-        // limit   INT NO  Default 500; max 500.
-        // fromId  LONG    NO  TradeId to fetch from. Default gets most recent trades.
-        // recvWindow  LONG    NO  
-        // timestamp   LONG    YES 
-        // Response:
-        // [
-        //   {
-        //     "id": 28457,
-        //     "price": "4.00000100",
-        //     "qty": "12.00000000",
-        //     "commission": "10.10000000",
-        //     "commissionAsset": "BNB",
-        //     "time": 1499865549590,
-        //     "isBuyer": true,
-        //     "isMaker": false,
-        //     "isBestMatch": true
-        //   }
-        // ]
-        throw new NotImplemented (this.id + ' parseTrade is not implemented yet');
+        let timestampField = ('T' in trade) ? 'T' : 'time';
+        let timestamp = trade[timestampField];
+        let priceField = ('p' in trade) ? 'p' : 'price';
+        let price = parseFloat (trade[priceField]);
+        let amountField = ('q' in trade) ? 'q' : 'qty';
+        let amount = parseFloat (trade[amountField]);
+        let idField = ('a' in trade) ? 'a' : 'id';
+        let id = trade[idField].toString ();
+        let side = undefined;
+        if ('m' in trade) {
+            side = (trade['m'] == true) ? 'sell' : 'buy';
+        } else {
+            let isBuyer = trade['isBuyer'];
+            let isMaker = trade['isMaker'];
+            if (isBuyer) {
+                side = isMaker ? 'sell' : 'buy';
+            } else {
+                side = isMaker ? 'buy' : 'sell';
+            }
+        }
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'id': id,
+            'type': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+        };
     },
+
+    // parseTrade (trade, market = undefined) {
+    //     // Get compressed, aggregate trades. Trades that fill at the time, from the same order, with the same price will have the quantity aggregated.
+    //     // Parameters:
+    //     // Name    Type    Mandatory   Description
+    //     // symbol  STRING  YES 
+    //     // If both startTime and endTime are sent, limit should not be sent AND the distance between startTime and endTime must be less than 24 hours.
+    //     // If frondId, startTime, and endTime are not sent, the most recent aggregate trades will be returned.
+    //     // Response:
+    //     // [
+    //     //   {
+    //     //     "a": 26129,         // Aggregate tradeId
+    //     //     "p": "0.01633102",  // Price
+    //     //     "q": "4.70443515",  // Quantity
+    //     //     "f": 27781,         // First tradeId
+    //     //     "l": 27781,         // Last tradeId
+    //     //     "T": 1498793709153, // Timestamp
+    //     //     "m": true,          // Was the buyer the maker?
+    //     //     "M": true           // Was the trade the best price match?
+    //     //   }
+    //     // ]
+    //     // Get trades for a specific account and symbol.
+    //     // Parameters:
+    //     // Name    Type    Mandatory   Description
+    //     // symbol  STRING  YES 
+    //     // limit   INT NO  Default 500; max 500.
+    //     // fromId  LONG    NO  TradeId to fetch from. Default gets most recent trades.
+    //     // recvWindow  LONG    NO  
+    //     // timestamp   LONG    YES 
+    //     // Response:
+    //     // [
+    //     //   {
+    //     //     "id": 28457,
+    //     //     "price": "4.00000100",
+    //     //     "qty": "12.00000000",
+    //     //     "commission": "10.10000000",
+    //     //     "commissionAsset": "BNB",
+    //     //     "time": 1499865549590,
+    //     //     "isBuyer": true,
+    //     //     "isMaker": false,
+    //     //     "isBestMatch": true
+    //     //   }
+    //     // ]
+    //     throw new NotImplemented (this.id + ' parseTrade is not implemented yet');
+    // },
 
     async fetchTrades (market, params = {}) {
         let m = this.market (market);
-        let response = await this.publicGetTrades (this.extend ({
-            'pair': m['id'],
+        let response = await this.publicGetAggTrades (this.extend ({
+            'symbol': m['id'],
+            // fromId: 123,    // ID to get aggregate trades from INCLUSIVE.
+            // startTime: 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
+            // endTime: 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
+            // limit: 500,     // default = maximum = 500
         }, params));
         return this.parseTrades (response, m);
     },
