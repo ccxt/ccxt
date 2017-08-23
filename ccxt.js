@@ -1489,11 +1489,11 @@ var binance = {
         // Kline/candlestick bars for a symbol. Klines are uniquely identified by their open time.
         // Parameters:
         // Name    Type    Mandatory   Description
-        // symbol  STRING  YES 
-        // interval    ENUM    YES 
+        // symbol  STRING  YES
+        // interval    ENUM    YES
         // limit   INT NO  Default 500; max 500.
-        // startTime   LONG    NO  
-        // endTime LONG    NO  
+        // startTime   LONG    NO
+        // endTime LONG    NO
         // If startTime and endTime are not sent, the most recent klines are returned.
         // Response:
         // [
@@ -1526,7 +1526,9 @@ var binance = {
         let id = trade[idField].toString ();
         let side = undefined;
         if ('m' in trade) {
-            side = (trade['m'] == true) ? 'sell' : 'buy';
+            side = 'sell';
+            if (trade['m'])
+                side = 'buy';
         } else {
             let isBuyer = trade['isBuyer'];
             let isMaker = trade['isMaker'];
@@ -1565,11 +1567,11 @@ var binance = {
         // Get all account orders; active, canceled, or filled.
         // Parameters:
         // Name    Type    Mandatory   Description
-        // symbol  STRING  YES 
-        // orderId LONG    NO  
+        // symbol  STRING  YES
+        // orderId LONG    NO
         // limit   INT NO  Default 500; max 500.
-        // recvWindow  LONG    NO  
-        // timestamp   LONG    YES 
+        // recvWindow  LONG    NO
+        // timestamp   LONG    YES
         // If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
         // Response:
         // [
@@ -1613,11 +1615,11 @@ var binance = {
         // Check an order's status.
         // Parameters:
         // Name    Type    Mandatory   Description
-        // symbol  STRING  YES 
-        // orderId LONG    NO  
-        // origClientOrderId   STRING  NO  
-        // recvWindow  LONG    NO  
-        // timestamp   LONG    YES 
+        // symbol  STRING  YES
+        // orderId LONG    NO
+        // origClientOrderId   STRING  NO
+        // recvWindow  LONG    NO
+        // timestamp   LONG    YES
         // Either orderId or origClientOrderId must be sent.
         // Response:
         // {
@@ -1673,7 +1675,7 @@ var binance = {
             let query = this.urlencode (this.extend ({ 'timestamp': nonce }, params));
             let auth = this.secret + '|' + query;
             let signature = this.hash (this.encode (auth), 'sha256');
-            query += '&signature=' + signature;
+            query += '&' + 'signature=' + signature;
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
             };
@@ -13156,7 +13158,8 @@ var poloniex = {
         let response = await this.fetch (url, method, headers, body);
         if ('error' in response) {
             let error = this.id + ' ' + this.json (response);
-            if (response['error'].indexOf ('Not enough') >= 0)
+            let failed = response['error'].indexOf ('Not enough') >= 0;
+            if (failed)
                 throw new InsufficientFunds (error);
             throw new ExchangeError (error);
         }

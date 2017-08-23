@@ -885,11 +885,11 @@ class binance (Exchange):
         # Kline/candlestick bars for a symbol. Klines are uniquely identified by their open time.
         # Parameters:
         # Name    Type    Mandatory   Description
-        # symbol  STRING  YES 
-        # interval    ENUM    YES 
+        # symbol  STRING  YES
+        # interval    ENUM    YES
         # limit   INT NO  Default 500 max 500.
-        # startTime   LONG    NO  
-        # endTime LONG    NO  
+        # startTime   LONG    NO
+        # endTime LONG    NO
         # If startTime and endTime are not sent, the most recent klines are returned.
         # Response:
         # [
@@ -921,7 +921,9 @@ class binance (Exchange):
         id = str(trade[idField])
         side = None
         if 'm' in trade:
-            side = 'sell' if(trade['m'] == True) else 'buy'
+            side = 'sell'
+            if trade['m']:
+                side = 'buy'
         else:
             isBuyer = trade['isBuyer']
             isMaker = trade['isMaker']
@@ -956,11 +958,11 @@ class binance (Exchange):
         # Get all account orders active, canceled, or filled.
         # Parameters:
         # Name    Type    Mandatory   Description
-        # symbol  STRING  YES 
-        # orderId LONG    NO  
+        # symbol  STRING  YES
+        # orderId LONG    NO
         # limit   INT NO  Default 500 max 500.
-        # recvWindow  LONG    NO  
-        # timestamp   LONG    YES 
+        # recvWindow  LONG    NO
+        # timestamp   LONG    YES
         # If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
         # Response:
         # [
@@ -1002,11 +1004,11 @@ class binance (Exchange):
         # Check an order's status.
         # Parameters:
         # Name    Type    Mandatory   Description
-        # symbol  STRING  YES 
-        # orderId LONG    NO  
-        # origClientOrderId   STRING  NO  
-        # recvWindow  LONG    NO  
-        # timestamp   LONG    YES 
+        # symbol  STRING  YES
+        # orderId LONG    NO
+        # origClientOrderId   STRING  NO
+        # recvWindow  LONG    NO
+        # timestamp   LONG    YES
         # Either orderId or origClientOrderId must be sent.
         # Response:
         # {
@@ -1057,7 +1059,7 @@ class binance (Exchange):
             query = self.urlencode(self.extend({'timestamp': nonce}, params))
             auth = self.secret + '|' + query
             signature = self.hash(self.encode(auth), 'sha256')
-            query += '&signature=' + signature
+            query += '&' + 'signature=' + signature
             headers = {
                 'X-MBX-APIKEY': self.apiKey,
             }
@@ -11988,8 +11990,6 @@ class poloniex (Exchange):
         self.loadMarkets()
         orders = self.fetchMyOpenOrders()
         index = self.index_by(orders, 'id')
-        if id in self.orders:
-            order = self.orders[id]
         if id in index:
             self.orders[id] = index[id]
             return index[id]
@@ -12027,7 +12027,8 @@ class poloniex (Exchange):
         response = self.fetch(url, method, headers, body)
         if 'error' in response:
             error = self.id + ' ' + self.json(response)
-            if response['error'].find('Not enough') >= 0:
+            failed = response['error'].find('Not enough') >= 0
+            if failed:
                 raise InsufficientFunds(error)
             raise ExchangeError(error)
         return response
