@@ -11648,10 +11648,13 @@ class poloniex (Exchange):
 
     def fetch_order(self, id):
         self.loadMarkets()
-        found = (id in list(self.orders.keys()))
-        if not found:
-            raise ExchangeError(self.id + ' order ' + id + ' not found')
-        return self.orders[id]
+        orders = self.fetchMyOpenOrders()
+        index = self.index_by(orders, 'id')
+        if id in index:
+            return index[id]
+        if id in self.orders:
+            return self.orders[id]
+        raise ExchangeError(self.id + ' order ' + id + ' not found')
 
     def fetch_orderTrades(self, id, params={}):
         self.loadMarkets()

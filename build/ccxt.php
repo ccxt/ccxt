@@ -43,7 +43,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.4.87';
+$version = '1.4.88';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -13174,10 +13174,13 @@ class poloniex extends Exchange {
 
     public function fetch_order ($id) {
         $this->loadMarkets ();
-        $found = (array_key_exists ($id, $this->orders));
-        if (!$found)
-            throw new ExchangeError ($this->id . ' order ' . $id . ' not found');
-        return $this->orders[$id];
+        $orders = $this->fetchMyOpenOrders ();
+        $index = $this->index_by ($orders, 'id');
+        if (array_key_exists ($id, $index))
+            return $index[$id];
+        if (array_key_exists ($id, $this->orders))
+            return $this->orders[$id];
+        throw new ExchangeError ($this->id . ' order ' . $id . ' not found');
     }
 
     public function fetch_orderTrades ($id, $params = array ()) {
