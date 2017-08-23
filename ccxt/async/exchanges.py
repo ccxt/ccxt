@@ -11098,6 +11098,31 @@ class okcoinusd (okcoin):
 
 #------------------------------------------------------------------------------
 
+class okex (okcoin):
+
+    def __init__(self, config={}):
+        params = {
+            'id': 'okex',
+            'name': 'OKEX',
+            'countries': ['CN', 'US'],
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/29562593-9038a9bc-8742-11e7-91cc-8201f845bfc1.jpg',
+                'api': 'https://www.okex.com',
+                'www': 'https://www.okex.com',
+                'doc': 'https://www.okex.com/rest_getStarted.html',
+            },
+            'markets': {
+                'LTC/BTC': {'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
+                'ETH/BTC': {'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC'},
+                'ETC/BTC': {'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC'},
+                'BCH/BTC': {'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC'},
+            },
+        }
+        params.update(config)
+        super(okex, self).__init__(params)
+
+#------------------------------------------------------------------------------
+
 class paymium (Exchange):
 
     def __init__(self, config={}):

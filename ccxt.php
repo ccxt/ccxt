@@ -192,6 +192,7 @@ class Exchange {
         'mercado',
         'okcoincny',
         'okcoinusd',
+        'okex',
         'paymium',
         'poloniex',
         'quadrigacx',

@@ -192,6 +192,7 @@ class Exchange {
         'mercado',
         'okcoincny',
         'okcoinusd',
+        'okex',
         'paymium',
         'poloniex',
         'quadrigacx',
@@ -12662,6 +12663,31 @@ class okcoinusd extends okcoin {
                 'LTC/USD' => array ( 'id' => 'ltc_usd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD' ),
                 'ETH/USD' => array ( 'id' => 'eth_usd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD' ),
                 'ETC/USD' => array ( 'id' => 'etc_usd', 'symbol' => 'ETC/USD', 'base' => 'ETC', 'quote' => 'USD' ),
+            ),
+        ), $options));
+    }
+}
+
+//------------------------------------------------------------------------------
+
+class okex extends okcoin {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge(array (
+            'id' => 'okex',
+            'name' => 'OKEX',
+            'countries' => array ( 'CN', 'US' ),
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/29562593-9038a9bc-8742-11e7-91cc-8201f845bfc1.jpg',
+                'api' => 'https://www.okex.com',
+                'www' => 'https://www.okex.com',
+                'doc' => 'https://www.okex.com/rest_getStarted.html',
+            ),
+            'markets' => array (
+                'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                'ETH/BTC' => array ( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC' ),
+                'ETC/BTC' => array ( 'id' => 'etc_btc', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC' ),
+                'BCH/BTC' => array ( 'id' => 'bcc_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC' ),
             ),
         ), $options));
     }

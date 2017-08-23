@@ -13,7 +13,7 @@ CCXT – CryptoCurrency eXchange Trading Library
     :target: https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master
 .. image:: https://badge.runkitcdn.com/ccxt.svg
     :target: https://npm.runkit.com/ccxt
-.. image:: https://img.shields.io/badge/exchanges-73-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-74-blue.svg
     :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
@@ -34,7 +34,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 73 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 74 cryptocurrency exchange markets and trading APIs:
 
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id              | name                                                      | ver   | doc                                                                                              | countries                                  |
@@ -154,6 +154,8 @@ The ccxt library currently supports the following 73 cryptocurrency exchange mar
 | okcoincny       | `OKCoin CNY <https://www.okcoin.cn>`__                    | 1     | `API <https://www.okcoin.cn/rest_getStarted.html>`__                                             | China                                      |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | okcoinusd       | `OKCoin USD <https://www.okcoin.com>`__                   | 1     | `API <https://www.okcoin.com/rest_getStarted.html>`__                                            | China, US                                  |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| okex            | `OKEX <https://www.okex.com>`__                           | 1     | `API <https://www.okex.com/rest_getStarted.html>`__                                              | China, US                                  |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | paymium         | `Paymium <https://www.paymium.com>`__                     | 1     | `API <https://github.com/Paymium/api-documentation>`__                                           | France, EU                                 |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
