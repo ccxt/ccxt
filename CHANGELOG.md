@@ -1,5 +1,7 @@
 # Сhangelog
 
+- Added initial template for a new exchange (unification in progress): [OKEX](https://www.okex.com) (China, US) 
+- Fixed Kraken KeyError: 'txid' exception, [#143](https://github.com/kroitor/ccxt/issues/143)
 - Added `hasFetchTickers` property to indicate method availability [#145](https://github.com/kroitor/ccxt/issues/145)
 - Added support for a new exchange: [Binance](https://www.binance.com) (China) [#142](https://github.com/kroitor/ccxt/issues/142)
 - Fixed `asyncio Unclosed client session` warning in Python 3.5+ [139](https://github.com/kroitor/ccxt/issues/139)
