@@ -1470,8 +1470,8 @@ var binance = {
             'last': parseFloat (ticker['lastPrice']),
             'change': parseFloat (ticker['priceChangePercent']),
             'percentage': undefined,
-            'average': parseFloat (ticker['avg']),
-            'baseVolume': parseFloat (ticker['vol']),
+            'average': undefined,
+            'baseVolume': undefined,
             'quoteVolume': parseFloat (ticker['volume']),
             'info': ticker,
         };
@@ -1644,11 +1644,11 @@ var binance = {
 
     async fetchMyOpenOrders (market = undefined, params = {}) {
         if (!market)
-            throw new ExchangeError (this.id + ' fetchMyOpenOrders requires a symbol')
+            throw new ExchangeError (this.id + ' fetchMyOpenOrders requires a symbol');
         let m = this.market (market);
         let response = await this.privateGetOpenOrders ({
             'symbol': m['id'],
-        })
+        });
         return this.parseOrders (response, m);
     },
 
@@ -1677,9 +1677,9 @@ var binance = {
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
             };
-            if (method == 'GET')
+            if (method == 'GET') {
                 url += '?' + query;
-            else {
+            } else {
                 body = query;
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
@@ -13114,8 +13114,6 @@ var poloniex = {
         await this.loadMarkets ();
         let orders = await this.fetchMyOpenOrders ();
         let index = this.indexBy (orders, 'id');
-        if (id in this.orders)
-            order = this.orders[id];
         if (id in index) {
             this.orders[id] = index[id];
             return index[id];

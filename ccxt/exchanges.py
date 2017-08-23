@@ -868,8 +868,8 @@ class binance (Exchange):
             'last': float(ticker['lastPrice']),
             'change': float(ticker['priceChangePercent']),
             'percentage': None,
-            'average': float(ticker['avg']),
-            'baseVolume': float(ticker['vol']),
+            'average': None,
+            'baseVolume': None,
             'quoteVolume': float(ticker['volume']),
             'info': ticker,
         }
@@ -1024,17 +1024,19 @@ class binance (Exchange):
         #   "icebergQty": "0.0",
         #   "time": 1499827319559
         #}
+        raise NotImplemented(self.id + ' fetchOrder not implemented yet')
 
     def fetch_orders(self):
+        raise NotImplemented(self.id + ' fetchOrders not implemented yet')
 
-
-    def fetchMyOpenOrders(self):
-        # Get all open orders on a symbol.
-        # Parameters:
-        # Name    Type    Mandatory   Description
-        # symbol  STRING  YES 
-        # recvWindow  LONG    NO  
-        # timestamp   LONG    YES 
+    def fetchMyOpenOrders(self, market=None, params={}):
+        if not market:
+            raise ExchangeError(self.id + ' fetchMyOpenOrders requires a symbol')
+        m = self.market(market)
+        response = self.privateGetOpenOrders({
+            'symbol': m['id'],
+        })
+        return self.parseOrders(response, m)
 
     def cancel_order(self, id, params={}):
         return self.privatePostOrderCancel(self.extend({
@@ -1061,7 +1063,7 @@ class binance (Exchange):
             }
             if method == 'GET':
                 url += '?' + query
-            else {
+            else:
                 body = query
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
         response = self.fetch(url, method, headers, body)
