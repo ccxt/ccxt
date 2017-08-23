@@ -1409,33 +1409,6 @@ var binance = {
     },
 
     async fetchBalance () {
-        // Get current account information.
-        // Parameters:
-        // Name    Type    Mandatory   Description
-        // recvWindow  LONG    NO  
-        // timestamp   LONG    YES 
-        // Response:
-        // {
-        //   "makerCommission": 15,
-        //   "takerCommission": 15,
-        //   "buyerCommission": 0,
-        //   "sellerCommission": 0,
-        //   "canTrade": true,
-        //   "canWithdraw": true,
-        //   "canDeposit": true,
-        //   "balances": [
-        //     {
-        //       "asset": "BTC",
-        //       "free": "4723846.89208129",
-        //       "locked": "0.00000000"
-        //     },
-        //     {
-        //       "asset": "LTC",
-        //       "free": "4763368.68006011",
-        //       "locked": "0.00000000"
-        //     }
-        //   ]
-        // }
         let response = await this.privateGetAccount ();
         let result = { 'info': response };
         let balances = response['balances'];
@@ -1620,39 +1593,19 @@ var binance = {
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
-        // Send in a new order
-        // Parameters:
-        // Name    Type    Mandatory   Description
-        // symbol  STRING  YES 
-        // side    ENUM    YES 
-        // type    ENUM    YES 
-        // timeInForce ENUM    YES 
-        // quantity    DECIMAL YES 
-        // price   DECIMAL YES 
-        // newClientOrderId    STRING  NO  A unique id for the order. Automatically generated if not sent.
-        // stopPrice   DECIMAL NO  Used with stop orders
-        // icebergQty  DECIMAL NO  Used with iceberg orders
-        // timestamp   LONG    YES 
-        // Response:
-        // {
-        //   "symbol":"LTCBTC",
-        //   "orderId": 1,
-        //   "clientOrderId": "myOrder1" // Will be newClientOrderId
-        //   "transactTime": 1499827319559
-        // }
-        let prefix = '';
-        if (type == 'market')
-            prefix = 'market_';
         let order = {
-            'pair': this.marketId (market),
-            'quantity': amount,
-            'price': price || 0,
-            'type': prefix + side,
+            'symbol': this.marketId (market),
+            'quantity': '%f'.sprintf (amount),
+            'price': '%f'.sprintf (price),
+            'type': type.toUpperCase (),
+            'side': side.toUpperCase (),
+            'timeInForce': 'GTC', // Good To Cancel
+            // 'timeInForce': 'IOC', // Immediate Or Cancel
         };
-        let response = await this.privatePostOrderCreate (this.extend (order, params));
+        let response = await this.privatePostOrder (this.extend (order, params));
         return {
             'info': response,
-            'id': response['order_id'].toString (),
+            'id': response['orderId'].toString (),
         };
     },
 
@@ -1682,19 +1635,21 @@ var binance = {
         //   "icebergQty": "0.0",
         //   "time": 1499827319559
         // }
+        throw new NotImplemented (this.id + ' fetchOrder not implemented yet');
     },
 
     async fetchOrders () {
-
+        throw new NotImplemented (this.id + ' fetchOrders not implemented yet');
     },
 
-    async fetchMyOpenOrders () {
-        // Get all open orders on a symbol.
-        // Parameters:
-        // Name    Type    Mandatory   Description
-        // symbol  STRING  YES 
-        // recvWindow  LONG    NO  
-        // timestamp   LONG    YES 
+    async fetchMyOpenOrders (market = undefined, params = {}) {
+        if (!market)
+            throw new ExchangeError (this.id + ' fetchMyOpenOrders requires a symbol')
+        let m = this.market (market);
+        let response = await this.privateGetOpenOrders ({
+            'symbol': m['id'],
+        })
+        return this.parseOrders (response, m);
     },
 
     async cancelOrder (id, params = {}) {

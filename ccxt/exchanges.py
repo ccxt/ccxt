@@ -744,9 +744,8 @@ class binance (Exchange):
             'id': 'binance',
             'name': 'Binance',
             'countries': 'CN', # China
-            'rateLimit': 1000, # once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
+            'rateLimit': 1000,
             'version': 'v1',
-            'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api': 'https://www.binance.com/api',
@@ -794,11 +793,10 @@ class binance (Exchange):
                 'LTC/BTC': {'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
                 'GAS/BTC': {'id': 'GASBTC', 'symbol': 'GAS/BTC', 'base': 'GAS', 'quote': 'BTC'},
                 'HCC/BTC': {'id': 'HCCBTC', 'symbol': 'HCC/BTC', 'base': 'HCC', 'quote': 'BTC'},
-                'BCC/BTC': {'id': 'BCCBTC', 'symbol': 'BCC/BTC', 'base': 'BCC', 'quote': 'BTC'},
+                'BCH/BTC': {'id': 'BCCBTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC'},
                 'BNB/ETH': {'id': 'BNBETH', 'symbol': 'BNB/ETH', 'base': 'BNB', 'quote': 'ETH'},
                 'DNT/ETH': {'id': 'DNTETH', 'symbol': 'DNT/ETH', 'base': 'DNT', 'quote': 'ETH'},
                 'OAX/ETH': {'id': 'OAXETH', 'symbol': 'OAX/ETH', 'base': 'OAX', 'quote': 'ETH'},
-                'QTUM/ETH': {'id': 'QTUMETH', 'symbol': 'QTUM/ETH', 'base': 'QTUM', 'quote': 'ETH'},
                 'MCO/ETH': {'id': 'MCOETH', 'symbol': 'MCO/ETH', 'base': 'MCO', 'quote': 'ETH'},
                 'BTM/ETH': {'id': 'BTMETH', 'symbol': 'BTM/ETH', 'base': 'BTM', 'quote': 'ETH'},
                 'SNT/ETH': {'id': 'SNTETH', 'symbol': 'SNT/ETH', 'base': 'SNT', 'quote': 'ETH'},
@@ -807,86 +805,35 @@ class binance (Exchange):
                 'ICN/ETH': {'id': 'ICNETH', 'symbol': 'ICN/ETH', 'base': 'ICN', 'quote': 'ETH'},
                 'BTC/USDT': {'id': 'BTCUSDT', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT'},
                 'ETH/USDT': {'id': 'ETHUSDT', 'symbol': 'ETH/USDT', 'base': 'ETH', 'quote': 'USDT'},
+                'QTUM/ETH': {'id': 'QTUMETH', 'symbol': 'QTUM/ETH', 'base': 'QTUM', 'quote': 'ETH'},
             },
         }
         params.update(config)
         super(binance, self).__init__(params)
 
     def fetch_balance(self):
-        # Get current account information.
-        # Parameters:
-        # Name    Type    Mandatory   Description
-        # recvWindow  LONG    NO  
-        # timestamp   LONG    YES 
-        # Response:
-        # {
-        #   "makerCommission": 15,
-        #   "takerCommission": 15,
-        #   "buyerCommission": 0,
-        #   "sellerCommission": 0,
-        #   "canTrade": True,
-        #   "canWithdraw": True,
-        #   "canDeposit": True,
-        #   "balances": [
-        #     {
-        #       "asset": "BTC",
-        #       "free": "4723846.89208129",
-        #       "locked": "0.00000000"
-        #     },
-        #     {
-        #       "asset": "LTC",
-        #       "free": "4763368.68006011",
-        #       "locked": "0.00000000"
-        #     }
-        #   ]
-        #}
-        self.loadMarkets()
-        response = self.privatePostUserInfo()
+        response = self.privateGetAccount()
         result = {'info': response}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
+        balances = response['balances']
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            asset = balance['asset']
+            currency = self.commonCurrencyCode(asset)
             account = {
-                'free': None,
-                'used': None,
+                'free': float(balance['free']),
+                'used': float(balance['locked']),
                 'total': None,
             }
-            if currency in response['balances']:
-                account['free'] = float(response['balances'][currency])
-            if currency in response['reserved']:
-                account['used'] = float(response['reserved'][currency])
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
         return result
 
     def fetch_order_book(self, market, params={}):
-        # Parameters:
-        # Name    Type    Mandatory   Description
-        # symbol  STRING  YES 
-        # limit   INT NO  Default 100 max 100.
-        # Response:
-        # {
-        #   "lastUpdateId": 1027024,
-        #   "bids": [
-        #     [
-        #       "4.00000000",     # PRICE
-        #       "431.00000000",   # QTY
-        #       []                # Can be ignored
-        #     ]
-        #   ],
-        #   "asks": [
-        #     [
-        #       "4.00000200",
-        #       "12.00000000",
-        #       []
-        #     ]
-        #   ]
-        #}
-        self.loadMarkets()
-        p = self.market(market)
-        response = self.publicGetOrderBook(self.extend({
-            'pair': p['id'],
+        m = self.market(market)
+        orderbook = self.publicGetDepth(self.extend({
+            'symbol': m['id'],
+            # 'limit': 100, # default = maximum = 100
         }, params))
-        orderbook = response[p['id']]
         timestamp = self.milliseconds()
         result = {
             'bids': [],
@@ -894,21 +841,19 @@ class binance (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = {'bids': 'bid', 'asks': 'ask'}
-        keys = list(sides.keys())
-        for k in range(0, len(keys)):
-            key = keys[k]
-            side = sides[key]
+        sides = ['bids', 'asks']
+        for s in range(0, len(sides)):
+            side = sides[s]
             orders = orderbook[side]
             for i in range(0, len(orders)):
                 order = orders[i]
                 price = float(order[0])
                 amount = float(order[1])
-                result[key].append([price, amount])
+                result[side].append([price, amount])
         return result
 
     def parse_ticker(self, ticker, market):
-        timestamp = ticker['openTime']
+        timestamp = ticker['closeTime']
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -930,12 +875,11 @@ class binance (Exchange):
         }
 
     def fetch_ticker(self, market):
-        self.loadMarkets()
-        response = self.publicGetTicker24h()
-        p = self.market(market)
-        print(response)
-        sys.exit()
-        return self.parse_ticker(response[p['id']], p)
+        m = self.market(market)
+        response = self.publicGetTicker24hr({
+            'symbol': m['id'],
+        })
+        return self.parse_ticker(response, m)
 
     def fetch_ohlcv(self, market, timeframe=60, since=None, limit=None):
         # Kline/candlestick bars for a symbol. Klines are uniquely identified by their open time.
@@ -964,63 +908,49 @@ class binance (Exchange):
         #     "17928899.62484339" # Can be ignored
         #   ]
         #]
+        raise NotImplemented(self.id + ' fetchOHLCV is not implemented yet')
 
     def parse_trade(self, trade, market=None):
-
-        # Get compressed, aggregate trades. Trades that fill at the time, from the same order, with the same price will have the quantity aggregated.
-        # Parameters:
-        # Name    Type    Mandatory   Description
-        # symbol  STRING  YES 
-        # fromId  LONG    NO  ID to get aggregate trades from INCLUSIVE.
-        # startTime   LONG    NO  Timestamp in ms to get aggregate trades from INCLUSIVE.
-        # endTime LONG    NO  Timestamp in ms to get aggregate trades until INCLUSIVE.
-        # limit   INT NO  Default 500 max 500.
-        # If both startTime and endTime are sent, limit should not be sent AND the distance between startTime and endTime must be less than 24 hours.
-        # If frondId, startTime, and endTime are not sent, the most recent aggregate trades will be returned.
-        # Response:
-        # [
-        #   {
-        #     "a": 26129,         # Aggregate tradeId
-        #     "p": "0.01633102",  # Price
-        #     "q": "4.70443515",  # Quantity
-        #     "f": 27781,         # First tradeId
-        #     "l": 27781,         # Last tradeId
-        #     "T": 1498793709153, # Timestamp
-        #     "m": True,          # Was the buyer the maker?
-        #     "M": True           # Was the trade the best price match?
-        #   }
-        #]
-
-
-        # Get trades for a specific account and symbol.
-        # Parameters:
-        # Name    Type    Mandatory   Description
-        # symbol  STRING  YES 
-        # limit   INT NO  Default 500 max 500.
-        # fromId  LONG    NO  TradeId to fetch from. Default gets most recent trades.
-        # recvWindow  LONG    NO  
-        # timestamp   LONG    YES 
-        # Response:
-        # [
-        #   {
-        #     "id": 28457,
-        #     "price": "4.00000100",
-        #     "qty": "12.00000000",
-        #     "commission": "10.10000000",
-        #     "commissionAsset": "BNB",
-        #     "time": 1499865549590,
-        #     "isBuyer": True,
-        #     "isMaker": False,
-        #     "isBestMatch": True
-        #   }
-        #]
-        raise NotImplemented(self.id + ' parseTrade is not implemented yet')
+        timestampField = 'T' if('T' in list(trade.keys())) else 'time'
+        timestamp = trade[timestampField]
+        priceField = 'p' if('p' in list(trade.keys())) else 'price'
+        price = float(trade[priceField])
+        amountField = 'q' if('q' in list(trade.keys())) else 'qty'
+        amount = float(trade[amountField])
+        idField = 'a' if('a' in list(trade.keys())) else 'id'
+        id = str(trade[idField])
+        side = None
+        if 'm' in trade:
+            side = 'sell' if(trade['m'] == True) else 'buy'
+        else:
+            isBuyer = trade['isBuyer']
+            isMaker = trade['isMaker']
+            if isBuyer:
+                side = 'sell' if isMaker else 'buy'
+            else:
+                side = 'buy' if isMaker else 'sell'
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'id': id,
+            'type': None,
+            'side': side,
+            'price': price,
+            'amount': amount,
+        }
 
     def fetch_trades(self, market, params={}):
-        self.loadMarkets()
-        return self.publicGetTrades(self.extend({
-            'pair': self.market_id(market),
+        m = self.market(market)
+        response = self.publicGetAggTrades(self.extend({
+            'symbol': m['id'],
+            # fromId: 123,    # ID to get aggregate trades from INCLUSIVE.
+            # startTime: 456, # Timestamp in ms to get aggregate trades from INCLUSIVE.
+            # endTime: 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
+            # limit: 500,     # default = maximum = 500
         }, params))
+        return self.parse_trades(response, m)
 
     def parseOrder(self, order, market=None):
         # Get all account orders active, canceled, or filled.
@@ -1053,40 +983,19 @@ class binance (Exchange):
         raise NotImplemented(self.id + ' parseOrder is not implemented yet')
 
     def create_order(self, market, type, side, amount, price=None, params={}):
-        # Send in a new order
-        # Parameters:
-        # Name    Type    Mandatory   Description
-        # symbol  STRING  YES 
-        # side    ENUM    YES 
-        # type    ENUM    YES 
-        # timeInForce ENUM    YES 
-        # quantity    DECIMAL YES 
-        # price   DECIMAL YES 
-        # newClientOrderId    STRING  NO  A unique id for the order. Automatically generated if not sent.
-        # stopPrice   DECIMAL NO  Used with stop orders
-        # icebergQty  DECIMAL NO  Used with iceberg orders
-        # timestamp   LONG    YES 
-        # Response:
-        # {
-        #   "symbol":"LTCBTC",
-        #   "orderId": 1,
-        #   "clientOrderId": "myOrder1" # Will be newClientOrderId
-        #   "transactTime": 1499827319559
-        #}
-        self.loadMarkets()
-        prefix = ''
-        if type == 'market':
-            prefix = 'market_'
         order = {
-            'pair': self.market_id(market),
-            'quantity': amount,
-            'price': price or 0,
-            'type': prefix + side,
+            'symbol': self.market_id(market),
+            'quantity': '{:f}'.format(amount),
+            'price': '{:f}'.format(price),
+            'type': type.upper(),
+            'side': side.upper(),
+            'timeInForce': 'GTC', # Good To Cancel
+            # 'timeInForce': 'IOC', # Immediate Or Cancel
         }
-        response = self.privatePostOrderCreate(self.extend(order, params))
+        response = self.privatePostOrder(self.extend(order, params))
         return {
             'info': response,
-            'id': str(response['order_id']),
+            'id': str(response['orderId']),
         }
 
     def fetch_order(self, id):
@@ -1127,25 +1036,14 @@ class binance (Exchange):
         # recvWindow  LONG    NO  
         # timestamp   LONG    YES 
 
-    def cancel_order(self, id):
-        # Cancel an active order.
-        # Parameters:
-        # Name    Type    Mandatory   Description
-        # symbol  STRING  YES 
-        # orderId LONG    NO  
-        # origClientOrderId   STRING  NO  
-        # newClientOrderId    STRING  NO  Used to uniquely identify self cancel. Automatically generated by default.
-        # recvWindow  LONG    NO  
-        # timestamp   LONG    YES 
-        # Response:
-        # {
-        #   "symbol": "LTCBTC",
-        #   "origClientOrderId": "myOrder1",
-        #   "orderId": 1,
-        #   "clientOrderId": "cancelMyOrder1"
-        #}
-        self.loadMarkets()
-        return self.privatePostOrderCancel({'order_id': id})
+    def cancel_order(self, id, params={}):
+        return self.privatePostOrderCancel(self.extend({
+            'orderId': int(id),
+            # 'origClientOrderId': id,
+        }, params))
+
+    def nonce(self):
+        return self.milliseconds()
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path
@@ -1154,22 +1052,22 @@ class binance (Exchange):
                 url += '?' + self.urlencode(params)
         else:
             nonce = self.nonce()
-            body = self.urlencode(self.extend({'nonce': nonce}, params))
+            query = self.urlencode(self.extend({'timestamp': nonce}, params))
+            auth = self.secret + '|' + query
+            signature = self.hash(self.encode(auth), 'sha256')
+            query += '&signature=' + signature
             headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len(body),
-                'Key': self.apiKey,
-                'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
+                'X-MBX-APIKEY': self.apiKey,
             }
+            if method == 'GET':
+                url += '?' + query
+            else {
+                body = query
+                headers['Content-Type'] = 'application/x-www-form-urlencoded'
         response = self.fetch(url, method, headers, body)
-        if 'result' in response:
-            if response['result']:
-                return response
-            raise ExchangeError(self.id + ' ' + self.json(response))
-        # {
-        #   "code": -1121,
-        #   "msg": "Invalid symbol."
-        #}
+        if 'code' in response:
+            if response['code'] < 0:
+                raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
 #------------------------------------------------------------------------------
