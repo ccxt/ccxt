@@ -12750,10 +12750,15 @@ var poloniex = {
         await this.loadMarkets ();
         let orders = await this.fetchMyOpenOrders ();
         let index = this.indexBy (orders, 'id');
-        if (id in index)
-            return index[id];
         if (id in this.orders)
+            order = this.orders[id];
+        if (id in index) {
+            this.orders[id] = index[id];
+            return index[id];
+        } else if (id in this.orders) {
+            this.orders[id]['status'] = 'closed';
             return this.orders[id];
+        }
         throw new ExchangeError (this.id + ' order ' + id + ' not found');
     },
 
