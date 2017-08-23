@@ -1393,7 +1393,7 @@ var binance = {
         'LTC/BTC': { 'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
         'GAS/BTC': { 'id': 'GASBTC', 'symbol': 'GAS/BTC', 'base': 'GAS', 'quote': 'BTC' },
         'HCC/BTC': { 'id': 'HCCBTC', 'symbol': 'HCC/BTC', 'base': 'HCC', 'quote': 'BTC' },
-        'BCC/BTC': { 'id': 'BCCBTC', 'symbol': 'BCC/BTC', 'base': 'BCC', 'quote': 'BTC' },
+        'BCH/BTC': { 'id': 'BCCBTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
         'BNB/ETH': { 'id': 'BNBETH', 'symbol': 'BNB/ETH', 'base': 'BNB', 'quote': 'ETH' },
         'DNT/ETH': { 'id': 'DNTETH', 'symbol': 'DNT/ETH', 'base': 'DNT', 'quote': 'ETH' },
         'OAX/ETH': { 'id': 'OAXETH', 'symbol': 'OAX/ETH', 'base': 'OAX', 'quote': 'ETH' },
@@ -1438,17 +1438,16 @@ var binance = {
         // }
         let response = await this.privatePostUserInfo ();
         let result = { 'info': response };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let balances = response['balances'];
+        for (let i = 0; i < balances.length; i++) {
+            let balance = balances[i];
+            let asset = balance['asset'];
+            let currency = this.commonCurrencyCode (asset);
             let account = {
-                'free': undefined,
-                'used': undefined,
+                'free': parseFloat (balance['free']),
+                'used': parseFloat (balance['locked']),
                 'total': undefined,
             };
-            if (currency in response['balances'])
-                account['free'] = parseFloat (response['balances'][currency]);
-            if (currency in response['reserved'])
-                account['used'] = parseFloat (response['reserved'][currency]);
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
