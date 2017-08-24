@@ -8641,9 +8641,10 @@ var cryptopia = {
             };
         }
         let response = await this.fetch (url, method, headers, body);
-        if ('Success' in response)
-            if (response['Success'])
-                return response;
+        if (response)
+            if ('Success' in response)
+                if (response['Success'])
+                    return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
     },
 }
