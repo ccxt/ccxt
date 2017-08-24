@@ -5014,14 +5014,8 @@ var btce = {
         }
         throw new ExchangeError (this.id + ' ' + p['symbol'] + ' order book is empty or not available');
     },
-
-    async fetchTicker (market) {
-        await this.loadMarkets ();
-        let p = this.market (market);
-        let tickers = await this.publicGetTickerPair ({
-            'pair': p['id'],
-        });
-        let ticker = tickers[p['id']];
+    
+    parseTicker (ticker) {
         let timestamp = ticker['updated'] * 1000;
         return {
             'timestamp': timestamp,
@@ -5042,6 +5036,37 @@ var btce = {
             'quoteVolume': ticker['vol'] ? ticker['vol'] : undefined,
             'info': ticker,
         };
+    },
+    
+    async fetchTickersById (marketsIds) {
+        await this.loadMarkets();
+        let marketsCount = marketsIds.length;
+        let p = '';
+        for (let i = 0; i < marketsCount; i++) {
+            if (i > 0)
+                p = p + '-';
+            p = p + marketsIds[i];
+        }
+        let tickers = await this.publicGetTickerPair ({
+            'pair': p,
+        });
+        let result = {};
+        for (let i = 0; i < marketsCount; i++) {
+            let marketId = marketsIds[i];
+            let ticker = tickers[marketId];
+            let parsedTicker = this.parseTicker (ticker);
+            let symbol = this.marketsById[marketId]['symbol'];
+            result[symbol] = parsedTicker;
+        }
+        return result;
+    },
+
+    async fetchTicker (market) {
+        await this.loadMarkets ();
+        let marketId = this.marketId (market);
+        let marketsIds = [marketId];
+        let tickers = await this.fetchTickersById (marketsIds);
+        return tickers[marketId];
     },
 
     async fetchTrades (market, params = {}) {
@@ -13152,6 +13177,13 @@ var poloniex = {
         let timestamp = this.parse8601 (trade['date']);
         let id = undefined;
         let order = undefined;
+        let symbol = undefined;
+        if (!market) {
+            if ('currencyPair' in trade) {
+                let marketId = trade['marketId'];
+                market = this.marketsById[marketId];
+        if (market)
+            symbol = market['symbol'];
         if ('tradeID' in trade)
             id = trade['tradeID'];
         if ('orderNumber' in trade)
@@ -13160,7 +13192,7 @@ var poloniex = {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'id': id,
             'order': order,
             'type': undefined,
@@ -13181,26 +13213,25 @@ var poloniex = {
     },
 
     async fetchMyTrades (market = undefined, params = {}) {
-        let now = this.seconds ();
+        let m = undefined;
+        if (market)
+            m = this.market (market);
+        let pair = m ? m['id'] : 'all';
         let request = this.extend ({
-            'currencyPair': 'all',
+            'currencyPair': pair,
             'end': this.seconds (), // last 50000 trades by default
         }, params);
-        if (market) {
-            let m = this.market (market);
-            request['currencyPair'] = m['id'];
-        }
         let trades = await this.privatePostReturnTradeHistory (request);
-        if (market)
+        if (market) // This is a hard to read control flow
             return this.parseTrades (trades, m);
         let result = { 'info': trades };
         let ids = Object.keys (trades);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let trades = trades[id];
-            let market = this.markets_by_id[id];
+            let trades = trades[id]; // This is a misleading variable name
+            let market = this.markets_by_id[id]; // This is a misleading varialbe name
             let symbol = market['symbol'];
-            result[symbol] = this.parseTrades (trades, market);
+            result[symbol] = this.parseTrades (trades, market); // Shouldn't be parseTrade instead of parseTrades?
         }
         return result;
     },
@@ -13229,6 +13260,17 @@ var poloniex = {
             'currencyPair': pair,
         }));
         return this.parseOrders (orders, m);
+    },
+    
+    async checkOrderIsOpen (id, market = undefined) {
+        let openOrders = await this.fetchMyOpenOrders (market);
+        let orderIsOpen = false;
+        for (let i = 0; i < openOrders.length; i++)
+            if (openOrders[i]['id'] == id) {
+                orderIsOpen = true;
+                break;
+            }
+        return orderIsOpen;
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
@@ -13272,10 +13314,21 @@ var poloniex = {
 
     async fetchOrderTrades (id, params = {}) {
         await this.loadMarkets ();
-        let trades = await this.privatePostReturnOrderTrades (this.extend ({
-            'orderNumber': id,
-        }, params));
-        return this.parseTrades (trades);
+        let parsedTrades = undefined;
+        try {
+            let trades = await this.privatePostReturnOrderTrades (this.extend ({
+                'orderNumber': id,
+            }, params));
+            parsedTrades = this.parseTrades (trades);
+        }
+        catch (error) {
+            // Unfortunately, poloniex throws an error if you try to get trades where there is none instead of returning an empty array
+            if (error.message.indexOf('Order not found, or you are not the person who placed it.') == -1) // I don't know if the library is already capable of handling error messages
+                throw error;
+            else
+                parsedTrades = [];
+        }
+        return parsedTrades;
     },
 
     async cancelOrder (id, params = {}) {
