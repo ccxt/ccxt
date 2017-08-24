@@ -13157,6 +13157,13 @@ var poloniex = {
         let timestamp = this.parse8601 (trade['date']);
         let id = undefined;
         let order = undefined;
+        let symbol = undefined;
+        if (!market) {
+            if ('currencyPair' in trade) {
+                let marketId = trade['marketId'];
+                market = this.marketsById[marketId];
+        if (market)
+            symbol = market['symbol'];
         if ('tradeID' in trade)
             id = trade['tradeID'];
         if ('orderNumber' in trade)
@@ -13165,7 +13172,7 @@ var poloniex = {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'id': id,
             'order': order,
             'type': undefined,
@@ -13186,26 +13193,25 @@ var poloniex = {
     },
 
     async fetchMyTrades (market = undefined, params = {}) {
-        let now = this.seconds ();
+        let m = undefined;
+        if (market)
+            m = this.market (market);
+        let pair = m ? m['id'] : 'all';
         let request = this.extend ({
-            'currencyPair': 'all',
+            'currencyPair': pair,
             'end': this.seconds (), // last 50000 trades by default
         }, params);
-        if (market) {
-            let m = this.market (market);
-            request['currencyPair'] = m['id'];
-        }
         let trades = await this.privatePostReturnTradeHistory (request);
-        if (market)
+        if (market) // This is a hard to read control flow
             return this.parseTrades (trades, m);
         let result = { 'info': trades };
         let ids = Object.keys (trades);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let trades = trades[id];
-            let market = this.markets_by_id[id];
+            let trades = trades[id]; // This is a misleading variable name
+            let market = this.markets_by_id[id]; // This is a misleading varialbe name
             let symbol = market['symbol'];
-            result[symbol] = this.parseTrades (trades, market);
+            result[symbol] = this.parseTrades (trades, market); // Shouldn't be parseTrade instead of parseTrades?
         }
         return result;
     },
