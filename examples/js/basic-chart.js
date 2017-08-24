@@ -11,10 +11,13 @@ require ('ansicolor').nice;
 
 (async function main () {
 
+    const index = 4 // [ timestamp, open, high, low, close, volume ]
     const ohlcv = await new ccxt.okcoinusd ().fetchOHLCV ('BTC/USD', 900)
-    log.yellow (
-        "\n" + asciichart.plot (ohlcv.map (x => x[4]), { height: 15 }), 
-        ('₿ = $' + ohlcv[ohlcv.length - 1][4]).toString ().green, "\n")
+    const lastPrice = ohlcv[ohlcv.length - 1][index] // closing price
+    const series = ohlcv.map (x => x[index])         // closing price
+    const bitcoinRate = ('₿ = $' + lastPrice).green
+    const chart = asciichart.plot (series, { height: 15 })
+    log.yellow ("\n" + chart, bitcoinRate, "\n")
     process.exit ()
 
 }) ()
