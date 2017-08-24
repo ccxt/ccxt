@@ -1,5 +1,7 @@
 # Сhangelog
 
+## Version 1.5.x 2017-08-24
+
 - Added initial template for a new exchange (unification in progress): [OKEX](https://www.okex.com) (China, US) 
 - Fixed Kraken KeyError: 'txid' exception, [#143](https://github.com/kroitor/ccxt/issues/143)
 - Added `hasFetchTickers` property to indicate method availability [#145](https://github.com/kroitor/ccxt/issues/145)
