@@ -151,6 +151,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.parseBidAsk\s/g, '.parse_bidask'],
             [ /\.indexBy\s/g, '.index_by'],
             [ /\.sortBy\s/g, '.sort_by'],
+            [ /\.marketIds\s/g, '.market_ids'],
             [ /\.marketId\s/g, '.market_id'],
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
@@ -233,6 +234,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.extractParams/g, '.extract_params'],
             [ /\.indexBy/g, '.index_by'],
             [ /\.sortBy/g, '.sort_by'],
+            [ /\.marketIds/g, '.market_ids'],
             [ /\.marketId/g, '.market_id'],
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             [ /this\./g, '$this->' ],

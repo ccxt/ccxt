@@ -98,6 +98,7 @@ class Exchange (object):
     verbose = False
     markets = None
     symbols = None
+    ids = None
     currencies = None
     tickers = None
     orders = {}
@@ -541,6 +542,7 @@ class Exchange (object):
         self.markets_by_id = Exchange.indexBy(values, 'id')
         self.marketsById = self.markets_by_id
         self.symbols = sorted(list(self.markets.keys()))
+        self.ids = sorted(list(self.markets_by_id.keys()))
         base = self.pluck([market for market in values if 'base' in market], 'base')
         quote = self.pluck([market for market in values if 'quote' in market], 'quote')
         self.currencies = sorted(self.unique(base + quote))
@@ -567,11 +569,11 @@ class Exchange (object):
     def fetchMarkets(self):
         return self.fetch_markets()
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None):
         raise NotSupported(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
 
-    def fetchTickers(self):
-        return self.fetch_tickers()
+    def fetchTickers(self, symbols=None):
+        return self.fetch_tickers(symbols)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
         return ohlcv
@@ -603,22 +605,24 @@ class Exchange (object):
     def parseOrders(self, orders, market=None):
         return self.parse_orders(orders, market)
 
-    def market(self, market):
-        isString = isinstance(market, basestring)
-        if isString and self.markets and (market in self.markets):
-            return self.markets[market]
-        return market
+    def market(self, symbol):
+        isString = isinstance(symbol, basestring)
+        if isString and self.markets and (symbol in self.markets):
+            return self.markets[symbol]
+        return symbol
 
-    def market_id(self, market):
-        p = self.market(market)
-        return p['id'] if type(p) is dict else market
+    def market_ids(self, symbols):
+        return [self.marketId(symbol) for symbol in symbols]
 
-    def marketId(self, market):
-        return self.market_id(market)
+    def marketIds(self, symbols):
+        return self.market_ids(symbols)
 
-    def symbol(self, market):
-        p = self.market(market)
-        return p['symbol'] if type(p) is dict else market
+    def market_id(self, symbol):
+        market = self.market(symbol)
+        return market['id'] if type(market) is dict else symbol
+
+    def marketId(self, symbol):
+        return self.market_id(symbol)
 
     def fetchBalance(self):
         return self.fetch_balance()

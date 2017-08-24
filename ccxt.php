@@ -416,6 +416,7 @@ class Exchange {
         $this->proxy      = '';
         $this->markets    = null;
         $this->symbols    = null;
+        $this->ids        = null;
         $this->currencies = null;
         $this->orders     = array ();
         $this->trades     = array ();
@@ -695,6 +696,8 @@ class Exchange {
         $this->marketsById = $this->markets_by_id;
         $this->symbols = array_keys ($this->markets);
         sort ($this->symbols);
+        $this->ids = array_keys ($this->markets_by_id);
+        sort ($this->ids);
         $base = $this->pluck (array_filter ($values, function ($market) { 
             return array_key_exists ('base', $market);
         }), 'base');
@@ -853,16 +856,20 @@ class Exchange {
                         $this->markets[$market] : $market;
     }
 
-    public function market_id ($market) {
-        return (is_array ($market = $this->market ($market))) ? $market['id'] : $market;
+    public function market_ids ($symbols) {
+        return array_map (array ($this, 'market_id'), $symbols);
     }
 
-    public function marketId ($market) {
-        return $this->market_id ($market);
+    public function marketIds ($symbols) {
+        return $this->market_ids ($symbols);
     }
 
-    public function symbol ($market) {
-        return (is_array ($market = $this->market ($market))) ? $market['symbol'] : $market;
+    public function market_id ($symbol) {
+        return (is_array ($market = $this->market ($symbol))) ? $market['id'] : $symbol;
+    }
+
+    public function marketId ($symbol) {
+        return $this->market_id ($symbol);
     }
 
     public function request ($path, $type, $method, $params, $headers = null, $body = null) { // stub

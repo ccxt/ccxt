@@ -525,7 +525,8 @@ const Exchange = function (config) {
         this.markets = indexBy (values, 'symbol')
         this.marketsById = indexBy (markets, 'id')
         this.markets_by_id = this.marketsById
-        this.symbols = Object.keys (this.markets)
+        this.symbols = Object.keys (this.markets).sort ()
+        this.ids = Object.keys (this.markets_by_id).sort ()
         let base = this.pluck (values.filter (market => 'base' in market), 'base')
         let quote = this.pluck (values.filter (market => 'quote' in market), 'quote')
         this.currencies = this.unique (base.concat (quote))
@@ -545,11 +546,11 @@ const Exchange = function (config) {
         })
     }
 
-    this.fetch_tickers = function () {
-        return this.fetchTickers ()
+    this.fetch_tickers = function (symbols = undefined) {
+        return this.fetchTickers (symbols)
     }
 
-    this.fetchTickers = function () {
+    this.fetchTickers = function (symbols = undefined) {
         throw new NotSupported (this.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
     }
 
@@ -573,21 +574,26 @@ const Exchange = function (config) {
         return currency
     }
 
-    this.market = function (market) {
-        return (((typeof market === 'string') &&
+    this.market = function (symbol) {
+        return (((typeof symbol === 'string') &&
             (typeof this.markets != 'undefined') &&
-            (typeof this.markets[market] != 'undefined')) ?
-                this.markets[market] :
-                market)
+            (typeof this.markets[symbol] != 'undefined')) ?
+                this.markets[symbol] :
+                symbol)
     }
 
     this.market_id =
-    this.marketId = function (market) {
-        return this.market (market).id || market
+    this.marketId = function (symbol) {
+        return this.market (symbol).id || symbol
     }
 
-    this.symbol = function (market) {
-        return this.market (market).symbol || market
+    this.market_ids =
+    this.marketIds = function (symbols) {
+        return symbols.map (symbol => this.marketId(symbol));
+    }
+
+    this.symbol = function (symbol) {
+        return this.market (symbol).symbol || symbol
     }
 
     this.extract_params =
@@ -4905,6 +4911,7 @@ var btce = {
     'name': 'BTC-e',
     'countries': [ 'BG', 'RU' ], // Bulgaria, Russia
     'version': '3',
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27843225-1b571514-611a-11e7-9208-2641a560b561.jpg',
         'api': {
@@ -5014,14 +5021,8 @@ var btce = {
         }
         throw new ExchangeError (this.id + ' ' + p['symbol'] + ' order book is empty or not available');
     },
-
-    async fetchTicker (market) {
-        await this.loadMarkets ();
-        let p = this.market (market);
-        let tickers = await this.publicGetTickerPair ({
-            'pair': p['id'],
-        });
-        let ticker = tickers[p['id']];
+    
+    parseTicker (ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
         return {
             'timestamp': timestamp,
@@ -5042,6 +5043,32 @@ var btce = {
             'quoteVolume': ticker['vol'] ? ticker['vol'] : undefined,
             'info': ticker,
         };
+    },
+    
+    async fetchTickers (symbols = undefined) {
+        await this.loadMarkets ();
+        let ids = (symbols) ? this.marketIds (symbols) : this.ids;
+        let tickers = await this.publicGetTickerPair ({
+            'pair': ids.join ('-'),
+        });
+        let result = {};
+        let keys = Object.keys (tickers);
+        for (let k = 0; k < keys.length; k++) {
+            let id = keys[k];
+            let ticker = tickers[id];
+            let market = this.markets_by_id[id];
+            let symbol = market['symbol'];
+            result[symbol] = this.parseTicker (ticker, market);
+        }
+        return result;
+    },
+
+    async fetchTicker (symbol) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let id = market['id'];
+        let tickers = await this.fetchTickers ([ id ]);
+        return tickers[symbol];
     },
 
     async fetchTrades (market, params = {}) {
@@ -13152,6 +13179,13 @@ var poloniex = {
         let timestamp = this.parse8601 (trade['date']);
         let id = undefined;
         let order = undefined;
+        let symbol = undefined;
+        if (market) {
+            symbol = market['symbol'];
+        } else if ('currencyPair' in trade) {
+            let marketId = trade['currencyPair'];
+            symbol = this.markets_by_id[marketId]['symbol'];
+        }
         if ('tradeID' in trade)
             id = trade['tradeID'];
         if ('orderNumber' in trade)
@@ -13160,7 +13194,7 @@ var poloniex = {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'id': id,
             'order': order,
             'type': undefined,
@@ -13170,37 +13204,38 @@ var poloniex = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        let m = this.market (market);
+        let market = this.market (symbol);
         let trades = await this.publicGetReturnTradeHistory (this.extend ({
-            'currencyPair': m['id'],
+            'currencyPair': market['id'],
             'end': this.seconds (), // last 50000 trades by default
         }, params));
-        return this.parseTrades (trades, m);
+        return this.parseTrades (trades, market);
     },
 
-    async fetchMyTrades (market = undefined, params = {}) {
-        let now = this.seconds ();
+    async fetchMyTrades (symbol = undefined, params = {}) {
+        let market = undefined;
+        if (symbol)
+            market = this.market (symbol);
+        let pair = market ? market['id'] : 'all';
         let request = this.extend ({
-            'currencyPair': 'all',
+            'currencyPair': pair,
             'end': this.seconds (), // last 50000 trades by default
         }, params);
+        let response = await this.privatePostReturnTradeHistory (request);
+        let result = undefined;
         if (market) {
-            let m = this.market (market);
-            request['currencyPair'] = m['id'];
-        }
-        let trades = await this.privatePostReturnTradeHistory (request);
-        if (market)
-            return this.parseTrades (trades, m);
-        let result = { 'info': trades };
-        let ids = Object.keys (trades);
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let trades = trades[id];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
-            result[symbol] = this.parseTrades (trades, market);
+            result = this.parseTrades (response, market);
+        } else {
+            result = { 'info': response };
+            let ids = Object.keys (response);
+            for (let i = 0; i < ids.length; i++) {
+                let id = ids[i];
+                let market = this.markets_by_id[id];
+                let symbol = market['symbol'];
+                result[symbol] = this.parseTrades (response[id], market);
+            }
         }
         return result;
     },
@@ -13220,15 +13255,21 @@ var poloniex = {
         };
     },
 
-    async fetchMyOpenOrders (market = undefined, params = {}) {
-        let m = undefined;
-        if (market)
-            m = this.market (market);
-        let pair = m ? m['id'] : 'all';
+    async fetchMyOpenOrders (symbol = undefined, params = {}) {
+        let market = undefined;
+        if (symbol)
+            market = this.market (symbol);
+        let pair = market ? market['id'] : 'all';
         let orders = await this.privatePostReturnOpenOrders (this.extend ({
             'currencyPair': pair,
         }));
-        return this.parseOrders (orders, m);
+        return this.parseOrders (orders, market);
+    },
+    
+    async fetchOrderStatus (id, market = undefined) {
+        let orders = await this.fetchMyOpenOrders (market);
+        let indexed = this.indexBy (orders, 'id');
+        return (id in indexed) ? 'open' : 'closed';
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
@@ -14530,17 +14571,17 @@ var virwox = {
         return result;
     },
 
-    async fetchBestPrices (market) {
+    async fetchBestPrices (symbol) {
         await this.loadMarkets ();
         return this.publicPostGetBestPrices ({
-            'symbols': [ this.symbol (market) ],
+            'symbols': [ this.marketId (symbol) ],
         });
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicPostGetMarketDepth (this.extend ({
-            'symbols': [ this.symbol (market) ],
+            'symbols': [ this.marketId (symbol) ],
             'buyDepth': 100,
             'sellDepth': 100,
         }, params));
