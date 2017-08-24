@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.4';
+$version = '1.5.5';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -13087,6 +13087,13 @@ class okex extends okcoin {
         return $this->parse_ticker ($ticker, $m);
     }
 
+    public function fetch_trades ($market, $params = array ()) {
+        return $this->publicGetFutureTrades (array_merge (array (
+            'symbol' => $this->market_id ($market),
+            'contract_type' => 'this_week', // next_week, quarter
+        ), $params));
+    }
+
     public function fetch_ohlcv ($market, $timeframe = 60, $since = null, $limit = null) {
         $m = $this->market ($market);
         $response = $this->publicGetFutureKline (array (
@@ -13097,6 +13104,30 @@ class okex extends okcoin {
             'size' => intval ($limit),
         ));
         return $this->parse_ohlcvs ($m, $response, $timeframe, $since, $limit);
+    }
+
+    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+        $orderType = ($side == 'buy') ? '1' : '2';
+        $order = array (
+            'symbol' => $this->market_id ($market),
+            'type' => $orderType,
+            'contract_type' => 'this_week', // next_week, quarter
+            'match_price' => 0, // match best counter party $price? 0 or 1, ignores $price if 1
+            'lever_rate' => 10, // leverage rate value => 10 or 20 (10 by default)
+            'price' => $price,
+            'amount' => $amount,
+        );
+        $response = $this->privatePostFutureTrade (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => (string) $response['order_id'],
+        );
+    }
+
+    public function cancel_order ($id, $params = array ()) {
+        return $this->privatePostFutureCancel (array_merge (array (
+            'order_id' => $id,
+        ), $params));
     }
 }
 

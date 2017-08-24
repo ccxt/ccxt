@@ -11486,6 +11486,12 @@ class okex (okcoin):
         ticker = self.extend(response['ticker'], {'timestamp': timestamp})
         return self.parse_ticker(ticker, m)
 
+    async def fetch_trades(self, market, params={}):
+        return self.publicGetFutureTrades(self.extend({
+            'symbol': self.market_id(market),
+            'contract_type': 'this_week', # next_week, quarter
+        }, params))
+
     async def fetch_ohlcv(self, market, timeframe=60, since=None, limit=None):
         m = self.market(market)
         response = await self.publicGetFutureKline({
@@ -11496,6 +11502,28 @@ class okex (okcoin):
             'size': int(limit),
         })
         return self.parse_ohlcvs(m, response, timeframe, since, limit)
+
+    async def create_order(self, market, type, side, amount, price=None, params={}):
+        orderType = '1' if(side == 'buy') else '2'
+        order = {
+            'symbol': self.market_id(market),
+            'type': orderType,
+            'contract_type': 'this_week', # next_week, quarter
+            'match_price': 0, # match best counter party price? 0 or 1, ignores price if 1
+            'lever_rate': 10, # leverage rate value: 10 or 20(10 by default)
+            'price': price,
+            'amount': amount,
+        }
+        response = await self.privatePostFutureTrade(self.extend(order, params))
+        return {
+            'info': response,
+            'id': str(response['order_id']),
+        }
+
+    async def cancel_order(self, id, params={}):
+        return self.privatePostFutureCancel(self.extend({
+            'order_id': id,
+        }, params))
 
 #------------------------------------------------------------------------------
 
