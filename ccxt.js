@@ -525,7 +525,8 @@ const Exchange = function (config) {
         this.markets = indexBy (values, 'symbol')
         this.marketsById = indexBy (markets, 'id')
         this.markets_by_id = this.marketsById
-        this.symbols = Object.keys (this.markets)
+        this.symbols = Object.keys (this.markets).sort ()
+        this.ids = Object.keys (this.markets_by_id).sort ()
         let base = this.pluck (values.filter (market => 'base' in market), 'base')
         let quote = this.pluck (values.filter (market => 'quote' in market), 'quote')
         this.currencies = this.unique (base.concat (quote))
@@ -545,11 +546,11 @@ const Exchange = function (config) {
         })
     }
 
-    this.fetch_tickers = function () {
-        return this.fetchTickers ()
+    this.fetch_tickers = function (symbols = undefined) {
+        return this.fetchTickers (symbols)
     }
 
-    this.fetchTickers = function () {
+    this.fetchTickers = function (symbols = undefined) {
         throw new NotSupported (this.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
     }
 
@@ -573,21 +574,26 @@ const Exchange = function (config) {
         return currency
     }
 
-    this.market = function (market) {
-        return (((typeof market === 'string') &&
+    this.market = function (symbol) {
+        return (((typeof symbol === 'string') &&
             (typeof this.markets != 'undefined') &&
-            (typeof this.markets[market] != 'undefined')) ?
-                this.markets[market] :
-                market)
+            (typeof this.markets[symbol] != 'undefined')) ?
+                this.markets[symbol] :
+                symbol)
     }
 
     this.market_id =
-    this.marketId = function (market) {
-        return this.market (market).id || market
+    this.marketId = function (symbol) {
+        return this.market (symbol).id || symbol
     }
 
-    this.symbol = function (market) {
-        return this.market (market).symbol || market
+    this.market_ids =
+    this.marketIds = function (symbols) {
+        return symbols.map (symbol => this.marketId(symbol));
+    }
+
+    this.symbol = function (symbol) {
+        return this.market (symbol).symbol || symbol
     }
 
     this.extract_params =
@@ -4905,6 +4911,7 @@ var btce = {
     'name': 'BTC-e',
     'countries': [ 'BG', 'RU' ], // Bulgaria, Russia
     'version': '3',
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27843225-1b571514-611a-11e7-9208-2641a560b561.jpg',
         'api': {
@@ -5015,7 +5022,7 @@ var btce = {
         throw new ExchangeError (this.id + ' ' + p['symbol'] + ' order book is empty or not available');
     },
     
-    parseTicker (ticker) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
         return {
             'timestamp': timestamp,
@@ -5038,28 +5045,30 @@ var btce = {
         };
     },
     
-    async fetchTickers (symbols = []) {
+    async fetchTickers (symbols = undefined) {
         await this.loadMarkets ();
-        let ids = (symbols) ? this.marketIds (symbols) : Object.keys (this.markets_by_id);
+        let ids = (symbols) ? this.marketIds (symbols) : this.ids;
         let tickers = await this.publicGetTickerPair ({
             'pair': ids.join ('-'),
         });
         let result = {};
-        for (let i = 0; i < marketsIds.length; i++) {
-            let marketId = marketsIds[i];
-            let ticker = tickers[marketId];
-            let parsedTicker = this.parseTicker (ticker);
-            let symbol = this.marketsById[marketId]['symbol'];
-            result[symbol] = parsedTicker;
+        let keys = Object.keys (tickers);
+        for (let k = 0; k < keys.length; k++) {
+            let id = keys[k];
+            let ticker = tickers[id];
+            let market = this.markets_by_id[id];
+            let symbol = market['symbol'];
+            result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
     },
 
     async fetchTicker (symbol) {
         await this.loadMarkets ();
-        let id = this.marketId (symbol);
+        let market = this.market (symbol);
+        let id = market['id'];
         let tickers = await this.fetchTickers ([ id ]);
-        return this.parseTicker (tickers[id]);
+        return tickers[symbol];
     },
 
     async fetchTrades (market, params = {}) {
@@ -13180,14 +13189,14 @@ var poloniex = {
         if ('tradeID' in trade)
             id = trade['tradeID'];
         if ('orderNumber' in trade)
-            orderNumber = trade['orderNumber'];
+            order = trade['orderNumber'];
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': orderNumber,
+            'order': order,
             'type': undefined,
             'side': trade['type'],
             'price': parseFloat (trade['rate']),
@@ -13195,14 +13204,14 @@ var poloniex = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        let m = this.market (market);
+        let market = this.market (symbol);
         let trades = await this.publicGetReturnTradeHistory (this.extend ({
-            'currencyPair': m['id'],
+            'currencyPair': market['id'],
             'end': this.seconds (), // last 50000 trades by default
         }, params));
-        return this.parseTrades (trades, m);
+        return this.parseTrades (trades, market);
     },
 
     async fetchMyTrades (symbol = undefined, params = {}) {
@@ -13215,15 +13224,18 @@ var poloniex = {
             'end': this.seconds (), // last 50000 trades by default
         }, params);
         let response = await this.privatePostReturnTradeHistory (request);
-        if (market) // This is a hard to read control flow
-            return this.parseTrades (response, market);
-        let result = { 'info': response };
-        let ids = Object.keys (response);
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
-            result[symbol] = this.parseTrades (trades[id], market);
+        let result = undefined;
+        if (market) {
+            result = this.parseTrades (response, market);
+        } else {
+            result = { 'info': response };
+            let ids = Object.keys (response);
+            for (let i = 0; i < ids.length; i++) {
+                let id = ids[i];
+                let market = this.markets_by_id[id];
+                let symbol = market['symbol'];
+                result[symbol] = this.parseTrades (response[id], market);
+            }
         }
         return result;
     },
@@ -13256,8 +13268,8 @@ var poloniex = {
     
     async fetchOrderStatus (id, market = undefined) {
         let orders = await this.fetchMyOpenOrders (market);
-        let ids = this.pluck (orders, 'id');
-        return (ids.indexOf (id) >= 0) ? 'open' : 'closed';
+        let indexed = this.indexBy (orders, 'id');
+        return (id in indexed) ? 'open' : 'closed';
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
@@ -14559,17 +14571,17 @@ var virwox = {
         return result;
     },
 
-    async fetchBestPrices (market) {
+    async fetchBestPrices (symbol) {
         await this.loadMarkets ();
         return this.publicPostGetBestPrices ({
-            'symbols': [ this.symbol (market) ],
+            'symbols': [ this.marketId (symbol) ],
         });
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicPostGetMarketDepth (this.extend ({
-            'symbols': [ this.symbol (market) ],
+            'symbols': [ this.marketId (symbol) ],
             'buyDepth': 100,
             'sellDepth': 100,
         }, params));

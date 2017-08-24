@@ -4045,6 +4045,7 @@ class btce (Exchange):
             'name': 'BTC-e',
             'countries': ['BG', 'RU'], # Bulgaria, Russia
             'version': '3',
+            'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27843225-1b571514-611a-11e7-9208-2641a560b561.jpg',
                 'api': {
@@ -4152,7 +4153,7 @@ class btce (Exchange):
             return result
         raise ExchangeError(self.id + ' ' + p['symbol'] + ' order book is empty or not available')
 
-    def parse_ticker(self, ticker):
+    def parse_ticker(self, ticker, market=None):
         timestamp = ticker['updated'] * 1000
         return {
             'timestamp': timestamp,
@@ -4174,32 +4175,28 @@ class btce (Exchange):
             'info': ticker,
         }
 
-    async def fetch_tickersById(self, marketsIds):
+    async def fetch_tickers(self, symbols=None):
         await self.loadMarkets()
-        marketsCount = len(marketsIds)
-        p = ''
-        for(i = 0 i < marketsCount i++) {
-            if i > 0:
-                p = p + '-'
-            p = p + marketsIds[i]
+        ids = self.market_ids(symbols) if(symbols) else self.ids
         tickers = await self.publicGetTickerPair({
-            'pair': p,
+            'pair': '-'.join(ids),
         })
         result = {}
-        for(i = 0 i < marketsCount i++) {
-            marketId = marketsIds[i]
-            ticker = tickers[marketId]
-            parsedTicker = self.parse_ticker(ticker)
-            symbol = self.marketsById[marketId]['symbol']
-            result[symbol] = parsedTicker
+        keys = list(tickers.keys())
+        for k in range(0, len(keys)):
+            id = keys[k]
+            ticker = tickers[id]
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
+            result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         await self.loadMarkets()
-        marketId = self.market_id(market)
-        marketsIds = [marketId]
-        tickers = await self.fetchTickersById(marketsIds)
-        return tickers[marketId]
+        market = self.market(symbol)
+        id = market['id']
+        tickers = await self.fetchTickers([id])
+        return tickers[symbol]
 
     async def fetch_trades(self, market, params={}):
         await self.loadMarkets()
@@ -11975,28 +11972,28 @@ class poloniex (Exchange):
         if 'tradeID' in trade:
             id = trade['tradeID']
         if 'orderNumber' in trade:
-            orderNumber = trade['orderNumber']
+            order = trade['orderNumber']
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'id': id,
-            'order': orderNumber,
+            'order': order,
             'type': None,
             'side': trade['type'],
             'price': float(trade['rate']),
             'amount': float(trade['amount']),
         }
 
-    async def fetch_trades(self, market, params={}):
+    async def fetch_trades(self, symbol, params={}):
         await self.loadMarkets()
-        m = self.market(market)
+        market = self.market(symbol)
         trades = await self.publicGetReturnTradeHistory(self.extend({
-            'currencyPair': m['id'],
+            'currencyPair': market['id'],
             'end': self.seconds(), # last 50000 trades by default
         }, params))
-        return self.parse_trades(trades, m)
+        return self.parse_trades(trades, market)
 
     async def fetch_my_trades(self, symbol=None, params={}):
         market = None
@@ -12008,15 +12005,17 @@ class poloniex (Exchange):
             'end': self.seconds(), # last 50000 trades by default
         }, params)
         response = await self.privatePostReturnTradeHistory(request)
-        if(market) # This is a hard to read control flow
-            return self.parse_trades(response, market)
-        result = {'info': response}
-        ids = list(response.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
-            result[symbol] = self.parse_trades(trades[id], market)
+        result = None
+        if market:
+            result = self.parse_trades(response, market)
+        else:
+            result = {'info': response}
+            ids = list(response.keys())
+            for i in range(0, len(ids)):
+                id = ids[i]
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+                result[symbol] = self.parse_trades(response[id], market)
         return result
 
     def parseOrder(self, order, market):
@@ -12045,8 +12044,8 @@ class poloniex (Exchange):
 
     async def fetch_orderStatus(self, id, market=None):
         orders = await self.fetchMyOpenOrders(market)
-        ids = self.pluck(orders, 'id')
-        return(ids.find(id) >= 'open' if 0) else 'closed'
+        indexed = self.index_by(orders, 'id')
+        return 'open' if(id in list(indexed.keys())) else 'closed'
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
         if type == 'market':
@@ -13299,16 +13298,16 @@ class virwox (Exchange):
             result[currency] = account
         return result
 
-    async def fetchBestPrices(self, market):
+    async def fetchBestPrices(self, symbol):
         await self.loadMarkets()
         return self.publicPostGetBestPrices({
-            'symbols': [self.symbol(market)],
+            'symbols': [self.market_id(symbol)],
         })
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         await self.loadMarkets()
         response = await self.publicPostGetMarketDepth(self.extend({
-            'symbols': [self.symbol(market)],
+            'symbols': [self.market_id(symbol)],
             'buyDepth': 100,
             'sellDepth': 100,
         }, params))
