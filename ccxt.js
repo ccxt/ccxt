@@ -492,6 +492,8 @@ const Exchange = function (config) {
 
         try {
 
+            if ((typeof body != 'string') || (body.length < 2))
+                throw new ExchangeError ([this.id, method, url, 'returned empty response'].join (' '))
             return JSON.parse (body)
 
         } catch (e) {
