@@ -5038,20 +5038,14 @@ var btce = {
         };
     },
     
-    async fetchTickersById (marketsIds) {
-        await this.loadMarkets();
-        let marketsCount = marketsIds.length;
-        let p = '';
-        for (let i = 0; i < marketsCount; i++) {
-            if (i > 0)
-                p = p + '-';
-            p = p + marketsIds[i];
-        }
+    async fetchTickers (symbols = []) {
+        await this.loadMarkets ();
+        let ids = (symbols) ? this.marketIds (symbols) : Object.keys (this.markets_by_id);
         let tickers = await this.publicGetTickerPair ({
-            'pair': p,
+            'pair': ids.join ('-'),
         });
         let result = {};
-        for (let i = 0; i < marketsCount; i++) {
+        for (let i = 0; i < marketsIds.length; i++) {
             let marketId = marketsIds[i];
             let ticker = tickers[marketId];
             let parsedTicker = this.parseTicker (ticker);
@@ -5061,12 +5055,11 @@ var btce = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         await this.loadMarkets ();
-        let marketId = this.marketId (market);
-        let marketsIds = [marketId];
-        let tickers = await this.fetchTickersById (marketsIds);
-        return tickers[marketId];
+        let id = this.marketId (symbol);
+        let tickers = await this.fetchTickers ([ id ]);
+        return this.parseTicker (tickers[id]);
     },
 
     async fetchTrades (market, params = {}) {
@@ -13264,7 +13257,7 @@ var poloniex = {
     async fetchOrderStatus (id, market = undefined) {
         let orders = await this.fetchMyOpenOrders (market);
         let ids = this.pluck (orders, 'id');
-        return (ids.indexOf (id) >= 0)
+        return (ids.indexOf (id) >= 0) ? 'open' : 'closed';
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
@@ -13308,21 +13301,10 @@ var poloniex = {
 
     async fetchOrderTrades (id, params = {}) {
         await this.loadMarkets ();
-        let parsedTrades = undefined;
-        try {
-            let trades = await this.privatePostReturnOrderTrades (this.extend ({
-                'orderNumber': id,
-            }, params));
-            parsedTrades = this.parseTrades (trades);
-        }
-        catch (error) {
-            // Unfortunately, poloniex throws an error if you try to get trades where there is none instead of returning an empty array
-            if (error.message.indexOf('Order not found, or you are not the person who placed it.') == -1) // I don't know if the library is already capable of handling error messages
-                throw error;
-            else
-                parsedTrades = [];
-        }
-        return parsedTrades;
+        let trades = await this.privatePostReturnOrderTrades (this.extend ({
+            'orderNumber': id,
+        }, params));
+        return this.parseTrades (trades);
     },
 
     async cancelOrder (id, params = {}) {

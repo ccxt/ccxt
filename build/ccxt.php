@@ -5255,13 +5255,7 @@ class btce extends Exchange {
         throw new ExchangeError ($this->id . ' ' . $p['symbol'] . ' order book is empty or not available');
     }
 
-    public function fetch_ticker ($market) {
-        $this->loadMarkets ();
-        $p = $this->market ($market);
-        $tickers = $this->publicGetTickerPair (array (
-            'pair' => $p['id'],
-        ));
-        $ticker = $tickers[$p['id']];
+    public function parse_ticker ($ticker) {
         $timestamp = $ticker['updated'] * 1000;
         return array (
             'timestamp' => $timestamp,
@@ -5282,6 +5276,37 @@ class btce extends Exchange {
             'quoteVolume' => $ticker['vol'] ? $ticker['vol'] : null,
             'info' => $ticker,
         );
+    }
+
+    public function fetch_tickersById ($marketsIds) {
+        $this->loadMarkets();
+        $marketsCount = count ($marketsIds);
+        $p = '';
+        for ($i = 0; $i < $marketsCount; $i++) {
+            if ($i > 0)
+                $p = $p . '-';
+            $p = $p . $marketsIds[$i];
+        }
+        $tickers = $this->publicGetTickerPair (array (
+            'pair' => $p,
+        ));
+        $result = array ();
+        for ($i = 0; $i < $marketsCount; $i++) {
+            $marketId = $marketsIds[$i];
+            $ticker = $tickers[$marketId];
+            $parsedTicker = $this->parse_ticker ($ticker);
+            $symbol = $this->marketsById[$marketId]['symbol'];
+            $result[$symbol] = $parsedTicker;
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($market) {
+        $this->loadMarkets ();
+        $marketId = $this->market_id ($market);
+        $marketsIds = [$marketId];
+        $tickers = $this->fetchTickersById ($marketsIds);
+        return $tickers[$marketId];
     }
 
     public function fetch_trades ($market, $params = array ()) {
@@ -13579,17 +13604,24 @@ class poloniex extends Exchange {
         $timestamp = $this->parse8601 ($trade['date']);
         $id = null;
         $order = null;
+        $symbol = null;
+        if ($market) {
+            $symbol = $market['symbol'];
+        } else if (array_key_exists ('currencyPair', $trade)) {
+            $marketId = $trade['currencyPair'];
+            $symbol = $this->markets_by_id[$marketId]['symbol'];
+        }
         if (array_key_exists ('tradeID', $trade))
             $id = $trade['tradeID'];
         if (array_key_exists ('orderNumber', $trade))
-            $order = $trade['orderNumber'];
+            orderNumber = $trade['orderNumber'];
         return array (
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'id' => $id,
-            'order' => $order,
+            'order' => orderNumber,
             'type' => null,
             'side' => $trade['type'],
             'price' => floatval ($trade['rate']),
@@ -13607,27 +13639,25 @@ class poloniex extends Exchange {
         return $this->parse_trades ($trades, $m);
     }
 
-    public function fetch_my_trades ($market = null, $params = array ()) {
-        $now = $this->seconds ();
+    public function fetch_my_trades ($symbol = null, $params = array ()) {
+        $market = null;
+        if ($symbol)
+            $market = $this->market ($symbol);
+        $pair = $market ? $market['id'] : 'all';
         $request = array_merge (array (
-            'currencyPair' => 'all',
-            'end' => $this->seconds (), // last 50000 $trades by default
+            'currencyPair' => $pair,
+            'end' => $this->seconds (), // last 50000 trades by default
         ), $params);
-        if ($market) {
-            $m = $this->market ($market);
-            $request['currencyPair'] = $m['id'];
-        }
-        $trades = $this->privatePostReturnTradeHistory ($request);
-        if ($market)
-            return $this->parse_trades ($trades, $m);
-        $result = array ( 'info' => $trades );
-        $ids = array_keys ($trades);
+        $response = $this->privatePostReturnTradeHistory ($request);
+        if ($market) // This is a hard to read control flow
+            return $this->parse_trades ($response, $market);
+        $result = array ( 'info' => $response );
+        $ids = array_keys ($response);
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $trades = $trades[$id];
             $market = $this->markets_by_id[$id];
             $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_trades ($trades, $market);
+            $result[$symbol] = $this->parse_trades (trades[$id], $market);
         }
         return $result;
     }
@@ -13647,15 +13677,21 @@ class poloniex extends Exchange {
         );
     }
 
-    public function fetchMyOpenOrders ($market = null, $params = array ()) {
-        $m = null;
-        if ($market)
-            $m = $this->market ($market);
-        $pair = $m ? $m['id'] : 'all';
+    public function fetchMyOpenOrders ($symbol = null, $params = array ()) {
+        $market = null;
+        if ($symbol)
+            $market = $this->market ($symbol);
+        $pair = $market ? $market['id'] : 'all';
         $orders = $this->privatePostReturnOpenOrders (array_merge (array (
             'currencyPair' => $pair,
         )));
-        return $this->parseOrders ($orders, $m);
+        return $this->parseOrders ($orders, $market);
+    }
+
+    public function fetch_orderStatus ($id, $market = null) {
+        $orders = $this->fetchMyOpenOrders ($market);
+        $ids = $this->pluck ($orders, 'id');
+        return mb_strpos (($ids, $id) !== false) ? 'open' : 'closed';
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {

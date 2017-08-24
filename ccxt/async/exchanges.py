@@ -4152,13 +4152,7 @@ class btce (Exchange):
             return result
         raise ExchangeError(self.id + ' ' + p['symbol'] + ' order book is empty or not available')
 
-    async def fetch_ticker(self, market):
-        await self.loadMarkets()
-        p = self.market(market)
-        tickers = await self.publicGetTickerPair({
-            'pair': p['id'],
-        })
-        ticker = tickers[p['id']]
+    def parse_ticker(self, ticker):
         timestamp = ticker['updated'] * 1000
         return {
             'timestamp': timestamp,
@@ -4179,6 +4173,33 @@ class btce (Exchange):
             'quoteVolume': ticker['vol'] if ticker['vol'] else None,
             'info': ticker,
         }
+
+    async def fetch_tickersById(self, marketsIds):
+        await self.loadMarkets()
+        marketsCount = len(marketsIds)
+        p = ''
+        for(i = 0 i < marketsCount i++) {
+            if i > 0:
+                p = p + '-'
+            p = p + marketsIds[i]
+        tickers = await self.publicGetTickerPair({
+            'pair': p,
+        })
+        result = {}
+        for(i = 0 i < marketsCount i++) {
+            marketId = marketsIds[i]
+            ticker = tickers[marketId]
+            parsedTicker = self.parse_ticker(ticker)
+            symbol = self.marketsById[marketId]['symbol']
+            result[symbol] = parsedTicker
+        return result
+
+    async def fetch_ticker(self, market):
+        await self.loadMarkets()
+        marketId = self.market_id(market)
+        marketsIds = [marketId]
+        tickers = await self.fetchTickersById(marketsIds)
+        return tickers[marketId]
 
     async def fetch_trades(self, market, params={}):
         await self.loadMarkets()
@@ -11945,17 +11966,23 @@ class poloniex (Exchange):
         timestamp = self.parse8601(trade['date'])
         id = None
         order = None
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        elif 'currencyPair' in trade:
+            marketId = trade['currencyPair']
+            symbol = self.markets_by_id[marketId]['symbol']
         if 'tradeID' in trade:
             id = trade['tradeID']
         if 'orderNumber' in trade:
-            order = trade['orderNumber']
+            orderNumber = trade['orderNumber']
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'id': id,
-            'order': order,
+            'order': orderNumber,
             'type': None,
             'side': trade['type'],
             'price': float(trade['rate']),
@@ -11971,26 +11998,25 @@ class poloniex (Exchange):
         }, params))
         return self.parse_trades(trades, m)
 
-    async def fetch_my_trades(self, market=None, params={}):
-        now = self.seconds()
+    async def fetch_my_trades(self, symbol=None, params={}):
+        market = None
+        if symbol:
+            market = self.market(symbol)
+        pair = market['id'] if market else 'all'
         request = self.extend({
-            'currencyPair': 'all',
+            'currencyPair': pair,
             'end': self.seconds(), # last 50000 trades by default
         }, params)
-        if market:
-            m = self.market(market)
-            request['currencyPair'] = m['id']
-        trades = await self.privatePostReturnTradeHistory(request)
-        if market:
-            return self.parse_trades(trades, m)
-        result = {'info': trades}
-        ids = list(trades.keys())
+        response = await self.privatePostReturnTradeHistory(request)
+        if(market) # This is a hard to read control flow
+            return self.parse_trades(response, market)
+        result = {'info': response}
+        ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            trades = trades[id]
             market = self.markets_by_id[id]
             symbol = market['symbol']
-            result[symbol] = self.parse_trades(trades, market)
+            result[symbol] = self.parse_trades(trades[id], market)
         return result
 
     def parseOrder(self, order, market):
@@ -12007,15 +12033,20 @@ class poloniex (Exchange):
             'trades': self.parse_trades(order['resultingTrades'], market),
         }
 
-    async def fetchMyOpenOrders(self, market=None, params={}):
-        m = None
-        if market:
-            m = self.market(market)
-        pair = m['id'] if m else 'all'
+    async def fetchMyOpenOrders(self, symbol=None, params={}):
+        market = None
+        if symbol:
+            market = self.market(symbol)
+        pair = market['id'] if market else 'all'
         orders = await self.privatePostReturnOpenOrders(self.extend({
             'currencyPair': pair,
         }))
-        return self.parseOrders(orders, m)
+        return self.parseOrders(orders, market)
+
+    async def fetch_orderStatus(self, id, market=None):
+        orders = await self.fetchMyOpenOrders(market)
+        ids = self.pluck(orders, 'id')
+        return(ids.find(id) >= 'open' if 0) else 'closed'
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
         if type == 'market':
