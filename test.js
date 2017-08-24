@@ -50,11 +50,11 @@ let apiKeys = JSON.parse (fs.readFileSync ('./keys.json', 'utf8'))[exchangeId]
 
 Object.assign (exchange, apiKeys)
 
-if (exchangeId === 'gdax') {
-    exchange.urls['api'] = 'https://api-public.sandbox.gdax.com' // move gdax to sandbox
-}
+if (exchange.urls['test'])
+    exchange.urls['api'] = exchange.urls['test']; // move to testnet/sandbox if possible
 
-if ([ 'jubi', 'gdax' ].indexOf (exchange.id) >= 0) {
+const verboseList = [ ];
+if (verboseList.indexOf (exchange.id) >= 0) {
     exchange.verbose = true
 }
 
