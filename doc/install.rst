@@ -51,9 +51,8 @@ Python
 
 Synchronous Python 2+ version of the ccxt library does not require any
 additional dependencies and uses builtin modules only. Asynchronous
-Python 3.5+ version of the ccxt library uses the builtin
-`asyncio <https://docs.python.org/3/library/asyncio.html>`__ and
-`aiohttp <http://aiohttp.readthedocs.io>`__.
+Python 3.5+ version of the ccxt library uses the builtin :mod:`asyncio`
+and `aiohttp <http://aiohttp.readthedocs.io>`__.
 
 .. code:: python
 
