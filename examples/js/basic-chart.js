@@ -11,6 +11,9 @@ require ('ansicolor').nice;
 
 (async function main () {
 
+    // experimental, not yet implemented for all exchanges
+    // your contributions are welcome ;)
+
     const index = 4 // [ timestamp, open, high, low, close, volume ]
     const ohlcv = await new ccxt.okcoinusd ().fetchOHLCV ('BTC/USD', 900)
     const lastPrice = ohlcv[ohlcv.length - 1][index] // closing price
