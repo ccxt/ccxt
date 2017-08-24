@@ -28,6 +28,7 @@
   "devDependencies": {
     "ansicolor": "^1.0.68",
     "as-table": "^1.0.22",
+    "asciichart": "^1.5.1",
     "babel-cli": "^6.24.1",
     "babel-plugin-async-to-promises": "^1.0.5",
     "babel-plugin-transform-es2017-object-entries": "0.0.4",

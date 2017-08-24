@@ -642,7 +642,6 @@ const Exchange = function (config) {
         }
         return result
     }
-
     
     this.createLimitBuyOrder = function (market, amount, price, params = {}) {
         return this.createOrder  (market, 'limit', 'buy', amount, price, params)
@@ -10039,7 +10038,7 @@ var gdax = {
             'start': since,
             'end': limit,
         });
-        return this.parseOHLCVs (m, response, timeframe, since, limit);
+        return this.parseOHLCVs (response, m, timeframe, since, limit);
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
@@ -12538,15 +12537,36 @@ var okcoin = {
         }, params));
     },
 
-    async fetchOHLCV (market, timeframe = 60, since = undefined, limit = undefined) {
-        let m = this.market (market);
-        let response = await this.publicGetKline ({
-            'symbol': m['id'],
-            'type': '1min',
-            'since': since,
+    async fetchOHLCV (symbol, timeframe = 60, since = undefined, limit = 1440, params = {}) {
+        let market = this.market (symbol);
+        let t = timeframe.toString ();
+        let timeframes = {
+            '60': '1min',
+            '180': '3min',
+            '300': '5min',
+            '900': '15min',
+            '1800': '30min',
+            '3600': '1hour',
+            '7200': '2hour',
+            '14400': '4hour',
+            '21600': '6hour',
+            '43200': '12hour',
+            '86400': '1day',
+            '259200': '3day',
+            '604800': '1week',
+        };
+        let request = {
+            'symbol': market['id'],
+            'type': timeframes[t],
             'size': parseInt (limit),
-        });
-        return this.parseOHLCVs (m, response, timeframe, since, limit);
+        };
+        if (since) {
+            request['since'] = since;
+        } else {
+            request['since'] = this.milliseconds () - 86400000; // last 24 hours
+        }
+        let response = await this.publicGetKline (this.extend (request, params));
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     },
 
     async fetchBalance () {
@@ -12719,22 +12739,22 @@ var okex = extend (okcoin, {
         }, params));
     },
 
-    async fetchOHLCV (market, timeframe = 60, since = undefined, limit = undefined) {
-        let m = this.market (market);
+    async fetchOHLCV (symbol, timeframe = 60, since = undefined, limit = undefined) {
+        let market = this.market (symbol);
         let response = await this.publicGetFutureKline ({
-            'symbol': m['id'],
+            'symbol': market['id'],
             'contract_type': 'this_week', // next_week, quarter
             'type': '1min',
             'since': since,
             'size': parseInt (limit),
         });
-        return this.parseOHLCVs (m, response, timeframe, since, limit);
+        return this.parseOHLCVs (market, response, timeframe, since, limit);
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let orderType = (side == 'buy') ? '1' : '2';
         let order = {
-            'symbol': this.marketId (market),
+            'symbol': this.marketId (symbol),
             'type': orderType,
             'contract_type': 'this_week', // next_week, quarter
             'match_price': 0, // match best counter party price? 0 or 1, ignores price if 1
