@@ -613,7 +613,6 @@ const Exchange = function (config) {
         return result
     }
 
-    this.parse_trades =
     this.parseTrades = function (trades, market = undefined) {
         let result = []
         for (let t = 0; t < trades.length; t++) {
@@ -622,7 +621,6 @@ const Exchange = function (config) {
         return result
     }
 
-    this.parse_orders =
     this.parseOrders = function (order, market = undefined) {
         let result = []
         for (let t = 0; t < order.length; t++) {
@@ -631,12 +629,10 @@ const Exchange = function (config) {
         return result
     }
 
-    this.parse_ohlcv =
     this.parseOHLCV = function (ohlcv, market = undefined, timeframe = 60, since = undefined, limit = undefined) {
         return ohlcv
     }
 
-    this.parse_ohlcvs =
     this.parseOHLCVs = function (ohlcvs, market = undefined, timeframe = 60, since = undefined, limit = undefined) {
         let result = []
         for (let t = 0; t < ohlcvs.length; t++) {
@@ -645,22 +641,19 @@ const Exchange = function (config) {
         return result
     }
 
-    this.create_limit_buy_order =
+    
     this.createLimitBuyOrder = function (market, amount, price, params = {}) {
         return this.createOrder  (market, 'limit', 'buy', amount, price, params)
     }
 
-    this.create_limit_sell_order =
     this.createLimitSellOrder = function (market, amount, price, params = {}) {
         return this.createOrder (market, 'limit', 'sell', amount, price, params)
     }
 
-    this.create_market_buy_order =
     this.createMarketBuyOrder = function (market, amount, params = {}) {
         return this.createOrder (market, 'market', 'buy', amount, undefined, params)
     }
 
-    this.create_market_sell_order =
     this.createMarketSellOrder = function (market, amount, params = {}) {
         return this.createOrder (market, 'market', 'sell', amount, undefined, params)
     }
@@ -709,10 +702,20 @@ const Exchange = function (config) {
     for (var property in config)
         this[property] = config[property]
 
-    this.fetch_balance    = this.fetchBalance
-    this.fetch_order_book = this.fetchOrderBook
-    this.fetch_ticker     = this.fetchTicker
-    this.fetch_trades     = this.fetchTrades
+    this.fetch_balance            = this.fetchBalance
+    this.fetch_order_book         = this.fetchOrderBook
+    this.fetch_ticker             = this.fetchTicker
+    this.fetch_trades             = this.fetchTrades
+    this.parse_order_book         = this.parseOrderBook
+    this.parse_trades             = this.parseTrades
+    this.parse_orders             = this.parseOrders
+    this.parse_ohlcv              = this.parseOHLCV
+    this.parse_ohlcvs             = this.parseOHLCVs
+    this.create_limit_buy_order   = this.createLimitBuyOrder
+    this.create_limit_sell_order  = this.createLimitBuyOrder
+    this.create_market_buy_order  = this.createLimitBuyOrder
+    this.create_market_sell_order = this.createLimitBuyOrder
+    this.create_order             = this.createOrder
 
     this.init ()
 }
