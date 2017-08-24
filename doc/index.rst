@@ -6,6 +6,7 @@ Welcome to ccxt's documentation!
    :caption: Contents:
 
    install.rst
+   checklist.rst
 
 
 Indices and tables
