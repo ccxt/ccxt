@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.3';
+$version = '1.5.4';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -658,6 +658,9 @@ class Exchange {
                     'not accessible from this location at the moment', $details);
             }            
         }
+
+        if ((gettype ($result) != 'string') || (strlen ($result) < 2))
+            $this->raise_error ('ExchangeNotAvailable', $url, $method, 'returned empty response');
 
         $decoded = json_decode ($result, $as_associative_array = true);
         
