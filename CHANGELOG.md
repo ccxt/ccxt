@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Added experimental fetchOrder to Kraken [#71](https://github.com/kroitor/ccxt/issues/71), [#102](https://github.com/kroitor/ccxt/pull/102)
 - Added `order_status` endpoint to Bitstamp [#148](https://github.com/kroitor/ccxt/pull/148)
 
 ## Version 1.5.x 2017-08-24
