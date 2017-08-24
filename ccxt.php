@@ -659,6 +659,9 @@ class Exchange {
             }            
         }
 
+        if ((gettype ($result) != 'string') || (strlen ($result) < 2))
+            $this->raise_error ('ExchangeNotAvailable', $method, $url, 'returned empty response');
+
         $decoded = json_decode ($result, $as_associative_array = true);
         
         if (!$decoded) {
