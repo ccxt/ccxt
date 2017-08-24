@@ -258,7 +258,7 @@ class Exchange (object):
 
     def handle_response(self, url, method='GET', headers=None, body=None):
         try:
-            if (type(body) is not str) or (len(body) < 2):
+            if (len(body) < 2):
                 raise ExchangeError(''.join([self.id, method, url, 'returned empty response']))
             return json.loads(body)
         except Exception as e:

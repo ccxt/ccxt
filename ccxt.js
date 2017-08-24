@@ -11432,6 +11432,49 @@ var kraken = {
         };
     },
 
+    parseOrder (order, market = undefined) {
+        let description = order['descr'];
+        market = this.markets_by_id[description['pair']];
+        let side = description['type'];
+        let type = description['ordertype'];
+        let symbol = (market) ? market['symbol'] : undefined;
+        let timestamp = order['opentm'] * 1000;
+        return {
+            'id': order['refid'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'status': order['status'],
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': order['price'],
+            'amount': order['vol'],
+            // 'trades': this.parseTrades (order['trades'], market),
+        };
+    },
+
+    parseOrders (orders, market = undefined) {
+        let result = [];
+        let ids = Object.keys (orders);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let order = this.parseOrder (orders[id]);
+        }
+        return result;
+    },
+
+    async fetchOrder (id) {
+        await this.loadMarkets ();
+        let response = await this.privatePostQueryOrders ({
+            'trades': true, // whether or not to include trades in output (optional.  default = false)
+            'txid': id, // comma delimited list of transaction ids to query info about (20 maximum)
+            // 'userref': 'optional', // restrict results to given user reference id (optional)
+        });
+        let orders = response['result'];
+        let order = this.parseOrder (orders[id]);
+        return this.extend ({ 'info': response }, order);
+    },
+
     async cancelOrder (id) {
         await this.loadMarkets ();
         return this.privatePostCancelOrder ({ 'txid': id });

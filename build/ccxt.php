@@ -11818,6 +11818,49 @@ class kraken extends Exchange {
         );
     }
 
+    public function parseOrder ($order, $market = null) {
+        $description = $order['descr'];
+        $market = $this->markets_by_id[$description['pair']];
+        $side = $description['type'];
+        $type = $description['ordertype'];
+        $symbol = ($market) ? $market['symbol'] : null;
+        $timestamp = $order['opentm'] * 1000;
+        return array (
+            'id' => $order['refid'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'status' => $order['status'],
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $order['price'],
+            'amount' => $order['vol'],
+            // 'trades' => $this->parse_trades ($order['trades'], $market),
+        );
+    }
+
+    public function parseOrders ($orders, $market = null) {
+        $result = array ();
+        $ids = array_keys ($orders);
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $order = $this->parseOrder ($orders[$id]);
+        }
+        return $result;
+    }
+
+    public function fetch_order ($id) {
+        $this->loadMarkets ();
+        $response = $this->privatePostQueryOrders (array (
+            'trades' => true, // whether or not to include trades in output (optional.  default = false)
+            'txid' => $id, // comma delimited list of transaction ids to query info about (20 maximum)
+            // 'userref' => 'optional', // restrict results to given user reference $id (optional)
+        ));
+        $orders = $response['result'];
+        $order = $this->parseOrder ($orders[$id]);
+        return array_merge (array ( 'info' => $response ), $order);
+    }
+
     public function cancel_order ($id) {
         $this->loadMarkets ();
         return $this->privatePostCancelOrder (array ( 'txid' => $id ));

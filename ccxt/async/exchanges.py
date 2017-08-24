@@ -10294,6 +10294,45 @@ class kraken (Exchange):
             'id': id,
         }
 
+    def parseOrder(self, order, market=None):
+        description = order['descr']
+        market = self.markets_by_id[description['pair']]
+        side = description['type']
+        type = description['ordertype']
+        symbol = market['symbol'] if(market) else None
+        timestamp = order['opentm'] * 1000
+        return {
+            'id': order['refid'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'status': order['status'],
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': order['price'],
+            'amount': order['vol'],
+            # 'trades': self.parse_trades(order['trades'], market),
+        }
+
+    def parseOrders(self, orders, market=None):
+        result = []
+        ids = list(orders.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            order = self.parseOrder(orders[id])
+        return result
+
+    async def fetch_order(self, id):
+        await self.loadMarkets()
+        response = await self.privatePostQueryOrders({
+            'trades': True, # whether or not to include trades in output(optional.  default = False)
+            'txid': id, # comma delimited list of transaction ids to query info about(20 maximum)
+            # 'userref': 'optional', # restrict results to given user reference id(optional)
+        })
+        orders = response['result']
+        order = self.parseOrder(orders[id])
+        return self.extend({'info': response}, order)
+
     async def cancel_order(self, id):
         await self.loadMarkets()
         return self.privatePostCancelOrder({'txid': id})
