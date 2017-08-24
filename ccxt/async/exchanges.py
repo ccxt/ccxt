@@ -11461,6 +11461,20 @@ class okex (okcoin):
         params.update(config)
         super(okex, self).__init__(params)
 
+    async def fetch_order_book(self, market, params={}):
+        orderbook = await self.publicGetFutureDepth(self.extend({
+            'symbol': self.market_id(market),
+            'contract_type': 'this_week', # next_week, quarter
+        }, params))
+        timestamp = self.milliseconds()
+        result = {
+            'bids': orderbook['bids'],
+            'asks': self.sort_by(orderbook['asks'], 0),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+        return result
+
     async def fetch_ticker(self, market, params={}):
         m = self.market(market)
         response = await self.publicGetFutureTicker(self.extend({

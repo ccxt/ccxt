@@ -13057,6 +13057,21 @@ class okex extends okcoin {
         ), $options));
     }
 
+    public function fetch_order_book ($market, $params = array ()) {
+        $orderbook = $this->publicGetFutureDepth (array_merge (array (
+            'symbol' => $this->market_id ($market),
+            'contract_type' => 'this_week', // next_week, quarter
+        ), $params));
+        $timestamp = $this->milliseconds ();
+        $result = array (
+            'bids' => $orderbook['bids'],
+            'asks' => $this->sort_by ($orderbook['asks'], 0),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+        return $result;
+    }
+
     public function fetch_ticker ($market, $params = array ()) {
         $m = $this->market ($market);
         $response = $this->publicGetFutureTicker (array_merge (array (
