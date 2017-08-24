@@ -5015,14 +5015,8 @@ var btce = {
         }
         throw new ExchangeError (this.id + ' ' + p['symbol'] + ' order book is empty or not available');
     },
-
-    async fetchTicker (market) {
-        await this.loadMarkets ();
-        let p = this.market (market);
-        let tickers = await this.publicGetTickerPair ({
-            'pair': p['id'],
-        });
-        let ticker = tickers[p['id']];
+    
+    parseTicker (ticker) {
         let timestamp = ticker['updated'] * 1000;
         return {
             'timestamp': timestamp,
@@ -5043,6 +5037,37 @@ var btce = {
             'quoteVolume': ticker['vol'] ? ticker['vol'] : undefined,
             'info': ticker,
         };
+    },
+    
+    async fetchTickersById (marketsIds) {
+        await this.loadMarkets();
+        let marketsCount = marketsIds.length;
+        let p = '';
+        for (let i = 0; i < marketsCount; i++) {
+            if (i > 0)
+                p = p + '-';
+            p = p + marketsIds[i];
+        }
+        let tickers = await this.publicGetTickerPair ({
+            'pair': p,
+        });
+        let result = {};
+        for (let i = 0; i < marketsCount; i++) {
+            let marketId = marketsIds[i];
+            let ticker = tickers[marketId];
+            let parsedTicker = this.parseTicker (ticker);
+            let symbol = this.marketsById[marketId]['symbol'];
+            result[symbol] = parsedTicker;
+        }
+        return result;
+    },
+
+    async fetchTicker (market) {
+        await this.loadMarkets ();
+        let marketId = this.marketId (market);
+        let marketsIds = [marketId];
+        let tickers = await this.fetchTickersById (marketsIds);
+        return tickers[marketId];
     },
 
     async fetchTrades (market, params = {}) {
