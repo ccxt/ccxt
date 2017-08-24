@@ -12669,6 +12669,13 @@ var okex = extend (okcoin, {
         return this.parseTicker (ticker, m);
     },
 
+    async fetchTrades (market, params = {}) {
+        return this.publicGetFutureTrades (this.extend ({
+            'symbol': this.marketId (market),
+            'contract_type': 'this_week', // next_week, quarter
+        }, params));
+    },
+
     async fetchOHLCV (market, timeframe = 60, since = undefined, limit = undefined) {
         let m = this.market (market);
         let response = await this.publicGetFutureKline ({
@@ -12679,6 +12686,24 @@ var okex = extend (okcoin, {
             'size': parseInt (limit),
         });
         return this.parseOHLCVs (m, response, timeframe, since, limit);
+    },
+
+    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+        let orderType = (side == 'buy') ? '1' : '2';
+        let order = {
+            'symbol': this.marketId (market),
+            'type': orderType,
+            'contract_type': 'this_week', // next_week, quarter
+            'match_price': 0, // match best counter party price? 0 or 1, ignores price if 1
+            'lever_rate': 10, // leverage rate value: 10 or 20 (10 by default)
+            'price': price,
+            'amount': amount,
+        };
+        let response = await this.privatePostFutureTrade (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['order_id'].toString (),
+        };
     },
 
     async cancelOrder (id, params = {}) {
