@@ -13294,10 +13294,21 @@ var poloniex = {
 
     async fetchOrderTrades (id, params = {}) {
         await this.loadMarkets ();
-        let trades = await this.privatePostReturnOrderTrades (this.extend ({
-            'orderNumber': id,
-        }, params));
-        return this.parseTrades (trades);
+        let parsedTrades = undefined;
+        try {
+            let trades = await this.privatePostReturnOrderTrades (this.extend ({
+                'orderNumber': id,
+            }, params));
+            parsedTrades = this.parseTrades (trades);
+        }
+        catch (error) {
+            // Unfortunately, poloniex throws an error if you try to get trades where there is none instead of returning an empty array
+            if (error.message.indexOf('Order not found, or you are not the person who placed it.') == -1) // I don't know if the library is already capable of handling error messages
+                throw error;
+            else
+                parsedTrades = [];
+        }
+        return parsedTrades;
     },
 
     async cancelOrder (id, params = {}) {
