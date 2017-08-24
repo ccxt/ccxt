@@ -13235,6 +13235,17 @@ var poloniex = {
         }));
         return this.parseOrders (orders, m);
     },
+    
+    async checkOrderIsOpen (id, market = undefined) {
+        let openOrders = await this.fetchMyOpenOrders (market);
+        let orderIsOpen = false;
+        for (let i = 0; i < openOrders.length; i++)
+            if (openOrders[i]['id'] == id) {
+                orderIsOpen = true;
+                break;
+            }
+        return orderIsOpen;
+    },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
