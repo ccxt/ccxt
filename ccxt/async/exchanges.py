@@ -8965,7 +8965,7 @@ class gdax (Exchange):
             'start': since,
             'end': limit,
         })
-        return self.parse_ohlcvs(m, response, timeframe, since, limit)
+        return self.parse_ohlcvs(response, m, timeframe, since, limit)
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
         await self.loadMarkets()
@@ -11347,15 +11347,35 @@ class okcoin (Exchange):
             'symbol': self.market_id(market),
         }, params))
 
-    async def fetch_ohlcv(self, market, timeframe=60, since=None, limit=None):
-        m = self.market(market)
-        response = await self.publicGetKline({
-            'symbol': m['id'],
-            'type': '1min',
-            'since': since,
+    async def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=1440, params={}):
+        market = self.market(symbol)
+        t = str(timeframe)
+        timeframes = {
+            '60': '1min',
+            '180': '3min',
+            '300': '5min',
+            '900': '15min',
+            '1800': '30min',
+            '3600': '1hour',
+            '7200': '2hour',
+            '14400': '4hour',
+            '21600': '6hour',
+            '43200': '12hour',
+            '86400': '1day',
+            '259200': '3day',
+            '604800': '1week',
+        }
+        request = {
+            'symbol': market['id'],
+            'type': timeframes[t],
             'size': int(limit),
-        })
-        return self.parse_ohlcvs(m, response, timeframe, since, limit)
+        }
+        if since:
+            request['since'] = since
+        else:
+            request['since'] = self.milliseconds() - 86400000 # last 24 hours
+        response = await self.publicGetKline(self.extend(request, params))
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def fetch_balance(self):
         response = await self.privatePostUserinfo()
@@ -11531,21 +11551,21 @@ class okex (okcoin):
             'contract_type': 'this_week', # next_week, quarter
         }, params))
 
-    async def fetch_ohlcv(self, market, timeframe=60, since=None, limit=None):
-        m = self.market(market)
+    async def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
+        market = self.market(symbol)
         response = await self.publicGetFutureKline({
-            'symbol': m['id'],
+            'symbol': market['id'],
             'contract_type': 'this_week', # next_week, quarter
             'type': '1min',
             'since': since,
             'size': int(limit),
         })
-        return self.parse_ohlcvs(m, response, timeframe, since, limit)
+        return self.parse_ohlcvs(market, response, timeframe, since, limit)
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         orderType = '1' if(side == 'buy') else '2'
         order = {
-            'symbol': self.market_id(market),
+            'symbol': self.market_id(symbol),
             'type': orderType,
             'contract_type': 'this_week', # next_week, quarter
             'match_price': 0, # match best counter party price? 0 or 1, ignores price if 1

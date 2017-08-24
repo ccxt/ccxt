@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.6';
+$version = '1.5.7';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10401,7 +10401,7 @@ class gdax extends Exchange {
             'start' => $since,
             'end' => $limit,
         ));
-        return $this->parse_ohlcvs ($m, $response, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs ($response, $m, $timeframe, $since, $limit);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
@@ -12941,15 +12941,36 @@ class okcoin extends Exchange {
         ), $params));
     }
 
-    public function fetch_ohlcv ($market, $timeframe = 60, $since = null, $limit = null) {
-        $m = $this->market ($market);
-        $response = $this->publicGetKline (array (
-            'symbol' => $m['id'],
-            'type' => '1min',
-            'since' => $since,
+    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = 1440, $params = array ()) {
+        $market = $this->market ($symbol);
+        $t = (string) $timeframe;
+        $timeframes = array (
+            '60' => '1min',
+            '180' => '3min',
+            '300' => '5min',
+            '900' => '15min',
+            '1800' => '30min',
+            '3600' => '1hour',
+            '7200' => '2hour',
+            '14400' => '4hour',
+            '21600' => '6hour',
+            '43200' => '12hour',
+            '86400' => '1day',
+            '259200' => '3day',
+            '604800' => '1week',
+        );
+        $request = array (
+            'symbol' => $market['id'],
+            'type' => $timeframes[$t],
             'size' => intval ($limit),
-        ));
-        return $this->parse_ohlcvs ($m, $response, $timeframe, $since, $limit);
+        );
+        if ($since) {
+            $request['since'] = $since;
+        } else {
+            $request['since'] = $this->milliseconds () - 86400000; // last 24 hours
+        }
+        $response = $this->publicGetKline (array_merge ($request, $params));
+        return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_balance () {
@@ -13137,22 +13158,22 @@ class okex extends okcoin {
         ), $params));
     }
 
-    public function fetch_ohlcv ($market, $timeframe = 60, $since = null, $limit = null) {
-        $m = $this->market ($market);
+    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
+        $market = $this->market ($symbol);
         $response = $this->publicGetFutureKline (array (
-            'symbol' => $m['id'],
+            'symbol' => $market['id'],
             'contract_type' => 'this_week', // next_week, quarter
             'type' => '1min',
             'since' => $since,
             'size' => intval ($limit),
         ));
-        return $this->parse_ohlcvs ($m, $response, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs ($market, $response, $timeframe, $since, $limit);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $orderType = ($side == 'buy') ? '1' : '2';
         $order = array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
             'type' => $orderType,
             'contract_type' => 'this_week', // next_week, quarter
             'match_price' => 0, // match best counter party $price? 0 or 1, ignores $price if 1
