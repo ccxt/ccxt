@@ -13301,13 +13301,13 @@ class virwox (Exchange):
     async def fetchBestPrices(self, symbol):
         await self.loadMarkets()
         return self.publicPostGetBestPrices({
-            'symbols': [self.market_id(symbol)],
+            'symbols': [symbol],
         })
 
     async def fetch_order_book(self, symbol, params={}):
         await self.loadMarkets()
         response = await self.publicPostGetMarketDepth(self.extend({
-            'symbols': [self.market_id(symbol)],
+            'symbols': [symbol],
             'buyDepth': 100,
             'sellDepth': 100,
         }, params))
@@ -13332,12 +13332,12 @@ class virwox (Exchange):
                 result[key].append([price, amount])
         return result
 
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         await self.loadMarkets()
         end = self.milliseconds()
         start = end - 86400000
         response = await self.publicGetTradedPriceVolume({
-            'instrument': self.symbol(market),
+            'instrument': symbol,
             'endDate': self.yyyymmddhhmmss(end),
             'startDate': self.yyyymmddhhmmss(start),
             'HLOC': 1,
@@ -13371,7 +13371,7 @@ class virwox (Exchange):
     async def fetch_trades(self, market, params={}):
         await self.loadMarkets()
         return self.publicGetRawTradeData(self.extend({
-            'instrument': self.symbol(market),
+            'instrument': market,
             'timespan': 3600,
         }, params))
 

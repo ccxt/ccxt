@@ -14574,14 +14574,14 @@ var virwox = {
     async fetchBestPrices (symbol) {
         await this.loadMarkets ();
         return this.publicPostGetBestPrices ({
-            'symbols': [ this.marketId (symbol) ],
+            'symbols': [ symbol ],
         });
     },
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicPostGetMarketDepth (this.extend ({
-            'symbols': [ this.marketId (symbol) ],
+            'symbols': [ symbol ],
             'buyDepth': 100,
             'sellDepth': 100,
         }, params));
@@ -14614,7 +14614,7 @@ var virwox = {
         let end = this.milliseconds ();
         let start = end - 86400000;
         let response = await this.publicGetTradedPriceVolume ({
-            'instrument': this.marketId (symbol),
+            'instrument': symbol,
             'endDate': this.yyyymmddhhmmss (end),
             'startDate': this.yyyymmddhhmmss (start),
             'HLOC': 1,
@@ -14649,7 +14649,7 @@ var virwox = {
     async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
         return this.publicGetRawTradeData(this.extend ({
-            'instrument': this.symbol (market),
+            'instrument': market,
             'timespan': 3600,
         }, params));
     },

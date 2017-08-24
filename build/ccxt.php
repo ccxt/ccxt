@@ -15040,14 +15040,14 @@ class virwox extends Exchange {
     public function fetchBestPrices ($symbol) {
         $this->loadMarkets ();
         return $this->publicPostGetBestPrices (array (
-            'symbols' => array ($this->market_id ($symbol)),
+            'symbols' => array ($symbol),
         ));
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
         $this->loadMarkets ();
         $response = $this->publicPostGetMarketDepth (array_merge (array (
-            'symbols' => array ($this->market_id ($symbol)),
+            'symbols' => array ($symbol),
             'buyDepth' => 100,
             'sellDepth' => 100,
         ), $params));
@@ -15075,12 +15075,12 @@ class virwox extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->loadMarkets ();
         $end = $this->milliseconds ();
         $start = $end - 86400000;
         $response = $this->publicGetTradedPriceVolume (array (
-            'instrument' => $this->symbol ($market),
+            'instrument' => $symbol,
             'endDate' => $this->yyyymmddhhmmss ($end),
             'startDate' => $this->yyyymmddhhmmss ($start),
             'HLOC' => 1,
@@ -15115,7 +15115,7 @@ class virwox extends Exchange {
     public function fetch_trades ($market, $params = array ()) {
         $this->loadMarkets ();
         return $this->publicGetRawTradeData(array_merge (array (
-            'instrument' => $this->symbol ($market),
+            'instrument' => $market,
             'timespan' => 3600,
         ), $params));
     }

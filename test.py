@@ -221,7 +221,7 @@ with open('./keys.json') as file:
 # instantiate all exchanges
 for id in ccxt.exchanges:
     exchange = getattr(ccxt, id)
-    exchanges[id] = exchange({'verbose': False})
+    exchanges[id] = exchange({'verbose': True})
 
 # set up api keys appropriately
 tuples = list(ccxt.Exchange.keysort(config).items())
