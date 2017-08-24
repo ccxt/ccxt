@@ -12640,6 +12640,21 @@ var okex = extend (okcoin, {
         // 'BCH/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
     },
 
+    async fetchOrderBook (market, params = {}) {
+        let orderbook = await this.publicGetFutureDepth (this.extend ({
+            'symbol': this.marketId (market),
+            'contract_type': 'this_week', // next_week, quarter
+        }, params));
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': orderbook['bids'],
+            'asks': this.sortBy (orderbook['asks'], 0),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        return result;
+    },
+
     async fetchTicker (market, params = {}) {
         let m = this.market (market);
         let response = await this.publicGetFutureTicker (this.extend ({
