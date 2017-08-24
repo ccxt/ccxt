@@ -14609,12 +14609,12 @@ var virwox = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         await this.loadMarkets ();
         let end = this.milliseconds ();
         let start = end - 86400000;
         let response = await this.publicGetTradedPriceVolume ({
-            'instrument': this.symbol (market),
+            'instrument': this.marketId (symbol),
             'endDate': this.yyyymmddhhmmss (end),
             'startDate': this.yyyymmddhhmmss (start),
             'HLOC': 1,
