@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.2';
+$version = '1.5.3';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8962,9 +8962,10 @@ class cryptopia extends Exchange {
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
-        if (array_key_exists ('Success', $response))
-            if ($response['Success'])
-                return $response;
+        if ($response)
+            if (array_key_exists ('Success', $response))
+                if ($response['Success'])
+                    return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
@@ -13081,6 +13082,18 @@ class okex extends okcoin {
         $timestamp = intval ($response['date']) * 1000;
         $ticker = array_merge ($response['ticker'], array ( 'timestamp' => $timestamp ));
         return $this->parse_ticker ($ticker, $m);
+    }
+
+    public function fetch_ohlcv ($market, $timeframe = 60, $since = null, $limit = null) {
+        $m = $this->market ($market);
+        $response = $this->publicGetFutureKline (array (
+            'symbol' => $m['id'],
+            'contract_type' => 'this_week', // next_week, quarter
+            'type' => '1min',
+            'since' => $since,
+            'size' => intval ($limit),
+        ));
+        return $this->parse_ohlcvs ($m, $response, $timeframe, $since, $limit);
     }
 }
 
