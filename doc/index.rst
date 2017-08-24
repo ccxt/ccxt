@@ -1,5 +1,5 @@
-Welcome to ccxt's documentation!
-================================
+Welcome to the ccxt documentation!
+==================================
 
 .. toctree::
    :maxdepth: 2
@@ -8,10 +8,3 @@ Welcome to ccxt's documentation!
    install.rst
    checklist.rst
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
