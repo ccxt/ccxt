@@ -12680,6 +12680,12 @@ var okex = extend (okcoin, {
         });
         return this.parseOHLCVs (m, response, timeframe, since, limit);
     },
+
+    async cancelOrder (id, params = {}) {
+        return this.privatePostFutureCancel (this.extend ({
+            'order_id': id,
+        }, params));
+    },
 })
 
 //-----------------------------------------------------------------------------
