@@ -12666,6 +12666,17 @@ var okex = extend (okcoin, {
         return this.parseTicker (ticker, m);
     },
 
+    async fetchOHLCV (market, timeframe = 60, since = undefined, limit = undefined) {
+        let m = this.market (market);
+        let response = await this.publicGetFutureKline ({
+            'symbol': m['id'],
+            'contract_type': 'this_week', // next_week, quarter
+            'type': '1min',
+            'since': since,
+            'size': parseInt (limit),
+        });
+        return this.parseOHLCVs (m, response, timeframe, since, limit);
+    },
 })
 
 //-----------------------------------------------------------------------------
