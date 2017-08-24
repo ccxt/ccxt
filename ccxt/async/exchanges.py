@@ -7614,9 +7614,10 @@ class cryptopia (Exchange):
                 'Authorization': auth,
             }
         response = await self.fetch(url, method, headers, body)
-        if 'Success' in response:
-            if response['Success']:
-                return response
+        if response:
+            if 'Success' in response:
+                if response['Success']:
+                    return response
         raise ExchangeError(self.id + ' ' + self.json(response))
 
 #------------------------------------------------------------------------------
@@ -11484,6 +11485,17 @@ class okex (okcoin):
         timestamp = int(response['date']) * 1000
         ticker = self.extend(response['ticker'], {'timestamp': timestamp})
         return self.parse_ticker(ticker, m)
+
+    async def fetch_ohlcv(self, market, timeframe=60, since=None, limit=None):
+        m = self.market(market)
+        response = await self.publicGetFutureKline({
+            'symbol': m['id'],
+            'contract_type': 'this_week', # next_week, quarter
+            'type': '1min',
+            'since': since,
+            'size': int(limit),
+        })
+        return self.parse_ohlcvs(m, response, timeframe, since, limit)
 
 #------------------------------------------------------------------------------
 
