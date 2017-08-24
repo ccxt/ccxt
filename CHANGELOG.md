@@ -1,5 +1,7 @@
 # Сhangelog
 
+- Added `order_status` endpoint to Bitstamp [#148](https://github.com/kroitor/ccxt/pull/148)
+
 ## Version 1.5.x 2017-08-24
 
 - Added initial template for a new exchange (unification in progress): [OKEX](https://www.okex.com) (China, US) 
