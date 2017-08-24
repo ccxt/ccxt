@@ -13178,23 +13178,23 @@ var poloniex = {
         let id = undefined;
         let order = undefined;
         let symbol = undefined;
-        if (!market) {
-            if ('currencyPair' in trade) {
-                let marketId = trade['marketId'];
-                market = this.marketsById[marketId];
-        if (market)
+        if (market) {
             symbol = market['symbol'];
+        } else if ('currencyPair' in trade) {
+            let marketId = trade['currencyPair'];
+            symbol = this.markets_by_id[marketId]['symbol'];
+        }
         if ('tradeID' in trade)
             id = trade['tradeID'];
         if ('orderNumber' in trade)
-            order = trade['orderNumber'];
+            orderNumber = trade['orderNumber'];
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': order,
+            'order': orderNumber,
             'type': undefined,
             'side': trade['type'],
             'price': parseFloat (trade['rate']),
@@ -13212,26 +13212,25 @@ var poloniex = {
         return this.parseTrades (trades, m);
     },
 
-    async fetchMyTrades (market = undefined, params = {}) {
-        let m = undefined;
-        if (market)
-            m = this.market (market);
-        let pair = m ? m['id'] : 'all';
+    async fetchMyTrades (symbol = undefined, params = {}) {
+        let market = undefined;
+        if (symbol)
+            market = this.market (symbol);
+        let pair = market ? market['id'] : 'all';
         let request = this.extend ({
             'currencyPair': pair,
             'end': this.seconds (), // last 50000 trades by default
         }, params);
-        let trades = await this.privatePostReturnTradeHistory (request);
+        let response = await this.privatePostReturnTradeHistory (request);
         if (market) // This is a hard to read control flow
-            return this.parseTrades (trades, m);
-        let result = { 'info': trades };
-        let ids = Object.keys (trades);
+            return this.parseTrades (response, market);
+        let result = { 'info': response };
+        let ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let trades = trades[id]; // This is a misleading variable name
-            let market = this.markets_by_id[id]; // This is a misleading varialbe name
+            let market = this.markets_by_id[id];
             let symbol = market['symbol'];
-            result[symbol] = this.parseTrades (trades, market); // Shouldn't be parseTrade instead of parseTrades?
+            result[symbol] = this.parseTrades (trades[id], market);
         }
         return result;
     },
@@ -13251,26 +13250,21 @@ var poloniex = {
         };
     },
 
-    async fetchMyOpenOrders (market = undefined, params = {}) {
-        let m = undefined;
-        if (market)
-            m = this.market (market);
-        let pair = m ? m['id'] : 'all';
+    async fetchMyOpenOrders (symbol = undefined, params = {}) {
+        let market = undefined;
+        if (symbol)
+            market = this.market (symbol);
+        let pair = market ? market['id'] : 'all';
         let orders = await this.privatePostReturnOpenOrders (this.extend ({
             'currencyPair': pair,
         }));
-        return this.parseOrders (orders, m);
+        return this.parseOrders (orders, market);
     },
     
-    async checkOrderIsOpen (id, market = undefined) {
-        let openOrders = await this.fetchMyOpenOrders (market);
-        let orderIsOpen = false;
-        for (let i = 0; i < openOrders.length; i++)
-            if (openOrders[i]['id'] == id) {
-                orderIsOpen = true;
-                break;
-            }
-        return orderIsOpen;
+    async fetchOrderStatus (id, market = undefined) {
+        let orders = await this.fetchMyOpenOrders (market);
+        let ids = this.pluck (orders, 'id');
+        return (ids.indexOf (id) >= 0)
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
