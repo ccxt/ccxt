@@ -12854,12 +12854,8 @@ class okcoin extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
-        $response = $this->publicGetTicker (array (
-            'symbol' => $this->market_id ($market),
-        ));
-        $ticker = $response['ticker'];
-        $timestamp = intval ($response['date']) * 1000;
+    public function parse_ticker ($ticker, $market) {
+        $timestamp = $ticker['timestamp'];
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -12879,6 +12875,16 @@ class okcoin extends Exchange {
             'quoteVolume' => floatval ($ticker['vol']),
             'info' => $ticker,
         );
+    }
+
+    public function fetch_ticker ($market) {
+        $m = $this->market ($market);
+        $response = $this->publicGetTicker (array (
+            'symbol' => $m['id'],
+        ));
+        $timestamp = intval ($response['date']) * 1000;
+        $ticker = array_merge ($response['ticker'], array ( 'timestamp' => $timestamp ));
+        return $this->parse_ticker ($ticker, $m);
     }
 
     public function fetch_trades ($market, $params = array ()) {
@@ -13040,12 +13046,25 @@ class okex extends okcoin {
                 'doc' => 'https://www.okex.com/rest_getStarted.html',
             ),
             'markets' => array (
-                'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
-                'ETH/BTC' => array ( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC' ),
-                'ETC/BTC' => array ( 'id' => 'etc_btc', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC' ),
-                'BCH/BTC' => array ( 'id' => 'bcc_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC' ),
+                'BTC/USD' => array ( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
+                'LTC/USD' => array ( 'id' => 'ltc_usd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD' ),
+                // 'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                // 'ETH/BTC' => array ( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC' ),
+                // 'ETC/BTC' => array ( 'id' => 'etc_btc', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC' ),
+                // 'BCH/BTC' => array ( 'id' => 'bcc_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC' ),
             ),
         ), $options));
+    }
+
+    public function fetch_ticker ($market, $params = array ()) {
+        $m = $this->market ($market);
+        $response = $this->publicGetFutureTicker (array_merge (array (
+            'symbol' => $m['id'],
+            'contract_type' => 'this_week', // next_week, quarter
+        ), $params));
+        $timestamp = intval ($response['date']) * 1000;
+        $ticker = array_merge ($response['ticker'], array ( 'timestamp' => $timestamp ));
+        return $this->parse_ticker ($ticker, $m);
     }
 }
 

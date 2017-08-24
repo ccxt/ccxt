@@ -155,7 +155,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
             [ /this\./g, 'self.' ],
-            [ /([^a-zA-Z])this([^a-zA-Z])/g, '$1self$2' ],
+            [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /([^a-zA-Z0-9_])let\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
             [ /([^a-zA-Z0-9_])let\s/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
@@ -237,7 +237,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
-            [ /this_\./g, '$this_->' ],
+            [ /([^'])this_\./g, '$1$this_->' ],
             [ /\{\}/g, 'array ()' ],
             [ /\[\]/g, 'array ()' ],
             [ /\{([^\n\}]+)\}/g, 'array ($1)' ],

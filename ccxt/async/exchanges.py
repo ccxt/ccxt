@@ -11270,12 +11270,8 @@ class okcoin (Exchange):
         }
         return result
 
-    async def fetch_ticker(self, market):
-        response = await self.publicGetTicker({
-            'symbol': self.market_id(market),
-        })
-        ticker = response['ticker']
-        timestamp = int(response['date']) * 1000
+    def parse_ticker(self, ticker, market):
+        timestamp = ticker['timestamp']
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -11295,6 +11291,15 @@ class okcoin (Exchange):
             'quoteVolume': float(ticker['vol']),
             'info': ticker,
         }
+
+    async def fetch_ticker(self, market):
+        m = self.market(market)
+        response = await self.publicGetTicker({
+            'symbol': m['id'],
+        })
+        timestamp = int(response['date']) * 1000
+        ticker = self.extend(response['ticker'], {'timestamp': timestamp})
+        return self.parse_ticker(ticker, m)
 
     async def fetch_trades(self, market, params={}):
         return self.publicGetTrades(self.extend({
@@ -11444,14 +11449,26 @@ class okex (okcoin):
                 'doc': 'https://www.okex.com/rest_getStarted.html',
             },
             'markets': {
-                'LTC/BTC': {'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
-                'ETH/BTC': {'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC'},
-                'ETC/BTC': {'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC'},
-                'BCH/BTC': {'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC'},
+                'BTC/USD': {'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD'},
+                'LTC/USD': {'id': 'ltc_usd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD'},
+                # 'LTC/BTC': {'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
+                # 'ETH/BTC': {'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC'},
+                # 'ETC/BTC': {'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC'},
+                # 'BCH/BTC': {'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC'},
             },
         }
         params.update(config)
         super(okex, self).__init__(params)
+
+    async def fetch_ticker(self, market, params={}):
+        m = self.market(market)
+        response = await self.publicGetFutureTicker(self.extend({
+            'symbol': m['id'],
+            'contract_type': 'this_week', # next_week, quarter
+        }, params))
+        timestamp = int(response['date']) * 1000
+        ticker = self.extend(response['ticker'], {'timestamp': timestamp})
+        return self.parse_ticker(ticker, m)
 
 #------------------------------------------------------------------------------
 

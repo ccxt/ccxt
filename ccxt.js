@@ -12452,12 +12452,8 @@ var okcoin = {
         return result;
     },
 
-    async fetchTicker (market) {
-        let response = await this.publicGetTicker ({
-            'symbol': this.marketId (market),
-        });
-        let ticker = response['ticker'];
-        let timestamp = parseInt (response['date']) * 1000;
+    parseTicker (ticker, market) {
+        let timestamp = ticker['timestamp'];
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -12477,6 +12473,16 @@ var okcoin = {
             'quoteVolume': parseFloat (ticker['vol']),
             'info': ticker,
         };
+    },
+
+    async fetchTicker (market) {
+        let m = this.market (market);
+        let response = await this.publicGetTicker ({
+            'symbol': m['id'],
+        });
+        let timestamp = parseInt (response['date']) * 1000;
+        let ticker = this.extend (response['ticker'], { 'timestamp': timestamp });
+        return this.parseTicker (ticker, m);
     },
 
     async fetchTrades (market, params = {}) {
@@ -12625,11 +12631,25 @@ var okex = extend (okcoin, {
         'doc': 'https://www.okex.com/rest_getStarted.html',
     },
     'markets': {
-        'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
-        'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
-        'ETC/BTC': { 'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC' },
-        'BCH/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
+        'BTC/USD': { 'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+        'LTC/USD': { 'id': 'ltc_usd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD' },
+        // 'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+        // 'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
+        // 'ETC/BTC': { 'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC' },
+        // 'BCH/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
     },
+
+    async fetchTicker (market, params = {}) {
+        let m = this.market (market);
+        let response = await this.publicGetFutureTicker (this.extend ({
+            'symbol': m['id'],
+            'contract_type': 'this_week', // next_week, quarter
+        }, params));
+        let timestamp = parseInt (response['date']) * 1000;
+        let ticker = this.extend (response['ticker'], { 'timestamp': timestamp });
+        return this.parseTicker (ticker, m);
+    },
+
 })
 
 //-----------------------------------------------------------------------------
