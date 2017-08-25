@@ -5,6 +5,7 @@ Welcome to the ccxt documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   README.rst
    exchanges.rst
    exchanges-by-country.rst
    install.rst
