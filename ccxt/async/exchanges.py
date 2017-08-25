@@ -6389,6 +6389,10 @@ class coinfloor (Exchange):
     def parse_ticker(self, ticker, market):
         # rewrite to get the timestamp from HTTP headers
         timestamp = self.milliseconds()
+        # they sometimes return null for vwap
+        vwap = None
+        if('vwap' in list(ticker.keys())) and(ticker['vwap']):
+            vwap = float(ticker['vwap'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -6396,7 +6400,7 @@ class coinfloor (Exchange):
             'low': float(ticker['low']),
             'bid': float(ticker['bid']),
             'ask': float(ticker['ask']),
-            'vwap': float(ticker['vwap']),
+            'vwap': vwap,
             'open': None,
             'close': None,
             'first': None,
