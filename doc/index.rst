@@ -6,6 +6,5 @@ Welcome to the ccxt documentation!
    :caption: Contents:
 
    install.rst
-   manual.rst
    checklist.rst
 
