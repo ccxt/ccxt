@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.11';
+$version = '1.5.12';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -637,7 +637,7 @@ class Exchange {
                 'check your API keys', $details);
         }
 
-        if (in_array ($http_status_code, array (400, 403, 405, 503, 521, 522, 525))) {
+        if (in_array ($http_status_code, array (400, 403, 405, 503, 520, 521, 522, 525))) {
 
             if (preg_match ('#cloudflare|incapsula#i', $result)) {
         
