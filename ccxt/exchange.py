@@ -243,7 +243,7 @@ class Exchange (object):
             elif e.code in [401, 422, 511]:
                 error = AuthenticationError
             else:
-                error = ExchangeError
+                error = Exception
             self.raise_error(error, url, method, e, details)
         except _urllib.URLError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
