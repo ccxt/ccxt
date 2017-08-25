@@ -13,14 +13,10 @@ A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce wi
    exchanges.rst
    exchanges-by-country.rst
 
-   :maxdepth: 2
-   :caption: Install:
+   :includehidden:
+   :caption: Usage:
 
    install.rst
-
-   :maxdepth: 2
-   :caption: Manual:
-   
    manual.rst
 
    :hidden:
