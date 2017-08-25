@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.13';
+$version = '1.5.14';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10901,7 +10901,7 @@ class hitbtc extends Exchange {
         $difference = $quantity - $wholeLots;
         if (abs ($difference) > $p['step'])
             throw new ExchangeError ($this->id . ' $order $amount should be evenly divisible by lot unit size of ' . (string) $p['lot']);
-        $clientOrderId = $this->nonce ();
+        $clientOrderId = $this->milliseconds ();
         $order = array (
             'clientOrderId' => (string) $clientOrderId,
             'symbol' => $p['id'],
