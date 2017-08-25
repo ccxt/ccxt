@@ -27,7 +27,7 @@ root_path = os.path.abspath('..')
 sys.path.insert(0, root_path)
 
 # version number and all other params from package.json
-with open(os.path.join(root_path, 'package.json'), encoding='utf-8') as f:
+with open(os.path.join(root_path, 'package.json')) as f:
     package = json.load(f)
 
 # -- General configuration ------------------------------------------------
