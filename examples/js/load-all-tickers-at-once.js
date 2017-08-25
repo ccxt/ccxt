@@ -39,7 +39,7 @@ let test = async function (exchange, symbol) {
         } else {
 
             // do nothing or throw an error
-            // throw new ccxt.ExchangeError (exchange.id + ' does not support ' + symbol)
+            log.bright.yellow (exchange.id + ' does not have ' + symbol)
         }
 
     } catch (e) {
