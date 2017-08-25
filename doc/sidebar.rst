@@ -1,0 +1,19 @@
+-  `Supported Exchanges <https://github.com/kroitor/ccxt/wiki/Exchange-Markets>`__
+-  `Exchanges By Country <https://github.com/kroitor/ccxt/wiki/Exchange-Markets-By-Country>`__
+-  `Install <https://github.com/kroitor/ccxt/wiki/Install>`__
+-  `Manual <https://github.com/kroitor/ccxt/wiki/Manual>`__
+-  `Architecture Overview <https://github.com/kroitor/ccxt/wiki/Manual#overview>`__
+-  `Instantiation <https://github.com/kroitor/ccxt/wiki/Manual#instantiation>`__
+-  `Exchange Structure <https://github.com/kroitor/ccxt/wiki/Manual#exchange-structure>`__
+-  `Exchange Properties <https://github.com/kroitor/ccxt/wiki/Manual#exchange-properties>`__
+-  `Markets <https://github.com/kroitor/ccxt/wiki/Manual#markets>`__
+-  `API Methods / Endpoints <https://github.com/kroitor/ccxt/wiki/Manual#api-methods--endpoints>`__
+-  `Market Data <https://github.com/kroitor/ccxt/wiki/Manual#market-data>`__
+-  `Trading <https://github.com/kroitor/ccxt/wiki/Manual#trading>`__
+-  `Error Handling <https://github.com/kroitor/ccxt/wiki/Manual#error-handling>`__
+-  `Troubleshooting <https://github.com/kroitor/ccxt/wiki/Manual#troubleshooting>`__
+-  `Examples <https://github.com/kroitor/ccxt/tree/master/examples>`__
+-  Knowledge Base (wip)
+-  `Contributing <https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md>`__
+-  `Public Offer <https://github.com/kroitor/ccxt#public-offer>`__
+-  API Reference (wip)
