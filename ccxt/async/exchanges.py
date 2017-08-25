@@ -9425,7 +9425,7 @@ class hitbtc (Exchange):
         difference = quantity - wholeLots
         if abs(difference) > p['step']:
             raise ExchangeError(self.id + ' order amount should be evenly divisible by lot unit size of ' + str(p['lot']))
-        clientOrderId = self.nonce()
+        clientOrderId = self.milliseconds()
         order = {
             'clientOrderId': str(clientOrderId),
             'symbol': p['id'],
