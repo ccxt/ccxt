@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.15';
+$version = '1.5.16';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7662,6 +7662,10 @@ class coinfloor extends Exchange {
     public function parse_ticker ($ticker, $market) {
         // rewrite to get the $timestamp from HTTP headers
         $timestamp = $this->milliseconds ();
+        // they sometimes return null for $vwap
+        $vwap = null;
+        if (array_key_exists (('vwap', $ticker)) && ($ticker['vwap']))
+            $vwap = floatval ($ticker['vwap']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -7669,7 +7673,7 @@ class coinfloor extends Exchange {
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['bid']),
             'ask' => floatval ($ticker['ask']),
-            'vwap' => floatval ($ticker['vwap']),
+            'vwap' => $vwap,
             'open' => null,
             'close' => null,
             'first' => null,
