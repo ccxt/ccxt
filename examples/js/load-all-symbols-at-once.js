@@ -45,6 +45,7 @@ let test = async function (exchange) {
 let exchanges = []
 
 async function main () {
+    
     // instantiate all exchanges
     await Promise.all (ccxt.exchanges.map (async id => {
         let exchange = new (ccxt)[id] ()
