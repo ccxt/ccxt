@@ -10528,7 +10528,7 @@ var hitbtc = {
         let difference = quantity - wholeLots;
         if (Math.abs (difference) > p['step'])
             throw new ExchangeError (this.id + ' order amount should be evenly divisible by lot unit size of ' + p['lot'].toString ());
-        let clientOrderId = this.nonce ();
+        let clientOrderId = this.milliseconds ();
         let order = {
             'clientOrderId': clientOrderId.toString (),
             'symbol': p['id'],
