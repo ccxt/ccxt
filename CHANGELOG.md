@@ -1,8 +1,9 @@
 # Сhangelog
 
-- Fixed HitBTC issue with overrided nonce vs clientOrderId [#155](https://github.com/kroitor/ccxt/issues/155)
-- Added experimental fetchOrder to Kraken [#71](https://github.com/kroitor/ccxt/issues/71), [#102](https://github.com/kroitor/ccxt/pull/102)
-- Added `order_status` endpoint to Bitstamp [#148](https://github.com/kroitor/ccxt/pull/148)
+- Moved the docs from GitHub wiki into the master branch inside the repository, [#134](https://github.com/kroitor/ccxt/issues/134), [#135](https://github.com/kroitor/ccxt/pull/135)
+- Fixed HitBTC issue with overrided nonce vs clientOrderId, [#155](https://github.com/kroitor/ccxt/issues/155)
+- Added experimental fetchOrder to Kraken, [#71](https://github.com/kroitor/ccxt/issues/71), [#102](https://github.com/kroitor/ccxt/pull/102)
+- Added `order_status` endpoint to Bitstamp, [#148](https://github.com/kroitor/ccxt/pull/148)
 
 ## Version 1.5.x 2017-08-24
 
