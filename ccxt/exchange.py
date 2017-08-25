@@ -218,7 +218,7 @@ class Exchange (object):
             details = text if text else None
             if e.code == 429:
                 error = DDoSProtection
-            elif e.code in [404, 409, 500, 501, 502, 521, 522, 525]:
+            elif e.code in [404, 409, 500, 501, 502, 520, 521, 522, 525]:
                 details = e.read().decode('utf-8', 'ignore') if e else None
                 error = ExchangeNotAvailable
             elif e.code in [400, 403, 405, 503]:
@@ -242,6 +242,8 @@ class Exchange (object):
                 error = RequestTimeout
             elif e.code in [401, 422, 511]:
                 error = AuthenticationError
+            else:
+                error = ExchangeError
             self.raise_error(error, url, method, e, details)
         except _urllib.URLError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
