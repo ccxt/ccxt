@@ -8,12 +8,22 @@ A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce wi
 .. toctree::
    :includehidden:
    :maxdepth: 2
-   :caption: Contents:
+   :caption: General Information:
 
    exchanges.rst
    exchanges-by-country.rst
+
+   :maxdepth: 2
+   :caption: Install:
+
    install.rst
+
+   :maxdepth: 2
+   :caption: Manual:
+   
    manual.rst
+
+   :hidden:
    checklist.rst
 
 The ccxt library is used to connect and trade with cryptocurrency / altcoin exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, webshop integration and related software engineering.
