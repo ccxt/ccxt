@@ -7,7 +7,6 @@ A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce wi
 
 .. toctree::
    :includehidden:
-   :maxdepth: 2
    :caption: General Information:
 
    exchanges.rst
