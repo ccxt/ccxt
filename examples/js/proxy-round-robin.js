@@ -86,7 +86,7 @@ async function main () {
         await tryAllProxies (exchange, proxies)
     }))
 
-    let succeeded = exchanges.filter (exchange => exchange.markets ? true : false).length .toString ().bright.green
+    let succeeded = exchanges.filter (exchange => exchange.markets ? true : false).length.toString ().bright.green
     let failed = exchanges.filter (exchange => exchange.markets ? false : true).length
     let total = ccxt.exchanges.length.toString ().bright.white
     console.log (succeeded, 'of', total, 'exchanges loaded', ('(' + failed + ' errors)').red)
