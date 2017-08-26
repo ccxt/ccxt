@@ -4447,9 +4447,11 @@ var blinktrade = {
             'BrokerID': p['brokerId'],
         };
         let response = await this.privatePostD (this.extend (order, params));
+        let indexed = this.indexBy (response['Responses'], 'MsgType');
+        let execution = indexed['8'];
         return {
             'info': response,
-            'id': response['OrderID'],
+            'id': execution['OrderID'],
         };
     },
 
