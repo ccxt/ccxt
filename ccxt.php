@@ -610,7 +610,7 @@ class Exchange {
                 'not accessible from this location at the moment');
         }
 
-        if (in_array ($http_status_code, array (404, 409, 500, 501, 502))) {
+        if (in_array ($http_status_code, array (404, 409, 422, 500, 501, 502))) {
 
             $this->raise_error ('ExchangeNotAvailable', $url, $method, 
                 'not accessible from this location at the moment');
@@ -622,7 +622,7 @@ class Exchange {
                 'not accessible from this location at the moment');
         }
 
-        if (in_array ($http_status_code, array (401, 422, 511))) {
+        if (in_array ($http_status_code, array (401, 511))) {
 
             $details = '(possible reasons: ' . implode (', ', array (
                 'invalid API keys',

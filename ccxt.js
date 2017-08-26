@@ -459,7 +459,7 @@ const Exchange = function (config) {
                     let details = text
                     if ([ 429 ].indexOf (response.status) >= 0) {
                         error = DDoSProtection
-                    } else if ([ 404, 409, 500, 501, 502, 520, 521, 522, 525 ].indexOf (response.status) >= 0) {
+                    } else if ([ 404, 409, 422, 500, 501, 502, 520, 521, 522, 525 ].indexOf (response.status) >= 0) {
                         error = ExchangeNotAvailable
                     } else if ([ 400, 403, 405, 503 ].indexOf (response.status) >= 0) {
                         let ddosProtection = text.match (/cloudflare|incapsula/i)
@@ -478,10 +478,10 @@ const Exchange = function (config) {
                         }
                     } else if ([ 408, 504 ].indexOf (response.status) >= 0) {
                         error = RequestTimeout
-                    } else if ([ 401, 422, 511 ].indexOf (response.status) >= 0) {
+                    } else if ([ 401, 511 ].indexOf (response.status) >= 0) {
                         error = AuthenticationError
                     } else {
-                        error = Error
+                        error = ExchangeError
                     }
                     throw new error ([ this.id, method, url, response.status, response.statusText, details ].join (' '))
                 })
