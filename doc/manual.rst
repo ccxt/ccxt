@@ -1,5 +1,8 @@
+User Manual
+===========
+
 Overview
-========
+--------
 
 The ccxt library is a collection of available crypto *exchanges* or exchange classes. Each class implements the public and private API for a particular crypto exchange. All exchanges are derived from the base Exchange class and share a set of common methods. To access a particular exchange from ccxt library you need to create an instance of corresponding exchange class. Supported exchanges are updated frequently and new exchanges are added regularly.
 
@@ -12,7 +15,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 -  `Trading <#trading>`__
 
 Exchanges
-=========
+---------
 
 The ccxt library currently supports the following 75 cryptocurrency exchange markets and trading APIs:
 

@@ -14,13 +14,20 @@ A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce wi
 
 .. toctree::
    :includehidden:
-   :caption: User Manual
+   :maxdepth: 1
+   :caption: Install
 
    install.rst
+
+.. toctree::
+   :maxdepth: 2
+   :caption: User Manual
+
    manual.rst
 
 .. toctree::
    :hidden:
+
    checklist.rst
    README.rst
 

@@ -1,3 +1,6 @@
+Installation Instructions
+=========================
+
 The ccxt library is shipped as a single-file (all-in-one module) implementation with minimalistic dependencies and requirements.
 
 The main file is:
