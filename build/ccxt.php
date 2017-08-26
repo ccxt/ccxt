@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.24';
+$version = '1.5.25';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7671,8 +7671,9 @@ class coinfloor extends Exchange {
         $timestamp = $this->milliseconds ();
         // they sometimes return null for $vwap
         $vwap = null;
-        if (array_key_exists (('vwap', $ticker)) && ($ticker['vwap']))
-            $vwap = floatval ($ticker['vwap']);
+        if (array_key_exists ('vwap', $ticker))
+            if ($ticker['vwap'])
+                $vwap = floatval ($ticker['vwap']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -13680,6 +13681,9 @@ class poloniex extends Exchange {
     }
 
     public function parseOrder ($order, $market) {
+        $trades = null;
+        if (array_key_exists ('resultingTrades', $order))
+            $trades = $this->parse_trades ($order['resultingTrades'], $market);
         return array (
             'id' => $order['orderNumber'],
             'timestamp' => $order['timestamp'],
@@ -13690,7 +13694,7 @@ class poloniex extends Exchange {
             'side' => $order['side'],
             'price' => $order['price'],
             'amount' => $order['amount'],
-            'trades' => $this->parse_trades ($order['resultingTrades'], $market),
+            'trades' => $trades,
         );
     }
 
@@ -13702,7 +13706,20 @@ class poloniex extends Exchange {
         $orders = $this->privatePostReturnOpenOrders (array_merge (array (
             'currencyPair' => $pair,
         )));
-        return $this->parseOrders ($orders, $market);
+        $result = array ();
+        for ($i = 0; $i < count ($orders); $i++) {
+            $order = $orders[$i];
+            $timestamp = $this->parse8601 ($order['date']);
+            $extended = array_merge ($order, array (
+                'timestamp' => $timestamp,
+                'status' => 'open',
+                'type' => 'limit',
+                'side' => $order['type'],
+                'price' => $order['rate'],
+            ));
+            $result[] = $this->parseOrder ($extended, $market);
+        }
+        return $result;
     }
 
     public function fetch_orderStatus ($id, $market = null) {
