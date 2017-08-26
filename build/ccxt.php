@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.20';
+$version = '1.5.21';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -4676,9 +4676,11 @@ class blinktrade extends Exchange {
             'BrokerID' => $p['brokerId'],
         );
         $response = $this->privatePostD (array_merge ($order, $params));
+        $indexed = $this->index_by ($response['Responses'], 'MsgType');
+        $execution = $indexed['8'];
         return array (
             'info' => $response,
-            'id' => $response['OrderID'],
+            'id' => $execution['OrderID'],
         );
     }
 
