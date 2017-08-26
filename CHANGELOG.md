@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Fixed Zaif BCH balance issue, [#156](https://github.com/kroitor/ccxt/issues/156)
 - Added handling for vwap == null in coinfloor tickers
 - Moved the docs from GitHub wiki into the master branch inside the repository, [#134](https://github.com/kroitor/ccxt/issues/134), [#137](https://github.com/kroitor/ccxt/pull/137)
 - Added extra `params` to all fetchTrades() implementations, [#135](https://github.com/kroitor/ccxt/pull/135)
