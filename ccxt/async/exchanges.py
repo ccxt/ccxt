@@ -3618,7 +3618,7 @@ class blinktrade (Exchange):
             'ClOrdID': id,
         }, params))
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -3634,7 +3634,11 @@ class blinktrade (Exchange):
                 'Signature': self.hmac(self.encode(nonce), self.encode(self.secret)),
                 'Content-Type': 'application/json',
             }
-        return self.fetch(url, method, headers, body)
+        response = await self.fetch(url, method, headers, body)
+        if 'Status' in response:
+            if response['Status'] != 200:
+                raise ExchangeError(self.id + ' ' + self.json(response))
+        return response
 
 #------------------------------------------------------------------------------
 

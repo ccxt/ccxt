@@ -3713,7 +3713,11 @@ class blinktrade (Exchange):
                 'Signature': self.hmac(self.encode(nonce), self.encode(self.secret)),
                 'Content-Type': 'application/json',
             }
-        return self.fetch(url, method, headers, body)
+        response = self.fetch(url, method, headers, body)
+        if 'Status' in response:
+            if response['Status'] != 200:
+                raise ExchangeError(self.id + ' ' + self.json(response))
+        return response
 
 #------------------------------------------------------------------------------
 
