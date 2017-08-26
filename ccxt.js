@@ -15540,23 +15540,23 @@ var zaif = {
         let response = await this.tapiPostGetInfo ();
         let balances = response['return'];
         let result = { 'info': balances };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
-            let lowercase = currency.toLowerCase ();
+        let currencies = Object.keys (balances['funds']);
+        for (let c = 0; c < currencies.length; c++) {
+            let currency = currencies[c];
+            let balance = balances['funds'][currency];
+            let uppercase = currency.toUpperCase ();
             let account = {
-                'free': undefined,
+                'free': balance,
                 'used': undefined,
-                'total': undefined,
+                'total': balance,
             };
-            if ('funds' in balances)
-                if (lowercase in balances['funds'])
-                    account['free'] = balances['funds'][lowercase];
-            if ('funds_incl_orders' in balances)
-                if (lowercase in balances['funds_incl_orders'])
-                    account['total'] = balances['funds_incl_orders'][lowercase];
-            if (account['total'] && account['free'])
-                account['used'] = account['total'] - account['free'];
-            result[currency] = account;
+            if ('deposit' in balances) {
+                if (currency in balances['deposit']) {
+                    account['total'] = balances['deposit'][currency];
+                    account['used'] = account['total'] - account['free'];
+                }
+            }
+            result[uppercase] = account;
         }
         return result;
     },
