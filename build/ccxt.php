@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.23';
+$version = '1.5.24';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5381,6 +5381,7 @@ class btce extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        throw new ExchangeNotAvailable ($this->id . ' operation was shut down in July 2017');
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
