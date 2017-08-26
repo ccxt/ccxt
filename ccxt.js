@@ -629,10 +629,10 @@ const Exchange = function (config) {
         return result
     }
 
-    this.parseOrders = function (order, market = undefined) {
+    this.parseOrders = function (orders, market = undefined) {
         let result = []
-        for (let t = 0; t < order.length; t++) {
-            result.push (this.parseOrder (order[t], market))
+        for (let t = 0; t < orders.length; t++) {
+            result.push (this.parseOrder (orders[t], market))
         }
         return result
     }
@@ -7371,8 +7371,9 @@ var coinfloor = {
         let timestamp = this.milliseconds ();
         // they sometimes return null for vwap
         let vwap = undefined;
-        if (('vwap' in ticker) && (ticker['vwap']))
-            vwap = parseFloat (ticker['vwap']);
+        if ('vwap' in ticker)
+            if (ticker['vwap'])
+                vwap = parseFloat (ticker['vwap']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -13252,6 +13253,9 @@ var poloniex = {
     },
 
     parseOrder (order, market) {
+        let trades = undefined;
+        if ('resultingTrades' in order)
+            trades = this.parseTrades (order['resultingTrades'], market);
         return {
             'id': order['orderNumber'],
             'timestamp': order['timestamp'],
@@ -13260,9 +13264,9 @@ var poloniex = {
             'symbol': market['symbol'],
             'type': order['type'],
             'side': order['side'],
-            'price': order['price'],
+            'price': price,
             'amount': order['amount'],
-            'trades': this.parseTrades (order['resultingTrades'], market),
+            'trades': trades,
         };
     },
 
@@ -13274,7 +13278,20 @@ var poloniex = {
         let orders = await this.privatePostReturnOpenOrders (this.extend ({
             'currencyPair': pair,
         }));
-        return this.parseOrders (orders, market);
+        let result = [];
+        for (let i = 0; i < orders.length; i++) {
+            let order = orders[i];
+            let timestamp = this.parse8601 (order['date']);
+            let extended = this.extend (order, {
+                'timestamp': timestamp,
+                'status': 'open',
+                'type': 'limit',
+                'side': order['type'],
+                'price': order['rate'],
+            });
+            result.push (this.parseOrder (extended, market));
+        }
+        return result;
     },
     
     async fetchOrderStatus (id, market = undefined) {

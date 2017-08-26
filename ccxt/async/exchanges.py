@@ -4261,6 +4261,7 @@ class btce (Exchange):
         return self.parseOrder(self.extend({'id': id}, order))
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        raise ExchangeNotAvailable(self.id + ' operation was shut down in July 2017')
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -6397,8 +6398,9 @@ class coinfloor (Exchange):
         timestamp = self.milliseconds()
         # they sometimes return null for vwap
         vwap = None
-        if('vwap' in list(ticker.keys())) and(ticker['vwap']):
-            vwap = float(ticker['vwap'])
+        if 'vwap' in ticker:
+            if ticker['vwap']:
+                vwap = float(ticker['vwap'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -12029,6 +12031,9 @@ class poloniex (Exchange):
         return result
 
     def parseOrder(self, order, market):
+        trades = None
+        if 'resultingTrades' in order:
+            trades = self.parse_trades(order['resultingTrades'], market)
         return {
             'id': order['orderNumber'],
             'timestamp': order['timestamp'],
@@ -12037,9 +12042,9 @@ class poloniex (Exchange):
             'symbol': market['symbol'],
             'type': order['type'],
             'side': order['side'],
-            'price': order['price'],
+            'price': price,
             'amount': order['amount'],
-            'trades': self.parse_trades(order['resultingTrades'], market),
+            'trades': trades,
         }
 
     async def fetchMyOpenOrders(self, symbol=None, params={}):
@@ -12050,7 +12055,19 @@ class poloniex (Exchange):
         orders = await self.privatePostReturnOpenOrders(self.extend({
             'currencyPair': pair,
         }))
-        return self.parseOrders(orders, market)
+        result = []
+        for i in range(0, len(orders)):
+            order = orders[i]
+            timestamp = self.parse8601(order['date'])
+            extended = self.extend(order, {
+                'timestamp': timestamp,
+                'status': 'open',
+                'type': 'limit',
+                'side': order['type'],
+                'price': order['rate'],
+            })
+            result.append(self.parseOrder(extended, market))
+        return result
 
     async def fetch_orderStatus(self, id, market=None):
         orders = await self.fetchMyOpenOrders(market)
