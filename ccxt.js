@@ -5140,6 +5140,7 @@ var btce = {
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        throw new ExchangeNotAvailable (this.id + ' operation was shut down in July 2017');
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api == 'public') {
