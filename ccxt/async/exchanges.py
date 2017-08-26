@@ -4261,6 +4261,7 @@ class btce (Exchange):
         return self.parseOrder(self.extend({'id': id}, order))
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        raise ExchangeNotAvailable(self.id + ' operation was shut down in July 2017')
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
