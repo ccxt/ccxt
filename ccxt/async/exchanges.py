@@ -3606,9 +3606,11 @@ class blinktrade (Exchange):
             'BrokerID': p['brokerId'],
         }
         response = await self.privatePostD(self.extend(order, params))
+        indexed = self.index_by(response['Responses'], 'MsgType')
+        execution = indexed['8']
         return {
             'info': response,
-            'id': response['OrderID'],
+            'id': execution['OrderID'],
         }
 
     async def cancel_order(self, id, params={}):
