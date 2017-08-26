@@ -2245,6 +2245,52 @@ var bitfinex = {
         return this.privatePostOrderCancel ({ 'order_id': id });
     },
 
+    parseOrder (order, market = undefined) {
+        let side = order['side'];
+        let open = order['is_live'];
+        let canceled = order['is_cancelled'];
+        let status = undefined;
+        if (open) {
+            status = 'open';
+        } else if (canceled) {
+            status = 'canceled';
+        } else {
+            status = 'closed';
+        }
+        let symbol = undefined;
+        if (market) {
+            symbol = market['symbol'];
+        } else {
+            let exchange = order['symbol'].toUpperCase();
+            if (exchange in this.markets_by_id) {
+                market = this.markets_by_id[exchange];
+                symbol = market['symbol'];
+            }
+        }
+
+        let timestamp = order['timestamp'] * 1000;
+        let result = {
+            'info': order,
+            'id': order['id'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': order['type'],
+            'side': side,
+            'price': parseFloat(order['avg_execution_price']),
+            'amount': parseFloat(order['executed_amount']),
+            'remaining': parseFloat(order['remaining_amount']),
+            'status': status,
+        };
+        return result;
+    },
+
+    async fetchOrder (id) {
+        await this.loadMarkets ();
+        let response = await this.privatePostOrderStatus ({order_id:parseInt(id)});
+        return this.parseOrder (response);
+    },
+
     nonce () {
         return this.milliseconds ();
     },
@@ -3584,6 +3630,45 @@ var bitstamp = {
 
     async cancelOrder (id) {
         return this.privatePostCancelOrder ({ 'id': id });
+    },
+
+
+    parseOrder (order) {
+        let statusCode = order['status'];
+        let status = undefined;
+        if (statusCode == 'Queue' || statusCode == 'Open') {
+            status = 'open';
+        } else if (statusCode == "Finished") {
+            status = 'closed';
+        } else {
+            throw new ExchangeError("unknown order status")
+        }
+
+        let price = order.transactions.map(t=>t.price) / order.transactions.length ;
+        let timestamp = order.transactions.map(t => Date.parse(t.datetime)).reduce ( (t1,t2) => Math.max(t1, t2) );
+        let type = order.transactions.length > 0 ? order.transactions.map(t => ["deposit","withdrawal","market"][t["type"]])[0] : "unknown";
+
+        let result = {
+            'info': order,
+            'id': order['id'],
+            //'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'type': type,
+            //'side': order['type'],
+            'price': price,
+            //'amount': order['start_amount'],
+            //'remaining': order['amount'],
+            'status': status,
+        };
+        return result;
+    },
+
+    async fetchOrder (id) {
+        await this.loadMarkets ();
+        let response = await this.privatePostOrderStatus ({id:id});
+        let order = response;
+        return this.parseOrder (this.extend ({ 'id': id }, order));
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
