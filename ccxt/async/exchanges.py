@@ -3600,7 +3600,7 @@ class blinktrade (Exchange):
             'ClOrdID': self.nonce(),
             'Symbol': p['id'],
             'Side': self.capitalize(side),
-            'OrdType': 2,
+            'OrdType': '2',
             'Price': price,
             'OrderQty': amount,
             'BrokerID': p['brokerId'],

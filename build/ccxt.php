@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.21';
+$version = '1.5.22';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -4670,7 +4670,7 @@ class blinktrade extends Exchange {
             'ClOrdID' => $this->nonce (),
             'Symbol' => $p['id'],
             'Side' => $this->capitalize ($side),
-            'OrdType' => 2,
+            'OrdType' => '2',
             'Price' => $price,
             'OrderQty' => $amount,
             'BrokerID' => $p['brokerId'],
