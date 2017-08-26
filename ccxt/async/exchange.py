@@ -104,7 +104,7 @@ class Exchange (BaseExchange):
             details = text if text else None
             if response.status == 429:
                 error = DDoSProtection
-            elif response.status in [404, 409, 500, 501, 502, 521, 522, 525]:
+            elif response.status in [404, 409, 422, 500, 501, 502, 521, 522, 525]:
                 details = str(response.status) + ' ' + text
                 error = ExchangeNotAvailable
             elif response.status in [400, 403, 405, 503]:
@@ -126,7 +126,7 @@ class Exchange (BaseExchange):
                     ]) + ')'
             elif response.status in [408, 504]:
                 error = RequestTimeout
-            elif response.status in [401, 422, 511]:
+            elif response.status in [401, 511]:
                 error = AuthenticationError
             if error:
                 self.raise_error(error, url, method, str(response.status), details)
