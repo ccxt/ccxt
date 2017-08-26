@@ -12042,7 +12042,7 @@ class poloniex (Exchange):
             'symbol': market['symbol'],
             'type': order['type'],
             'side': order['side'],
-            'price': price,
+            'price': order['price'],
             'amount': order['amount'],
             'trades': trades,
         }
