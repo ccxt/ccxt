@@ -14218,23 +14218,21 @@ class zaif (Exchange):
         response = await self.tapiPostGetInfo()
         balances = response['return']
         result = {'info': balances}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
-            lowercase = currency.lower()
+        currencies = list(balances['funds'].keys())
+        for c in range(0, len(currencies)):
+            currency = currencies[c]
+            balance = balances['funds'][currency]
+            uppercase = currency.upper()
             account = {
-                'free': None,
+                'free': balance,
                 'used': None,
-                'total': None,
+                'total': balance,
             }
-            if 'funds' in balances:
-                if lowercase in balances['funds']:
-                    account['free'] = balances['funds'][lowercase]
-            if 'funds_incl_orders' in balances:
-                if lowercase in balances['funds_incl_orders']:
-                    account['total'] = balances['funds_incl_orders'][lowercase]
-            if account['total'] and account['free']:
-                account['used'] = account['total'] - account['free']
-            result[currency] = account
+            if 'deposit' in balances:
+                if currency in balances['deposit']:
+                    account['total'] = balances['deposit'][currency]
+                    account['used'] = account['total'] - account['free']
+            result[uppercase] = account
         return result
 
     async def fetch_order_book(self, market, params={}):

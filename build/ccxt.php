@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.19';
+$version = '1.5.20';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -16022,23 +16022,23 @@ class zaif extends Exchange {
         $response = $this->tapiPostGetInfo ();
         $balances = $response['return'];
         $result = array ( 'info' => $balances );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
-            $lowercase = strtolower ($currency);
+        $currencies = array_keys ($balances['funds']);
+        for ($c = 0; $c < count ($currencies); $c++) {
+            $currency = $currencies[$c];
+            $balance = $balances['funds'][$currency];
+            $uppercase = strtoupper ($currency);
             $account = array (
-                'free' => null,
+                'free' => $balance,
                 'used' => null,
-                'total' => null,
+                'total' => $balance,
             );
-            if (array_key_exists ('funds', $balances))
-                if (array_key_exists ($lowercase, $balances['funds']))
-                    $account['free'] = $balances['funds'][$lowercase];
-            if (array_key_exists ('funds_incl_orders', $balances))
-                if (array_key_exists ($lowercase, $balances['funds_incl_orders']))
-                    $account['total'] = $balances['funds_incl_orders'][$lowercase];
-            if ($account['total'] && $account['free'])
-                $account['used'] = $account['total'] - $account['free'];
-            $result[$currency] = $account;
+            if (array_key_exists ('deposit', $balances)) {
+                if (array_key_exists ($currency, $balances['deposit'])) {
+                    $account['total'] = $balances['deposit'][$currency];
+                    $account['used'] = $account['total'] - $account['free'];
+                }
+            }
+            $result[$uppercase] = $account;
         }
         return $result;
     }
