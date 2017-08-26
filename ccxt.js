@@ -4441,7 +4441,7 @@ var blinktrade = {
             'ClOrdID': this.nonce (),
             'Symbol': p['id'],
             'Side': this.capitalize (side),
-            'OrdType': 2,
+            'OrdType': '2',
             'Price': price,
             'OrderQty': amount,
             'BrokerID': p['brokerId'],
