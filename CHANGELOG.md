@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Added experimental fetchClosedOrders, fetchOpenOrders to Zaif, [#71](https://github.com/kroitor/ccxt/issues/71)
 - Fixed BlinkTrade createOrder response
 - Fixed Zaif BCH balance issue, [#156](https://github.com/kroitor/ccxt/issues/156)
 - Added handling for `vwap == null` in coinfloor tickers
