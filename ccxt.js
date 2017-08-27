@@ -15628,7 +15628,7 @@ var zaif = {
     },
 
     parseTrade (trade, market = undefined) {
-        let side = (trade['type'] == 'bid') ? 'buy' : 'sell';
+        let side = (trade['trade_type'] == 'bid') ? 'buy' : 'sell';
         let timestamp = trade['date'] * 1000;
         let id = undefined;
         if ('id' in trade) {
@@ -15657,7 +15657,7 @@ var zaif = {
         let response = await this.publicGetTradesPair (this.extend ({
             'pair': market['id'],
         }, params));
-        return this.parseTrades (response, market)
+        return this.parseTrades (response, market);
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -15703,7 +15703,7 @@ var zaif = {
     },
 
     parseOrders (orders, market = undefined) {
-        let ids = Object.keys (orders);        
+        let ids = Object.keys (orders);
         let result = [];
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
@@ -15718,7 +15718,7 @@ var zaif = {
         let market = undefined;
         // let request = {
         //     'is_token': false,
-        //     'is_token_both': false, 
+        //     'is_token_both': false,
         // };
         let request = {};
         if (symbol) {

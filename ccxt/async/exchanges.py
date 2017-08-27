@@ -930,9 +930,9 @@ class binance (Exchange):
         # If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
         raise NotImplemented(self.id + ' fetchOrders not implemented yet')
 
-    async def fetchMyOpenOrders(self, market=None, params={}):
+    async def fetchOpenOrders(self, market=None, params={}):
         if not market:
-            raise ExchangeError(self.id + ' fetchMyOpenOrders requires a symbol')
+            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol')
         m = self.market(market)
         response = await self.privateGetOpenOrders({
             'symbol': m['id'],
@@ -3382,7 +3382,7 @@ class bittrex (Exchange):
         }, params))
         return self.parse_trades(response['result'], m)
 
-    async def fetchMyOpenOrders(self, market=None, params={}):
+    async def fetchOpenOrders(self, market=None, params={}):
         m = self.market(market)
         response = await self.privatePostReturnOpenOrders(self.extend({
             'currencyPair': m['id'],
@@ -12047,7 +12047,7 @@ class poloniex (Exchange):
             'trades': trades,
         }
 
-    async def fetchMyOpenOrders(self, symbol=None, params={}):
+    async def fetchOpenOrders(self, symbol=None, params={}):
         market = None
         if symbol:
             market = self.market(symbol)
@@ -12070,7 +12070,7 @@ class poloniex (Exchange):
         return result
 
     async def fetch_orderStatus(self, id, market=None):
-        orders = await self.fetchMyOpenOrders(market)
+        orders = await self.fetchOpenOrders(market)
         indexed = self.index_by(orders, 'id')
         return 'open' if(id in list(indexed.keys())) else 'closed'
 
@@ -12100,7 +12100,7 @@ class poloniex (Exchange):
 
     async def fetch_order(self, id):
         await self.loadMarkets()
-        orders = await self.fetchMyOpenOrders()
+        orders = await self.fetchOpenOrders()
         index = self.index_by(orders, 'id')
         if id in index:
             self.orders[id] = index[id]
@@ -14179,7 +14179,7 @@ class zaif (Exchange):
                 ],
             },
             'api': {
-                'api': {
+                'public': {
                     'get': [
                         'depth/{pair}',
                         'currencies/{pair}',
@@ -14191,7 +14191,7 @@ class zaif (Exchange):
                         'trades/{pair}',
                     ],
                 },
-                'tapi': {
+                'private': {
                     'post': [
                         'active_orders',
                         'cancel_order',
@@ -14220,7 +14220,7 @@ class zaif (Exchange):
         super(zaif, self).__init__(params)
 
     async def fetch_markets(self):
-        markets = await self.apiGetCurrencyPairsAll()
+        markets = await self.publicGetCurrencyPairsAll()
         result = []
         for p in range(0, len(markets)):
             market = markets[p]
@@ -14238,7 +14238,7 @@ class zaif (Exchange):
 
     async def fetch_balance(self):
         await self.loadMarkets()
-        response = await self.tapiPostGetInfo()
+        response = await self.privatePostGetInfo()
         balances = response['return']
         result = {'info': balances}
         currencies = list(balances['funds'].keys())
@@ -14260,7 +14260,7 @@ class zaif (Exchange):
 
     async def fetch_order_book(self, market, params={}):
         await self.loadMarkets()
-        orderbook = await self.apiGetDepthPair(self.extend({
+        orderbook = await self.publicGetDepthPair(self.extend({
             'pair': self.market_id(market),
         }, params))
         timestamp = self.milliseconds()
@@ -14274,7 +14274,7 @@ class zaif (Exchange):
 
     async def fetch_ticker(self, market):
         await self.loadMarkets()
-        ticker = await self.apiGetTickerPair({
+        ticker = await self.publicGetTickerPair({
             'pair': self.market_id(market),
         })
         timestamp = self.milliseconds()
@@ -14298,18 +14298,42 @@ class zaif (Exchange):
             'info': ticker,
         }
 
-    async def fetch_trades(self, market, params={}):
-        await self.loadMarkets()
-        return self.apiGetTradesPair(self.extend({
-            'pair': self.market_id(market),
-        }, params))
+    def parse_trade(self, trade, market=None):
+        side = 'buy' if(trade['trade_type'] == 'bid') else 'sell'
+        timestamp = trade['date'] * 1000
+        id = None
+        if 'id' in trade:
+            id = trade['id']
+        elif 'tid' in trade:
+            id = trade['tid']
+        if not market:
+            market = self.markets_by_id[trade['currency_pair']]
+        return {
+            'id': str(id),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': side,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def fetch_trades(self, symbol, params={}):
+        await self.loadMarkets()
+        market = self.market(symbol)
+        response = await self.publicGetTradesPair(self.extend({
+            'pair': market['id'],
+        }, params))
+        return self.parse_trades(response, market)
+
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.loadMarkets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
-        response = await self.tapiPostTrade(self.extend({
-            'currency_pair': self.market_id(market),
+        response = await self.privatePostTrade(self.extend({
+            'currency_pair': self.market_id(symbol),
             'action': 'bid' if(side == 'buy') else 'ask',
             'amount': amount,
             'price': price,
@@ -14321,15 +14345,76 @@ class zaif (Exchange):
 
     async def cancel_order(self, id, params={}):
         await self.loadMarkets()
-        return self.tapiPostCancelOrder(self.extend({
+        return self.privatePostCancelOrder(self.extend({
             'order_id': id,
         }, params))
 
+    def parseOrder(self, order, market=None):
+        side = 'buy' if(order['action'] == 'bid') else 'sell'
+        timestamp = int(order['timestamp']) * 1000
+        if not market:
+            market = self.markets_by_id[order['currency_pair']]
+        return {
+            'id': str(order['id']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'status': 'open',
+            'symbol': market['symbol'],
+            'type': 'limit',
+            'side': side,
+            'price': order['price'],
+            'amount': order['amount'],
+            'trades': None,
+        }
+
+    def parseOrders(self, orders, market=None):
+        ids = list(orders.keys())
+        result = []
+        for i in range(0, len(ids)):
+            id = ids[i]
+            order = orders[id]
+            extended = self.extend(order, {'id': id})
+            result.append(self.parseOrder(extended, market))
+        return result
+
+    async def fetchOpenOrders(self, symbol=None, params={}):
+        market = None
+        # request = {
+        #     'is_token': False,
+        #     'is_token_both': False,
+        #}
+        request = {}
+        if symbol:
+            market = self.market(symbol)
+            request['currency_pair'] = market['id']
+        response = await self.privatePostActiveOrders(self.extend(request, params))
+        return self.parseOrders(response['return'], market)
+
+    async def fetchClosedOrders(self, symbol=None, params={}):
+        market = None
+        # request = {
+        #     'from': 0,
+        #     'count': 1000,
+        #     'from_id': 0,
+        #     'end_id': 1000,
+        #     'order': 'DESC',
+        #     'since': 1503821051,
+        #     'end': 1503821051,
+        #     'is_token': False,
+        #}
+        request = {}
+        if symbol:
+            market = self.market(symbol)
+            request['currency_pair'] = market['id']
+        response = await self.privatePostTradeHistory(self.extend(request, params))
+        return self.parseOrders(response['return'], market)
+
     async def request(self, path, api='api', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + api
-        if api == 'api':
-            url += '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api'] + '/'
+        if api == 'public':
+            url += 'api/' + self.version + '/' + self.implode_params(path, params)
         else:
+            url += 'ecapi' if(api == 'ecapi') else 'tapi'
             nonce = self.nonce()
             body = self.urlencode(self.extend({
                 'method': path,
