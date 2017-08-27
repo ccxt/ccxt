@@ -15702,6 +15702,18 @@ var zaif = {
         };
     },
 
+    parseOrders (orders, market = undefined) {
+        let ids = Object.keys (orders);        
+        let result = [];
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let order = orders[id];
+            let extended = this.extend (order, { 'id': id });
+            result.push (this.parseOrder (extended, market));
+        }
+        return result;
+    },
+
     async fetchOpenOrders (symbol = undefined, params = {}) {
         let market = undefined;
         // let request = {
@@ -15714,60 +15726,28 @@ var zaif = {
             request['currency_pair'] = market['id'];
         }
         let response = await this.privatePostActiveOrders (this.extend (request, params));
-        let orders = response['return'];
-        let ids = Object.keys (orders);        
-        let result = [];
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let order = orders[id];
-            let extended = this.extend (order, { 'id': id });
-            result.push (this.parseOrder (extended, market));
-        }
-        return result;
+        return this.parseOrders (response['return'], market);
     },
 
     async fetchClosedOrders (symbol = undefined, params = {}) {
-        /*
-            {
-                "success": 1,
-                "return": {
-                    "182": {
-                        "currency_pair": "btc_jpy",
-                        "action": "bid",
-                        "amount": 0.03,
-                        "price": 56000,
-                        "fee": 0,
-                        "your_action": "ask",
-                        "bonus": 1.6,
-                        "timestamp": 1402018713,
-                        "comment" : "demo"
-                    }
-                }
-            }
-        */
         let market = undefined;
-        if (symbol)
+        // let request = {
+        //     'from': 0,
+        //     'count': 1000,
+        //     'from_id': 0,
+        //     'end_id': 1000,
+        //     'order': 'DESC',
+        //     'since': 1503821051,
+        //     'end': 1503821051,
+        //     'is_token': false,
+        // };
+        let request = {};
+        if (symbol) {
             market = this.market (symbol);
-        let pair = market ? market['id'] : 'all';
-        let request = this.extend ({
-            'currencyPair': pair,
-            'end': this.seconds (),
-        }, params);
-        let response = await this.privatePostReturnTradeHistory (request);
-        let result = undefined;
-        if (market) {
-            result = this.parseTrades (response, market);
-        } else {
-            result = { 'info': response };
-            let ids = Object.keys (response);
-            for (let i = 0; i < ids.length; i++) {
-                let id = ids[i];
-                let market = this.markets_by_id[id];
-                let symbol = market['symbol'];
-                result[symbol] = this.parseTrades (response[id], market);
-            }
+            request['currency_pair'] = market['id'];
         }
-        return result;
+        let response = await this.privatePostTradeHistory (this.extend (request, params));
+        return this.parseOrders (response['return'], market);
     },
 
     async request (path, api = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
