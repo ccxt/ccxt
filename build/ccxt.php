@@ -2782,11 +2782,14 @@ class bitfinex extends Exchange {
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->loadMarkets ();
+        $orderType = $type;
+        if (($type == 'limit') || ($type == 'market'))
+            $orderType = 'exchange ' . $type;
         $order = array (
             'symbol' => $this->market_id ($market),
             'amount' => (string) $amount,
             'side' => $side,
-            'type' => 'exchange ' . $type,
+            'type' => $orderType,
             'ocoorder' => false,
             'buy_price_oco' => 0,
             'sell_price_oco' => 0,

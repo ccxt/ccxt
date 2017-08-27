@@ -2584,11 +2584,14 @@ var bitfinex = {
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        let orderType = type;
+        if ((type == 'limit') || (type == 'market'))
+            orderType = 'exchange ' + type;
         let order = {
             'symbol': this.marketId (market),
             'amount': amount.toString (),
             'side': side,
-            'type': 'exchange ' + type,
+            'type': orderType,
             'ocoorder': false,
             'buy_price_oco': 0,
             'sell_price_oco': 0,

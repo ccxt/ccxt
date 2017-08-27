@@ -1913,11 +1913,14 @@ class bitfinex (Exchange):
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.loadMarkets()
+        orderType = type
+        if(type == 'limit') or(type == 'market'):
+            orderType = 'exchange ' + type
         order = {
             'symbol': self.market_id(market),
             'amount': str(amount),
             'side': side,
-            'type': 'exchange ' + type,
+            'type': orderType,
             'ocoorder': False,
             'buy_price_oco': 0,
             'sell_price_oco': 0,
