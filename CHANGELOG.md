@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Changed order type handling for margin orders on Bitfinex, [#130](https://github.com/kroitor/ccxt/issues/130), [#157](https://github.com/kroitor/ccxt/issues/157)
 - Added experimental fetchClosedOrders, fetchOpenOrders to Zaif, [#71](https://github.com/kroitor/ccxt/issues/71)
 - Fixed BlinkTrade createOrder response
 - Fixed Zaif BCH balance issue, [#156](https://github.com/kroitor/ccxt/issues/156)
