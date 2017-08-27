@@ -32,7 +32,7 @@ Below is a list of functionality we would like to have implemented in the librar
 - Unified OHLC(v) series
 - Unified fetchTrades (public)
 - Unified fetchOrder
-- Unified fetchMyOrders, fetchMyOpenOrders, fetchMyClosedOrders
+- Unified fetchOrders, fetchOpenOrders, fetchClosedOrders
 - Unified fetchMyTrades, fetchOrderTrades
 - Unified deposit method
 - Unified withdraw method
