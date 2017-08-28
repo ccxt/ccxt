@@ -12072,7 +12072,7 @@ class poloniex (Exchange):
             result.append(self.parseOrder(extended, market))
         return result
 
-    async def fetch_orderStatus(self, id, market=None):
+    async def fetch_order_status(self, id, market=None):
         orders = await self.fetchOpenOrders(market)
         indexed = self.index_by(orders, 'id')
         return 'open' if(id in list(indexed.keys())) else 'closed'
@@ -12113,7 +12113,7 @@ class poloniex (Exchange):
             return self.orders[id]
         raise ExchangeError(self.id + ' order ' + id + ' not found')
 
-    async def fetch_orderTrades(self, id, params={}):
+    async def fetch_order_trades(self, id, params={}):
         await self.loadMarkets()
         trades = await self.privatePostReturnOrderTrades(self.extend({
             'orderNumber': id,

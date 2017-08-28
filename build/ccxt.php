@@ -781,6 +781,15 @@ class Exchange {
         return $this->fetch_tickers ();
     }
 
+    public function fetch_order_status ($id, $market = null) {
+        $order = $this->fetch_order ($id);
+        return $order['id'];
+    }
+
+    public function fetchOrderStatus ($id, $market = null) {
+        return $this->fetch_order_status ($id);
+    }
+
     public function fetch_markets () { // stub
         return $this->markets; 
     }
@@ -13725,7 +13734,7 @@ class poloniex extends Exchange {
         return $result;
     }
 
-    public function fetch_orderStatus ($id, $market = null) {
+    public function fetch_order_status ($id, $market = null) {
         $orders = $this->fetchOpenOrders ($market);
         $indexed = $this->index_by ($orders, 'id');
         return (array_key_exists ($id, $indexed)) ? 'open' : 'closed';
@@ -13770,7 +13779,7 @@ class poloniex extends Exchange {
         throw new ExchangeError ($this->id . ' order ' . $id . ' not found');
     }
 
-    public function fetch_orderTrades ($id, $params = array ()) {
+    public function fetch_order_trades ($id, $params = array ()) {
         $this->loadMarkets ();
         $trades = $this->privatePostReturnOrderTrades (array_merge (array (
             'orderNumber' => $id,

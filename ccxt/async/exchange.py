@@ -158,6 +158,13 @@ class Exchange (BaseExchange):
     async def fetchTickers(self):
         return await self.fetch_tickers()
 
+    async def fetchOrderStatus(self, id, market=None):
+        return await self.fetch_order_status(id, market)
+
+    async def fetch_order_status(self, id, market=None):
+        order = await self.fetch_order(id)
+        return order['status']
+
     async def fetchBalance(self):
         return await self.fetch_balance()
 

@@ -101,8 +101,9 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('parseBidAsks',     'parse_bidasks')
                         .replace ('parseBidAsk',      'parse_bidask')
                         .replace ('fetchTrades',      'fetch_trades')
-                        .replace ('fetchOrder',       'fetch_order')
+                        .replace ('fetchOrderStatus', 'fetch_order_status')
                         .replace ('fetchOrderTrades', 'fetch_order_trades')
+                        .replace ('fetchOrder',       'fetch_order')
                         .replace ('fetchMyTrades',    'fetch_my_trades')
                         .replace ('fetchAllMyTrades', 'fetch_all_my_trades')
                         .replace ('createOrder',      'create_order')
@@ -153,6 +154,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.sortBy\s/g, '.sort_by'],
             [ /\.marketIds\s/g, '.market_ids'],
             [ /\.marketId\s/g, '.market_id'],
+            [ /\.fetchOrderStatus\s/g, '.fetch_order_status'],
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
             [ /this\./g, 'self.' ],
@@ -236,6 +238,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.sortBy/g, '.sort_by'],
             [ /\.marketIds/g, '.market_ids'],
             [ /\.marketId/g, '.market_id'],
+            [ /\.fetchOrderStatus/g, '.fetch_order_status'],
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],

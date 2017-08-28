@@ -562,6 +562,11 @@ const Exchange = function (config) {
         return new Promise ((resolve, reject) => resolve (this.markets))
     }
 
+    this.fetchOrderStatus = async function (id, market = undefined) {
+        let order = await fetchOrder (id)
+        return order['status'];
+    }
+
     this.commonCurrencyCode = function (currency) {
         if (!this.substituteCommonCurrencyCodes)
             return currency
@@ -713,6 +718,8 @@ const Exchange = function (config) {
     this.fetch_order_book         = this.fetchOrderBook
     this.fetch_ticker             = this.fetchTicker
     this.fetch_trades             = this.fetchTrades
+    this.fetch_order              = this.fetchOrder
+    this.fetch_order_status       = this.fetchOrderStatus
     this.parse_order_book         = this.parseOrderBook
     this.parse_trades             = this.parseTrades
     this.parse_orders             = this.parseOrders

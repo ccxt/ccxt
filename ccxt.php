@@ -781,6 +781,15 @@ class Exchange {
         return $this->fetch_tickers ();
     }
 
+    public function fetch_order_status ($id, $market = null) {
+        $order = $this->fetch_order ($id);
+        return $order['id'];
+    }
+
+    public function fetchOrderStatus ($id, $market = null) {
+        return $this->fetch_order_status ($id);
+    }
+
     public function fetch_markets () { // stub
         return $this->markets; 
     }

@@ -577,6 +577,13 @@ class Exchange (object):
     def fetchTickers(self, symbols=None):
         return self.fetch_tickers(symbols)
 
+    def fetchOrderStatus(self, id, market=None):
+        return self.fetch_order_status(id, market)
+
+    def fetch_order_status(self, id, market=None):
+        order = self.fetch_order(id)
+        return order['status']
+
     def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
         return ohlcv
 
