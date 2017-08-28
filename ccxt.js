@@ -4221,11 +4221,15 @@ var bittrex = {
         return this.parseTrades (response['result'], m);
     },
 
-    async fetchOpenOrders (market = undefined, params = {}) {
-        let m = this.market (market);
-        let response = await this.marketGetOpenorders (this.extend ({
-            'market': m['id'],
-        }));
+    async fetchOpenOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        let response = await this.marketGetOpenorders (this.extend (request, params));
         return this.parseOrders (response['result'], market);
     },
 
@@ -4253,15 +4257,13 @@ var bittrex = {
 
     parseOrder (order, market = undefined) {
         let side = (order['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
-        let open = order['IsOpen'];
-        let canceled = order['CancelInitiated'];
         let status = undefined;
-        if (open) {
-            status = 'open';
-        } else if (canceled) {
+        if (order['Closed']) {
+            status = 'closed';
+        } else if (order['CancelInitiated']) {
             status = 'canceled';
         } else {
-            status = 'closed';
+            status = 'open';
         }
         let symbol = undefined;
         if (market) {
@@ -13285,21 +13287,44 @@ var poloniex = {
         if (symbol)
             market = this.market (symbol);
         let pair = market ? market['id'] : 'all';
-        let orders = await this.privatePostReturnOpenOrders (this.extend ({
+        let response = await this.privatePostReturnOpenOrders (this.extend ({
             'currencyPair': pair,
         }));
         let result = [];
-        for (let i = 0; i < orders.length; i++) {
-            let order = orders[i];
-            let timestamp = this.parse8601 (order['date']);
-            let extended = this.extend (order, {
-                'timestamp': timestamp,
-                'status': 'open',
-                'type': 'limit',
-                'side': order['type'],
-                'price': order['rate'],
-            });
-            result.push (this.parseOrder (extended, market));
+        if (market) {
+            let orders = response;
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let timestamp = this.parse8601 (order['date']);
+                let extended = this.extend (order, {
+                    'timestamp': timestamp,
+                    'status': 'open',
+                    'type': 'limit',
+                    'side': order['type'],
+                    'price': order['rate'],
+                });
+                result.push (this.parseOrder (extended, market));
+            }
+        } else {
+            let ids = Object.keys (response);
+            for (let i = 0; i < ids.length; i++) {
+                let id = ids[i];
+                let orders = response[id];
+                let market = this.markets_by_id[id];
+                let symbol = market['symbol'];
+                for (let o = 0; o < orders.length; o++) {
+                    let order = orders[o]
+                    let timestamp = this.parse8601 (order['date']);
+                    let extended = this.extend (order, {
+                        'timestamp': timestamp,
+                        'status': 'open',
+                        'type': 'limit',
+                        'side': order['type'],
+                        'price': order['rate'],
+                    });
+                    result.push (this.parseOrder (extended, market));
+                }
+            }
         }
         return result;
     },

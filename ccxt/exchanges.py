@@ -955,7 +955,7 @@ class binance (Exchange):
         }, params))
         return self.parse_trades(response, m)
 
-    def parseOrder(self, order):
+    def parse_order(self, order):
         # {
         #   "symbol": "LTCBTC",
         #   "orderId": 1,
@@ -998,7 +998,7 @@ class binance (Exchange):
             'symbol': m['id'],
             'orderId': str(id),
         }))
-        return self.parseOrder(response)
+        return self.parse_order(response)
 
     def fetch_orders(self):
         # symbol  STRING  YES
@@ -1016,7 +1016,7 @@ class binance (Exchange):
         response = self.privateGetOpenOrders({
             'symbol': m['id'],
         })
-        return self.parseOrders(response, m)
+        return self.parse_orders(response, m)
 
     def cancel_order(self, id, params={}):
         return self.privatePostOrderCancel(self.extend({
@@ -3464,12 +3464,15 @@ class bittrex (Exchange):
         }, params))
         return self.parse_trades(response['result'], m)
 
-    def fetch_open_orders(self, market=None, params={}):
-        m = self.market(market)
-        response = self.marketGetOpenorders(self.extend({
-            'market': m['id'],
-        }))
-        return self.parseOrders(response['result'], market)
+    def fetch_open_orders(self, symbol=None, params={}):
+        self.loadMarkets()
+        request = {}
+        market = None
+        if symbol:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        response = self.marketGetOpenorders(self.extend(request, params))
+        return self.parse_orders(response['result'], market)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.loadMarkets()
@@ -3491,7 +3494,7 @@ class bittrex (Exchange):
         self.loadMarkets()
         return self.marketGetCancel({'uuid': id})
 
-    def parseOrder(self, order, market=None):
+    def parse_order(self, order, market=None):
         side = 'buy' if(order['Type'] == 'LIMIT_BUY') else 'sell'
         open = order['IsOpen']
         canceled = order['CancelInitiated']
@@ -3529,7 +3532,7 @@ class bittrex (Exchange):
     def fetch_order(self, id):
         self.loadMarkets()
         response = self.accountGetOrder({'uuid': id})
-        return self.parseOrder(response['result'])
+        return self.parse_order(response['result'])
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/'
@@ -4310,7 +4313,7 @@ class btce (Exchange):
         self.loadMarkets()
         return self.privatePostCancelOrder({'order_id': id})
 
-    def parseOrder(self, order):
+    def parse_order(self, order):
         statusCode = order['status']
         status = None
         if statusCode == 0:
@@ -4340,7 +4343,7 @@ class btce (Exchange):
         self.loadMarkets()
         response = self.privatePostOrderInfo({'order_id': id})
         order = response['return'][id]
-        return self.parseOrder(self.extend({'id': id}, order))
+        return self.parse_order(self.extend({'id': id}, order))
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         raise ExchangeNotAvailable(self.id + ' operation was shut down in July 2017')
@@ -10406,7 +10409,7 @@ class kraken (Exchange):
             'id': id,
         }
 
-    def parseOrder(self, order, market=None):
+    def parse_order(self, order, market=None):
         description = order['descr']
         market = self.markets_by_id[description['pair']]
         side = description['type']
@@ -10426,12 +10429,12 @@ class kraken (Exchange):
             # 'trades': self.parse_trades(order['trades'], market),
         }
 
-    def parseOrders(self, orders, market=None):
+    def parse_orders(self, orders, market=None):
         result = []
         ids = list(orders.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            order = self.parseOrder(orders[id])
+            order = self.parse_order(orders[id])
         return result
 
     def fetch_order(self, id):
@@ -10442,7 +10445,7 @@ class kraken (Exchange):
             # 'userref': 'optional', # restrict results to given user reference id(optional)
         })
         orders = response['result']
-        order = self.parseOrder(orders[id])
+        order = self.parse_order(orders[id])
         return self.extend({'info': response}, order)
 
     def cancel_order(self, id):
@@ -12112,7 +12115,7 @@ class poloniex (Exchange):
                 result[symbol] = self.parse_trades(response[id], market)
         return result
 
-    def parseOrder(self, order, market):
+    def parse_order(self, order, market):
         trades = None
         if 'resultingTrades' in order:
             trades = self.parse_trades(order['resultingTrades'], market)
@@ -12134,21 +12137,41 @@ class poloniex (Exchange):
         if symbol:
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
-        orders = self.privatePostReturnOpenOrders(self.extend({
+        response = self.privatePostReturnOpenOrders(self.extend({
             'currencyPair': pair,
         }))
         result = []
-        for i in range(0, len(orders)):
-            order = orders[i]
-            timestamp = self.parse8601(order['date'])
-            extended = self.extend(order, {
-                'timestamp': timestamp,
-                'status': 'open',
-                'type': 'limit',
-                'side': order['type'],
-                'price': order['rate'],
-            })
-            result.append(self.parseOrder(extended, market))
+        if market:
+            orders = response
+            for i in range(0, len(orders)):
+                order = orders[i]
+                timestamp = self.parse8601(order['date'])
+                extended = self.extend(order, {
+                    'timestamp': timestamp,
+                    'status': 'open',
+                    'type': 'limit',
+                    'side': order['type'],
+                    'price': order['rate'],
+                })
+                result.append(self.parse_order(extended, market))
+        else:
+            ids = list(response.keys())
+            for i in range(0, len(ids)):
+                id = ids[i]
+                orders = response[id]
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+                for o in range(0, len(orders)):
+                    order = orders[o]
+                    timestamp = self.parse8601(order['date'])
+                    extended = self.extend(order, {
+                        'timestamp': timestamp,
+                        'status': 'open',
+                        'type': 'limit',
+                        'side': order['type'],
+                        'price': order['rate'],
+                    })
+                    result.append(self.parse_order(extended, market))
         return result
 
     def fetch_order_status(self, id, market=None):
@@ -12168,7 +12191,7 @@ class poloniex (Exchange):
             'amount': amount,
         }, params))
         timestamp = self.milliseconds()
-        order = self.parseOrder(self.extend({
+        order = self.parse_order(self.extend({
             'timestamp': timestamp,
             'status': 'open',
             'type': type,
@@ -14431,7 +14454,7 @@ class zaif (Exchange):
             'order_id': id,
         }, params))
 
-    def parseOrder(self, order, market=None):
+    def parse_order(self, order, market=None):
         side = 'buy' if(order['action'] == 'bid') else 'sell'
         timestamp = int(order['timestamp']) * 1000
         if not market:
@@ -14449,14 +14472,14 @@ class zaif (Exchange):
             'trades': None,
         }
 
-    def parseOrders(self, orders, market=None):
+    def parse_orders(self, orders, market=None):
         ids = list(orders.keys())
         result = []
         for i in range(0, len(ids)):
             id = ids[i]
             order = orders[id]
             extended = self.extend(order, {'id': id})
-            result.append(self.parseOrder(extended, market))
+            result.append(self.parse_order(extended, market))
         return result
 
     def fetch_open_orders(self, symbol=None, params={}):
@@ -14470,7 +14493,7 @@ class zaif (Exchange):
             market = self.market(symbol)
             request['currency_pair'] = market['id']
         response = self.privatePostActiveOrders(self.extend(request, params))
-        return self.parseOrders(response['return'], market)
+        return self.parse_orders(response['return'], market)
 
     def fetchClosedOrders(self, symbol=None, params={}):
         market = None
@@ -14489,7 +14512,7 @@ class zaif (Exchange):
             market = self.market(symbol)
             request['currency_pair'] = market['id']
         response = self.privatePostTradeHistory(self.extend(request, params))
-        return self.parseOrders(response['return'], market)
+        return self.parse_orders(response['return'], market)
 
     def request(self, path, api='api', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/'
