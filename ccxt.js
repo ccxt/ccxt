@@ -4223,7 +4223,7 @@ var bittrex = {
 
     async fetchOpenOrders (market = undefined, params = {}) {
         let m = this.market (market);
-        let response = await this.marketGetOpenOrders (this.extend ({
+        let response = await this.marketGetOpenorders (this.extend ({
             'market': m['id'],
         }));
         return this.parseOrders (response['result'], market);

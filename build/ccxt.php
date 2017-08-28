@@ -4459,7 +4459,7 @@ class bittrex extends Exchange {
 
     public function fetch_open_orders ($market = null, $params = array ()) {
         $m = $this->market ($market);
-        $response = $this->marketGetOpenOrders (array_merge (array (
+        $response = $this->marketGetOpenorders (array_merge (array (
             'market' => $m['id'],
         )));
         return $this->parseOrders ($response['result'], $market);

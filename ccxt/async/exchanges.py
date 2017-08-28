@@ -3387,7 +3387,7 @@ class bittrex (Exchange):
 
     async def fetch_open_orders(self, market=None, params={}):
         m = self.market(market)
-        response = await self.marketGetOpenOrders(self.extend({
+        response = await self.marketGetOpenorders(self.extend({
             'market': m['id'],
         }))
         return self.parseOrders(response['result'], market)
