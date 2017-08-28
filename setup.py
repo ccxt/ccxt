@@ -65,6 +65,9 @@ setup(
         ],
         'qa': [
             'flake8'
+        ],
+        'doc': [
+            'Sphinx'
         ]
-    },
+    }
 )

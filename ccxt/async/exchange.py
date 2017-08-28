@@ -49,7 +49,9 @@ from ccxt.version import __version__
 
 from ccxt.errors import CCXTError
 from ccxt.errors import ExchangeError
+from ccxt.errors import NotSupported
 from ccxt.errors import AuthenticationError
+from ccxt.errors import InsufficientFunds
 from ccxt.errors import NetworkError
 from ccxt.errors import DDoSProtection
 from ccxt.errors import RequestTimeout
@@ -102,7 +104,7 @@ class Exchange (BaseExchange):
             details = text if text else None
             if response.status == 429:
                 error = DDoSProtection
-            elif response.status in [404, 409, 500, 501, 502, 521, 522, 525]:
+            elif response.status in [404, 409, 422, 500, 501, 502, 521, 522, 525]:
                 details = str(response.status) + ' ' + text
                 error = ExchangeNotAvailable
             elif response.status in [400, 403, 405, 503]:
@@ -124,7 +126,7 @@ class Exchange (BaseExchange):
                     ]) + ')'
             elif response.status in [408, 504]:
                 error = RequestTimeout
-            elif response.status in [401, 422, 511]:
+            elif response.status in [401, 511]:
                 error = AuthenticationError
             if error:
                 self.raise_error(error, url, method, str(response.status), details)
@@ -151,7 +153,7 @@ class Exchange (BaseExchange):
         return await self.fetch_markets()
 
     async def fetch_tickers(self):
-        raise ExchangeError(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
+        raise NotSupported(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
 
     async def fetchTickers(self):
         return await self.fetch_tickers()

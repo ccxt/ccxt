@@ -50,11 +50,11 @@ let apiKeys = JSON.parse (fs.readFileSync ('./keys.json', 'utf8'))[exchangeId]
 
 Object.assign (exchange, apiKeys)
 
-if (exchangeId === 'gdax') {
-    exchange.urls['api'] = 'https://api-public.sandbox.gdax.com' // move gdax to sandbox
-}
+if (exchange.urls['test'])
+    exchange.urls['api'] = exchange.urls['test']; // move to testnet/sandbox if possible
 
-if ([ 'jubi', 'gdax' ].indexOf (exchange.id) >= 0) {
+const verboseList = [ ];
+if (verboseList.indexOf (exchange.id) >= 0) {
     exchange.verbose = true
 }
 
@@ -149,7 +149,7 @@ let testExchangeSymbol = async (exchange, symbol) => {
     
     if (exchange.id == 'coinmarketcap') {
     
-        // log (await exchange.fetchTickers ());
+        log (await exchange.fetchTickers ());
         log (await exchange.fetchGlobal ());
     
     } else {
@@ -158,32 +158,29 @@ let testExchangeSymbol = async (exchange, symbol) => {
 
         try {
     
-            await testExchangeSymbolTrades (exchange, symbol)    
+            await testExchangeSymbolTrades (exchange, symbol)
     
         } catch (e) {
     
             if (e instanceof ccxt.ExchangeError) {
                 warn (exchange.id, '[Exchange Error] ' + e.message)
+            } else if (e instanceof ccxt.NotSupported) {
+                warn (exchange.id, '[Not Supported] ' + e.message)
             } else {
                 throw e;
             }
         }
     }
 
-    try {
+    if (exchange.hasFetchTickers) {
 
         log (exchange.id.green, 'fetching all tickers at once...')
         let tickers = await exchange.fetchTickers ()
         log (exchange.id.green, 'fetched', Object.keys (tickers).length.toString ().green, 'tickers...')
 
-    } catch (e) {
+    } else {
 
-        if (e instanceof ccxt.ExchangeError) {
-            log (exchange.id.green, 'fetching all tickers at once not supported.')
-            // do nothing
-        } else {
-            throw e // rethrow
-        }
+        log (exchange.id.green, 'fetching all tickers at once not supported.')
     }
 }
 
@@ -389,6 +386,8 @@ let tryAllProxies = async function (exchange, proxies) {
                 warn (exchange.id, '[Authentication Error] ' + e.message)
             } else if (e instanceof ccxt.ExchangeNotAvailable) {
                 warn (exchange.id, '[Exchange Not Available] ' + e.message)
+            } else if (e instanceof ccxt.NotSupported) {
+                warn (exchange.id, '[Not Supported] ' + e.message)
             } else if (e instanceof ccxt.ExchangeError) {
                 warn (exchange.id, '[Exchange Error] ' + e.message)
             } else {

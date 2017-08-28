@@ -33,13 +33,19 @@ from ccxt.version import __version__
 from ccxt import errors
 from ccxt import exchange
 
+#------------------------------------------------------------------------------
+
 from ccxt.errors import CCXTError
 from ccxt.errors import ExchangeError
+from ccxt.errors import NotSupported
 from ccxt.errors import AuthenticationError
+from ccxt.errors import InsufficientFunds
 from ccxt.errors import NetworkError
 from ccxt.errors import DDoSProtection
 from ccxt.errors import RequestTimeout
 from ccxt.errors import ExchangeNotAvailable
+
+#------------------------------------------------------------------------------
 
 from ccxt.exchange import *  # noqa: F403
 from ccxt.exchanges import * # noqa: F403

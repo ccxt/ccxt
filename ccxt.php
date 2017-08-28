@@ -34,15 +34,17 @@ SOFTWARE.
 
 namespace ccxt;
 
-class CCXTError            extends \Exception {}
-class ExchangeError        extends CCXTError {}
-class AuthenticationError  extends CCXTError {}
-class NetworkError         extends CCXTError {}
-class DDoSProtection       extends NetworkError {}
-class RequestTimeout       extends NetworkError {}
-class ExchangeNotAvailable extends NetworkError {}
+class CCXTError            extends \Exception    {}
+class ExchangeError        extends CCXTError     {}
+class NotSupported         extends ExchangeError {}
+class AuthenticationError  extends ExchangeError {}
+class InsufficientFunds    extends ExchangeError {}
+class NetworkError         extends CCXTError     {}
+class DDoSProtection       extends NetworkError  {}
+class RequestTimeout       extends NetworkError  {}
+class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.4.84';
+$version = '1.5.36';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -137,6 +139,7 @@ class Exchange {
         '_1broker',
         '_1btcxe',
         'anxpro',
+        'binance',
         'bit2c',
         'bitbay',
         'bitbays',
@@ -192,6 +195,7 @@ class Exchange {
         'mercado',
         'okcoincny',
         'okcoinusd',
+        'okex',
         'paymium',
         'poloniex',
         'quadrigacx',
@@ -412,6 +416,7 @@ class Exchange {
         $this->proxy      = '';
         $this->markets    = null;
         $this->symbols    = null;
+        $this->ids        = null;
         $this->currencies = null;
         $this->orders     = array ();
         $this->trades     = array ();
@@ -425,6 +430,7 @@ class Exchange {
         $this->markets_by_id = null;
         $this->userAgent = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
+        $this->hasFetchTickers = false;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -604,7 +610,7 @@ class Exchange {
                 'not accessible from this location at the moment');
         }
 
-        if (in_array ($http_status_code, array (404, 409, 500, 501, 502))) {
+        if (in_array ($http_status_code, array (404, 409, 422, 500, 501, 502))) {
 
             $this->raise_error ('ExchangeNotAvailable', $url, $method, 
                 'not accessible from this location at the moment');
@@ -616,7 +622,7 @@ class Exchange {
                 'not accessible from this location at the moment');
         }
 
-        if (in_array ($http_status_code, array (401, 422, 511))) {
+        if (in_array ($http_status_code, array (401, 511))) {
 
             $details = '(possible reasons: ' . implode (', ', array (
                 'invalid API keys',
@@ -631,7 +637,7 @@ class Exchange {
                 'check your API keys', $details);
         }
 
-        if (in_array ($http_status_code, array (400, 403, 405, 503, 521, 522, 525))) {
+        if (in_array ($http_status_code, array (400, 403, 405, 503, 520, 521, 522, 525))) {
 
             if (preg_match ('#cloudflare|incapsula#i', $result)) {
         
@@ -653,6 +659,9 @@ class Exchange {
                     'not accessible from this location at the moment', $details);
             }            
         }
+
+        if ((gettype ($result) != 'string') || (strlen ($result) < 2))
+            $this->raise_error ('ExchangeNotAvailable', $url, $method, 'returned empty response');
 
         $decoded = json_decode ($result, $as_associative_array = true);
         
@@ -687,6 +696,8 @@ class Exchange {
         $this->marketsById = $this->markets_by_id;
         $this->symbols = array_keys ($this->markets);
         sort ($this->symbols);
+        $this->ids = array_keys ($this->markets_by_id);
+        sort ($this->ids);
         $base = $this->pluck (array_filter ($values, function ($market) { 
             return array_key_exists ('base', $market);
         }), 'base');
@@ -762,7 +773,7 @@ class Exchange {
     }
 
     public function fetch_tickers () { // stub
-        $exception = '\\ccxt\\ExchangeError';
+        $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now');
     }
 
@@ -845,16 +856,20 @@ class Exchange {
                         $this->markets[$market] : $market;
     }
 
-    public function market_id ($market) {
-        return (is_array ($market = $this->market ($market))) ? $market['id'] : $market;
+    public function market_ids ($symbols) {
+        return array_map (array ($this, 'market_id'), $symbols);
     }
 
-    public function marketId ($market) {
-        return $this->market_id ($market);
+    public function marketIds ($symbols) {
+        return $this->market_ids ($symbols);
     }
 
-    public function symbol ($market) {
-        return (is_array ($market = $this->market ($market))) ? $market['symbol'] : $market;
+    public function market_id ($symbol) {
+        return (is_array ($market = $this->market ($symbol))) ? $market['id'] : $symbol;
+    }
+
+    public function marketId ($symbol) {
+        return $this->market_id ($symbol);
     }
 
     public function request ($path, $type, $method, $params, $headers = null, $body = null) { // stub
