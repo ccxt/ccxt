@@ -4492,7 +4492,11 @@ class bittrex extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $side = ($order['OrderType'] == 'LIMIT_BUY') ? 'buy' : 'sell';
+        $side = null;
+        if (array_key_exists ('OrderType', $order))
+            $side = ($order['OrderType'] == 'LIMIT_BUY') ? 'buy' : 'sell';
+        if (array_key_exists ('Type', $order))
+            $side = ($order['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
         $status = null;
         if ($order['Closed']) {
             $status = 'closed';
