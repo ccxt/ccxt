@@ -4284,7 +4284,7 @@ var bittrex = {
             'symbol': symbol,
             'type': 'limit',
             'side': side,
-            'price': order['PricePerUnit'],
+            'price': order['Price'],
             'amount': order['Quantity'],
             'remaining': order['QuantityRemaining'],
             'status': status,
