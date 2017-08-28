@@ -3466,8 +3466,8 @@ class bittrex (Exchange):
 
     def fetch_open_orders(self, market=None, params={}):
         m = self.market(market)
-        response = self.privatePostReturnOpenOrders(self.extend({
-            'currencyPair': m['id'],
+        response = self.marketGetOpenOrders(self.extend({
+            'market': m['id'],
         }))
         return self.parseOrders(response['result'], market)
 
