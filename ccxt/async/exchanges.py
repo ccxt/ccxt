@@ -930,7 +930,7 @@ class binance (Exchange):
         # If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
         raise NotImplemented(self.id + ' fetchOrders not implemented yet')
 
-    async def fetchOpenOrders(self, market=None, params={}):
+    async def fetch_open_orders(self, market=None, params={}):
         if not market:
             raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol')
         m = self.market(market)
@@ -3385,7 +3385,7 @@ class bittrex (Exchange):
         }, params))
         return self.parse_trades(response['result'], m)
 
-    async def fetchOpenOrders(self, market=None, params={}):
+    async def fetch_open_orders(self, market=None, params={}):
         m = self.market(market)
         response = await self.privatePostReturnOpenOrders(self.extend({
             'currencyPair': m['id'],
@@ -12050,7 +12050,7 @@ class poloniex (Exchange):
             'trades': trades,
         }
 
-    async def fetchOpenOrders(self, symbol=None, params={}):
+    async def fetch_open_orders(self, symbol=None, params={}):
         market = None
         if symbol:
             market = self.market(symbol)
@@ -12073,7 +12073,7 @@ class poloniex (Exchange):
         return result
 
     async def fetch_order_status(self, id, market=None):
-        orders = await self.fetchOpenOrders(market)
+        orders = await self.fetch_open_orders(market)
         indexed = self.index_by(orders, 'id')
         return 'open' if(id in list(indexed.keys())) else 'closed'
 
@@ -12103,7 +12103,7 @@ class poloniex (Exchange):
 
     async def fetch_order(self, id):
         await self.loadMarkets()
-        orders = await self.fetchOpenOrders()
+        orders = await self.fetch_open_orders()
         index = self.index_by(orders, 'id')
         if id in index:
             self.orders[id] = index[id]
@@ -14380,7 +14380,7 @@ class zaif (Exchange):
             result.append(self.parseOrder(extended, market))
         return result
 
-    async def fetchOpenOrders(self, symbol=None, params={}):
+    async def fetch_open_orders(self, symbol=None, params={}):
         market = None
         # request = {
         #     'is_token': False,

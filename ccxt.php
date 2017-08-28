@@ -790,6 +790,15 @@ class Exchange {
         return $this->fetch_order_status ($id);
     }
 
+    public function fetch_open_orders ($market = null, $params = array ()) {
+        $exception = '\\ccxt\\NotSupported';
+        throw new $exception ($this->id . ' fetch_open_orders() not implemented yet');
+    }
+
+    public function fetchOpenOrders ($market = null, $params = array ()) {
+        return $this->fetch_open_orders ($market, $params);
+    }
+
     public function fetch_markets () { // stub
         return $this->markets; 
     }

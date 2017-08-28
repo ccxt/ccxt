@@ -790,6 +790,15 @@ class Exchange {
         return $this->fetch_order_status ($id);
     }
 
+    public function fetch_open_orders ($market = null, $params = array ()) {
+        $exception = '\\ccxt\\NotSupported';
+        throw new $exception ($this->id . ' fetch_open_orders() not implemented yet');
+    }
+
+    public function fetchOpenOrders ($market = null, $params = array ()) {
+        return $this->fetch_open_orders ($market, $params);
+    }
+
     public function fetch_markets () { // stub
         return $this->markets; 
     }
@@ -1818,7 +1827,7 @@ class binance extends Exchange {
         throw new NotImplemented ($this->id . ' fetchOrders not implemented yet');
     }
 
-    public function fetchOpenOrders ($market = null, $params = array ()) {
+    public function fetch_open_orders ($market = null, $params = array ()) {
         if (!$market)
             throw new ExchangeError ($this->id . ' fetchOpenOrders requires a symbol');
         $m = $this->market ($market);
@@ -4448,7 +4457,7 @@ class bittrex extends Exchange {
         return $this->parse_trades ($response['result'], $m);
     }
 
-    public function fetchOpenOrders ($market = null, $params = array ()) {
+    public function fetch_open_orders ($market = null, $params = array ()) {
         $m = $this->market ($market);
         $response = $this->privatePostReturnOpenOrders (array_merge (array (
             'currencyPair' => $m['id'],
@@ -13710,7 +13719,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function fetchOpenOrders ($symbol = null, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
         $market = null;
         if ($symbol)
             $market = $this->market ($symbol);
@@ -13735,7 +13744,7 @@ class poloniex extends Exchange {
     }
 
     public function fetch_order_status ($id, $market = null) {
-        $orders = $this->fetchOpenOrders ($market);
+        $orders = $this->fetch_open_orders ($market);
         $indexed = $this->index_by ($orders, 'id');
         return (array_key_exists ($id, $indexed)) ? 'open' : 'closed';
     }
@@ -13767,7 +13776,7 @@ class poloniex extends Exchange {
 
     public function fetch_order ($id) {
         $this->loadMarkets ();
-        $orders = $this->fetchOpenOrders ();
+        $orders = $this->fetch_open_orders ();
         $index = $this->index_by ($orders, 'id');
         if (array_key_exists ($id, $index)) {
             $this->orders[$id] = $index[$id];
@@ -16208,7 +16217,7 @@ class zaif extends Exchange {
         return $result;
     }
 
-    public function fetchOpenOrders ($symbol = null, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
         $market = null;
         // $request = array (
         //     'is_token' => false,

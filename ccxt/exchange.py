@@ -584,6 +584,12 @@ class Exchange (object):
         order = self.fetch_order(id)
         return order['status']
 
+    def fetch_open_orders(self, market=None, params={}):
+        raise NotSupported(self.id + ' fetch_open_orders() not implemented yet')
+
+    def fetchOpenOrders(self, market=None, params={}):
+        return self.fetch_open_orders(market, params)
+
     def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
         return ohlcv
 
