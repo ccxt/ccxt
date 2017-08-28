@@ -3496,15 +3496,13 @@ class bittrex (Exchange):
 
     def parse_order(self, order, market=None):
         side = 'buy' if(order['Type'] == 'LIMIT_BUY') else 'sell'
-        open = order['IsOpen']
-        canceled = order['CancelInitiated']
         status = None
-        if open:
-            status = 'open'
-        elif canceled:
+        if order['Closed']:
+            status = 'closed'
+        elif order['CancelInitiated']:
             status = 'canceled'
         else:
-            status = 'closed'
+            status = 'open'
         symbol = None
         if market:
             symbol = market['symbol']

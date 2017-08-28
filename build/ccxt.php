@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.38';
+$version = '1.5.39';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -4493,15 +4493,13 @@ class bittrex extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $side = ($order['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
-        $open = $order['IsOpen'];
-        $canceled = $order['CancelInitiated'];
         $status = null;
-        if ($open) {
-            $status = 'open';
-        } else if ($canceled) {
+        if ($order['Closed']) {
+            $status = 'closed';
+        } else if ($order['CancelInitiated']) {
             $status = 'canceled';
         } else {
-            $status = 'closed';
+            $status = 'open';
         }
         $symbol = null;
         if ($market) {
@@ -13754,7 +13752,7 @@ class poloniex extends Exchange {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
                 for ($o = 0; $o < count ($orders); $o++) {
-                    $order = $orders[$o]
+                    $order = $orders[$o];
                     $timestamp = $this->parse8601 ($order['date']);
                     $extended = array_merge ($order, array (
                         'timestamp' => $timestamp,

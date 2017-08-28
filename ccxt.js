@@ -13313,7 +13313,7 @@ var poloniex = {
                 let market = this.markets_by_id[id];
                 let symbol = market['symbol'];
                 for (let o = 0; o < orders.length; o++) {
-                    let order = orders[o]
+                    let order = orders[o];
                     let timestamp = this.parse8601 (order['date']);
                     let extended = this.extend (order, {
                         'timestamp': timestamp,
