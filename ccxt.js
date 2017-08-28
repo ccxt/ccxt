@@ -4256,7 +4256,7 @@ var bittrex = {
     },
 
     parseOrder (order, market = undefined) {
-        let side = (order['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
+        let side = (order['OrderType'] == 'LIMIT_BUY') ? 'buy' : 'sell';
         let status = undefined;
         if (order['Closed']) {
             status = 'closed';

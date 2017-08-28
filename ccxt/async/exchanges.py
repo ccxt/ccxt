@@ -3417,7 +3417,7 @@ class bittrex (Exchange):
         return self.marketGetCancel({'uuid': id})
 
     def parse_order(self, order, market=None):
-        side = 'buy' if(order['Type'] == 'LIMIT_BUY') else 'sell'
+        side = 'buy' if(order['OrderType'] == 'LIMIT_BUY') else 'sell'
         status = None
         if order['Closed']:
             status = 'closed'
