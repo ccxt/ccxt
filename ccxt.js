@@ -4261,13 +4261,11 @@ var bittrex = {
             side = (order['OrderType'] == 'LIMIT_BUY') ? 'buy' : 'sell';
         if ('Type' in order)
             side = (order['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
-        let status = undefined;
+        let status = 'open';
         if (order['Closed']) {
             status = 'closed';
         } else if (order['CancelInitiated']) {
             status = 'canceled';
-        } else {
-            status = 'open';
         }
         let symbol = undefined;
         if (market) {
