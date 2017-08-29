@@ -13244,6 +13244,7 @@ var poloniex = {
     },
 
     async fetchMyTrades (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = undefined;
         if (symbol)
             market = this.market (symbol);
@@ -13288,6 +13289,7 @@ var poloniex = {
     },
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = undefined;
         if (symbol)
             market = this.market (symbol);
@@ -13335,6 +13337,7 @@ var poloniex = {
     },
     
     async fetchOrderStatus (id, market = undefined) {
+        await this.loadMarkets ();
         let orders = await this.fetchOpenOrders (market);
         let indexed = this.indexBy (orders, 'id');
         return (id in indexed) ? 'open' : 'closed';
