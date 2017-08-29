@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.36';
+$version = '1.5.43';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -779,6 +779,24 @@ class Exchange {
 
     public function fetchTickers () {
         return $this->fetch_tickers ();
+    }
+
+    public function fetch_order_status ($id, $market = null) {
+        $order = $this->fetch_order ($id);
+        return $order['id'];
+    }
+
+    public function fetchOrderStatus ($id, $market = null) {
+        return $this->fetch_order_status ($id);
+    }
+
+    public function fetch_open_orders ($market = null, $params = array ()) {
+        $exception = '\\ccxt\\NotSupported';
+        throw new $exception ($this->id . ' fetch_open_orders() not implemented yet');
+    }
+
+    public function fetchOpenOrders ($market = null, $params = array ()) {
+        return $this->fetch_open_orders ($market, $params);
     }
 
     public function fetch_markets () { // stub
@@ -1751,7 +1769,7 @@ class binance extends Exchange {
         return $this->parse_trades ($response, $m);
     }
 
-    public function parseOrder ($order) {
+    public function parse_order ($order) {
         // {
         //   "symbol" => "LTCBTC",
         //   "orderId" => 1,
@@ -1796,7 +1814,7 @@ class binance extends Exchange {
             'symbol' => $m['id'],
             'orderId' => (string) $id,
         )));
-        return $this->parseOrder ($response);
+        return $this->parse_order($response);
     }
 
     public function fetch_orders () {
@@ -1809,14 +1827,14 @@ class binance extends Exchange {
         throw new NotImplemented ($this->id . ' fetchOrders not implemented yet');
     }
 
-    public function fetchOpenOrders ($market = null, $params = array ()) {
+    public function fetch_open_orders ($market = null, $params = array ()) {
         if (!$market)
             throw new ExchangeError ($this->id . ' fetchOpenOrders requires a symbol');
         $m = $this->market ($market);
         $response = $this->privateGetOpenOrders (array (
             'symbol' => $m['id'],
         ));
-        return $this->parseOrders ($response, $m);
+        return $this->parse_orders($response, $m);
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -4439,12 +4457,16 @@ class bittrex extends Exchange {
         return $this->parse_trades ($response['result'], $m);
     }
 
-    public function fetchOpenOrders ($market = null, $params = array ()) {
-        $m = $this->market ($market);
-        $response = $this->privatePostReturnOpenOrders (array_merge (array (
-            'currencyPair' => $m['id'],
-        )));
-        return $this->parseOrders ($response['result'], $market);
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
+        $this->loadMarkets ();
+        $request = array ();
+        $market = null;
+        if ($symbol) {
+            $market = $this->market ($symbol);
+            $request['market'] = $market['id'];
+        }
+        $response = $this->marketGetOpenorders (array_merge ($request, $params));
+        return $this->parse_orders($response['result'], $market);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
@@ -4469,17 +4491,17 @@ class bittrex extends Exchange {
         return $this->marketGetCancel (array ( 'uuid' => $id ));
     }
 
-    public function parseOrder ($order, $market = null) {
-        $side = ($order['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
-        $open = $order['IsOpen'];
-        $canceled = $order['CancelInitiated'];
-        $status = null;
-        if ($open) {
-            $status = 'open';
-        } else if ($canceled) {
-            $status = 'canceled';
-        } else {
+    public function parse_order ($order, $market = null) {
+        $side = null;
+        if (array_key_exists ('OrderType', $order))
+            $side = ($order['OrderType'] == 'LIMIT_BUY') ? 'buy' : 'sell';
+        if (array_key_exists ('Type', $order))
+            $side = ($order['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
+        $status = 'open';
+        if ($order['Closed']) {
             $status = 'closed';
+        } else if ($order['CancelInitiated']) {
+            $status = 'canceled';
         }
         $symbol = null;
         if ($market) {
@@ -4500,7 +4522,7 @@ class bittrex extends Exchange {
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
-            'price' => $order['PricePerUnit'],
+            'price' => $order['Price'],
             'amount' => $order['Quantity'],
             'remaining' => $order['QuantityRemaining'],
             'status' => $status,
@@ -4511,7 +4533,7 @@ class bittrex extends Exchange {
     public function fetch_order ($id) {
         $this->loadMarkets ();
         $response = $this->accountGetOrder (array ( 'uuid' => $id ));
-        return $this->parseOrder ($response['result']);
+        return $this->parse_order($response['result']);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -5348,7 +5370,7 @@ class btce extends Exchange {
         return $this->privatePostCancelOrder (array ( 'order_id' => $id ));
     }
 
-    public function parseOrder ($order) {
+    public function parse_order ($order) {
         $statusCode = $order['status'];
         $status = null;
         if ($statusCode == 0) {
@@ -5380,7 +5402,7 @@ class btce extends Exchange {
         $this->loadMarkets ();
         $response = $this->privatePostOrderInfo (array ( 'order_id' => $id ));
         $order = $response['return'][$id];
-        return $this->parseOrder (array_merge (array ( 'id' => $id ), $order));
+        return $this->parse_order(array_merge (array ( 'id' => $id ), $order));
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -11861,7 +11883,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function parseOrder ($order, $market = null) {
+    public function parse_order ($order, $market = null) {
         $description = $order['descr'];
         $market = $this->markets_by_id[$description['pair']];
         $side = $description['type'];
@@ -11882,12 +11904,12 @@ class kraken extends Exchange {
         );
     }
 
-    public function parseOrders ($orders, $market = null) {
+    public function parse_orders ($orders, $market = null) {
         $result = array ();
         $ids = array_keys ($orders);
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $order = $this->parseOrder ($orders[$id]);
+            $order = $this->parse_order($orders[$id]);
         }
         return $result;
     }
@@ -11900,7 +11922,7 @@ class kraken extends Exchange {
             // 'userref' => 'optional', // restrict results to given user reference $id (optional)
         ));
         $orders = $response['result'];
-        $order = $this->parseOrder ($orders[$id]);
+        $order = $this->parse_order($orders[$id]);
         return array_merge (array ( 'info' => $response ), $order);
     }
 
@@ -13683,7 +13705,7 @@ class poloniex extends Exchange {
         return $result;
     }
 
-    public function parseOrder ($order, $market) {
+    public function parse_order ($order, $market) {
         $trades = null;
         if (array_key_exists ('resultingTrades', $order))
             $trades = $this->parse_trades ($order['resultingTrades'], $market);
@@ -13701,32 +13723,55 @@ class poloniex extends Exchange {
         );
     }
 
-    public function fetchOpenOrders ($symbol = null, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
         $market = null;
         if ($symbol)
             $market = $this->market ($symbol);
         $pair = $market ? $market['id'] : 'all';
-        $orders = $this->privatePostReturnOpenOrders (array_merge (array (
+        $response = $this->privatePostReturnOpenOrders (array_merge (array (
             'currencyPair' => $pair,
         )));
         $result = array ();
-        for ($i = 0; $i < count ($orders); $i++) {
-            $order = $orders[$i];
-            $timestamp = $this->parse8601 ($order['date']);
-            $extended = array_merge ($order, array (
-                'timestamp' => $timestamp,
-                'status' => 'open',
-                'type' => 'limit',
-                'side' => $order['type'],
-                'price' => $order['rate'],
-            ));
-            $result[] = $this->parseOrder ($extended, $market);
+        if ($market) {
+            $orders = $response;
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $timestamp = $this->parse8601 ($order['date']);
+                $extended = array_merge ($order, array (
+                    'timestamp' => $timestamp,
+                    'status' => 'open',
+                    'type' => 'limit',
+                    'side' => $order['type'],
+                    'price' => $order['rate'],
+                ));
+                $result[] = $this->parse_order($extended, $market);
+            }
+        } else {
+            $ids = array_keys ($response);
+            for ($i = 0; $i < count ($ids); $i++) {
+                $id = $ids[$i];
+                $orders = $response[$id];
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+                for ($o = 0; $o < count ($orders); $o++) {
+                    $order = $orders[$o];
+                    $timestamp = $this->parse8601 ($order['date']);
+                    $extended = array_merge ($order, array (
+                        'timestamp' => $timestamp,
+                        'status' => 'open',
+                        'type' => 'limit',
+                        'side' => $order['type'],
+                        'price' => $order['rate'],
+                    ));
+                    $result[] = $this->parse_order($extended, $market);
+                }
+            }
         }
         return $result;
     }
 
-    public function fetch_orderStatus ($id, $market = null) {
-        $orders = $this->fetchOpenOrders ($market);
+    public function fetch_order_status ($id, $market = null) {
+        $orders = $this->fetch_open_orders ($market);
         $indexed = $this->index_by ($orders, 'id');
         return (array_key_exists ($id, $indexed)) ? 'open' : 'closed';
     }
@@ -13743,7 +13788,7 @@ class poloniex extends Exchange {
             'amount' => $amount,
         ), $params));
         $timestamp = $this->milliseconds ();
-        $order = $this->parseOrder (array_merge (array (
+        $order = $this->parse_order(array_merge (array (
             'timestamp' => $timestamp,
             'status' => 'open',
             'type' => $type,
@@ -13758,7 +13803,7 @@ class poloniex extends Exchange {
 
     public function fetch_order ($id) {
         $this->loadMarkets ();
-        $orders = $this->fetchOpenOrders ();
+        $orders = $this->fetch_open_orders ();
         $index = $this->index_by ($orders, 'id');
         if (array_key_exists ($id, $index)) {
             $this->orders[$id] = $index[$id];
@@ -13770,7 +13815,7 @@ class poloniex extends Exchange {
         throw new ExchangeError ($this->id . ' order ' . $id . ' not found');
     }
 
-    public function fetch_orderTrades ($id, $params = array ()) {
+    public function fetch_order_trades ($id, $params = array ()) {
         $this->loadMarkets ();
         $trades = $this->privatePostReturnOrderTrades (array_merge (array (
             'orderNumber' => $id,
@@ -16168,7 +16213,7 @@ class zaif extends Exchange {
         ), $params));
     }
 
-    public function parseOrder ($order, $market = null) {
+    public function parse_order ($order, $market = null) {
         $side = ($order['action'] == 'bid') ? 'buy' : 'sell';
         $timestamp = intval ($order['timestamp']) * 1000;
         if (!$market)
@@ -16187,19 +16232,19 @@ class zaif extends Exchange {
         );
     }
 
-    public function parseOrders ($orders, $market = null) {
+    public function parse_orders ($orders, $market = null) {
         $ids = array_keys ($orders);
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $order = $orders[$id];
             $extended = array_merge ($order, array ( 'id' => $id ));
-            $result[] = $this->parseOrder ($extended, $market);
+            $result[] = $this->parse_order($extended, $market);
         }
         return $result;
     }
 
-    public function fetchOpenOrders ($symbol = null, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
         $market = null;
         // $request = array (
         //     'is_token' => false,
@@ -16211,7 +16256,7 @@ class zaif extends Exchange {
             $request['currency_pair'] = $market['id'];
         }
         $response = $this->privatePostActiveOrders (array_merge ($request, $params));
-        return $this->parseOrders ($response['return'], $market);
+        return $this->parse_orders($response['return'], $market);
     }
 
     public function fetchClosedOrders ($symbol = null, $params = array ()) {
@@ -16232,7 +16277,7 @@ class zaif extends Exchange {
             $request['currency_pair'] = $market['id'];
         }
         $response = $this->privatePostTradeHistory (array_merge ($request, $params));
-        return $this->parseOrders ($response['return'], $market);
+        return $this->parse_orders($response['return'], $market);
     }
 
     public function request ($path, $api = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {

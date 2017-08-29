@@ -577,6 +577,19 @@ class Exchange (object):
     def fetchTickers(self, symbols=None):
         return self.fetch_tickers(symbols)
 
+    def fetchOrderStatus(self, id, market=None):
+        return self.fetch_order_status(id, market)
+
+    def fetch_order_status(self, id, market=None):
+        order = self.fetch_order(id)
+        return order['status']
+
+    def fetch_open_orders(self, market=None, params={}):
+        raise NotSupported(self.id + ' fetch_open_orders() not implemented yet')
+
+    def fetchOpenOrders(self, market=None, params={}):
+        return self.fetch_open_orders(market, params)
+
     def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
         return ohlcv
 

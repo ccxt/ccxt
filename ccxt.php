@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.36';
+$version = '1.5.43';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -779,6 +779,24 @@ class Exchange {
 
     public function fetchTickers () {
         return $this->fetch_tickers ();
+    }
+
+    public function fetch_order_status ($id, $market = null) {
+        $order = $this->fetch_order ($id);
+        return $order['id'];
+    }
+
+    public function fetchOrderStatus ($id, $market = null) {
+        return $this->fetch_order_status ($id);
+    }
+
+    public function fetch_open_orders ($market = null, $params = array ()) {
+        $exception = '\\ccxt\\NotSupported';
+        throw new $exception ($this->id . ' fetch_open_orders() not implemented yet');
+    }
+
+    public function fetchOpenOrders ($market = null, $params = array ()) {
+        return $this->fetch_open_orders ($market, $params);
     }
 
     public function fetch_markets () { // stub

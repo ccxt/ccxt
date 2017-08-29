@@ -158,6 +158,19 @@ class Exchange (BaseExchange):
     async def fetchTickers(self):
         return await self.fetch_tickers()
 
+    async def fetchOrderStatus(self, id, market=None):
+        return await self.fetch_order_status(id, market)
+
+    async def fetch_order_status(self, id, market=None):
+        order = await self.fetch_order(id)
+        return order['status']
+
+    async def fetch_open_orders(self, market=None, params={}):
+        raise NotSupported(self.id + ' fetch_open_orders() not implemented yet')
+
+    async def fetchOpenOrders(self, market=None, params={}):
+        return await self.fetch_open_orders(market, params)
+
     async def fetchBalance(self):
         return await self.fetch_balance()
 

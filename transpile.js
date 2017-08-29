@@ -100,9 +100,13 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('parseTrade',       'parse_trade')
                         .replace ('parseBidAsks',     'parse_bidasks')
                         .replace ('parseBidAsk',      'parse_bidask')
+                        .replace ('parseOrders',      'parse_orders')
+                        .replace ('parseOrder',       'parse_order')
                         .replace ('fetchTrades',      'fetch_trades')
-                        .replace ('fetchOrder',       'fetch_order')
+                        .replace ('fetchOrderStatus', 'fetch_order_status')
                         .replace ('fetchOrderTrades', 'fetch_order_trades')
+                        .replace ('fetchOrder',       'fetch_order')
+                        .replace ('fetchOpenOrders',  'fetch_open_orders')
                         .replace ('fetchMyTrades',    'fetch_my_trades')
                         .replace ('fetchAllMyTrades', 'fetch_all_my_trades')
                         .replace ('createOrder',      'create_order')
@@ -153,6 +157,10 @@ while (exchanges = regex.exec (contents)) {
             [ /\.sortBy\s/g, '.sort_by'],
             [ /\.marketIds\s/g, '.market_ids'],
             [ /\.marketId\s/g, '.market_id'],
+            [ /\.fetchOrderStatus\s/g, '.fetch_order_status'],
+            [ /\.fetchOpenOrders\s/g, '.fetch_open_orders'],
+            [ /\.parseOrders\s/g, '.parse_orders'],
+            [ /\.parseOrder\s/g, '.parse_order'],
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
             [ /this\./g, 'self.' ],
@@ -236,6 +244,10 @@ while (exchanges = regex.exec (contents)) {
             [ /\.sortBy/g, '.sort_by'],
             [ /\.marketIds/g, '.market_ids'],
             [ /\.marketId/g, '.market_id'],
+            [ /\.fetchOrderStatus/g, '.fetch_order_status'],
+            [ /\.fetchOpenOrders/g, '.fetch_open_orders'],
+            [ /\.parseOrders\s/g, '.parse_orders'],
+            [ /\.parseOrder\s/g, '.parse_order'],
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
