@@ -4558,6 +4558,9 @@ class bittrex extends Exchange {
         if (array_key_exists ('success', $response))
             if ($response['success'])
                 return $response;
+        if (array_key_exists ('message', $response))
+            if ($response['message'] == "INSUFFICIENT_FUNDS")
+                throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }

@@ -3555,6 +3555,9 @@ class bittrex (Exchange):
         if 'success' in response:
             if response['success']:
                 return response
+        if 'message' in response:
+            if response['message'] == "INSUFFICIENT_FUNDS":
+                raise InsufficientFunds(self.id + ' ' + self.json(response))
         raise ExchangeError(self.id + ' ' + self.json(response))
 
 #------------------------------------------------------------------------------
