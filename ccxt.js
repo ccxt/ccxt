@@ -4322,6 +4322,9 @@ var bittrex = {
         if ('success' in response)
             if (response['success'])
                 return response;
+        if ('message' in response)
+            if (response['message'] == "INSUFFICIENT_FUNDS")
+                throw new InsufficientFunds (this.id + ' ' + this.json (response));
         throw new ExchangeError (this.id + ' ' + this.json (response));
     },
 }
