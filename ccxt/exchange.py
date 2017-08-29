@@ -642,38 +642,38 @@ class Exchange (object):
     def fetchBalance(self):
         return self.fetch_balance()
 
-    def fetchOrderBook(self, market):
-        return self.fetch_order_book(market)
+    def fetchOrderBook(self, symbol):
+        return self.fetch_order_book(symbol)
 
-    def fetchTicker(self, market):
-        return self.fetch_ticker(market)
+    def fetchTicker(self, symbol):
+        return self.fetch_ticker(symbol)
 
-    def fetchTrades(self, market):
-        return self.fetch_trades(market)
+    def fetchTrades(self, symbol):
+        return self.fetch_trades(symbol)
 
-    def create_limit_buy_order(self, market, amount, price, params={}):
-        return self.create_order(market, 'limit', 'buy', amount, price, params)
+    def create_limit_buy_order(self, symbol, amount, price, params={}):
+        return self.create_order(symbol, 'limit', 'buy', amount, price, params)
 
-    def create_limit_sell_order(self, market, amount, price, params={}):
-        return self.create_order(market, 'limit', 'sell', amount, price, params)
+    def create_limit_sell_order(self, symbol, amount, price, params={}):
+        return self.create_order(symbol, 'limit', 'sell', amount, price, params)
 
-    def create_market_buy_order(self, market, amount, params={}):
-        return self.create_order(market, 'market', 'buy', amount, None, params)
+    def create_market_buy_order(self, symbol, amount, params={}):
+        return self.create_order(symbol, 'market', 'buy', amount, None, params)
 
-    def create_market_sell_order(self, market, amount, params={}):
-        return self.create_order(market, 'market', 'sell', amount, None, params)
+    def create_market_sell_order(self, symbol, amount, params={}):
+        return self.create_order(symbol, 'market', 'sell', amount, None, params)
 
-    def createLimitBuyOrder(self, market, amount, price, params={}):
-        return self.create_limit_buy_order(market, amount, price, params)
+    def createLimitBuyOrder(self, symbol, amount, price, params={}):
+        return self.create_limit_buy_order(symbol, amount, price, params)
 
-    def createLimitSellOrder(self, market, amount, price, params={}):
-        return self.create_limit_sell_order(market, amount, price, params)
+    def createLimitSellOrder(self, symbol, amount, price, params={}):
+        return self.create_limit_sell_order(symbol, amount, price, params)
 
-    def createMarketBuyOrder(self, market, amount, params={}):
-        return self.create_market_buy_order(market, amount, params)
+    def createMarketBuyOrder(self, symbol, amount, params={}):
+        return self.create_market_buy_order(symbol, amount, params)
 
-    def createMarketSellOrder(self, market, amount, params={}):
-        return self.create_market_sell_order(market, amount, params)
+    def createMarketSellOrder(self, symbol, amount, params={}):
+        return self.create_market_sell_order(symbol, amount, params)
 
 #==============================================================================
 
