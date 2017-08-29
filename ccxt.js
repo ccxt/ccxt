@@ -13343,14 +13343,14 @@ var poloniex = {
         return (id in indexed) ? 'open' : 'closed';
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let method = 'privatePost' + this.capitalize (side);
-        let m = this.market (market);
+        let market = this.market (symbol);
         let response = await this[method] (this.extend ({
-            'currencyPair': m['id'],
+            'currencyPair': market['id'],
             'rate': price,
             'amount': amount,
         }, params));
@@ -13362,7 +13362,7 @@ var poloniex = {
             'side': side,
             'price': price,
             'amount': amount,
-        }, response), m);
+        }, response), market);
         let id = order['id'];
         this.orders[id] = order;
         return this.extend ({ 'info': response }, order);
