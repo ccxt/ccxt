@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.42';
+$version = '1.5.43';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -4497,13 +4497,11 @@ class bittrex extends Exchange {
             $side = ($order['OrderType'] == 'LIMIT_BUY') ? 'buy' : 'sell';
         if (array_key_exists ('Type', $order))
             $side = ($order['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
-        $status = null;
+        $status = 'open';
         if ($order['Closed']) {
             $status = 'closed';
         } else if ($order['CancelInitiated']) {
             $status = 'canceled';
-        } else {
-            $status = 'open';
         }
         $symbol = null;
         if ($market) {

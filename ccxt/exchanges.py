@@ -3500,13 +3500,11 @@ class bittrex (Exchange):
             side = 'buy' if(order['OrderType'] == 'LIMIT_BUY') else 'sell'
         if 'Type' in order:
             side = 'buy' if(order['Type'] == 'LIMIT_BUY') else 'sell'
-        status = None
+        status = 'open'
         if order['Closed']:
             status = 'closed'
         elif order['CancelInitiated']:
             status = 'canceled'
-        else:
-            status = 'open'
         symbol = None
         if market:
             symbol = market['symbol']
