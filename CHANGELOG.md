@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Added handling of InsufficientFunds for HitBTC [#164](https://github.com/kroitor/ccxt/issues/164)
 - Prepared for an API update on Bitfinex [#154](https://github.com/kroitor/ccxt/issues/154)
 - Changed order type handling for margin orders on Bitfinex, [#130](https://github.com/kroitor/ccxt/issues/130), [#157](https://github.com/kroitor/ccxt/issues/157)
 - Added experimental fetchClosedOrders, fetchOpenOrders to Zaif, [#71](https://github.com/kroitor/ccxt/issues/71)
