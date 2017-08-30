@@ -10089,15 +10089,21 @@ var gdax = {
         ];
     },
 
-    async fetchOHLCV (market, timeframe = 60, since = undefined, limit = undefined) {
-        let m = this.market (market);
+    async fetchOHLCV (symbol, timeframe = 60, since = undefined, limit = undefined) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
         let response = await this.publicGetProductsIdCandles ({
-            'id': m['id'],
+            'id': market['id'],
             'granularity': timeframe,
             'start': since,
             'end': limit,
         });
-        return this.parseOHLCVs (response, m, timeframe, since, limit);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    },
+
+    async fetchTime () {
+        let response = this.publicGetTime ();
+        return this.parse8601 (response['iso']); 
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
