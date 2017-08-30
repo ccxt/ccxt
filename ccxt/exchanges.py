@@ -2377,11 +2377,28 @@ class bitlish (Exchange):
                 result[key].append([price, amount])
         return result
 
-    def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market=None):
+        side = 'buy' if(trade['dir'] == 'bid') else 'sell'
+        return {
+            'id': None,
+            'info': trade,
+            'timestamp': trade['created'],
+            'datetime': self.iso8601(trade['created']),
+            'symbol': market['symbol'],
+            'order': None,
+            'type': None,
+            'side': side,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
+
+    def fetch_trades(self, symbol, params={}):
         self.load_markets()
-        return self.publicGetTradesHistory(self.extend({
-            'pair_id': self.market_id(market),
+        market = self.market(symbol)
+        response = self.publicGetTradesHistory(self.extend({
+            'pair_id': market['id'],
         }, params))
+        return self.parse_trades(response['list'], market)
 
     def fetch_balance(self):
         self.load_markets()

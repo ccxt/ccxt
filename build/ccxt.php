@@ -3301,11 +3301,29 @@ class bitlish extends Exchange {
         return $result;
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market = null) {
+        $side = ($trade['dir'] == 'bid') ? 'buy' : 'sell';
+        return array (
+            'id' => null,
+            'info' => $trade,
+            'timestamp' => $trade['created'],
+            'datetime' => $this->iso8601 ($trade['created']),
+            'symbol' => $market['symbol'],
+            'order' => null,
+            'type' => null,
+            'side' => $side,
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetTradesHistory (array_merge (array (
-            'pair_id' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTradesHistory (array_merge (array (
+            'pair_id' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response['list'], $market);
     }
 
     public function fetch_balance () {

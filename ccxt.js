@@ -3084,11 +3084,29 @@ var bitlish = {
         return result;
     },
 
-    async fetchTrades (market, params = {}) {
+    parseTrade (trade, market = undefined) {
+        let side = (trade['dir'] == 'bid') ? 'buy' : 'sell';
+        return {
+            'id': undefined,
+            'info': trade,
+            'timestamp': trade['created'],
+            'datetime': this.iso8601 (trade['created']),
+            'symbol': market['symbol'],
+            'order': undefined,
+            'type': undefined,
+            'side': side,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        return this.publicGetTradesHistory (this.extend ({
-            'pair_id': this.marketId (market),
+        let market = this.market (symbol);
+        let response = await this.publicGetTradesHistory (this.extend ({
+            'pair_id': market['id'],
         }, params));
+        return this.parseTrades (response['list'], market);
     },
 
     async fetchBalance () {
