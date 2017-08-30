@@ -3945,15 +3945,29 @@ var bitstamp = {
         };
     },
 
-    parseTrade (trade, market) {
-        let timestamp = parseInt (trade['date']);
+    parseTrade (trade, market = undefined) {
+        let timestamp = undefined;
+        if ('date' in trade) {
+            timestamp = parseInt (trade['date']);
+        } else if ('datetime' in trade) {
+            // timestamp = this.parse8601 (trade['datetime']);
+            timestamp = parseInt (trade['datetime']);
+        }
         let side = (trade['type'] == 0) ? 'buy' : 'sell';
+        let order = undefined;
+        if ('order_id' in trade)
+            order = trade['order_id'].toString ();
+        if ('currency_pair' in trade) {
+            if (trade['currency_pair'] in this.markets_by_id)
+                market = this.markets_by_id[trade['currency_pair']];
+        }
         return {
             'id': trade['tid'].toString (),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
+            'order': order,
             'type': undefined,
             'side': side,
             'price': parseFloat (trade['price']),
@@ -4017,38 +4031,6 @@ var bitstamp = {
         return this.privatePostCancelOrder ({ 'id': id });
     },
 
-    parseOrder (order, market = undefined) {
-        /*
-        Response (JSON): success - Returns a list of open orders, where each order is represented as a dictionary.
-        id  Transaction ID.
-        datetime    Date and time.
-        type    Type: 0 - buy; 1 - sell.
-        price   Price.
-        amount  Amount.
-        currency_pair (if all currency pairs)   Currency Pair.
-        Response (JSON): failure
-        status (v2 calls only)  "error"
-        reason (v2 calls only)  The reason for the error.
-        */
-        let price = order['transactions'].map (t => t['price']) / order['transactions'].length;
-        let timestamp = order['transactions'].map (t => Date.parse (t['datetime'])).reduce ((t1, t2) => Math.max (t1, t2));
-        let type = order['transactions'].length > 0 ? order['transactions'].map (t => [ 'deposit', 'withdrawal', 'market' ][t['type']])[0] : undefined;
-        let result = {
-            'info': order,
-            'id': order['id'],
-            //'symbol': market['symbol'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'type': type,
-            //'side': order['type'],
-            'price': price,
-            //'amount': order['start_amount'],
-            //'remaining': order['amount'],
-            'status': status,
-        };
-        return result;
-    },
-
     parseOrderStatus (order) {
         if ((order['status'] == 'Queue') || (order['status'] == 'Open'))
             return 'open';
@@ -4063,48 +4045,20 @@ var bitstamp = {
         return parseOrderStatus (response);
     },
 
-    async fetchOrder (id) {
-        await this.loadMarkets ();
-        let response = await this.privatePostOrderStatus ({ 'id': id });
-        return this.parseOrder (this.extend ({ 'id': id }, response));
-
-        let orders = await this.fetchOpenOrders ();
-        let index = this.indexBy (orders, 'id');
-        if (id in index) {
-            this.orders[id] = index[id];
-            return index[id];
-        } else if (id in this.orders) {
-            this.orders[id]['status'] = 'closed';
-            return this.orders[id];
-        }
-        throw new ExchangeError (this.id + ' order ' + id + ' not found');
-    },
-
     async fetchMyTrades (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol)
             market = this.market (symbol);
         let pair = market ? market['id'] : 'all';
-        // let request = this.extend ({
-        //     'currencyPair': pair,
-        //     'end': this.seconds (), // last 50000 trades by default
-        // }, params);
-        // let response = await this.privatePostReturnTradeHistory (request);
-        let result = undefined;
-        // if (market) {
-        //     result = this.parseTrades (response, market);
-        // } else {
-        //     result = { 'info': response };
-        //     let ids = Object.keys (response);
-        //     for (let i = 0; i < ids.length; i++) {
-        //         let id = ids[i];
-        //         let market = this.markets_by_id[id];
-        //         let symbol = market['symbol'];
-        //         result[symbol] = this.parseTrades (response[id], market);
-        //     }
-        // }
-        return result;
+        let request = this.extend ({ 'id': pair }, params);
+        let response = await this.privatePostOpenOrdersId (request);
+        let result = this.parseTrades (response, market);
+    },
+
+    async fetchOrder (id) {
+        throw new NotImplemented (this.id + ' fetchOrder is not implemented yet');
+        await this.loadMarkets ();
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
