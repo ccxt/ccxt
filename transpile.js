@@ -46,6 +46,8 @@ while (exchanges = regex.exec (contents)) {
 
     let pyParams = params
         .join ("\n        ")
+        .replace (/ true/g, ' True')
+        .replace (/ false/g, ' False')
         .replace (/ \/\//g, ' #')
         .replace (/\{ /g, '{')              // PEP8 E201
         .replace (/\[ /g, '[')              // PEP8 E201
@@ -98,9 +100,13 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('parseTrade',       'parse_trade')
                         .replace ('parseBidAsks',     'parse_bidasks')
                         .replace ('parseBidAsk',      'parse_bidask')
+                        .replace ('parseOrders',      'parse_orders')
+                        .replace ('parseOrder',       'parse_order')
                         .replace ('fetchTrades',      'fetch_trades')
-                        .replace ('fetchOrder',       'fetch_order')
+                        .replace ('fetchOrderStatus', 'fetch_order_status')
                         .replace ('fetchOrderTrades', 'fetch_order_trades')
+                        .replace ('fetchOrder',       'fetch_order')
+                        .replace ('fetchOpenOrders',  'fetch_open_orders')
                         .replace ('fetchMyTrades',    'fetch_my_trades')
                         .replace ('fetchAllMyTrades', 'fetch_all_my_trades')
                         .replace ('createOrder',      'create_order')
@@ -149,11 +155,16 @@ while (exchanges = regex.exec (contents)) {
             [ /\.parseBidAsk\s/g, '.parse_bidask'],
             [ /\.indexBy\s/g, '.index_by'],
             [ /\.sortBy\s/g, '.sort_by'],
+            [ /\.marketIds\s/g, '.market_ids'],
             [ /\.marketId\s/g, '.market_id'],
+            [ /\.fetchOrderStatus\s/g, '.fetch_order_status'],
+            [ /\.fetchOpenOrders\s/g, '.fetch_open_orders'],
+            [ /\.parseOrders\s/g, '.parse_orders'],
+            [ /\.parseOrder\s/g, '.parse_order'],
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
             [ /this\./g, 'self.' ],
-            [ /([^a-zA-Z])this([^a-zA-Z])/g, '$1self$2' ],
+            [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /([^a-zA-Z0-9_])let\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
             [ /([^a-zA-Z0-9_])let\s/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
@@ -231,11 +242,16 @@ while (exchanges = regex.exec (contents)) {
             [ /\.extractParams/g, '.extract_params'],
             [ /\.indexBy/g, '.index_by'],
             [ /\.sortBy/g, '.sort_by'],
+            [ /\.marketIds/g, '.market_ids'],
             [ /\.marketId/g, '.market_id'],
+            [ /\.fetchOrderStatus/g, '.fetch_order_status'],
+            [ /\.fetchOpenOrders/g, '.fetch_open_orders'],
+            [ /\.parseOrders\s/g, '.parse_orders'],
+            [ /\.parseOrder\s/g, '.parse_order'],
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
-            [ /this_\./g, '$this_->' ],
+            [ /([^'])this_\./g, '$1$this_->' ],
             [ /\{\}/g, 'array ()' ],
             [ /\[\]/g, 'array ()' ],
             [ /\{([^\n\}]+)\}/g, 'array ($1)' ],

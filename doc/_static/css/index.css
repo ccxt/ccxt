@@ -1,0 +1,7 @@
+div.body p {
+    hyphens: none;
+}
+
+#supported-cryptocurrency-exchange-markets td:first-child {
+    width: 85px;
+}

@@ -60,11 +60,11 @@ def test_exchange_all_tickers(exchange):
     delay = int(exchange.rateLimit / 1000)
     time.sleep(delay)
     dump(green(exchange.id), 'fetching all tickers at once...')
-    try:
+    if exchange.hasFetchTickers:
         tickers = exchange.fetch_tickers()
         dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
-    except ccxt.ExchangeError as e:
-        dump(yellow(type(e).__name__), e.args)
+    else:
+        dump(yellow(exchange.id), 'fetching all tickers at once not supported')
 
 # ------------------------------------------------------------------------------
 
@@ -95,6 +95,8 @@ def test_exchange_symbol_trades(exchange, symbol):
         trades = exchange.fetch_trades(symbol)
         dump(green(exchange.id), green(symbol), 'fetched', green(len(list(trades))), 'trades')
     except ccxt.ExchangeError as e:
+        dump(yellow(type(e).__name__), e.args)
+    except ccxt.NotSupported as e:
         dump(yellow(type(e).__name__), e.args)
 
 # ------------------------------------------------------------------------------
@@ -190,15 +192,17 @@ def try_all_proxies(exchange, proxies):
             load_exchange(exchange)
             test_exchange(exchange)
             break
-        except ccxt.ExchangeError as e:
+        except ccxt.RequestTimeout as e:
+            dump(yellow(type(e).__name__), str(e))
+        except ccxt.NotSupported as e:
+            dump(yellow(type(e).__name__), e.args)
+        except ccxt.DDoSProtection as e:
+            dump(yellow(type(e).__name__), e.args)
+        except ccxt.ExchangeNotAvailable as e:
             dump(yellow(type(e).__name__), e.args)
         except ccxt.AuthenticationError as e:
             dump(yellow(type(e).__name__), str(e))
-        except ccxt.DDoSProtection as e:
-            dump(yellow(type(e).__name__), e.args)
-        except ccxt.RequestTimeout as e:
-            dump(yellow(type(e).__name__), str(e))
-        except ccxt.ExchangeNotAvailable as e:
+        except ccxt.ExchangeError as e:
             dump(yellow(type(e).__name__), e.args)
 
 # ------------------------------------------------------------------------------

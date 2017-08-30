@@ -32,7 +32,9 @@ from ccxt.version import __version__
 
 from ccxt.errors import CCXTError
 from ccxt.errors import ExchangeError
+from ccxt.errors import NotSupported
 from ccxt.errors import AuthenticationError
+from ccxt.errors import InsufficientFunds
 from ccxt.errors import NetworkError
 from ccxt.errors import DDoSProtection
 from ccxt.errors import RequestTimeout
@@ -96,6 +98,7 @@ class Exchange (object):
     verbose = False
     markets = None
     symbols = None
+    ids = None
     currencies = None
     tickers = None
     orders = {}
@@ -108,6 +111,7 @@ class Exchange (object):
     twofa = False
     marketsById = None
     markets_by_id = None
+    hasFetchTickers = False
     substituteCommonCurrencyCodes = True
 
     def __init__(self, config={}):
@@ -214,7 +218,7 @@ class Exchange (object):
             details = text if text else None
             if e.code == 429:
                 error = DDoSProtection
-            elif e.code in [404, 409, 500, 501, 502, 521, 522, 525]:
+            elif e.code in [404, 409, 422, 500, 501, 502, 520, 521, 522, 525]:
                 details = e.read().decode('utf-8', 'ignore') if e else None
                 error = ExchangeNotAvailable
             elif e.code in [400, 403, 405, 503]:
@@ -236,8 +240,10 @@ class Exchange (object):
                     ]) + ')'
             elif e.code in [408, 504]:
                 error = RequestTimeout
-            elif e.code in [401, 422, 511]:
+            elif e.code in [401, 511]:
                 error = AuthenticationError
+            else:
+                error = ExchangeError
             self.raise_error(error, url, method, e, details)
         except _urllib.URLError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
@@ -255,6 +261,8 @@ class Exchange (object):
 
     def handle_response(self, url, method='GET', headers=None, body=None):
         try:
+            if (len(body) < 2):
+                raise ExchangeError(''.join([self.id, method, url, 'returned empty response']))
             return json.loads(body)
         except Exception as e:
             ddos_protection = re.search('(cloudflare|incapsula)', body, flags=re.IGNORECASE)
@@ -536,6 +544,7 @@ class Exchange (object):
         self.markets_by_id = Exchange.indexBy(values, 'id')
         self.marketsById = self.markets_by_id
         self.symbols = sorted(list(self.markets.keys()))
+        self.ids = sorted(list(self.markets_by_id.keys()))
         base = self.pluck([market for market in values if 'base' in market], 'base')
         quote = self.pluck([market for market in values if 'quote' in market], 'quote')
         self.currencies = sorted(self.unique(base + quote))
@@ -562,11 +571,24 @@ class Exchange (object):
     def fetchMarkets(self):
         return self.fetch_markets()
 
-    def fetch_tickers(self):
-        raise ExchangeError(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
+    def fetch_tickers(self, symbols=None):
+        raise NotSupported(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
 
-    def fetchTickers(self):
-        return self.fetch_tickers()
+    def fetchTickers(self, symbols=None):
+        return self.fetch_tickers(symbols)
+
+    def fetchOrderStatus(self, id, market=None):
+        return self.fetch_order_status(id, market)
+
+    def fetch_order_status(self, id, market=None):
+        order = self.fetch_order(id)
+        return order['status']
+
+    def fetch_open_orders(self, market=None, params={}):
+        raise NotSupported(self.id + ' fetch_open_orders() not implemented yet')
+
+    def fetchOpenOrders(self, market=None, params={}):
+        return self.fetch_open_orders(market, params)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
         return ohlcv
@@ -598,22 +620,24 @@ class Exchange (object):
     def parseOrders(self, orders, market=None):
         return self.parse_orders(orders, market)
 
-    def market(self, market):
-        isString = isinstance(market, basestring)
-        if isString and self.markets and (market in self.markets):
-            return self.markets[market]
-        return market
+    def market(self, symbol):
+        isString = isinstance(symbol, basestring)
+        if isString and self.markets and (symbol in self.markets):
+            return self.markets[symbol]
+        return symbol
 
-    def market_id(self, market):
-        p = self.market(market)
-        return p['id'] if type(p) is dict else market
+    def market_ids(self, symbols):
+        return [self.marketId(symbol) for symbol in symbols]
 
-    def marketId(self, market):
-        return self.market_id(market)
+    def marketIds(self, symbols):
+        return self.market_ids(symbols)
 
-    def symbol(self, market):
-        p = self.market(market)
-        return p['symbol'] if type(p) is dict else market
+    def market_id(self, symbol):
+        market = self.market(symbol)
+        return market['id'] if type(market) is dict else symbol
+
+    def marketId(self, symbol):
+        return self.market_id(symbol)
 
     def fetchBalance(self):
         return self.fetch_balance()

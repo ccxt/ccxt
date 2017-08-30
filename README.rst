@@ -13,12 +13,14 @@ CCXT – CryptoCurrency eXchange Trading Library
     :target: https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master
 .. image:: https://badge.runkitcdn.com/ccxt.svg
     :target: https://npm.runkit.com/ccxt
-.. image:: https://img.shields.io/badge/exchanges-73-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-75-blue.svg
     :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
-The ccxt library is used to connect and trade with cryptocurrency / altcoin exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, webshop integration and related software engineering. It is intended to be used by coders, developers, technically-skilled traders and financial analysts to build trading algorithms on top of it.
+The ccxt library is used to connect and trade with cryptocurrency / altcoin exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, webshop integration and related software engineering.
+
+It is intended to be used by **coders, developers, technically-skilled traders, data-scientists and financial analysts** for building trading algorithms on top of it.
 
 Current featurelist:
 
@@ -34,7 +36,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 73 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 75 cryptocurrency exchange markets and trading APIs:
 
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id              | name                                                      | ver   | doc                                                                                              | countries                                  |
@@ -44,6 +46,8 @@ The ccxt library currently supports the following 73 cryptocurrency exchange mar
 | \_1btcxe        | `1BTCXE <https://1btcxe.com>`__                           | \*    | `API <https://1btcxe.com/api-docs.php>`__                                                        | Panama                                     |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | anxpro          | `ANXPro <https://anxpro.com>`__                           | 2     | `API <http://docs.anxv2.apiary.io>`__                                                            | Japan, Singapore, Hong Kong, New Zealand   |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| binance         | `Binance <https://www.binance.com>`__                     | 1     | `API <https://www.binance.com/restapipub.html>`__                                                | China                                      |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bit2c           | `Bit2C <https://www.bit2c.co.il>`__                       | \*    | `API <https://www.bit2c.co.il/home/api>`__                                                       | Israel                                     |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -154,6 +158,8 @@ The ccxt library currently supports the following 73 cryptocurrency exchange mar
 | okcoincny       | `OKCoin CNY <https://www.okcoin.cn>`__                    | 1     | `API <https://www.okcoin.cn/rest_getStarted.html>`__                                             | China                                      |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | okcoinusd       | `OKCoin USD <https://www.okcoin.com>`__                   | 1     | `API <https://www.okcoin.com/rest_getStarted.html>`__                                            | China, US                                  |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| okex            | `OKEX <https://www.okex.com>`__                           | 1     | `API <https://www.okex.com/rest_getStarted.html>`__                                              | China, US                                  |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | paymium         | `Paymium <https://www.paymium.com>`__                     | 1     | `API <https://github.com/Paymium/api-documentation>`__                                           | France, EU                                 |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+

@@ -112,6 +112,8 @@ function try_all_proxies ($exchange, $proxies) {
             dump (yellow ('[Authentication Error] ' . $e->getMessage () . ' (ignoring)'));
         } catch (\ccxt\ExchangeNotAvailable $e) {
             dump (yellow ('[Exchange Not Available] ' . $e->getMessage () . ' (ignoring)'));
+        } catch (\ccxt\NotSupported $e) {
+            dump (yellow ('[Not Supported] ' . $e->getMessage () . ' (ignoring)'));
         } catch (\ccxt\NetworkError $e) {
             dump (yellow ('[Network Error] ' . $e->getMessage () . ' (ignoring)'));
         } catch (\ccxt\ExchangeError $e) {

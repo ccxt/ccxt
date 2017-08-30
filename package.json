@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.4.84",
+  "version": "1.5.43",
   "description": "A library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs",
   "main": "build/ccxt.es5.js",
   "unpkg": "build/ccxt.browser.js",
@@ -28,6 +28,7 @@
   "devDependencies": {
     "ansicolor": "^1.0.68",
     "as-table": "^1.0.22",
+    "asciichart": "^1.5.1",
     "babel-cli": "^6.24.1",
     "babel-plugin-async-to-promises": "^1.0.5",
     "babel-plugin-transform-es2017-object-entries": "0.0.4",
@@ -121,6 +122,8 @@
     "1BTCXE",
     "ANX",
     "ANXPro",
+    "Binance",
+    "binance.com",
     "bit2c.co.il",
     "Bit2C",
     "BitBay",
@@ -206,6 +209,8 @@
     "OKCoin",
     "OKCoin.com",
     "OKCoin.cn",
+    "OKEX",
+    "okex.com",
     "Paymium",
     "Poloniex",
     "QuadrigaCX",

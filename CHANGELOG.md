@@ -1,5 +1,22 @@
 # Сhangelog
 
+- Changed order type handling for margin orders on Bitfinex, [#130](https://github.com/kroitor/ccxt/issues/130), [#157](https://github.com/kroitor/ccxt/issues/157)
+- Added experimental fetchClosedOrders, fetchOpenOrders to Zaif, [#71](https://github.com/kroitor/ccxt/issues/71)
+- Fixed BlinkTrade createOrder response
+- Fixed Zaif BCH balance issue, [#156](https://github.com/kroitor/ccxt/issues/156)
+- Added handling for `vwap == null` in coinfloor tickers
+- Moved the docs from GitHub wiki into the master branch inside the repository, [#134](https://github.com/kroitor/ccxt/issues/134), [#137](https://github.com/kroitor/ccxt/pull/137)
+- Added extra `params` to all fetchTrades() implementations, [#135](https://github.com/kroitor/ccxt/pull/135)
+- Fixed HitBTC issue with overrided nonce vs clientOrderId, [#155](https://github.com/kroitor/ccxt/issues/155)
+- Added experimental fetchOrder to Kraken, [#71](https://github.com/kroitor/ccxt/issues/71), [#102](https://github.com/kroitor/ccxt/pull/102)
+- Added `order_status` endpoint to Bitstamp, [#148](https://github.com/kroitor/ccxt/pull/148)
+
+## Version 1.5.x 2017-08-24
+
+- Added support for a new exchange: [OKEX](https://www.okex.com) (China, US) 
+- Fixed Kraken KeyError: 'txid' exception, [#143](https://github.com/kroitor/ccxt/issues/143)
+- Added `hasFetchTickers` property to indicate method availability [#145](https://github.com/kroitor/ccxt/issues/145)
+- Added support for a new exchange: [Binance](https://www.binance.com) (China) [#142](https://github.com/kroitor/ccxt/issues/142)
 - Fixed `asyncio Unclosed client session` warning in Python 3.5+ [139](https://github.com/kroitor/ccxt/issues/139)
 - Fixed `asyncio TypeError: must be str, not bytes` issue in Python 3.5+ with GDAX, Bitfinex and Kraken [139](https://github.com/kroitor/ccxt/issues/139)
 - Python package now includes a bdist wheel (binary distribution for a faster install), [#136](https://github.com/kroitor/ccxt/issues/136)

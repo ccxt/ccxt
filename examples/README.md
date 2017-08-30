@@ -13,6 +13,10 @@ To run the ccxt examples from any folder type one of the following commands in c
 ```shell
 node path/to/example.js # substitute for actual filename here
 ```
+
+<img width="842" alt="bitcoin ascii chart" src="https://user-images.githubusercontent.com/1294454/29673849-156f58c6-88f9-11e7-8955-fb3f37467234.png">
+
+
 ## Python
 
 [Python Examples](https://github.com/kroitor/ccxt/tree/master/examples/py) (work in progress)
