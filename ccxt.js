@@ -1811,7 +1811,6 @@ var bit2c = {
     },
 
     parseTrade (trade, market = undefined) {
-        let side = (trade['dir'] == 'bid') ? 'buy' : 'sell';
         let timestamp = parseInt (trade['date']) * 1000;
         let symbol = undefined;
         if (market)
@@ -1824,7 +1823,7 @@ var bit2c = {
             'symbol': symbol,
             'order': undefined,
             'type': undefined,
-            'side': side,
+            'side': undefined,
             'price': trade['price'],
             'amount': trade['amount'],
         };
