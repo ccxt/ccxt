@@ -2379,11 +2379,12 @@ class bitlish (Exchange):
 
     def parse_trade(self, trade, market=None):
         side = 'buy' if(trade['dir'] == 'bid') else 'sell'
+        timestamp = int(trade['created'] / 1000)
         return {
             'id': None,
             'info': trade,
-            'timestamp': trade['created'],
-            'datetime': self.iso8601(trade['created']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'order': None,
             'type': None,

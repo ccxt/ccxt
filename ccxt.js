@@ -1810,17 +1810,39 @@ var bit2c = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        return this.publicGetExchangesPairTrades (this.extend ({
-            'pair': this.marketId (market),
-        }, params));
+    parseTrade (trade, market = undefined) {
+        let side = (trade['dir'] == 'bid') ? 'buy' : 'sell';
+        let timestamp = parseInt (trade['date']) * 1000;
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
+        return {
+            'id': trade['tid'].toString (),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'order': undefined,
+            'type': undefined,
+            'side': side,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        };
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetExchangesPairTrades (this.extend ({
+            'pair': market['id'],
+        }, params));
+        return this.parseTrades (response, market);
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePostOrderAddOrder';
         let order = {
             'Amount': amount,
-            'Pair': this.marketId (market),
+            'Pair': this.marketId (symbol),
         };
         if (type == 'market') {
             method += 'MarketPrice' + this.capitalize (side);
@@ -3086,11 +3108,13 @@ var bitlish = {
 
     parseTrade (trade, market = undefined) {
         let side = (trade['dir'] == 'bid') ? 'buy' : 'sell';
+        let symbol = undefined;
+        let timestamp = parseInt (trade['created'] / 1000);
         return {
             'id': undefined,
             'info': trade,
-            'timestamp': trade['created'],
-            'datetime': this.iso8601 (trade['created']),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'order': undefined,
             'type': undefined,
