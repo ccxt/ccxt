@@ -9000,15 +9000,20 @@ class gdax (Exchange):
             ohlcv[5],
         ]
 
-    async def fetch_ohlcv(self, market, timeframe=60, since=None, limit=None):
-        m = self.market(market)
+    async def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
+        await self.load_markets()
+        market = self.market(symbol)
         response = await self.publicGetProductsIdCandles({
-            'id': m['id'],
+            'id': market['id'],
             'granularity': timeframe,
             'start': since,
             'end': limit,
         })
-        return self.parse_ohlcvs(response, m, timeframe, since, limit)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
+    async def fetchTime(self):
+        response = self.publicGetTime()
+        return self.parse8601(response['iso'])
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
         await self.load_markets()
