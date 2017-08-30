@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.52';
+$version = '1.5.54';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2003,17 +2003,38 @@ class bit2c extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetExchangesPairTrades (array_merge (array (
-            'pair' => $this->market_id ($market),
-        ), $params));
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = intval ($trade['date']) * 1000;
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
+        return array (
+            'id' => (string) $trade['tid'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'order' => null,
+            'type' => null,
+            'side' => null,
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetExchangesPairTrades (array_merge (array (
+            'pair' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response, $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePostOrderAddOrder';
         $order = array (
             'Amount' => $amount,
-            'Pair' => $this->market_id ($market),
+            'Pair' => $this->market_id ($symbol),
         );
         if ($type == 'market') {
             $method .= 'MarketPrice' . $this->capitalize ($side);
@@ -3303,11 +3324,13 @@ class bitlish extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $side = ($trade['dir'] == 'bid') ? 'buy' : 'sell';
+        $symbol = null;
+        $timestamp = intval ($trade['created'] / 1000);
         return array (
             'id' => null,
             'info' => $trade,
-            'timestamp' => $trade['created'],
-            'datetime' => $this->iso8601 ($trade['created']),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
             'order' => null,
             'type' => null,

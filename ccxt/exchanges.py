@@ -1171,16 +1171,36 @@ class bit2c (Exchange):
             'quoteVolume': float(ticker['a']),
         }
 
-    def fetch_trades(self, market, params={}):
-        return self.publicGetExchangesPairTrades(self.extend({
-            'pair': self.market_id(market),
-        }, params))
+    def parse_trade(self, trade, market=None):
+        timestamp = int(trade['date']) * 1000
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        return {
+            'id': str(trade['tid']),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'order': None,
+            'type': None,
+            'side': None,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = self.publicGetExchangesPairTrades(self.extend({
+            'pair': market['id'],
+        }, params))
+        return self.parse_trades(response, market)
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         method = 'privatePostOrderAddOrder'
         order = {
             'Amount': amount,
-            'Pair': self.market_id(market),
+            'Pair': self.market_id(symbol),
         }
         if type == 'market':
             method += 'MarketPrice' + self.capitalize(side)
@@ -2379,6 +2399,7 @@ class bitlish (Exchange):
 
     def parse_trade(self, trade, market=None):
         side = 'buy' if(trade['dir'] == 'bid') else 'sell'
+        symbol = None
         timestamp = int(trade['created'] / 1000)
         return {
             'id': None,
