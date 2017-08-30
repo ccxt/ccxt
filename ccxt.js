@@ -10707,8 +10707,13 @@ var hitbtc = {
         }
         url = this.urls['api'] + url;
         let response = await this.fetch (url, method, headers, body);
-        if ('code' in response)
+        if ('code' in response) {
+            if ('ExecutionReport' in response) {
+                if (response['ExecutionReport']['orderRejectReason'] == 'orderExceedsLimit')
+                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
+            }
             throw new ExchangeError (this.id + ' ' + this.json (response));
+        }
         return response;
     },
 }
