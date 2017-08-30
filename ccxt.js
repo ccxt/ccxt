@@ -10645,11 +10645,40 @@ var hitbtc = {
         return this.parseTicker (ticker, p);
     },
 
-    async fetchTrades (market, params = {}) {
+    parseTrade (trade, market = undefined) {
+        return {
+            'info': trade,
+            'id': trade[0],
+            'timestamp': trade[3],
+            'datetime': this.iso8601 (trade[3]),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade[4],
+            'price': parseFloat (trade[1]),
+            'amount': parseFloat (trade[2]),
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        return this.publicGetSymbolTrades (this.extend ({
-            'symbol': this.marketId (market),
+        let market = this.market (symbol);
+        let response = await this.publicGetSymbolTrades (this.extend ({
+            'symbol': market['id'],
+            // 'from': 0,
+            // 'till': 100,
+            // 'by': 'ts', // or by trade_id
+            // 'sort': 'desc', // or asc
+            // 'start_index': 0,
+            // 'max_results': 1000,
+            // 'format_item': 'object',
+            // 'format_price': 'number',
+            // 'format_amount': 'number',
+            // 'format_tid': 'string',
+            // 'format_timestamp': 'millisecond',
+            // 'format_wrap': false,
+            'side': 'true',
         }, params));
+        return this.parseTrades (response['trades'], market);
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {

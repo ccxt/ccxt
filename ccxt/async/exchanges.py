@@ -9523,11 +9523,39 @@ class hitbtc (Exchange):
             raise ExchangeError(self.id + ' ' + ticker['message'])
         return self.parse_ticker(ticker, p)
 
-    async def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market=None):
+        return {
+            'info': trade,
+            'id': trade[0],
+            'timestamp': trade[3],
+            'datetime': self.iso8601(trade[3]),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade[4],
+            'price': float(trade[1]),
+            'amount': float(trade[2]),
+        }
+
+    async def fetch_trades(self, symbol, params={}):
         await self.load_markets()
-        return self.publicGetSymbolTrades(self.extend({
-            'symbol': self.market_id(market),
+        market = self.market(symbol)
+        response = await self.publicGetSymbolTrades(self.extend({
+            'symbol': market['id'],
+            # 'from': 0,
+            # 'till': 100,
+            # 'by': 'ts', # or by trade_id
+            # 'sort': 'desc', # or asc
+            # 'start_index': 0,
+            # 'max_results': 1000,
+            # 'format_item': 'object',
+            # 'format_price': 'number',
+            # 'format_amount': 'number',
+            # 'format_tid': 'string',
+            # 'format_timestamp': 'millisecond',
+            # 'format_wrap': False,
+            'side': 'true',
         }, params))
+        return self.parse_trades(response['trades'], market)
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
         await self.load_markets()
