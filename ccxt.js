@@ -10103,7 +10103,7 @@ var gdax = {
 
     async fetchTime () {
         let response = this.publicGetTime ();
-        return this.parse8601 (response['iso']); 
+        return this.parse8601 (response['iso']);
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
