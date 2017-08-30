@@ -4031,8 +4031,8 @@ var bitstamp = {
         reason (v2 calls only)  The reason for the error.
         */
         let price = order['transactions'].map (t => t['price']) / order['transactions'].length;
-        let timestamp = order['transactions'].map (t => Date.parse (t['datetime'])).reduce ((t1,t2) => Math.max (t1, t2));
-        let type = order['transactions'].length > 0 ? order['transactions'].map (t => [ "deposit", "withdrawal", "market" ][t["type"]])[0] : "unknown";
+        let timestamp = order['transactions'].map (t => Date.parse (t['datetime'])).reduce ((t1, t2) => Math.max (t1, t2));
+        let type = order['transactions'].length > 0 ? order['transactions'].map (t => [ 'deposit', 'withdrawal', 'market' ][t['type']])[0] : undefined;
         let result = {
             'info': order,
             'id': order['id'],
@@ -4050,13 +4050,11 @@ var bitstamp = {
     },
 
     parseOrderStatus (order) {
-        let status = order['status'];
-        if ((status == 'Queue') || (status == 'Open')) {
-            status = 'open';
-        } else if (status == "Finished") {
-            status = 'closed';
-        }
-        return status;
+        if ((order['status'] == 'Queue') || (order['status'] == 'Open'))
+            return 'open';
+        if (order['status'] == 'Finished')
+            return 'closed';
+        return order['status'];
     },
 
     async fetchOrderStatus (id, symbol = undefined) {
@@ -4080,6 +4078,33 @@ var bitstamp = {
             return this.orders[id];
         }
         throw new ExchangeError (this.id + ' order ' + id + ' not found');
+    },
+
+    async fetchMyTrades (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol)
+            market = this.market (symbol);
+        let pair = market ? market['id'] : 'all';
+        // let request = this.extend ({
+        //     'currencyPair': pair,
+        //     'end': this.seconds (), // last 50000 trades by default
+        // }, params);
+        // let response = await this.privatePostReturnTradeHistory (request);
+        let result = undefined;
+        // if (market) {
+        //     result = this.parseTrades (response, market);
+        // } else {
+        //     result = { 'info': response };
+        //     let ids = Object.keys (response);
+        //     for (let i = 0; i < ids.length; i++) {
+        //         let id = ids[i];
+        //         let market = this.markets_by_id[id];
+        //         let symbol = market['symbol'];
+        //         result[symbol] = this.parseTrades (response[id], market);
+        //     }
+        // }
+        return result;
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
