@@ -3894,9 +3894,9 @@ var bitstamp = {
         'ETH/BTC': { 'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         let orderbook = await this.publicGetOrderBookId (this.extend ({
-            'id': this.marketId (market),
+            'id': this.marketId (symbol),
         }, params));
         let timestamp = parseInt (orderbook['timestamp']) * 1000;
         let result = {
@@ -3919,9 +3919,9 @@ var bitstamp = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         let ticker = await this.publicGetTickerId ({
-            'id': this.marketId (market),
+            'id': this.marketId (symbol),
         });
         let timestamp = parseInt (ticker['timestamp']) * 1000;
         return {
@@ -3961,13 +3961,13 @@ var bitstamp = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        let m = this.market (market);
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
         let response = await this.publicGetTransactionsId (this.extend ({
-            'id': m['id'],
+            'id': market['id'],
             'time': 'minute',
         }, params));
-        return this.parseTrades (response, m);
+        return this.parseTrades (response, market);
     },
 
     async fetchBalance () {
@@ -3995,10 +3995,10 @@ var bitstamp = {
         return result;
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePost' + this.capitalize (side);
         let order = {
-            'id': this.marketId (market),
+            'id': this.marketId (symbol),
             'amount': amount,
         };
         if (type == 'market')
@@ -4017,22 +4017,22 @@ var bitstamp = {
         return this.privatePostCancelOrder ({ 'id': id });
     },
 
-
-    parseOrder (order) {
-        let statusCode = order['status'];
-        let status = undefined;
-        if (statusCode == 'Queue' || statusCode == 'Open') {
-            status = 'open';
-        } else if (statusCode == "Finished") {
-            status = 'closed';
-        } else {
-            throw new ExchangeError("unknown order status")
-        }
-
-        let price = order.transactions.map(t=>t.price) / order.transactions.length ;
-        let timestamp = order.transactions.map(t => Date.parse(t.datetime)).reduce ( (t1,t2) => Math.max(t1, t2) );
-        let type = order.transactions.length > 0 ? order.transactions.map(t => ["deposit","withdrawal","market"][t["type"]])[0] : "unknown";
-
+    parseOrder (order, market = undefined) {
+        /*
+        Response (JSON): success - Returns a list of open orders, where each order is represented as a dictionary.
+        id  Transaction ID.
+        datetime    Date and time.
+        type    Type: 0 - buy; 1 - sell.
+        price   Price.
+        amount  Amount.
+        currency_pair (if all currency pairs)   Currency Pair.
+        Response (JSON): failure
+        status (v2 calls only)  "error"
+        reason (v2 calls only)  The reason for the error.
+        */
+        let price = order['transactions'].map (t => t['price']) / order['transactions'].length;
+        let timestamp = order['transactions'].map (t => Date.parse (t['datetime'])).reduce ((t1,t2) => Math.max (t1, t2));
+        let type = order['transactions'].length > 0 ? order['transactions'].map (t => [ "deposit", "withdrawal", "market" ][t["type"]])[0] : "unknown";
         let result = {
             'info': order,
             'id': order['id'],
@@ -4049,11 +4049,37 @@ var bitstamp = {
         return result;
     },
 
+    parseOrderStatus (order) {
+        let status = order['status'];
+        if ((status == 'Queue') || (status == 'Open')) {
+            status = 'open';
+        } else if (status == "Finished") {
+            status = 'closed';
+        }
+        return status;
+    },
+
+    async fetchOrderStatus (id, symbol = undefined) {
+        await this.loadMarkets ();
+        let response = await this.privatePostOrderStatus ({ 'id': id });
+        return parseOrderStatus (response);
+    },
+
     async fetchOrder (id) {
         await this.loadMarkets ();
-        let response = await this.privatePostOrderStatus ({id:id});
-        let order = response;
-        return this.parseOrder (this.extend ({ 'id': id }, order));
+        let response = await this.privatePostOrderStatus ({ 'id': id });
+        return this.parseOrder (this.extend ({ 'id': id }, response));
+
+        let orders = await this.fetchOpenOrders ();
+        let index = this.indexBy (orders, 'id');
+        if (id in index) {
+            this.orders[id] = index[id];
+            return index[id];
+        } else if (id in this.orders) {
+            this.orders[id]['status'] = 'closed';
+            return this.orders[id];
+        }
+        throw new ExchangeError (this.id + ' order ' + id + ' not found');
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
