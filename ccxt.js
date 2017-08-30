@@ -12726,10 +12726,30 @@ var okcoin = {
         return this.parseTicker (ticker, m);
     },
 
-    async fetchTrades (market, params = {}) {
-        return this.publicGetTrades (this.extend ({
-            'symbol': this.marketId (market),
+    parseTrade (trade, market = undefined) {
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
+        return {
+            'info': trade,
+            'timestamp': trade['date_ms'],
+            'datetime': this.iso8601 (trade['date_ms']),
+            'symbol': symbol,
+            'id': trade['tid'],
+            'order': undefined,
+            'type': undefined,
+            'side': trade['type'],
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetTrades (this.extend ({
+            'symbol': market['id'],
         }, params));
+        return this.parseTrades (response, market);
     },
 
     async fetchOHLCV (symbol, timeframe = 60, since = undefined, limit = 1440, params = {}) {

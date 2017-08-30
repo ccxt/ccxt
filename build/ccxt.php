@@ -13142,10 +13142,30 @@ class okcoin extends Exchange {
         return $this->parse_ticker ($ticker, $m);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetTrades (array_merge (array (
-            'symbol' => $this->market_id ($market),
+    public function parse_trade ($trade, $market = null) {
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
+        return array (
+            'info' => $trade,
+            'timestamp' => $trade['date_ms'],
+            'datetime' => $this->iso8601 ($trade['date_ms']),
+            'symbol' => $symbol,
+            'id' => $trade['tid'],
+            'order' => null,
+            'type' => null,
+            'side' => $trade['type'],
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTrades (array_merge (array (
+            'symbol' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = 1440, $params = array ()) {

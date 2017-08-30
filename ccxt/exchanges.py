@@ -11583,10 +11583,29 @@ class okcoin (Exchange):
         ticker = self.extend(response['ticker'], {'timestamp': timestamp})
         return self.parse_ticker(ticker, m)
 
-    def fetch_trades(self, market, params={}):
-        return self.publicGetTrades(self.extend({
-            'symbol': self.market_id(market),
+    def parse_trade(self, trade, market=None):
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        return {
+            'info': trade,
+            'timestamp': trade['date_ms'],
+            'datetime': self.iso8601(trade['date_ms']),
+            'symbol': symbol,
+            'id': trade['tid'],
+            'order': None,
+            'type': None,
+            'side': trade['type'],
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
+        }
+
+    def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = self.publicGetTrades(self.extend({
+            'symbol': market['id'],
         }, params))
+        return self.parse_trades(response, market)
 
     def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=1440, params={}):
         market = self.market(symbol)
