@@ -877,7 +877,7 @@ class binance (Exchange):
         }, params))
         return self.parse_trades(response, m)
 
-    def parse_order(self, order):
+    def parse_order(self, order, market=None):
         # {
         #   "symbol": "LTCBTC",
         #   "orderId": 1,
@@ -915,12 +915,12 @@ class binance (Exchange):
         symbol = ('symbol' in list(params.keys()))
         if not symbol:
             raise ExchangeError(self.id + ' fetchOrder requires a symbol param')
-        m = self.market(symbol)
+        market = self.market(symbol)
         response = await self.privateGetOrder(self.extend(params, {
-            'symbol': m['id'],
+            'symbol': market['id'],
             'orderId': str(id),
         }))
-        return self.parse_order(response)
+        return self.parse_order(response, market)
 
     async def fetch_orders(self):
         # symbol  STRING  YES
@@ -1863,6 +1863,52 @@ class bitfinex (Exchange):
     async def cancel_order(self, id):
         await self.load_markets()
         return self.privatePostOrderCancel({'order_id': id})
+
+    def parse_order(self, order, market=None):
+        side = order['side']
+        open = order['is_live']
+        canceled = order['is_cancelled']
+        status = None
+        if open:
+            status = 'open'
+        elif canceled:
+            status = 'canceled'
+        else:
+            status = 'closed'
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        else:
+            exchange = order['symbol'].upper()
+            if exchange in self.markets_by_id:
+                market = self.markets_by_id[exchange]
+                symbol = market['symbol']
+        orderType = order['type']
+        exchange = orderType.find('exchange ') >= 0
+        if exchange:
+            prefix, orderType = order['type'].split(' ')
+        timestamp = order['timestamp'] * 1000
+        result = {
+            'info': order,
+            'id': order['id'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'type': orderType,
+            'side': side,
+            'price': float(order['price']),
+            'amount': float(order['original_amount']),
+            'remaining': float(order['remaining_amount']),
+            'status': status,
+        }
+        return result
+
+    async def fetch_order(self, id, params={}):
+        await self.load_markets()
+        response = await self.privatePostOrderStatus(self.extend({
+            'order_id': int(id),
+        }, params))
+        return self.parse_order(response)
 
     def nonce(self):
         return self.milliseconds()
@@ -3033,9 +3079,9 @@ class bitstamp (Exchange):
         params.update(config)
         super(bitstamp, self).__init__(params)
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         orderbook = await self.publicGetOrderBookId(self.extend({
-            'id': self.market_id(market),
+            'id': self.market_id(symbol),
         }, params))
         timestamp = int(orderbook['timestamp']) * 1000
         result = {
@@ -3055,9 +3101,9 @@ class bitstamp (Exchange):
                 result[side].append([price, amount])
         return result
 
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         ticker = await self.publicGetTickerId({
-            'id': self.market_id(market),
+            'id': self.market_id(symbol),
         })
         timestamp = int(ticker['timestamp']) * 1000
         return {
@@ -3080,28 +3126,40 @@ class bitstamp (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market):
-        timestamp = int(trade['date'])
+    def parse_trade(self, trade, market=None):
+        timestamp = None
+        if 'date' in trade:
+            timestamp = int(trade['date'])
+        elif 'datetime' in trade:
+            # timestamp = self.parse8601(trade['datetime'])
+            timestamp = int(trade['datetime'])
         side = 'buy' if(trade['type'] == 0) else 'sell'
+        order = None
+        if 'order_id' in trade:
+            order = str(trade['order_id'])
+        if 'currency_pair' in trade:
+            if trade['currency_pair'] in self.markets_by_id:
+                market = self.markets_by_id[trade['currency_pair']]
         return {
             'id': str(trade['tid']),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
+            'order': order,
             'type': None,
             'side': side,
             'price': float(trade['price']),
             'amount': float(trade['amount']),
         }
 
-    async def fetch_trades(self, market, params={}):
-        m = self.market(market)
+    async def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
         response = await self.publicGetTransactionsId(self.extend({
-            'id': m['id'],
+            'id': market['id'],
             'time': 'minute',
         }, params))
-        return self.parse_trades(response, m)
+        return self.parse_trades(response, market)
 
     async def fetch_balance(self):
         balance = await self.privatePostBalance()
@@ -3126,10 +3184,10 @@ class bitstamp (Exchange):
             result[currency] = account
         return result
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         method = 'privatePost' + self.capitalize(side)
         order = {
-            'id': self.market_id(market),
+            'id': self.market_id(symbol),
             'amount': amount,
         }
         if type == 'market':
@@ -3145,6 +3203,32 @@ class bitstamp (Exchange):
 
     async def cancel_order(self, id):
         return self.privatePostCancelOrder({'id': id})
+
+    def parse_orderStatus(self, order):
+        if(order['status'] == 'Queue') or(order['status'] == 'Open'):
+            return 'open'
+        if order['status'] == 'Finished':
+            return 'closed'
+        return order['status']
+
+    async def fetch_order_status(self, id, symbol=None):
+        await self.load_markets()
+        response = await self.privatePostOrderStatus({'id': id})
+        return self.parseOrderStatus(response)
+
+    async def fetch_my_trades(self, symbol=None, params={}):
+        await self.load_markets()
+        market = None
+        if symbol:
+            market = self.market(symbol)
+        pair = market['id'] if market else 'all'
+        request = self.extend({'id': pair}, params)
+        response = await self.privatePostOpenOrdersId(request)
+        result = self.parse_trades(response, market)
+
+    async def fetch_order(self, id):
+        raise NotImplemented(self.id + ' fetchOrder is not implemented yet')
+        await self.load_markets()
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
@@ -10370,13 +10454,13 @@ class kraken (Exchange):
             order = self.parse_order(orders[id])
         return result
 
-    async def fetch_order(self, id):
+    async def fetch_order(self, id, params={}):
         await self.load_markets()
-        response = await self.privatePostQueryOrders({
+        response = await self.privatePostQueryOrders(self.extend({
             'trades': True, # whether or not to include trades in output(optional.  default = False)
             'txid': id, # comma delimited list of transaction ids to query info about(20 maximum)
             # 'userref': 'optional', # restrict results to given user reference id(optional)
-        })
+        }, params))
         orders = response['result']
         order = self.parse_order(orders[id])
         return self.extend({'info': response}, order)
@@ -12054,6 +12138,7 @@ class poloniex (Exchange):
         if 'resultingTrades' in order:
             trades = self.parse_trades(order['resultingTrades'], market)
         return {
+            'info': order,
             'id': order['orderNumber'],
             'timestamp': order['timestamp'],
             'datetime': self.iso8601(order['timestamp']),
