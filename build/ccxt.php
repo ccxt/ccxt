@@ -11091,8 +11091,13 @@ class hitbtc extends Exchange {
         }
         $url = $this->urls['api'] . $url;
         $response = $this->fetch ($url, $method, $headers, $body);
-        if (array_key_exists ('code', $response))
+        if (array_key_exists ('code', $response)) {
+            if (array_key_exists ('ExecutionReport', $response)) {
+                if ($response['ExecutionReport']['orderRejectReason'] == 'orderExceedsLimit')
+                    throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
+            }
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        }
         return $response;
     }
 }

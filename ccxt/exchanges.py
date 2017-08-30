@@ -9660,6 +9660,9 @@ class hitbtc (Exchange):
         url = self.urls['api'] + url
         response = self.fetch(url, method, headers, body)
         if 'code' in response:
+            if 'ExecutionReport' in response:
+                if response['ExecutionReport']['orderRejectReason'] == 'orderExceedsLimit':
+                    raise InsufficientFunds(self.id + ' ' + self.json(response))
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
