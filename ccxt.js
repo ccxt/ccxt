@@ -2646,9 +2646,9 @@ var bitfinex = {
             }
         }
         let orderType = order['type'];
-        if (orderType.indexOf ('exchange ') >= 0) {
+        let exchange = orderType.indexOf ('exchange ') >= 0;
+        if (exchange) {
             let [ prefix, orderType ] = order['type'].split (' ');
-            orderType = words[1];
         }
         let timestamp = order['timestamp'] * 1000;
         let result = {
@@ -4042,7 +4042,7 @@ var bitstamp = {
     async fetchOrderStatus (id, symbol = undefined) {
         await this.loadMarkets ();
         let response = await this.privatePostOrderStatus ({ 'id': id });
-        return parseOrderStatus (response);
+        return this.parseOrderStatus (response);
     },
 
     async fetchMyTrades (symbol = undefined, params = {}) {
