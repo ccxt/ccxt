@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.46';
+$version = '1.5.47';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2634,10 +2634,12 @@ class bitfinex extends Exchange {
                         'key_info',
                         'margin_infos',
                         'mytrades',
+                        'mytrades_funding',
                         'offer/cancel',
                         'offer/new',
                         'offer/status',
                         'offers',
+                        'offers/hist',
                         'order/cancel',
                         'order/cancel/all',
                         'order/cancel/multi',
@@ -2646,6 +2648,7 @@ class bitfinex extends Exchange {
                         'order/new/multi',
                         'order/status',
                         'orders',
+                        'orders/hist',
                         'position/claim',
                         'positions',
                         'summary',
