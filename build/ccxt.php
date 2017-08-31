@@ -11797,6 +11797,7 @@ class kraken extends Exchange {
             'version' => '0',
             'rateLimit' => 1500,
             'hasFetchTickers' => true,
+            'hasFetchOHLCV' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
                 'api' => 'https://api.kraken.com',
@@ -11988,12 +11989,12 @@ class kraken extends Exchange {
 
     public function parseOHLCV ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
         return [
-            $ohlcv[0],
-            $ohlcv[1],
-            $ohlcv[2],
-            $ohlcv[3],
-            $ohlcv[4],
-            $ohlcv[6],
+            $ohlcv[0] * 1000,
+            floatval ($ohlcv[1]),
+            floatval ($ohlcv[2]),
+            floatval ($ohlcv[3]),
+            floatval ($ohlcv[4]),
+            floatval ($ohlcv[6]),
         ];
     }
 
@@ -12005,8 +12006,8 @@ class kraken extends Exchange {
             'interval' => intval ($timeframe / 60),
             'since' => $since,
         ));
-        $ohlcvs = $response[$market['id']];
-        return $this->parse_ohlcvs ($market, $ohlcvs, $timeframe, $since, $limit);
+        $ohlcvs = $response['result'][$market['id']];
+        return $this->parse_ohlcvs ($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_trades ($market, $params = array ()) {

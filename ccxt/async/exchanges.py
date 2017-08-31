@@ -10229,6 +10229,7 @@ class kraken (Exchange):
             'version': '0',
             'rateLimit': 1500,
             'hasFetchTickers': True,
+            'hasFetchOHLCV': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
                 'api': 'https://api.kraken.com',
@@ -10410,12 +10411,12 @@ class kraken (Exchange):
 
     def parseOHLCV(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
         return [
-            ohlcv[0],
-            ohlcv[1],
-            ohlcv[2],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[6],
+            ohlcv[0] * 1000,
+            float(ohlcv[1]),
+            float(ohlcv[2]),
+            float(ohlcv[3]),
+            float(ohlcv[4]),
+            float(ohlcv[6]),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
@@ -10426,8 +10427,8 @@ class kraken (Exchange):
             'interval': int(timeframe / 60),
             'since': since,
         })
-        ohlcvs = response[market['id']]
-        return self.parse_ohlcvs(market, ohlcvs, timeframe, since, limit)
+        ohlcvs = response['result'][market['id']]
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     async def fetch_trades(self, market, params={}):
         await self.load_markets()

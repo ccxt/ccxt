@@ -11401,6 +11401,7 @@ var kraken = {
     'version': '0',
     'rateLimit': 1500,
     'hasFetchTickers': true,
+    'hasFetchOHLCV': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
         'api': 'https://api.kraken.com',
@@ -11590,12 +11591,12 @@ var kraken = {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = 60, since = undefined, limit = undefined) {
         return [
-            ohlcv[0],
-            ohlcv[1],
-            ohlcv[2],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[6],
+            ohlcv[0] * 1000,
+            parseFloat (ohlcv[1]),
+            parseFloat (ohlcv[2]),
+            parseFloat (ohlcv[3]),
+            parseFloat (ohlcv[4]),
+            parseFloat (ohlcv[6]),
         ];
     },
 
@@ -11607,8 +11608,8 @@ var kraken = {
             'interval': parseInt (timeframe / 60),
             'since': since,
         });
-        let ohlcvs = response[market['id']];
-        return this.parseOHLCVs (market, ohlcvs, timeframe, since, limit);
+        let ohlcvs = response['result'][market['id']];
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     },
 
     async fetchTrades (market, params = {}) {
