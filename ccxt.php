@@ -431,6 +431,7 @@ class Exchange {
         $this->userAgent = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
         $this->hasFetchTickers = false;
+        $this->hasFetchOHLCV   = false;
 
         if ($options)
             foreach ($options as $key => $value)

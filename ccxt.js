@@ -710,6 +710,7 @@ const Exchange = function (config) {
     this.proxy = ''
 
     this.hasFetchTickers = false
+    this.hasFetchOHLCV   = false
 
     for (var property in config)
         this[property] = config[property]
@@ -2960,6 +2961,7 @@ var bitlish = {
     'rateLimit': 1500,
     'version': 'v1',
     'hasFetchTickers': true,
+    'hasFetchOHLCV': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
         'api': 'https://bitlish.com/api',
@@ -2969,6 +2971,14 @@ var bitlish = {
     'api': {
         'public': {
             'get': [
+                'instruments',
+                'ohlcv',
+                'pairs',
+                'tickers',
+                'trades_depth',
+                'trades_history',
+            ],
+            'post': [
                 'instruments',
                 'ohlcv',
                 'pairs',
@@ -3070,18 +3080,29 @@ var bitlish = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         await this.loadMarkets ();
-        let p = this.market (market);
+        let market = this.market (symbol);
         let tickers = await this.publicGetTickers ();
-        let ticker = tickers[p['id']];
-        return this.parseTicker (ticker, p);
+        let ticker = tickers[market['id']];
+        return this.parseTicker (ticker, market);
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOHLCV (symbol, timeframe = 60, since = undefined, limit = undefined) {        
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let now = this.seconds ();
+        let start = now - 86400 * 30; // last 30 days
+        let interval = [ start.toString (), undefined ];
+        return this.publicPostOhlcv ({
+            'time_range': interval,
+        });
+    },
+
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetTradesDepth (this.extend ({
-            'pair_id': this.marketId (market),
+            'pair_id': this.marketId (symbol),
         }, params));
         let timestamp = parseInt (parseInt (orderbook['last']) / 1000);
         let result = {
@@ -3172,10 +3193,10 @@ var bitlish = {
         });
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
-            'pair_id': this.marketId (market),
+            'pair_id': this.marketId (symbol),
             'dir': (side == 'buy') ? 'bid' : 'ask',
             'amount': amount,
         };
@@ -3196,8 +3217,14 @@ var bitlish = {
     request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (api == 'public') {
-            if (Object.keys (params).length)
-                url += '?' + this.urlencode (params);
+            if (method == 'GET') {
+                if (Object.keys (params).length)
+                    url += '?' + this.urlencode (params);                
+            }
+            else {
+                body = this.json (params);
+                headers = { 'Content-Type': 'application/json' };
+            }
         } else {
             body = this.json (this.extend ({ 'token': this.apiKey }, params));
             headers = { 'Content-Type': 'application/json' };

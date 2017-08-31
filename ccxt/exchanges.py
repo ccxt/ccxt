@@ -2258,6 +2258,7 @@ class bitlish (Exchange):
             'rateLimit': 1500,
             'version': 'v1',
             'hasFetchTickers': True,
+            'hasFetchOHLCV': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
                 'api': 'https://bitlish.com/api',
@@ -2267,6 +2268,14 @@ class bitlish (Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'instruments',
+                        'ohlcv',
+                        'pairs',
+                        'tickers',
+                        'trades_depth',
+                        'trades_history',
+                    ],
+                    'post': [
                         'instruments',
                         'ohlcv',
                         'pairs',
@@ -2366,17 +2375,27 @@ class bitlish (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         tickers = self.publicGetTickers()
-        ticker = tickers[p['id']]
-        return self.parse_ticker(ticker, p)
+        ticker = tickers[market['id']]
+        return self.parse_ticker(ticker, market)
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
+        self.load_markets()
+        market = self.market(symbol)
+        now = self.seconds()
+        start = now - 86400 * 30 # last 30 days
+        interval = [str(start), None]
+        return self.publicPostOhlcv({
+            'time_range': interval,
+        })
+
+    def fetch_order_book(self, symbol, params={}):
         self.load_markets()
         orderbook = self.publicGetTradesDepth(self.extend({
-            'pair_id': self.market_id(market),
+            'pair_id': self.market_id(symbol),
         }, params))
         timestamp = int(int(orderbook['last']) / 1000)
         result = {
@@ -2457,10 +2476,10 @@ class bitlish (Exchange):
             'passwd': self.password,
         })
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         order = {
-            'pair_id': self.market_id(market),
+            'pair_id': self.market_id(symbol),
             'dir': 'bid' if(side == 'buy') else 'ask',
             'amount': amount,
         }
@@ -2479,8 +2498,12 @@ class bitlish (Exchange):
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
-            if params:
-                url += '?' + self.urlencode(params)
+            if method == 'GET':
+                if params:
+                    url += '?' + self.urlencode(params)                
+            else:
+                body = self.json(params)
+                headers = {'Content-Type': 'application/json'}
         else:
             body = self.json(self.extend({'token': self.apiKey}, params))
             headers = {'Content-Type': 'application/json'}

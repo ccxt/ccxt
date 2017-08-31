@@ -56,6 +56,17 @@ def test_exchange_symbol_orderbook(exchange, symbol):
 
 # ------------------------------------------------------------------------------
 
+def test_exchange_symbol_ohlcv(exchange, symbol):
+    delay = int(exchange.rateLimit / 1000)
+    time.sleep(delay)
+    if exchange.hasFetchOHLCV:
+        ohlcv = exchange.fetch_ohlcv(symbol)
+        dump(green(exchange.id), 'fetched', green(len(list(ohlcv.keys()))), 'OHLCVs')
+    else:
+        dump(yellow(exchange.id), 'fetching OHLCV not supported')
+
+# ------------------------------------------------------------------------------
+
 def test_exchange_all_tickers(exchange):
     delay = int(exchange.rateLimit / 1000)
     time.sleep(delay)
@@ -112,6 +123,7 @@ def test_exchange_symbol(exchange, symbol):
         test_exchange_symbol_trades(exchange, symbol)
 
     test_exchange_all_tickers(exchange)
+    test_exchange_symbol_ohlcv(exchange, symbol)
 
 # ------------------------------------------------------------------------------
 

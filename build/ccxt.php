@@ -431,6 +431,7 @@ class Exchange {
         $this->userAgent = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
         $this->hasFetchTickers = false;
+        $this->hasFetchOHLCV   = false;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -3175,6 +3176,7 @@ class bitlish extends Exchange {
             'rateLimit' => 1500,
             'version' => 'v1',
             'hasFetchTickers' => true,
+            'hasFetchOHLCV' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
                 'api' => 'https://bitlish.com/api',
@@ -3184,6 +3186,14 @@ class bitlish extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
+                        'instruments',
+                        'ohlcv',
+                        'pairs',
+                        'tickers',
+                        'trades_depth',
+                        'trades_history',
+                    ),
+                    'post' => array (
                         'instruments',
                         'ohlcv',
                         'pairs',
@@ -3287,18 +3297,29 @@ class bitlish extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $tickers = $this->publicGetTickers ();
-        $ticker = $tickers[$p['id']];
-        return $this->parse_ticker ($ticker, $p);
+        $ticker = $tickers[$market['id']];
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $now = $this->seconds ();
+        $start = $now - 86400 * 30; // last 30 days
+        $interval = array ((string) $start, null);
+        return $this->publicPostOhlcv (array (
+            'time_range' => $interval,
+        ));
+    }
+
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetTradesDepth (array_merge (array (
-            'pair_id' => $this->market_id ($market),
+            'pair_id' => $this->market_id ($symbol),
         ), $params));
         $timestamp = intval (intval ($orderbook['last']) / 1000);
         $result = array (
@@ -3389,10 +3410,10 @@ class bitlish extends Exchange {
         ));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $order = array (
-            'pair_id' => $this->market_id ($market),
+            'pair_id' => $this->market_id ($symbol),
             'dir' => ($side == 'buy') ? 'bid' : 'ask',
             'amount' => $amount,
         );
@@ -3413,8 +3434,14 @@ class bitlish extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api == 'public') {
-            if ($params)
-                $url .= '?' . $this->urlencode ($params);
+            if ($method == 'GET') {
+                if ($params)
+                    $url .= '?' . $this->urlencode ($params);                
+            }
+            else {
+                $body = $this->json ($params);
+                $headers = array ( 'Content-Type' => 'application/json' );
+            }
         } else {
             $body = $this->json (array_merge (array ( 'token' => $this->apiKey ), $params));
             $headers = array ( 'Content-Type' => 'application/json' );

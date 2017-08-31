@@ -112,6 +112,7 @@ class Exchange (object):
     marketsById = None
     markets_by_id = None
     hasFetchTickers = False
+    hasFetchOHLCV = False
     substituteCommonCurrencyCodes = True
 
     def __init__(self, config={}):
