@@ -2805,14 +2805,6 @@ var bitfinex2 = extend (bitfinex, {
         },
     },
 
-
-Platform Status
-Get the current status of the platform.
-Maintenance periods last for just few minutes and might be necessary from time to time during upgrades of core components of our infrastructure.
-Even if rare it is important to have a way to notify users.
-For a real-time notification we suggest to use websockets and listen to events 20060/20061
-
- 
  Try Itgethttps://api.bitfinex.com/v2/platform/status
 JavaScriptcURL
 // Raw Javascript - replace symbol for other tickers
@@ -3055,6 +3047,13 @@ RATE    float   Rate at which funding transaction occurred
 PERIOD  int Amount of time the funding transaction was for
 The order that causes the trade determines if it is a buy or a sell.
 
+
+
+
+
+
+
+
 SUGGEST EDITS
 Books
 The Order Books channel allow you to keep track of the state of the Bitfinex order book.
@@ -3130,90 +3129,7 @@ Stats
 Various statistics about the requested pair.
 
  
- Try Itgethttps://api.bitfinex.com/v2/stats1/:Key::Size::Symbol/Section
-JavaScriptcURL
-request.get(
-  `${url}/stats1/pos.size:1m:tBTCUSD:long/last`,
-  (error, response, body) => console.log(body)
-)
-
-request.get(
-  `${url}/stats1/pos.size:1m:tBTCUSD:long/hist`,
-  (error, response, body) => console.log(body)
-)
- 200 OK
-// response with Section = "last"
-[ 
-  MTS,
-  VALUE
-]
-
-// response with Section = "hist"
-[
-  [ MTS, VALUE ],
-  ...
-]
-PATH PARAMS 
-Key
-string
-REQUIRED
-Allowed values: "funding.size", "credits.size", "credits.size.sym", "pos.size"
-
-
-funding.size
-Size
-string
-REQUIRED
-Available values: '1m'
-
-
-1m
-Symbol
-string
-REQUIRED
-The symbol you want information about.
-
-
-fUSD
-Side
-string
-REQUIRED
-Available values: "long", "short"
-
-
-long
-Section
-string
-REQUIRED
-Available values: "last", "hist"
-
-
-hist
-QUERY PARAMS    
-sort
-int32
-if = 1 it sorts results returned with old > new
-
-
--1
- 
-Response Details
-
-Fields  Type    Description
-MTS int millisecond timestamp
-VALUE   float   Total amount
-Available Keys
-
-Key Description Arguments   Example
-pos.size    Total Open Position (long / short)  :1m :SYM_TRADING :SIDE  pos.size:1m:tBTCUSD:long , pos.size:1m:tBTCUSD:short
-funding.size    Total Active Funding    :1m :SYM_FUNDING    funding.size:1m:fUSD
-credits.size    Active Funding used in positions    :1m :SYM_FUNDING    credits.size:1m:fUSD
-credits.size.sym    Active Funding used in positions (per trading symbol)   :1m :SYM_FUNDING :SYM_TRADING   credits.size.sym:1m:fUSD:tBTCUSD
-SUGGEST EDITS
-Candles
-Provides a way to access charting candle info
-
- 
+ Try Itgethttps://api.bitfinex.com/v2/stats1/:Key::Size::Symbol/Section 
  Try Itgethttps://api.bitfinex.com/v2/candles/trade::TimeFrame::Symbol/Section
 JavaScriptcURL
 request.get(
@@ -3308,40 +3224,6 @@ Calculate the average execution rate for Trading or Margin funding.
 
  
  Try Itposthttps://api.bitfinex.com/v2/calc/trade/avg
-cURLNodeRubyJavaScriptPython
-curl --request POST \
-  --url https://api.bitfinex.com/v2/calc/trade/avg
- 200 OK
-[RATE_AVG, AMOUNT]
-QUERY PARAMS    
-symbol
-string
-The symbol you want information about.
-
-
-tBTCUSD
-amount
-string
-Amount. Positive for buy, negative for sell (ex. "1.123")
-
-
-period
-int32
-(optional) Maximum period for Margin Funding
-
-
-0
-rate_limit
-string
-Limit rate/price (ex. "1000.5")
-
-
- 
-SUGGEST EDITS
-Wallets
-Get account wallets
-
- 
  Try Itposthttps://api.bitfinex.com/v2/auth/r/wallets
 JavaScript
 request.post(
