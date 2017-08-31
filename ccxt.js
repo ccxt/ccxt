@@ -2410,12 +2410,342 @@ var bitfinex = {
     'countries': 'US',
     'version': 'v1',
     'rateLimit': 1500,
+    'hasFetchTickers': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
         'api': 'https://api.bitfinex.com',
         'www': 'https://www.bitfinex.com',
         'doc': [
             'https://bitfinex.readme.io/v1/docs',
+            'https://github.com/bitfinexcom/bitfinex-api-node',
+        ],
+    },
+    'api': {
+        'public': {
+            'get': [
+                'book/{symbol}',
+                'candles/{symbol}',
+                'lendbook/{currency}',
+                'lends/{currency}',
+                'pubticker/{symbol}',
+                'stats/{symbol}',
+                'symbols',
+                'symbols_details',
+                'today',
+                'trades/{symbol}',
+            ],
+        },
+        'private': {
+            'post': [
+                'account_infos',
+                'balances',
+                'basket_manage',
+                'credits',
+                'deposit/new',
+                'funding/close',
+                'history',
+                'history/movements',
+                'key_info',
+                'margin_infos',
+                'mytrades',
+                'mytrades_funding',
+                'offer/cancel',
+                'offer/new',
+                'offer/status',
+                'offers',
+                'offers/hist',
+                'order/cancel',
+                'order/cancel/all',
+                'order/cancel/multi',
+                'order/cancel/replace',
+                'order/new',
+                'order/new/multi',
+                'order/status',
+                'orders',
+                'orders/hist',
+                'position/claim',
+                'positions',
+                'summary',
+                'taken_funds',
+                'total_taken_funds',
+                'transfer',
+                'unused_taken_funds',
+                'withdraw',
+            ],
+        },
+    },
+
+    async fetchMarkets () {
+        let markets = await this.publicGetSymbolsDetails ();
+        let result = [];
+        for (let p = 0; p < markets.length; p++) {
+            let market = markets[p];
+            let id = market['pair'].toUpperCase ();
+            let baseId = id.slice (0, 3);
+            let quoteId = id.slice (3, 6);
+            let base = baseId;
+            let quote = quoteId;
+            // issue #4 Bitfinex names Dash as DSH, instead of DASH
+            if (base == 'DSH')
+                base = 'DASH';
+            let symbol = base + '/' + quote;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'info': market,
+            });
+        }
+        return result;
+    },
+
+    async fetchBalance () {
+        await this.loadMarkets ();
+        let response = await this.privatePostBalances ();
+        let balances = {};
+        for (let b = 0; b < response.length; b++) {
+            let account = response[b];
+            if (account['type'] == 'exchange') {
+                let currency = account['currency'];
+                // issue #4 Bitfinex names Dash as DSH, instead of DASH
+                if (currency == 'DSH')
+                    currency = 'DASH';
+                let uppercase = currency.toUpperCase ();
+                balances[uppercase] = account;
+            }
+        }
+        let result = { 'info': response };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if (currency in balances) {
+                account['free'] = parseFloat (balances[currency]['available']);
+                account['total'] = parseFloat (balances[currency]['amount']);
+                account['used'] = account['total'] - account['free'];
+            }
+            result[currency] = account;
+        }
+        return result;
+    },
+
+    async fetchOrderBook (market, params = {}) {
+        await this.loadMarkets ();
+        let orderbook = await this.publicGetBookSymbol (this.extend ({
+            'symbol': this.marketId (market),
+        }, params));
+        let timestamp = this.milliseconds ();
+        let result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        let sides = [ 'bids', 'asks' ];
+        for (let s = 0; s < sides.length; s++) {
+            let side = sides[s];
+            let orders = orderbook[side];
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let price = parseFloat (order['price']);
+                let amount = parseFloat (order['amount']);
+                let timestamp = parseInt (parseFloat (order['timestamp']));
+                result[side].push ([ price, amount, timestamp ]);
+            }
+        }
+        return result;
+    },
+
+    async fetchTicker (market) {
+        await this.loadMarkets ();
+        let ticker = await this.publicGetPubtickerSymbol ({
+            'symbol': this.marketId (market),
+        });
+        let timestamp = parseFloat (ticker['timestamp']) * 1000;
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['bid']),
+            'ask': parseFloat (ticker['ask']),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last_price']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': parseFloat (ticker['mid']),
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['volume']),
+            'info': ticker,
+        };
+    },
+
+    parseTrade (trade, market) {
+        let timestamp = trade['timestamp'] * 1000;
+        return {
+            'id': trade['tid'].toString (),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade['type'],
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
+        };
+    },
+
+    async fetchTrades (market, params = {}) {
+        await this.loadMarkets ();
+        let m = this.market (market);
+        let trades = await this.publicGetTradesSymbol (this.extend ({
+            'symbol': m['id'],
+        }, params));
+        return this.parseTrades (trades, m);
+    },
+
+    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        let orderType = type;
+        if ((type == 'limit') || (type == 'market'))
+            orderType = 'exchange ' + type;
+        let order = {
+            'symbol': this.marketId (market),
+            'amount': amount.toString (),
+            'side': side,
+            'type': orderType,
+            'ocoorder': false,
+            'buy_price_oco': 0,
+            'sell_price_oco': 0,
+        };
+        if (type == 'market') {
+            order['price'] = this.nonce ().toString ();
+        } else {
+            order['price'] = price.toString ();
+        }
+        let result = await this.privatePostOrderNew (this.extend (order, params));
+        return {
+            'info': result,
+            'id': result['order_id'].toString (),
+        };
+    },
+
+    async cancelOrder (id) {
+        await this.loadMarkets ();
+        return this.privatePostOrderCancel ({ 'order_id': id });
+    },
+
+    parseOrder (order, market = undefined) {
+        let side = order['side'];
+        let open = order['is_live'];
+        let canceled = order['is_cancelled'];
+        let status = undefined;
+        if (open) {
+            status = 'open';
+        } else if (canceled) {
+            status = 'canceled';
+        } else {
+            status = 'closed';
+        }
+        let symbol = undefined;
+        if (market) {
+            symbol = market['symbol'];
+        } else {
+            let exchange = order['symbol'].toUpperCase ();
+            if (exchange in this.markets_by_id) {
+                market = this.markets_by_id[exchange];
+                symbol = market['symbol'];
+            }
+        }
+        let orderType = order['type'];
+        let exchange = orderType.indexOf ('exchange ') >= 0;
+        if (exchange) {
+            let [ prefix, orderType ] = order['type'].split (' ');
+        }
+        let timestamp = order['timestamp'] * 1000;
+        let result = {
+            'info': order,
+            'id': order['id'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': orderType,
+            'side': side,
+            'price': parseFloat (order['price']),
+            'amount': parseFloat (order['original_amount']),
+            'remaining': parseFloat (order['remaining_amount']),
+            'status': status,
+        };
+        return result;
+    },
+
+    async fetchOrder (id, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostOrderStatus (this.extend ({
+            'order_id': parseInt (id),
+        }, params));
+        return this.parseOrder (response);
+    },
+
+    nonce () {
+        return this.milliseconds ();
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let request = '/' + this.version + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        let url = this.urls['api'] + request;
+        if (api == 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            let nonce = this.nonce ();
+            query = this.extend ({
+                'nonce': nonce.toString (),
+                'request': request,
+            }, query);
+            query = this.json (query);
+            query = this.encode (query);
+            let payload = this.stringToBase64 (query);
+            let secret = this.encode (this.secret);
+            let signature = this.hmac (payload, secret, 'sha384');
+            headers = {
+                'X-BFX-APIKEY': this.apiKey,
+                'X-BFX-PAYLOAD': this.decode (payload),
+                'X-BFX-SIGNATURE': signature,
+            };
+        }
+        let response = await this.fetch (url, method, headers, body);
+        if ('message' in response)
+            throw new ExchangeError (this.id + ' ' + this.json (response));
+        return response;
+    },
+}
+
+//-----------------------------------------------------------------------------
+
+var bitfinex2 = extend (bitfinex, {
+
+    'id': 'bitfinex2',
+    'name': 'Bitfinex v2',
+    'countries': 'US',
+    'version': 'v2',
+    'hasFetchTickers': false, // true
+    'rateLimit': 1500,
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
+        'api': 'https://api.bitfinex.com',
+        'www': 'https://www.bitfinex.com',
+        'doc': [
             'https://bitfinex.readme.io/v2/docs',
             'https://github.com/bitfinexcom/bitfinex-api-node',
         ],
@@ -2474,6 +2804,765 @@ var bitfinex = {
             ],
         },
     },
+
+
+Platform Status
+Get the current status of the platform.
+Maintenance periods last for just few minutes and might be necessary from time to time during upgrades of core components of our infrastructure.
+Even if rare it is important to have a way to notify users.
+For a real-time notification we suggest to use websockets and listen to events 20060/20061
+
+ 
+ Try Itgethttps://api.bitfinex.com/v2/platform/status
+JavaScriptcURL
+// Raw Javascript - replace symbol for other tickers
+request.get( 
+  `${url}/platform/status`,
+  (error, response, body) => console.log(body)
+)
+ 200 OK
+ 400 Bad Request
+[OPERATIVE]
+ 
+Response Details
+
+Fields  Type    Description
+OPERATIVE   int 1=operative, 0=maintenance
+Maintenance mode
+When the platform is marked in maintenance mode bots should stop trading activity. Cancelling orders will be still possible.
+SUGGEST EDITS
+Tickers
+The ticker is a high level overview of the state of the market. It shows you the current best bid and ask, as well as the last trade price. It also includes information such as daily volume and how much the price has moved over the last day.
+
+ 
+ Try Itgethttps://api.bitfinex.com/v2/tickers
+JavaScriptcURL
+// Raw Javascript - replace symbol for other tickers
+request.get( 
+  `${url}/tickers?symbols=tBTCUSD,tLTCUSD,fUSD`,
+  (error, response, body) => console.log(body)
+)
+ 200 OK
+ 400 Bad Request
+[
+  // on trading pairs (ex. tBTCUSD)
+  [
+    SYMBOL,
+    BID, 
+    BID_SIZE, 
+    ASK, 
+    ASK_SIZE, 
+    DAILY_CHANGE, 
+    DAILY_CHANGE_PERC, 
+    LAST_PRICE, 
+    VOLUME, 
+    HIGH, 
+    LOW
+  ],
+  // on funding currencies (ex. fUSD)
+  [
+    SYMBOL,
+    FRR, 
+    BID, 
+    BID_SIZE, 
+    BID_PERIOD,
+    ASK, 
+    ASK_SIZE,
+    ASK_PERIOD,
+    DAILY_CHANGE,
+    DAILY_CHANGE_PERC, 
+    LAST_PRICE,
+    VOLUME,
+    HIGH, 
+    LOW
+  ],
+  ...
+]
+QUERY PARAMS    
+symbols
+string
+The symbols you want information about. ex: tBTCUSD,fUSD
+
+
+ 
+Response Details
+
+Fields  Type    Description
+FRR float   Flash Return Rate - average of all fixed rate funding over the last hour
+BID float   Price of last highest bid
+BID_PERIOD  int Bid period covered in days
+BID_SIZE    float   Size of the last highest bid
+ASK float   Price of last lowest ask
+ASK_PERIOD  int Ask period covered in days
+ASK_SIZE    float   Size of the last lowest ask
+DAILY_CHANGE    float   Amount that the last price has changed since yesterday
+DAILY_CHANGE_PERC   float   Amount that the price has changed expressed in percentage terms
+LAST_PRICE  float   Price of the last trade
+VOLUME  float   Daily volume
+HIGH    float   Daily high
+LOW float   Daily low
+SUGGEST EDITS
+Ticker
+The ticker is a high level overview of the state of the market. It shows you the current best bid and ask, as well as the last trade price. It also includes information such as daily volume and how much the price has moved over the last day.
+
+ 
+ Try Itgethttps://api.bitfinex.com/v2/ticker/Symbol
+JavaScriptcURL
+// Raw Javascript - replace symbol for other tickers
+request.get( 
+  `${url}/ticker/tBTCUSD`,
+  (error, response, body) => console.log(body)
+)
+
+// Javascript Client - replace symbol for other tickers
+bfx.rest.ticker('tBTCUSD', cb)
+ 200 OK
+ 400 Bad Request
+// on trading pairs (ex. tBTCUSD)
+[
+  BID, 
+  BID_SIZE, 
+  ASK, 
+  ASK_SIZE, 
+  DAILY_CHANGE, 
+  DAILY_CHANGE_PERC, 
+  LAST_PRICE, 
+  VOLUME, 
+  HIGH, 
+  LOW
+]
+
+// on funding currencies (ex. fUSD)
+[
+  FRR, 
+  BID, 
+  BID_SIZE, 
+  BID_PERIOD,
+  ASK, 
+  ASK_SIZE,
+  ASK_PERIOD,
+  DAILY_CHANGE,
+  DAILY_CHANGE_PERC, 
+  LAST_PRICE,
+  VOLUME,
+  HIGH, 
+  LOW
+]
+PATH PARAMS 
+Symbol
+string
+REQUIRED
+The symbol you want information about. You can find the list of valid symbols by calling the /symbols endpoint.
+
+
+tBTCUSD
+ 
+Response Details
+
+Fields  Type    Description
+FRR float   Flash Return Rate - average of all fixed rate funding over the last hour
+BID float   Price of last highest bid
+BID_PERIOD  int Bid period covered in days
+BID_SIZE    float   Size of the last highest bid
+ASK float   Price of last lowest ask
+ASK_PERIOD  int Ask period covered in days
+ASK_SIZE    float   Size of the last lowest ask
+DAILY_CHANGE    float   Amount that the last price has changed since yesterday
+DAILY_CHANGE_PERC   float   Amount that the price has changed expressed in percentage terms
+LAST_PRICE  float   Price of the last trade
+VOLUME  float   Daily volume
+HIGH    float   Daily high
+LOW float   Daily low
+SUGGEST EDITS
+Trades
+Trades endpoint includes all the pertinent details of the trade, such as price, size and time.
+
+ 
+ Try Itgethttps://api.bitfinex.com/v2/trades/Symbol/hist
+JavaScriptcURL
+// Raw Javascript - replace symbol for other pairs
+request.get( 
+  `${url}/trades/tBTCUSD`,
+  (error, response, body) => console.log(body)
+)
+
+// Javascript Client - replace symbol for other pairs
+bfx.rest.ticker('tBTCUSD', cb)
+ 200 OK
+ 400 Bad Request
+// on trading pairs (ex. tBTCUSD)
+[
+  [
+    ID,
+    MTS,
+    AMOUNT,
+    PRICE
+  ]
+]
+
+
+// on funding currencies (ex. fUSD)
+[
+  [
+    ID,
+    MTS,
+    AMOUNT,
+    RATE,
+    PERIOD
+  ]
+]
+PATH PARAMS 
+Symbol
+string
+REQUIRED
+The symbol you want information about.
+
+
+tBTCUSD
+QUERY PARAMS    
+limit
+int32
+Number of records
+
+
+120
+start
+int32
+Millisecond start time
+
+
+0
+end
+int32
+Millisecond end time
+
+
+0
+sort
+int32
+if = 1 it sorts results returned with old > new
+
+
+-1
+ 
+Response Details
+
+Fields  Type    Description
+MTS int millisecond time stamp
+±AMOUNT float   How much was bought (positive) or sold (negative).
+PRICE   float   Price at which the trade was executed
+RATE    float   Rate at which funding transaction occurred
+PERIOD  int Amount of time the funding transaction was for
+The order that causes the trade determines if it is a buy or a sell.
+
+SUGGEST EDITS
+Books
+The Order Books channel allow you to keep track of the state of the Bitfinex order book.
+It is provided on a price aggregated basis, with customizable precision.
+
+ 
+ Try Itgethttps://api.bitfinex.com/v2/book/Symbol/Precision
+JavaScriptcURL
+// Raw Javascript - replace symbol for other tickers
+request.get( 
+  `${url}/book/tBTCUSD/P0`,
+  (error, response, body) => console.log(body)
+)
+
+// Javascript Client - replace symbol for other tickers
+bfx.rest.ticker('tBTCUSD', cb)
+ 200 OK
+ 400 Bad Request
+// on trading pairs (ex. tBTCUSD)
+[
+  [
+    PRICE,
+    COUNT,
+    AMOUNT
+  ]
+]
+
+// on funding currencies (ex. fUSD)
+[
+  [
+    RATE,
+    PERIOD,
+    COUNT,
+    AMOUNT
+  ]
+]
+PATH PARAMS 
+Symbol
+string
+REQUIRED
+The symbol you want information about. You can find the list of valid symbols by calling the /symbols endpoint.
+
+
+tBTCUSD
+Precision
+string
+REQUIRED
+Level of price aggregation (P0, P1, P2, P3, R0)
+
+
+P0
+QUERY PARAMS    
+len
+int32
+Number of price points ("25", "100")
+
+
+25
+ 
+Response Details
+
+Fields  Type    Description
+PRICE   float   Price level
+RATE    float   Rate level
+PERIOD  float   Period level (Funding only)
+COUNT   int Number of orders at that price level
+±AMOUNT float   Total amount available at that price level.
+For Trading: if AMOUNT > 0 then bid else ask.
+For Funding: if AMOUNT > 0 then ask else bid.
+
+SUGGEST EDITS
+Stats
+Various statistics about the requested pair.
+
+ 
+ Try Itgethttps://api.bitfinex.com/v2/stats1/:Key::Size::Symbol/Section
+JavaScriptcURL
+request.get(
+  `${url}/stats1/pos.size:1m:tBTCUSD:long/last`,
+  (error, response, body) => console.log(body)
+)
+
+request.get(
+  `${url}/stats1/pos.size:1m:tBTCUSD:long/hist`,
+  (error, response, body) => console.log(body)
+)
+ 200 OK
+// response with Section = "last"
+[ 
+  MTS,
+  VALUE
+]
+
+// response with Section = "hist"
+[
+  [ MTS, VALUE ],
+  ...
+]
+PATH PARAMS 
+Key
+string
+REQUIRED
+Allowed values: "funding.size", "credits.size", "credits.size.sym", "pos.size"
+
+
+funding.size
+Size
+string
+REQUIRED
+Available values: '1m'
+
+
+1m
+Symbol
+string
+REQUIRED
+The symbol you want information about.
+
+
+fUSD
+Side
+string
+REQUIRED
+Available values: "long", "short"
+
+
+long
+Section
+string
+REQUIRED
+Available values: "last", "hist"
+
+
+hist
+QUERY PARAMS    
+sort
+int32
+if = 1 it sorts results returned with old > new
+
+
+-1
+ 
+Response Details
+
+Fields  Type    Description
+MTS int millisecond timestamp
+VALUE   float   Total amount
+Available Keys
+
+Key Description Arguments   Example
+pos.size    Total Open Position (long / short)  :1m :SYM_TRADING :SIDE  pos.size:1m:tBTCUSD:long , pos.size:1m:tBTCUSD:short
+funding.size    Total Active Funding    :1m :SYM_FUNDING    funding.size:1m:fUSD
+credits.size    Active Funding used in positions    :1m :SYM_FUNDING    credits.size:1m:fUSD
+credits.size.sym    Active Funding used in positions (per trading symbol)   :1m :SYM_FUNDING :SYM_TRADING   credits.size.sym:1m:fUSD:tBTCUSD
+SUGGEST EDITS
+Candles
+Provides a way to access charting candle info
+
+ 
+ Try Itgethttps://api.bitfinex.com/v2/candles/trade::TimeFrame::Symbol/Section
+JavaScriptcURL
+request.get(
+  `${url}/candles/trade:1m:tBTCUSD/last`,
+  (error, response, body) => console.log(body)
+)
+
+request.get(
+  `${url}/candles/trade:1m:tBTCUSD/hist`,
+  (error, response, body) => console.log(body)
+)
+ 200 OK
+// response with Section = "last"
+[ 
+  MTS, 
+  OPEN, 
+  CLOSE, 
+  HIGH, 
+  LOW, 
+  VOLUME 
+]
+
+// response with Section = "hist"
+[
+  [ MTS, OPEN, CLOSE, HIGH, LOW, VOLUME ], 
+  ...
+]
+PATH PARAMS 
+TimeFrame
+string
+REQUIRED
+Available values: '1m', '5m', '15m', '30m', '1h', '3h', '6h', '12h', '1D', '7D', '14D', '1M'
+
+
+1m
+Symbol
+string
+REQUIRED
+The symbol you want information about.
+
+
+tBTCUSD
+Section
+string
+REQUIRED
+Available values: "last", "hist"
+
+
+hist
+QUERY PARAMS    
+limit
+int32
+Number of candles requested
+
+
+100
+start
+string
+Filter start (ms)
+
+
+end
+string
+Filter end (ms)
+
+
+sort
+int32
+if = 1 it sorts results returned with old > new
+
+
+-1
+ 
+Response Details
+
+Fields  Type    Description
+MTS int millisecond time stamp
+OPEN    float   First execution during the time frame
+CLOSE   float   Last execution during the time frame
+HIGH    float   Highest execution during the time frame
+LOW float   Lowest execution during the timeframe
+VOLUME  float   Quantity of symbol traded within the timeframe
+Available Keys
+
+Key Description Arguments   Example
+trade   Trading Candles :TF :SYM_TRADING    trade :1m :tBTCUSD
+trade   Funding Candles :TF :sym_funding:pPERIOD    trade :1m :fUSD :p30
+trade   Aggregate Funding Candles (AGGR=[10,30])    :TF :SYM_FUNDING :aAGGR :pPER_START :p :PER_END trade :1m :fUSD :a10 :p2 :p10 , trade :1m :fUSD :a10 :p11 :p20 , trade :1m :fUSD :a10 :p21 :p30 , trade :1m :fUSD :a30 :p2 :p30
+SUGGEST EDITS
+Market Average Price
+Calculate the average execution rate for Trading or Margin funding.
+
+ 
+ Try Itposthttps://api.bitfinex.com/v2/calc/trade/avg
+cURLNodeRubyJavaScriptPython
+curl --request POST \
+  --url https://api.bitfinex.com/v2/calc/trade/avg
+ 200 OK
+[RATE_AVG, AMOUNT]
+QUERY PARAMS    
+symbol
+string
+The symbol you want information about.
+
+
+tBTCUSD
+amount
+string
+Amount. Positive for buy, negative for sell (ex. "1.123")
+
+
+period
+int32
+(optional) Maximum period for Margin Funding
+
+
+0
+rate_limit
+string
+Limit rate/price (ex. "1000.5")
+
+
+ 
+SUGGEST EDITS
+Wallets
+Get account wallets
+
+ 
+ Try Itposthttps://api.bitfinex.com/v2/auth/r/wallets
+JavaScript
+request.post(
+  `${url}/auth/r/wallets`,
+  headers: { /* auth headers */ },
+  body: {},
+  json: true,
+  (error, response, body) => console.log(body)
+)
+ 200 OK
+[
+  [
+    WALLET_TYPE, 
+    CURRENCY, 
+    BALANCE, 
+    UNSETTLED_INTEREST,
+    BALANCE_AVAILABLE,
+    ...
+  ], 
+  ...
+]
+ 
+Fields
+
+Term    Type    Description
+WALLET_TYPE string  Wallet name (exchange, margin, funding)
+CURRENCY    string  Currency (fUSD, etc)
+BALANCE float   Wallet balance
+UNSETTLED_INTEREST  float   Unsettled interest
+BALANCE_AVAILABLE   float / null    Amount not tied up in active orders, positions or funding (null if the value is not fresh enough).
+SUGGEST EDITS
+Orders
+Get active orders
+
+ 
+ Try Itposthttps://api.bitfinex.com/v2/auth/r/orders/:Symbol
+JavaScript
+request.post(
+  `${url}/auth/r/orders`,
+  headers: { /* auth headers */ },
+  body: {},
+  json: true,
+  (error, response, body) => console.log(body)
+)
+ 200 OK
+[
+  [
+    ID, 
+    GID,
+    CID,
+    SYMBOL, 
+    MTS_CREATE, 
+    MTS_UPDATE, 
+    AMOUNT, 
+    AMOUNT_ORIG, 
+    TYPE,
+    TYPE_PREV,
+    _PLACEHOLDER,
+    _PLACEHOLDER,
+    FLAGS,
+    STATUS,
+    _PLACEHOLDER,
+    _PLACEHOLDER,
+    PRICE,
+    PRICE_AVG,
+    PRICE_TRAILING,
+    PRICE_AUX_LIMIT,
+    _PLACEHOLDER,
+    _PLACEHOLDER,
+    _PLACEHOLDER,
+    NOTIFY, 
+    HIDDEN, 
+    PLACED_ID,
+    ...
+  ],
+  ...
+]
+ 
+Stream Fields
+
+Term    Type    Description
+ID  int64   Order ID
+GID int Group ID
+CID int Client Order ID
+SYMBOL  string  Pair (tBTCUSD, …)
+MTS_CREATE  int Millisecond timestamp of creation
+MTS_UPDATE  int Millisecond timestamp of update
+AMOUNT  float   Positive means buy, negative means sell.
+AMOUNT_ORIG float   Original amount
+TYPE    string  The type of the order: LIMIT, MARKET, STOP, TRAILING STOP, EXCHANGE MARKET, EXCHANGE LIMIT, EXCHANGE STOP, EXCHANGE TRAILING STOP, FOK, EXCHANGE FOK.
+TYPE    string  Previous order type
+FLAGS   int Upcoming Params Object (stay tuned)
+ORDER_STATUS    string  Order Status: ACTIVE, EXECUTED, PARTIALLY FILLED, CANCELED
+PRICE   float   Price
+PRICE_AVG   float   Average price
+PRICE_TRAILING  float   The trailing price
+PRICE_AUX_LIMIT float   Auxiliary Limit price (for STOP LIMIT)
+NOTIFY  int 1 if Notify flag is active, 0 if not
+HIDDEN  int 1 if Hidden, 0 if not hidden
+PLACED_ID   int If another order caused this order to be placed (OCO) this will be that other order's ID
+SUGGEST EDITS
+Orders History
+Get active orders
+
+ 
+ Try Itposthttps://api.bitfinex.com/v2/auth/r/orders/Symbol/hist
+JavaScript
+request.post(
+  `${url}/auth/r/orders/tBTCUSD/hist`,
+  `${url}/auth/r/orders/hist`,
+  headers: { /* auth headers */ },
+  body: {},
+  json: true,
+  (error, response, body) => console.log(body)
+)
+ 200 OK
+[
+  [
+    ID, 
+    GID,
+    CID,
+    SYMBOL, 
+    MTS_CREATE, 
+    MTS_UPDATE, 
+    AMOUNT, 
+    AMOUNT_ORIG, 
+    TYPE,
+    TYPE_PREV,
+    _PLACEHOLDER,
+    _PLACEHOLDER,
+    FLAGS,
+    STATUS,
+    _PLACEHOLDER,
+    _PLACEHOLDER,
+    PRICE,
+    PRICE_AVG,
+    PRICE_TRAILING,
+    PRICE_AUX_LIMIT,
+    _PLACEHOLDER,
+    _PLACEHOLDER,
+    _PLACEHOLDER,
+    NOTIFY, 
+    HIDDEN, 
+    PLACED_ID,
+    ...
+  ],
+  ...
+]
+PATH PARAMS 
+Symbol
+string
+REQUIRED
+Symbol (tBTCUSD, ...)
+
+
+QUERY PARAMS    
+start
+int32
+Millisecond start time
+
+
+0
+end
+int32
+Millisecond end time
+
+
+0
+limit
+int32
+Number of records
+
+
+25
+ 
+Stream Fields
+
+Term    Type    Description
+ID  int64   Order ID
+GID int Group ID
+CID int Client Order ID
+SYMBOL  string  Pair (tBTCUSD, …)
+MTS_CREATE  int Millisecond timestamp of creation
+MTS_UPDATE  int Millisecond timestamp of update
+AMOUNT  float   Positive means buy, negative means sell.
+AMOUNT_ORIG float   Original amount
+TYPE    string  The type of the order: LIMIT, MARKET, STOP, TRAILING STOP, EXCHANGE MARKET, EXCHANGE LIMIT, EXCHANGE STOP, EXCHANGE TRAILING STOP, FOK, EXCHANGE FOK.
+TYPE    string  Previous order type
+FLAGS   int Upcoming Params Object (stay tuned)
+ORDER_STATUS    string  Order Status: ACTIVE, EXECUTED, PARTIALLY FILLED, CANCELED
+PRICE   float   Price
+PRICE_AVG   float   Average price
+PRICE_TRAILING  float   The trailing price
+PRICE_AUX_LIMIT float   Auxiliary Limit price (for STOP LIMIT)
+NOTIFY  int 1 if Notify flag is active, 0 if not
+HIDDEN  int 1 if Hidden, 0 if not hidden
+PLACED_ID   int If another order caused this order to be placed (OCO) this will be that other order's ID
+SUGGEST EDITS
+Order Trades
+Get Trades generated by an Order
+
+ 
+ Try Itposthttps://api.bitfinex.com/v2/auth/r/order/Symbol:OrderId/trades
+ Try Itposthttps://api.bitfinex.com/v2/auth/r/trades/Symbol/hist
+ Try Itposthttps://api.bitfinex.com/v2/auth/r/funding/offers/Symbol
+ Try Itposthttps://api.bitfinex.com/v2/auth/r/funding/offers/Symbol/hist
+ Try Itposthttps://api.bitfinex.com/v2/auth/r/funding/loans/Symbol
+ Try Itposthttps://api.bitfinex.com/v2/auth/r/funding/loans/Symbol/hist
+ Try Itposthttps://api.bitfinex.com/v2/auth/r/funding/credits/Symbol
+ Try Itposthttps://api.bitfinex.com/v2/auth/r/funding/credits/Symbol/hist
+ Try Itposthttps://api.bitfinex.com/v2/auth/r/funding/trades/Symbol/hist
+ Try Itposthttps://api.bitfinex.com/v2/auth/r/info/margin/key
+ Try Itposthttps://api.bitfinex.com/v2/auth/r/info/funding/key
+ Try Itposthttps://api.bitfinex.com/v2/auth/r/movements/Currency/hist
+ Try Itposthttps://api.bitfinex.com/v2/auth/r/stats/perf::1D/hist
+ Try Itposthttps://api.bitfinex.com/v2/auth/r/alerts
+ Try Itposthttps://api.bitfinex.com/v2/auth/w/alert/set
+posthttps://api.bitfinex.com/v2/auth/w/alert/price::tBTCUSD::600/del
+posthttps://api.bitfinex.com/v2/auth/calc/order/avail
+
+
 
     async fetchMarkets () {
         let markets = await this.publicGetSymbolsDetails ();
