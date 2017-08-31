@@ -10761,6 +10761,7 @@ var huobi = {
     'countries': 'CN',
     'rateLimit': 2000,
     'version': 'v3',
+    'hasFetchOHLCV': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
         'api': 'http://api.huobi.com',
@@ -10878,19 +10879,62 @@ var huobi = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        let p = this.market (market);
-        let method = p['type'] + 'GetDetailId';
-        return this[method] (this.extend ({ 'id': p['id'] }, params));
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let method = market['type'] + 'GetDetailId';
+        return this[method] (this.extend ({ 'id': market['id'] }, params));
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
-        let p = this.market (market);
+    parseOHLCV (ohlcv, market = undefined, timeframe = 60, since = undefined, limit = undefined) {
+        // not implemented yet
+        return [
+            ohlcv[0],
+            ohlcv[1],
+            ohlcv[2],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[6],
+        ];
+    },
+
+    async fetchOHLCV (symbol, timeframe = 60, since = undefined, limit = undefined) {
+        let period = '001'; // 1 minute by default
+        if (timeframe == 60) {
+            period = '001';
+        } else if (timeframe == 300) {
+            period = '005'; // 5 minutes
+        } else if (timeframe == 900) {
+            period = '015'; // 15 minutes
+        } else if (timeframe == 1800) {
+            period = '030'; // 30 minutes
+        } else if (timeframe == 3600) {
+            period = '060'; // 1 hour
+        } else if (timeframe == 86400) {
+            period = '100'; // 1 day
+        } else if (timeframe == 604800) {
+            period = '200'; // 1 week
+        } else if (timeframe == 2592000) {
+            period = '300'; // 1 month
+        } else if (timeframe == 31536000) {
+            period = '400'; // 1 year
+        }
+        let market = this.market (symbol);
+        let method = market['type'] + 'GetIdKlinePeriod';
+        let ohlcvs = await this[method] ({
+            'id': market['id'],
+            'period': period,
+        });
+        return ohlcvs;
+        // return this.parseOHLCVs (market, ohlcvs, timeframe, since, limit);
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        let market = this.market (symbol);
         let method = 'tradePost' + this.capitalize (side);
         let order = {
-            'coin_type': p['coinType'],
+            'coin_type': market['coinType'],
             'amount': amount,
-            'market': p['quote'].toLowerCase (),
+            'market': market['quote'].toLowerCase (),
         };
         if (type == 'limit')
             order['price'] = price;

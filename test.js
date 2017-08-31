@@ -186,7 +186,7 @@ let testExchangeSymbol = async (exchange, symbol) => {
     if (exchange.hasFetchOHLCV) {
 
         log (exchange.id.green, 'fetching OHLCV...')
-        let ohlcv = await exchange.fetchOHLCV ()
+        let ohlcv = await exchange.fetchOHLCV (symbol)
         log (exchange.id.green, 'fetched', Object.keys (ohlcv).length.toString ().green, 'OHLCVs')
 
     } else {
@@ -248,8 +248,8 @@ let loadExchange = async exchange => {
     
     let markets  = await exchange.loadMarkets ()
     let symbols = [
-        'BTC/USD',
         'BTC/CNY',
+        'BTC/USD',        
         'BTC/EUR',
         'BTC/ETH',
         'ETH/BTC',

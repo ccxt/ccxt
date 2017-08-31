@@ -11146,6 +11146,7 @@ class huobi extends Exchange {
             'countries' => 'CN',
             'rateLimit' => 2000,
             'version' => 'v3',
+            'hasFetchOHLCV' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
                 'api' => 'http://api.huobi.com',
@@ -11265,19 +11266,62 @@ class huobi extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        $p = $this->market ($market);
-        $method = $p['type'] . 'GetDetailId';
-        return $this->$method (array_merge (array ( 'id' => $p['id'] ), $params));
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $method = $market['type'] . 'GetDetailId';
+        return $this->$method (array_merge (array ( 'id' => $market['id'] ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
-        $p = $this->market ($market);
+    public function parseOHLCV ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
+        // not implemented yet
+        return [
+            $ohlcv[0],
+            $ohlcv[1],
+            $ohlcv[2],
+            $ohlcv[3],
+            $ohlcv[4],
+            $ohlcv[6],
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
+        $period = '001'; // 1 minute by default
+        if ($timeframe == 60) {
+            $period = '001';
+        } else if ($timeframe == 300) {
+            $period = '005'; // 5 minutes
+        } else if ($timeframe == 900) {
+            $period = '015'; // 15 minutes
+        } else if ($timeframe == 1800) {
+            $period = '030'; // 30 minutes
+        } else if ($timeframe == 3600) {
+            $period = '060'; // 1 hour
+        } else if ($timeframe == 86400) {
+            $period = '100'; // 1 day
+        } else if ($timeframe == 604800) {
+            $period = '200'; // 1 week
+        } else if ($timeframe == 2592000) {
+            $period = '300'; // 1 month
+        } else if ($timeframe == 31536000) {
+            $period = '400'; // 1 year
+        }
+        $market = $this->market ($symbol);
+        $method = $market['type'] . 'GetIdKlinePeriod';
+        $ohlcvs = $this->$method (array (
+            'id' => $market['id'],
+            'period' => $period,
+        ));
+        return $ohlcvs;
+        // return $this->parse_ohlcvs ($market, $ohlcvs, $timeframe, $since, $limit);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $market = $this->market ($symbol);
         $method = 'tradePost' . $this->capitalize ($side);
         $order = array (
-            'coin_type' => $p['coinType'],
+            'coin_type' => $market['coinType'],
             'amount' => $amount,
-            'market' => strtolower ($p['quote']),
+            'market' => strtolower ($market['quote']),
         );
         if ($type == 'limit')
             $order['price'] = $price;

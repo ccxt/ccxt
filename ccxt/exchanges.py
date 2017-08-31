@@ -9695,6 +9695,7 @@ class huobi (Exchange):
             'countries': 'CN',
             'rateLimit': 2000,
             'version': 'v3',
+            'hasFetchOHLCV': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
                 'api': 'http://api.huobi.com',
@@ -9811,18 +9812,58 @@ class huobi (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
-        p = self.market(market)
-        method = p['type'] + 'GetDetailId'
-        return getattr(self, method)(self.extend({'id': p['id']}, params))
+    def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        method = market['type'] + 'GetDetailId'
+        return getattr(self, method)(self.extend({'id': market['id']}, params))
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
-        p = self.market(market)
+    def parseOHLCV(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+        # not implemented yet
+        return [
+            ohlcv[0],
+            ohlcv[1],
+            ohlcv[2],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[6],
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
+        period = '001' # 1 minute by default
+        if timeframe == 60:
+            period = '001'
+        elif timeframe == 300:
+            period = '005' # 5 minutes
+        elif timeframe == 900:
+            period = '015' # 15 minutes
+        elif timeframe == 1800:
+            period = '030' # 30 minutes
+        elif timeframe == 3600:
+            period = '060' # 1 hour
+        elif timeframe == 86400:
+            period = '100' # 1 day
+        elif timeframe == 604800:
+            period = '200' # 1 week
+        elif timeframe == 2592000:
+            period = '300' # 1 month
+        elif timeframe == 31536000:
+            period = '400' # 1 year
+        market = self.market(symbol)
+        method = market['type'] + 'GetIdKlinePeriod'
+        ohlcvs = getattr(self, method)({
+            'id': market['id'],
+            'period': period,
+        })
+        return ohlcvs
+        # return self.parse_ohlcvs(market, ohlcvs, timeframe, since, limit)
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
+        market = self.market(symbol)
         method = 'tradePost' + self.capitalize(side)
         order = {
-            'coin_type': p['coinType'],
+            'coin_type': market['coinType'],
             'amount': amount,
-            'market': p['quote'].lower(),
+            'market': market['quote'].lower(),
         }
         if type == 'limit':
             order['price'] = price
