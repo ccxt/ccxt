@@ -567,6 +567,14 @@ const Exchange = function (config) {
         return order['status']
     }
 
+    this.account = function () {
+        return {
+            'free': 0.0,
+            'used': 0.0,
+            'total': 0.0,
+        }
+    }
+
     this.commonCurrencyCode = function (currency) {
         if (!this.substituteCommonCurrencyCodes)
             return currency
@@ -715,6 +723,7 @@ const Exchange = function (config) {
     for (var property in config)
         this[property] = config[property]
 
+    this.account                  = this.account
     this.fetch_balance            = this.fetchBalance
     this.fetch_order_book         = this.fetchOrderBook
     this.fetch_ticker             = this.fetchTicker
@@ -832,11 +841,7 @@ var _1broker = {
         };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
-            result[currency] = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            result[currency] = this.account ();
         }
         let total = parseFloat (response['balance']);
         result['BTC']['free'] = total;
@@ -985,11 +990,7 @@ var cryptocapital = {
         let result = { 'info': balance };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if (currency in balance['available'])
                 account['free'] = parseFloat (balance['available'][currency]);
             if (currency in balance['on_hold'])
@@ -1223,11 +1224,7 @@ var anxpro = {
         let result = { 'info': balance };
         for (let c = 0; c < currencies.length; c++) {
             let currency = currencies[c];
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if (currency in balance['Wallets']) {
                 let wallet = balance['Wallets'][currency];
                 account['free'] = parseFloat (wallet['Available_Balance']['value']);
@@ -1745,11 +1742,7 @@ var bit2c = {
         let result = { 'info': balance };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if (currency in balance) {
                 let available = 'AVAILABLE_' + currency;
                 account['free'] = balance[available];
@@ -1951,11 +1944,7 @@ var bitbay = {
         let result = { 'info': balance };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if (currency in balance) {
                 account['free'] = parseFloat (balance[currency]['available']);
                 account['used'] = parseFloat (balance[currency]['locked']);
@@ -2097,11 +2086,7 @@ var bitbays = {
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if (lowercase in balance) {
                 account['free'] = parseFloat (balance[lowercase]['avail']);
                 account['used'] = parseFloat (balance[lowercase]['lock']);
@@ -2278,11 +2263,7 @@ var bitcoincoid = {
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if (lowercase in balance) {
                 account['free'] = parseFloat (balance[lowercase]);
             }
@@ -2522,11 +2503,7 @@ var bitfinex = {
         let result = { 'info': response };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if (currency in balances) {
                 account['free'] = parseFloat (balances[currency]['available']);
                 account['total'] = parseFloat (balances[currency]['amount']);
@@ -2829,11 +2806,7 @@ var bitflyer = {
         let result = { 'info': response };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if (currency in balances) {
                 account['total'] = balances[currency]['amount'];
                 account['free'] = balances[currency]['available'];
@@ -3171,11 +3144,7 @@ var bitlish = {
         }
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if (currency in balance) {
                 account['free'] = parseFloat (balance[currency]['funds']);
                 account['used'] = parseFloat (balance[currency]['holded']);
@@ -3219,7 +3188,7 @@ var bitlish = {
         if (api == 'public') {
             if (method == 'GET') {
                 if (Object.keys (params).length)
-                    url += '?' + this.urlencode (params);                
+                    url += '?' + this.urlencode (params);
             }
             else {
                 body = this.json (params);
@@ -3326,11 +3295,7 @@ var bitmarket = {
         let result = { 'info': data };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if (currency in balance['available'])
                 account['free'] = balance['available'][currency];
             if (currency in balance['blocked'])
@@ -4062,11 +4027,7 @@ var bitstamp = {
             let total = lowercase + '_balance';
             let free = lowercase + '_available';
             let used = lowercase + '_reserved';
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if (free in balance)
                 account['free'] = parseFloat (balance[free]);
             if (used in balance)
@@ -4246,11 +4207,7 @@ var bittrex = {
         let indexed = this.indexBy (balances, 'Currency');
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if (currency in indexed) {
                 let balance = indexed[currency];
                 account['free'] = balance['Available'];
@@ -4731,11 +4688,7 @@ var bl3p = {
         let result = { 'info': data };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if (currency in balance) {
                 if ('available' in balance[currency]) {
                     account['free'] = parseFloat (balance[currency]['available']['value']);
@@ -4956,11 +4909,7 @@ var btcchina = {
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if (lowercase in balances['balance'])
                 account['total'] = parseFloat (balances['balance'][lowercase]['amount']);
             if (lowercase in balances['frozen'])
@@ -6219,11 +6168,7 @@ var bter = {
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let code = this.commonCurrencyCode (currency);
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if ('available' in balance) {
                 if (currency in balance['available']) {
                     account['free'] = parseFloat (balance['available'][currency]);
@@ -7107,11 +7052,7 @@ var chbtc = {
         let result = { 'info': balances };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if (currency in balances['balance'])
                 account['free'] = balances['balance'][currency]['amount'];
             if (currency in balances['frozen'])
@@ -7347,11 +7288,7 @@ var coincheck = {
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if (lowercase in balances)
                 account['free'] = parseFloat (balances[lowercase]);
             let reserved = lowercase + '_reserved';
@@ -8060,11 +7997,7 @@ var coinmate = {
         let result = { 'info': balances };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if (currency in balances) {
                 account['free'] = balances[currency]['available'];
                 account['used'] = balances[currency]['reserved'];
@@ -9173,11 +9106,7 @@ var exmo = {
         let result = { 'info': response };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if (currency in response['balances'])
                 account['free'] = parseFloat (response['balances'][currency]);
             if (currency in response['reserved'])
@@ -10892,11 +10821,7 @@ var huobi = {
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             let available = 'available_' + lowercase + '_display';
             let frozen = 'frozen_' + lowercase + '_display';
             let loan = 'loan_' + lowercase + '_display';
@@ -11289,11 +11214,7 @@ var jubi = {
             let lowercase = currency.toLowerCase ();
             if (lowercase == 'dash')
                 lowercase = 'drk';
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             let free = lowercase + '_balance';
             let used = lowercase + '_lock';
             if (free in balances)
@@ -12074,11 +11995,7 @@ var livecoin = {
             if (currency in result)
                 account = result[currency];
             else
-                account = {
-                    'free': 0.0,
-                    'used': 0.0,
-                    'total': 0.0,
-                };
+                account = this.account ();
             if (balance['type'] == 'total')
                 account['total'] = parseFloat (balance['value']);
             if (balance['type'] == 'available')
@@ -12617,11 +12534,7 @@ var mercado = {
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if (lowercase in balances) {
                 account['free'] = parseFloat (balances[lowercase]['available']);
                 account['total'] = parseFloat (balances[lowercase]['total']);
@@ -12867,11 +12780,7 @@ var okcoin = {
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if (lowercase in balances['free'])
                 account['free'] = parseFloat (balances['free'][lowercase]);
             if (lowercase in balances['freezed'])
@@ -13129,11 +13038,7 @@ var paymium = {
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             let balance = 'balance_' + lowercase;
             let locked = 'locked_' + lowercase;
             if (balance in balances)
@@ -15390,11 +15295,7 @@ var yobit = {
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
-            let account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            };
+            let account = this.account ();
             if ('funds' in balances)
                 if (lowercase in balances['funds'])
                     account['free'] = balances['funds'][lowercase];

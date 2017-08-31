@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.55';
+$version = '1.5.56';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -856,6 +856,14 @@ class Exchange {
         return $this->create_market_sell_order ($market, $amount, $params);
     }
 
+    public static function account () {
+        return array (
+            'free' => 0.0,
+            'used' => 0.0,
+            'total' => 0.0,
+        );
+    }
+
     public function commonCurrencyCode ($currency) {
         if (!$this->substituteCommonCurrencyCodes)
             return $currency;
@@ -1006,11 +1014,7 @@ class _1broker extends Exchange {
         );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
-            $result[$currency] = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $result[$currency] = $this->account ();
         }
         $total = floatval ($response['balance']);
         $result['BTC']['free'] = $total;
@@ -1163,11 +1167,7 @@ class cryptocapital extends Exchange {
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ($currency, $balance['available']))
                 $account['free'] = floatval ($balance['available'][$currency]);
             if (array_key_exists ($currency, $balance['on_hold']))
@@ -1409,11 +1409,7 @@ class anxpro extends Exchange {
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ($currency, $balance['Wallets'])) {
                 $wallet = $balance['Wallets'][$currency];
                 $account['free'] = floatval ($wallet['Available_Balance']['value']);
@@ -1938,11 +1934,7 @@ class bit2c extends Exchange {
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ($currency, $balance)) {
                 $available = 'AVAILABLE_' . $currency;
                 $account['free'] = $balance[$available];
@@ -2148,11 +2140,7 @@ class bitbay extends Exchange {
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ($currency, $balance)) {
                 $account['free'] = floatval ($balance[$currency]['available']);
                 $account['used'] = floatval ($balance[$currency]['locked']);
@@ -2298,11 +2286,7 @@ class bitbays extends Exchange {
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ($lowercase, $balance)) {
                 $account['free'] = floatval ($balance[$lowercase]['avail']);
                 $account['used'] = floatval ($balance[$lowercase]['lock']);
@@ -2483,11 +2467,7 @@ class bitcoincoid extends Exchange {
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ($lowercase, $balance)) {
                 $account['free'] = floatval ($balance[$lowercase]);
             }
@@ -2731,11 +2711,7 @@ class bitfinex extends Exchange {
         $result = array ( 'info' => $response );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ($currency, $balances)) {
                 $account['free'] = floatval ($balances[$currency]['available']);
                 $account['total'] = floatval ($balances[$currency]['amount']);
@@ -3042,11 +3018,7 @@ class bitflyer extends Exchange {
         $result = array ( 'info' => $response );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ($currency, $balances)) {
                 $account['total'] = $balances[$currency]['amount'];
                 $account['free'] = $balances[$currency]['available'];
@@ -3388,11 +3360,7 @@ class bitlish extends Exchange {
         }
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ($currency, $balance)) {
                 $account['free'] = floatval ($balance[$currency]['funds']);
                 $account['used'] = floatval ($balance[$currency]['holded']);
@@ -3436,7 +3404,7 @@ class bitlish extends Exchange {
         if ($api == 'public') {
             if ($method == 'GET') {
                 if ($params)
-                    $url .= '?' . $this->urlencode ($params);                
+                    $url .= '?' . $this->urlencode ($params);
             }
             else {
                 $body = $this->json ($params);
@@ -3547,11 +3515,7 @@ class bitmarket extends Exchange {
         $result = array ( 'info' => $data );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ($currency, $balance['available']))
                 $account['free'] = $balance['available'][$currency];
             if (array_key_exists ($currency, $balance['blocked']))
@@ -4294,11 +4258,7 @@ class bitstamp extends Exchange {
             $total = $lowercase . '_balance';
             $free = $lowercase . '_available';
             $used = $lowercase . '_reserved';
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ($free, $balance))
                 $account['free'] = floatval ($balance[$free]);
             if (array_key_exists ($used, $balance))
@@ -4482,11 +4442,7 @@ class bittrex extends Exchange {
         $indexed = $this->index_by ($balances, 'Currency');
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ($currency, $indexed)) {
                 $balance = $indexed[$currency];
                 $account['free'] = $balance['Available'];
@@ -4975,11 +4931,7 @@ class bl3p extends Exchange {
         $result = array ( 'info' => $data );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ($currency, $balance)) {
                 if (array_key_exists ('available', $balance[$currency])) {
                     $account['free'] = floatval ($balance[$currency]['available']['value']);
@@ -5204,11 +5156,7 @@ class btcchina extends Exchange {
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ($lowercase, $balances['balance']))
                 $account['total'] = floatval ($balances['balance'][$lowercase]['amount']);
             if (array_key_exists ($lowercase, $balances['frozen']))
@@ -6500,11 +6448,7 @@ class bter extends Exchange {
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $code = $this->commonCurrencyCode ($currency);
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ('available', $balance)) {
                 if (array_key_exists ($currency, $balance['available'])) {
                     $account['free'] = floatval ($balance['available'][$currency]);
@@ -7405,11 +7349,7 @@ class chbtc extends Exchange {
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ($currency, $balances['balance']))
                 $account['free'] = $balances['balance'][$currency]['amount'];
             if (array_key_exists ($currency, $balances['frozen']))
@@ -7654,11 +7594,7 @@ class coincheck extends Exchange {
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ($lowercase, $balances))
                 $account['free'] = floatval ($balances[$lowercase]);
             $reserved = $lowercase . '_reserved';
@@ -8383,11 +8319,7 @@ class coinmate extends Exchange {
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ($currency, $balances)) {
                 $account['free'] = $balances[$currency]['available'];
                 $account['used'] = $balances[$currency]['reserved'];
@@ -9516,11 +9448,7 @@ class exmo extends Exchange {
         $result = array ( 'info' => $response );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ($currency, $response['balances']))
                 $account['free'] = floatval ($response['balances'][$currency]);
             if (array_key_exists ($currency, $response['reserved']))
@@ -11280,11 +11208,7 @@ class huobi extends Exchange {
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             $available = 'available_' . $lowercase . '_display';
             $frozen = 'frozen_' . $lowercase . '_display';
             $loan = 'loan_' . $lowercase . '_display';
@@ -11685,11 +11609,7 @@ class jubi extends Exchange {
             $lowercase = strtolower ($currency);
             if ($lowercase == 'dash')
                 $lowercase = 'drk';
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             $free = $lowercase . '_balance';
             $used = $lowercase . '_lock';
             if (array_key_exists ($free, $balances))
@@ -12481,11 +12401,7 @@ class livecoin extends Exchange {
             if (array_key_exists ($currency, $result))
                 $account = $result[$currency];
             else
-                $account = array (
-                    'free' => 0.0,
-                    'used' => 0.0,
-                    'total' => 0.0,
-                );
+                $account = $this->account ();
             if ($balance['type'] == 'total')
                 $account['total'] = floatval ($balance['value']);
             if ($balance['type'] == 'available')
@@ -13037,11 +12953,7 @@ class mercado extends Exchange {
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ($lowercase, $balances)) {
                 $account['free'] = floatval ($balances[$lowercase]['available']);
                 $account['total'] = floatval ($balances[$lowercase]['total']);
@@ -13283,11 +13195,7 @@ class okcoin extends Exchange {
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ($lowercase, $balances['free']))
                 $account['free'] = floatval ($balances['free'][$lowercase]);
             if (array_key_exists ($lowercase, $balances['freezed']))
@@ -13564,11 +13472,7 @@ class paymium extends Exchange {
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             $balance = 'balance_' . $lowercase;
             $locked = 'locked_' . $lowercase;
             if (array_key_exists ($balance, $balances))
@@ -15875,11 +15779,7 @@ class yobit extends Exchange {
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
-            $account = array (
-                'free' => 0.0,
-                'used' => 0.0,
-                'total' => 0.0,
-            );
+            $account = $this->account ();
             if (array_key_exists ('funds', $balances))
                 if (array_key_exists ($lowercase, $balances['funds']))
                     $account['free'] = $balances['funds'][$lowercase];

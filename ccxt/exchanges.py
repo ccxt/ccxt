@@ -236,11 +236,7 @@ class _1broker (Exchange):
         }
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            result[currency] = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            result[currency] = self.account()
         total = float(response['balance'])
         result['BTC']['free'] = total
         result['BTC']['total'] = total
@@ -385,11 +381,7 @@ class cryptocapital (Exchange):
         result = {'info': balance}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if currency in balance['available']:
                 account['free'] = float(balance['available'][currency])
             if currency in balance['on_hold']:
@@ -618,11 +610,7 @@ class anxpro (Exchange):
         result = {'info': balance}
         for c in range(0, len(currencies)):
             currency = currencies[c]
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if currency in balance['Wallets']:
                 wallet = balance['Wallets'][currency]
                 account['free'] = float(wallet['Available_Balance']['value'])
@@ -1112,11 +1100,7 @@ class bit2c (Exchange):
         result = {'info': balance}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if currency in balance:
                 available = 'AVAILABLE_' + currency
                 account['free'] = balance[available]
@@ -1308,11 +1292,7 @@ class bitbay (Exchange):
         result = {'info': balance}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if currency in balance:
                 account['free'] = float(balance[currency]['available'])
                 account['used'] = float(balance[currency]['locked'])
@@ -1448,11 +1428,7 @@ class bitbays (Exchange):
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if lowercase in balance:
                 account['free'] = float(balance[lowercase]['avail'])
                 account['used'] = float(balance[lowercase]['lock'])
@@ -1620,11 +1596,7 @@ class bitcoincoid (Exchange):
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if lowercase in balance:
                 account['free'] = float(balance[lowercase])
             if lowercase in frozen:
@@ -1851,11 +1823,7 @@ class bitfinex (Exchange):
         result = {'info': response}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if currency in balances:
                 account['free'] = float(balances[currency]['available'])
                 account['total'] = float(balances[currency]['amount'])
@@ -2137,11 +2105,7 @@ class bitflyer (Exchange):
         result = {'info': response}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if currency in balances:
                 account['total'] = balances[currency]['amount']
                 account['free'] = balances[currency]['available']
@@ -2458,11 +2422,7 @@ class bitlish (Exchange):
             balance[currency] = account
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if currency in balance:
                 account['free'] = float(balance[currency]['funds'])
                 account['used'] = float(balance[currency]['holded'])
@@ -2500,7 +2460,7 @@ class bitlish (Exchange):
         if api == 'public':
             if method == 'GET':
                 if params:
-                    url += '?' + self.urlencode(params)                
+                    url += '?' + self.urlencode(params)
             else:
                 body = self.json(params)
                 headers = {'Content-Type': 'application/json'}
@@ -2607,11 +2567,7 @@ class bitmarket (Exchange):
         result = {'info': data}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if currency in balance['available']:
                 account['free'] = balance['available'][currency]
             if currency in balance['blocked']:
@@ -3311,11 +3267,7 @@ class bitstamp (Exchange):
             total = lowercase + '_balance'
             free = lowercase + '_available'
             used = lowercase + '_reserved'
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if free in balance:
                 account['free'] = float(balance[free])
             if used in balance:
@@ -3487,11 +3439,7 @@ class bittrex (Exchange):
         indexed = self.index_by(balances, 'Currency')
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if currency in indexed:
                 balance = indexed[currency]
                 account['free'] = balance['Available']
@@ -3943,11 +3891,7 @@ class bl3p (Exchange):
         result = {'info': data}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if currency in balance:
                 if 'available' in balance[currency]:
                     account['free'] = float(balance[currency]['available']['value'])
@@ -4153,11 +4097,7 @@ class btcchina (Exchange):
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if lowercase in balances['balance']:
                 account['total'] = float(balances['balance'][lowercase]['amount'])
             if lowercase in balances['frozen']:
@@ -5361,11 +5301,7 @@ class bter (Exchange):
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             code = self.commonCurrencyCode(currency)
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if 'available' in balance:
                 if currency in balance['available']:
                     account['free'] = float(balance['available'][currency])
@@ -6202,11 +6138,7 @@ class chbtc (Exchange):
         result = {'info': balances}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if currency in balances['balance']:
                 account['free'] = balances['balance'][currency]['amount']
             if currency in balances['frozen']:
@@ -6440,11 +6372,7 @@ class coincheck (Exchange):
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if lowercase in balances:
                 account['free'] = float(balances[lowercase])
             reserved = lowercase + '_reserved'
@@ -7117,11 +7045,7 @@ class coinmate (Exchange):
         result = {'info': balances}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if currency in balances:
                 account['free'] = balances[currency]['available']
                 account['used'] = balances[currency]['reserved']
@@ -8181,11 +8105,7 @@ class exmo (Exchange):
         result = {'info': response}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if currency in response['balances']:
                 account['free'] = float(response['balances'][currency])
             if currency in response['reserved']:
@@ -9838,11 +9758,7 @@ class huobi (Exchange):
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             available = 'available_' + lowercase + '_display'
             frozen = 'frozen_' + lowercase + '_display'
             loan = 'loan_' + lowercase + '_display'
@@ -10219,11 +10135,7 @@ class jubi (Exchange):
             lowercase = currency.lower()
             if lowercase == 'dash':
                 lowercase = 'drk'
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             free = lowercase + '_balance'
             used = lowercase + '_lock'
             if free in balances:
@@ -10962,11 +10874,7 @@ class livecoin (Exchange):
             if currency in result:
                 account = result[currency]
             else:
-                account = {
-                    'free': 0.0,
-                    'used': 0.0,
-                    'total': 0.0,
-                }
+                account = self.account()
             if balance['type'] == 'total':
                 account['total'] = float(balance['value'])
             if balance['type'] == 'available':
@@ -11482,11 +11390,7 @@ class mercado (Exchange):
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if lowercase in balances:
                 account['free'] = float(balances[lowercase]['available'])
                 account['total'] = float(balances[lowercase]['total'])
@@ -11714,11 +11618,7 @@ class okcoin (Exchange):
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if lowercase in balances['free']:
                 account['free'] = float(balances['free'][lowercase])
             if lowercase in balances['freezed']:
@@ -11981,11 +11881,7 @@ class paymium (Exchange):
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             balance = 'balance_' + lowercase
             locked = 'locked_' + lowercase
             if balance in balances:
@@ -14134,11 +14030,7 @@ class yobit (Exchange):
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
-            account = {
-                'free': 0.0,
-                'used': 0.0,
-                'total': 0.0,
-            }
+            account = self.account()
             if 'funds' in balances:
                 if lowercase in balances['funds']:
                     account['free'] = balances['funds'][lowercase]

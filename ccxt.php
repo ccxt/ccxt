@@ -856,6 +856,14 @@ class Exchange {
         return $this->create_market_sell_order ($market, $amount, $params);
     }
 
+    public static function account () {
+        return array (
+            'free' => 0.0,
+            'used' => 0.0,
+            'total' => 0.0,
+        );
+    }
+
     public function commonCurrencyCode ($currency) {
         if (!$this->substituteCommonCurrencyCodes)
             return $currency;

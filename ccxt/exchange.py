@@ -526,6 +526,13 @@ class Exchange (object):
     def nonce(self):
         return Exchange.seconds()
 
+    def account(self):
+        return {
+            'free': 0.0,
+            'used': 0.0,
+            'total': 0.0,
+        }
+
     def commonCurrencyCode(self, currency):
         if not self.substituteCommonCurrencyCodes:
             return currency
