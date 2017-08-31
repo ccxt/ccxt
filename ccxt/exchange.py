@@ -112,6 +112,7 @@ class Exchange (object):
     marketsById = None
     markets_by_id = None
     hasFetchTickers = False
+    hasFetchOHLCV = False
     substituteCommonCurrencyCodes = True
 
     def __init__(self, config={}):
@@ -525,6 +526,13 @@ class Exchange (object):
     def nonce(self):
         return Exchange.seconds()
 
+    def account(self):
+        return {
+            'free': 0.0,
+            'used': 0.0,
+            'total': 0.0,
+        }
+
     def commonCurrencyCode(self, currency):
         if not self.substituteCommonCurrencyCodes:
             return currency
@@ -639,8 +647,8 @@ class Exchange (object):
     def marketId(self, symbol):
         return self.market_id(symbol)
 
-    def fetchBalance(self):
-        return self.fetch_balance()
+    def fetchBalance(self, params={}):
+        return self.fetch_balance(params)
 
     def fetchOrderBook(self, symbol):
         return self.fetch_order_book(symbol)

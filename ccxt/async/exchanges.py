@@ -149,7 +149,7 @@ class _1broker (Exchange):
                 })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         balance = await self.privateGetUserOverview()
         response = balance['response']
@@ -158,13 +158,10 @@ class _1broker (Exchange):
         }
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            result[currency] = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
-        result['BTC']['free'] = float(response['balance'])
-        result['BTC']['total'] = result['BTC']['free']
+            result[currency] = self.account()
+        total = float(response['balance'])
+        result['BTC']['free'] = total
+        result['BTC']['total'] = total
         return result
 
     async def fetch_order_book(self, market, params={}):
@@ -300,17 +297,13 @@ class cryptocapital (Exchange):
         params.update(config)
         super(cryptocapital, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         response = await self.privatePostBalancesAndInfo()
         balance = response['balances-and-info']
         result = {'info': balance}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if currency in balance['available']:
                 account['free'] = float(balance['available'][currency])
             if currency in balance['on_hold']:
@@ -532,18 +525,14 @@ class anxpro (Exchange):
         params.update(config)
         super(anxpro, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         response = await self.privatePostMoneyInfo()
         balance = response['data']
         currencies = list(balance['Wallets'].keys())
         result = {'info': balance}
         for c in range(0, len(currencies)):
             currency = currencies[c]
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if currency in balance['Wallets']:
                 wallet = balance['Wallets'][currency]
                 account['free'] = float(wallet['Available_Balance']['value'])
@@ -734,7 +723,7 @@ class binance (Exchange):
         params.update(config)
         super(binance, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         response = await self.privateGetAccount()
         result = {'info': response}
         balances = response['balances']
@@ -745,7 +734,7 @@ class binance (Exchange):
             account = {
                 'free': float(balance['free']),
                 'used': float(balance['locked']),
-                'total': None,
+                'total': 0.0,
             }
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
@@ -931,14 +920,14 @@ class binance (Exchange):
         # If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
         raise NotImplemented(self.id + ' fetchOrders not implemented yet')
 
-    async def fetch_open_orders(self, market=None, params={}):
-        if not market:
-            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol')
-        m = self.market(market)
+    async def fetch_open_orders(self, symbol=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
+        market = self.market(symbol)
         response = await self.privateGetOpenOrders({
-            'symbol': m['id'],
+            'symbol': market['id'],
         })
-        return self.parse_orders(response, m)
+        return self.parse_orders(response, market)
 
     async def cancel_order(self, id, params={}):
         return self.privatePostOrderCancel(self.extend({
@@ -1028,16 +1017,12 @@ class bit2c (Exchange):
         params.update(config)
         super(bit2c, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         balance = await self.privatePostAccountBalanceV2()
         result = {'info': balance}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if currency in balance:
                 available = 'AVAILABLE_' + currency
                 account['free'] = balance[available]
@@ -1093,16 +1078,36 @@ class bit2c (Exchange):
             'quoteVolume': float(ticker['a']),
         }
 
-    async def fetch_trades(self, market, params={}):
-        return self.publicGetExchangesPairTrades(self.extend({
-            'pair': self.market_id(market),
-        }, params))
+    def parse_trade(self, trade, market=None):
+        timestamp = int(trade['date']) * 1000
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        return {
+            'id': str(trade['tid']),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'order': None,
+            'type': None,
+            'side': None,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = await self.publicGetExchangesPairTrades(self.extend({
+            'pair': market['id'],
+        }, params))
+        return self.parse_trades(response, market)
+
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         method = 'privatePostOrderAddOrder'
         order = {
             'Amount': amount,
-            'Pair': self.market_id(market),
+            'Pair': self.market_id(symbol),
         }
         if type == 'market':
             method += 'MarketPrice' + self.capitalize(side)
@@ -1203,17 +1208,13 @@ class bitbay (Exchange):
         params.update(config)
         super(bitbay, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         response = await self.privatePostInfo()
         balance = response['balances']
         result = {'info': balance}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if currency in balance:
                 account['free'] = float(balance[currency]['available'])
                 account['used'] = float(balance[currency]['locked'])
@@ -1342,18 +1343,14 @@ class bitbays (Exchange):
         params.update(config)
         super(bitbays, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         response = await self.privatePostInfo()
         balance = response['result']['wallet']
         result = {'info': balance}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if lowercase in balance:
                 account['free'] = float(balance[lowercase]['avail'])
                 account['used'] = float(balance[lowercase]['lock'])
@@ -1513,7 +1510,7 @@ class bitcoincoid (Exchange):
         params.update(config)
         super(bitcoincoid, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         response = await self.privatePostGetInfo()
         balance = response['return']['balance']
         frozen = response['return']['balance_hold']
@@ -1521,11 +1518,7 @@ class bitcoincoid (Exchange):
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if lowercase in balance:
                 account['free'] = float(balance[lowercase])
             if lowercase in frozen:
@@ -1736,7 +1729,7 @@ class bitfinex (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostBalances()
         balances = {}
@@ -1752,11 +1745,7 @@ class bitfinex (Exchange):
         result = {'info': response}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if currency in balances:
                 account['free'] = float(balances[currency]['available'])
                 account['total'] = float(balances[currency]['amount'])
@@ -2027,7 +2016,7 @@ class bitflyer (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetBalance()
         balances = {}
@@ -2038,11 +2027,7 @@ class bitflyer (Exchange):
         result = {'info': response}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if currency in balances:
                 account['total'] = balances[currency]['amount']
                 account['free'] = balances[currency]['available']
@@ -2159,6 +2144,7 @@ class bitlish (Exchange):
             'rateLimit': 1500,
             'version': 'v1',
             'hasFetchTickers': True,
+            'hasFetchOHLCV': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
                 'api': 'https://bitlish.com/api',
@@ -2168,6 +2154,14 @@ class bitlish (Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'instruments',
+                        'ohlcv',
+                        'pairs',
+                        'tickers',
+                        'trades_depth',
+                        'trades_history',
+                    ],
+                    'post': [
                         'instruments',
                         'ohlcv',
                         'pairs',
@@ -2267,17 +2261,27 @@ class bitlish (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         await self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         tickers = await self.publicGetTickers()
-        ticker = tickers[p['id']]
-        return self.parse_ticker(ticker, p)
+        ticker = tickers[market['id']]
+        return self.parse_ticker(ticker, market)
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
+        await self.load_markets()
+        market = self.market(symbol)
+        now = self.seconds()
+        start = now - 86400 * 30 # last 30 days
+        interval = [str(start), None]
+        return self.publicPostOhlcv({
+            'time_range': interval,
+        })
+
+    async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
         orderbook = await self.publicGetTradesDepth(self.extend({
-            'pair_id': self.market_id(market),
+            'pair_id': self.market_id(symbol),
         }, params))
         timestamp = int(int(orderbook['last']) / 1000)
         result = {
@@ -2301,11 +2305,13 @@ class bitlish (Exchange):
 
     def parse_trade(self, trade, market=None):
         side = 'buy' if(trade['dir'] == 'bid') else 'sell'
+        symbol = None
+        timestamp = int(trade['created'] / 1000)
         return {
             'id': None,
             'info': trade,
-            'timestamp': trade['created'],
-            'datetime': self.iso8601(trade['created']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'order': None,
             'type': None,
@@ -2322,7 +2328,7 @@ class bitlish (Exchange):
         }, params))
         return self.parse_trades(response['list'], market)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostBalance()
         result = {'info': response}
@@ -2338,11 +2344,7 @@ class bitlish (Exchange):
             balance[currency] = account
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if currency in balance:
                 account['free'] = float(balance[currency]['funds'])
                 account['used'] = float(balance[currency]['holded'])
@@ -2356,10 +2358,10 @@ class bitlish (Exchange):
             'passwd': self.password,
         })
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         order = {
-            'pair_id': self.market_id(market),
+            'pair_id': self.market_id(symbol),
             'dir': 'bid' if(side == 'buy') else 'ask',
             'amount': amount,
         }
@@ -2378,8 +2380,12 @@ class bitlish (Exchange):
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
-            if params:
-                url += '?' + self.urlencode(params)
+            if method == 'GET':
+                if params:
+                    url += '?' + self.urlencode(params)
+            else:
+                body = self.json(params)
+                headers = {'Content-Type': 'application/json'}
         else:
             body = self.json(self.extend({'token': self.apiKey}, params))
             headers = {'Content-Type': 'application/json'}
@@ -2475,7 +2481,7 @@ class bitmarket (Exchange):
         params.update(config)
         super(bitmarket, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostInfo()
         data = response['data']
@@ -2483,11 +2489,7 @@ class bitmarket (Exchange):
         result = {'info': data}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if currency in balance['available']:
                 account['free'] = balance['available'][currency]
             if currency in balance['blocked']:
@@ -2705,7 +2707,7 @@ class bitmex (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetUserMargin({'currency': 'all'})
         result = {'info': response}
@@ -2715,7 +2717,7 @@ class bitmex (Exchange):
             currency = self.commonCurrencyCode(currency)
             account = {
                 'free': balance['availableMargin'],
-                'used': None,
+                'used': 0.0,
                 'total': balance['amount'],
             }
             if currency == 'BTC':
@@ -2913,7 +2915,7 @@ class bitso (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetBalance()
         balances = response['payload']['balances']
@@ -3178,7 +3180,7 @@ class bitstamp (Exchange):
         }, params))
         return self.parse_trades(response, market)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         balance = await self.privatePostBalance()
         result = {'info': balance}
         for c in range(0, len(self.currencies)):
@@ -3187,11 +3189,7 @@ class bitstamp (Exchange):
             total = lowercase + '_balance'
             free = lowercase + '_available'
             used = lowercase + '_reserved'
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if free in balance:
                 account['free'] = float(balance[free])
             if used in balance:
@@ -3355,7 +3353,7 @@ class bittrex (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.accountGetBalances()
         balances = response['result']
@@ -3363,11 +3361,7 @@ class bittrex (Exchange):
         indexed = self.index_by(balances, 'Currency')
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if currency in indexed:
                 balance = indexed[currency]
                 account['free'] = balance['Available']
@@ -3641,7 +3635,7 @@ class blinktrade (Exchange):
         params.update(config)
         super(blinktrade, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         return self.privatePostU2({
             'BalanceReqID': self.nonce(),
         })
@@ -3812,18 +3806,14 @@ class bl3p (Exchange):
         params.update(config)
         super(bl3p, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         response = await self.privatePostGENMKTMoneyInfo()
         data = response['data']
         balance = data['wallets']
         result = {'info': data}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if currency in balance:
                 if 'available' in balance[currency]:
                     account['free'] = float(balance[currency]['available']['value'])
@@ -4020,7 +4010,7 @@ class btcchina (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostGetAccountInfo()
         balances = response['result']
@@ -4029,11 +4019,7 @@ class btcchina (Exchange):
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if lowercase in balances['balance']:
                 account['total'] = float(balances['balance'][lowercase]['amount'])
             if lowercase in balances['frozen']:
@@ -4232,7 +4218,7 @@ class btce (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostGetInfo()
         balances = response['return']
@@ -4247,7 +4233,7 @@ class btce (Exchange):
                 uppercase = 'DASH'
             account = {
                 'free': funds[currency],
-                'used': None,
+                'used': 0.0,
                 'total': funds[currency],
             }
             result[uppercase] = account
@@ -4458,7 +4444,7 @@ class btcmarkets (Exchange):
         params.update(config)
         super(btcmarkets, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         balances = await self.privateGetAccountBalance()
         result = {'info': balances}
@@ -4648,7 +4634,7 @@ class btctrader (Exchange):
         params.update(config)
         super(btctrader, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         response = await self.privateGetBalance()
         result = {'info': response}
         base = {
@@ -4842,7 +4828,7 @@ class btctradeua (Exchange):
     def sign_in(self):
         return self.privatePostAuth()
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         response = await self.privatePostBalance()
         result = {'info': response}
         if 'accounts' in result:
@@ -4853,7 +4839,7 @@ class btctradeua (Exchange):
                 balance = float(account['balance'])
                 result[currency] = {
                     'free': balance,
-                    'used': None,
+                    'used': 0.0,
                     'total': balance,
                 }
         return result
@@ -5049,7 +5035,7 @@ class btcx (Exchange):
         params.update(config)
         super(btcx, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         balances = await self.privatePostBalance()
         result = {'info': balances}
         currencies = list(balances.keys())
@@ -5058,7 +5044,7 @@ class btcx (Exchange):
             uppercase = currency.upper()
             account = {
                 'free': balances[currency],
-                'used': None,
+                'used': 0.0,
                 'total': balances[currency],
             }
             result[uppercase] = account
@@ -5230,18 +5216,14 @@ class bter (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         balance = await self.privatePostBalances()
         result = {'info': balance}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             code = self.commonCurrencyCode(currency)
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if 'available' in balance:
                 if currency in balance['available']:
                     account['free'] = float(balance['available'][currency])
@@ -5465,7 +5447,7 @@ class bxinth (Exchange):
             return 'DOGE'
         return currency
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostBalance()
         balance = response['balance']
@@ -5476,7 +5458,7 @@ class bxinth (Exchange):
             code = self.commonCurrencyCode(currency)
             account = {
                 'free': float(balance[currency]['available']),
-                'used': None,
+                'used': 0.0,
                 'total': float(balance[currency]['total']),
             }
             account['used'] = account['total'] - account['free']
@@ -5679,7 +5661,7 @@ class ccex (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetBalances()
         balances = response['result']
@@ -5881,7 +5863,7 @@ class cex (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         balances = await self.privatePostBalance()
         result = {'info': balances}
@@ -5890,7 +5872,7 @@ class cex (Exchange):
             account = {
                 'free': float(balances[currency]['available']),
                 'used': float(balances[currency]['orders']),
-                'total': None,
+                'total': 0.0,
             }
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
@@ -6072,17 +6054,13 @@ class chbtc (Exchange):
         params.update(config)
         super(chbtc, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         response = await self.privatePostGetAccountInfo()
         balances = response['result']
         result = {'info': balances}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if currency in balances['balance']:
                 account['free'] = balances['balance'][currency]['amount']
             if currency in balances['frozen']:
@@ -6310,17 +6288,13 @@ class coincheck (Exchange):
         params.update(config)
         super(coincheck, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         balances = await self.privateGetAccountsBalance()
         result = {'info': balances}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if lowercase in balances:
                 account['free'] = float(balances[lowercase])
             reserved = lowercase + '_reserved'
@@ -6480,9 +6454,16 @@ class coinfloor (Exchange):
         params.update(config)
         super(coinfloor, self).__init__(params)
 
-    async def fetch_balance(self, market):
+    async def fetch_balance(self, params={}):
+        symbol = None
+        if 'symbol' in params:
+            symbol = params['symbol']
+        if 'id' in params:
+            symbol = params['id']
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchBalance requires a symbol param')
         return self.privatePostIdBalance({
-            'id': self.market_id(market),
+            'id': self.market_id(symbol),
         })
 
     async def fetch_order_book(self, market):
@@ -6629,7 +6610,7 @@ class coingi (Exchange):
         params.update(config)
         super(coingi, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         currencies = []
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c].lower()
@@ -6645,7 +6626,7 @@ class coingi (Exchange):
             account = {
                 'free': balance['available'],
                 'used': balance['blocked'] + balance['inOrders'] + balance['withdrawing'],
-                'total': None,
+                'total': 0.0,
             }
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
@@ -6980,17 +6961,13 @@ class coinmate (Exchange):
         params.update(config)
         super(coinmate, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         response = await self.privatePostBalances()
         balances = response['data']
         result = {'info': balances}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if currency in balances:
                 account['free'] = balances[currency]['available']
                 account['used'] = balances[currency]['reserved']
@@ -7259,7 +7236,7 @@ class coinsecure (Exchange):
         params.update(config)
         super(coinsecure, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         response = await self.privateGetUserExchangeBankSummary()
         balance = response['message']
         coin = {
@@ -7421,7 +7398,7 @@ class coinspot (Exchange):
         params.update(config)
         super(coinspot, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         response = await self.privatePostMyBalances()
         result = {'info': response}
         if 'balance' in response:
@@ -7432,7 +7409,7 @@ class coinspot (Exchange):
                 uppercase = currency.upper()
                 account = {
                     'free': balances[currency],
-                    'used': None,
+                    'used': 0.0,
                     'total': balances[currency],
                 }
                 if uppercase == 'DRK':
@@ -7698,7 +7675,7 @@ class cryptopia (Exchange):
         trades = response['Data']
         return self.parse_trades(trades, m)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostGetBalance()
         balances = response['Data']
@@ -7708,7 +7685,7 @@ class cryptopia (Exchange):
             currency = balance['Symbol']
             account = {
                 'free': balance['Available'],
-                'used': None,
+                'used': 0.0,
                 'total': balance['Total'],
             }
             account['used'] = account['total'] - account['free']
@@ -7847,7 +7824,7 @@ class dsx (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.tapiPostGetInfo()
         balances = response['return']
@@ -7857,7 +7834,7 @@ class dsx (Exchange):
             currency = currencies[c]
             account = {
                 'free': balances['funds'][currency],
-                'used': None,
+                'used': 0.0,
                 'total': balances['total'][currency],
             }
             account['used'] = account['total'] - account['free']
@@ -8044,17 +8021,13 @@ class exmo (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostUserInfo()
         result = {'info': response}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if currency in response['balances']:
                 account['free'] = float(response['balances'][currency])
             if currency in response['reserved']:
@@ -8248,7 +8221,7 @@ class flowbtc (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostGetAccountInfo()
         balances = response['currencies']
@@ -8259,7 +8232,7 @@ class flowbtc (Exchange):
             account = {
                 'free': balance['balance'],
                 'used': balance['hold'],
-                'total': None,
+                'total': 0.0,
             }
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
@@ -8430,7 +8403,7 @@ class fyb (Exchange):
         params.update(config)
         super(fyb, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         balance = await self.privatePostGetaccinfo()
         btc = float(balance['btcBal'])
         symbol = self.symbols[0]
@@ -8439,13 +8412,13 @@ class fyb (Exchange):
         fiat = float(balance[lowercase])
         crypto = {
             'free': btc,
-            'used': None,
+            'used': 0.0,
             'total': btc,
         }
         accounts = {'BTC': crypto}
         accounts[quote] = {
             'free': fiat,
-            'used': None,
+            'used': 0.0,
             'total': fiat,
         }
         accounts['info'] = balance
@@ -8765,7 +8738,7 @@ class gatecoin (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetBalanceBalances()
         balances = response['balances']
@@ -8995,7 +8968,7 @@ class gdax (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         balances = await self.privateGetAccounts()
         result = {'info': balances}
@@ -9296,7 +9269,7 @@ class gemini (Exchange):
             'symbol': self.market_id(market),
         }, params))
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         balances = await self.privatePostBalances()
         result = {'info': balances}
@@ -9305,7 +9278,7 @@ class gemini (Exchange):
             currency = balance['currency']
             account = {
                 'free': float(balance['available']),
-                'used': None,
+                'used': 0.0,
                 'total': float(balance['amount']),
             }
             account['used'] = account['total'] - account['free']
@@ -9455,7 +9428,7 @@ class hitbtc (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.tradingGetBalance()
         balances = response['balance']
@@ -9466,7 +9439,7 @@ class hitbtc (Exchange):
             account = {
                 'free': float(balance['cash']),
                 'used': float(balance['reserved']),
-                'total': None,
+                'total': 0.0,
             }
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
@@ -9701,17 +9674,13 @@ class huobi (Exchange):
         params.update(config)
         super(huobi, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         balances = await self.tradePostGetAccountInfo()
         result = {'info': balances}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             available = 'available_' + lowercase + '_display'
             frozen = 'frozen_' + lowercase + '_display'
             loan = 'loan_' + lowercase + '_display'
@@ -9940,7 +9909,7 @@ class itbit (Exchange):
             'symbol': self.market_id(market),
         }, params))
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         response = await self.privateGetBalances()
         balances = response['balances']
         result = {'info': response}
@@ -9949,7 +9918,7 @@ class itbit (Exchange):
             currency = balance['currency']
             account = {
                 'free': float(balance['availableBalance']),
-                'used': None,
+                'used': 0.0,
                 'total': float(balance['totalBalance']),
             }
             account['used'] = account['total'] - account['free']
@@ -10079,7 +10048,7 @@ class jubi (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         balances = await self.privatePostBalance()
         result = {'info': balances}
@@ -10088,11 +10057,7 @@ class jubi (Exchange):
             lowercase = currency.lower()
             if lowercase == 'dash':
                 lowercase = 'drk'
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             free = lowercase + '_balance'
             used = lowercase + '_lock'
             if free in balances:
@@ -10432,7 +10397,7 @@ class kraken (Exchange):
         trades = response['result'][id]
         return self.parse_trades(trades, m)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostBalance()
         balances = response['result']
@@ -10450,7 +10415,7 @@ class kraken (Exchange):
             balance = float(balances[currency])
             account = {
                 'free': balance,
-                'used': None,
+                'used': 0.0,
                 'total': balance,
             }
             result[code] = account
@@ -10609,7 +10574,7 @@ class lakebtc (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostGetAccountInfo()
         balances = response['balance']
@@ -10620,7 +10585,7 @@ class lakebtc (Exchange):
             balance = float(balances[currency])
             account = {
                 'free': balance,
-                'used': None,
+                'used': 0.0,
                 'total': balance,
             }
             result[currency] = account
@@ -10820,7 +10785,7 @@ class livecoin (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         balances = await self.privateGetPaymentBalances()
         result = {'info': balances}
@@ -10831,11 +10796,7 @@ class livecoin (Exchange):
             if currency in result:
                 account = result[currency]
             else:
-                account = {
-                    'free': None,
-                    'used': None,
-                    'total': None,
-                }
+                account = self.account()
             if balance['type'] == 'total':
                 account['total'] = float(balance['value'])
             if balance['type'] == 'available':
@@ -11105,7 +11066,7 @@ class luno (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetBalance()
         balances = response['balance']
@@ -11118,7 +11079,7 @@ class luno (Exchange):
             account = {
                 'free': float(balance['balance']),
                 'used': self.sum(reserved, unconfirmed),
-                'total': None,
+                'total': 0.0,
             }
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
@@ -11344,18 +11305,14 @@ class mercado (Exchange):
         method = 'publicGetTrades' + self.capitalize(p['suffix'])
         return getattr(self, method)(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         response = await self.privatePostGetAccountInfo()
         balances = response['balance']
         result = {'info': response}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if lowercase in balances:
                 account['free'] = float(balances[lowercase]['available'])
                 account['total'] = float(balances[lowercase]['total'])
@@ -11576,18 +11533,14 @@ class okcoin (Exchange):
         response = await self.publicGetKline(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         response = await self.privatePostUserinfo()
         balances = response['info']['funds']
         result = {'info': response}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if lowercase in balances['free']:
                 account['free'] = float(balances['free'][lowercase])
             if lowercase in balances['freezed']:
@@ -11844,17 +11797,13 @@ class paymium (Exchange):
         params.update(config)
         super(paymium, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         balances = await self.privateGetUser()
         result = {'info': balances}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             balance = 'balance_' + lowercase
             locked = 'locked_' + lowercase
             if balance in balances:
@@ -12050,7 +11999,7 @@ class poloniex (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         balances = await self.privatePostReturnCompleteBalances({
             'account': 'all',
@@ -12063,7 +12012,7 @@ class poloniex (Exchange):
             account = {
                 'free': float(balance['available']),
                 'used': float(balance['onOrders']),
-                'total': None,
+                'total': 0.0,
             }
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
@@ -12389,7 +12338,7 @@ class quadrigacx (Exchange):
         params.update(config)
         super(quadrigacx, self).__init__(params)
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         balances = await self.privatePostBalance()
         result = {'info': balances}
         for c in range(0, len(self.currencies)):
@@ -12582,7 +12531,7 @@ class quoine (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         balances = await self.privateGetAccountsBalance()
         result = {'info': balances}
@@ -12592,7 +12541,7 @@ class quoine (Exchange):
             total = float(balance['balance'])
             account = {
                 'free': total,
-                'used': None,
+                'used': 0.0,
                 'total': total,
             }
             result[currency] = account
@@ -12789,7 +12738,7 @@ class southxchange (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         balances = await self.privatePostListBalances()
         result = {'info': balances}
@@ -13040,7 +12989,7 @@ class therock (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetBalances()
         balances = response['balances']
@@ -13269,7 +13218,7 @@ class vaultoro (Exchange):
         })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetBalance()
         balances = response['data']
@@ -13501,7 +13450,7 @@ class virwox (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostGetBalances()
         balances = response['result']['accountList']
@@ -13512,7 +13461,7 @@ class virwox (Exchange):
             total = balance['balance']
             account = {
                 'free': total,
-                'used': None,
+                'used': 0.0,
                 'total': total,
             }
             result[currency] = account
@@ -13755,7 +13704,7 @@ class xbtce (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         balances = await self.privateGetAsset()
         result = {'info': balances}
@@ -13995,7 +13944,7 @@ class yobit (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.tapiPostGetInfo()
         balances = response['return']
@@ -14003,11 +13952,7 @@ class yobit (Exchange):
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
-            account = {
-                'free': None,
-                'used': None,
-                'total': None,
-            }
+            account = self.account()
             if 'funds' in balances:
                 if lowercase in balances['funds']:
                     account['free'] = balances['funds'][lowercase]
@@ -14192,7 +14137,7 @@ class yunbi (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetMembersMe()
         balances = response['accounts']
@@ -14204,7 +14149,7 @@ class yunbi (Exchange):
             account = {
                 'free': float(balance['balance']),
                 'used': float(balance['locked']),
-                'total': None,
+                'total': 0.0,
             }
             account['total'] = self.sum(account['free'], account['used'])
             result[uppercase] = account
@@ -14429,7 +14374,7 @@ class zaif (Exchange):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostGetInfo()
         balances = response['return']
@@ -14441,7 +14386,7 @@ class zaif (Exchange):
             uppercase = currency.upper()
             account = {
                 'free': balance,
-                'used': None,
+                'used': 0.0,
                 'total': balance,
             }
             if 'deposit' in balances:

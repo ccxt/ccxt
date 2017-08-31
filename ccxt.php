@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.53';
+$version = '1.5.57';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -431,6 +431,7 @@ class Exchange {
         $this->userAgent = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
         $this->hasFetchTickers = false;
+        $this->hasFetchOHLCV   = false;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -853,6 +854,14 @@ class Exchange {
 
     public function createMarketSellOrder ($market, $amount, $params = array ()) {
         return $this->create_market_sell_order ($market, $amount, $params);
+    }
+
+    public static function account () {
+        return array (
+            'free' => 0.0,
+            'used' => 0.0,
+            'total' => 0.0,
+        );
     }
 
     public function commonCurrencyCode ($currency) {

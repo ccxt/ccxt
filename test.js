@@ -176,11 +176,22 @@ let testExchangeSymbol = async (exchange, symbol) => {
 
         log (exchange.id.green, 'fetching all tickers at once...')
         let tickers = await exchange.fetchTickers ()
-        log (exchange.id.green, 'fetched', Object.keys (tickers).length.toString ().green, 'tickers...')
+        log (exchange.id.green, 'fetched', Object.keys (tickers).length.toString ().green, 'tickers')
 
     } else {
 
-        log (exchange.id.green, 'fetching all tickers at once not supported.')
+        log (exchange.id.green, 'fetching all tickers at once not supported')
+    }
+
+    if (exchange.hasFetchOHLCV) {
+
+        log (exchange.id.green, 'fetching OHLCV...')
+        let ohlcv = await exchange.fetchOHLCV ()
+        log (exchange.id.green, 'fetched', Object.keys (ohlcv).length.toString ().green, 'OHLCVs')
+
+    } else {
+
+        log (exchange.id.green, 'fetching OHLCV not supported')
     }
 }
 
