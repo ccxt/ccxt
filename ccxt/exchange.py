@@ -639,8 +639,8 @@ class Exchange (object):
     def marketId(self, symbol):
         return self.market_id(symbol)
 
-    def fetchBalance(self):
-        return self.fetch_balance()
+    def fetchBalance(self, params={}):
+        return self.fetch_balance(params)
 
     def fetchOrderBook(self, symbol):
         return self.fetch_order_book(symbol)

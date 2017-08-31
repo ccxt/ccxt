@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.52';
+$version = '1.5.53';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -996,7 +996,7 @@ class _1broker extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $balance = $this->privateGetUserOverview ();
         $response = $balance['response'];
@@ -1006,13 +1006,14 @@ class _1broker extends Exchange {
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $result[$currency] = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
         }
-        $result['BTC']['free'] = floatval ($response['balance']);
-        $result['BTC']['total'] = $result['BTC']['free'];
+        $total = floatval ($response['balance']);
+        $result['BTC']['free'] = $total;
+        $result['BTC']['total'] = $total;
         return $result;
     }
 
@@ -1155,16 +1156,16 @@ class cryptocapital extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $response = $this->privatePostBalancesAndInfo ();
         $balance = $response['balances-and-info'];
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ($currency, $balance['available']))
                 $account['free'] = floatval ($balance['available'][$currency]);
@@ -1400,7 +1401,7 @@ class anxpro extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $response = $this->privatePostMoneyInfo ();
         $balance = $response['data'];
         $currencies = array_keys ($balance['Wallets']);
@@ -1408,9 +1409,9 @@ class anxpro extends Exchange {
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ($currency, $balance['Wallets'])) {
                 $wallet = $balance['Wallets'][$currency];
@@ -1615,7 +1616,7 @@ class binance extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $response = $this->privateGetAccount ();
         $result = array ( 'info' => $response );
         $balances = $response['balances'];
@@ -1626,7 +1627,7 @@ class binance extends Exchange {
             $account = array (
                 'free' => floatval ($balance['free']),
                 'used' => floatval ($balance['locked']),
-                'total' => null,
+                'total' => 0.0,
             );
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
@@ -1827,14 +1828,14 @@ class binance extends Exchange {
         throw new NotImplemented ($this->id . ' fetchOrders not implemented yet');
     }
 
-    public function fetch_open_orders ($market = null, $params = array ()) {
-        if (!$market)
-            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a symbol');
-        $m = $this->market ($market);
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
+        $market = $this->market ($symbol);
         $response = $this->privateGetOpenOrders (array (
-            'symbol' => $m['id'],
+            'symbol' => $market['id'],
         ));
-        return $this->parse_orders ($response, $m);
+        return $this->parse_orders ($response, $market);
     }
 
     public function cancel_order ($id, $params = array ()) {
@@ -1931,15 +1932,15 @@ class bit2c extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $balance = $this->privatePostAccountBalanceV2 ();
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ($currency, $balance)) {
                 $available = 'AVAILABLE_' . $currency;
@@ -2003,17 +2004,38 @@ class bit2c extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetExchangesPairTrades (array_merge (array (
-            'pair' => $this->market_id ($market),
-        ), $params));
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = intval ($trade['date']) * 1000;
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
+        return array (
+            'id' => (string) $trade['tid'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'order' => null,
+            'type' => null,
+            'side' => null,
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetExchangesPairTrades (array_merge (array (
+            'pair' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response, $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePostOrderAddOrder';
         $order = array (
             'Amount' => $amount,
-            'Pair' => $this->market_id ($market),
+            'Pair' => $this->market_id ($symbol),
         );
         if ($type == 'market') {
             $method .= 'MarketPrice' . $this->capitalize ($side);
@@ -2119,16 +2141,16 @@ class bitbay extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $response = $this->privatePostInfo ();
         $balance = $response['balances'];
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ($currency, $balance)) {
                 $account['free'] = floatval ($balance[$currency]['available']);
@@ -2268,7 +2290,7 @@ class bitbays extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $response = $this->privatePostInfo ();
         $balance = $response['result']['wallet'];
         $result = array ( 'info' => $balance );
@@ -2276,9 +2298,9 @@ class bitbays extends Exchange {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ($lowercase, $balance)) {
                 $account['free'] = floatval ($balance[$lowercase]['avail']);
@@ -2452,7 +2474,7 @@ class bitcoincoid extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $response = $this->privatePostGetInfo ();
         $balance = $response['return']['balance'];
         $frozen = $response['return']['balance_hold'];
@@ -2461,9 +2483,9 @@ class bitcoincoid extends Exchange {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ($lowercase, $balance)) {
                 $account['free'] = floatval ($balance[$lowercase]);
@@ -2690,7 +2712,7 @@ class bitfinex extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostBalances ();
         $balances = array ();
@@ -2709,9 +2731,9 @@ class bitfinex extends Exchange {
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ($currency, $balances)) {
                 $account['free'] = floatval ($balances[$currency]['available']);
@@ -3007,7 +3029,7 @@ class bitflyer extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privateGetBalance ();
         $balances = array ();
@@ -3020,9 +3042,9 @@ class bitflyer extends Exchange {
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ($currency, $balances)) {
                 $account['total'] = $balances[$currency]['amount'];
@@ -3303,11 +3325,13 @@ class bitlish extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $side = ($trade['dir'] == 'bid') ? 'buy' : 'sell';
+        $symbol = null;
+        $timestamp = intval ($trade['created'] / 1000);
         return array (
             'id' => null,
             'info' => $trade,
-            'timestamp' => $trade['created'],
-            'datetime' => $this->iso8601 ($trade['created']),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
             'order' => null,
             'type' => null,
@@ -3326,7 +3350,7 @@ class bitlish extends Exchange {
         return $this->parse_trades ($response['list'], $market);
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostBalance ();
         $result = array ( 'info' => $response );
@@ -3344,9 +3368,9 @@ class bitlish extends Exchange {
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ($currency, $balance)) {
                 $account['free'] = floatval ($balance[$currency]['funds']);
@@ -3488,7 +3512,7 @@ class bitmarket extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostInfo ();
         $data = $response['data'];
@@ -3497,9 +3521,9 @@ class bitmarket extends Exchange {
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ($currency, $balance['available']))
                 $account['free'] = $balance['available'][$currency];
@@ -3729,7 +3753,7 @@ class bitmex extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privateGetUserMargin (array ( 'currency' => 'all' ));
         $result = array ( 'info' => $response );
@@ -3739,7 +3763,7 @@ class bitmex extends Exchange {
             $currency = $this->commonCurrencyCode ($currency);
             $account = array (
                 'free' => $balance['availableMargin'],
-                'used' => null,
+                'used' => 0.0,
                 'total' => $balance['amount'],
             );
             if ($currency == 'BTC') {
@@ -3950,7 +3974,7 @@ class bitso extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privateGetBalance ();
         $balances = $response['payload']['balances'];
@@ -4234,7 +4258,7 @@ class bitstamp extends Exchange {
         return $this->parse_trades ($response, $market);
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $balance = $this->privatePostBalance ();
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
@@ -4244,9 +4268,9 @@ class bitstamp extends Exchange {
             $free = $lowercase . '_available';
             $used = $lowercase . '_reserved';
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ($free, $balance))
                 $account['free'] = floatval ($balance[$free]);
@@ -4423,7 +4447,7 @@ class bittrex extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->accountGetBalances ();
         $balances = $response['result'];
@@ -4432,9 +4456,9 @@ class bittrex extends Exchange {
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ($currency, $indexed)) {
                 $balance = $indexed[$currency];
@@ -4736,7 +4760,7 @@ class blinktrade extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         return $this->privatePostU2 (array (
             'BalanceReqID' => $this->nonce (),
         ));
@@ -4917,7 +4941,7 @@ class bl3p extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $response = $this->privatePostGENMKTMoneyInfo ();
         $data = $response['data'];
         $balance = $data['wallets'];
@@ -4925,9 +4949,9 @@ class bl3p extends Exchange {
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ($currency, $balance)) {
                 if (array_key_exists ('available', $balance[$currency])) {
@@ -5144,7 +5168,7 @@ class btcchina extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['result'];
@@ -5154,9 +5178,9 @@ class btcchina extends Exchange {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ($lowercase, $balances['balance']))
                 $account['total'] = floatval ($balances['balance'][$lowercase]['amount']);
@@ -5369,7 +5393,7 @@ class btce extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostGetInfo ();
         $balances = $response['return'];
@@ -5384,7 +5408,7 @@ class btce extends Exchange {
                 $uppercase = 'DASH';
             $account = array (
                 'free' => $funds[$currency],
-                'used' => null,
+                'used' => 0.0,
                 'total' => $funds[$currency],
             );
             $result[$uppercase] = $account;
@@ -5611,7 +5635,7 @@ class btcmarkets extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $balances = $this->privateGetAccountBalance ();
         $result = array ( 'info' => $balances );
@@ -5819,7 +5843,7 @@ class btctrader extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $response = $this->privateGetBalance ();
         $result = array ( 'info' => $response );
         $base = array (
@@ -6025,7 +6049,7 @@ class btctradeua extends Exchange {
         return $this->privatePostAuth ();
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $response = $this->privatePostBalance ();
         $result = array ( 'info' => $response );
         if (array_key_exists ('accounts', $result)) {
@@ -6036,7 +6060,7 @@ class btctradeua extends Exchange {
                 $balance = floatval ($account['balance']);
                 $result[$currency] = array (
                     'free' => $balance,
-                    'used' => null,
+                    'used' => 0.0,
                     'total' => $balance,
                 );
             }
@@ -6248,7 +6272,7 @@ class btcx extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $balances = $this->privatePostBalance ();
         $result = array ( 'info' => $balances );
         $currencies = array_keys ($balances);
@@ -6257,7 +6281,7 @@ class btcx extends Exchange {
             $uppercase = strtoupper ($currency);
             $account = array (
                 'free' => $balances[$currency],
-                'used' => null,
+                'used' => 0.0,
                 'total' => $balances[$currency],
             );
             $result[$uppercase] = $account;
@@ -6442,7 +6466,7 @@ class bter extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $balance = $this->privatePostBalances ();
         $result = array ( 'info' => $balance );
@@ -6450,9 +6474,9 @@ class bter extends Exchange {
             $currency = $this->currencies[$c];
             $code = $this->commonCurrencyCode ($currency);
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ('available', $balance)) {
                 if (array_key_exists ($currency, $balance['available'])) {
@@ -6698,7 +6722,7 @@ class bxinth extends Exchange {
         return $currency;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostBalance ();
         $balance = $response['balance'];
@@ -6709,7 +6733,7 @@ class bxinth extends Exchange {
             $code = $this->commonCurrencyCode ($currency);
             $account = array (
                 'free' => floatval ($balance[$currency]['available']),
-                'used' => null,
+                'used' => 0.0,
                 'total' => floatval ($balance[$currency]['total']),
             );
             $account['used'] = $account['total'] - $account['free'];
@@ -6928,7 +6952,7 @@ class ccex extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privateGetBalances ();
         $balances = $response['result'];
@@ -7144,7 +7168,7 @@ class cex extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $balances = $this->privatePostBalance ();
         $result = array ( 'info' => $balances );
@@ -7153,7 +7177,7 @@ class cex extends Exchange {
             $account = array (
                 'free' => floatval ($balances[$currency]['available']),
                 'used' => floatval ($balances[$currency]['orders']),
-                'total' => null,
+                'total' => 0.0,
             );
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
@@ -7348,16 +7372,16 @@ class chbtc extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['result'];
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ($currency, $balances['balance']))
                 $account['free'] = $balances['balance'][$currency]['amount'];
@@ -7597,16 +7621,16 @@ class coincheck extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $balances = $this->privateGetAccountsBalance ();
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ($lowercase, $balances))
                 $account['free'] = floatval ($balances[$lowercase]);
@@ -7780,9 +7804,16 @@ class coinfloor extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance ($market) {
+    public function fetch_balance ($params = array ()) {
+        $symbol = null;
+        if (array_key_exists ('symbol', $params))
+            $symbol = $params['symbol'];
+        if (array_key_exists ('id', $params))
+            $symbol = $params['id'];
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchBalance requires a $symbol param');
         return $this->privatePostIdBalance (array (
-            'id' => $this->market_id ($market),
+            'id' => $this->market_id ($symbol),
         ));
     }
 
@@ -7941,7 +7972,7 @@ class coingi extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $currencies = array ();
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = strtolower ($this->currencies[$c]);
@@ -7958,7 +7989,7 @@ class coingi extends Exchange {
             $account = array (
                 'free' => $balance['available'],
                 'used' => $balance['blocked'] . $balance['inOrders'] . $balance['withdrawing'],
-                'total' => null,
+                'total' => 0.0,
             );
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
@@ -8319,16 +8350,16 @@ class coinmate extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $response = $this->privatePostBalances ();
         $balances = $response['data'];
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ($currency, $balances)) {
                 $account['free'] = $balances[$currency]['available'];
@@ -8611,7 +8642,7 @@ class coinsecure extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $response = $this->privateGetUserExchangeBankSummary ();
         $balance = $response['message'];
         $coin = array (
@@ -8785,7 +8816,7 @@ class coinspot extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $response = $this->privatePostMyBalances ();
         $result = array ( 'info' => $response );
         if (array_key_exists ('balance', $response)) {
@@ -8796,7 +8827,7 @@ class coinspot extends Exchange {
                 $uppercase = strtoupper ($currency);
                 $account = array (
                     'free' => $balances[$currency],
-                    'used' => null,
+                    'used' => 0.0,
                     'total' => $balances[$currency],
                 );
                 if ($uppercase == 'DRK')
@@ -9085,7 +9116,7 @@ class cryptopia extends Exchange {
         return $this->parse_trades ($trades, $m);
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostGetBalance ();
         $balances = $response['Data'];
@@ -9095,7 +9126,7 @@ class cryptopia extends Exchange {
             $currency = $balance['Symbol'];
             $account = array (
                 'free' => $balance['Available'],
-                'used' => null,
+                'used' => 0.0,
                 'total' => $balance['Total'],
             );
             $account['used'] = $account['total'] - $account['free'];
@@ -9138,7 +9169,7 @@ class cryptopia extends Exchange {
             $body = $this->json ($query);
             $hash = $this->hash ($this->encode ($body), 'md5', 'base64');
             $secret = base64_decode ($this->secret);
-            $uri = $this->encode_uri_component($url);
+            $uri = $this->encode_uri_component ($url);
             $lowercase = strtolower ($uri);
             $payload = $this->apiKey . $method . $lowercase . $nonce . $this->binary_to_string ($hash);
             $signature = $this->hmac ($this->encode ($payload), $secret, 'sha256', 'base64');
@@ -9242,7 +9273,7 @@ class dsx extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->tapiPostGetInfo ();
         $balances = $response['return'];
@@ -9252,7 +9283,7 @@ class dsx extends Exchange {
             $currency = $currencies[$c];
             $account = array (
                 'free' => $balances['funds'][$currency],
-                'used' => null,
+                'used' => 0.0,
                 'total' => $balances['total'][$currency],
             );
             $account['used'] = $account['total'] - $account['free'];
@@ -9452,16 +9483,16 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostUserInfo ();
         $result = array ( 'info' => $response );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ($currency, $response['balances']))
                 $account['free'] = floatval ($response['balances'][$currency]);
@@ -9673,7 +9704,7 @@ class flowbtc extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['currencies'];
@@ -9684,7 +9715,7 @@ class flowbtc extends Exchange {
             $account = array (
                 'free' => $balance['balance'],
                 'used' => $balance['hold'],
-                'total' => null,
+                'total' => 0.0,
             );
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
@@ -9868,7 +9899,7 @@ class fyb extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $balance = $this->privatePostGetaccinfo ();
         $btc = floatval ($balance['btcBal']);
         $symbol = $this->symbols[0];
@@ -9877,13 +9908,13 @@ class fyb extends Exchange {
         $fiat = floatval ($balance[$lowercase]);
         $crypto = array (
             'free' => $btc,
-            'used' => null,
+            'used' => 0.0,
             'total' => $btc,
         );
         $accounts = array ( 'BTC' => $crypto );
         $accounts[$quote] = array (
             'free' => $fiat,
-            'used' => null,
+            'used' => 0.0,
             'total' => $fiat,
         );
         $accounts['info'] = $balance;
@@ -10215,7 +10246,7 @@ class gatecoin extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privateGetBalanceBalances ();
         $balances = $response['balances'];
@@ -10463,7 +10494,7 @@ class gdax extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $balances = $this->privateGetAccounts ();
         $result = array ( 'info' => $balances );
@@ -10786,7 +10817,7 @@ class gemini extends Exchange {
         ), $params));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $balances = $this->privatePostBalances ();
         $result = array ( 'info' => $balances );
@@ -10795,7 +10826,7 @@ class gemini extends Exchange {
             $currency = $balance['currency'];
             $account = array (
                 'free' => floatval ($balance['available']),
-                'used' => null,
+                'used' => 0.0,
                 'total' => floatval ($balance['amount']),
             );
             $account['used'] = $account['total'] - $account['free'];
@@ -10953,7 +10984,7 @@ class hitbtc extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->tradingGetBalance ();
         $balances = $response['balance'];
@@ -10964,7 +10995,7 @@ class hitbtc extends Exchange {
             $account = array (
                 'free' => floatval ($balance['cash']),
                 'used' => floatval ($balance['reserved']),
-                'total' => null,
+                'total' => 0.0,
             );
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
@@ -11216,16 +11247,16 @@ class huobi extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $balances = $this->tradePostGetAccountInfo ();
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             $available = 'available_' . $lowercase . '_display';
             $frozen = 'frozen_' . $lowercase . '_display';
@@ -11469,7 +11500,7 @@ class itbit extends Exchange {
         ), $params));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $response = $this->privateGetBalances ();
         $balances = $response['balances'];
         $result = array ( 'info' => $response );
@@ -11478,7 +11509,7 @@ class itbit extends Exchange {
             $currency = $balance['currency'];
             $account = array (
                 'free' => floatval ($balance['availableBalance']),
-                'used' => null,
+                'used' => 0.0,
                 'total' => floatval ($balance['totalBalance']),
             );
             $account['used'] = $account['total'] - $account['free'];
@@ -11618,7 +11649,7 @@ class jubi extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $balances = $this->privatePostBalance ();
         $result = array ( 'info' => $balances );
@@ -11628,9 +11659,9 @@ class jubi extends Exchange {
             if ($lowercase == 'dash')
                 $lowercase = 'drk';
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             $free = $lowercase . '_balance';
             $used = $lowercase . '_lock';
@@ -11997,7 +12028,7 @@ class kraken extends Exchange {
         return $this->parse_trades ($trades, $m);
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostBalance ();
         $balances = $response['result'];
@@ -12016,7 +12047,7 @@ class kraken extends Exchange {
             $balance = floatval ($balances[$currency]);
             $account = array (
                 'free' => $balance,
-                'used' => null,
+                'used' => 0.0,
                 'total' => $balance,
             );
             $result[$code] = $account;
@@ -12188,7 +12219,7 @@ class lakebtc extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['balance'];
@@ -12199,7 +12230,7 @@ class lakebtc extends Exchange {
             $balance = floatval ($balances[$currency]);
             $account = array (
                 'free' => $balance,
-                'used' => null,
+                'used' => 0.0,
                 'total' => $balance,
             );
             $result[$currency] = $account;
@@ -12412,7 +12443,7 @@ class livecoin extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $balances = $this->privateGetPaymentBalances ();
         $result = array ( 'info' => $balances );
@@ -12424,9 +12455,9 @@ class livecoin extends Exchange {
                 $account = $result[$currency];
             else
                 $account = array (
-                    'free' => null,
-                    'used' => null,
-                    'total' => null,
+                    'free' => 0.0,
+                    'used' => 0.0,
+                    'total' => 0.0,
                 );
             if ($balance['type'] == 'total')
                 $account['total'] = floatval ($balance['value']);
@@ -12715,7 +12746,7 @@ class luno extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privateGetBalance ();
         $balances = $response['balance'];
@@ -12728,7 +12759,7 @@ class luno extends Exchange {
             $account = array (
                 'free' => floatval ($balance['balance']),
                 'used' => $this->sum ($reserved, $unconfirmed),
-                'total' => null,
+                'total' => 0.0,
             );
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
@@ -12972,7 +13003,7 @@ class mercado extends Exchange {
         return $this->$method ($params);
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['balance'];
         $result = array ( 'info' => $response );
@@ -12980,9 +13011,9 @@ class mercado extends Exchange {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ($lowercase, $balances)) {
                 $account['free'] = floatval ($balances[$lowercase]['available']);
@@ -13218,7 +13249,7 @@ class okcoin extends Exchange {
         return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $response = $this->privatePostUserinfo ();
         $balances = $response['info']['funds'];
         $result = array ( 'info' => $response );
@@ -13226,9 +13257,9 @@ class okcoin extends Exchange {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ($lowercase, $balances['free']))
                 $account['free'] = floatval ($balances['free'][$lowercase]);
@@ -13500,16 +13531,16 @@ class paymium extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $balances = $this->privateGetUser ();
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             $balance = 'balance_' . $lowercase;
             $locked = 'locked_' . $lowercase;
@@ -13719,7 +13750,7 @@ class poloniex extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $balances = $this->privatePostReturnCompleteBalances (array (
             'account' => 'all',
@@ -13732,7 +13763,7 @@ class poloniex extends Exchange {
             $account = array (
                 'free' => floatval ($balance['available']),
                 'used' => floatval ($balance['onOrders']),
-                'total' => null,
+                'total' => 0.0,
             );
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
@@ -14090,7 +14121,7 @@ class quadrigacx extends Exchange {
         ), $options));
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $balances = $this->privatePostBalance ();
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
@@ -14296,7 +14327,7 @@ class quoine extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $balances = $this->privateGetAccountsBalance ();
         $result = array ( 'info' => $balances );
@@ -14306,7 +14337,7 @@ class quoine extends Exchange {
             $total = floatval ($balance['balance']);
             $account = array (
                 'free' => $total,
-                'used' => null,
+                'used' => 0.0,
                 'total' => $total,
             );
             $result[$currency] = $account;
@@ -14521,7 +14552,7 @@ class southxchange extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $balances = $this->privatePostListBalances ();
         $result = array ( 'info' => $balances );
@@ -14788,7 +14819,7 @@ class therock extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privateGetBalances ();
         $balances = $response['balances'];
@@ -15033,7 +15064,7 @@ class vaultoro extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privateGetBalance ();
         $balances = $response['data'];
@@ -15278,7 +15309,7 @@ class virwox extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostGetBalances ();
         $balances = $response['result']['accountList'];
@@ -15289,7 +15320,7 @@ class virwox extends Exchange {
             $total = $balance['balance'];
             $account = array (
                 'free' => $total,
-                'used' => null,
+                'used' => 0.0,
                 'total' => $total,
             );
             $result[$currency] = $account;
@@ -15547,7 +15578,7 @@ class xbtce extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $balances = $this->privateGetAsset ();
         $result = array ( 'info' => $balances );
@@ -15809,7 +15840,7 @@ class yobit extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->tapiPostGetInfo ();
         $balances = $response['return'];
@@ -15818,9 +15849,9 @@ class yobit extends Exchange {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = array (
-                'free' => null,
-                'used' => null,
-                'total' => null,
+                'free' => 0.0,
+                'used' => 0.0,
+                'total' => 0.0,
             );
             if (array_key_exists ('funds', $balances))
                 if (array_key_exists ($lowercase, $balances['funds']))
@@ -16017,7 +16048,7 @@ class yunbi extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privateGetMembersMe ();
         $balances = $response['accounts'];
@@ -16029,7 +16060,7 @@ class yunbi extends Exchange {
             $account = array (
                 'free' => floatval ($balance['balance']),
                 'used' => floatval ($balance['locked']),
-                'total' => null,
+                'total' => 0.0,
             );
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$uppercase] = $account;
@@ -16273,7 +16304,7 @@ class zaif extends Exchange {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostGetInfo ();
         $balances = $response['return'];
@@ -16285,7 +16316,7 @@ class zaif extends Exchange {
             $uppercase = strtoupper ($currency);
             $account = array (
                 'free' => $balance,
-                'used' => null,
+                'used' => 0.0,
                 'total' => $balance,
             );
             if (array_key_exists ('deposit', $balances)) {

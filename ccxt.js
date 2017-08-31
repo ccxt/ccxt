@@ -564,7 +564,7 @@ const Exchange = function (config) {
 
     this.fetchOrderStatus = async function (id, market = undefined) {
         let order = await fetchOrder (id)
-        return order['status'];
+        return order['status']
     }
 
     this.commonCurrencyCode = function (currency) {
@@ -822,7 +822,7 @@ var _1broker = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balance = await this.privateGetUserOverview ();
         let response = balance['response'];
@@ -832,13 +832,14 @@ var _1broker = {
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             result[currency] = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
         }
-        result['BTC']['free'] = parseFloat (response['balance']);
-        result['BTC']['total'] = result['BTC']['free'];
+        let total = parseFloat (response['balance']);
+        result['BTC']['free'] = total;
+        result['BTC']['total'] = total;
         return result;
     },
 
@@ -977,16 +978,16 @@ var cryptocapital = {
         },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let response = await this.privatePostBalancesAndInfo ();
         let balance = response['balances-and-info'];
         let result = { 'info': balance };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if (currency in balance['available'])
                 account['free'] = parseFloat (balance['available'][currency]);
@@ -1214,7 +1215,7 @@ var anxpro = {
         'XRP/BTC': { 'id': 'XRPBTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC' },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let response = await this.privatePostMoneyInfo ();
         let balance = response['data'];
         let currencies = Object.keys (balance['Wallets']);
@@ -1222,9 +1223,9 @@ var anxpro = {
         for (let c = 0; c < currencies.length; c++) {
             let currency = currencies[c];
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if (currency in balance['Wallets']) {
                 let wallet = balance['Wallets'][currency];
@@ -1425,7 +1426,7 @@ var binance = {
         'QTUM/ETH': { 'id': 'QTUMETH', 'symbol': 'QTUM/ETH', 'base': 'QTUM', 'quote': 'ETH' },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let response = await this.privateGetAccount ();
         let result = { 'info': response };
         let balances = response['balances'];
@@ -1436,7 +1437,7 @@ var binance = {
             let account = {
                 'free': parseFloat (balance['free']),
                 'used': parseFloat (balance['locked']),
-                'total': undefined,
+                'total': 0.0,
             };
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
@@ -1638,14 +1639,14 @@ var binance = {
         throw new NotImplemented (this.id + ' fetchOrders not implemented yet');
     },
 
-    async fetchOpenOrders (market = undefined, params = {}) {
-        if (!market)
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol');
-        let m = this.market (market);
+    async fetchOpenOrders (symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
+        let market = this.market (symbol);
         let response = await this.privateGetOpenOrders ({
-            'symbol': m['id'],
+            'symbol': market['id'],
         });
-        return this.parseOrders (response, m);
+        return this.parseOrders (response, market);
     },
 
     async cancelOrder (id, params = {}) {
@@ -1738,15 +1739,15 @@ var bit2c = {
         'LTC/NIS': { 'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS' },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let balance = await this.privatePostAccountBalanceV2 ();
         let result = { 'info': balance };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if (currency in balance) {
                 let available = 'AVAILABLE_' + currency;
@@ -1943,16 +1944,16 @@ var bitbay = {
         'LSK/BTC': { 'id': 'LSKBTC', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC' },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let response = await this.privatePostInfo ();
         let balance = response['balances'];
         let result = { 'info': balance };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if (currency in balance) {
                 account['free'] = parseFloat (balance[currency]['available']);
@@ -2088,7 +2089,7 @@ var bitbays = {
         'LSK/CNY': { 'id': 'lsk_cny', 'symbol': 'LSK/CNY', 'base': 'LSK', 'quote': 'CNY' },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let response = await this.privatePostInfo ();
         let balance = response['result']['wallet'];
         let result = { 'info': balance };
@@ -2096,9 +2097,9 @@ var bitbays = {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if (lowercase in balance) {
                 account['free'] = parseFloat (balance[lowercase]['avail']);
@@ -2268,7 +2269,7 @@ var bitcoincoid = {
         'XRP/BTC':  { 'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc' },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let response = await this.privatePostGetInfo ();
         let balance = response['return']['balance'];
         let frozen = response['return']['balance_hold'];
@@ -2277,9 +2278,9 @@ var bitcoincoid = {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if (lowercase in balance) {
                 account['free'] = parseFloat (balance[lowercase]);
@@ -2502,7 +2503,7 @@ var bitfinex = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostBalances ();
         let balances = {};
@@ -2521,9 +2522,9 @@ var bitfinex = {
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if (currency in balances) {
                 account['free'] = parseFloat (balances[currency]['available']);
@@ -2815,7 +2816,7 @@ var bitflyer = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetBalance ();
         let balances = {};
@@ -2828,9 +2829,9 @@ var bitflyer = {
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if (currency in balances) {
                 account['total'] = balances[currency]['amount'];
@@ -3132,7 +3133,7 @@ var bitlish = {
         return this.parseTrades (response['list'], market);
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostBalance ();
         let result = { 'info': response };
@@ -3150,9 +3151,9 @@ var bitlish = {
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if (currency in balance) {
                 account['free'] = parseFloat (balance[currency]['funds']);
@@ -3290,7 +3291,7 @@ var bitmarket = {
         'PlnX/BTC': { 'id': 'PlnxBTC', 'symbol': 'PlnX/BTC', 'base': 'PlnX', 'quote': 'BTC' },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostInfo ();
         let data = response['data'];
@@ -3299,9 +3300,9 @@ var bitmarket = {
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if (currency in balance['available'])
                 account['free'] = balance['available'][currency];
@@ -3527,7 +3528,7 @@ var bitmex = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetUserMargin ({ 'currency': 'all' });
         let result = { 'info': response };
@@ -3537,7 +3538,7 @@ var bitmex = {
             currency = this.commonCurrencyCode (currency);
             let account = {
                 'free': balance['availableMargin'],
-                'used': undefined,
+                'used': 0.0,
                 'total': balance['amount'],
             };
             if (currency == 'BTC') {
@@ -3744,7 +3745,7 @@ var bitso = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetBalance ();
         let balances = response['payload']['balances'];
@@ -4025,7 +4026,7 @@ var bitstamp = {
         return this.parseTrades (response, market);
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let balance = await this.privatePostBalance ();
         let result = { 'info': balance };
         for (let c = 0; c < this.currencies.length; c++) {
@@ -4035,9 +4036,9 @@ var bitstamp = {
             let free = lowercase + '_available';
             let used = lowercase + '_reserved';
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if (free in balance)
                 account['free'] = parseFloat (balance[free]);
@@ -4210,7 +4211,7 @@ var bittrex = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.accountGetBalances ();
         let balances = response['result'];
@@ -4219,9 +4220,9 @@ var bittrex = {
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if (currency in indexed) {
                 let balance = indexed[currency];
@@ -4519,7 +4520,7 @@ var blinktrade = {
         'BTC/CLP': { 'id': 'BTCCLP', 'symbol': 'BTC/CLP', 'base': 'BTC', 'quote': 'CLP', 'brokerId': 9, 'broker': 'ChileBit' },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         return this.privatePostU2 ({
             'BalanceReqID': this.nonce (),
         });
@@ -4696,7 +4697,7 @@ var bl3p = {
         'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR' },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let response = await this.privatePostGENMKTMoneyInfo ();
         let data = response['data'];
         let balance = data['wallets'];
@@ -4704,9 +4705,9 @@ var bl3p = {
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if (currency in balance) {
                 if ('available' in balance[currency]) {
@@ -4919,7 +4920,7 @@ var btcchina = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetAccountInfo ();
         let balances = response['result'];
@@ -4929,9 +4930,9 @@ var btcchina = {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if (lowercase in balances['balance'])
                 account['total'] = parseFloat (balances['balance'][lowercase]['amount']);
@@ -5140,7 +5141,7 @@ var btce = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetInfo ();
         let balances = response['return'];
@@ -5155,7 +5156,7 @@ var btce = {
                 uppercase = 'DASH';
             let account = {
                 'free': funds[currency],
-                'used': undefined,
+                'used': 0.0,
                 'total': funds[currency],
             };
             result[uppercase] = account;
@@ -5378,7 +5379,7 @@ var btcmarkets = {
         'BCH/BTC': { 'id': 'BCH/BTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privateGetAccountBalance ();
         let result = { 'info': balances };
@@ -5582,7 +5583,7 @@ var btctrader = {
         },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let response = await this.privateGetBalance ();
         let result = { 'info': response };
         let base = {
@@ -5780,7 +5781,7 @@ var btctradeua = {
         return this.privatePostAuth ();
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let response = await this.privatePostBalance ();
         let result = { 'info': response };
         if ('accounts' in result) {
@@ -5791,7 +5792,7 @@ var btctradeua = {
                 let balance = parseFloat (account['balance']);
                 result[currency] = {
                     'free': balance,
-                    'used': undefined,
+                    'used': 0.0,
                     'total': balance,
                 };
             }
@@ -5995,7 +5996,7 @@ var btcx = {
         'BTC/EUR': { 'id': 'btc/eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let balances = await this.privatePostBalance ();
         let result = { 'info': balances };
         let currencies = Object.keys (balances);
@@ -6004,7 +6005,7 @@ var btcx = {
             let uppercase = currency.toUpperCase ();
             let account = {
                 'free': balances[currency],
-                'used': undefined,
+                'used': 0.0,
                 'total': balances[currency],
             };
             result[uppercase] = account;
@@ -6184,7 +6185,7 @@ var bter = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balance = await this.privatePostBalances ();
         let result = { 'info': balance };
@@ -6192,9 +6193,9 @@ var bter = {
             let currency = this.currencies[c];
             let code = this.commonCurrencyCode (currency);
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if ('available' in balance) {
                 if (currency in balance['available']) {
@@ -6436,7 +6437,7 @@ var bxinth = {
         return currency;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostBalance ();
         let balance = response['balance'];
@@ -6447,7 +6448,7 @@ var bxinth = {
             let code = this.commonCurrencyCode (currency);
             let account = {
                 'free': parseFloat (balance[currency]['available']),
-                'used': undefined,
+                'used': 0.0,
                 'total': parseFloat (balance[currency]['total']),
             };
             account['used'] = account['total'] - account['free'];
@@ -6662,7 +6663,7 @@ var ccex = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetBalances ();
         let balances = response['result'];
@@ -6874,7 +6875,7 @@ var cex = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privatePostBalance ();
         let result = { 'info': balances };
@@ -6883,7 +6884,7 @@ var cex = {
             let account = {
                 'free': parseFloat (balances[currency]['available']),
                 'used': parseFloat (balances[currency]['orders']),
-                'total': undefined,
+                'total': 0.0,
             };
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
@@ -7073,16 +7074,16 @@ var chbtc = {
         'EOS/CNY': { 'id': 'eos_cny', 'symbol': 'EOS/CNY', 'base': 'EOS', 'quote': 'CNY' },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let response = await this.privatePostGetAccountInfo ();
         let balances = response['result'];
         let result = { 'info': balances };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if (currency in balances['balance'])
                 account['free'] = balances['balance'][currency]['amount'];
@@ -7313,16 +7314,16 @@ var coincheck = {
         'DASH/BTC': { 'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let balances = await this.privateGetAccountsBalance ();
         let result = { 'info': balances };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if (lowercase in balances)
                 account['free'] = parseFloat (balances[lowercase]);
@@ -7492,9 +7493,16 @@ var coinfloor = {
         'BCH/GBP': { 'id': 'BCH/GBP', 'symbol': 'BCH/GBP', 'base': 'BCH', 'quote': 'GBP' },
     },
 
-    async fetchBalance (market) {
+    async fetchBalance (params = {}) {
+        let symbol = undefined;
+        if ('symbol' in params)
+            symbol = params['symbol'];
+        if ('id' in params)
+            symbol = params['id'];
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchBalance requires a symbol param');
         return this.privatePostIdBalance ({
-            'id': this.marketId (market),
+            'id': this.marketId (symbol),
         });
     },
 
@@ -7649,7 +7657,7 @@ var coingi = {
         'DASH/BTC': { 'id': 'dash-btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let currencies = [];
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c].toLowerCase ();
@@ -7666,7 +7674,7 @@ var coingi = {
             let account = {
                 'free': balance['available'],
                 'used': balance['blocked'] + balance['inOrders'] + balance['withdrawing'],
-                'total': undefined,
+                'total': 0.0,
             };
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
@@ -8019,16 +8027,16 @@ var coinmate = {
         'BTC/CZK': { 'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK' },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let response = await this.privatePostBalances ();
         let balances = response['data'];
         let result = { 'info': balances };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if (currency in balances) {
                 account['free'] = balances[currency]['available'];
@@ -8307,7 +8315,7 @@ var coinsecure = {
         'BTC/INR': { 'id': 'BTC/INR', 'symbol': 'BTC/INR', 'base': 'BTC', 'quote': 'INR' },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let response = await this.privateGetUserExchangeBankSummary ();
         let balance = response['message'];
         let coin = {
@@ -8477,7 +8485,7 @@ var coinspot = {
         'DOGE/AUD': { 'id': 'DOGE', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD' },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let response = await this.privatePostMyBalances ();
         let result = { 'info': response };
         if ('balance' in response) {
@@ -8488,7 +8496,7 @@ var coinspot = {
                 let uppercase = currency.toUpperCase ();
                 let account = {
                     'free': balances[currency],
-                    'used': undefined,
+                    'used': 0.0,
                     'total': balances[currency],
                 };
                 if (uppercase == 'DRK')
@@ -8773,7 +8781,7 @@ var cryptopia = {
         return this.parseTrades (trades, m);
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetBalance ();
         let balances = response['Data'];
@@ -8783,7 +8791,7 @@ var cryptopia = {
             let currency = balance['Symbol'];
             let account = {
                 'free': balance['Available'],
-                'used': undefined,
+                'used': 0.0,
                 'total': balance['Total'],
             };
             account['used'] = account['total'] - account['free'];
@@ -8926,7 +8934,7 @@ var dsx = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.tapiPostGetInfo ();
         let balances = response['return'];
@@ -8936,7 +8944,7 @@ var dsx = {
             let currency = currencies[c];
             let account = {
                 'free': balances['funds'][currency],
-                'used': undefined,
+                'used': 0.0,
                 'total': balances['total'][currency],
             };
             account['used'] = account['total'] - account['free'];
@@ -9132,16 +9140,16 @@ var exmo = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostUserInfo ();
         let result = { 'info': response };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if (currency in response['balances'])
                 account['free'] = parseFloat (response['balances'][currency]);
@@ -9349,7 +9357,7 @@ var flowbtc = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetAccountInfo ();
         let balances = response['currencies'];
@@ -9360,7 +9368,7 @@ var flowbtc = {
             let account = {
                 'free': balance['balance'],
                 'used': balance['hold'],
-                'total': undefined,
+                'total': 0.0,
             };
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
@@ -9535,7 +9543,7 @@ var fyb = {
         },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let balance = await this.privatePostGetaccinfo ();
         let btc = parseFloat (balance['btcBal']);
         let symbol = this.symbols[0];
@@ -9544,13 +9552,13 @@ var fyb = {
         let fiat = parseFloat (balance[lowercase]);
         let crypto = {
             'free': btc,
-            'used': undefined,
+            'used': 0.0,
             'total': btc,
         };
         let accounts = { 'BTC': crypto };
         accounts[quote] = {
             'free': fiat,
-            'used': undefined,
+            'used': 0.0,
             'total': fiat,
         };
         accounts['info'] = balance;
@@ -9868,7 +9876,7 @@ var gatecoin = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetBalanceBalances ();
         let balances = response['balances'];
@@ -10111,7 +10119,7 @@ var gdax = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privateGetAccounts ();
         let result = { 'info': balances };
@@ -10429,7 +10437,7 @@ var gemini = {
         }, params));
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privatePostBalances ();
         let result = { 'info': balances };
@@ -10438,7 +10446,7 @@ var gemini = {
             let currency = balance['currency'];
             let account = {
                 'free': parseFloat (balance['available']),
-                'used': undefined,
+                'used': 0.0,
                 'total': parseFloat (balance['amount']),
             };
             account['used'] = account['total'] - account['free'];
@@ -10592,7 +10600,7 @@ var hitbtc = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.tradingGetBalance ();
         let balances = response['balance'];
@@ -10603,7 +10611,7 @@ var hitbtc = {
             let account = {
                 'free': parseFloat (balance['cash']),
                 'used': parseFloat (balance['reserved']),
-                'total': undefined,
+                'total': 0.0,
             };
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
@@ -10851,16 +10859,16 @@ var huobi = {
         'BTC/USD': { 'id': 'btc', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'usdmarket',    'coinType': 1 },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let balances = await this.tradePostGetAccountInfo ();
         let result = { 'info': balances };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             let available = 'available_' + lowercase + '_display';
             let frozen = 'frozen_' + lowercase + '_display';
@@ -11100,7 +11108,7 @@ var itbit = {
         }, params));
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let response = await this.privateGetBalances ();
         let balances = response['balances'];
         let result = { 'info': response };
@@ -11109,7 +11117,7 @@ var itbit = {
             let currency = balance['currency'];
             let account = {
                 'free': parseFloat (balance['availableBalance']),
-                'used': undefined,
+                'used': 0.0,
                 'total': parseFloat (balance['totalBalance']),
             };
             account['used'] = account['total'] - account['free'];
@@ -11245,7 +11253,7 @@ var jubi = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privatePostBalance ();
         let result = { 'info': balances };
@@ -11255,9 +11263,9 @@ var jubi = {
             if (lowercase == 'dash')
                 lowercase = 'drk';
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             let free = lowercase + '_balance';
             let used = lowercase + '_lock';
@@ -11621,7 +11629,7 @@ var kraken = {
         return this.parseTrades (trades, m);
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostBalance ();
         let balances = response['result'];
@@ -11640,7 +11648,7 @@ var kraken = {
             let balance = parseFloat (balances[currency]);
             let account = {
                 'free': balance,
-                'used': undefined,
+                'used': 0.0,
                 'total': balance,
             };
             result[code] = account;
@@ -11808,7 +11816,7 @@ var lakebtc = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetAccountInfo ();
         let balances = response['balance'];
@@ -11819,7 +11827,7 @@ var lakebtc = {
             let balance = parseFloat (balances[currency]);
             let account = {
                 'free': balance,
-                'used': undefined,
+                'used': 0.0,
                 'total': balance,
             };
             result[currency] = account;
@@ -12028,7 +12036,7 @@ var livecoin = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privateGetPaymentBalances ();
         let result = { 'info': balances };
@@ -12040,9 +12048,9 @@ var livecoin = {
                 account = result[currency];
             else
                 account = {
-                    'free': undefined,
-                    'used': undefined,
-                    'total': undefined,
+                    'free': 0.0,
+                    'used': 0.0,
+                    'total': 0.0,
                 };
             if (balance['type'] == 'total')
                 account['total'] = parseFloat (balance['value']);
@@ -12322,7 +12330,7 @@ var luno = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetBalance ();
         let balances = response['balance'];
@@ -12335,7 +12343,7 @@ var luno = {
             let account = {
                 'free': parseFloat (balance['balance']),
                 'used': this.sum (reserved, unconfirmed),
-                'total': undefined,
+                'total': 0.0,
             };
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
@@ -12575,7 +12583,7 @@ var mercado = {
         return this[method] (params);
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let response = await this.privatePostGetAccountInfo ();
         let balances = response['balance'];
         let result = { 'info': response };
@@ -12583,9 +12591,9 @@ var mercado = {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if (lowercase in balances) {
                 account['free'] = parseFloat (balances[lowercase]['available']);
@@ -12825,7 +12833,7 @@ var okcoin = {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let response = await this.privatePostUserinfo ();
         let balances = response['info']['funds'];
         let result = { 'info': response };
@@ -12833,9 +12841,9 @@ var okcoin = {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if (lowercase in balances['free'])
                 account['free'] = parseFloat (balances['free'][lowercase]);
@@ -13088,16 +13096,16 @@ var paymium = {
         'BTC/EUR': { 'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let balances = await this.privateGetUser ();
         let result = { 'info': balances };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             let balance = 'balance_' + lowercase;
             let locked = 'locked_' + lowercase;
@@ -13303,7 +13311,7 @@ var poloniex = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privatePostReturnCompleteBalances ({
             'account': 'all',
@@ -13316,7 +13324,7 @@ var poloniex = {
             let account = {
                 'free': parseFloat (balance['available']),
                 'used': parseFloat (balance['onOrders']),
-                'total': undefined,
+                'total': 0.0,
             };
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
@@ -13670,7 +13678,7 @@ var quadrigacx = {
         'ETH/CAD': { 'id': 'eth_cad', 'symbol': 'ETH/CAD', 'base': 'ETH', 'quote': 'CAD' },
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let balances = await this.privatePostBalance ();
         let result = { 'info': balances };
         for (let c = 0; c < this.currencies.length; c++) {
@@ -13872,7 +13880,7 @@ var quoine = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privateGetAccountsBalance ();
         let result = { 'info': balances };
@@ -13882,7 +13890,7 @@ var quoine = {
             let total = parseFloat (balance['balance']);
             let account = {
                 'free': total,
-                'used': undefined,
+                'used': 0.0,
                 'total': total,
             };
             result[currency] = account;
@@ -14093,7 +14101,7 @@ var southxchange = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privatePostListBalances ();
         let result = { 'info': balances };
@@ -14351,7 +14359,7 @@ var therock = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetBalances ();
         let balances = response['balances'];
@@ -14587,7 +14595,7 @@ var vaultoro = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetBalance ();
         let balances = response['data'];
@@ -14824,7 +14832,7 @@ var virwox = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetBalances ();
         let balances = response['result']['accountList'];
@@ -14835,7 +14843,7 @@ var virwox = {
             let total = balance['balance'];
             let account = {
                 'free': total,
-                'used': undefined,
+                'used': 0.0,
                 'total': total,
             };
             result[currency] = account;
@@ -15089,7 +15097,7 @@ var xbtce = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privateGetAsset ();
         let result = { 'info': balances };
@@ -15347,7 +15355,7 @@ var yobit = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.tapiPostGetInfo ();
         let balances = response['return'];
@@ -15356,9 +15364,9 @@ var yobit = {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
             let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
+                'free': 0.0,
+                'used': 0.0,
+                'total': 0.0,
             };
             if ('funds' in balances)
                 if (lowercase in balances['funds'])
@@ -15551,7 +15559,7 @@ var yunbi = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetMembersMe ();
         let balances = response['accounts'];
@@ -15563,7 +15571,7 @@ var yunbi = {
             let account = {
                 'free': parseFloat (balance['balance']),
                 'used': parseFloat (balance['locked']),
-                'total': undefined,
+                'total': 0.0,
             };
             account['total'] = this.sum (account['free'], account['used']);
             result[uppercase] = account;
@@ -15803,7 +15811,7 @@ var zaif = {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetInfo ();
         let balances = response['return'];
@@ -15815,7 +15823,7 @@ var zaif = {
             let uppercase = currency.toUpperCase ();
             let account = {
                 'free': balance,
-                'used': undefined,
+                'used': 0.0,
                 'total': balance,
             };
             if ('deposit' in balances) {

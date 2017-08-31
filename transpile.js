@@ -88,31 +88,31 @@ while (exchanges = regex.exec (contents)) {
         let method = matches[2]
         let args = matches[3].trim ()
 
-        method = method.replace ('fetchBalance',      'fetch_balance')
+        method = method.replace ('fetchBalance',       'fetch_balance')
                         // .replace ('fetchCategories', 'fetch_categories')
-                        .replace ('loadMarkets',      'load_markets')
-                        .replace ('fetchMarkets',     'fetch_markets')
-                        .replace ('fetchOrderBook',   'fetch_order_book')
-                        .replace ('fetchOHLCV',       'fetch_ohlcv')
-                        .replace ('fetchTickers',     'fetch_tickers')
-                        .replace ('fetchTicker',      'fetch_ticker')
-                        .replace ('parseTicker',      'parse_ticker')
-                        .replace ('parseTrades',      'parse_trades')
-                        .replace ('parseTrade',       'parse_trade')
-                        .replace ('parseBidAsks',     'parse_bidasks')
-                        .replace ('parseBidAsk',      'parse_bidask')
-                        .replace ('parseOrders',      'parse_orders')
-                        .replace ('parseOrder',       'parse_order')
-                        .replace ('fetchTrades',      'fetch_trades')
-                        .replace ('fetchOrderStatus', 'fetch_order_status')
-                        .replace ('fetchOrderTrades', 'fetch_order_trades')
-                        .replace ('fetchOrder',       'fetch_order')
-                        .replace ('fetchOpenOrders',  'fetch_open_orders')
-                        .replace ('fetchMyTrades',    'fetch_my_trades')
-                        .replace ('fetchAllMyTrades', 'fetch_all_my_trades')
-                        .replace ('createOrder',      'create_order')
-                        .replace ('cancelOrder',      'cancel_order')
-                        .replace ('signIn',           'sign_in')
+                        .replace ('loadMarkets',       'load_markets')
+                        .replace ('fetchMarkets',      'fetch_markets')
+                        .replace ('fetchOrderBook',    'fetch_order_book')
+                        .replace ('fetchOHLCV',        'fetch_ohlcv')
+                        .replace ('fetchTickers',      'fetch_tickers')
+                        .replace ('fetchTicker',       'fetch_ticker')
+                        .replace ('parseTicker',       'parse_ticker')
+                        .replace ('parseTrades',       'parse_trades')
+                        .replace ('parseTrade',        'parse_trade')
+                        .replace ('parseBidAsks',      'parse_bidasks')
+                        .replace ('parseBidAsk',       'parse_bidask')
+                        .replace ('parseOrders',       'parse_orders')
+                        .replace ('parseOrder',        'parse_order')
+                        .replace ('fetchTrades',       'fetch_trades')
+                        .replace ('fetchOrderStatus',  'fetch_order_status')
+                        .replace ('fetchOrderTrades',  'fetch_order_trades')
+                        .replace ('fetchOrder',        'fetch_order')
+                        .replace ('fetchOpenOrders',   'fetch_open_orders')
+                        .replace ('fetchMyTrades',     'fetch_my_trades')
+                        .replace ('fetchAllMyTrades',  'fetch_all_my_trades')
+                        .replace ('createOrder',       'create_order')
+                        .replace ('cancelOrder',       'cancel_order')
+                        .replace ('signIn',            'sign_in')
 
         args = args.length ? args.split (',').map (x => x.trim ()) : []
 
@@ -251,7 +251,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.parseOrders/g, '.parse_orders'],
             [ /\.parseOrder/g, '.parse_order'],
             [ /\.loadMarkets/g, '.load_markets'],
-            [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
+            [ /\.encodeURIComponent/g, '.encode_uri_component'],
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
             [ /([^'])this_\./g, '$1$this_->' ],
