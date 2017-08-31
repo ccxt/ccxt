@@ -10496,15 +10496,15 @@ class kraken (Exchange):
             ohlcv[6],
         ]
 
-    def fetch_ohlcv(self, market, timeframe=60, since=None, limit=None):
-        m = self.market(market)
+    def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
+        market = self.market(symbol)
         response = self.publicGetOHLC({
-            'pair': m['id'],
+            'pair': market['id'],
             'interval': int(timeframe / 60),
             'since': since,
         })
-        ohlcvs = response[m['id']]
-        return self.parse_ohlcvs(m, ohlcvs, timeframe, since, limit)
+        ohlcvs = response[market['id']]
+        return self.parse_ohlcvs(market, ohlcvs, timeframe, since, limit)
 
     def fetch_trades(self, market, params={}):
         self.load_markets()

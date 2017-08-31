@@ -11997,15 +11997,15 @@ class kraken extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($market, $timeframe = 60, $since = null, $limit = null) {
-        $m = $this->market ($market);
+    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
+        $market = $this->market ($symbol);
         $response = $this->publicGetOHLC (array (
-            'pair' => $m['id'],
+            'pair' => $market['id'],
             'interval' => intval ($timeframe / 60),
             'since' => $since,
         ));
-        $ohlcvs = $response[$m['id']];
-        return $this->parse_ohlcvs ($m, $ohlcvs, $timeframe, $since, $limit);
+        $ohlcvs = $response[$market['id']];
+        return $this->parse_ohlcvs ($market, $ohlcvs, $timeframe, $since, $limit);
     }
 
     public function fetch_trades ($market, $params = array ()) {
