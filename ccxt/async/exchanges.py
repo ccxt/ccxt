@@ -10419,6 +10419,7 @@ class kraken (Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
+        await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetOHLC({
             'pair': market['id'],

@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.58';
+$version = '1.5.59';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -11998,6 +11998,7 @@ class kraken extends Exchange {
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
+        $this->load_markets ();
         $market = $this->market ($symbol);
         $response = $this->publicGetOHLC (array (
             'pair' => $market['id'],
