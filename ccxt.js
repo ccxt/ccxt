@@ -15561,7 +15561,7 @@ var yobit = {
             'type': undefined,
             'side': side,
             'price': trade['price'],
-            'amount': trade['amunt'],
+            'amount': trade['amount'],
         };
     },        
 
