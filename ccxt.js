@@ -394,7 +394,7 @@ const Exchange = function (config) {
                     if ('camelcase_suffix' in options)
                         camelcase += options.camelcaseSuffix;
 
-                    let partial = params => this[methodName] (url, type, uppercaseMethod, params)
+                    let partial = async params => this[methodName] (url, type, uppercaseMethod, params)
 
                     this[camelcase]  = partial
                     this[underscore] = partial
@@ -7177,19 +7177,19 @@ var chbtc = {
             let currency = this.currencies[c];
             let account = this.account ();
             if (currency in balances['balance'])
-                account['free'] = balances['balance'][currency]['amount'];
+                account['free'] = parseFloat (balances['balance'][currency]['amount']);
             if (currency in balances['frozen'])
-                account['used'] = balances['frozen'][currency]['amount'];
+                account['used'] = parseFloat (balances['frozen'][currency]['amount']);
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
-        let p = this.market (market);
+    async fetchOrderBook (symbol, params = {}) {
+        let market = this.market (symbol);
         let orderbook = await this.publicGetDepth (this.extend ({
-            'currency': p['id'],
+            'currency': market['id'],
         }, params));
         let timestamp = this.milliseconds ();
         let bids = undefined;
@@ -7211,9 +7211,9 @@ var chbtc = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         let response = await this.publicGetTicker ({
-            'currency': this.marketId (market),
+            'currency': this.marketId (symbol),
         });
         let ticker = response['ticker'];
         let timestamp = this.milliseconds ();
@@ -7238,18 +7238,37 @@ var chbtc = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        return this.publicGetTrades (this.extend ({
-            'currency': this.marketId (market),
-        }, params));
+    parseTrade (trade, market = undefined) {
+        let timestamp = trade['date'] * 1000;
+        let side = (trade['trade_type'] == 'bid') ? 'buy' : 'sell';
+        return {
+            'info': trade,
+            'id': trade['tid'].toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': side,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        };
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async fetchTrades (symbol, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.publicGetTrades (this.extend ({
+            'currency': market['id'],
+        }, params));
+        return this.parseTrades (response, market);
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let paramString = '&price=' + price.toString ();
         paramString += '&amount=' + amount.toString ();
         let tradeType = (side == 'buy') ? '1' : '0';
         paramString += '&tradeType=' + tradeType;
-        paramString += '&currency=' + this.marketId (market);
+        paramString += '&currency=' + this.marketId (symbol);
         let response = await this.privatePostOrder (paramString);
         return {
             'info': response,
