@@ -6326,8 +6326,8 @@ var bter = {
         return {
             'id': trade['tradeID'],
             'info': trade,
-            'timestamp': trade['date'],
-            'datetime': this.iso8601 (trade['date']),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
             'side': trade['type'],
