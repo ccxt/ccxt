@@ -15837,9 +15837,9 @@ var yunbi = {
     parseOHLCV (ohlcv, market = undefined, timeframe = 60, since = undefined, limit = undefined) {
         return [
             ohlcv[0] * 1000,
-            ohlcv[3],
-            ohlcv[2],
             ohlcv[1],
+            ohlcv[2],
+            ohlcv[3],
             ohlcv[4],
             ohlcv[5],
         ];
@@ -15858,8 +15858,6 @@ var yunbi = {
             'timestamp': since,
             'limit': limit,
         });
-        console.log (response);
-        process.exit ();
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     },
 
