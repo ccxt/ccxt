@@ -4071,11 +4071,27 @@ class btcchina (Exchange):
             'info': ticker,
         }
 
-    async def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market):
+        timestamp = int(trade['date']) * 1000
+        return {
+            'id': trade['tid'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': None,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
+
+    async def fetch_trades(self, symbol, params={}):
         await self.load_markets()
-        return self.publicGetTrades(self.extend({
-            'market': self.market_id(market),
+        market = self.market(symbol)
+        response = await self.publicGetTrades(self.extend({
+            'market': market['id'],
         }, params))
+        return self.parse_trades(response, market)
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
         await self.load_markets()
