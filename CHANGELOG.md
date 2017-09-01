@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Added [examples/js/basic-chart.js](https://github.com/kroitor/ccxt/blob/master/examples/js/basic-chart.js) and [examples/py/basic-chart.py](https://github.com/kroitor/ccxt/blob/master/examples/py/basic-chart.py)
 - Changed fetchBalance to floats, [#166](https://github.com/kroitor/ccxt/issues/166)
 - Added handling of InsufficientFunds for HitBTC [#164](https://github.com/kroitor/ccxt/issues/164)
 - Prepared for an API update on Bitfinex [#154](https://github.com/kroitor/ccxt/issues/154)
