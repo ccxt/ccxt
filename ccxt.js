@@ -4728,8 +4728,8 @@ var bl3p = {
             let orders = orderbook[side];
             for (let i = 0; i < orders.length; i++) {
                 let order = orders[i];
-                let price = order['price_int'] / 100000;
-                let amount = order['amount_int'] / 100000000;
+                let price = order['price_int'] / 100000.0;
+                let amount = order['amount_int'] / 100000000.0;
                 result[side].push ([ price, amount ]);
             }
         }
@@ -4762,10 +4762,27 @@ var bl3p = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        return this.publicGetMarketTrades (this.extend ({
-            'market': this.marketId (market),
+    parseTrade (trade, market) {
+        return {
+            'id': trade['trade_id'],
+            'info': trade,
+            'timestamp': trade['date'],
+            'datetime': this.iso8601 (trade['date']),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': undefined,
+            'price': trade['price_int'] / 100000.0,
+            'amount': trade['amount_int'] / 100000000.0,
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetMarketTrades (this.extend ({
+            'market': market['id'],
         }, params));
+        let result = this.parseTrades (response['data']['trades'], market);
+        return result;
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
@@ -5247,10 +5264,11 @@ var btce = {
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+        let id = market['id'];
         let response = await this.publicGetTradesPair (this.extend ({
-            'pair': market['id'],
+            'pair': id,
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response[id], market);
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
