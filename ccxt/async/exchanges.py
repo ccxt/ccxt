@@ -5284,10 +5284,10 @@ class bter (Exchange):
             result[code] = account
         return result
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
         orderbook = await self.publicGetOrderBookId(self.extend({
-            'id': self.market_id(market),
+            'id': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
         result = {
@@ -5352,27 +5352,43 @@ class bter (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         await self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         ticker = await self.publicGetTickerId({
-            'id': p['id'],
+            'id': market['id'],
         })
-        return self.parse_ticker(ticker, p)
+        return self.parse_ticker(ticker, market)
 
-    async def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market):
+        timestamp = int(trade['timestamp']) * 1000
+        return {
+            'id': trade['tradeID'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['type'],
+            'price': trade['rate'],
+            'amount': trade['amount'],
+        }
+
+    async def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
         await self.load_markets()
-        return self.publicGetTradeHistoryId(self.extend({
-            'id': self.market_id(market),
+        response = await self.publicGetTradeHistoryId(self.extend({
+            'id': market['id'],
         }, params))
+        return self.parse_trades(response['data'], market)
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         await self.load_markets()
         method = 'privatePost' + self.capitalize(side)
         order = {
-            'currencyPair': self.market_id(market),
+            'currencyPair': self.market_id(symbol),
             'rate': price,
             'amount': amount,
         }

@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.67';
+$version = '1.5.68';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -6518,10 +6518,10 @@ class bter extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetOrderBookId (array_merge (array (
-            'id' => $this->market_id ($market),
+            'id' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -6592,29 +6592,46 @@ class bter extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetTickerId (array (
-            'id' => $p['id'],
+            'id' => $market['id'],
         ));
-        return $this->parse_ticker ($ticker, $p);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = intval ($trade['timestamp']) * 1000;
+        return array (
+            'id' => $trade['tradeID'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['type'],
+            'price' => $trade['rate'],
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
         $this->load_markets ();
-        return $this->publicGetTradeHistoryId (array_merge (array (
-            'id' => $this->market_id ($market),
+        $response = $this->publicGetTradeHistoryId (array_merge (array (
+            'id' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response['data'], $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $this->load_markets ();
         $method = 'privatePost' . $this->capitalize ($side);
         $order = array (
-            'currencyPair' => $this->market_id ($market),
+            'currencyPair' => $this->market_id ($symbol),
             'rate' => $price,
             'amount' => $amount,
         );
