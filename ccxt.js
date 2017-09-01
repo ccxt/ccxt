@@ -4965,11 +4965,28 @@ var btcchina = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
+    parseTrade (trade, market) {
+        let timestamp = parseInt (trade['date']) * 1000;
+        return {
+            'id': trade['tid'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': undefined,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        return this.publicGetTrades (this.extend ({
-            'market': this.marketId (market),
+        let market = this.market (symbol);
+        let response = await this.publicGetTrades (this.extend ({
+            'market': market['id'],
         }, params));
+        return this.parseTrades (response, market);
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
