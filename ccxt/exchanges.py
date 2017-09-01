@@ -14223,13 +14223,13 @@ class yobit (Exchange):
             result[currency] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         response = self.apiGetDepthPairs(self.extend({
-            'pairs': p['id'],
+            'pairs': market['id'],
         }, params))
-        orderbook = response[p['id']]
+        orderbook = response[market['id']]
         timestamp = self.milliseconds()
         bids = orderbook['bids'] if('bids' in list(orderbook.keys())) else []
         asks = orderbook['asks'] if('asks' in list(orderbook.keys())) else []
@@ -14241,13 +14241,13 @@ class yobit (Exchange):
         }
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         tickers = self.apiGetTickerPairs({
-            'pairs': p['id'],
+            'pairs': market['id'],
         })
-        ticker = tickers[p['id']]
+        ticker = tickers[market['id']]
         timestamp = ticker['updated'] * 1000
         return {
             'timestamp': timestamp,
@@ -14269,19 +14269,36 @@ class yobit (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
-        self.load_markets()
-        return self.apiGetTradesPairs(self.extend({
-            'pairs': self.market_id(market),
-        }, params))
+    def parse_trade(self, trade, market=None):
+        timestamp = trade['timestamp'] * 1000
+        side = 'buy' if(trade['type'] == 'bid') else 'sell'
+        return {
+            'info': trade,
+            'id': str(trade['tid']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': side,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def fetch_trades(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.apiGetTradesPairs(self.extend({
+            'pairs': market['id'],
+        }, params))
+        return self.parse_trades(response[market['id']], market)
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         rate = str(price)
         response = self.tapiPostTrade(self.extend({
-            'pair': self.market_id(market),
+            'pair': self.market_id(symbol),
             'type': side,
             'amount': amount,
             'rate': '{:.8f}'.format(price),
