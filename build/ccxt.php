@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.72';
+$version = '1.5.73';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7474,19 +7474,19 @@ class chbtc extends Exchange {
             $currency = $this->currencies[$c];
             $account = $this->account ();
             if (array_key_exists ($currency, $balances['balance']))
-                $account['free'] = $balances['balance'][$currency]['amount'];
+                $account['free'] = floatval ($balances['balance'][$currency]['amount']);
             if (array_key_exists ($currency, $balances['frozen']))
-                $account['used'] = $balances['frozen'][$currency]['amount'];
+                $account['used'] = floatval ($balances['frozen'][$currency]['amount']);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
-        $p = $this->market ($market);
+    public function fetch_order_book ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
         $orderbook = $this->publicGetDepth (array_merge (array (
-            'currency' => $p['id'],
+            'currency' => $market['id'],
         ), $params));
         $timestamp = $this->milliseconds ();
         $bids = null;
@@ -7508,9 +7508,9 @@ class chbtc extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $response = $this->publicGetTicker (array (
-            'currency' => $this->market_id ($market),
+            'currency' => $this->market_id ($symbol),
         ));
         $ticker = $response['ticker'];
         $timestamp = $this->milliseconds ();
@@ -7535,18 +7535,37 @@ class chbtc extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetTrades (array_merge (array (
-            'currency' => $this->market_id ($market),
-        ), $params));
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $trade['date'] * 1000;
+        $side = ($trade['trade_type'] == 'bid') ? 'buy' : 'sell';
+        return array (
+            'info' => $trade,
+            'id' => (string) $trade['tid'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $side,
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTrades (array_merge (array (
+            'currency' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response, $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $paramString = '&$price=' . (string) $price;
         $paramString .= '&$amount=' . (string) $amount;
         $tradeType = ($side == 'buy') ? '1' : '0';
         $paramString .= '&$tradeType=' . $tradeType;
-        $paramString .= '&currency=' . $this->market_id ($market);
+        $paramString .= '&currency=' . $this->market_id ($symbol);
         $response = $this->privatePostOrder ($paramString);
         return array (
             'info' => $response,
