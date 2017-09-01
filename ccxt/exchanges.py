@@ -3923,8 +3923,8 @@ class bl3p (Exchange):
             orders = orderbook[side]
             for i in range(0, len(orders)):
                 order = orders[i]
-                price = order['price_int'] / 100000
-                amount = order['amount_int'] / 100000000
+                price = order['price_int'] / 100000.0
+                amount = order['amount_int'] / 100000000.0
                 result[side].append([price, amount])
         return result
 
@@ -3953,10 +3953,26 @@ class bl3p (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
-        return self.publicGetMarketTrades(self.extend({
-            'market': self.market_id(market),
+    def parse_trade(self, trade, market):
+        return {
+            'id': trade['trade_id'],
+            'info': trade,
+            'timestamp': trade['date'],
+            'datetime': self.iso8601(trade['date']),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': None,
+            'price': trade['price_int'] / 100000.0,
+            'amount': trade['amount_int'] / 100000000.0,
+        }
+
+    def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = self.publicGetMarketTrades(self.extend({
+            'market': market['id'],
         }, params))
+        result = self.parse_trades(response['data']['trades'], market)
+        return result
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         p = self.market(market)
@@ -4333,14 +4349,14 @@ class btce (Exchange):
             result[uppercase] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         response = self.publicGetDepthPair(self.extend({
-            'pair': p['id'],
+            'pair': market['id'],
         }, params))
-        if p['id'] in response:
-            orderbook = response[p['id']]
+        if market['id'] in response:
+            orderbook = response[market['id']]
             timestamp = self.milliseconds()
             result = {
                 'bids': orderbook['bids'],
@@ -4351,7 +4367,7 @@ class btce (Exchange):
             result['bids'] = self.sort_by(result['bids'], 0, True)
             result['asks'] = self.sort_by(result['asks'], 0)
             return result
-        raise ExchangeError(self.id + ' ' + p['symbol'] + ' order book is empty or not available')
+        raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['updated'] * 1000
@@ -4398,16 +4414,34 @@ class btce (Exchange):
         tickers = self.fetchTickers([id])
         return tickers[symbol]
 
-    def fetch_trades(self, market, params={}):
-        self.load_markets()
-        return self.publicGetTradesPair(self.extend({
-            'pair': self.market_id(market),
-        }, params))
+    def parse_trade(self, trade, market):
+        timestamp = trade['timestamp'] * 1000
+        side = 'sell' if(trade['type'] == 'ask') else 'buy'
+        return {
+            'id': trade['tid'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': side,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def fetch_trades(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        id = market['id']
+        response = self.publicGetTradesPair(self.extend({
+            'pair': id,
+        }, params))
+        return self.parse_trades(response[id], market)
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         order = {
-            'pair': self.market_id(market),
+            'pair': self.market_id(symbol),
             'type': side,
             'amount': amount,
             'rate': price,
