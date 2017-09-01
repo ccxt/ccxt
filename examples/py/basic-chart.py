@@ -29,4 +29,4 @@ series = [x[index] for x in ohlcv]
 print(asciichart.plot(series[-120:], {'height': 30})) # print the chart
 
 last = ohlcv[len(ohlcv) - 1][index] # last closing price
-print("\n₿ = $" + str(last) + "\n") # print it
+print("\n" + kraken.name + " ₿ = $" + str(last) + "\n") # print it
