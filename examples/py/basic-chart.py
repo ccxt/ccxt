@@ -24,10 +24,9 @@ ohlcv = kraken.fetch_ohlcv('BTC/USD', 60)
 
 # each ohlcv candle is a list of [ timestamp, open, high, low, close, volume ]
 index = 4 # use close price from each ohlcv candle
-
-last = ohlcv[len(ohlcv) - 1][index] # closing price
 series = [x[index] for x in ohlcv]
 
-rate = '₿ = $' + str(last)
-print(asciichart.plot(series[-120:], {'height': 30}))
-print("\n" + rate + "\n")
+print(asciichart.plot(series[-120:], {'height': 30})) # print the chart
+
+last = ohlcv[len(ohlcv) - 1][index] # last closing price
+print("\n₿ = $" + str(last) + "\n") # print it
