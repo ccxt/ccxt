@@ -18,7 +18,7 @@ import ccxt # noqa: E402
 #------------------------------------------------------------------------------
 
 kraken = ccxt.kraken()
-ohlcv = kraken.fetch_ohlcv ('BTC/USD', 60, kraken.seconds()-86400)
+ohlcv = kraken.fetch_ohlcv('BTC/USD', 60, kraken.seconds() - 86400)
 index = 4 # [ timestamp, open, high, low, close, volume ]
 last = ohlcv[len(ohlcv) - 1][index] # closing price
 series = [x[index] for x in ohlcv]
