@@ -5228,11 +5228,29 @@ var btce = {
         return tickers[symbol];
     },
 
+    parseTrade (trade, market) {
+        let timestamp = parseInt (trade['timestamp']) * 1000;
+        let side = (trade['type'] == 'ask') ? 'sell' : 'buy';
+        return {
+            'id': trade['tid'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': side,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        };
+    },
+
     async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
-        return this.publicGetTradesPair (this.extend ({
+        let response = await this.publicGetTradesPair (this.extend ({
             'pair': this.marketId (market),
         }, params));
+        console.log (response);
+        return response;
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
