@@ -146,7 +146,29 @@ let testExchangeSymbol = async (exchange, symbol) => {
 
     await sleep (exchange.rateLimit) 
     await testExchangeSymbolTicker (exchange, symbol)
-    
+
+    if (exchange.hasFetchTickers) {
+
+        log (exchange.id.green, 'fetching all tickers at once...')
+        let tickers = await exchange.fetchTickers ()
+        log (exchange.id.green, 'fetched', Object.keys (tickers).length.toString ().green, 'tickers')
+
+    } else {
+
+        log (exchange.id.green, 'fetching all tickers at once not supported')
+    }
+
+    if (exchange.hasFetchOHLCV) {
+
+        log (exchange.id.green, 'fetching OHLCV...')
+        let ohlcv = await exchange.fetchOHLCV (symbol)
+        log (exchange.id.green, 'fetched', Object.keys (ohlcv).length.toString ().green, 'OHLCVs')
+
+    } else {
+
+        log (exchange.id.green, 'fetching OHLCV not supported')
+    }
+
     if (exchange.id == 'coinmarketcap') {
     
         log (await exchange.fetchTickers ());
@@ -170,28 +192,6 @@ let testExchangeSymbol = async (exchange, symbol) => {
                 throw e;
             }
         }
-    }
-
-    if (exchange.hasFetchTickers) {
-
-        log (exchange.id.green, 'fetching all tickers at once...')
-        let tickers = await exchange.fetchTickers ()
-        log (exchange.id.green, 'fetched', Object.keys (tickers).length.toString ().green, 'tickers')
-
-    } else {
-
-        log (exchange.id.green, 'fetching all tickers at once not supported')
-    }
-
-    if (exchange.hasFetchOHLCV) {
-
-        log (exchange.id.green, 'fetching OHLCV...')
-        let ohlcv = await exchange.fetchOHLCV (symbol)
-        log (exchange.id.green, 'fetched', Object.keys (ohlcv).length.toString ().green, 'OHLCVs')
-
-    } else {
-
-        log (exchange.id.green, 'fetching OHLCV not supported')
     }
 }
 

@@ -15632,6 +15632,7 @@ var yunbi = {
     'rateLimit': 1000,
     'version': 'v2',
     'hasFetchTickers': true,
+    'hasFetchOHLCV': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg',
         'api': 'https://yunbi.com',
@@ -15831,6 +15832,35 @@ var yunbi = {
         }, params));
         // return this.parseTrades (reponse, market);
         return response;
+    },
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = 60, since = undefined, limit = undefined) {
+        return [
+            ohlcv[0] * 1000,
+            ohlcv[3],
+            ohlcv[2],
+            ohlcv[1],
+            ohlcv[4],
+            ohlcv[5],
+        ];
+    },
+
+    async fetchOHLCV (symbol, timeframe = 60, since = undefined, limit = undefined) {
+        let minutes = parseInt (timeframe / 60); // 1 minute by default
+        let period = minutes.toString ();
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        if (!limit)
+            limit = 30; // default
+        let response = await this.publicGetK ({
+            'id': market['id'],
+            'period': period,
+            'timestamp': since,
+            'limit': limit,
+        });
+        console.log (response);
+        process.exit ();
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
