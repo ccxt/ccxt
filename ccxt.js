@@ -15501,13 +15501,13 @@ var yobit = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
-        let p = this.market (market);
+        let market = this.market (symbol);
         let response = await this.apiGetDepthPairs (this.extend ({
-            'pairs': p['id'],
+            'pairs': market['id'],
         }, params));
-        let orderbook = response[p['id']];
+        let orderbook = response[market['id']];
         let timestamp = this.milliseconds ();
         let bids = ('bids' in orderbook) ? orderbook['bids'] : [];
         let asks = ('asks' in orderbook) ? orderbook['asks'] : [];
@@ -15520,13 +15520,13 @@ var yobit = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         await this.loadMarkets ();
-        let p = this.market (market);
+        let market = this.market (symbol);
         let tickers = await this.apiGetTickerPairs ({
-            'pairs': p['id'],
+            'pairs': market['id'],
         });
-        let ticker = tickers[p['id']];
+        let ticker = tickers[market['id']];
         let timestamp = ticker['updated'] * 1000;
         return {
             'timestamp': timestamp,
@@ -15549,20 +15549,38 @@ var yobit = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
+    parseTrade (trade, market = undefined) {
+        let timestamp = trade['timestamp'] * 1000;
+        let side = (trade['type'] == 'bid') ? 'buy' : 'sell';
+        return {
+            'info': trade,
+            'id': trade['tid'].toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': side,
+            'price': trade['price'],
+            'amount': trade['amunt'],
+        };
+    },        
+
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        return this.apiGetTradesPairs (this.extend ({
-            'pairs': this.marketId (market),
+        let market = this.market (symbol);
+        let response = await this.apiGetTradesPairs (this.extend ({
+            'pairs': market['id'],
         }, params));
+        return this.parseTrades (response[market['id']], market);
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let rate = price.toString ();
         let response = await this.tapiPostTrade (this.extend ({
-            'pair': this.marketId (market),
+            'pair': this.marketId (symbol),
             'type': side,
             'amount': amount,
             'rate': '%.8f'.sprintf (price),
