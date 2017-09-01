@@ -17,7 +17,7 @@ Current featurelist:
 - an out-of-the box unified all-in-one API extremely easy to integrate
 - works in Node 6+, Python 2 and 3, PHP 5.3+, web browsers
 
-[ccxt on GitHub](https://github.com/kroitor/ccxt) | [Install](#install) | [Usage](#usage) | [Manual](https://github.com/kroitor/ccxt/wiki) | [Examples](https://github.com/kroitor/ccxt/tree/master/examples) | [Contributing](#contributing) | [**Public Offer**](#public-offer)
+[ccxt on GitHub](https://github.com/kroitor/ccxt) | [Install](#install) | [Usage](#usage) | [Manual](https://github.com/kroitor/ccxt/wiki) | [Examples](https://github.com/kroitor/ccxt/tree/master/examples) | [Changelog](https://github.com/kroitor/ccxt/blob/master/CHANGELOG.md) | [Contributing](https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md) | [**Public Offer**](#public-offer)
 
 ## Supported Cryptocurrency Exchange Markets
 
