@@ -11978,14 +11978,18 @@ var lakebtc = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         await this.loadMarkets ();
-        let p = this.market (market);
+        let market = this.market (symbol);
         let tickers = await this.publicGetTicker ({
-            'symbol': p['id'],
+            'symbol': market['id'],
         });
-        let ticker = tickers[p['id']];
+        let ticker = tickers[market['id']];
         let timestamp = this.milliseconds ();
+        let volume = undefined;
+        if ('volume' in ticker)
+            if (ticker['volume'])
+                volume = parseFloat (ticker['volume']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -12002,7 +12006,7 @@ var lakebtc = {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['volume']),
+            'quoteVolume': volume,
             'info': ticker,
         };
     },
