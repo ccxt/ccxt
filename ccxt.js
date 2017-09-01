@@ -15356,6 +15356,35 @@ var xbtce = {
         return this.privateGetTrade (params);
     },
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = 60, since = undefined, limit = undefined) {
+        return [
+            ohlcv['Timestamp'],
+            ohlcv['Open'],
+            ohlcv['High'],
+            ohlcv['Low'],
+            ohlcv['Close'],
+            ohlcv['Volume'],
+        ];
+    },
+
+    async fetchOHLCV (symbol, timeframe = 60, since = undefined, limit = undefined) {
+        throw new NotImplemented (this.id + ' fetchOHLCV not implemented yet');
+        let minutes = parseInt (timeframe / 60); // 1 minute by default
+        let period = minutes.toString ();
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        if (!limit)
+            limit = 1000; // default
+        let request = {
+            'market': market['id'],
+            'periodicity': period,
+            'timestamp': since,
+            'count': limit,
+        };
+        let response = await this.publicGetK (request);
+        return this.parseOHLCVs (response['Bars'], market, timeframe, since, limit);
+    },
+
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         if (type == 'market')

@@ -62,4 +62,3 @@ last = print_chart(yunbi, 'BTC/CNY', 3600, '1h')
 print("\n" + yunbi.name + " ₿ = CN¥ " + str(last) + "\n") # print last closing price
 
 #------------------------------------------------------------------------------
-
