@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.74';
+$version = '1.5.75';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -16118,6 +16118,7 @@ class yunbi extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'hasFetchTickers' => true,
+            'hasFetchOHLCV' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg',
                 'api' => 'https://yunbi.com',
@@ -16295,12 +16296,57 @@ class yunbi extends Exchange {
         return $this->parse_ticker ($response, $p);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $trade['timestamp'] * 1000;
+        $side = ($trade['type'] == 'bid') ? 'buy' : 'sell';
+        return array (
+            'info' => $trade,
+            'id' => (string) $trade['tid'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $side,
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        $m = $this->market ($market);
-        return $this->publicGetTrades (array_merge (array (
-            'market' => $m['id'],
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTrades (array_merge (array (
+            'market' => $market['id'],
         ), $params));
+        // return $this->parse_trades (reponse, $market);
+        return $response;
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
+        return [
+            $ohlcv[0] * 1000,
+            $ohlcv[1],
+            $ohlcv[2],
+            $ohlcv[3],
+            $ohlcv[4],
+            $ohlcv[5],
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
+        $minutes = intval ($timeframe / 60); // 1 minute by default
+        $period = (string) $minutes;
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        if (!$limit)
+            $limit = 30; // default
+        $response = $this->publicGetK (array (
+            'market' => $market['id'],
+            'period' => $period,
+            'timestamp' => $since,
+            'limit' => $limit,
+        ));
+        return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {

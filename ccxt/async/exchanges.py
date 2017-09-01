@@ -14269,6 +14269,7 @@ class yunbi (Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'hasFetchTickers': True,
+            'hasFetchOHLCV': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg',
                 'api': 'https://yunbi.com',
@@ -14435,12 +14436,54 @@ class yunbi (Exchange):
         })
         return self.parse_ticker(response, p)
 
-    async def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market=None):
+        timestamp = trade['timestamp'] * 1000
+        side = 'buy' if(trade['type'] == 'bid') else 'sell'
+        return {
+            'info': trade,
+            'id': str(trade['tid']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': side,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
+
+    async def fetch_trades(self, symbol, params={}):
         await self.load_markets()
-        m = self.market(market)
-        return self.publicGetTrades(self.extend({
-            'market': m['id'],
+        market = self.market(symbol)
+        response = await self.publicGetTrades(self.extend({
+            'market': market['id'],
         }, params))
+        # return self.parse_trades(reponse, market)
+        return response
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+        return [
+            ohlcv[0] * 1000,
+            ohlcv[1],
+            ohlcv[2],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[5],
+        ]
+
+    async def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
+        minutes = int(timeframe / 60) # 1 minute by default
+        period = str(minutes)
+        await self.load_markets()
+        market = self.market(symbol)
+        if not limit:
+            limit = 30 # default
+        response = await self.publicGetK({
+            'market': market['id'],
+            'period': period,
+            'timestamp': since,
+            'limit': limit,
+        })
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
         await self.load_markets()
