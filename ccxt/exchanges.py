@@ -6056,10 +6056,10 @@ class cex (Exchange):
             result[currency] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         self.load_markets()
         orderbook =  self.publicGetOrderBookPair(self.extend({
-            'pair': self.market_id(market),
+            'pair': self.market_id(symbol),
         }, params))
         timestamp = orderbook['timestamp'] * 1000
         result = {
@@ -6107,24 +6107,40 @@ class cex (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         ticker = self.publicGetTickerPair({
-            'pair': p['id'],
+            'pair': market['id'],
         })
-        return self.parse_ticker(ticker, p)
+        return self.parse_ticker(ticker, market)
 
-    def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market=None):
+        timestamp = int(trade['date']) * 1000
+        return {
+            'info': trade,
+            'id': trade['tid'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['type'],
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
+        }
+
+    def fetch_trades(self, symbol, params={}):
         self.load_markets()
-        return self.publicGetTradeHistoryPair(self.extend({
-            'pair': self.market_id(market),
+        market = self.market(symbol)
+        response = self.publicGetTradeHistoryPair(self.extend({
+            'pair': market['id'],
         }, params))
+        return self.parse_trades(response, market)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         order = {
-            'pair': self.market_id(market),
+            'pair': self.market_id(symbol),
             'type': side,
             'amount': amount,
         }
@@ -10835,14 +10851,18 @@ class lakebtc (Exchange):
                 result[side].append([price, amount])
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         tickers = self.publicGetTicker({
-            'symbol': p['id'],
+            'symbol': market['id'],
         })
-        ticker = tickers[p['id']]
+        ticker = tickers[market['id']]
         timestamp = self.milliseconds()
+        volume = None
+        if 'volume' in ticker:
+            if ticker['volume']:
+                volume = float(ticker['volume'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -10859,7 +10879,7 @@ class lakebtc (Exchange):
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': float(ticker['volume']),
+            'quoteVolume': volume,
             'info': ticker,
         }
 
