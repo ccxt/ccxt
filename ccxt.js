@@ -15807,12 +15807,30 @@ var yunbi = {
         return this.parseTicker (response, p);
     },
 
-    async fetchTrades (market, params = {}) {
+    parseTrade (trade, market = undefined) {
+        let timestamp = trade['timestamp'] * 1000;
+        let side = (trade['type'] == 'bid') ? 'buy' : 'sell';
+        return {
+            'info': trade,
+            'id': trade['tid'].toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': side,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        };
+    },        
+
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        let m = this.market (market);
-        return this.publicGetTrades (this.extend ({
-            'market': m['id'],
+        let market = this.market (symbol);
+        let response = await this.publicGetTrades (this.extend ({
+            'market': market['id'],
         }, params));
+        // return this.parseTrades (reponse, market);
+        return response;
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
