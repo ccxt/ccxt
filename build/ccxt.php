@@ -16339,13 +16339,15 @@ class yunbi extends Exchange {
         $this->load_markets ();
         $market = $this->market ($symbol);
         if (!$limit)
-            $limit = 30; // default
-        $response = $this->publicGetK (array (
+            $limit = 100; // default is 30
+        $request = array (
             'market' => $market['id'],
             'period' => $period,
-            'timestamp' => $since,
             'limit' => $limit,
-        ));
+        );
+        if ($since)
+            $request['timestamp'] = $since;
+        $response = $this->publicGetK ($request);
         return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 

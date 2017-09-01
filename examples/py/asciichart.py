@@ -34,7 +34,7 @@ def plot(series, cfg={}):
 
     # axis and labels
     for y in range(intmin2, intmax2 + 1):
-        label = '{:8.2f} '.format(float(maximum) - ((y - intmin2) * interval / rows))
+        label = '{:8.2f}'.format(float(maximum) - ((y - intmin2) * interval / rows))
         result[y - intmin2][max(offset - len(label), 0)] = label
         result[y - intmin2][offset - 1] = '┼' if y == 0 else '┤'
 

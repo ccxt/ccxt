@@ -18,6 +18,7 @@ import ccxt # noqa: E402
 #------------------------------------------------------------------------------
 
 kraken = ccxt.kraken()
+yunbi = ccxt.yunbi()
 
 #------------------------------------------------------------------------------
 
@@ -48,10 +49,17 @@ def print_chart(exchange, symbol, timeframe, human_timeframe):
 
 #------------------------------------------------------------------------------
 
-last = print_chart(kraken, 'BTC/USD', 60, '1m')
-last = print_chart(kraken, 'BTC/USD', 300, '5m')
-last = print_chart(kraken, 'BTC/USD', 3600, '1h')
+print_chart(kraken, 'BTC/USD', 60, '1m')
 
 #------------------------------------------------------------------------------
 
+last = print_chart(kraken, 'BTC/USD', 300, '5m')
 print("\n" + kraken.name + " ₿ = $" + str(last) + "\n") # print last closing price
+
+#------------------------------------------------------------------------------
+
+last = print_chart(yunbi, 'BTC/CNY', 3600, '1h')
+print("\n" + yunbi.name + " ₿ = CN¥ " + str(last) + "\n") # print last closing price
+
+#------------------------------------------------------------------------------
+

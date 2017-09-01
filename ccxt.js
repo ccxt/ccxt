@@ -15851,13 +15851,15 @@ var yunbi = {
         await this.loadMarkets ();
         let market = this.market (symbol);
         if (!limit)
-            limit = 30; // default
-        let response = await this.publicGetK ({
+            limit = 500; // default is 30
+        let request = {
             'market': market['id'],
             'period': period,
-            'timestamp': since,
             'limit': limit,
-        });
+        };
+        if (since)
+            request['timestamp'] = since;
+        let response = await this.publicGetK (request);
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     },
 

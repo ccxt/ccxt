@@ -14554,13 +14554,15 @@ class yunbi (Exchange):
         self.load_markets()
         market = self.market(symbol)
         if not limit:
-            limit = 30 # default
-        response = self.publicGetK({
+            limit = 100 # default is 30
+        request = {
             'market': market['id'],
             'period': period,
-            'timestamp': since,
             'limit': limit,
-        })
+        }
+        if since:
+            request['timestamp'] = since
+        response = self.publicGetK(request)
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
