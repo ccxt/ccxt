@@ -10553,7 +10553,7 @@ class gdax extends Exchange {
         ), $params));
     }
 
-    public function parseOHLCV ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
         return [
             $ohlcv[0] * 1000,
             $ohlcv[3],
@@ -11272,7 +11272,7 @@ class huobi extends Exchange {
         return $this->$method (array_merge (array ( 'id' => $market['id'] ), $params));
     }
 
-    public function parseOHLCV ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
         // not implemented yet
         return [
             $ohlcv[0],
@@ -11987,7 +11987,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function parseOHLCV ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
         return [
             $ohlcv[0] * 1000,
             floatval ($ohlcv[1]),

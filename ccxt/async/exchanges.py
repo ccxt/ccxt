@@ -9064,7 +9064,7 @@ class gdax (Exchange):
             'id': self.market_id(market), # fixes issue #2
         }, params))
 
-    def parseOHLCV(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
         return [
             ohlcv[0] * 1000,
             ohlcv[3],
@@ -9739,7 +9739,7 @@ class huobi (Exchange):
         method = market['type'] + 'GetDetailId'
         return getattr(self, method)(self.extend({'id': market['id']}, params))
 
-    def parseOHLCV(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
         # not implemented yet
         return [
             ohlcv[0],
@@ -10409,7 +10409,7 @@ class kraken (Exchange):
             'amount': float(trade[1]),
         }
 
-    def parseOHLCV(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
         return [
             ohlcv[0] * 1000,
             float(ohlcv[1]),

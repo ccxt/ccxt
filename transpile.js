@@ -94,6 +94,8 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('fetchMarkets',      'fetch_markets')
                         .replace ('fetchOrderBook',    'fetch_order_book')
                         .replace ('fetchOHLCV',        'fetch_ohlcv')
+                        .replace ('parseOHLCVs',       'parse_ohlcvs')
+                        .replace ('parseOHLCV',        'parse_ohlcv')
                         .replace ('fetchTickers',      'fetch_tickers')
                         .replace ('fetchTicker',       'fetch_ticker')
                         .replace ('parseTicker',       'parse_ticker')
