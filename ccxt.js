@@ -6338,7 +6338,7 @@ var bter = {
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
-        await this.loadMarkets ();        
+        await this.loadMarkets ();
         let response = await this.publicGetTradeHistoryId (this.extend ({
             'id': market['id'],
         }, params));
