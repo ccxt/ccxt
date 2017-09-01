@@ -5244,13 +5244,13 @@ var btce = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let response = await this.publicGetTradesPair (this.extend ({
-            'pair': this.marketId (market),
+            'pair': market['id'],
         }, params));
-        console.log (response);
-        return response;
+        return this.parseTrades (response, market);
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
