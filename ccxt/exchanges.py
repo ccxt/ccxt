@@ -5838,10 +5838,10 @@ class ccex (Exchange):
             result[currency] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         self.load_markets()
         response = self.publicGetOrderbook(self.extend({
-            'market': self.market_id(market),
+            'market': self.market_id(symbol),
             'type': 'both',
             'depth': 100,
         }, params))
@@ -5888,28 +5888,45 @@ class ccex (Exchange):
             'info': ticker,
         }
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         response = self.tickersGetMarket({
-            'market': p['id'].lower(),
+            'market': market['id'].lower(),
         })
         ticker = response['ticker']
-        return self.parse_ticker(ticker, p)
+        return self.parse_ticker(ticker, market)
 
-    def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market):
+        timestamp = self.parse8601(trade['TimeStamp'])
+        return {
+            'id': trade['Id'],
+            'info': trade,
+            'order': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['OrderType'].lower(),
+            'price': trade['Price'],
+            'amount': trade['Quantity'],
+        }
+
+    def fetch_trades(self, symbol, params={}):
         self.load_markets()
-        return self.publicGetMarkethistory(self.extend({
+        market = self.market(symbol)
+        response = self.publicGetMarkethistory(self.extend({
             'market': self.market_id(market),
             'type': 'both',
             'depth': 100,
         }, params))
+        return self.parse_trades(response['result'], market)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         method = 'privateGet' + self.capitalize(side) + type
         response = getattr(self, method)(self.extend({
-            'market': self.market_id(market),
+            'market': self.market_id(symbol),
             'quantity': amount,
             'rate': price,
         }, params))

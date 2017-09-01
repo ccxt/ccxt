@@ -5760,10 +5760,10 @@ class ccex (Exchange):
             result[currency] = account
         return result
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
         response = await self.publicGetOrderbook(self.extend({
-            'market': self.market_id(market),
+            'market': self.market_id(symbol),
             'type': 'both',
             'depth': 100,
         }, params))
@@ -5810,28 +5810,45 @@ class ccex (Exchange):
             'info': ticker,
         }
 
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         await self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         response = await self.tickersGetMarket({
-            'market': p['id'].lower(),
+            'market': market['id'].lower(),
         })
         ticker = response['ticker']
-        return self.parse_ticker(ticker, p)
+        return self.parse_ticker(ticker, market)
 
-    async def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market):
+        timestamp = self.parse8601(trade['TimeStamp'])
+        return {
+            'id': trade['Id'],
+            'info': trade,
+            'order': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['OrderType'].lower(),
+            'price': trade['Price'],
+            'amount': trade['Quantity'],
+        }
+
+    async def fetch_trades(self, symbol, params={}):
         await self.load_markets()
-        return self.publicGetMarkethistory(self.extend({
+        market = self.market(symbol)
+        response = await self.publicGetMarkethistory(self.extend({
             'market': self.market_id(market),
             'type': 'both',
             'depth': 100,
         }, params))
+        return self.parse_trades(response['result'], market)
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         method = 'privateGet' + self.capitalize(side) + type
         response = await getattr(self, method)(self.extend({
-            'market': self.market_id(market),
+            'market': self.market_id(symbol),
             'quantity': amount,
             'rate': price,
         }, params))
