@@ -15853,7 +15853,7 @@ var yunbi = {
         if (!limit)
             limit = 30; // default
         let response = await this.publicGetK ({
-            'id': market['id'],
+            'market': market['id'],
             'period': period,
             'timestamp': since,
             'limit': limit,
