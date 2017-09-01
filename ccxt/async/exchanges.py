@@ -5597,11 +5597,28 @@ class bxinth (Exchange):
         ticker = tickers[id]
         return self.parse_ticker(ticker, p)
 
-    async def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market):
+        timestamp = self.parse8601(trade['trade_date'])
+        return {
+            'id': trade['trade_id'],
+            'info': trade,
+            'order': trade['order_id'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['trade_type'],
+            'price': float(trade['rate']),
+            'amount': trade['amount'],
+        }
+
+    async def fetch_trades(self, symbol, params={}):
         await self.load_markets()
-        return self.publicGetTrade(self.extend({
-            'pairing': self.market_id(market),
+        market = self.market(symbol)
+        response = await self.publicGetTrade(self.extend({
+            'pairing': market['id'],
         }, params))
+        return self.parse_trades(response['trades'], market)
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
         await self.load_markets()

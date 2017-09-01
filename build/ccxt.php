@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.69';
+$version = '1.5.70';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -6856,11 +6856,29 @@ class bxinth extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = $this->parse8601 ($trade['trade_date']);
+        return array (
+            'id' => $trade['trade_id'],
+            'info' => $trade,
+            'order' => $trade['order_id'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['trade_type'],
+            'price' => floatval ($trade['rate']),
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetTrade (array_merge (array (
-            'pairing' => $this->market_id ($market),
+        $market = $this->market ($symbol)
+        $response = $this->publicGetTrade (array_merge (array (
+            'pairing' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response['trades'], $market);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
