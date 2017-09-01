@@ -18,11 +18,16 @@ import ccxt # noqa: E402
 #------------------------------------------------------------------------------
 
 kraken = ccxt.kraken()
-ohlcv = kraken.fetch_ohlcv('BTC/USD', 60, kraken.seconds() - 86400)
-index = 4 # [ timestamp, open, high, low, close, volume ]
+
+# get a list of ohlcv candles
+ohlcv = kraken.fetch_ohlcv('BTC/USD', 60)
+
+# each ohlcv candle is a list of [ timestamp, open, high, low, close, volume ]
+index = 4 # use close price from each ohlcv candle
+
 last = ohlcv[len(ohlcv) - 1][index] # closing price
 series = [x[index] for x in ohlcv]
 
 rate = '₿ = $' + str(last)
-print(asciichart.plot(series[0:120], {'height': 30}))
+print(asciichart.plot(series[-120:], {'height': 30}))
 print("\n" + rate + "\n")
