@@ -56,6 +56,7 @@ import datetime
 import functools
 import gzip
 import hashlib
+import httplib
 import hmac
 import io
 import json
@@ -248,6 +249,8 @@ class Exchange (object):
             self.raise_error(error, url, method, e, details)
         except _urllib.URLError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
+        except httplib.BadStatusLine as e:
+            self.raise_error(ExchangeError, url, method, e)
         encoding = response.info().get('Content-Encoding')
         if encoding in ('gzip', 'x-gzip', 'deflate'):
             if encoding == 'deflate':
