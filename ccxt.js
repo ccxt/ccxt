@@ -6572,11 +6572,29 @@ var bxinth = {
         return this.parseTicker (ticker, p);
     },
 
-    async fetchTrades (market, params = {}) {
+    parseTrade (trade, market) {
+        let timestamp = this.parse8601 (trade['trade_date']);
+        return {
+            'id': trade['trade_id'],
+            'info': trade,
+            'order': trade['order_id'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade['trade_type'],
+            'price': parseFloat (trade['rate']),
+            'amount': trade['amount'],
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        return this.publicGetTrade (this.extend ({
-            'pairing': this.marketId (market),
+        let market = this.market (symbol)
+        let response = await this.publicGetTrade (this.extend ({
+            'pairing': market['id'],
         }, params));
+        return this.parseTrades (response['trades'], market);
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
