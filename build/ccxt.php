@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.73';
+$version = '1.5.74';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -15985,13 +15985,13 @@ class yobit extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $response = $this->apiGetDepthPairs (array_merge (array (
-            'pairs' => $p['id'],
+            'pairs' => $market['id'],
         ), $params));
-        $orderbook = $response[$p['id']];
+        $orderbook = $response[$market['id']];
         $timestamp = $this->milliseconds ();
         $bids = (array_key_exists ('bids', $orderbook)) ? $orderbook['bids'] : array ();
         $asks = (array_key_exists ('asks', $orderbook)) ? $orderbook['asks'] : array ();
@@ -16004,13 +16004,13 @@ class yobit extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $tickers = $this->apiGetTickerPairs (array (
-            'pairs' => $p['id'],
+            'pairs' => $market['id'],
         ));
-        $ticker = $tickers[$p['id']];
+        $ticker = $tickers[$market['id']];
         $timestamp = $ticker['updated'] * 1000;
         return array (
             'timestamp' => $timestamp,
@@ -16033,20 +16033,38 @@ class yobit extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        $this->load_markets ();
-        return $this->apiGetTradesPairs (array_merge (array (
-            'pairs' => $this->market_id ($market),
-        ), $params));
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $trade['timestamp'] * 1000;
+        $side = ($trade['type'] == 'bid') ? 'buy' : 'sell';
+        return array (
+            'info' => $trade,
+            'id' => (string) $trade['tid'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $side,
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $response = $this->apiGetTradesPairs (array_merge (array (
+            'pairs' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response[$market['id']], $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $rate = (string) $price;
         $response = $this->tapiPostTrade (array_merge (array (
-            'pair' => $this->market_id ($market),
+            'pair' => $this->market_id ($symbol),
             'type' => $side,
             'amount' => $amount,
             'rate' => sprintf ('%.8f', $price),
