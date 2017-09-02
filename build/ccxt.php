@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.80';
+$version = '1.5.81';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3485,6 +3485,7 @@ class bitmarket extends Exchange {
             'name' => 'BitMarket',
             'countries' => array ( 'PL', 'EU' ),
             'rateLimit' => 1500,
+            'hasFetchOHLCV' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg',
                 'api' => array (
@@ -3646,6 +3647,45 @@ class bitmarket extends Exchange {
             'market' => $market['id'],
         ), $params));
         return $this->parse_trades ($response, $market);
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
+        return [
+            $ohlcv['time'] * 1000,
+            floatval ($ohlcv['open']),
+            floatval ($ohlcv['high']),
+            floatval ($ohlcv['low']),
+            floatval ($ohlcv['close']),
+            floatval ($ohlcv['vol']),
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
+        $this->load_markets ();
+        $period = '90m'; // 90 minutes by default
+        if ($timeframe == 5400) {
+            $period = '90m';
+        } else if ($timeframe == 21600) {
+            $period = '6h';
+        } else if ($timeframe == 86400) {
+            $period = '1d';
+        } else if ($timeframe == 604800) {
+            $period = '7d';
+        } else if ($timeframe == 2592000) {
+            $period = '1m';
+        } else if ($timeframe == 7776000) {
+            $period = '3m';
+        } else if ($timeframe == 15552000) {
+            $period = '6m';
+        } else if ($timeframe == 31536000) {
+            $period = '1y';
+        }
+        $method = 'publicGetGraphsMarket' . $period;
+        $market = $this->market ($symbol);
+        $response = $this->$method (array (
+            'market' => $market['id'],
+        ));
+        return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

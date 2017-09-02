@@ -2454,6 +2454,7 @@ class bitmarket (Exchange):
             'name': 'BitMarket',
             'countries': ['PL', 'EU'],
             'rateLimit': 1500,
+            'hasFetchOHLCV': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg',
                 'api': {
@@ -2611,6 +2612,42 @@ class bitmarket (Exchange):
             'market': market['id'],
         }, params))
         return self.parse_trades(response, market)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+        return [
+            ohlcv['time'] * 1000,
+            float(ohlcv['open']),
+            float(ohlcv['high']),
+            float(ohlcv['low']),
+            float(ohlcv['close']),
+            float(ohlcv['vol']),
+        ]
+
+    async def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
+        await self.load_markets()
+        period = '90m' # 90 minutes by default
+        if timeframe == 5400:
+            period = '90m'
+        elif timeframe == 21600:
+            period = '6h'
+        elif timeframe == 86400:
+            period = '1d'
+        elif timeframe == 604800:
+            period = '7d'
+        elif timeframe == 2592000:
+            period = '1m'
+        elif timeframe == 7776000:
+            period = '3m'
+        elif timeframe == 15552000:
+            period = '6m'
+        elif timeframe == 31536000:
+            period = '1y'
+        method = 'publicGetGraphsMarket' + period
+        market = self.market(symbol)
+        response = await getattr(self, method)({
+            'market': market['id'],
+        })
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         response = await self.privatePostTrade(self.extend({
