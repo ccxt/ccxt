@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.76';
+$version = '1.5.77';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -1716,7 +1716,7 @@ class binance extends Exchange {
         //     "17928899.62484339" // Can be ignored
         //  )
         // ]
-        throw new NotImplemented ($this->id . ' fetchOHLCV is not implemented yet');
+        throw new NotSupported ($this->id . ' fetchOHLCV is not implemented yet');
     }
 
     public function parse_trade ($trade, $market = null) {
@@ -1783,7 +1783,7 @@ class binance extends Exchange {
         //   "icebergQty" => "0.0",
         //   "time" => 1499827319559
         // }
-        throw new NotImplemented ($this->id . ' parseOrder is not implemented yet');
+        throw new NotSupported ($this->id . ' parseOrder is not implemented yet');
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1822,7 +1822,7 @@ class binance extends Exchange {
         // recvWindow  LONG    NO
         // timestamp   LONG    YES
         // If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
-        throw new NotImplemented ($this->id . ' fetchOrders not implemented yet');
+        throw new NotSupported ($this->id . ' fetchOrders not implemented yet');
     }
 
     public function fetch_open_orders ($symbol = null, $params = array ()) {
@@ -4318,7 +4318,7 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_order ($id) {
-        throw new NotImplemented ($this->id . ' fetchOrder is not implemented yet');
+        throw new NotSupported ($this->id . ' fetchOrder is not implemented yet');
         $this->load_markets ();
     }
 
@@ -6874,7 +6874,7 @@ class bxinth extends Exchange {
 
     public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        $market = $this->market ($symbol)
+        $market = $this->market ($symbol);
         $response = $this->publicGetTrade (array_merge (array (
             'pairing' => $market['id'],
         ), $params));
@@ -7111,7 +7111,7 @@ class ccex extends Exchange {
 
     public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        $market = $this->market ($symbol)
+        $market = $this->market ($symbol);
         $response = $this->publicGetMarkethistory (array_merge (array (
             'market' => $this->market_id ($market),
             'type' => 'both',
@@ -15599,6 +15599,7 @@ class xbtce extends Exchange {
             'rateLimit' => 2000, // responses are cached every 2 seconds
             'version' => 'v1',
             'hasFetchTickers' => true,
+            'hasFetchOHLCV' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
                 'api' => 'https://cryptottlivewebapi.xbtce.net:8443/api',
@@ -15834,6 +15835,36 @@ class xbtce extends Exchange {
         $this->load_markets ();
         // no method for trades?
         return $this->privateGetTrade ($params);
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
+        return [
+            $ohlcv['Timestamp'],
+            $ohlcv['Open'],
+            $ohlcv['High'],
+            $ohlcv['Low'],
+            $ohlcv['Close'],
+            $ohlcv['Volume'],
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
+        throw new NotSupported ($this->id . ' fetchOHLCV is disabled by the exchange');
+        $minutes = intval ($timeframe / 60); // 1 minute by default
+        $periodicity = (string) $minutes;
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        if (!$since)
+            $since = $this->seconds () - 86400 * 7; // last day by defulat
+        if (!$limit)
+            $limit = 1000; // default
+        $response = $this->privateGetQuotehistorySymbolPeriodicityBarsBid (array (
+            'symbol' => $market['id'],
+            'periodicity' => '5m', // $periodicity,
+            'timestamp' => $since,
+            'count' => $limit,
+        ));
+        return $this->parse_ohlcvs ($response['Bars'], $market, $timeframe, $since, $limit);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
@@ -16339,7 +16370,7 @@ class yunbi extends Exchange {
         $this->load_markets ();
         $market = $this->market ($symbol);
         if (!$limit)
-            $limit = 100; // default is 30
+            $limit = 500; // default is 30
         $request = array (
             'market' => $market['id'],
             'period' => $period,

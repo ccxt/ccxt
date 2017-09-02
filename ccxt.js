@@ -1528,7 +1528,7 @@ var binance = {
         //     "17928899.62484339" // Can be ignored
         //   ]
         // ]
-        throw new NotImplemented (this.id + ' fetchOHLCV is not implemented yet');
+        throw new NotSupported (this.id + ' fetchOHLCV is not implemented yet');
     },
 
     parseTrade (trade, market = undefined) {
@@ -1595,7 +1595,7 @@ var binance = {
         //   "icebergQty": "0.0",
         //   "time": 1499827319559
         // }
-        throw new NotImplemented (this.id + ' parseOrder is not implemented yet');
+        throw new NotSupported (this.id + ' parseOrder is not implemented yet');
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
@@ -1634,7 +1634,7 @@ var binance = {
         // recvWindow  LONG    NO
         // timestamp   LONG    YES
         // If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
-        throw new NotImplemented (this.id + ' fetchOrders not implemented yet');
+        throw new NotSupported (this.id + ' fetchOrders not implemented yet');
     },
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
@@ -4087,7 +4087,7 @@ var bitstamp = {
     },
 
     async fetchOrder (id) {
-        throw new NotImplemented (this.id + ' fetchOrder is not implemented yet');
+        throw new NotSupported (this.id + ' fetchOrder is not implemented yet');
         await this.loadMarkets ();
     },
 
@@ -6590,7 +6590,7 @@ var bxinth = {
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol)
+        let market = this.market (symbol);
         let response = await this.publicGetTrade (this.extend ({
             'pairing': market['id'],
         }, params));
@@ -6823,7 +6823,7 @@ var ccex = {
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol)
+        let market = this.market (symbol);
         let response = await this.publicGetMarkethistory (this.extend ({
             'market': this.marketId (market),
             'type': 'both',
@@ -15121,6 +15121,7 @@ var xbtce = {
     'rateLimit': 2000, // responses are cached every 2 seconds
     'version': 'v1',
     'hasFetchTickers': true,
+    'hasFetchOHLCV': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
         'api': 'https://cryptottlivewebapi.xbtce.net:8443/api',
@@ -15368,20 +15369,21 @@ var xbtce = {
     },
 
     async fetchOHLCV (symbol, timeframe = 60, since = undefined, limit = undefined) {
-        throw new NotImplemented (this.id + ' fetchOHLCV not implemented yet');
+        throw new NotSupported (this.id + ' fetchOHLCV is disabled by the exchange');
         let minutes = parseInt (timeframe / 60); // 1 minute by default
-        let period = minutes.toString ();
+        let periodicity = minutes.toString ();
         await this.loadMarkets ();
         let market = this.market (symbol);
+        if (!since)
+            since = this.seconds () - 86400 * 7; // last day by defulat
         if (!limit)
             limit = 1000; // default
-        let request = {
-            'market': market['id'],
-            'periodicity': period,
+        let response = await this.privateGetQuotehistorySymbolPeriodicityBarsBid ({
+            'symbol': market['id'],
+            'periodicity': '5m', // periodicity,
             'timestamp': since,
             'count': limit,
-        };
-        // let response = await this.publicGetK (request);
+        });
         return this.parseOHLCVs (response['Bars'], market, timeframe, since, limit);
     },
 

@@ -820,7 +820,7 @@ class binance (Exchange):
         #     "17928899.62484339" # Can be ignored
         #   ]
         #]
-        raise NotImplemented(self.id + ' fetchOHLCV is not implemented yet')
+        raise NotSupported(self.id + ' fetchOHLCV is not implemented yet')
 
     def parse_trade(self, trade, market=None):
         timestampField = 'T' if('T' in list(trade.keys())) else 'time'
@@ -882,7 +882,7 @@ class binance (Exchange):
         #   "icebergQty": "0.0",
         #   "time": 1499827319559
         #}
-        raise NotImplemented(self.id + ' parseOrder is not implemented yet')
+        raise NotSupported(self.id + ' parseOrder is not implemented yet')
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
         order = {
@@ -918,7 +918,7 @@ class binance (Exchange):
         # recvWindow  LONG    NO
         # timestamp   LONG    YES
         # If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
-        raise NotImplemented(self.id + ' fetchOrders not implemented yet')
+        raise NotSupported(self.id + ' fetchOrders not implemented yet')
 
     async def fetch_open_orders(self, symbol=None, params={}):
         if not symbol:
@@ -3242,7 +3242,7 @@ class bitstamp (Exchange):
         result = self.parse_trades(response, market)
 
     async def fetch_order(self, id):
-        raise NotImplemented(self.id + ' fetchOrder is not implemented yet')
+        raise NotSupported(self.id + ' fetchOrder is not implemented yet')
         await self.load_markets()
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -13784,6 +13784,7 @@ class xbtce (Exchange):
             'rateLimit': 2000, # responses are cached every 2 seconds
             'version': 'v1',
             'hasFetchTickers': True,
+            'hasFetchOHLCV': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
                 'api': 'https://cryptottlivewebapi.xbtce.net:8443/api',
@@ -14006,6 +14007,34 @@ class xbtce (Exchange):
         await self.load_markets()
         # no method for trades?
         return self.privateGetTrade(params)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+        return [
+            ohlcv['Timestamp'],
+            ohlcv['Open'],
+            ohlcv['High'],
+            ohlcv['Low'],
+            ohlcv['Close'],
+            ohlcv['Volume'],
+        ]
+
+    async def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
+        raise NotSupported(self.id + ' fetchOHLCV is disabled by the exchange')
+        minutes = int(timeframe / 60) # 1 minute by default
+        periodicity = str(minutes)
+        await self.load_markets()
+        market = self.market(symbol)
+        if not since:
+            since = self.seconds() - 86400 * 7 # last day by defulat
+        if not limit:
+            limit = 1000 # default
+        response = await self.privateGetQuotehistorySymbolPeriodicityBarsBid({
+            'symbol': market['id'],
+            'periodicity': '5m', # periodicity,
+            'timestamp': since,
+            'count': limit,
+        })
+        return self.parse_ohlcvs(response['Bars'], market, timeframe, since, limit)
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -14476,7 +14505,7 @@ class yunbi (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         if not limit:
-            limit = 100 # default is 30
+            limit = 500 # default is 30
         request = {
             'market': market['id'],
             'period': period,
