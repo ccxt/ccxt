@@ -3943,10 +3943,10 @@ var bitso = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetOrderBook (this.extend ({
-            'book': this.marketId (market),
+            'book': this.marketId (symbol),
         }, params));
         let orderbook = response['payload'];
         let timestamp = this.parse8601 (orderbook['updated_at']);
@@ -3970,11 +3970,10 @@ var bitso = {
         return result;
     },
 
-
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         await this.loadMarkets ();
         let response = await this.publicGetTicker ({
-            'book': this.marketId (market),
+            'book': this.marketId (symbol),
         });
         let ticker = response['payload'];
         let timestamp = this.parse8601 (ticker['created_at']);
@@ -3999,17 +3998,40 @@ var bitso = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        await this.loadMarkets ();
-        return this.publicGetTrades (this.extend ({
-            'book': this.marketId (market),
-        }, params));
+    parseTrade (trade, market = undefined) {
+        let timestamp = this.parse8601 (trade['created_at']);
+        let symbol = undefined;
+        if (!market) {
+            if ('book' in trade)
+                market = this.markets_by_id[trade['book']];
+        }
+        return {
+            'id': trade['tid'].toString (),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': undefined,
+            'type': undefined,
+            'side': trade['maker_side'],
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
+        };
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        await this.loadMarkets ();
+        let response = await this.publicGetTrades (this.extend ({
+            'book': this.marketId (market),
+        }, params));
+        return this.parseTrades (response['payload'], market);
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
-            'book': this.marketId (market),
+            'book': this.marketId (symbol),
             'side': side,
             'type': type,
             'major': amount,
