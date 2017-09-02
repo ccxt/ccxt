@@ -3914,11 +3914,11 @@ class blinktrade (Exchange):
             'BalanceReqID': self.nonce(),
         })
 
-    def fetch_order_book(self, market, params={}):
-        p = self.market(market)
+    def fetch_order_book(self, symbol, params={}):
+        market = self.market(symbol)
         orderbook = self.publicGetCurrencyOrderbook(self.extend({
-            'currency': p['quote'],
-            'crypto_currency': p['base'],
+            'currency': market['quote'],
+            'crypto_currency': market['base'],
         }, params))
         timestamp = self.milliseconds()
         result = {
@@ -3938,14 +3938,14 @@ class blinktrade (Exchange):
                 result[side].append([price, amount])
         return result
 
-    def fetch_ticker(self, market):
-        p = self.market(market)
+    def fetch_ticker(self, symbol):
+        market = self.market(symbol)
         ticker = self.publicGetCurrencyTicker({
-            'currency': p['quote'],
-            'crypto_currency': p['base'],
+            'currency': market['quote'],
+            'crypto_currency': market['base'],
         })
         timestamp = self.milliseconds()
-        lowercaseQuote = p['quote'].lower()
+        lowercaseQuote = market['quote'].lower()
         quoteVolume = 'vol_' + lowercaseQuote
         return {
             'timestamp': timestamp,
@@ -3967,25 +3967,40 @@ class blinktrade (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
-        p = self.market(market)
-        return self.publicGetCurrencyTrades(self.extend({
-            'currency': p['quote'],
-            'crypto_currency': p['base'],
-        }, params))
+    def parse_trade(self, trade, market):
+        timestamp = trade['date'] * 1000
+        return {
+            'id': trade['tid'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['side'],
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = self.publicGetCurrencyTrades(self.extend({
+            'currency': market['quote'],
+            'crypto_currency': market['base'],
+        }, params))
+        return self.parse_trades(response, market)
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
-        p = self.market(market)
+        market = self.market(symbol)
         order = {
             'ClOrdID': self.nonce(),
-            'Symbol': p['id'],
+            'Symbol': market['id'],
             'Side': self.capitalize(side),
             'OrdType': '2',
             'Price': price,
             'OrderQty': amount,
-            'BrokerID': p['brokerId'],
+            'BrokerID': market['brokerId'],
         }
         response = self.privatePostD(self.extend(order, params))
         indexed = self.index_by(response['Responses'], 'MsgType')

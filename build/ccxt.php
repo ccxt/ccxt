@@ -4960,11 +4960,11 @@ class blinktrade extends Exchange {
         ));
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
-        $p = $this->market ($market);
+    public function fetch_order_book ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
         $orderbook = $this->publicGetCurrencyOrderbook (array_merge (array (
-            'currency' => $p['quote'],
-            'crypto_currency' => $p['base'],
+            'currency' => $market['quote'],
+            'crypto_currency' => $market['base'],
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -4987,14 +4987,14 @@ class blinktrade extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
-        $p = $this->market ($market);
+    public function fetch_ticker ($symbol) {
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetCurrencyTicker (array (
-            'currency' => $p['quote'],
-            'crypto_currency' => $p['base'],
+            'currency' => $market['quote'],
+            'crypto_currency' => $market['base'],
         ));
         $timestamp = $this->milliseconds ();
-        $lowercaseQuote = strtolower ($p['quote']);
+        $lowercaseQuote = strtolower ($market['quote']);
         $quoteVolume = 'vol_' . $lowercaseQuote;
         return array (
             'timestamp' => $timestamp,
@@ -5017,26 +5017,42 @@ class blinktrade extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        $p = $this->market ($market);
-        return $this->publicGetCurrencyTrades (array_merge (array (
-            'currency' => $p['quote'],
-            'crypto_currency' => $p['base'],
-        ), $params));
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['date'] * 1000;
+        return array (
+            'id' => $trade['tid'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['side'],
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetCurrencyTrades (array_merge (array (
+            'currency' => $market['quote'],
+            'crypto_currency' => $market['base'],
+        ), $params));
+        return $this->parse_trades ($response, $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $order = array (
             'ClOrdID' => $this->nonce (),
-            'Symbol' => $p['id'],
+            'Symbol' => $market['id'],
             'Side' => $this->capitalize ($side),
             'OrdType' => '2',
             'Price' => $price,
             'OrderQty' => $amount,
-            'BrokerID' => $p['brokerId'],
+            'BrokerID' => $market['brokerId'],
         );
         $response = $this->privatePostD (array_merge ($order, $params));
         $indexed = $this->index_by ($response['Responses'], 'MsgType');

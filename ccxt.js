@@ -4720,11 +4720,11 @@ var blinktrade = {
         });
     },
 
-    async fetchOrderBook (market, params = {}) {
-        let p = this.market (market);
+    async fetchOrderBook (symbol, params = {}) {
+        let market = this.market (symbol);
         let orderbook = await this.publicGetCurrencyOrderbook (this.extend ({
-            'currency': p['quote'],
-            'crypto_currency': p['base'],
+            'currency': market['quote'],
+            'crypto_currency': market['base'],
         }, params));
         let timestamp = this.milliseconds ();
         let result = {
@@ -4747,14 +4747,14 @@ var blinktrade = {
         return result;
     },
 
-    async fetchTicker (market) {
-        let p = this.market (market);
+    async fetchTicker (symbol) {
+        let market = this.market (symbol);
         let ticker = await this.publicGetCurrencyTicker ({
-            'currency': p['quote'],
-            'crypto_currency': p['base'],
+            'currency': market['quote'],
+            'crypto_currency': market['base'],
         });
         let timestamp = this.milliseconds ();
-        let lowercaseQuote = p['quote'].toLowerCase ();
+        let lowercaseQuote = market['quote'].toLowerCase ();
         let quoteVolume = 'vol_' + lowercaseQuote;
         return {
             'timestamp': timestamp,
@@ -4777,26 +4777,42 @@ var blinktrade = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        let p = this.market (market);
-        return this.publicGetCurrencyTrades (this.extend ({
-            'currency': p['quote'],
-            'crypto_currency': p['base'],
-        }, params));
+    parseTrade (trade, market) {
+        let timestamp = trade['date'] * 1000;
+        return {
+            'id': trade['tid'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade['side'],
+            'price': trade['price'],
+            'amount': trade['amount'],
+        };
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetCurrencyTrades (this.extend ({
+            'currency': market['quote'],
+            'crypto_currency': market['base'],
+        }, params));
+        return this.parseTrades (response, market);
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
-        let p = this.market (market);
+        let market = this.market (symbol);
         let order = {
             'ClOrdID': this.nonce (),
-            'Symbol': p['id'],
+            'Symbol': market['id'],
             'Side': this.capitalize (side),
             'OrdType': '2',
             'Price': price,
             'OrderQty': amount,
-            'BrokerID': p['brokerId'],
+            'BrokerID': market['brokerId'],
         };
         let response = await this.privatePostD (this.extend (order, params));
         let indexed = this.indexBy (response['Responses'], 'MsgType');
