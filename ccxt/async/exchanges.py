@@ -2069,10 +2069,10 @@ class bitflyer (Exchange):
             result[currency] = account
         return result
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
         orderbook = await self.publicGetBoard(self.extend({
-            'product_code': self.market_id(market),
+            'product_code': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
         result = {
@@ -2092,10 +2092,10 @@ class bitflyer (Exchange):
                 result[side].append([price, amount])
         return result
 
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         await self.load_markets()
         ticker = await self.publicGetTicker({
-            'product_code': self.market_id(market),
+            'product_code': self.market_id(symbol),
         })
         timestamp = self.parse8601(ticker['timestamp'])
         return {
@@ -2128,7 +2128,7 @@ class bitflyer (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
-            'order': trade['order'],
+            'order': trade[order],
             'type': None,
             'side': side,
             'price': trade['price'],
@@ -2143,10 +2143,10 @@ class bitflyer (Exchange):
         }, params))
         return self.parse_trades(response, market)
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         order = {
-            'product_code': self.market_id(market),
+            'product_code': self.market_id(symbol),
             'child_order_type': type.upper(),
             'side': side.upper(),
             'price': price,
@@ -2551,9 +2551,9 @@ class bitmarket (Exchange):
             result[currency] = account
         return result
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         orderbook = await self.publicGetJsonMarketOrderbook(self.extend({
-            'market': self.market_id(market),
+            'market': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
         result = {
@@ -2564,10 +2564,9 @@ class bitmarket (Exchange):
         }
         return result
 
-
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         ticker = await self.publicGetJsonMarketTicker({
-            'market': self.market_id(market),
+            'market': self.market_id(symbol),
         })
         timestamp = self.milliseconds()
         return {
@@ -2590,14 +2589,32 @@ class bitmarket (Exchange):
             'info': ticker,
         }
 
-    async def fetch_trades(self, market, params={}):
-        return self.publicGetJsonMarketTrades(self.extend({
-            'market': self.market_id(market),
-        }, params))
+    def parse_trade(self, trade, market=None):
+        side = 'buy' if(trade['type'] == 'bid') else 'sell'
+        timestamp = trade['date'] * 1000
+        return {
+            'id': str(trade['tid']),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'order': None,
+            'type': None,
+            'side': side,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = await self.publicGetJsonMarketTrades(self.extend({
+            'market': market['id'],
+        }, params))
+        return self.parse_trades(response, market)
+
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         response = await self.privatePostTrade(self.extend({
-            'market': self.market_id(market),
+            'market': self.market_id(symbol),
             'type': side,
             'amount': amount,
             'rate': price,
