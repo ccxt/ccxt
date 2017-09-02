@@ -7715,8 +7715,25 @@ var coincheck = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        return this.publicGetTrades (params);
+    parseTrade (trade, market) {
+        let timestamp = this.parse8601 (trade['created_at']);
+        return {
+            'id': trade['id'].toString (),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade['order_type'],
+            'price': parseFloat (trade['rate']),
+            'amount': parseFloat (trade['amount']),
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetTrades (params);
+        return this.parseTrades (response, market);
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
