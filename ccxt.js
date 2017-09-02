@@ -3267,6 +3267,7 @@ var bitmarket = {
     'name': 'BitMarket',
     'countries': [ 'PL', 'EU' ],
     'rateLimit': 1500,
+    'hasFetchOHLCV': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg',
         'api': {
@@ -3426,6 +3427,45 @@ var bitmarket = {
             'market': market['id'],
         }, params));
         return this.parseTrades (response, market);
+    },
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = 60, since = undefined, limit = undefined) {
+        return [
+            ohlcv['time'] * 1000,
+            parseFloat (ohlcv['open']),
+            parseFloat (ohlcv['high']),
+            parseFloat (ohlcv['low']),
+            parseFloat (ohlcv['close']),
+            parseFloat (ohlcv['vol']),
+        ];
+    },
+
+    async fetchOHLCV (symbol, timeframe = 60, since = undefined, limit = undefined) {
+        await this.loadMarkets ();
+        let period = '90m'; // 90 minutes by default
+        if (timeframe == 5400) {
+            period = '90m';
+        } else if (timeframe == 21600) {
+            period = '6h';
+        } else if (timeframe == 86400) {
+            period = '1d';
+        } else if (timeframe == 604800) {
+            period = '7d';
+        } else if (timeframe == 2592000) {
+            period = '1m';
+        } else if (timeframe == 7776000) {
+            period = '3m';
+        } else if (timeframe == 15552000) {
+            period = '6m';
+        } else if (timeframe == 31536000) {
+            period = '1y';
+        }
+        let method = 'publicGetGraphsMarket' + period;
+        let market = this.market (symbol);
+        let response = await this[method] ({
+            'market': market['id'],
+        });
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
