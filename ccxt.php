@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.78';
+$version = '1.5.79';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
