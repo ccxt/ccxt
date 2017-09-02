@@ -8376,9 +8376,9 @@ var coinmate = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         let response = await this.publicGetOrderBook (this.extend ({
-            'currencyPair': this.marketId (market),
+            'currencyPair': this.marketId (symbol),
             'groupByPriceLimit': 'False',
         }, params));
         let orderbook = response['data'];
@@ -8403,9 +8403,9 @@ var coinmate = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         let response = await this.publicGetTicker ({
-            'currencyPair': this.marketId (market),
+            'currencyPair': this.marketId (symbol),
         });
         let ticker = response['data'];
         let timestamp = ticker['timestamp'] * 1000;
@@ -8430,17 +8430,36 @@ var coinmate = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        return this.publicGetTransactions (this.extend ({
-            'currencyPair': this.marketId (market),
-            'minutesIntoHistory': 10,
-        }, params));
+    parseTrade (trade, market = undefined) {
+        let timestamp = trade['Timestamp'] * 1000;
+        if (!market)
+            market = this.markets_by_id[trade['currencyPair']];
+        return {
+            'id': trade['transactionId'],
+            'info': trade,
+            'timestamp': trade['timestamp'],
+            'datetime': this.iso8601 (trade['timestamp']),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': undefined,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        };
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetTransactions (this.extend ({
+            'currencyPair': market['id'],
+            'minutesIntoHistory': 10,
+        }, params));
+        return this.parseTrades (response['data'], market);
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePost' + this.capitalize (side);
         let order = {
-            'currencyPair': this.marketId (market),
+            'currencyPair': this.marketId (symbol),
         };
         if (type == 'market') {
             if (side == 'buy')
