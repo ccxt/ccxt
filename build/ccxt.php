@@ -8022,8 +8022,25 @@ class coincheck extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetTrades ($params);
+    public function parse_trade ($trade, $market) {
+        $timestamp = $this->parse8601 ($trade['created_at']);
+        return array (
+            'id' => (string) $trade['id'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['order_type'],
+            'price' => floatval ($trade['rate']),
+            'amount' => floatval ($trade['amount']),
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTrades ($params);
+        return $this->parse_trades ($response, $market);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
@@ -8329,10 +8346,10 @@ class coingi extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
-        $p = $this->market ($market);
+    public function fetch_order_book ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
         $orderbook = $this->currentGetOrderBookPairAskCountBidCountDepth (array_merge (array (
-            'pair' => $p['id'],
+            'pair' => $market['id'],
             'askCount' => 512, // maximum returned number of asks 1-512
             'bidCount' => 512, // maximum returned number of bids 1-512
             'depth' => 32, // maximum number of depth range steps 1-32
@@ -8382,7 +8399,7 @@ class coingi extends Exchange {
         return $ticker;
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null) {
         $response = $this->currentGet24hourRollingAggregation ();
         $result = array ();
         for ($t = 0; $t < count ($response); $t++) {
@@ -8396,35 +8413,39 @@ class coingi extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
-        $response = $this->currentGet24hourRollingAggregation ();
-        $tickers = array ();
-        for ($t = 0; $t < count ($response); $t++) {
-            $ticker = $response[$t];
-            $base = strtoupper ($ticker['currencyPair']['base']);
-            $quote = strtoupper ($ticker['currencyPair']['counter']);
-            $symbol = $base . '/' . $quote;
-            $tickers[$symbol] = $ticker;
-        }
-        $p = $this->market ($market);
-        $symbol = $p['symbol'];
-        if (array_key_exists ($symbol, $tickers)) {
-            $ticker = $tickers[$symbol];
-            return $this->parse_ticker ($ticker, $p);
-        }
-        throw new ExchangeError ($this->id . ' ' . $symbol . ' $ticker not found');
+    public function fetch_ticker ($symbol) {
+        $tickers = $this->fetchTickers ($symbol);
+        return $tickers[$symbol];
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->currentGetTransactionsPairMaxCount (array_merge (array (
-            'pair' => $this->market_id ($market),
+    public function parse_trade ($trade, $market = null) {
+        if (!$market)
+            $market = $this->markets_by_id[$trade['currencyPair']];
+        return array (
+            'id' => $trade['id'],
+            'info' => $trade,
+            'timestamp' => $trade['timestamp'],
+            'datetime' => $this->iso8601 ($trade['timestamp']),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => null, // type
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->currentGetTransactionsPairMaxCount (array_merge (array (
+            'pair' => $market['id'],
             'maxCount' => 128,
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $order = array (
-            'currencyPair' => $this->market_id ($market),
+            'currencyPair' => $this->market_id ($symbol),
             'volume' => $amount,
             'price' => $price,
             'orderType' => ($side == 'buy') ? 0 : 1,

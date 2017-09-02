@@ -6770,8 +6770,24 @@ class coincheck (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
-        return self.publicGetTrades(params)
+    def parse_trade(self, trade, market):
+        timestamp = self.parse8601(trade['created_at'])
+        return {
+            'id': str(trade['id']),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['order_type'],
+            'price': float(trade['rate']),
+            'amount': float(trade['amount']),
+        }
+
+    def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = self.publicGetTrades(params)
+        return self.parse_trades(response, market)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         prefix = ''
@@ -7055,10 +7071,10 @@ class coingi (Exchange):
             result[currency] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
-        p = self.market(market)
+    def fetch_order_book(self, symbol, params={}):
+        market = self.market(symbol)
         orderbook = self.currentGetOrderBookPairAskCountBidCountDepth(self.extend({
-            'pair': p['id'],
+            'pair': market['id'],
             'askCount': 512, # maximum returned number of asks 1-512
             'bidCount': 512, # maximum returned number of bids 1-512
             'depth': 32, # maximum number of depth range steps 1-32
@@ -7104,7 +7120,7 @@ class coingi (Exchange):
         }
         return ticker
 
-    def fetch_tickers(self):
+    def fetch_tickers(self, symbols=None):
         response = self.currentGet24hourRollingAggregation()
         result = {}
         for t in range(0, len(response)):
@@ -7116,31 +7132,36 @@ class coingi (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_ticker(self, market):
-        response = self.currentGet24hourRollingAggregation()
-        tickers = {}
-        for t in range(0, len(response)):
-            ticker = response[t]
-            base = ticker['currencyPair']['base'].upper()
-            quote = ticker['currencyPair']['counter'].upper()
-            symbol = base + '/' + quote
-            tickers[symbol] = ticker
-        p = self.market(market)
-        symbol = p['symbol']
-        if symbol in tickers:
-            ticker = tickers[symbol]
-            return self.parse_ticker(ticker, p)
-        raise ExchangeError(self.id + ' ' + symbol + ' ticker not found')
+    def fetch_ticker(self, symbol):
+        tickers = self.fetchTickers(symbol)
+        return tickers[symbol]
 
-    def fetch_trades(self, market, params={}):
-        return self.currentGetTransactionsPairMaxCount(self.extend({
-            'pair': self.market_id(market),
+    def parse_trade(self, trade, market=None):
+        if not market:
+            market = self.markets_by_id[trade['currencyPair']]
+        return {
+            'id': trade['id'],
+            'info': trade,
+            'timestamp': trade['timestamp'],
+            'datetime': self.iso8601(trade['timestamp']),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': None, # type
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
+
+    def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = self.currentGetTransactionsPairMaxCount(self.extend({
+            'pair': market['id'],
             'maxCount': 128,
         }, params))
+        return self.parse_trades(response, market)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         order = {
-            'currencyPair': self.market_id(market),
+            'currencyPair': self.market_id(symbol),
             'volume': amount,
             'price': price,
             'orderType': 0 if(side == 'buy') else 1,

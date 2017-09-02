@@ -8084,7 +8084,7 @@ var coingi = {
         return ticker;
     },
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined) {
         let response = await this.currentGet24hourRollingAggregation ();
         let result = {};
         for (let t = 0; t < response.length; t++) {
@@ -8099,7 +8099,7 @@ var coingi = {
     },
 
     async fetchTicker (symbol) {
-        let tickers = await this.fetchTickers ();
+        let tickers = await this.fetchTickers (symbol);
         return tickers[symbol];
     },
 
