@@ -3119,11 +3119,31 @@ class bitflyer extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market = null) {
+        $side = strtolower ($trade['side']);
+        $order = $side . '_child_order_acceptance_id';
+        $timestamp = $this->parse8601 ($trade['exec_date']);
+        return array (
+            'id' => (string) $trade['id'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'order' => $trade['order'],
+            'type' => null,
+            'side' => $side,
+            'price' => $trade['price'],
+            'amount' => $trade['size'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetExecutions (array_merge (array (
-            'product_code' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response = $this->publicGetExecutions (array_merge (array (
+            'product_code' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {

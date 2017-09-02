@@ -2118,11 +2118,30 @@ class bitflyer (Exchange):
             'info': ticker,
         }
 
-    async def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market=None):
+        side = trade['side'].lower()
+        order = side + '_child_order_acceptance_id'
+        timestamp = self.parse8601(trade['exec_date'])
+        return {
+            'id': str(trade['id']),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'order': trade['order'],
+            'type': None,
+            'side': side,
+            'price': trade['price'],
+            'amount': trade['size'],
+        }
+
+    async def fetch_trades(self, symbol, params={}):
         await self.load_markets()
-        return self.publicGetExecutions(self.extend({
-            'product_code': self.market_id(market),
+        market = self.market(symbol)
+        response = await self.publicGetExecutions(self.extend({
+            'product_code': market['id'],
         }, params))
+        return self.parse_trades(response, market)
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
         await self.load_markets()

@@ -2907,11 +2907,31 @@ var bitflyer = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
+    parseTrade (trade, market = undefined) {
+        let side = trade['side'].toLowerCase ();
+        let order = side + '_child_order_acceptance_id';
+        let timestamp = this.parse8601 (trade['exec_date']);
+        return {
+            'id': trade['id'].toString (),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': trade['order'],
+            'type': undefined,
+            'side': side,
+            'price': trade['price'],
+            'amount': trade['size'],
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        return this.publicGetExecutions (this.extend ({
-            'product_code': this.marketId (market),
+        let market = this.market (symbol);
+        let response = await this.publicGetExecutions (this.extend ({
+            'product_code': market['id'],
         }, params));
+        return this.parseTrades (response, market);
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
