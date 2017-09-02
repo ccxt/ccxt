@@ -8014,10 +8014,10 @@ var coingi = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
-        let p = this.market (market);
+    async fetchOrderBook (symbol, params = {}) {
+        let market = this.market (symbol);
         let orderbook = await this.currentGetOrderBookPairAskCountBidCountDepth (this.extend ({
-            'pair': p['id'],
+            'pair': market['id'],
             'askCount': 512, // maximum returned number of asks 1-512
             'bidCount': 512, // maximum returned number of bids 1-512
             'depth': 32, // maximum number of depth range steps 1-32
@@ -8081,35 +8081,39 @@ var coingi = {
         return result;
     },
 
-    async fetchTicker (market) {
-        let response = await this.currentGet24hourRollingAggregation ();
-        let tickers = {};
-        for (let t = 0; t < response.length; t++) {
-            let ticker = response[t];
-            let base = ticker['currencyPair']['base'].toUpperCase ();
-            let quote = ticker['currencyPair']['counter'].toUpperCase ();
-            let symbol = base + '/' + quote;
-            tickers[symbol] = ticker;
-        }
-        let p = this.market (market);
-        let symbol = p['symbol'];
-        if (symbol in tickers) {
-            let ticker = tickers[symbol];
-            return this.parseTicker (ticker, p);
-        }
-        throw new ExchangeError (this.id + ' ' + symbol + ' ticker not found');
+    async fetchTicker (symbol) {
+        let tickers = await this.fetchTickers ();
+        return tickers[symbol];
     },
 
-    async fetchTrades (market, params = {}) {
-        return this.currentGetTransactionsPairMaxCount (this.extend ({
-            'pair': this.marketId (market),
+    parseTrade (trade, market = undefined) {
+        if (!market)
+            market = this.markets_by_id[trade['currencyPair']];
+        return {
+            'id': trade['id'],
+            'info': trade,
+            'timestamp': trade['timestamp'],
+            'datetime': this.iso8601 (trade['timestamp']),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': undefined, // type
+            'price': trade['price'],
+            'amount': trade['amount'],
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.currentGetTransactionsPairMaxCount (this.extend ({
+            'pair': market['id'],
             'maxCount': 128,
         }, params));
+        return this.parseTrades (response, market);
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let order = {
-            'currencyPair': this.marketId (market),
+            'currencyPair': this.marketId (symbol),
             'volume': amount,
             'price': price,
             'orderType': (side == 'buy') ? 0 : 1,
