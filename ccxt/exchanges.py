@@ -1977,6 +1977,40 @@ class bitfinex (Exchange):
         }, params))
         return self.parse_order(response)
 
+    def getCurrencyName(self, currency):
+        if currency == 'BTC':
+            return 'bitcoin'
+        elif currency == 'LTC':
+            return 'litecoin'
+        elif currency == 'ETH':
+            return 'ethereum'
+        elif currency == 'ETC':
+            return 'ethereumc'
+        elif currency == 'OMNI':
+            return 'mastercoin' # ???
+        elif currency == 'ZEC':
+            return 'zcash'
+        elif currency == 'XMR':
+            return 'monero'
+        elif currency == 'USD':
+            return 'wire'
+        elif currency == 'DASH':
+            return 'dash'
+        elif currency == 'XRP':
+            return 'ripple'
+        elif currency == 'EOS':
+            return 'eos'
+        raise NotSupported(self.id + ' ' + currency + ' not supported for withdrawal')
+
+    def withdraw(self, currency, amount, address, params={}):
+        name = self.getCurrencyName(currency)
+        return self.privatePostWithdraw(self.extend({
+            'withdraw_type': name,
+            'walletselected': 'exchange',
+            'amount': amount,
+            'address': address,
+        }, params))
+
     def nonce(self):
         return self.milliseconds()
 

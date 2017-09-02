@@ -2883,6 +2883,43 @@ class bitfinex extends Exchange {
         return $this->parse_order ($response);
     }
 
+    public function getCurrencyName ($currency) {
+        if ($currency == 'BTC') {
+            return 'bitcoin';
+        } else if ($currency == 'LTC') {
+            return 'litecoin';
+        } else if ($currency == 'ETH') {
+            return 'ethereum';
+        } else if ($currency == 'ETC') {
+            return 'ethereumc';
+        } else if ($currency == 'OMNI') {
+            return 'mastercoin'; // ???
+        } else if ($currency == 'ZEC') {
+            return 'zcash';
+        } else if ($currency == 'XMR') {
+            return 'monero';
+        } else if ($currency == 'USD') {
+            return 'wire';
+        } else if ($currency == 'DASH') {
+            return 'dash';
+        } else if ($currency == 'XRP') {
+            return 'ripple';
+        } else if ($currency == 'EOS') {
+            return 'eos';
+        }
+        throw new NotSupported ($this->id . ' ' . $currency . ' not supported for withdrawal');
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $name = $this->getCurrencyName ($currency);
+        return $this->privatePostWithdraw (array_merge (array (
+            'withdraw_type' => $name,
+            'walletselected' => 'exchange',
+            'amount' => $amount,
+            'address' => $address,
+        ), $params));
+    }
+
     public function nonce () {
         return $this->milliseconds ();
     }
