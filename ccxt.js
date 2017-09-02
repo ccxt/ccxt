@@ -15381,7 +15381,7 @@ var xbtce = {
             'timestamp': since,
             'count': limit,
         };
-        let response = await this.publicGetK (request);
+        // let response = await this.publicGetK (request);
         return this.parseOHLCVs (response['Bars'], market, timeframe, since, limit);
     },
 
