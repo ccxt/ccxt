@@ -2854,10 +2854,10 @@ var bitflyer = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetBoard (this.extend ({
-            'product_code': this.marketId (market),
+            'product_code': this.marketId (symbol),
         }, params));
         let timestamp = this.milliseconds ();
         let result = {
@@ -2880,10 +2880,10 @@ var bitflyer = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         await this.loadMarkets ();
         let ticker = await this.publicGetTicker ({
-            'product_code': this.marketId (market),
+            'product_code': this.marketId (symbol),
         });
         let timestamp = this.parse8601 (ticker['timestamp']);
         return {
@@ -2934,10 +2934,10 @@ var bitflyer = {
         return this.parseTrades (response, market);
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
-            'product_code': this.marketId (market),
+            'product_code': this.marketId (symbol),
             'child_order_type': type.toUpperCase (),
             'side': side.toUpperCase (),
             'price': price,
