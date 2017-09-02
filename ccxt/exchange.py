@@ -251,7 +251,7 @@ class Exchange (object):
         except _urllib.URLError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
         except httplib.BadStatusLine as e:
-            self.raise_error(ExchangeError, url, method, e)
+            self.raise_error(ExchangeNotAvailable, url, method, e)
         encoding = response.info().get('Content-Encoding')
         if encoding in ('gzip', 'x-gzip', 'deflate'):
             if encoding == 'deflate':

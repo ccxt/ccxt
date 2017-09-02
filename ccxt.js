@@ -3516,6 +3516,7 @@ var bitmex = {
     'countries': 'SC', // Seychelles
     'version': 'v1',
     'rateLimit': 1500,
+    'hasFetchOHLCV': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
         'api': 'https://www.bitmex.com',
@@ -3658,10 +3659,10 @@ var bitmex = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetOrderBookL2 (this.extend ({
-            'symbol': this.marketId (market),
+            'symbol': this.marketId (symbol),
         }, params));
         let timestamp = this.milliseconds ();
         let result = {
@@ -3682,10 +3683,10 @@ var bitmex = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         await this.loadMarkets ();
         let request = {
-            'symbol': this.marketId (market),
+            'symbol': this.marketId (symbol),
             'binSize': '1d',
             'partial': true,
             'count': 1,
@@ -3718,17 +3719,89 @@ var bitmex = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        await this.loadMarkets ();
-        return this.publicGetTrade (this.extend ({
-            'symbol': this.marketId (market),
-        }, params));
+    parseOHLCV (ohlcv, market = undefined, timeframe = 60, since = undefined, limit = undefined) {
+        let timestamp = this.parse8601 (ohlcv['timestamp']);
+        return [
+            timestamp,
+            ohlcv['open'],
+            ohlcv['high'],
+            ohlcv['low'],
+            ohlcv['close'],
+            ohlcv['volume'],
+        ];
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = 60, since = undefined, limit = undefined) {
+        await this.loadMarkets ();
+        let period = '1m'; // 1 minute by default
+        if (timeframe == 60) {
+            period = '1m';
+        } else if (timeframe == 300) {
+            period = '5m';
+        } else if (timeframe == 3600) {
+            period = '1h';
+        } else if (timeframe == 86400) {
+            period = '1d';
+        }
+        // send JSON key/value pairs, such as {"key": "value"}
+        // filter by individual fields and do advanced queries on timestamps
+        let filter = { 'key': 'value' };
+        // send a bare series (e.g. XBU) to nearest expiring contract in that series
+        // you can also send a timeframe, e.g. XBU:monthly
+        // timeframes: daily, weekly, monthly, quarterly, and biquarterly
+        let market = this.market (symbol);
+        let request = {
+            'symbol': market['id'],
+            'binSize': period,
+            'partial': true,     // true == include yet-incomplete current bins
+            // 'filter': filter, // filter by individual fields and do advanced queries
+            // 'columns': [],    // will return all columns if omitted
+            // 'start': 0,       // starting point for results (wtf?)
+            // 'reverse': false, // true == newest first
+            // 'endTime': '',    // ending date filter for results
+        };
+        if (since)
+            request['startTime'] = since; // starting date filter for results
+        if (limit)
+            request['count'] = limit; // default 100
+        let response = await this.publicGetTradeBucketed (request);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    },
+
+    parseTrade (trade, market = undefined) {
+        let timestamp = this.parse8601 (trade['timestamp']);
+        let symbol = undefined;
+        if (!market) {
+            if ('symbol' in trade)
+                market = this.markets_by_id[trade['symbol']];
+        }
+        return {
+            'id': trade['trdMatchID'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': undefined,
+            'type': undefined,
+            'side': trade['side'].toLowerCase (),
+            'price': trade['price'],
+            'amount': trade['size'],
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        await this.loadMarkets ();
+        let response = await this.publicGetTrade (this.extend ({
+            'symbol': market['id'],
+        }, params));
+        return this.parseTrades (response, market);
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
-            'symbol': this.marketId (market),
+            'symbol': this.marketId (symbol),
             'side': this.capitalize (side),
             'orderQty': amount,
             'ordType': this.capitalize (type),
@@ -3748,7 +3821,7 @@ var bitmex = {
     },
 
     request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let query = '/api/' + this.version + '/' + path;
+        let query = '/api' + '/' + this.version + '/' + path;
         if (Object.keys (params).length)
             query += '?' + this.urlencode (params);
         let url = this.urls['api'] + query;

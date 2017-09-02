@@ -2772,6 +2772,7 @@ class bitmex (Exchange):
             'countries': 'SC', # Seychelles
             'version': 'v1',
             'rateLimit': 1500,
+            'hasFetchOHLCV': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
                 'api': 'https://www.bitmex.com',
@@ -2912,10 +2913,10 @@ class bitmex (Exchange):
             result[currency] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         self.load_markets()
         orderbook = self.publicGetOrderBookL2(self.extend({
-            'symbol': self.market_id(market),
+            'symbol': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
         result = {
@@ -2934,10 +2935,10 @@ class bitmex (Exchange):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
         request = {
-            'symbol': self.market_id(market),
+            'symbol': self.market_id(symbol),
             'binSize': '1d',
             'partial': True,
             'count': 1,
@@ -2969,16 +2970,83 @@ class bitmex (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
-        self.load_markets()
-        return self.publicGetTrade(self.extend({
-            'symbol': self.market_id(market),
-        }, params))
+    def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+        timestamp = self.parse8601(ohlcv['timestamp'])
+        return [
+            timestamp,
+            ohlcv['open'],
+            ohlcv['high'],
+            ohlcv['low'],
+            ohlcv['close'],
+            ohlcv['volume'],
+        ]
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
+        self.load_markets()
+        period = '1m' # 1 minute by default
+        if timeframe == 60:
+            period = '1m'
+        elif timeframe == 300:
+            period = '5m'
+        elif timeframe == 3600:
+            period = '1h'
+        elif timeframe == 86400:
+            period = '1d'
+        # send JSON key/value pairs, such as {"key": "value"}
+        # filter by individual fields and do advanced queries on timestamps
+        filter = {'key': 'value'}
+        # send a bare series(e.g. XBU) to nearest expiring contract in that series
+        # you can also send a timeframe, e.g. XBU:monthly
+        # timeframes: daily, weekly, monthly, quarterly, and biquarterly
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'binSize': period,
+            'partial': True,     # True == include yet-incomplete current bins
+            # 'filter': filter, # filter by individual fields and do advanced queries
+            # 'columns': [],    # will return all columns if omitted
+            # 'start': 0,       # starting point for results(wtf?)
+            # 'reverse': False, # True == newest first
+            # 'endTime': '',    # ending date filter for results
+        }
+        if since:
+            request['startTime'] = since # starting date filter for results
+        if limit:
+            request['count'] = limit # default 100
+        response = self.publicGetTradeBucketed(request)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
+    def parse_trade(self, trade, market=None):
+        timestamp = self.parse8601(trade['timestamp'])
+        symbol = None
+        if not market:
+            if 'symbol' in trade:
+                market = self.markets_by_id[trade['symbol']]
+        return {
+            'id': trade['trdMatchID'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'order': None,
+            'type': None,
+            'side': trade['side'].lower(),
+            'price': trade['price'],
+            'amount': trade['size'],
+        }
+
+    def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        self.load_markets()
+        response = self.publicGetTrade(self.extend({
+            'symbol': market['id'],
+        }, params))
+        return self.parse_trades(response, market)
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         order = {
-            'symbol': self.market_id(market),
+            'symbol': self.market_id(symbol),
             'side': self.capitalize(side),
             'orderQty': amount,
             'ordType': self.capitalize(type),
@@ -2996,7 +3064,7 @@ class bitmex (Exchange):
         return self.privateDeleteOrder({'orderID': id})
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        query = '/api/' + self.version + '/' + path
+        query = '/api' + '/' + self.version + '/' + path
         if params:
             query += '?' + self.urlencode(params)
         url = self.urls['api'] + query

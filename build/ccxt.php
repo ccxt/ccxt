@@ -3738,6 +3738,7 @@ class bitmex extends Exchange {
             'countries' => 'SC', // Seychelles
             'version' => 'v1',
             'rateLimit' => 1500,
+            'hasFetchOHLCV' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
                 'api' => 'https://www.bitmex.com',
@@ -3882,10 +3883,10 @@ class bitmex extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetOrderBookL2 (array_merge (array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -3906,10 +3907,10 @@ class bitmex extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
         $request = array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
             'binSize' => '1d',
             'partial' => true,
             'count' => 1,
@@ -3942,17 +3943,89 @@ class bitmex extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        $this->load_markets ();
-        return $this->publicGetTrade (array_merge (array (
-            'symbol' => $this->market_id ($market),
-        ), $params));
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
+        $timestamp = $this->parse8601 ($ohlcv['timestamp']);
+        return [
+            $timestamp,
+            $ohlcv['open'],
+            $ohlcv['high'],
+            $ohlcv['low'],
+            $ohlcv['close'],
+            $ohlcv['volume'],
+        ];
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
+        $this->load_markets ();
+        $period = '1m'; // 1 minute by default
+        if ($timeframe == 60) {
+            $period = '1m';
+        } else if ($timeframe == 300) {
+            $period = '5m';
+        } else if ($timeframe == 3600) {
+            $period = '1h';
+        } else if ($timeframe == 86400) {
+            $period = '1d';
+        }
+        // send JSON key/value pairs, such as array ("key" => "value")
+        // $filter by individual fields and do advanced queries on timestamps
+        $filter = array ( 'key' => 'value' );
+        // send a bare series (e.g. XBU) to nearest expiring contract in that series
+        // you can also send a $timeframe, e.g. XBU:monthly
+        // timeframes => daily, weekly, monthly, quarterly, and biquarterly
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+            'binSize' => $period,
+            'partial' => true,     // true == include yet-incomplete current bins
+            // 'filter' => $filter, // $filter by individual fields and do advanced queries
+            // 'columns' => array (),    // will return all columns if omitted
+            // 'start' => 0,       // starting point for results (wtf?)
+            // 'reverse' => false, // true == newest first
+            // 'endTime' => '',    // ending date $filter for results
+        );
+        if ($since)
+            $request['startTime'] = $since; // starting date $filter for results
+        if ($limit)
+            $request['count'] = $limit; // default 100
+        $response = $this->publicGetTradeBucketed ($request);
+        return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $this->parse8601 ($trade['timestamp']);
+        $symbol = null;
+        if (!$market) {
+            if (array_key_exists ('symbol', $trade))
+                $market = $this->markets_by_id[$trade['symbol']];
+        }
+        return array (
+            'id' => $trade['trdMatchID'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'order' => null,
+            'type' => null,
+            'side' => strtolower ($trade['side']),
+            'price' => $trade['price'],
+            'amount' => $trade['size'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $this->load_markets ();
+        $response = $this->publicGetTrade (array_merge (array (
+            'symbol' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response, $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $order = array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
             'side' => $this->capitalize ($side),
             'orderQty' => $amount,
             'ordType' => $this->capitalize ($type),
@@ -3972,7 +4045,7 @@ class bitmex extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $query = '/$api/' . $this->version . '/' . $path;
+        $query = '/api' . '/' . $this->version . '/' . $path;
         if ($params)
             $query .= '?' . $this->urlencode ($params);
         $url = $this->urls['api'] . $query;
