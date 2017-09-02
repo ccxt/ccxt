@@ -8431,7 +8431,7 @@ var coinmate = {
     },
 
     parseTrade (trade, market = undefined) {
-        let timestamp = trade['Timestamp'] * 1000;
+        let timestamp = trade['timestamp'] * 1000;
         if (!market)
             market = this.markets_by_id[trade['currencyPair']];
         return {
