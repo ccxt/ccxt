@@ -7398,9 +7398,9 @@ class coinmate (Exchange):
             result[currency] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         response = self.publicGetOrderBook(self.extend({
-            'currencyPair': self.market_id(market),
+            'currencyPair': self.market_id(symbol),
             'groupByPriceLimit': 'False',
         }, params))
         orderbook = response['data']
@@ -7422,9 +7422,9 @@ class coinmate (Exchange):
                 result[side].append([price, amount])
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         response = self.publicGetTicker({
-            'currencyPair': self.market_id(market),
+            'currencyPair': self.market_id(symbol),
         })
         ticker = response['data']
         timestamp = ticker['timestamp'] * 1000
@@ -7448,16 +7448,34 @@ class coinmate (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
-        return self.publicGetTransactions(self.extend({
-            'currencyPair': self.market_id(market),
+    def parse_trade(self, trade, market=None):
+        timestamp = trade['timestamp'] * 1000
+        if not market:
+            market = self.markets_by_id[trade['currencyPair']]
+        return {
+            'id': trade['transactionId'],
+            'info': trade,
+            'timestamp': trade['timestamp'],
+            'datetime': self.iso8601(trade['timestamp']),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': None,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
+
+    def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = self.publicGetTransactions(self.extend({
+            'currencyPair': market['id'],
             'minutesIntoHistory': 10,
         }, params))
+        return self.parse_trades(response['data'], market)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         method = 'privatePost' + self.capitalize(side)
         order = {
-            'currencyPair': self.market_id(market),
+            'currencyPair': self.market_id(symbol),
         }
         if type == 'market':
             if side == 'buy':

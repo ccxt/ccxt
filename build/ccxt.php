@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.85';
+$version = '1.5.86';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8699,9 +8699,9 @@ class coinmate extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $response = $this->publicGetOrderBook (array_merge (array (
-            'currencyPair' => $this->market_id ($market),
+            'currencyPair' => $this->market_id ($symbol),
             'groupByPriceLimit' => 'False',
         ), $params));
         $orderbook = $response['data'];
@@ -8726,9 +8726,9 @@ class coinmate extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $response = $this->publicGetTicker (array (
-            'currencyPair' => $this->market_id ($market),
+            'currencyPair' => $this->market_id ($symbol),
         ));
         $ticker = $response['data'];
         $timestamp = $ticker['timestamp'] * 1000;
@@ -8753,17 +8753,36 @@ class coinmate extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetTransactions (array_merge (array (
-            'currencyPair' => $this->market_id ($market),
-            'minutesIntoHistory' => 10,
-        ), $params));
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $trade['timestamp'] * 1000;
+        if (!$market)
+            $market = $this->markets_by_id[$trade['currencyPair']];
+        return array (
+            'id' => $trade['transactionId'],
+            'info' => $trade,
+            'timestamp' => $trade['timestamp'],
+            'datetime' => $this->iso8601 ($trade['timestamp']),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => null,
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTransactions (array_merge (array (
+            'currencyPair' => $market['id'],
+            'minutesIntoHistory' => 10,
+        ), $params));
+        return $this->parse_trades ($response['data'], $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePost' . $this->capitalize ($side);
         $order = array (
-            'currencyPair' => $this->market_id ($market),
+            'currencyPair' => $this->market_id ($symbol),
         );
         if ($type == 'market') {
             if ($side == 'buy')
