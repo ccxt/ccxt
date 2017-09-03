@@ -4636,6 +4636,7 @@ var bittrex = {
     },
 
     async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
         return this.accountGetWithdraw (this.extend ({
             'currency': currency,
             'quantity': amount,
@@ -14005,6 +14006,7 @@ var poloniex = {
     },
 
     async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
         return this.privatePostWithdraw (this.extend ({
             'currency': currency,
             'amount': amount,
