@@ -2703,13 +2703,18 @@ var bitfinex = {
     },
 
     async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
         let name = this.getCurrencyName (currency);
-        return this.privatePostWithdraw (this.extend ({
+        let response = await this.privatePostWithdraw (this.extend ({
             'withdraw_type': name,
             'walletselected': 'exchange',
             'amount': amount,
             'address': address,
         }, params));
+        return {
+            'info': response,
+            'id': response['withdrawal_id'],
+        };
     },
 
     nonce () {
@@ -4637,11 +4642,15 @@ var bittrex = {
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
-        return this.accountGetWithdraw (this.extend ({
+        let response = await this.accountGetWithdraw (this.extend ({
             'currency': currency,
             'quantity': amount,
             'address': address,
         }, params));
+        return {
+            'info': response,
+            'id': response['result']['uuid'],
+        };
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -11137,6 +11146,19 @@ var hitbtc = {
         }, params));
     },
 
+    async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.paymentPostPayout (this.extend ({
+            'currency_code': currency,
+            'amount': amount,
+            'address': address,
+        }, params));
+        return {
+            'info': response,
+            'id': response['transaction'],
+        };
+    },
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + 'api' + '/' + this.version + '/' + api + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
@@ -14007,11 +14029,15 @@ var poloniex = {
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
-        return this.privatePostWithdraw (this.extend ({
+        let result = await this.privatePostWithdraw (this.extend ({
             'currency': currency,
             'amount': amount,
             'address': address,
         }, params));
+        return {
+            'info': result,
+            'id': result['response'],
+        }
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
