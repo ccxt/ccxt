@@ -11808,10 +11808,10 @@ var jubi = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetDepth (this.extend ({
-            'coin': this.marketId (market),
+            'coin': this.marketId (symbol),
         }, params));
         let timestamp = this.milliseconds ();
         let result = {
@@ -11862,29 +11862,47 @@ var jubi = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         await this.loadMarkets ();
-        let p = this.market (market);
+        let market = this.market (symbol);
         let ticker = await this.publicGetTicker ({
-            'coin': p['id'],
+            'coin': market['id'],
         });
-        return this.parseTicker (ticker, p);
+        return this.parseTicker (ticker, market);
     },
 
-    async fetchTrades (market, params = {}) {
+    parseTrade (trade, market) {
+        let timestamp = parseInt (trade['date']) * 1000;
+        return {
+            'info': trade,
+            'id': trade['tid'],
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade['type'],
+            'price': trade['price'],
+            'amount': trade['amount'],
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        return this.publicGetOrders (this.extend ({
-            'coin': this.marketId (market),
+        let market = this.market (symbol);
+        let response = await this.publicGetOrders (this.extend ({
+            'coin': market['id'],
         }, params));
+        return this.parseTrades (response, market);
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostTradeAdd (this.extend ({
             'amount': amount,
             'price': price,
             'type': side,
-            'coin': this.marketId (market),
+            'coin': this.marketId (symbol),
         }, params));
         return {
             'info': response,

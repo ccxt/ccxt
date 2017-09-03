@@ -10613,10 +10613,10 @@ class jubi (Exchange):
             result[currency] = account
         return result
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
         orderbook = await self.publicGetDepth(self.extend({
-            'coin': self.market_id(market),
+            'coin': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
         result = {
@@ -10663,27 +10663,44 @@ class jubi (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         await self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         ticker = await self.publicGetTicker({
-            'coin': p['id'],
+            'coin': market['id'],
         })
-        return self.parse_ticker(ticker, p)
+        return self.parse_ticker(ticker, market)
 
-    async def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market):
+        timestamp = int(trade['date']) * 1000
+        return {
+            'info': trade,
+            'id': trade['tid'],
+            'order': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['type'],
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
+
+    async def fetch_trades(self, symbol, params={}):
         await self.load_markets()
-        return self.publicGetOrders(self.extend({
-            'coin': self.market_id(market),
+        market = self.market(symbol)
+        response = await self.publicGetOrders(self.extend({
+            'coin': market['id'],
         }, params))
+        return self.parse_trades(response, market)
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         response = await self.privatePostTradeAdd(self.extend({
             'amount': amount,
             'price': price,
             'type': side,
-            'coin': self.market_id(market),
+            'coin': self.market_id(symbol),
         }, params))
         return {
             'info': response,

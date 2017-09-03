@@ -12204,10 +12204,10 @@ class jubi extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetDepth (array_merge (array (
-            'coin' => $this->market_id ($market),
+            'coin' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -12258,29 +12258,47 @@ class jubi extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetTicker (array (
-            'coin' => $p['id'],
+            'coin' => $market['id'],
         ));
-        return $this->parse_ticker ($ticker, $p);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = intval ($trade['date']) * 1000;
+        return array (
+            'info' => $trade,
+            'id' => $trade['tid'],
+            'order' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['type'],
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetOrders (array_merge (array (
-            'coin' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response = $this->publicGetOrders (array_merge (array (
+            'coin' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostTradeAdd (array_merge (array (
             'amount' => $amount,
             'price' => $price,
             'type' => $side,
-            'coin' => $this->market_id ($market),
+            'coin' => $this->market_id ($symbol),
         ), $params));
         return array (
             'info' => $response,
