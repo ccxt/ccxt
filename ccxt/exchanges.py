@@ -10529,9 +10529,9 @@ class itbit (Exchange):
         params.update(config)
         super(itbit, self).__init__(params)
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         orderbook = self.publicGetMarketsSymbolOrderBook(self.extend({
-            'symbol': self.market_id(market),
+            'symbol': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
         result = {
@@ -10551,9 +10551,9 @@ class itbit (Exchange):
                 result[side].append([price, amount])
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         ticker = self.publicGetMarketsSymbolTicker({
-            'symbol': self.market_id(market),
+            'symbol': self.market_id(symbol),
         })
         timestamp = self.parse8601(ticker['serverTimeUTC'])
         bid = None
@@ -10584,10 +10584,28 @@ class itbit (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
-        return self.publicGetMarketsSymbolTrades(self.extend({
-            'symbol': self.market_id(market),
+    def parse_trade(self, trade, market):
+        timestamp = self.parse8601(trade['timestamp'])
+        id = str(trade['matchNumber'])
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'id': id,
+            'order': id,
+            'type': None,
+            'side': None,
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
+        }
+
+    def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = self.publicGetMarketsSymbolTrades(self.extend({
+            'symbol': market['id'],
         }, params))
+        return self.parse_trades(response['recentTrades'], market)
 
     def fetch_balance(self, params={}):
         response = self.privateGetBalances()
@@ -10611,20 +10629,20 @@ class itbit (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         amount = str(amount)
         price = str(price)
-        p = self.market(market)
+        market = self.market(symbol)
         order = {
             'side': side,
             'type': type,
-            'currency': p['base'],
+            'currency': market['base'],
             'amount': amount,
             'display': amount,
             'price': price,
-            'instrument': p['id'],
+            'instrument': market['id'],
         }
         response = self.privatePostTradeAdd(self.extend(order, params))
         return {

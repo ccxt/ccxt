@@ -11636,9 +11636,9 @@ var itbit = {
         'BTC/EUR': { 'id': 'XBTEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         let orderbook = await this.publicGetMarketsSymbolOrderBook (this.extend ({
-            'symbol': this.marketId (market),
+            'symbol': this.marketId (symbol),
         }, params));
         let timestamp = this.milliseconds ();
         let result = {
@@ -11661,9 +11661,9 @@ var itbit = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         let ticker = await this.publicGetMarketsSymbolTicker ({
-            'symbol': this.marketId (market),
+            'symbol': this.marketId (symbol),
         });
         let timestamp = this.parse8601 (ticker['serverTimeUTC']);
         let bid = undefined;
@@ -11695,10 +11695,29 @@ var itbit = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        return this.publicGetMarketsSymbolTrades (this.extend ({
-            'symbol': this.marketId (market),
+    parseTrade (trade, market) {
+        let timestamp = this.parse8601 (trade['timestamp']);
+        let id = trade['matchNumber'].toString ();
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'id': id,
+            'order': id,
+            'type': undefined,
+            'side': undefined,
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetMarketsSymbolTrades (this.extend ({
+            'symbol': market['id'],
         }, params));
+        return this.parseTrades (response['recentTrades'], market);
     },
 
     async fetchBalance (params = {}) {
@@ -11727,20 +11746,20 @@ var itbit = {
         return this.milliseconds ();
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         amount = amount.toString ();
         price = price.toString ();
-        let p = this.market (market);
+        let market = this.market (symbol);
         let order = {
             'side': side,
             'type': type,
-            'currency': p['base'],
+            'currency': market['base'],
             'amount': amount,
             'display': amount,
             'price': price,
-            'instrument': p['id'],
+            'instrument': market['id'],
         };
         let response = await this.privatePostTradeAdd (this.extend (order, params));
         return {
