@@ -11745,10 +11745,10 @@ class luno (Exchange):
             result[currency] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         self.load_markets()
         orderbook = self.publicGetOrderbook(self.extend({
-            'pair': self.market_id(market),
+            'pair': self.market_id(symbol),
         }, params))
         timestamp = orderbook['timestamp']
         result = {
@@ -11805,19 +11805,36 @@ class luno (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         ticker = self.publicGetTicker({
-            'pair': p['id'],
+            'pair': market['id'],
         })
-        return self.parse_ticker(ticker, p)
+        return self.parse_ticker(ticker, market)
 
-    def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market):
+        side = 'buy' if(trade['is_buy']) else 'sell'
+        return {
+            'info': trade,
+            'id': None,
+            'order': None,
+            'timestamp': trade['timestamp'],
+            'datetime': self.iso8601(trade['timestamp']),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': side,
+            'price': float(trade['price']),
+            'amount': float(trade['volume']),
+        }
+
+    def fetch_trades(self, symbol, params={}):
         self.load_markets()
-        return self.publicGetTrades(self.extend({
-            'pair': self.market_id(market),
+        market = self.market(symbol)
+        response = self.publicGetTrades(self.extend({
+            'pair': market['id'],
         }, params))
+        return self.parse_trades(response['trades'], market)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.load_markets()

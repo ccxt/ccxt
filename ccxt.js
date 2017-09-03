@@ -12916,10 +12916,10 @@ var luno = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetOrderbook (this.extend ({
-            'pair': this.marketId (market),
+            'pair': this.marketId (symbol),
         }, params));
         let timestamp = orderbook['timestamp'];
         let result = {
@@ -12982,20 +12982,38 @@ var luno = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         await this.loadMarkets ();
-        let p = this.market (market);
+        let market = this.market (symbol);
         let ticker = await this.publicGetTicker ({
-            'pair': p['id'],
+            'pair': market['id'],
         });
-        return this.parseTicker (ticker, p);
+        return this.parseTicker (ticker, market);
     },
 
-    async fetchTrades (market, params = {}) {
+    parseTrade (trade, market) {
+        let side = (trade['is_buy']) ? 'buy' : 'sell';
+        return {
+            'info': trade,
+            'id': undefined,
+            'order': undefined,
+            'timestamp': trade['timestamp'],
+            'datetime': this.iso8601 (trade['timestamp']),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': side,
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['volume']),
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        return this.publicGetTrades (this.extend ({
-            'pair': this.marketId (market),
+        let market = this.market (symbol);
+        let response = await this.publicGetTrades (this.extend ({
+            'pair': market['id'],
         }, params));
+        return this.parseTrades (response['trades'], market);
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {

@@ -13332,10 +13332,10 @@ class luno extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetOrderbook (array_merge (array (
-            'pair' => $this->market_id ($market),
+            'pair' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $orderbook['timestamp'];
         $result = array (
@@ -13398,20 +13398,38 @@ class luno extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetTicker (array (
-            'pair' => $p['id'],
+            'pair' => $market['id'],
         ));
-        return $this->parse_ticker ($ticker, $p);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $side = ($trade['is_buy']) ? 'buy' : 'sell';
+        return array (
+            'info' => $trade,
+            'id' => null,
+            'order' => null,
+            'timestamp' => $trade['timestamp'],
+            'datetime' => $this->iso8601 ($trade['timestamp']),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $side,
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['volume']),
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetTrades (array_merge (array (
-            'pair' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTrades (array_merge (array (
+            'pair' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response['trades'], $market);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
