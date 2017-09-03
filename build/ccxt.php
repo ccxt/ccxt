@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.89';
+$version = '1.5.90';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2911,13 +2911,18 @@ class bitfinex extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
         $name = $this->getCurrencyName ($currency);
-        return $this->privatePostWithdraw (array_merge (array (
+        $response = $this->privatePostWithdraw (array_merge (array (
             'withdraw_type' => $name,
             'walletselected' => 'exchange',
             'amount' => $amount,
             'address' => $address,
         ), $params));
+        return array (
+            'info' => $response,
+            'id' => $response['withdrawal_id'],
+        );
     }
 
     public function nonce () {
@@ -4873,11 +4878,15 @@ class bittrex extends Exchange {
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $this->load_markets ();
-        return $this->accountGetWithdraw (array_merge (array (
+        $response = $this->accountGetWithdraw (array_merge (array (
             'currency' => $currency,
             'quantity' => $amount,
             'address' => $address,
         ), $params));
+        return array (
+            'info' => $response,
+            'id' => $response['result']['uuid'],
+        );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -11521,6 +11530,19 @@ class hitbtc extends Exchange {
         ), $params));
     }
 
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $response = $this->paymentPostPayout (array_merge (array (
+            'currency_code' => $currency,
+            'amount' => $amount,
+            'address' => $address,
+        ), $params));
+        return array (
+            'info' => $response,
+            'id' => $response['transaction'],
+        );
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . 'api' . '/' . $this->version . '/' . $api . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
@@ -14446,11 +14468,15 @@ class poloniex extends Exchange {
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $this->load_markets ();
-        return $this->privatePostWithdraw (array_merge (array (
+        $result = $this->privatePostWithdraw (array_merge (array (
             'currency' => $currency,
             'amount' => $amount,
             'address' => $address,
         ), $params));
+        return {
+            'info' => $result,
+            'id' => $result['response'],
+        }
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

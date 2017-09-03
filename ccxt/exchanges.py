@@ -2003,13 +2003,18 @@ class bitfinex (Exchange):
         raise NotSupported(self.id + ' ' + currency + ' not supported for withdrawal')
 
     def withdraw(self, currency, amount, address, params={}):
+        self.load_markets()
         name = self.getCurrencyName(currency)
-        return self.privatePostWithdraw(self.extend({
+        response = self.privatePostWithdraw(self.extend({
             'withdraw_type': name,
             'walletselected': 'exchange',
             'amount': amount,
             'address': address,
         }, params))
+        return {
+            'info': response,
+            'id': response['withdrawal_id'],
+        }
 
     def nonce(self):
         return self.milliseconds()
@@ -3830,11 +3835,15 @@ class bittrex (Exchange):
 
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()
-        return self.accountGetWithdraw(self.extend({
+        response = self.accountGetWithdraw(self.extend({
             'currency': currency,
             'quantity': amount,
             'address': address,
         }, params))
+        return {
+            'info': response,
+            'id': response['result']['uuid'],
+        }
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/'
@@ -10049,6 +10058,18 @@ class hitbtc (Exchange):
             'clientOrderId': id,
         }, params))
 
+    def withdraw(self, currency, amount, address, params={}):
+        self.load_markets()
+        response = self.paymentPostPayout(self.extend({
+            'currency_code': currency,
+            'amount': amount,
+            'address': address,
+        }, params))
+        return {
+            'info': response,
+            'id': response['transaction'],
+        }
+
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + 'api' + '/' + self.version + '/' + api + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -12784,11 +12805,15 @@ class poloniex (Exchange):
 
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()
-        return self.privatePostWithdraw(self.extend({
+        result = self.privatePostWithdraw(self.extend({
             'currency': currency,
             'amount': amount,
             'address': address,
         }, params))
+        return {
+            'info': result,
+            'id': result['response'],
+        }
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
