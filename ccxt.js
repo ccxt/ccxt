@@ -13226,9 +13226,9 @@ var mercado = {
         'LTC/BRL': { 'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin' },
     },
 
-    async fetchOrderBook (market, params = {}) {
-        let p = this.market (market);
-        let method = 'publicGetOrderbook' + this.capitalize (p['suffix']);
+    async fetchOrderBook (symbol, params = {}) {
+        let market = this.market (symbol);
+        let method = 'publicGetOrderbook' + this.capitalize (market['suffix']);
         let orderbook = await this[method] (params);
         let timestamp = this.milliseconds ();
         let result = {
@@ -13240,9 +13240,9 @@ var mercado = {
         return result;
     },
 
-    async fetchTicker (market) {
-        let p = this.market (market);
-        let method = 'publicGetV2Ticker' + this.capitalize (p['suffix']);
+    async fetchTicker (symbol) {
+        let market = this.market (symbol);
+        let method = 'publicGetV2Ticker' + this.capitalize (market['suffix']);
         let response = await this[method] ();
         let ticker = response['ticker'];
         let timestamp = parseInt (ticker['date']) * 1000;
@@ -13267,10 +13267,27 @@ var mercado = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        let p = this.market (market);
-        let method = 'publicGetTrades' + this.capitalize (p['suffix']);
-        return this[method] (params);
+    parseTrade (trade, market) {
+        let timestamp = trade['date'] * 1000;
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'id': trade['tid'].toString (),
+            'order': undefined,
+            'type': undefined,
+            'side': trade['type'],
+            'price': trade['price'],
+            'amount': trade['amount'],
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let method = 'publicGetTrades' + this.capitalize (market['suffix']);
+        let response = await this[method] (params);
+        return this.parseTrades (response, market);
     },
 
     async fetchBalance (params = {}) {
@@ -13291,12 +13308,12 @@ var mercado = {
         return result;
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let method = 'privatePostPlace' + this.capitalize (side) + 'Order';
         let order = {
-            'coin_pair': this.marketId (market),
+            'coin_pair': this.marketId (symbol),
             'quantity': amount,
             'limit_price': price,
         };

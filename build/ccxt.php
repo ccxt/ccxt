@@ -13653,9 +13653,9 @@ class mercado extends Exchange {
         ), $options));
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
-        $p = $this->market ($market);
-        $method = 'publicGetOrderbook' . $this->capitalize ($p['suffix']);
+    public function fetch_order_book ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $method = 'publicGetOrderbook' . $this->capitalize ($market['suffix']);
         $orderbook = $this->$method ($params);
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -13667,9 +13667,9 @@ class mercado extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
-        $p = $this->market ($market);
-        $method = 'publicGetV2Ticker' . $this->capitalize ($p['suffix']);
+    public function fetch_ticker ($symbol) {
+        $market = $this->market ($symbol);
+        $method = 'publicGetV2Ticker' . $this->capitalize ($market['suffix']);
         $response = $this->$method ();
         $ticker = $response['ticker'];
         $timestamp = intval ($ticker['date']) * 1000;
@@ -13694,10 +13694,27 @@ class mercado extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        $p = $this->market ($market);
-        $method = 'publicGetTrades' . $this->capitalize ($p['suffix']);
-        return $this->$method ($params);
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['date'] * 1000;
+        return array (
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'id' => (string) $trade['tid'],
+            'order' => null,
+            'type' => null,
+            'side' => $trade['type'],
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $method = 'publicGetTrades' . $this->capitalize ($market['suffix']);
+        $response = $this->$method ($params);
+        return $this->parse_trades ($response, $market);
     }
 
     public function fetch_balance ($params = array ()) {
@@ -13718,12 +13735,12 @@ class mercado extends Exchange {
         return $result;
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $method = 'privatePostPlace' . $this->capitalize ($side) . 'Order';
         $order = array (
-            'coin_pair' => $this->market_id ($market),
+            'coin_pair' => $this->market_id ($symbol),
             'quantity' => $amount,
             'limit_price' => $price,
         );

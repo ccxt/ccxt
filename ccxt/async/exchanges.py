@@ -11962,9 +11962,9 @@ class mercado (Exchange):
         params.update(config)
         super(mercado, self).__init__(params)
 
-    async def fetch_order_book(self, market, params={}):
-        p = self.market(market)
-        method = 'publicGetOrderbook' + self.capitalize(p['suffix'])
+    async def fetch_order_book(self, symbol, params={}):
+        market = self.market(symbol)
+        method = 'publicGetOrderbook' + self.capitalize(market['suffix'])
         orderbook = await getattr(self, method)(params)
         timestamp = self.milliseconds()
         result = {
@@ -11975,9 +11975,9 @@ class mercado (Exchange):
         }
         return result
 
-    async def fetch_ticker(self, market):
-        p = self.market(market)
-        method = 'publicGetV2Ticker' + self.capitalize(p['suffix'])
+    async def fetch_ticker(self, symbol):
+        market = self.market(symbol)
+        method = 'publicGetV2Ticker' + self.capitalize(market['suffix'])
         response = await getattr(self, method)()
         ticker = response['ticker']
         timestamp = int(ticker['date']) * 1000
@@ -12001,10 +12001,26 @@ class mercado (Exchange):
             'info': ticker,
         }
 
-    async def fetch_trades(self, market, params={}):
-        p = self.market(market)
-        method = 'publicGetTrades' + self.capitalize(p['suffix'])
-        return getattr(self, method)(params)
+    def parse_trade(self, trade, market):
+        timestamp = trade['date'] * 1000
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'id': str(trade['tid']),
+            'order': None,
+            'type': None,
+            'side': trade['type'],
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
+
+    async def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        method = 'publicGetTrades' + self.capitalize(market['suffix'])
+        response = await getattr(self, method)(params)
+        return self.parse_trades(response, market)
 
     async def fetch_balance(self, params={}):
         response = await self.privatePostGetAccountInfo()
@@ -12021,12 +12037,12 @@ class mercado (Exchange):
             result[currency] = account
         return result
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         method = 'privatePostPlace' + self.capitalize(side) + 'Order'
         order = {
-            'coin_pair': self.market_id(market),
+            'coin_pair': self.market_id(symbol),
             'quantity': amount,
             'limit_price': price,
         }
