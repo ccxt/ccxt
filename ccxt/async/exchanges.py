@@ -13106,10 +13106,10 @@ class quoine (Exchange):
             result[currency] = account
         return result
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
         orderbook = await self.publicGetProductsIdPriceLevels(self.extend({
-            'id': self.market_id(market),
+            'id': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
         result = {
@@ -13172,25 +13172,42 @@ class quoine (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         await self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         ticker = await self.publicGetProductsId({
-            'id': p['id'],
+            'id': market['id'],
         })
-        return self.parse_ticker(ticker, p)
+        return self.parse_ticker(ticker, market)
 
-    async def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market):
+        timestamp = trade['created_at'] * 1000
+        return {
+            'info': trade,
+            'id': str(trade['id']),
+            'order': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['taker_side'],
+            'price': float(trade['price']),
+            'amount': float(trade['quantity']),
+        }
+
+    async def fetch_trades(self, symbol, params={}):
         await self.load_markets()
-        return self.publicGetExecutions(self.extend({
-            'product_id': self.market_id(market),
+        market = self.market(symbol)
+        response = await self.publicGetExecutions(self.extend({
+            'product_id': market['id'],
         }, params))
+        return self.parse_trades(response['models'], market)
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         order = {
             'order_type': type,
-            'product_id': self.market_id(market),
+            'product_id': self.market_id(symbol),
             'side': side,
             'quantity': amount,
         }

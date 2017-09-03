@@ -14874,10 +14874,10 @@ class quoine extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetProductsIdPriceLevels (array_merge (array (
-            'id' => $this->market_id ($market),
+            'id' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -14948,27 +14948,45 @@ class quoine extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetProductsId (array (
-            'id' => $p['id'],
+            'id' => $market['id'],
         ));
-        return $this->parse_ticker ($ticker, $p);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['created_at'] * 1000;
+        return array (
+            'info' => $trade,
+            'id' => (string) $trade['id'],
+            'order' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['taker_side'],
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['quantity']),
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetExecutions (array_merge (array (
-            'product_id' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response = $this->publicGetExecutions (array_merge (array (
+            'product_id' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response['models'], $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $order = array (
             'order_type' => $type,
-            'product_id' => $this->market_id ($market),
+            'product_id' => $this->market_id ($symbol),
             'side' => $side,
             'quantity' => $amount,
         );
