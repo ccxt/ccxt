@@ -8951,7 +8951,7 @@ class fyb (Exchange):
         accounts['info'] = balance
         return accounts
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         orderbook = self.publicGetOrderbook(params)
         timestamp = self.milliseconds()
         result = {
@@ -8971,7 +8971,7 @@ class fyb (Exchange):
                 result[side].append([price, amount])
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         ticker = self.publicGetTickerdetailed()
         timestamp = self.milliseconds()
         last = None
@@ -9000,10 +9000,27 @@ class fyb (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
-        return self.publicGetTrades(params)
+    def parse_trade(self, trade, market):
+        timestamp = int(trade['date']) * 1000
+        return {
+            'info': trade,
+            'id': str(trade['tid']),
+            'order': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': None,
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
+        }
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = self.publicGetTrades(params)
+        return self.parse_trades(response, market)
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         response = self.privatePostPlaceorder(self.extend({
             'qty': amount,
             'price': price,
@@ -10752,6 +10769,8 @@ class jubi (Exchange):
     def fetch_tickers(self):
         self.load_markets()
         tickers = self.publicGetAllticker()
+        print(tickers)
+        sys.exit()
         ids = list(tickers.keys())
         result = {}
         for i in range(0, len(ids)):

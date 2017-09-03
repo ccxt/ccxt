@@ -9999,7 +9999,7 @@ var fyb = {
         return accounts;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         let orderbook = await this.publicGetOrderbook (params);
         let timestamp = this.milliseconds ();
         let result = {
@@ -10022,7 +10022,7 @@ var fyb = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         let ticker = await this.publicGetTickerdetailed ();
         let timestamp = this.milliseconds ();
         let last = undefined;
@@ -10052,11 +10052,29 @@ var fyb = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        return this.publicGetTrades (params);
+    parseTrade (trade, market) {
+        let timestamp = parseInt (trade['date']) * 1000;
+        return {
+            'info': trade,
+            'id': trade['tid'].toString (),
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': undefined,
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
+        };
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetTrades (params);
+        return this.parseTrades (response, market);
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let response = await this.privatePostPlaceorder (this.extend ({
             'qty': amount,
             'price': price,
