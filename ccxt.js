@@ -13615,13 +13615,15 @@ var okex = extend (okcoin, {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
-        let response = await this.publicGetFutureKline (this.extend ({
+        let request = {
             'symbol': market['id'],
             'contract_type': 'this_week', // next_week, quarter
             'type': this.timeframes[timeframe],
             'since': since,
-            'size': parseInt (limit),
-        }, params));
+        };
+        if (limit)
+            request['size'] = parseInt (limit);
+        let response = await this.publicGetFutureKline (this.extend (request, params));
         return this.parseOHLCVs (market, response, timeframe, since, limit);
     },
 
