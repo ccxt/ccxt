@@ -10656,6 +10656,27 @@ var gdax = {
         return this.privateDeleteOrdersId ({ 'id': id });
     },
 
+    async getPaymentMethods () {
+        let response = await this.privateGetPaymentMethods ();
+        return response;
+    },
+
+    async withdraw (currency, amount, address, params = {}) {
+        if ('payment_method_id' in params) {
+            await this.loadMarkets ();
+            let response = await this.privatePostWithdraw (this.extend ({
+                'currency': currency,
+                'amount': amount,
+                // 'address': address, // they don't allow withdrawals to direct addresses
+            }, params));
+            return {
+                'info': response,
+                'id': response['result'],
+            };
+        }
+        throw new ExchangeError (this.id + " withdraw requires a 'payment_method_id' parameter");
+    },
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         let url = this.urls['api'] + request;
@@ -12162,7 +12183,7 @@ var kraken = {
             let response = await this.privatePostWithdraw (this.extend ({
                 'asset': currency,
                 'amount': amount,
-                // 'address': address,
+                // 'address': address, // they don't allow withdrawals to direct addresses
             }, params));
             return {
                 'info': response,
