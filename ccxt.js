@@ -13545,9 +13545,9 @@ var okex = extend (okcoin, {
         // 'BCH/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         let orderbook = await this.publicGetFutureDepth (this.extend ({
-            'symbol': this.marketId (market),
+            'symbol': this.marketId (symbol),
             'contract_type': 'this_week', // next_week, quarter
         }, params));
         let timestamp = this.milliseconds ();
@@ -13560,22 +13560,24 @@ var okex = extend (okcoin, {
         return result;
     },
 
-    async fetchTicker (market, params = {}) {
-        let m = this.market (market);
+    async fetchTicker (symbol, params = {}) {
+        let market = this.market (symbol);
         let response = await this.publicGetFutureTicker (this.extend ({
-            'symbol': m['id'],
+            'symbol': market['id'],
             'contract_type': 'this_week', // next_week, quarter
         }, params));
         let timestamp = parseInt (response['date']) * 1000;
         let ticker = this.extend (response['ticker'], { 'timestamp': timestamp });
-        return this.parseTicker (ticker, m);
+        return this.parseTicker (ticker, market);
     },
 
-    async fetchTrades (market, params = {}) {
-        return this.publicGetFutureTrades (this.extend ({
-            'symbol': this.marketId (market),
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetFutureTrades (this.extend ({
+            'symbol': market['id'],
             'contract_type': 'this_week', // next_week, quarter
         }, params));
+        return this.parseTrades (response, market);
     },
 
     async fetchOHLCV (symbol, timeframe = 60, since = undefined, limit = undefined) {

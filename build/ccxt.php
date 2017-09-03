@@ -13976,9 +13976,9 @@ class okex extends okcoin {
         ), $options));
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $orderbook = $this->publicGetFutureDepth (array_merge (array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
             'contract_type' => 'this_week', // next_week, quarter
         ), $params));
         $timestamp = $this->milliseconds ();
@@ -13991,22 +13991,24 @@ class okex extends okcoin {
         return $result;
     }
 
-    public function fetch_ticker ($market, $params = array ()) {
-        $m = $this->market ($market);
+    public function fetch_ticker ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
         $response = $this->publicGetFutureTicker (array_merge (array (
-            'symbol' => $m['id'],
+            'symbol' => $market['id'],
             'contract_type' => 'this_week', // next_week, quarter
         ), $params));
         $timestamp = intval ($response['date']) * 1000;
         $ticker = array_merge ($response['ticker'], array ( 'timestamp' => $timestamp ));
-        return $this->parse_ticker ($ticker, $m);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetFutureTrades (array_merge (array (
-            'symbol' => $this->market_id ($market),
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetFutureTrades (array_merge (array (
+            'symbol' => $market['id'],
             'contract_type' => 'this_week', // next_week, quarter
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {

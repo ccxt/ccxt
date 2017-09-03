@@ -12350,9 +12350,9 @@ class okex (okcoin):
         params.update(config)
         super(okex, self).__init__(params)
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         orderbook = self.publicGetFutureDepth(self.extend({
-            'symbol': self.market_id(market),
+            'symbol': self.market_id(symbol),
             'contract_type': 'this_week', # next_week, quarter
         }, params))
         timestamp = self.milliseconds()
@@ -12364,21 +12364,23 @@ class okex (okcoin):
         }
         return result
 
-    def fetch_ticker(self, market, params={}):
-        m = self.market(market)
+    def fetch_ticker(self, symbol, params={}):
+        market = self.market(symbol)
         response = self.publicGetFutureTicker(self.extend({
-            'symbol': m['id'],
+            'symbol': market['id'],
             'contract_type': 'this_week', # next_week, quarter
         }, params))
         timestamp = int(response['date']) * 1000
         ticker = self.extend(response['ticker'], {'timestamp': timestamp})
-        return self.parse_ticker(ticker, m)
+        return self.parse_ticker(ticker, market)
 
-    def fetch_trades(self, market, params={}):
-        return self.publicGetFutureTrades(self.extend({
-            'symbol': self.market_id(market),
+    def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = self.publicGetFutureTrades(self.extend({
+            'symbol': market['id'],
             'contract_type': 'this_week', # next_week, quarter
         }, params))
+        return self.parse_trades(response, market)
 
     def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
         market = self.market(symbol)
