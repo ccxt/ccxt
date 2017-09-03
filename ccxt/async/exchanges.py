@@ -3750,6 +3750,13 @@ class bittrex (Exchange):
         response = await self.accountGetOrder({'uuid': id})
         return self.parse_order(response['result'])
 
+    async def withdraw(self, currency, amount, address, params={}):
+        return self.accountGetWithdraw(self.extend({
+            'currency': currency,
+            'quantity': amount,
+            'address': address,
+        }, params))
+
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/'
         if api == 'public':
