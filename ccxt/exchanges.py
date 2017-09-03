@@ -11498,10 +11498,10 @@ class livecoin (Exchange):
             result[currency] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         self.load_markets()
         orderbook = self.publicGetExchangeOrderBook(self.extend({
-            'currencyPair': self.market_id(market),
+            'currencyPair': self.market_id(symbol),
             'groupByPrice': 'false',
             'depth': 100,
         }, params))
@@ -11559,25 +11559,42 @@ class livecoin (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         ticker = self.publicGetExchangeTicker({
-            'currencyPair': p['id'],
+            'currencyPair': market['id'],
         })
-        return self.parse_ticker(ticker, p)
+        return self.parse_ticker(ticker, market)
 
-    def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market):
+        timestamp = trade['time'] * 1000
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'id': str(trade['id']),
+            'order': None,
+            'type': None,
+            'side': trade['type'].lower(),
+            'price': trade['price'],
+            'amount': trade['quantity'],
+        }
+
+    def fetch_trades(self, symbol, params={}):
         self.load_markets()
-        return self.publicGetExchangeLastTrades(self.extend({
-            'currencyPair': self.market_id(market),
+        market = self.market(symbol)
+        response = self.publicGetExchangeLastTrades(self.extend({
+            'currencyPair': market['id'],
         }, params))
+        return self.parse_trades(response, market)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         method = 'privatePostExchange' + self.capitalize(side) + type
         order = {
-            'currencyPair': self.market_id(market),
+            'currencyPair': self.market_id(symbol),
             'quantity': amount,
         }
         if type == 'limit':

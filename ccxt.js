@@ -12661,10 +12661,10 @@ var livecoin = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetExchangeOrderBook (this.extend ({
-            'currencyPair': this.marketId (market),
+            'currencyPair': this.marketId (symbol),
             'groupByPrice': 'false',
             'depth': 100,
         }, params));
@@ -12728,27 +12728,45 @@ var livecoin = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         await this.loadMarkets ();
-        let p = this.market (market);
+        let market = this.market (symbol);
         let ticker = await this.publicGetExchangeTicker ({
-            'currencyPair': p['id'],
+            'currencyPair': market['id'],
         });
-        return this.parseTicker (ticker, p);
+        return this.parseTicker (ticker, market);
     },
 
-    async fetchTrades (market, params = {}) {
+    parseTrade (trade, market) {
+        let timestamp = trade['time'] * 1000;
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'id': trade['id'].toString (),
+            'order': undefined,
+            'type': undefined,
+            'side': trade['type'].toLowerCase (),
+            'price': trade['price'],
+            'amount': trade['quantity'],
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        return this.publicGetExchangeLastTrades (this.extend ({
-            'currencyPair': this.marketId (market),
+        let market = this.market (symbol);
+        let response = await this.publicGetExchangeLastTrades (this.extend ({
+            'currencyPair': market['id'],
         }, params));
+        return this.parseTrades (response, market);
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let method = 'privatePostExchange' + this.capitalize (side) + type;
         let order = {
-            'currencyPair': this.marketId (market),
+            'currencyPair': this.marketId (symbol),
             'quantity': amount,
         };
         if (type == 'limit')

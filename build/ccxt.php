@@ -13075,10 +13075,10 @@ class livecoin extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetExchangeOrderBook (array_merge (array (
-            'currencyPair' => $this->market_id ($market),
+            'currencyPair' => $this->market_id ($symbol),
             'groupByPrice' => 'false',
             'depth' => 100,
         ), $params));
@@ -13142,27 +13142,45 @@ class livecoin extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetExchangeTicker (array (
-            'currencyPair' => $p['id'],
+            'currencyPair' => $market['id'],
         ));
-        return $this->parse_ticker ($ticker, $p);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['time'] * 1000;
+        return array (
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'id' => (string) $trade['id'],
+            'order' => null,
+            'type' => null,
+            'side' => strtolower ($trade['type']),
+            'price' => $trade['price'],
+            'amount' => $trade['quantity'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetExchangeLastTrades (array_merge (array (
-            'currencyPair' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response = $this->publicGetExchangeLastTrades (array_merge (array (
+            'currencyPair' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $method = 'privatePostExchange' . $this->capitalize ($side) . $type;
         $order = array (
-            'currencyPair' => $this->market_id ($market),
+            'currencyPair' => $this->market_id ($symbol),
             'quantity' => $amount,
         );
         if ($type == 'limit')
