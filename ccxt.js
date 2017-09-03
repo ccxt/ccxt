@@ -1546,7 +1546,7 @@ var binance = {
         // If startTime and endTime are not sent, the most recent klines are returned.
         throw new NotSupported (this.id + ' fetchOHLCV is not implemented yet');
         await this.loadMarkets ();
-        let method = 'publicGetGraphsMarket' + period;
+        let method = 'publicGetGraphsMarket' + timeframe;
         let market = this.market (symbol);
         let request = {
             'market': market['id'],
@@ -1556,8 +1556,6 @@ var binance = {
         if (since)
             request['startTime'] = since;
         let response = await this[method] (this.extend (request, params));
-        console.log (response);
-        process.exit ();
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     },
 
@@ -10514,7 +10512,7 @@ var gdax = {
         '12h': 43200,
         '1d': 86400,
         '1w': 604800,
-        '1m': 2592000,
+        '1M': 2592000,
         '1y': 31536000,
     },
     'urls': {

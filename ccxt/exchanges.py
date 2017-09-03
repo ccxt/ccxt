@@ -912,7 +912,7 @@ class binance (Exchange):
         # If startTime and endTime are not sent, the most recent klines are returned.
         raise NotSupported(self.id + ' fetchOHLCV is not implemented yet')
         self.load_markets()
-        method = 'publicGetGraphsMarket' + period
+        method = 'publicGetGraphsMarket' + timeframe
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -922,8 +922,6 @@ class binance (Exchange):
         if since:
             request['startTime'] = since
         response = getattr(self, method)(self.extend(request, params))
-        print(response)
-        sys.exit()
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
@@ -9454,7 +9452,7 @@ class gdax (Exchange):
                 '12h': 43200,
                 '1d': 86400,
                 '1w': 604800,
-                '1m': 2592000,
+                '1M': 2592000,
                 '1y': 31536000,
             },
             'urls': {

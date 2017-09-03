@@ -1741,7 +1741,7 @@ class binance extends Exchange {
         // If startTime and endTime are not sent, the most recent klines are returned.
         throw new NotSupported ($this->id . ' fetchOHLCV is not implemented yet');
         $this->load_markets ();
-        $method = 'publicGetGraphsMarket' . period;
+        $method = 'publicGetGraphsMarket' . $timeframe;
         $market = $this->market ($symbol);
         $request = array (
             'market' => $market['id'],
@@ -1751,8 +1751,6 @@ class binance extends Exchange {
         if ($since)
             $request['startTime'] = $since;
         $response = $this->$method (array_merge ($request, $params));
-        var_dump ($response);
-        exit ();
         return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
@@ -10894,7 +10892,7 @@ class gdax extends Exchange {
                 '12h' => 43200,
                 '1d' => 86400,
                 '1w' => 604800,
-                '1m' => 2592000,
+                '1M' => 2592000,
                 '1y' => 31536000,
             ),
             'urls' => array (
