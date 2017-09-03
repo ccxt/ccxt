@@ -4751,11 +4751,11 @@ class btcmarkets (Exchange):
             result.append(self.parse_bidask(bidasks[i]))
         return result
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
-        m = self.market(market)
+        market = self.market(symbol)
         orderbook = await self.publicGetMarketIdOrderbook(self.extend({
-            'id': m['id'],
+            'id': market['id'],
         }, params))
         timestamp = orderbook['timestamp'] * 1000
         result = {
@@ -4792,30 +4792,47 @@ class btcmarkets (Exchange):
             'info': ticker,
         }
 
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         await self.load_markets()
-        m = self.market(market)
+        market = self.market(symbol)
         ticker = await self.publicGetMarketIdTick({
-            'id': m['id'],
+            'id': market['id'],
         })
-        return self.parse_ticker(ticker, m)
+        return self.parse_ticker(ticker, market)
 
-    async def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market):
+        timestamp = trade['date'] * 1000
+        return {
+            'info': trade,
+            'id': str(trade['tid']),
+            'order': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': None,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
+
+    async def fetch_trades(self, symbol, params={}):
         await self.load_markets()
-        return self.publicGetMarketIdTrades(self.extend({
+        market = self.market(symbol)
+        response = await self.publicGetMarketIdTrades(self.extend({
             # 'since': 59868345231,
-            'id': self.market_id(market),
+            'id': market['id'],
         }, params))
+        return self.parse_trades(response, market)
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
-        m = self.market(market)
+        market = self.market(symbol)
         multiplier = 100000000 # for price and volume
         # does BTC Markets support market orders at all?
         orderSide = 'Bid' if(side == 'buy') else 'Ask'
         order = self.ordered({
-            'currency': m['quote'],
-            'instrument': m['base'],
+            'currency': market['quote'],
+            'instrument': market['base'],
             'price': price * multiplier,
             'volume': amount * multiplier,
             'orderSide': orderSide,

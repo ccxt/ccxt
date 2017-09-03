@@ -5942,11 +5942,11 @@ class btcmarkets extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
-        $m = $this->market ($market);
+        $market = $this->market ($symbol);
         $orderbook = $this->publicGetMarketIdOrderbook (array_merge (array (
-            'id' => $m['id'],
+            'id' => $market['id'],
         ), $params));
         $timestamp = $orderbook['timestamp'] * 1000;
         $result = array (
@@ -5986,32 +5986,50 @@ class btcmarkets extends Exchange {
         );
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $m = $this->market ($market);
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetMarketIdTick (array (
-            'id' => $m['id'],
+            'id' => $market['id'],
         ));
-        return $this->parse_ticker ($ticker, $m);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['date'] * 1000;
+        return array (
+            'info' => $trade,
+            'id' => (string) $trade['tid'],
+            'order' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => null,
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetMarketIdTrades (array_merge (array (
+        $market = $this->market ($symbol);
+        $response = $this->publicGetMarketIdTrades (array_merge (array (
             // 'since' => 59868345231,
-            'id' => $this->market_id ($market),
+            'id' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
-        $m = $this->market ($market);
+        $market = $this->market ($symbol);
         $multiplier = 100000000; // for $price and volume
         // does BTC Markets support $market orders at all?
         $orderSide = ($side == 'buy') ? 'Bid' : 'Ask';
         $order = $this->ordered (array (
-            'currency' => $m['quote'],
-            'instrument' => $m['base'],
+            'currency' => $market['quote'],
+            'instrument' => $market['base'],
             'price' => $price * $multiplier,
             'volume' => $amount * $multiplier,
             'orderSide' => $orderSide,

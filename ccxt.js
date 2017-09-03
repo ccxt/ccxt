@@ -5686,11 +5686,11 @@ var btcmarkets = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
-        let m = this.market (market);
+        let market = this.market (symbol);
         let orderbook = await this.publicGetMarketIdOrderbook (this.extend ({
-            'id': m['id'],
+            'id': market['id'],
         }, params));
         let timestamp = orderbook['timestamp'] * 1000;
         let result = {
@@ -5730,32 +5730,50 @@ var btcmarkets = {
         };
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         await this.loadMarkets ();
-        let m = this.market (market);
+        let market = this.market (symbol);
         let ticker = await this.publicGetMarketIdTick ({
-            'id': m['id'],
+            'id': market['id'],
         });
-        return this.parseTicker (ticker, m);
+        return this.parseTicker (ticker, market);
     },
 
-    async fetchTrades (market, params = {}) {
+    parseTrade (trade, market) {
+        let timestamp = trade['date'] * 1000;
+        return {
+            'info': trade,
+            'id': trade['tid'].toString (),
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': undefined,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        return this.publicGetMarketIdTrades (this.extend ({
+        let market = this.market (symbol);
+        let response = await this.publicGetMarketIdTrades (this.extend ({
             // 'since': 59868345231,
-            'id': this.marketId (market),
+            'id': market['id'],
         }, params));
+        return this.parseTrades (response, market);
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let m = this.market (market);
+        let market = this.market (symbol);
         let multiplier = 100000000; // for price and volume
         // does BTC Markets support market orders at all?
         let orderSide = (side == 'buy') ? 'Bid' : 'Ask';
         let order = this.ordered ({
-            'currency': m['quote'],
-            'instrument': m['base'],
+            'currency': market['quote'],
+            'instrument': market['base'],
             'price': price * multiplier,
             'volume': amount * multiplier,
             'orderSide': orderSide,
