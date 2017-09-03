@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.87';
+$version = '1.5.88';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -4869,6 +4869,14 @@ class bittrex extends Exchange {
         $this->load_markets ();
         $response = $this->accountGetOrder (array ( 'uuid' => $id ));
         return $this->parse_order ($response['result']);
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        return $this->accountGetWithdraw (array_merge (array (
+            'currency' => $currency,
+            'quantity' => $amount,
+            'address' => $address,
+        ), $params));
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

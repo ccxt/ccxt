@@ -3828,6 +3828,13 @@ class bittrex (Exchange):
         response = self.accountGetOrder({'uuid': id})
         return self.parse_order(response['result'])
 
+    def withdraw(self, currency, amount, address, params={}):
+        return self.accountGetWithdraw(self.extend({
+            'currency': currency,
+            'quantity': amount,
+            'address': address,
+        }, params))
+
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/'
         if api == 'public':
