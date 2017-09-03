@@ -12128,22 +12128,6 @@ var kraken = {
         return this.parseTicker (ticker, market);
     },
 
-    parseTrade (trade, market) {
-        let timestamp = parseInt (trade[2] * 1000);
-        let side = (trade[3] == 's') ? 'sell' : 'buy';
-        let type = (trade[4] == 'l') ? 'limit' : 'market';
-        return {
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': type,
-            'side': side,
-            'price': parseFloat (trade[0]),
-            'amount': parseFloat (trade[1]),
-        };
-    },
-
     parseOHLCV (ohlcv, market = undefined, timeframe = 60, since = undefined, limit = undefined) {
         return [
             ohlcv[0] * 1000,
@@ -12165,6 +12149,22 @@ var kraken = {
         });
         let ohlcvs = response['result'][market['id']];
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+    },
+
+    parseTrade (trade, market) {
+        let timestamp = parseInt (trade[2] * 1000);
+        let side = (trade[3] == 's') ? 'sell' : 'buy';
+        let type = (trade[4] == 'l') ? 'limit' : 'market';
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': type,
+            'side': side,
+            'price': parseFloat (trade[0]),
+            'amount': parseFloat (trade[1]),
+        };
     },
 
     async fetchTrades (symbol, params = {}) {
@@ -14982,10 +14982,10 @@ var therock = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetFundsIdOrderbook (this.extend ({
-            'id': this.marketId (market),
+            'id': this.marketId (symbol),
         }, params));
         let timestamp = this.parse8601 (orderbook['date']);
         let result = {
@@ -15047,28 +15047,48 @@ var therock = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         await this.loadMarkets ();
-        let p = this.market (market);
+        let market = this.market (symbol);
         let ticker = await this.publicGetFundsIdTicker ({
-            'id': p['id'],
+            'id': market['id'],
         });
-        return this.parseTicker (ticker, p);
+        return this.parseTicker (ticker, market);
     },
 
-    async fetchTrades (market, params = {}) {
+    parseTrade (trade, market = undefined) {
+        if (!market)
+            market = this.markets_by_id[trade['fund_id']];
+        let timestamp = this.parse8601 (trade['date']);
+        return {
+            'info': trade,
+            'id': trade['id'].toString (),
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade['side'],
+            'price': trade['price'],
+            'amount': trade['amount'],
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        return this.publicGetFundsIdTrades (this.extend ({
-            'id': this.marketId (market),
+        let market = this.market (symbol);
+        let response = await this.publicGetFundsIdTrades (this.extend ({
+            'id': market['id'],
         }, params));
+        return this.parseTrades (response['trades'], market);
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let response = await this.privatePostFundsFundIdOrders (this.extend ({
-            'fund_id': this.marketId (market),
+            'fund_id': this.marketId (symbol),
             'side': side,
             'amount': amount,
             'price': price,

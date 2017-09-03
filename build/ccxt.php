@@ -12527,22 +12527,6 @@ class kraken extends Exchange {
         return $this->parse_ticker ($ticker, $market);
     }
 
-    public function parse_trade ($trade, $market) {
-        $timestamp = intval ($trade[2] * 1000);
-        $side = ($trade[3] == 's') ? 'sell' : 'buy';
-        $type = ($trade[4] == 'l') ? 'limit' : 'market';
-        return array (
-            'info' => $trade,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
-            'type' => $type,
-            'side' => $side,
-            'price' => floatval ($trade[0]),
-            'amount' => floatval ($trade[1]),
-        );
-    }
-
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
         return [
             $ohlcv[0] * 1000,
@@ -12564,6 +12548,22 @@ class kraken extends Exchange {
         ));
         $ohlcvs = $response['result'][$market['id']];
         return $this->parse_ohlcvs ($ohlcvs, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_trade ($trade, $market) {
+        $timestamp = intval ($trade[2] * 1000);
+        $side = ($trade[3] == 's') ? 'sell' : 'buy';
+        $type = ($trade[4] == 'l') ? 'limit' : 'market';
+        return array (
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => $type,
+            'side' => $side,
+            'price' => floatval ($trade[0]),
+            'amount' => floatval ($trade[1]),
+        );
     }
 
     public function fetch_trades ($symbol, $params = array ()) {
@@ -15442,10 +15442,10 @@ class therock extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetFundsIdOrderbook (array_merge (array (
-            'id' => $this->market_id ($market),
+            'id' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $this->parse8601 ($orderbook['date']);
         $result = array (
@@ -15507,28 +15507,48 @@ class therock extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetFundsIdTicker (array (
-            'id' => $p['id'],
+            'id' => $market['id'],
         ));
-        return $this->parse_ticker ($ticker, $p);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market = null) {
+        if (!$market)
+            $market = $this->markets_by_id[$trade['fund_id']];
+        $timestamp = $this->parse8601 ($trade['date']);
+        return array (
+            'info' => $trade,
+            'id' => (string) $trade['id'],
+            'order' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['side'],
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetFundsIdTrades (array_merge (array (
-            'id' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response = $this->publicGetFundsIdTrades (array_merge (array (
+            'id' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response['trades'], $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $response = $this->privatePostFundsFundIdOrders (array_merge (array (
-            'fund_id' => $this->market_id ($market),
+            'fund_id' => $this->market_id ($symbol),
             'side' => $side,
             'amount' => $amount,
             'price' => $price,

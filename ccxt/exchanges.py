@@ -10993,21 +10993,6 @@ class kraken (Exchange):
         ticker = response['result'][market['id']]
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market):
-        timestamp = int(trade[2] * 1000)
-        side = 'sell' if(trade[3] == 's') else 'buy'
-        type = 'limit' if(trade[4] == 'l') else 'market'
-        return {
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'type': type,
-            'side': side,
-            'price': float(trade[0]),
-            'amount': float(trade[1]),
-        }
-
     def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
         return [
             ohlcv[0] * 1000,
@@ -11028,6 +11013,21 @@ class kraken (Exchange):
         })
         ohlcvs = response['result'][market['id']]
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+
+    def parse_trade(self, trade, market):
+        timestamp = int(trade[2] * 1000)
+        side = 'sell' if(trade[3] == 's') else 'buy'
+        type = 'limit' if(trade[4] == 'l') else 'market'
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': type,
+            'side': side,
+            'price': float(trade[0]),
+            'amount': float(trade[1]),
+        }
 
     def fetch_trades(self, symbol, params={}):
         self.load_markets()
@@ -13714,10 +13714,10 @@ class therock (Exchange):
             result[currency] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         self.load_markets()
         orderbook = self.publicGetFundsIdOrderbook(self.extend({
-            'id': self.market_id(market),
+            'id': self.market_id(symbol),
         }, params))
         timestamp = self.parse8601(orderbook['date'])
         result = {
@@ -13773,26 +13773,45 @@ class therock (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         ticker = self.publicGetFundsIdTicker({
-            'id': p['id'],
+            'id': market['id'],
         })
-        return self.parse_ticker(ticker, p)
+        return self.parse_ticker(ticker, market)
 
-    def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market=None):
+        if not market:
+            market = self.markets_by_id[trade['fund_id']]
+        timestamp = self.parse8601(trade['date'])
+        return {
+            'info': trade,
+            'id': str(trade['id']),
+            'order': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['side'],
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
+
+    def fetch_trades(self, symbol, params={}):
         self.load_markets()
-        return self.publicGetFundsIdTrades(self.extend({
-            'id': self.market_id(market),
+        market = self.market(symbol)
+        response = self.publicGetFundsIdTrades(self.extend({
+            'id': market['id'],
         }, params))
+        return self.parse_trades(response['trades'], market)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         response = self.privatePostFundsFundIdOrders(self.extend({
-            'fund_id': self.market_id(market),
+            'fund_id': self.market_id(symbol),
             'side': side,
             'amount': amount,
             'price': price,
