@@ -14394,9 +14394,9 @@ var quadrigacx = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         let orderbook = await this.publicGetOrderBook (this.extend ({
-            'book': this.marketId (market),
+            'book': this.marketId (symbol),
         }, params));
         let timestamp = parseInt (orderbook['timestamp']) * 1000;
         let result = {
@@ -14419,9 +14419,9 @@ var quadrigacx = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         let ticker = await this.publicGetTicker ({
-            'book': this.marketId (market),
+            'book': this.marketId (symbol),
         });
         let timestamp = parseInt (ticker['timestamp']) * 1000;
         return {
@@ -14445,17 +14445,35 @@ var quadrigacx = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        return this.publicGetTransactions (this.extend ({
-            'book': this.marketId (market),
-        }, params));
+    parseTrade (trade, market) {
+        let timestamp = parseInt (trade['date']) * 1000;
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'id': trade['tid'].toString (),
+            'order': undefined,
+            'type': undefined,
+            'side': trade['side'],
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
+        };
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetTransactions (this.extend ({
+            'book': market['id'],
+        }, params));
+        return this.parseTrades (response, market);
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePost' + this.capitalize (side);
         let order = {
             'amount': amount,
-            'book': this.marketId (market),
+            'book': this.marketId (symbol),
         };
         if (type == 'limit')
             order['price'] = price;

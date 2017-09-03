@@ -13073,9 +13073,9 @@ class quadrigacx (Exchange):
             result[currency] = account
         return result
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         orderbook = await self.publicGetOrderBook(self.extend({
-            'book': self.market_id(market),
+            'book': self.market_id(symbol),
         }, params))
         timestamp = int(orderbook['timestamp']) * 1000
         result = {
@@ -13095,9 +13095,9 @@ class quadrigacx (Exchange):
                 result[side].append([price, amount])
         return result
 
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         ticker = await self.publicGetTicker({
-            'book': self.market_id(market),
+            'book': self.market_id(symbol),
         })
         timestamp = int(ticker['timestamp']) * 1000
         return {
@@ -13120,16 +13120,33 @@ class quadrigacx (Exchange):
             'info': ticker,
         }
 
-    async def fetch_trades(self, market, params={}):
-        return self.publicGetTransactions(self.extend({
-            'book': self.market_id(market),
-        }, params))
+    def parse_trade(self, trade, market):
+        timestamp = int(trade['date']) * 1000
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'id': str(trade['tid']),
+            'order': None,
+            'type': None,
+            'side': trade['side'],
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
+        }
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = await self.publicGetTransactions(self.extend({
+            'book': market['id'],
+        }, params))
+        return self.parse_trades(response, market)
+
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         method = 'privatePost' + self.capitalize(side)
         order = {
             'amount': amount,
-            'book': self.market_id(market),
+            'book': self.market_id(symbol),
         }
         if type == 'limit':
             order['price'] = price

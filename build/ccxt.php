@@ -14844,9 +14844,9 @@ class quadrigacx extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $orderbook = $this->publicGetOrderBook (array_merge (array (
-            'book' => $this->market_id ($market),
+            'book' => $this->market_id ($symbol),
         ), $params));
         $timestamp = intval ($orderbook['timestamp']) * 1000;
         $result = array (
@@ -14869,9 +14869,9 @@ class quadrigacx extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $ticker = $this->publicGetTicker (array (
-            'book' => $this->market_id ($market),
+            'book' => $this->market_id ($symbol),
         ));
         $timestamp = intval ($ticker['timestamp']) * 1000;
         return array (
@@ -14895,17 +14895,35 @@ class quadrigacx extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetTransactions (array_merge (array (
-            'book' => $this->market_id ($market),
-        ), $params));
+    public function parse_trade ($trade, $market) {
+        $timestamp = intval ($trade['date']) * 1000;
+        return array (
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'id' => (string) $trade['tid'],
+            'order' => null,
+            'type' => null,
+            'side' => $trade['side'],
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTransactions (array_merge (array (
+            'book' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response, $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePost' . $this->capitalize ($side);
         $order = array (
             'amount' => $amount,
-            'book' => $this->market_id ($market),
+            'book' => $this->market_id ($symbol),
         );
         if ($type == 'limit')
             $order['price'] = $price;
