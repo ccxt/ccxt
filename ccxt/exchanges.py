@@ -10799,16 +10799,16 @@ class kraken (Exchange):
             })
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         self.load_markets()
-        darkpool = market.find('.d') >= 0
+        darkpool = symbol.find('.d') >= 0
         if darkpool:
-            raise ExchangeError(self.id + ' does not provide an order book for darkpool symbol ' + market)
-        p = self.market(market)
+            raise ExchangeError(self.id + ' does not provide an order book for darkpool symbol ' + symbol)
+        market = self.market(symbol)
         response = self.publicGetDepth(self.extend({
-            'pair': p['id'],
+            'pair': market['id'],
         }, params))
-        orderbook = response['result'][p['id']]
+        orderbook = response['result'][market['id']]
         timestamp = self.milliseconds()
         result = {
             'bids': [],
@@ -10873,17 +10873,17 @@ class kraken (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        darkpool = market.find('.d') >= 0
+        darkpool = symbol.find('.d') >= 0
         if darkpool:
-            raise ExchangeError(self.id + ' does not provide a ticker for darkpool symbol ' + market)
-        p = self.market(market)
+            raise ExchangeError(self.id + ' does not provide a ticker for darkpool symbol ' + symbol)
+        market = self.market(symbol)
         response = self.publicGetTicker({
-            'pair': p['id'],
+            'pair': market['id'],
         })
-        ticker = response['result'][p['id']]
-        return self.parse_ticker(ticker, p)
+        ticker = response['result'][market['id']]
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
         timestamp = int(trade[2] * 1000)
@@ -10921,15 +10921,15 @@ class kraken (Exchange):
         ohlcvs = response['result'][market['id']]
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def fetch_trades(self, market, params={}):
+    def fetch_trades(self, symbol, params={}):
         self.load_markets()
-        m = self.market(market)
-        id = m['id']
+        market = self.market(symbol)
+        id = market['id']
         response = self.publicGetTrades(self.extend({
             'pair': id,
         }, params))
         trades = response['result'][id]
-        return self.parse_trades(trades, m)
+        return self.parse_trades(trades, market)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -10955,10 +10955,10 @@ class kraken (Exchange):
             result[code] = account
         return result
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         order = {
-            'pair': self.market_id(market),
+            'pair': self.market_id(symbol),
             'type': side,
             'ordertype': type,
             'volume': amount,
@@ -11004,7 +11004,7 @@ class kraken (Exchange):
     def fetch_order(self, id, params={}):
         self.load_markets()
         response = self.privatePostQueryOrders(self.extend({
-            'trades': True, # whether or not to include trades in output(optional.  default = False)
+            'trades': True, # whether or not to include trades in output(optional, default False)
             'txid': id, # comma delimited list of transaction ids to query info about(20 maximum)
             # 'userref': 'optional', # restrict results to given user reference id(optional)
         }, params))
@@ -11015,6 +11015,20 @@ class kraken (Exchange):
     def cancel_order(self, id):
         self.load_markets()
         return self.privatePostCancelOrder({'txid': id})
+
+    def withdraw(self, currency, amount, address, params={}):
+        if 'key' in params:
+            self.load_markets()
+            response = self.privatePostWithdraw(self.extend({
+                'asset': currency,
+                'amount': amount,
+                # 'address': address,
+            }, params))
+            return {
+                'info': response,
+                'id': response['result'],
+            }
+        raise ExchangeError(self.id + " withdraw requires a 'key' parameter(withdrawal key name, as set up on your account)")
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.version + '/' + api + '/' + path

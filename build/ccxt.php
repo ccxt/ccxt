@@ -12317,16 +12317,16 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
-        $darkpool = mb_strpos ($market, '.d') !== false;
+        $darkpool = mb_strpos ($symbol, '.d') !== false;
         if ($darkpool)
-            throw new ExchangeError ($this->id . ' does not provide an $order book for $darkpool symbol ' . $market);
-        $p = $this->market ($market);
+            throw new ExchangeError ($this->id . ' does not provide an $order book for $darkpool $symbol ' . $symbol);
+        $market = $this->market ($symbol);
         $response = $this->publicGetDepth (array_merge (array (
-            'pair' => $p['id'],
+            'pair' => $market['id'],
         ), $params));
-        $orderbook = $response['result'][$p['id']];
+        $orderbook = $response['result'][$market['id']];
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -12398,17 +12398,17 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $darkpool = mb_strpos ($market, '.d') !== false;
+        $darkpool = mb_strpos ($symbol, '.d') !== false;
         if ($darkpool)
-            throw new ExchangeError ($this->id . ' does not provide a $ticker for $darkpool symbol ' . $market);
-        $p = $this->market ($market);
+            throw new ExchangeError ($this->id . ' does not provide a $ticker for $darkpool $symbol ' . $symbol);
+        $market = $this->market ($symbol);
         $response = $this->publicGetTicker (array (
-            'pair' => $p['id'],
+            'pair' => $market['id'],
         ));
-        $ticker = $response['result'][$p['id']];
-        return $this->parse_ticker ($ticker, $p);
+        $ticker = $response['result'][$market['id']];
+        return $this->parse_ticker ($ticker, $market);
     }
 
     public function parse_trade ($trade, $market) {
@@ -12450,15 +12450,15 @@ class kraken extends Exchange {
         return $this->parse_ohlcvs ($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        $m = $this->market ($market);
-        $id = $m['id'];
+        $market = $this->market ($symbol);
+        $id = $market['id'];
         $response = $this->publicGetTrades (array_merge (array (
             'pair' => $id,
         ), $params));
         $trades = $response['result'][$id];
-        return $this->parse_trades ($trades, $m);
+        return $this->parse_trades ($trades, $market);
     }
 
     public function fetch_balance ($params = array ()) {
@@ -12488,10 +12488,10 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $order = array (
-            'pair' => $this->market_id ($market),
+            'pair' => $this->market_id ($symbol),
             'type' => $side,
             'ordertype' => $type,
             'volume' => $amount,
@@ -12541,7 +12541,7 @@ class kraken extends Exchange {
     public function fetch_order ($id, $params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostQueryOrders (array_merge (array (
-            'trades' => true, // whether or not to include trades in output (optional.  default = false)
+            'trades' => true, // whether or not to include trades in output (optional, default false)
             'txid' => $id, // comma delimited list of transaction ids to query info about (20 maximum)
             // 'userref' => 'optional', // restrict results to given user reference $id (optional)
         ), $params));
@@ -12553,6 +12553,22 @@ class kraken extends Exchange {
     public function cancel_order ($id) {
         $this->load_markets ();
         return $this->privatePostCancelOrder (array ( 'txid' => $id ));
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        if (array_key_exists ('key', $params)) {
+            $this->load_markets ();
+            $response = $this->privatePostWithdraw (array_merge (array (
+                'asset' => $currency,
+                'amount' => $amount,
+                // 'address' => $address,
+            ), $params));
+            return array (
+                'info' => $response,
+                'id' => $response['result'],
+            );
+        }
+        throw new ExchangeError ($this->id . " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -14473,10 +14489,10 @@ class poloniex extends Exchange {
             'amount' => $amount,
             'address' => $address,
         ), $params));
-        return {
+        return array (
             'info' => $result,
             'id' => $result['response'],
-        }
+        );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

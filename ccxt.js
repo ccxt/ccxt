@@ -11918,16 +11918,16 @@ var kraken = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
-        let darkpool = market.indexOf ('.d') >= 0;
+        let darkpool = symbol.indexOf ('.d') >= 0;
         if (darkpool)
-            throw new ExchangeError (this.id + ' does not provide an order book for darkpool symbol ' + market);
-        let p = this.market (market);
+            throw new ExchangeError (this.id + ' does not provide an order book for darkpool symbol ' + symbol);
+        let market = this.market (symbol);
         let response = await this.publicGetDepth (this.extend ({
-            'pair': p['id'],
+            'pair': market['id'],
         }, params));
-        let orderbook = response['result'][p['id']];
+        let orderbook = response['result'][market['id']];
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -11999,17 +11999,17 @@ var kraken = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         await this.loadMarkets ();
-        let darkpool = market.indexOf ('.d') >= 0;
+        let darkpool = symbol.indexOf ('.d') >= 0;
         if (darkpool)
-            throw new ExchangeError (this.id + ' does not provide a ticker for darkpool symbol ' + market);
-        let p = this.market (market);
+            throw new ExchangeError (this.id + ' does not provide a ticker for darkpool symbol ' + symbol);
+        let market = this.market (symbol);
         let response = await this.publicGetTicker ({
-            'pair': p['id'],
+            'pair': market['id'],
         });
-        let ticker = response['result'][p['id']];
-        return this.parseTicker (ticker, p);
+        let ticker = response['result'][market['id']];
+        return this.parseTicker (ticker, market);
     },
 
     parseTrade (trade, market) {
@@ -12051,15 +12051,15 @@ var kraken = {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     },
 
-    async fetchTrades (market, params = {}) {
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        let m = this.market (market);
-        let id = m['id'];
+        let market = this.market (symbol);
+        let id = market['id'];
         let response = await this.publicGetTrades (this.extend ({
             'pair': id,
         }, params));
         let trades = response['result'][id];
-        return this.parseTrades (trades, m);
+        return this.parseTrades (trades, market);
     },
 
     async fetchBalance (params = {}) {
@@ -12089,10 +12089,10 @@ var kraken = {
         return result;
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
-            'pair': this.marketId (market),
+            'pair': this.marketId (symbol),
             'type': side,
             'ordertype': type,
             'volume': amount,
@@ -12142,7 +12142,7 @@ var kraken = {
     async fetchOrder (id, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostQueryOrders (this.extend ({
-            'trades': true, // whether or not to include trades in output (optional.  default = false)
+            'trades': true, // whether or not to include trades in output (optional, default false)
             'txid': id, // comma delimited list of transaction ids to query info about (20 maximum)
             // 'userref': 'optional', // restrict results to given user reference id (optional)
         }, params));
@@ -12154,6 +12154,22 @@ var kraken = {
     async cancelOrder (id) {
         await this.loadMarkets ();
         return this.privatePostCancelOrder ({ 'txid': id });
+    },
+
+    async withdraw (currency, amount, address, params = {}) {
+        if ('key' in params) {
+            await this.loadMarkets ();
+            let response = await this.privatePostWithdraw (this.extend ({
+                'asset': currency,
+                'amount': amount,
+                // 'address': address,
+            }, params));
+            return {
+                'info': response,
+                'id': response['result'],
+            };
+        }
+        throw new ExchangeError (this.id + " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -14037,7 +14053,7 @@ var poloniex = {
         return {
             'info': result,
             'id': result['response'],
-        }
+        };
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
