@@ -4635,6 +4635,14 @@ var bittrex = {
         return this.parseOrder (response['result']);
     },
 
+    async withdraw (currency, amount, address, params = {}) {
+        return this.accountGetWithdraw (this.extend ({
+            'currency': currency,
+            'quantity': amount,
+            'address': address,
+        }, params));
+    },
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/';
         if (api == 'public') {
