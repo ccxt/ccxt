@@ -13745,10 +13745,29 @@ var paymium = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        return this.publicGetDataIdTrades (this.extend ({
-            'id': this.marketId (market),
+    parseTrade (trade, market) {
+        let timestamp = parseInt (trade['created_at_int']) * 1000;
+        let volume = 'traded_' + market['base'].toLowerCase ();
+        return {
+            'info': trade,
+            'id': trade['uuid'],
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade['side'],
+            'price': trade['price'],
+            'amount': trade[volume],
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetDataIdTrades (this.extend ({
+            'id': market['id'],
         }, params));
+        return this.parseTrades (response, market);
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {

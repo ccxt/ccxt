@@ -12542,10 +12542,28 @@ class paymium (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
-        return self.publicGetDataIdTrades(self.extend({
-            'id': self.market_id(market),
+    def parse_trade(self, trade, market):
+        timestamp = int(trade['created_at_int']) * 1000
+        volume = 'traded_' + market['base'].lower()
+        return {
+            'info': trade,
+            'id': trade['uuid'],
+            'order': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['side'],
+            'price': trade['price'],
+            'amount': trade[volume],
+        }
+
+    def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = self.publicGetDataIdTrades(self.extend({
+            'id': market['id'],
         }, params))
+        return self.parse_trades(response, market)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         order = {

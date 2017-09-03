@@ -14180,10 +14180,29 @@ class paymium extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetDataIdTrades (array_merge (array (
-            'id' => $this->market_id ($market),
+    public function parse_trade ($trade, $market) {
+        $timestamp = intval ($trade['created_at_int']) * 1000;
+        $volume = 'traded_' . strtolower ($market['base']);
+        return array (
+            'info' => $trade,
+            'id' => $trade['uuid'],
+            'order' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['side'],
+            'price' => $trade['price'],
+            'amount' => $trade[$volume],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetDataIdTrades (array_merge (array (
+            'id' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
