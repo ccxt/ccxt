@@ -1,5 +1,9 @@
 # Сhangelog
 
+## Version 1.6.x 2017-09-03
+
+- Added experimental fetchOHLCV implementations, [#169](https://github.com/kroitor/ccxt/issues/167)
+- Unified most of fetchTrades returns
 - Added experimental unified `withdraw ()` method to Bitfinex, [#167](https://github.com/kroitor/ccxt/issues/167)
 - Added [examples/js/basic-chart.js](https://github.com/kroitor/ccxt/blob/master/examples/js/basic-chart.js) and [examples/py/basic-chart.py](https://github.com/kroitor/ccxt/blob/master/examples/py/basic-chart.py)
 - Changed fetchBalance to floats, [#166](https://github.com/kroitor/ccxt/issues/166)
