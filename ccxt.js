@@ -13434,8 +13434,9 @@ var okcoin = {
         let request = {
             'symbol': market['id'],
             'type': this.timeframes[timeframe],
-            'size': parseInt (limit),
         };
+        if (limit)
+            request['size'] = parseInt (limit);
         if (since) {
             request['since'] = since;
         } else {
@@ -13623,8 +13624,13 @@ var okex = extend (okcoin, {
         };
         if (limit)
             request['size'] = parseInt (limit);
+        if (since) {
+            request['since'] = since;
+        } else {
+            request['since'] = this.milliseconds () - 86400000; // last 24 hours
+        }
         let response = await this.publicGetFutureKline (this.extend (request, params));
-        return this.parseOHLCVs (market, response, timeframe, since, limit);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

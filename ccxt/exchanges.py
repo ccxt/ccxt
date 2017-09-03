@@ -12233,8 +12233,9 @@ class okcoin (Exchange):
         request = {
             'symbol': market['id'],
             'type': self.timeframes[timeframe],
-            'size': int(limit),
         }
+        if limit:
+            request['size'] = int(limit)
         if since:
             request['since'] = since
         else:
@@ -12416,14 +12417,20 @@ class okex (okcoin):
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         market = self.market(symbol)
-        response = self.publicGetFutureKline(self.extend({
+        request = {
             'symbol': market['id'],
             'contract_type': 'this_week', # next_week, quarter
             'type': self.timeframes[timeframe],
             'since': since,
-            'size': int(limit),
-        }, params))
-        return self.parse_ohlcvs(market, response, timeframe, since, limit)
+        }
+        if limit:
+            request['size'] = int(limit)
+        if since:
+            request['since'] = since
+        else:
+            request['since'] = self.milliseconds() - 86400000 # last 24 hours
+        response = self.publicGetFutureKline(self.extend(request, params))
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         orderType = '1' if(side == 'buy') else '2'

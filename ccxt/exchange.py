@@ -614,10 +614,10 @@ class Exchange (object):
     def parseOHLCVs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
         return self.parse_ohlcvs(self, ohlcvs, market, timeframe, since, limit)
 
-    def fetch_ohlcv(self, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         raise NotSupported(self.id + ' API does not allow to fetch OHLCV series for now')
 
-    def fetchOHLCV(self, timeframe='1m', since=None, limit=None, params={}):
+    def fetchOHLCV(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         return self.fetch_ohlcv(self, timeframe, since, limit, params)
 
     def parse_trades(self, trades, market=None):

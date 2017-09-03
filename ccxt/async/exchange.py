@@ -183,10 +183,10 @@ class Exchange (BaseExchange):
     async def fetchTrades(self, symbol):
         return await self.fetch_trades(symbol)
 
-    async def fetch_ohlcv(self, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         raise NotSupported(self.id + ' API does not allow to fetch OHLCV series for now')
 
-    async def fetchOHLCV(self, timeframe='1m', since=None, limit=None, params={}):
+    async def fetchOHLCV(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         return self.fetch_ohlcv(self, timeframe, since, limit, params)
 
     async def create_limit_buy_order(self, symbol, amount, price, params={}):

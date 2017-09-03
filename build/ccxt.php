@@ -13857,8 +13857,9 @@ class okcoin extends Exchange {
         $request = array (
             'symbol' => $market['id'],
             'type' => $this->timeframes[$timeframe],
-            'size' => intval ($limit),
         );
+        if ($limit)
+            $request['size'] = intval ($limit);
         if ($since) {
             $request['since'] = $since;
         } else {
@@ -14053,14 +14054,21 @@ class okex extends okcoin {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
-        $response = $this->publicGetFutureKline (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
             'contract_type' => 'this_week', // next_week, quarter
             'type' => $this->timeframes[$timeframe],
             'since' => $since,
-            'size' => intval ($limit),
-        ), $params));
-        return $this->parse_ohlcvs ($market, $response, $timeframe, $since, $limit);
+        );
+        if ($limit)
+            $request['size'] = intval ($limit);
+        if ($since) {
+            $request['since'] = $since;
+        } else {
+            $request['since'] = $this->milliseconds () - 86400000; // last 24 hours
+        }
+        $response = $this->publicGetFutureKline (array_merge ($request, $params));
+        return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
