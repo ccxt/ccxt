@@ -16470,6 +16470,8 @@ var yunbi = {
         let response = await this.publicGetTrades (this.extend ({
             'market': market['id'],
         }, params));
+        // looks like they switched this endpoint off
+        // it returns 503 Service Temporarily Unavailable always
         // return this.parseTrades (reponse, market);
         return response;
     },
