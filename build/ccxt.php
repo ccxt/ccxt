@@ -1632,10 +1632,10 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
-        $m = $this->market ($market);
+    public function fetch_order_book ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
         $orderbook = $this->publicGetDepth (array_merge (array (
-            'symbol' => $m['id'],
+            'symbol' => $market['id'],
             'limit' => 100, // default = maximum = 100
         ), $params));
         $timestamp = $this->milliseconds ();
@@ -1682,19 +1682,19 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_ticker ($market) {
-        $m = $this->market ($market);
+    public function fetch_ticker ($symbol) {
+        $market = $this->market ($symbol);
         $response = $this->publicGetTicker24hr (array (
-            'symbol' => $m['id'],
+            'symbol' => $market['id'],
         ));
-        return $this->parse_ticker ($response, $m);
+        return $this->parse_ticker ($response, $market);
     }
 
-    public function fetch_ohlcv ($market, $timeframe = 60, $since = null, $limit = null) {
-        // Kline/candlestick bars for a symbol. Klines are uniquely identified by their open time.
+    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
+        // Kline/candlestick bars for a $symbol. Klines are uniquely identified by their open time.
         // Parameters:
         // Name    Type    Mandatory   Description
-        // symbol  STRING  YES
+        // $symbol  STRING  YES
         // interval    ENUM    YES
         // $limit   INT NO  Default 500; max 500.
         // startTime   LONG    NO
@@ -1755,16 +1755,16 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        $m = $this->market ($market);
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
         $response = $this->publicGetAggTrades (array_merge (array (
-            'symbol' => $m['id'],
+            'symbol' => $market['id'],
             // 'fromId' => 123,    // ID to get aggregate trades from INCLUSIVE.
             // 'startTime' => 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
             // 'endTime' => 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
             'limit' => 500,        // default = maximum = 500
         ), $params));
-        return $this->parse_trades ($response, $m);
+        return $this->parse_trades ($response, $market);
     }
 
     public function parse_order ($order, $market = null) {
@@ -1786,9 +1786,9 @@ class binance extends Exchange {
         throw new NotSupported ($this->id . ' parseOrder is not implemented yet');
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $order = array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
             'quantity' => sprintf ('%f', $amount),
             'price' => sprintf ('%f', $price),
             'type' => strtoupper ($type),

@@ -1443,10 +1443,10 @@ var binance = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
-        let m = this.market (market);
+    async fetchOrderBook (symbol, params = {}) {
+        let market = this.market (symbol);
         let orderbook = await this.publicGetDepth (this.extend ({
-            'symbol': m['id'],
+            'symbol': market['id'],
             'limit': 100, // default = maximum = 100
         }, params));
         let timestamp = this.milliseconds ();
@@ -1493,15 +1493,15 @@ var binance = {
         };
     },
 
-    async fetchTicker (market) {
-        let m = this.market (market);
+    async fetchTicker (symbol) {
+        let market = this.market (symbol);
         let response = await this.publicGetTicker24hr ({
-            'symbol': m['id'],
+            'symbol': market['id'],
         });
-        return this.parseTicker (response, m);
+        return this.parseTicker (response, market);
     },
 
-    async fetchOHLCV (market, timeframe = 60, since = undefined, limit = undefined) {
+    async fetchOHLCV (symbol, timeframe = 60, since = undefined, limit = undefined) {
         // Kline/candlestick bars for a symbol. Klines are uniquely identified by their open time.
         // Parameters:
         // Name    Type    Mandatory   Description
@@ -1567,16 +1567,16 @@ var binance = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        let m = this.market (market);
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
         let response = await this.publicGetAggTrades (this.extend ({
-            'symbol': m['id'],
+            'symbol': market['id'],
             // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
             // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
             // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
             'limit': 500,        // default = maximum = 500
         }, params));
-        return this.parseTrades (response, m);
+        return this.parseTrades (response, market);
     },
 
     parseOrder (order, market = undefined) {
@@ -1598,9 +1598,9 @@ var binance = {
         throw new NotSupported (this.id + ' parseOrder is not implemented yet');
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let order = {
-            'symbol': this.marketId (market),
+            'symbol': this.marketId (symbol),
             'quantity': '%f'.sprintf (amount),
             'price': '%f'.sprintf (price),
             'type': type.toUpperCase (),

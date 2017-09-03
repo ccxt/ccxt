@@ -818,10 +818,10 @@ class binance (Exchange):
             result[currency] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
-        m = self.market(market)
+    def fetch_order_book(self, symbol, params={}):
+        market = self.market(symbol)
         orderbook = self.publicGetDepth(self.extend({
-            'symbol': m['id'],
+            'symbol': market['id'],
             'limit': 100, # default = maximum = 100
         }, params))
         timestamp = self.milliseconds()
@@ -864,14 +864,14 @@ class binance (Exchange):
             'info': ticker,
         }
 
-    def fetch_ticker(self, market):
-        m = self.market(market)
+    def fetch_ticker(self, symbol):
+        market = self.market(symbol)
         response = self.publicGetTicker24hr({
-            'symbol': m['id'],
+            'symbol': market['id'],
         })
-        return self.parse_ticker(response, m)
+        return self.parse_ticker(response, market)
 
-    def fetch_ohlcv(self, market, timeframe=60, since=None, limit=None):
+    def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
         # Kline/candlestick bars for a symbol. Klines are uniquely identified by their open time.
         # Parameters:
         # Name    Type    Mandatory   Description
@@ -933,16 +933,16 @@ class binance (Exchange):
             'amount': amount,
         }
 
-    def fetch_trades(self, market, params={}):
-        m = self.market(market)
+    def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
         response = self.publicGetAggTrades(self.extend({
-            'symbol': m['id'],
+            'symbol': market['id'],
             # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
             # 'startTime': 456, # Timestamp in ms to get aggregate trades from INCLUSIVE.
             # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
             'limit': 500,        # default = maximum = 500
         }, params))
-        return self.parse_trades(response, m)
+        return self.parse_trades(response, market)
 
     def parse_order(self, order, market=None):
         # {
@@ -962,9 +962,9 @@ class binance (Exchange):
         #}
         raise NotSupported(self.id + ' parseOrder is not implemented yet')
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         order = {
-            'symbol': self.market_id(market),
+            'symbol': self.market_id(symbol),
             'quantity': '{:f}'.format(amount),
             'price': '{:f}'.format(price),
             'type': type.upper(),
