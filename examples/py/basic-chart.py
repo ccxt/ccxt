@@ -31,9 +31,9 @@ index = 4 # use close price from each ohlcv candle
 
 #------------------------------------------------------------------------------
 
-def print_chart(exchange, symbol, timeframe, human_timeframe):
+def print_chart(exchange, symbol, timeframe):
 
-    print("\n" + exchange.name + ' ' + human_timeframe + ' chart:')
+    print("\n" + exchange.name + ' ' + timeframe + ' chart:')
 
     # get a list of ohlcv candles
     ohlcv = exchange.fetch_ohlcv(symbol, timeframe)
@@ -49,16 +49,16 @@ def print_chart(exchange, symbol, timeframe, human_timeframe):
 
 #------------------------------------------------------------------------------
 
-print_chart(kraken, 'BTC/USD', 60, '1m')
+print_chart(kraken, 'BTC/USD', '1m')
 
 #------------------------------------------------------------------------------
 
-last = print_chart(kraken, 'BTC/USD', 300, '5m')
+last = print_chart(kraken, 'BTC/USD', '5m')
 print("\n" + kraken.name + " ₿ = $" + str(last) + "\n") # print last closing price
 
 #------------------------------------------------------------------------------
 
-last = print_chart(yunbi, 'BTC/CNY', 3600, '1h')
+last = print_chart(yunbi, 'BTC/CNY', '1h')
 print("\n" + yunbi.name + " ₿ = CN¥ " + str(last) + "\n") # print last closing price
 
 #------------------------------------------------------------------------------

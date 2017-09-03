@@ -428,10 +428,11 @@ class Exchange {
         $this->twofa      = false;
         $this->marketsById = null;
         $this->markets_by_id = null;
-        $this->userAgent = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
+        $this->userAgent  = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
         $this->hasFetchTickers = false;
         $this->hasFetchOHLCV   = false;
+        $this->timeframes = null;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -822,6 +823,15 @@ class Exchange {
     
     public function fetchTrades ($market) {
         return $this->fetch_trades ($market);
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $exception = '\\ccxt\\NotSupported';
+        throw new $exception ($this->id . ' fetch_ohlcv() not suported or not implemented yet');
+    }
+
+    public function fetchOHLCV ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_ohlcv ($symbol, $timeframe, $since, $limit, $params);
     }
 
     public function create_limit_buy_order ($market, $amount, $price, $params = array ()) {

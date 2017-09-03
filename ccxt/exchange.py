@@ -602,17 +602,23 @@ class Exchange (object):
     def fetchOpenOrders(self, market=None, params={}):
         return self.fetch_open_orders(market, params)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return ohlcv
 
-    def parse_ohlcvs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None):
+    def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
         result = []
         for t in range(0, len(ohlcvs)):
             result.append(self.parse_ohlcv(ohlcvs[t], market, timeframe, since, limit))
         return result
 
-    def parseOHLCVs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None):
-        return self.parse_ohlcvs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None)
+    def parseOHLCVs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
+        return self.parse_ohlcvs(self, ohlcvs, market, timeframe, since, limit)
+
+    def fetchOHLCV(self, timeframe='1m', since=None, limit=None, params={}):
+        raise NotSupported(self.id + ' API does not allow to fetch OHLCV series for now')
+
+    def fetchOHLCV(self, timeframe='1m', since=None, limit=None, params={}):
+        return self.fetch_ohlcv(self, timeframe, since, limit, params)
 
     def parse_trades(self, trades, market=None):
         result = []

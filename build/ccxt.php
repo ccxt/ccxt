@@ -428,10 +428,11 @@ class Exchange {
         $this->twofa      = false;
         $this->marketsById = null;
         $this->markets_by_id = null;
-        $this->userAgent = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
+        $this->userAgent  = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
         $this->hasFetchTickers = false;
         $this->hasFetchOHLCV   = false;
+        $this->timeframes = null;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -822,6 +823,15 @@ class Exchange {
     
     public function fetchTrades ($market) {
         return $this->fetch_trades ($market);
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $exception = '\\ccxt\\NotSupported';
+        throw new $exception ($this->id . ' fetch_ohlcv() not suported or not implemented yet');
+    }
+
+    public function fetchOHLCV ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_ohlcv ($symbol, $timeframe, $since, $limit, $params);
     }
 
     public function create_limit_buy_order ($market, $amount, $price, $params = array ()) {
@@ -1549,6 +1559,8 @@ class binance extends Exchange {
             'countries' => 'CN', // China
             'rateLimit' => 1000,
             'version' => 'v1',
+            'hasFetchOHLCV' => true,
+            'ohlcvTimeframes' => array ( '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d', '3d', '1w', '1M' ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api' => 'https://www.binance.com/api',
@@ -1690,16 +1702,7 @@ class binance extends Exchange {
         return $this->parse_ticker ($response, $market);
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
-        // Kline/candlestick bars for a $symbol. Klines are uniquely identified by their open time.
-        // Parameters:
-        // Name    Type    Mandatory   Description
-        // $symbol  STRING  YES
-        // interval    ENUM    YES
-        // $limit   INT NO  Default 500; max 500.
-        // startTime   LONG    NO
-        // endTime LONG    NO
-        // If startTime and endTime are not sent, the most recent klines are returned.
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         // Response:
         // array (        //   [
         //     1499040000000,      // Open time
@@ -1716,7 +1719,41 @@ class binance extends Exchange {
         //     "17928899.62484339" // Can be ignored
         //  )
         // ]
+        return [
+            $ohlcv['time'] * 1000,
+            floatval ($ohlcv['open']),
+            floatval ($ohlcv['high']),
+            floatval ($ohlcv['low']),
+            floatval ($ohlcv['close']),
+            floatval ($ohlcv['vol']),
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        // Kline/candlestick bars for a $symbol. Klines are uniquely identified by their open time.
+        // Parameters:
+        // Name    Type    Mandatory   Description
+        // $symbol  STRING  YES
+        // interval    ENUM    YES
+        // $limit   INT NO  Default 500; max 500.
+        // startTime   LONG    NO
+        // endTime LONG    NO
+        // If startTime and endTime are not sent, the most recent klines are returned.
         throw new NotSupported ($this->id . ' fetchOHLCV is not implemented yet');
+        $this->load_markets ();
+        $method = 'publicGetGraphsMarket' . period;
+        $market = $this->market ($symbol);
+        $request = array (
+            'market' => $market['id'],
+            'interval' => $timeframe,
+        );
+        $request['limit'] = ($limit) ? $limit : 500; // default == max == 500
+        if ($since)
+            $request['startTime'] = $since;
+        $response = $this->$method (array_merge ($request, $params));
+        var_dump ($response);
+        exit ();
+        return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade ($trade, $market = null) {
@@ -3339,15 +3376,15 @@ class bitlish extends Exchange {
         return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets ();
         $market = $this->market ($symbol);
         $now = $this->seconds ();
         $start = $now - 86400 * 30; // last 30 days
         $interval = array ((string) $start, null);
-        return $this->publicPostOhlcv (array (
+        return $this->publicPostOhlcv (array_merge (array (
             'time_range' => $interval,
-        ));
+        ), $params));
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -3491,6 +3528,16 @@ class bitmarket extends Exchange {
             'countries' => array ( 'PL', 'EU' ),
             'rateLimit' => 1500,
             'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '90m' => '90m',
+                '6h' => '6h',
+                '1d' => '1d',
+                '1w' => '7d',
+                '1M' => '1m',
+                '3M' => '3m',
+                '6M' => '6m',
+                '1y' => '1y',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg',
                 'api' => array (
@@ -3654,7 +3701,7 @@ class bitmarket extends Exchange {
         return $this->parse_trades ($response, $market);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '90m', $since = null, $limit = null) {
         return [
             $ohlcv['time'] * 1000,
             floatval ($ohlcv['open']),
@@ -3665,31 +3712,13 @@ class bitmarket extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
+    public function fetch_ohlcv ($symbol, $timeframe = '90m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets ();
-        $period = '90m'; // 90 minutes by default
-        if ($timeframe == 5400) {
-            $period = '90m';
-        } else if ($timeframe == 21600) {
-            $period = '6h';
-        } else if ($timeframe == 86400) {
-            $period = '1d';
-        } else if ($timeframe == 604800) {
-            $period = '7d';
-        } else if ($timeframe == 2592000) {
-            $period = '1m';
-        } else if ($timeframe == 7776000) {
-            $period = '3m';
-        } else if ($timeframe == 15552000) {
-            $period = '6m';
-        } else if ($timeframe == 31536000) {
-            $period = '1y';
-        }
-        $method = 'publicGetGraphsMarket' . $period;
+        $method = 'publicGetGraphsMarket' . $this->timeframes[$timeframe];
         $market = $this->market ($symbol);
-        $response = $this->$method (array (
+        $response = $this->$method (array_merge (array (
             'market' => $market['id'],
-        ));
+        ), $params));
         return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
@@ -3744,6 +3773,12 @@ class bitmex extends Exchange {
             'version' => 'v1',
             'rateLimit' => 1500,
             'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1m' => '1m',
+                '5m' => '5m',
+                '1h' => '1h',
+                '1d' => '1d',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
                 'api' => 'https://www.bitmex.com',
@@ -3948,7 +3983,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         $timestamp = $this->parse8601 ($ohlcv['timestamp']);
         return [
             $timestamp,
@@ -3960,18 +3995,8 @@ class bitmex extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets ();
-        $period = '1m'; // 1 minute by default
-        if ($timeframe == 60) {
-            $period = '1m';
-        } else if ($timeframe == 300) {
-            $period = '5m';
-        } else if ($timeframe == 3600) {
-            $period = '1h';
-        } else if ($timeframe == 86400) {
-            $period = '1d';
-        }
         // send JSON key/value pairs, such as array ("key" => "value")
         // $filter by individual fields and do advanced queries on timestamps
         $filter = array ( 'key' => 'value' );
@@ -3981,7 +4006,7 @@ class bitmex extends Exchange {
         $market = $this->market ($symbol);
         $request = array (
             'symbol' => $market['id'],
-            'binSize' => $period,
+            'binSize' => $this->timeframes[$timeframe],
             'partial' => true,     // true == include yet-incomplete current bins
             // 'filter' => $filter, // $filter by individual fields and do advanced queries
             // 'columns' => array (),    // will return all columns if omitted
@@ -3993,7 +4018,7 @@ class bitmex extends Exchange {
             $request['startTime'] = $since; // starting date $filter for results
         if ($limit)
             $request['count'] = $limit; // default 100
-        $response = $this->publicGetTradeBucketed ($request);
+        $response = $this->publicGetTradeBucketed (array_merge ($request, $params));
         return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
@@ -10857,6 +10882,21 @@ class gdax extends Exchange {
             'name' => 'GDAX',
             'countries' => 'US',
             'rateLimit' => 1000,
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1m' => 60,
+                '5m' => 300,
+                '15m' => 900,
+                '30m' => 1800,
+                '1h' => 3600,
+                '2h' => 7200,
+                '4h' => 14400,
+                '12h' => 43200,
+                '1d' => 86400,
+                '1w' => 604800,
+                '1m' => 2592000,
+                '1y' => 31536000,
+            ),
             'urls' => array (
                 'test' => 'https://api-public.sandbox.gdax.com',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg',
@@ -11038,7 +11078,7 @@ class gdax extends Exchange {
         ), $params));
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return [
             $ohlcv[0] * 1000,
             $ohlcv[3],
@@ -11049,15 +11089,15 @@ class gdax extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets ();
         $market = $this->market ($symbol);
-        $response = $this->publicGetProductsIdCandles (array (
+        $response = $this->publicGetProductsIdCandles (array_merge (array (
             'id' => $market['id'],
-            'granularity' => $timeframe,
+            'granularity' => $this->timeframes[$timeframe],
             'start' => $since,
             'end' => $limit,
-        ));
+        ), $params));
         return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
@@ -11666,6 +11706,17 @@ class huobi extends Exchange {
             'rateLimit' => 2000,
             'version' => 'v3',
             'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1m' => '001',
+                '5m' => '005',
+                '15m' => '015',
+                '30m' => '030',
+                '1h' => '060',
+                '1d' => '100',
+                '1w' => '200',
+                '1M' => '300',
+                '1y' => '400',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
                 'api' => 'http://api.huobi.com',
@@ -11810,7 +11861,7 @@ class huobi extends Exchange {
         return $this->parse_trades ($response['trades'], $market);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         // not implemented yet
         return [
             $ohlcv[0],
@@ -11822,33 +11873,13 @@ class huobi extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
-        $period = '001'; // 1 minute by default
-        if ($timeframe == 60) {
-            $period = '001';
-        } else if ($timeframe == 300) {
-            $period = '005'; // 5 minutes
-        } else if ($timeframe == 900) {
-            $period = '015'; // 15 minutes
-        } else if ($timeframe == 1800) {
-            $period = '030'; // 30 minutes
-        } else if ($timeframe == 3600) {
-            $period = '060'; // 1 hour
-        } else if ($timeframe == 86400) {
-            $period = '100'; // 1 day
-        } else if ($timeframe == 604800) {
-            $period = '200'; // 1 week
-        } else if ($timeframe == 2592000) {
-            $period = '300'; // 1 month
-        } else if ($timeframe == 31536000) {
-            $period = '400'; // 1 year
-        }
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $method = $market['type'] . 'GetIdKlinePeriod';
-        $ohlcvs = $this->$method (array (
+        $ohlcvs = $this->$method (array_merge (array (
             'id' => $market['id'],
-            'period' => $period,
-        ));
+            'period' => $this->timeframes[$timeframe],
+        ), $params));
         return $ohlcvs;
         // return $this->parse_ohlcvs ($market, $ohlcvs, $timeframe, $since, $limit);
     }
@@ -12354,6 +12385,17 @@ class kraken extends Exchange {
             'rateLimit' => 1500,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1m' => '1',
+                '5m' => '5',
+                '15m' => '15',
+                '30m' => '30',
+                '1h' => '60',
+                '4h' => '240',
+                '1d' => '1440',
+                '1w' => '10080',
+                '2w' => '21600',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
                 'api' => 'https://api.kraken.com',
@@ -12527,7 +12569,7 @@ class kraken extends Exchange {
         return $this->parse_ticker ($ticker, $market);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return [
             $ohlcv[0] * 1000,
             floatval ($ohlcv[1]),
@@ -12538,14 +12580,14 @@ class kraken extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets ();
         $market = $this->market ($symbol);
-        $response = $this->publicGetOHLC (array (
+        $response = $this->publicGetOHLC (array_merge (array (
             'pair' => $market['id'],
-            'interval' => intval ($timeframe / 60),
+            'interval' => $this->timeframes[$timeframe],
             'since' => $since,
-        ));
+        ), $params));
         $ohlcvs = $response['result'][$market['id']];
         return $this->parse_ohlcvs ($ohlcvs, $market, $timeframe, $since, $limit);
     }
@@ -13659,6 +13701,22 @@ class okcoin extends Exchange {
         parent::__construct (array_merge(array (
             'version' => 'v1',
             'rateLimit' => 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1m' => '1min',
+                '3m' => '3min',
+                '5m' => '5min',
+                '15m' => '15min',
+                '30m' => '30min',
+                '1h' => '1hour',
+                '2h' => '2hour',
+                '4h' => '4hour',
+                '6h' => '6hour',
+                '12h' => '12hour',
+                '1d' => '1day',
+                '3d' => '3day',
+                '1w' => '1week',
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -13796,27 +13854,11 @@ class okcoin extends Exchange {
         return $this->parse_trades ($response, $market);
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = 1440, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 1440, $params = array ()) {
         $market = $this->market ($symbol);
-        $t = (string) $timeframe;
-        $timeframes = array (
-            '60' => '1min',
-            '180' => '3min',
-            '300' => '5min',
-            '900' => '15min',
-            '1800' => '30min',
-            '3600' => '1hour',
-            '7200' => '2hour',
-            '14400' => '4hour',
-            '21600' => '6hour',
-            '43200' => '12hour',
-            '86400' => '1day',
-            '259200' => '3day',
-            '604800' => '1week',
-        );
         $request = array (
             'symbol' => $market['id'],
-            'type' => $timeframes[$t],
+            'type' => $this->timeframes[$timeframe],
             'size' => intval ($limit),
         );
         if ($since) {
@@ -14011,15 +14053,15 @@ class okex extends okcoin {
         return $this->parse_trades ($response, $market);
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
-        $response = $this->publicGetFutureKline (array (
+        $response = $this->publicGetFutureKline (array_merge (array (
             'symbol' => $market['id'],
             'contract_type' => 'this_week', // next_week, quarter
-            'type' => '1min',
+            'type' => $this->timeframes[$timeframe],
             'since' => $since,
             'size' => intval ($limit),
-        ));
+        ), $params));
         return $this->parse_ohlcvs ($market, $response, $timeframe, $since, $limit);
     }
 
@@ -16357,7 +16399,7 @@ class xbtce extends Exchange {
         return $this->privateGetTrade ($params);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return [
             $ohlcv['Timestamp'],
             $ohlcv['Open'],
@@ -16368,7 +16410,7 @@ class xbtce extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         throw new NotSupported ($this->id . ' fetchOHLCV is disabled by the exchange');
         $minutes = intval ($timeframe / 60); // 1 minute by default
         $periodicity = (string) $minutes;
@@ -16378,12 +16420,12 @@ class xbtce extends Exchange {
             $since = $this->seconds () - 86400 * 7; // last day by defulat
         if (!$limit)
             $limit = 1000; // default
-        $response = $this->privateGetQuotehistorySymbolPeriodicityBarsBid (array (
+        $response = $this->privateGetQuotehistorySymbolPeriodicityBarsBid (array_merge (array (
             'symbol' => $market['id'],
             'periodicity' => '5m', // $periodicity,
             'timestamp' => $since,
             'count' => $limit,
-        ));
+        ), $params));
         return $this->parse_ohlcvs ($response['Bars'], $market, $timeframe, $since, $limit);
     }
 
@@ -16670,6 +16712,19 @@ class yunbi extends Exchange {
             'version' => 'v2',
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1m' => '1',
+                '5m' => '5',
+                '15m' => '15',
+                '30m' => '30',
+                '1h' => '60',
+                '2h' => '120',
+                '4h' => '240',
+                '12h' => '720',
+                '1d' => '1440',
+                '3d' => '4320',
+                '1w' => '10080',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg',
                 'api' => 'https://yunbi.com',
@@ -16873,7 +16928,7 @@ class yunbi extends Exchange {
         return $response;
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return [
             $ohlcv[0] * 1000,
             $ohlcv[1],
@@ -16884,21 +16939,19 @@ class yunbi extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
-        $minutes = intval ($timeframe / 60); // 1 minute by default
-        $period = (string) $minutes;
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets ();
         $market = $this->market ($symbol);
         if (!$limit)
             $limit = 500; // default is 30
         $request = array (
             'market' => $market['id'],
-            'period' => $period,
+            'period' => $this->timeframes[$timeframe],
             'limit' => $limit,
         );
         if ($since)
             $request['timestamp'] = $since;
-        $response = $this->publicGetK ($request);
+        $response = $this->publicGetK (array_merge ($request, $params));
         return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 

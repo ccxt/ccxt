@@ -736,6 +736,8 @@ class binance (Exchange):
             'countries': 'CN', # China
             'rateLimit': 1000,
             'version': 'v1',
+            'hasFetchOHLCV': True,
+            'ohlcvTimeframes': ['1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d', '3d', '1w', '1M'],
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api': 'https://www.binance.com/api',
@@ -871,16 +873,7 @@ class binance (Exchange):
         })
         return self.parse_ticker(response, market)
 
-    def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
-        # Kline/candlestick bars for a symbol. Klines are uniquely identified by their open time.
-        # Parameters:
-        # Name    Type    Mandatory   Description
-        # symbol  STRING  YES
-        # interval    ENUM    YES
-        # limit   INT NO  Default 500 max 500.
-        # startTime   LONG    NO
-        # endTime LONG    NO
-        # If startTime and endTime are not sent, the most recent klines are returned.
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         # Response:
         # [
         #   [
@@ -898,7 +891,40 @@ class binance (Exchange):
         #     "17928899.62484339" # Can be ignored
         #   ]
         #]
+        return [
+            ohlcv['time'] * 1000,
+            float(ohlcv['open']),
+            float(ohlcv['high']),
+            float(ohlcv['low']),
+            float(ohlcv['close']),
+            float(ohlcv['vol']),
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        # Kline/candlestick bars for a symbol. Klines are uniquely identified by their open time.
+        # Parameters:
+        # Name    Type    Mandatory   Description
+        # symbol  STRING  YES
+        # interval    ENUM    YES
+        # limit   INT NO  Default 500 max 500.
+        # startTime   LONG    NO
+        # endTime LONG    NO
+        # If startTime and endTime are not sent, the most recent klines are returned.
         raise NotSupported(self.id + ' fetchOHLCV is not implemented yet')
+        self.load_markets()
+        method = 'publicGetGraphsMarket' + period
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+            'interval': timeframe,
+        }
+        request['limit'] = limit if(limit) else 500 # default == max == 500
+        if since:
+            request['startTime'] = since
+        response = getattr(self, method)(self.extend(request, params))
+        print(response)
+        sys.exit()
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         timestampField = 'T' if('T' in list(trade.keys())) else 'time'
@@ -2404,15 +2430,15 @@ class bitlish (Exchange):
         ticker = tickers[market['id']]
         return self.parse_ticker(ticker, market)
 
-    def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         now = self.seconds()
         start = now - 86400 * 30 # last 30 days
         interval = [str(start), None]
-        return self.publicPostOhlcv({
+        return self.publicPostOhlcv(self.extend({
             'time_range': interval,
-        })
+        }, params))
 
     def fetch_order_book(self, symbol, params={}):
         self.load_markets()
@@ -2538,6 +2564,16 @@ class bitmarket (Exchange):
             'countries': ['PL', 'EU'],
             'rateLimit': 1500,
             'hasFetchOHLCV': True,
+            'timeframes': {
+                '90m': '90m',
+                '6h': '6h',
+                '1d': '1d',
+                '1w': '7d',
+                '1M': '1m',
+                '3M': '3m',
+                '6M': '6m',
+                '1y': '1y',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg',
                 'api': {
@@ -2696,7 +2732,7 @@ class bitmarket (Exchange):
         }, params))
         return self.parse_trades(response, market)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='90m', since=None, limit=None):
         return [
             ohlcv['time'] * 1000,
             float(ohlcv['open']),
@@ -2706,30 +2742,13 @@ class bitmarket (Exchange):
             float(ohlcv['vol']),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
+    def fetch_ohlcv(self, symbol, timeframe='90m', since=None, limit=None, params={}):
         self.load_markets()
-        period = '90m' # 90 minutes by default
-        if timeframe == 5400:
-            period = '90m'
-        elif timeframe == 21600:
-            period = '6h'
-        elif timeframe == 86400:
-            period = '1d'
-        elif timeframe == 604800:
-            period = '7d'
-        elif timeframe == 2592000:
-            period = '1m'
-        elif timeframe == 7776000:
-            period = '3m'
-        elif timeframe == 15552000:
-            period = '6m'
-        elif timeframe == 31536000:
-            period = '1y'
-        method = 'publicGetGraphsMarket' + period
+        method = 'publicGetGraphsMarket' + self.timeframes[timeframe]
         market = self.market(symbol)
-        response = getattr(self, method)({
+        response = getattr(self, method)(self.extend({
             'market': market['id'],
-        })
+        }, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -2778,6 +2797,12 @@ class bitmex (Exchange):
             'version': 'v1',
             'rateLimit': 1500,
             'hasFetchOHLCV': True,
+            'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
+                '1h': '1h',
+                '1d': '1d',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
                 'api': 'https://www.bitmex.com',
@@ -2975,7 +3000,7 @@ class bitmex (Exchange):
             'info': ticker,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         timestamp = self.parse8601(ohlcv['timestamp'])
         return [
             timestamp,
@@ -2986,17 +3011,8 @@ class bitmex (Exchange):
             ohlcv['volume'],
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
-        period = '1m' # 1 minute by default
-        if timeframe == 60:
-            period = '1m'
-        elif timeframe == 300:
-            period = '5m'
-        elif timeframe == 3600:
-            period = '1h'
-        elif timeframe == 86400:
-            period = '1d'
         # send JSON key/value pairs, such as {"key": "value"}
         # filter by individual fields and do advanced queries on timestamps
         filter = {'key': 'value'}
@@ -3006,7 +3022,7 @@ class bitmex (Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'binSize': period,
+            'binSize': self.timeframes[timeframe],
             'partial': True,     # True == include yet-incomplete current bins
             # 'filter': filter, # filter by individual fields and do advanced queries
             # 'columns': [],    # will return all columns if omitted
@@ -3018,7 +3034,7 @@ class bitmex (Exchange):
             request['startTime'] = since # starting date filter for results
         if limit:
             request['count'] = limit # default 100
-        response = self.publicGetTradeBucketed(request)
+        response = self.publicGetTradeBucketed(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
@@ -9426,6 +9442,21 @@ class gdax (Exchange):
             'name': 'GDAX',
             'countries': 'US',
             'rateLimit': 1000,
+            'hasFetchOHLCV': True,
+            'timeframes': {
+                '1m': 60,
+                '5m': 300,
+                '15m': 900,
+                '30m': 1800,
+                '1h': 3600,
+                '2h': 7200,
+                '4h': 14400,
+                '12h': 43200,
+                '1d': 86400,
+                '1w': 604800,
+                '1m': 2592000,
+                '1y': 31536000,
+            },
             'urls': {
                 'test': 'https://api-public.sandbox.gdax.com',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg',
@@ -9598,7 +9629,7 @@ class gdax (Exchange):
             'id': self.market_id(market), # fixes issue #2
         }, params))
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
             ohlcv[0] * 1000,
             ohlcv[3],
@@ -9608,15 +9639,15 @@ class gdax (Exchange):
             ohlcv[5],
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetProductsIdCandles({
+        response = self.publicGetProductsIdCandles(self.extend({
             'id': market['id'],
-            'granularity': timeframe,
+            'granularity': self.timeframes[timeframe],
             'start': since,
             'end': limit,
-        })
+        }, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetchTime(self):
@@ -10182,6 +10213,17 @@ class huobi (Exchange):
             'rateLimit': 2000,
             'version': 'v3',
             'hasFetchOHLCV': True,
+            'timeframes': {
+                '1m': '001',
+                '5m': '005',
+                '15m': '015',
+                '30m': '030',
+                '1h': '060',
+                '1d': '100',
+                '1w': '200',
+                '1M': '300',
+                '1y': '400',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
                 'api': 'http://api.huobi.com',
@@ -10321,7 +10363,7 @@ class huobi (Exchange):
         }, params))
         return self.parse_trades(response['trades'], market)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         # not implemented yet
         return [
             ohlcv[0],
@@ -10332,32 +10374,13 @@ class huobi (Exchange):
             ohlcv[6],
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
-        period = '001' # 1 minute by default
-        if timeframe == 60:
-            period = '001'
-        elif timeframe == 300:
-            period = '005' # 5 minutes
-        elif timeframe == 900:
-            period = '015' # 15 minutes
-        elif timeframe == 1800:
-            period = '030' # 30 minutes
-        elif timeframe == 3600:
-            period = '060' # 1 hour
-        elif timeframe == 86400:
-            period = '100' # 1 day
-        elif timeframe == 604800:
-            period = '200' # 1 week
-        elif timeframe == 2592000:
-            period = '300' # 1 month
-        elif timeframe == 31536000:
-            period = '400' # 1 year
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         market = self.market(symbol)
         method = market['type'] + 'GetIdKlinePeriod'
-        ohlcvs = getattr(self, method)({
+        ohlcvs = getattr(self, method)(self.extend({
             'id': market['id'],
-            'period': period,
-        })
+            'period': self.timeframes[timeframe],
+        }, params))
         return ohlcvs
         # return self.parse_ohlcvs(market, ohlcvs, timeframe, since, limit)
 
@@ -10829,6 +10852,17 @@ class kraken (Exchange):
             'rateLimit': 1500,
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
+            'timeframes': {
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '4h': '240',
+                '1d': '1440',
+                '1w': '10080',
+                '2w': '21600',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
                 'api': 'https://api.kraken.com',
@@ -10993,7 +11027,7 @@ class kraken (Exchange):
         ticker = response['result'][market['id']]
         return self.parse_ticker(ticker, market)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
             ohlcv[0] * 1000,
             float(ohlcv[1]),
@@ -11003,14 +11037,14 @@ class kraken (Exchange):
             float(ohlcv[6]),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetOHLC({
+        response = self.publicGetOHLC(self.extend({
             'pair': market['id'],
-            'interval': int(timeframe / 60),
+            'interval': self.timeframes[timeframe],
             'since': since,
-        })
+        }, params))
         ohlcvs = response['result'][market['id']]
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
@@ -12047,6 +12081,22 @@ class okcoin (Exchange):
         params = {
             'version': 'v1',
             'rateLimit': 1000, # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            'hasFetchOHLCV': True,
+            'timeframes': {
+                '1m': '1min',
+                '3m': '3min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
+                '1h': '1hour',
+                '2h': '2hour',
+                '4h': '4hour',
+                '6h': '6hour',
+                '12h': '12hour',
+                '1d': '1day',
+                '3d': '3day',
+                '1w': '1week',
+            },
             'api': {
                 'public': {
                     'get': [
@@ -12180,27 +12230,11 @@ class okcoin (Exchange):
         }, params))
         return self.parse_trades(response, market)
 
-    def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=1440, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1440, params={}):
         market = self.market(symbol)
-        t = str(timeframe)
-        timeframes = {
-            '60': '1min',
-            '180': '3min',
-            '300': '5min',
-            '900': '15min',
-            '1800': '30min',
-            '3600': '1hour',
-            '7200': '2hour',
-            '14400': '4hour',
-            '21600': '6hour',
-            '43200': '12hour',
-            '86400': '1day',
-            '259200': '3day',
-            '604800': '1week',
-        }
         request = {
             'symbol': market['id'],
-            'type': timeframes[t],
+            'type': self.timeframes[timeframe],
             'size': int(limit),
         }
         if since:
@@ -12382,15 +12416,15 @@ class okex (okcoin):
         }, params))
         return self.parse_trades(response, market)
 
-    def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         market = self.market(symbol)
-        response = self.publicGetFutureKline({
+        response = self.publicGetFutureKline(self.extend({
             'symbol': market['id'],
             'contract_type': 'this_week', # next_week, quarter
-            'type': '1min',
+            'type': self.timeframes[timeframe],
             'since': since,
             'size': int(limit),
-        })
+        }, params))
         return self.parse_ohlcvs(market, response, timeframe, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -14572,7 +14606,7 @@ class xbtce (Exchange):
         # no method for trades?
         return self.privateGetTrade(params)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
             ohlcv['Timestamp'],
             ohlcv['Open'],
@@ -14582,7 +14616,7 @@ class xbtce (Exchange):
             ohlcv['Volume'],
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetchOHLCV is disabled by the exchange')
         minutes = int(timeframe / 60) # 1 minute by default
         periodicity = str(minutes)
@@ -14592,12 +14626,12 @@ class xbtce (Exchange):
             since = self.seconds() - 86400 * 7 # last day by defulat
         if not limit:
             limit = 1000 # default
-        response = self.privateGetQuotehistorySymbolPeriodicityBarsBid({
+        response = self.privateGetQuotehistorySymbolPeriodicityBarsBid(self.extend({
             'symbol': market['id'],
             'periodicity': '5m', # periodicity,
             'timestamp': since,
             'count': limit,
-        })
+        }, params))
         return self.parse_ohlcvs(response['Bars'], market, timeframe, since, limit)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
@@ -14863,6 +14897,19 @@ class yunbi (Exchange):
             'version': 'v2',
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
+            'timeframes': {
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '2h': '120',
+                '4h': '240',
+                '12h': '720',
+                '1d': '1440',
+                '3d': '4320',
+                '1w': '10080',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg',
                 'api': 'https://yunbi.com',
@@ -15053,7 +15100,7 @@ class yunbi (Exchange):
         # return self.parse_trades(reponse, market)
         return response
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
             ohlcv[0] * 1000,
             ohlcv[1],
@@ -15063,21 +15110,19 @@ class yunbi (Exchange):
             ohlcv[5],
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe=60, since=None, limit=None):
-        minutes = int(timeframe / 60) # 1 minute by default
-        period = str(minutes)
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         if not limit:
             limit = 500 # default is 30
         request = {
             'market': market['id'],
-            'period': period,
+            'period': self.timeframes[timeframe],
             'limit': limit,
         }
         if since:
             request['timestamp'] = since
-        response = self.publicGetK(request)
+        response = self.publicGetK(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
