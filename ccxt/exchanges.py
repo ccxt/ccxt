@@ -8765,11 +8765,11 @@ class flowbtc (Exchange):
             result[currency] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         orderbook = self.publicPostGetOrderBook(self.extend({
-            'productPair': p['id'],
+            'productPair': market['id'],
         }, params))
         timestamp = self.milliseconds()
         result = {
@@ -8789,11 +8789,11 @@ class flowbtc (Exchange):
                 result[side].append([price, amount])
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         ticker = self.publicPostGetTicker({
-            'productPair': p['id'],
+            'productPair': market['id'],
         })
         timestamp = self.milliseconds()
         return {
@@ -8816,17 +8816,36 @@ class flowbtc (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
-        self.load_markets()
-        return self.publicPostGetTrades(self.extend({
-            'ins': self.market_id(market),
-        }, params))
+    def parse_trade(self, trade, market):
+        timestamp = trade['unixtime'] * 1000
+        side = 'buy' if(trade['incomingOrderSide'] == 0) else 'sell'
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'id': str(trade['tid']),
+            'order': None,
+            'type': None,
+            'side': side,
+            'price': trade['px'],
+            'amount': trade['qty'],
+        }
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def fetch_trades(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.publicPostGetTrades(self.extend({
+            'ins': market['id'],
+            'startIndex': -1,
+        }, params))
+        return self.parse_trades(response['trades'], market)
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         orderType = 1 if(type == 'market') else 0
         order = {
-            'ins': self.market_id(market),
+            'ins': self.market_id(symbol),
             'side': side,
             'orderType': orderType,
             'qty': amount,
