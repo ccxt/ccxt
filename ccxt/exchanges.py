@@ -3829,6 +3829,7 @@ class bittrex (Exchange):
         return self.parse_order(response['result'])
 
     def withdraw(self, currency, amount, address, params={}):
+        self.load_markets()
         return self.accountGetWithdraw(self.extend({
             'currency': currency,
             'quantity': amount,
@@ -12779,6 +12780,14 @@ class poloniex (Exchange):
         self.load_markets()
         return self.privatePostCancelOrder(self.extend({
             'orderNumber': id,
+        }, params))
+
+    def withdraw(self, currency, amount, address, params={}):
+        self.load_markets()
+        return self.privatePostWithdraw(self.extend({
+            'currency': currency,
+            'amount': amount,
+            'address': address,
         }, params))
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
