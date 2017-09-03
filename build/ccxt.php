@@ -11785,10 +11785,29 @@ class huobi extends Exchange {
         );
     }
 
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['ts'];
+        return array (
+            'info' => $trade,
+            'id' => (string) $trade['id'],
+            'order' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['direction'],
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
+    }
+
     public function fetch_trades ($symbol, $params = array ()) {
         $market = $this->market ($symbol);
         $method = $market['type'] . 'GetDetailId';
-        return $this->$method (array_merge (array ( 'id' => $market['id'] ), $params));
+        $response = $this->$method (array_merge (array ( 
+            'id' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response['trades'], $market);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {

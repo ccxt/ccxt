@@ -11397,10 +11397,29 @@ var huobi = {
         };
     },
 
+    parseTrade (trade, market) {
+        let timestamp = trade['ts'];
+        return {
+            'info': trade,
+            'id': trade['id'].toString (),
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade['direction'],
+            'price': trade['price'],
+            'amount': trade['amount'],
+        };
+    },
+
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
         let method = market['type'] + 'GetDetailId';
-        return this[method] (this.extend ({ 'id': market['id'] }, params));
+        let response = await this[method] (this.extend ({ 
+            'id': market['id'],
+        }, params));
+        return this.parseTrades (response['trades'], market);
     },
 
     parseOHLCV (ohlcv, market = undefined, timeframe = 60, since = undefined, limit = undefined) {

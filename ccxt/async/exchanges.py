@@ -10220,10 +10220,28 @@ class huobi (Exchange):
             'info': ticker,
         }
 
+    def parse_trade(self, trade, market):
+        timestamp = trade['ts']
+        return {
+            'info': trade,
+            'id': str(trade['id']),
+            'order': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['direction'],
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
+
     async def fetch_trades(self, symbol, params={}):
         market = self.market(symbol)
         method = market['type'] + 'GetDetailId'
-        return getattr(self, method)(self.extend({'id': market['id']}, params))
+        response = await getattr(self, method)(self.extend({
+            'id': market['id'],
+        }, params))
+        return self.parse_trades(response['trades'], market)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
         # not implemented yet
