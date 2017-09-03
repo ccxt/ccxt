@@ -14004,6 +14004,14 @@ var poloniex = {
         }, params));
     },
 
+    async withdraw (currency, amount, address, params = {}) {
+        return this.privatePostWithdraw (this.extend ({
+            'currency': currency,
+            'amount': amount,
+            'address': address,
+        }, params));
+    },
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         let query = this.extend ({ 'command': path }, params);
