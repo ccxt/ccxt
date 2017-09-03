@@ -9158,11 +9158,11 @@ class gatecoin (Exchange):
             result[currency] = account
         return result
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         orderbook = await self.publicGetPublicMarketDepthCurrencyPair(self.extend({
-            'CurrencyPair': p['id'],
+            'CurrencyPair': market['id'],
         }, params))
         timestamp = self.milliseconds()
         result = {
@@ -9217,25 +9217,46 @@ class gatecoin (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         await self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         response = await self.publicGetPublicLiveTickerCurrencyPair({
-            'CurrencyPair': p['id'],
+            'CurrencyPair': market['id'],
         })
         ticker = response['ticker']
-        return self.parse_ticker(ticker, p)
+        return self.parse_ticker(ticker, market)
 
-    async def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market=None):
+        side = 'buy' if(trade['way'] == 'bid') else 'sell'
+        order = trade['way'] + 'OrderId'
+        timestamp = int(trade['transactionTime']) * 1000
+        if not market:
+            market = self.markets_by_id[trade['currencyPair']]
+        return {
+            'info': trade,
+            'id': str(trade['transactionId']),
+            'order': trade[order],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': side,
+            'price': trade['price'],
+            'amount': trade['quantity'],
+        }
+
+    async def fetch_trades(self, symbol, params={}):
         await self.load_markets()
-        return self.publicGetPublicTransactionsCurrencyPair(self.extend({
-            'CurrencyPair': self.market_id(market),
+        market = self.market(symbol)
+        response = await  self.publicGetPublicTransactionsCurrencyPair(self.extend({
+            'CurrencyPair': market['id'],
         }, params))
+        return self.parse_trades(response['transactions'], market)
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         order = {
-            'Code': self.market_id(market),
+            'Code': self.market_id(symbol),
             'Way': 'Bid' if(side == 'buy') else 'Ask',
             'Amount': amount,
         }

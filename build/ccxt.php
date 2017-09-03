@@ -10649,11 +10649,11 @@ class gatecoin extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $orderbook = $this->publicGetPublicMarketDepthCurrencyPair (array_merge (array (
-            'CurrencyPair' => $p['id'],
+            'CurrencyPair' => $market['id'],
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -10714,27 +10714,49 @@ class gatecoin extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $response = $this->publicGetPublicLiveTickerCurrencyPair (array (
-            'CurrencyPair' => $p['id'],
+            'CurrencyPair' => $market['id'],
         ));
         $ticker = $response['ticker'];
-        return $this->parse_ticker ($ticker, $p);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market = null) {
+        $side = ($trade['way'] == 'bid') ? 'buy' : 'sell';
+        $order = $trade['way'] . 'OrderId';
+        $timestamp = intval ($trade['transactionTime']) * 1000;
+        if (!$market)
+            $market = $this->markets_by_id[$trade['currencyPair']];
+        return array (
+            'info' => $trade,
+            'id' => (string) $trade['transactionId'],
+            'order' => $trade[$order],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $side,
+            'price' => $trade['price'],
+            'amount' => $trade['quantity'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetPublicTransactionsCurrencyPair (array_merge (array (
-            'CurrencyPair' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response =  $this->publicGetPublicTransactionsCurrencyPair (array_merge (array (
+            'CurrencyPair' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response['transactions'], $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $order = array (
-            'Code' => $this->market_id ($market),
+            'Code' => $this->market_id ($symbol),
             'Way' => ($side == 'buy') ? 'Bid' : 'Ask',
             'Amount' => $amount,
         );
