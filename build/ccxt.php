@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.104';
+$version = '1.5.105';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12293,8 +12293,6 @@ class jubi extends Exchange {
     public function fetch_tickers () {
         $this->load_markets ();
         $tickers = $this->publicGetAllticker ();
-        var_dump ($tickers);
-        exit ();
         $ids = array_keys ($tickers);
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {

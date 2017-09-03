@@ -10691,8 +10691,6 @@ class jubi (Exchange):
     async def fetch_tickers(self):
         await self.load_markets()
         tickers = await self.publicGetAllticker()
-        print(tickers)
-        sys.exit()
         ids = list(tickers.keys())
         result = {}
         for i in range(0, len(ids)):

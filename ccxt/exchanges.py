@@ -10769,8 +10769,6 @@ class jubi (Exchange):
     def fetch_tickers(self):
         self.load_markets()
         tickers = self.publicGetAllticker()
-        print(tickers)
-        sys.exit()
         ids = list(tickers.keys())
         result = {}
         for i in range(0, len(ids)):
