@@ -11151,8 +11151,8 @@ class lakebtc (Exchange):
                 'api': 'https://api.lakebtc.com',
                 'www': 'https://www.lakebtc.com',
                 'doc': [
-                    'https://www.lakebtc.com/s/api',
                     'https://www.lakebtc.com/s/api_v2',
+                    'https://www.lakebtc.com/s/api',
                 ],
             },
             'api': {
@@ -11273,11 +11273,28 @@ class lakebtc (Exchange):
             'info': ticker,
         }
 
-    async def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market):
+        timestamp = trade['date'] * 1000
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'id': str(trade['tid']),
+            'order': None,
+            'type': None,
+            'side': None,
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
+        }
+
+    async def fetch_trades(self, symbol, params={}):
         await self.load_markets()
-        return self.publicGetBctrades(self.extend({
-            'symbol': self.market_id(market),
+        market = self.market(symbol)
+        response = await self.publicGetBctrades(self.extend({
+            'symbol': market['id'],
         }, params))
+        return self.parse_trades(response, market)
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -15058,6 +15075,8 @@ class yunbi (Exchange):
         response = await self.publicGetTrades(self.extend({
             'market': market['id'],
         }, params))
+        # looks like they switched self endpoint off
+        # it returns 503 Service Temporarily Unavailable always
         # return self.parse_trades(reponse, market)
         return response
 

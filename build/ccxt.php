@@ -12791,8 +12791,8 @@ class lakebtc extends Exchange {
                 'api' => 'https://api.lakebtc.com',
                 'www' => 'https://www.lakebtc.com',
                 'doc' => array (
-                    'https://www.lakebtc.com/s/api',
                     'https://www.lakebtc.com/s/api_v2',
+                    'https://www.lakebtc.com/s/api',
                 ),
             ),
             'api' => array (
@@ -12920,11 +12920,29 @@ class lakebtc extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['date'] * 1000;
+        return array (
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'id' => (string) $trade['tid'],
+            'order' => null,
+            'type' => null,
+            'side' => null,
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetBctrades (array_merge (array (
-            'symbol' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response = $this->publicGetBctrades (array_merge (array (
+            'symbol' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
@@ -16966,6 +16984,8 @@ class yunbi extends Exchange {
         $response = $this->publicGetTrades (array_merge (array (
             'market' => $market['id'],
         ), $params));
+        // looks like they switched this endpoint off
+        // it returns 503 Service Temporarily Unavailable always
         // return $this->parse_trades (reponse, $market);
         return $response;
     }

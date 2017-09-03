@@ -12383,8 +12383,8 @@ var lakebtc = {
         'api': 'https://api.lakebtc.com',
         'www': 'https://www.lakebtc.com',
         'doc': [
-            'https://www.lakebtc.com/s/api',
             'https://www.lakebtc.com/s/api_v2',
+            'https://www.lakebtc.com/s/api',
         ],
     },
     'api': {
@@ -12510,11 +12510,29 @@ var lakebtc = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
+    parseTrade (trade, market) {
+        let timestamp = trade['date'] * 1000;
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'id': trade['tid'].toString (),
+            'order': undefined,
+            'type': undefined,
+            'side': undefined,
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        return this.publicGetBctrades (this.extend ({
-            'symbol': this.marketId (market),
+        let market = this.market (symbol);
+        let response = await this.publicGetBctrades (this.extend ({
+            'symbol': market['id'],
         }, params));
+        return this.parseTrades (response, market);
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
