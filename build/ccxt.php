@@ -8184,9 +8184,9 @@ class coinfloor extends Exchange {
         ));
     }
 
-    public function fetch_order_book ($market) {
+    public function fetch_order_book ($symbol) {
         $orderbook = $this->publicGetIdOrderBook (array (
-            'id' => $this->market_id ($market),
+            'id' => $this->market_id ($symbol),
         ));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -8238,22 +8238,40 @@ class coinfloor extends Exchange {
         );
     }
 
-    public function fetch_ticker ($market) {
-        $m = $this->market ($market);
+    public function fetch_ticker ($symbol) {
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetIdTicker (array (
-            'id' => $m['id'],
+            'id' => $market['id'],
         ));
-        return $this->parse_ticker ($ticker, $m);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetIdTransactions (array_merge (array (
-            'id' => $this->market_id ($market),
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['date'] * 1000;
+        return array (
+            'info' => $trade,
+            'id' => (string) $trade['tid'],
+            'order' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => null,
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetIdTransactions (array_merge (array (
+            'id' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
-        $order = array ( 'id' => $this->market_id ($market) );
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $order = array ( 'id' => $this->market_id ($symbol) );
         $method = 'privatePostId' . $this->capitalize ($side);
         if ($type == 'market') {
             $order['quantity'] = $amount;
@@ -10747,7 +10765,7 @@ class gatecoin extends Exchange {
     public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
         $market = $this->market ($symbol);
-        $response =  $this->publicGetPublicTransactionsCurrencyPair (array_merge (array (
+        $response = $this->publicGetPublicTransactionsCurrencyPair (array_merge (array (
             'CurrencyPair' => $market['id'],
         ), $params));
         return $this->parse_trades ($response['transactions'], $market);

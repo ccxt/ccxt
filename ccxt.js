@@ -7873,9 +7873,9 @@ var coinfloor = {
         });
     },
 
-    async fetchOrderBook (market) {
+    async fetchOrderBook (symbol) {
         let orderbook = await this.publicGetIdOrderBook ({
-            'id': this.marketId (market),
+            'id': this.marketId (symbol),
         });
         let timestamp = this.milliseconds ();
         let result = {
@@ -7927,22 +7927,40 @@ var coinfloor = {
         };
     },
 
-    async fetchTicker (market) {
-        let m = this.market (market);
+    async fetchTicker (symbol) {
+        let market = this.market (symbol);
         let ticker = await this.publicGetIdTicker ({
-            'id': m['id'],
+            'id': market['id'],
         });
-        return this.parseTicker (ticker, m);
+        return this.parseTicker (ticker, market);
     },
 
-    async fetchTrades (market, params = {}) {
-        return this.publicGetIdTransactions (this.extend ({
-            'id': this.marketId (market),
+    parseTrade (trade, market) {
+        let timestamp = trade['date'] * 1000;
+        return {
+            'info': trade,
+            'id': trade['tid'].toString (),
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': undefined,
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetIdTransactions (this.extend ({
+            'id': market['id'],
         }, params));
+        return this.parseTrades (response, market);
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
-        let order = { 'id': this.marketId (market) };
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        let order = { 'id': this.marketId (symbol) };
         let method = 'privatePostId' + this.capitalize (side);
         if (type == 'market') {
             order['quantity'] = amount;
@@ -10377,7 +10395,7 @@ var gatecoin = {
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await  this.publicGetPublicTransactionsCurrencyPair (this.extend ({
+        let response = await this.publicGetPublicTransactionsCurrencyPair (this.extend ({
             'CurrencyPair': market['id'],
         }, params));
         return this.parseTrades (response['transactions'], market);
