@@ -11031,6 +11031,27 @@ class gdax extends Exchange {
         return $this->privateDeleteOrdersId (array ( 'id' => $id ));
     }
 
+    public function getPaymentMethods () {
+        $response = $this->privateGetPaymentMethods ();
+        return $response;
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        if (array_key_exists ('payment_method_id', $params)) {
+            $this->load_markets ();
+            $response = $this->privatePostWithdraw (array_merge (array (
+                'currency' => $currency,
+                'amount' => $amount,
+                // 'address' => $address, // they don't allow withdrawals to direct addresses
+            ), $params));
+            return array (
+                'info' => $response,
+                'id' => $response['result'],
+            );
+        }
+        throw new ExchangeError ($this->id . " withdraw requires a 'payment_method_id' parameter");
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->implode_params ($path, $params);
         $url = $this->urls['api'] . $request;
@@ -12561,7 +12582,7 @@ class kraken extends Exchange {
             $response = $this->privatePostWithdraw (array_merge (array (
                 'asset' => $currency,
                 'amount' => $amount,
-                // 'address' => $address,
+                // 'address' => $address, // they don't allow withdrawals to direct addresses
             ), $params));
             return array (
                 'info' => $response,

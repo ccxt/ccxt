@@ -9511,6 +9511,24 @@ class gdax (Exchange):
         await self.load_markets()
         return self.privateDeleteOrdersId({'id': id})
 
+    async def getPaymentMethods(self):
+        response = await self.privateGetPaymentMethods()
+        return response
+
+    async def withdraw(self, currency, amount, address, params={}):
+        if 'payment_method_id' in params:
+            await self.load_markets()
+            response = await self.privatePostWithdraw(self.extend({
+                'currency': currency,
+                'amount': amount,
+                # 'address': address, # they don't allow withdrawals to direct addresses
+            }, params))
+            return {
+                'info': response,
+                'id': response['result'],
+            }
+        raise ExchangeError(self.id + " withdraw requires a 'payment_method_id' parameter")
+
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + self.implode_params(path, params)
         url = self.urls['api'] + request
@@ -10944,7 +10962,7 @@ class kraken (Exchange):
             response = await self.privatePostWithdraw(self.extend({
                 'asset': currency,
                 'amount': amount,
-                # 'address': address,
+                # 'address': address, # they don't allow withdrawals to direct addresses
             }, params))
             return {
                 'info': response,
