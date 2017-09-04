@@ -15573,9 +15573,27 @@ var vaultoro = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
+    parseTrade (trade, market) {
+        let timestamp = this.parse8601 (trade['Time']);
+        return {
+            'id': undefined,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': undefined,
+            'type': undefined,
+            'side': undefined,
+            'price': trade['Gold_Price'],
+            'amount': trade['Gold_Amount'],
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        return this.publicGetTransactionsDay (params);
+        let market = this.market (symbol);
+        let response = await this.publicGetTransactionsDay (params);
+        return this.parseTrades (response, market);
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {

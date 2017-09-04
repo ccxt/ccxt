@@ -14279,9 +14279,26 @@ class vaultoro (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market):
+        timestamp = self.parse8601(trade['Time'])
+        return {
+            'id': None,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'order': None,
+            'type': None,
+            'side': None,
+            'price': trade['Gold_Price'],
+            'amount': trade['Gold_Amount'],
+        }
+
+    def fetch_trades(self, symbol, params={}):
         self.load_markets()
-        return self.publicGetTransactionsDay(params)
+        market = self.market(symbol)
+        response = self.publicGetTransactionsDay(params)
+        return self.parse_trades(response, market)
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.load_markets()

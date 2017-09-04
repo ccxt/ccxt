@@ -16049,9 +16049,27 @@ class vaultoro extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = $this->parse8601 ($trade['Time']);
+        return array (
+            'id' => null,
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'order' => null,
+            'type' => null,
+            'side' => null,
+            'price' => $trade['Gold_Price'],
+            'amount' => $trade['Gold_Amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetTransactionsDay ($params);
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTransactionsDay ($params);
+        return $this->parse_trades ($response, $market);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
