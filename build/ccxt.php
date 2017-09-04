@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.24';
+$version = '1.6.26';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -6927,31 +6927,8 @@ class btctradeua extends Exchange {
         return $result;
     }
 
-    public function parseRussianDateTime ($value) {
-        list ($day, $month, $year, $unused, $hoursMinutesSeconds) = explode (' ', $value);
-        $number = intval ($day);
-        if ($number < 10)
-            $day = '0' . (string) $number;
-        else
-            $day = (string) $number
-        $month = str_replace ('января', '01', $month);
-        $month = str_replace ('февраля', '02', $month);
-        $month = str_replace ('марта', '03', $month);
-        $month = str_replace ('апреля', '04', $month);
-        $month = str_replace ('мая', '05', $month);
-        $month = str_replace ('июня', '06', $month);
-        $month = str_replace ('июля', '07', $month);
-        $month = str_replace ('августа', '08', $month);
-        $month = str_replace ('сентября', '09', $month);
-        $month = str_replace ('октября', '10', $month);
-        $month = str_replace ('ноября', '11', $month);
-        $month = str_replace ('декабря', '12', $month);
-        $iso8601 = $year . '-' . $month . '-' . $day . ' ' . $hoursMinutesSeconds;
-        return $this->parse8601 ($iso8601);
-    }
-
     public function parse_trade ($trade, $market) {
-        $timestamp = $this->parseRussianDateTime ($trade['pub_date']);
+        $timestamp = $this->milliseconds (); // until we have a better solution for python
         return array (
             'id' => (string) $trade['id'],
             'info' => $trade,

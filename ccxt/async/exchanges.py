@@ -5660,30 +5660,8 @@ class btctradeua (Exchange):
             result['quoteVolume'] = -1 * result['quoteVolume']
         return result
 
-    def parseRussianDateTime(self, value):
-        day, month, year, unused, hoursMinutesSeconds = value.split(' ')
-        number = int(day)
-        if number < 10:
-            day = '0' + str(number)
-        else:
-            day = str(number)
-        month = month.replace('января', '01')
-        month = month.replace('февраля', '02')
-        month = month.replace('марта', '03')
-        month = month.replace('апреля', '04')
-        month = month.replace('мая', '05')
-        month = month.replace('июня', '06')
-        month = month.replace('июля', '07')
-        month = month.replace('августа', '08')
-        month = month.replace('сентября', '09')
-        month = month.replace('октября', '10')
-        month = month.replace('ноября', '11')
-        month = month.replace('декабря', '12')
-        iso8601 = year + '-' + month + '-' + day + ' ' + hoursMinutesSeconds
-        return self.parse8601(iso8601)
-
     def parse_trade(self, trade, market):
-        timestamp = self.parseRussianDateTime(trade['pub_date'])
+        timestamp = self.milliseconds() # until we have a better solution for python
         return {
             'id': str(trade['id']),
             'info': trade,
