@@ -9644,13 +9644,13 @@ var exmo = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
-        let p = this.market (market);
+        let market = this.market (symbol);
         let response = await this.publicGetOrderBook (this.extend ({
-            'pair': p['id'],
+            'pair': market['id'],
         }, params));
-        let orderbook = response[p['id']];
+        let orderbook = response[market['id']];
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -9712,27 +9712,45 @@ var exmo = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         await this.loadMarkets ();
         let response = await this.publicGetTicker ();
-        let p = this.market (market);
-        return this.parseTicker (response[p['id']], p);
+        let market = this.market (symbol);
+        return this.parseTicker (response[market['id']], market);
     },
 
-    async fetchTrades (market, params = {}) {
+    parseTrade (trade, market) {
+        let timestamp = trade['date'] * 1000;
+        return {
+            'id': trade['trade_id'].toString (),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': undefined,
+            'type': undefined,
+            'side': trade['type'],
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        return this.publicGetTrades (this.extend ({
-            'pair': this.marketId (market),
+        let market = this.market (symbol);
+        let response = await this.publicGetTrades (this.extend ({
+            'pair': market['id'],
         }, params));
+        return this.parseTrades (response[market['id']], market);
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let prefix = '';
         if (type == 'market')
             prefix = 'market_';
         let order = {
-            'pair': this.marketId (market),
+            'pair': this.marketId (symbol),
             'quantity': amount,
             'price': price || 0,
             'type': prefix + side,

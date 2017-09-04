@@ -8610,13 +8610,13 @@ class exmo (Exchange):
             result[currency] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         response = self.publicGetOrderBook(self.extend({
-            'pair': p['id'],
+            'pair': market['id'],
         }, params))
-        orderbook = response[p['id']]
+        orderbook = response[market['id']]
         timestamp = self.milliseconds()
         result = {
             'bids': [],
@@ -8672,25 +8672,42 @@ class exmo (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
         response = self.publicGetTicker()
-        p = self.market(market)
-        return self.parse_ticker(response[p['id']], p)
+        market = self.market(symbol)
+        return self.parse_ticker(response[market['id']], market)
 
-    def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market):
+        timestamp = trade['date'] * 1000
+        return {
+            'id': str(trade['trade_id']),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'order': None,
+            'type': None,
+            'side': trade['type'],
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
+        }
+
+    def fetch_trades(self, symbol, params={}):
         self.load_markets()
-        return self.publicGetTrades(self.extend({
-            'pair': self.market_id(market),
+        market = self.market(symbol)
+        response = self.publicGetTrades(self.extend({
+            'pair': market['id'],
         }, params))
+        return self.parse_trades(response[market['id']], market)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         prefix = ''
         if type == 'market':
             prefix = 'market_'
         order = {
-            'pair': self.market_id(market),
+            'pair': self.market_id(symbol),
             'quantity': amount,
             'price': price or 0,
             'type': prefix + side,
