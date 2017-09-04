@@ -756,6 +756,13 @@ var _1broker = {
     'countries': 'US',
     'rateLimit': 1500,
     'version': 'v2',
+    'hasFetchOHLCV': true,
+    'timeframes': {
+        '1m': '60',
+        '15m': '900',
+        '1h': '3600',
+        '1d': '86400',
+    },
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg',
         'api': 'https://1broker.com/api',
@@ -852,10 +859,10 @@ var _1broker = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetMarketQuotes (this.extend ({
-            'symbols': this.marketId (market),
+            'symbols': this.marketId (symbol),
         }, params));
         let orderbook = response['response'][0];
         let timestamp = this.parse8601 (orderbook['updated']);
@@ -871,18 +878,18 @@ var _1broker = {
         };
     },
 
-    async fetchTrades (market) {
+    async fetchTrades (symbol) {
         throw new ExchangeError (this.id + ' fetchTrades () method not implemented yet');
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         await this.loadMarkets ();
         let result = await this.privateGetMarketBars ({
-            'symbol': this.marketId (market),
+            'symbol': this.marketId (symbol),
             'resolution': 60,
             'limit': 1,
         });
-        let orderbook = await this.fetchOrderBook (market);
+        let orderbook = await this.fetchOrderBook (symbol);
         let ticker = result['response'][0];
         let timestamp = this.parse8601 (ticker['date']);
         return {
@@ -905,10 +912,36 @@ var _1broker = {
         };
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            this.parse8601 (ohlcv['date']),
+            parseFloat (ohlcv['o']),
+            parseFloat (ohlcv['h']),
+            parseFloat (ohlcv['l']),
+            parseFloat (ohlcv['c']),
+            undefined,
+        ];
+    },
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbol': market['id'],
+            'resolution': this.timeframes[timeframe],
+        };
+        if (since)
+            request['date_start'] = this.iso8601 (since); // they also support date_end
+        if (limit)
+            request['limit'] = limit;
+        let result = await this.privateGetMarketBars (this.extend (request, params));
+        return this.parseOHLCVs (result['response'], market, timeframe, since, limit);
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
-            'symbol': this.marketId (market),
+            'symbol': this.marketId (symbol),
             'margin': amount,
             'direction': (side == 'sell') ? 'short' : 'long',
             'leverage': 1,
@@ -1366,7 +1399,23 @@ var binance = {
     'rateLimit': 1000,
     'version': 'v1',
     'hasFetchOHLCV': true,
-    'ohlcvTimeframes': [ '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d', '3d', '1w', '1M' ],
+    'timeframes': {
+        '1m': '1m',
+        '3m': '3m',
+        '5m': '5m',
+        '15m': '15m',
+        '30m': '30m',
+        '1h': '1h',
+        '2h': '2h',
+        '4h': '4h',
+        '6h': '6h',
+        '8h': '8h',
+        '12h': '12h',
+        '1d': '1d',
+        '3d': '3d',
+        '1w': '1w',
+        '1M': '1M',
+    },
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
         'api': 'https://www.binance.com/api',
@@ -1550,7 +1599,7 @@ var binance = {
         let market = this.market (symbol);
         let request = {
             'market': market['id'],
-            'interval': timeframe,
+            'interval': this.timeframes[timeframe],
         };
         request['limit'] = (limit) ? limit : 500; // default == max == 500
         if (since)

@@ -934,6 +934,13 @@ class _1broker extends Exchange {
             'countries' => 'US',
             'rateLimit' => 1500,
             'version' => 'v2',
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1m' => '60',
+                '15m' => '900',
+                '1h' => '3600',
+                '1d' => '86400',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg',
                 'api' => 'https://1broker.com/api',
@@ -1032,10 +1039,10 @@ class _1broker extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $response = $this->privateGetMarketQuotes (array_merge (array (
-            'symbols' => $this->market_id ($market),
+            'symbols' => $this->market_id ($symbol),
         ), $params));
         $orderbook = $response['response'][0];
         $timestamp = $this->parse8601 ($orderbook['updated']);
@@ -1051,18 +1058,18 @@ class _1broker extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($symbol) {
         throw new ExchangeError ($this->id . ' fetchTrades () method not implemented yet');
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
         $result = $this->privateGetMarketBars (array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
             'resolution' => 60,
             'limit' => 1,
         ));
-        $orderbook = $this->fetchOrderBook ($market);
+        $orderbook = $this->fetchOrderBook ($symbol);
         $ticker = $result['response'][0];
         $timestamp = $this->parse8601 ($ticker['date']);
         return array (
@@ -1085,10 +1092,36 @@ class _1broker extends Exchange {
         );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        return [
+            $this->parse8601 ($ohlcv['date']),
+            floatval ($ohlcv['o']),
+            floatval ($ohlcv['h']),
+            floatval ($ohlcv['l']),
+            floatval ($ohlcv['c']),
+            null,
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+            'resolution' => $this->timeframes[$timeframe],
+        );
+        if ($since)
+            $request['date_start'] = $this->iso8601 ($since); // they also support date_end
+        if ($limit)
+            $request['limit'] = $limit;
+        $result = $this->privateGetMarketBars (array_merge ($request, $params));
+        return $this->parse_ohlcvs ($result['response'], $market, $timeframe, $since, $limit);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $order = array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
             'margin' => $amount,
             'direction' => ($side == 'sell') ? 'short' : 'long',
             'leverage' => 1,
@@ -1560,7 +1593,23 @@ class binance extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v1',
             'hasFetchOHLCV' => true,
-            'ohlcvTimeframes' => array ( '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d', '3d', '1w', '1M' ),
+            'timeframes' => array (
+                '1m' => '1m',
+                '3m' => '3m',
+                '5m' => '5m',
+                '15m' => '15m',
+                '30m' => '30m',
+                '1h' => '1h',
+                '2h' => '2h',
+                '4h' => '4h',
+                '6h' => '6h',
+                '8h' => '8h',
+                '12h' => '12h',
+                '1d' => '1d',
+                '3d' => '3d',
+                '1w' => '1w',
+                '1M' => '1M',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api' => 'https://www.binance.com/api',
@@ -1745,7 +1794,7 @@ class binance extends Exchange {
         $market = $this->market ($symbol);
         $request = array (
             'market' => $market['id'],
-            'interval' => $timeframe,
+            'interval' => $this->timeframes[$timeframe],
         );
         $request['limit'] = ($limit) ? $limit : 500; // default == max == 500
         if ($since)

@@ -72,6 +72,13 @@ class _1broker (Exchange):
             'countries': 'US',
             'rateLimit': 1500,
             'version': 'v2',
+            'hasFetchOHLCV': True,
+            'timeframes': {
+                '1m': '60',
+                '15m': '900',
+                '1h': '3600',
+                '1d': '86400',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg',
                 'api': 'https://1broker.com/api',
@@ -164,10 +171,10 @@ class _1broker (Exchange):
         result['BTC']['total'] = total
         return result
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
         response = await self.privateGetMarketQuotes(self.extend({
-            'symbols': self.market_id(market),
+            'symbols': self.market_id(symbol),
         }, params))
         orderbook = response['response'][0]
         timestamp = self.parse8601(orderbook['updated'])
@@ -182,17 +189,17 @@ class _1broker (Exchange):
             'asks': [ask],
         }
 
-    async def fetch_trades(self, market):
+    async def fetch_trades(self, symbol):
         raise ExchangeError(self.id + ' fetchTrades() method not implemented yet')
 
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         await self.load_markets()
         result = await self.privateGetMarketBars({
-            'symbol': self.market_id(market),
+            'symbol': self.market_id(symbol),
             'resolution': 60,
             'limit': 1,
         })
-        orderbook = await self.fetchOrderBook(market)
+        orderbook = await self.fetchOrderBook(symbol)
         ticker = result['response'][0]
         timestamp = self.parse8601(ticker['date'])
         return {
@@ -214,10 +221,34 @@ class _1broker (Exchange):
             'quoteVolume': None,
         }
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        return [
+            self.parse8601(ohlcv['date']),
+            float(ohlcv['o']),
+            float(ohlcv['h']),
+            float(ohlcv['l']),
+            float(ohlcv['c']),
+            None,
+        ]
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'resolution': self.timeframes[timeframe],
+        }
+        if since:
+            request['date_start'] = self.iso8601(since) # they also support date_end
+        if limit:
+            request['limit'] = limit
+        result = await self.privateGetMarketBars(self.extend(request, params))
+        return self.parse_ohlcvs(result['response'], market, timeframe, since, limit)
+
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         order = {
-            'symbol': self.market_id(market),
+            'symbol': self.market_id(symbol),
             'margin': amount,
             'direction': 'short' if(side == 'sell') else 'long',
             'leverage': 1,
@@ -659,7 +690,23 @@ class binance (Exchange):
             'rateLimit': 1000,
             'version': 'v1',
             'hasFetchOHLCV': True,
-            'ohlcvTimeframes': ['1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d', '3d', '1w', '1M'],
+            'timeframes': {
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '8h': '8h',
+                '12h': '12h',
+                '1d': '1d',
+                '3d': '3d',
+                '1w': '1w',
+                '1M': '1M',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api': 'https://www.binance.com/api',
@@ -838,7 +885,7 @@ class binance (Exchange):
         market = self.market(symbol)
         request = {
             'market': market['id'],
-            'interval': timeframe,
+            'interval': self.timeframes[timeframe],
         }
         request['limit'] = limit if(limit) else 500 # default == max == 500
         if since:
