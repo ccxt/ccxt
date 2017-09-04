@@ -29,7 +29,6 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 
 Below is a list of functionality we would like to have implemented in the library in the first place. Most of these tasks are already in progress, implemented for some exchanges, but not all of them:
 
-- Unified OHLC(v) series
 - Unified fetchOrder
 - Unified fetchOrders, fetchOpenOrders, fetchClosedOrders
 - Unified fetchMyTrades, fetchOrderTrades
