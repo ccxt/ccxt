@@ -371,6 +371,10 @@ class cryptocapital (Exchange):
             'name': 'Crypto Capital',
             'comment': 'Crypto Capital API',
             'countries': 'PA', # Panama
+            'hasFetchOHLCV': True,
+            'timeframes': {
+                '1d': '1year',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27993158-7a13f140-64ac-11e7-89cc-a3b441f0b0f8.jpg',
                 'www': 'https://cryptocapital.co',
@@ -472,16 +476,54 @@ class cryptocapital (Exchange):
             'quoteVolume': float(ticker['total_btc_traded']),
         }
 
-    def fetch_trades(self, market, params={}):
-        return self.publicGetTransactions(self.extend({
-            'currency': self.market_id(market),
-        }, params))
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+        return [
+            self.parse8601(ohlcv['date'] + ' 00:00:00'),
+            None,
+            None,
+            None,
+            float(ohlcv['price']),
+            None,
+        ]
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1d', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.publicGetHistoricalPrices(self.extend({
+            'currency': market['id'],
+            'timeframe': self.timeframes[timeframe],
+        }, params))
+        ohlcvs = self.omit(response['historical-prices'], 'request_currency')
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+
+    def parse_trade(self, trade, market):
+        timestamp = int(trade['timestamp']) * 1000
+        return {
+            'id': trade['id'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'order': None,
+            'type': None,
+            'side': trade['maker_type'],
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
+        }
+
+    def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = self.publicGetTransactions(self.extend({
+            'currency': market['id'],
+        }, params))
+        trades = self.omit(response['transactions'], 'request_currency')
+        return self.parse_trades(trades, market)
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         order = {
             'side': side,
             'type': type,
-            'currency': self.market_id(market),
+            'currency': self.market_id(symbol),
             'amount': amount,
         }
         if type == 'limit':

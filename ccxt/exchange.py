@@ -607,8 +607,11 @@ class Exchange (object):
 
     def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
         result = []
-        for t in range(0, len(ohlcvs)):
-            result.append(self.parse_ohlcv(ohlcvs[t], market, timeframe, since, limit))
+        array = ohlcvs
+        if type(array) is dict:
+            array = list(array.values())
+        for t in range(0, len(array)):
+            result.append(self.parse_ohlcv(array[t], market, timeframe, since, limit))
         return result
 
     def parseOHLCVs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
@@ -622,8 +625,11 @@ class Exchange (object):
 
     def parse_trades(self, trades, market=None):
         result = []
-        for t in range(0, len(trades)):
-            result.append(self.parse_trade(trades[t], market))
+        array = trades
+        if type(array) is dict:
+            array = list(array.values())
+        for t in range(0, len(array)):
+            result.append(self.parse_trade(array[t], market))
         return result
 
     def parseTrades(self, trades, market=None):

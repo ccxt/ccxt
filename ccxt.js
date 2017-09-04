@@ -636,8 +636,9 @@ const Exchange = function (config) {
 
     this.parseTrades = function (trades, market = undefined) {
         let result = []
-        for (let t = 0; t < trades.length; t++) {
-            result.push (this.parseTrade (trades[t], market))
+        let array = Object.values (trades);
+        for (let t = 0; t < array.length; t++) {
+            result.push (this.parseTrade (array[t], market))
         }
         return result
     }
@@ -656,8 +657,9 @@ const Exchange = function (config) {
 
     this.parseOHLCVs = function (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         let result = []
-        for (let t = 0; t < ohlcvs.length; t++) {
-            result.push (this.parseOHLCV (ohlcvs[t], market, timeframe, since, limit))
+        let array = Object.values (ohlcvs);
+        for (let t = 0; t < array.length; t++) {
+            result.push (this.parseOHLCV (array[t], market, timeframe, since, limit))
         }
         return result
     }
@@ -691,7 +693,7 @@ const Exchange = function (config) {
     this.userAgent      = false
     this.twofa          = false // two-factor authentication
     this.substituteCommonCurrencyCodes = true
-    this.timeFrames     = undefined
+    this.timeframes     = undefined
     this.hasFetchOHLCV  = false
     
     this.yyyymmddhhmmss = timestamp => {
@@ -988,6 +990,10 @@ var cryptocapital = {
     'name': 'Crypto Capital',
     'comment': 'Crypto Capital API',
     'countries': 'PA', // Panama
+    'hasFetchOHLCV': true,
+    'timeframes': {
+        '1d': '1year',
+    },
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27993158-7a13f140-64ac-11e7-89cc-a3b441f0b0f8.jpg',
         'www': 'https://cryptocapital.co',
@@ -1092,17 +1098,58 @@ var cryptocapital = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        return this.publicGetTransactions (this.extend ({
-            'currency': this.marketId (market),
-        }, params));
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
+        return [
+            this.parse8601 (ohlcv['date'] + ' 00:00:00'),
+            undefined,
+            undefined,
+            undefined,
+            parseFloat (ohlcv['price']),
+            undefined,
+        ];
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.publicGetHistoricalPrices (this.extend ({
+            'currency': market['id'],
+            'timeframe': this.timeframes[timeframe],
+        }, params));
+        let ohlcvs = this.omit (response['historical-prices'], 'request_currency');
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+    },
+
+    parseTrade (trade, market) {
+        let timestamp = parseInt (trade['timestamp']) * 1000;
+        return {
+            'id': trade['id'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': undefined,
+            'type': undefined,
+            'side': trade['maker_type'],
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetTransactions (this.extend ({
+            'currency': market['id'],
+        }, params));
+        let trades = this.omit (response['transactions'], 'request_currency');
+        return this.parseTrades (trades, market);
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let order = {
             'side': side,
             'type': type,
-            'currency': this.marketId (market),
+            'currency': this.marketId (symbol),
             'amount': amount,
         };
         if (type == 'limit')

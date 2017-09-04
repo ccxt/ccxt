@@ -740,8 +740,9 @@ class Exchange {
 
     public function parse_ohlcvs ($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
         $result = array ();
-        for ($t = 0; $t < count ($ohlcvs); $t++) {
-            $result[] = $this->parse_ohlcv ($ohlcvs[$t], $market, $timeframe, $since, $limit);
+        $array = array_values ($ohlcvs);
+        for ($t = 0; $t < count ($array); $t++) {
+            $result[] = $this->parse_ohlcv ($array[$t], $market, $timeframe, $since, $limit);
         }
         return $result;
     }
@@ -752,8 +753,9 @@ class Exchange {
 
     public function parse_trades ($trades, $market = null) {
         $result = array ();
-        for ($t = 0; $t < count ($trades); $t++) {
-            $result[] = $this->parse_trade ($trades[$t], $market);
+        $array = array_values ($trades);
+        for ($t = 0; $t < count ($array); $t++) {
+            $result[] = $this->parse_trade ($array[$t], $market);
         }
         return $result;
     }

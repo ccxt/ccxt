@@ -740,8 +740,9 @@ class Exchange {
 
     public function parse_ohlcvs ($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
         $result = array ();
-        for ($t = 0; $t < count ($ohlcvs); $t++) {
-            $result[] = $this->parse_ohlcv ($ohlcvs[$t], $market, $timeframe, $since, $limit);
+        $array = array_values ($ohlcvs);
+        for ($t = 0; $t < count ($array); $t++) {
+            $result[] = $this->parse_ohlcv ($array[$t], $market, $timeframe, $since, $limit);
         }
         return $result;
     }
@@ -752,8 +753,9 @@ class Exchange {
 
     public function parse_trades ($trades, $market = null) {
         $result = array ();
-        for ($t = 0; $t < count ($trades); $t++) {
-            $result[] = $this->parse_trade ($trades[$t], $market);
+        $array = array_values ($trades);
+        for ($t = 0; $t < count ($array); $t++) {
+            $result[] = $this->parse_trade ($array[$t], $market);
         }
         return $result;
     }
@@ -1170,6 +1172,10 @@ class cryptocapital extends Exchange {
             'name' => 'Crypto Capital',
             'comment' => 'Crypto Capital API',
             'countries' => 'PA', // Panama
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1d' => '1year',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27993158-7a13f140-64ac-11e7-89cc-a3b441f0b0f8.jpg',
                 'www' => 'https://cryptocapital.co',
@@ -1276,17 +1282,58 @@ class cryptocapital extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetTransactions (array_merge (array (
-            'currency' => $this->market_id ($market),
-        ), $params));
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+        return [
+            $this->parse8601 ($ohlcv['date'] . ' 00:00:00'),
+            null,
+            null,
+            null,
+            floatval ($ohlcv['price']),
+            null,
+        ];
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1d', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $response = $this->publicGetHistoricalPrices (array_merge (array (
+            'currency' => $market['id'],
+            'timeframe' => $this->timeframes[$timeframe],
+        ), $params));
+        $ohlcvs = $this->omit ($response['historical-prices'], 'request_currency');
+        return $this->parse_ohlcvs ($ohlcvs, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_trade ($trade, $market) {
+        $timestamp = intval ($trade['timestamp']) * 1000;
+        return array (
+            'id' => $trade['id'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'order' => null,
+            'type' => null,
+            'side' => $trade['maker_type'],
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTransactions (array_merge (array (
+            'currency' => $market['id'],
+        ), $params));
+        $trades = $this->omit ($response['transactions'], 'request_currency');
+        return $this->parse_trades ($trades, $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $order = array (
             'side' => $side,
             'type' => $type,
-            'currency' => $this->market_id ($market),
+            'currency' => $this->market_id ($symbol),
             'amount' => $amount,
         );
         if ($type == 'limit')
