@@ -2906,7 +2906,22 @@ var bitfinex2 = extend (bitfinex, {
     'name': 'Bitfinex v2',
     'countries': 'US',
     'version': 'v2',
-    'hasFetchTickers': false, // true
+    'hasFetchTickers': false, // true but at least one pair is required
+    'hasFetchOHLCV': true,
+    'timeframes': {
+        '1m': '1m',
+        '5m': '5m',
+        '15m': '15m',
+        '30m': '30m',
+        '1h': '1h',
+        '3h': '3h',
+        '6h': '6h',
+        '12h': '12h',
+        '1d': '1D',
+        '1w': '7D',
+        '2w': '14D',
+        '1M': '1M',
+    },
     'rateLimit': 1500,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
@@ -3107,6 +3122,23 @@ var bitfinex2 = extend (bitfinex, {
             'symbol': market['id'],
         }, params));
         return this.parseTrades (response, market);
+    },
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let method = 'publicGetGraphsMarket' + this.timeframes[timeframe];
+        let market = this.market (symbol);
+        let request = {
+            'symbol': market['id'],
+            'timeframe': this.timeframes[timeframe],
+        };
+        if (limit)
+            request['limit'] = limit;
+        if (since)
+            request['start'] = since;
+        request = this.extend (request, params);
+        let response = await this.publicGetCandlesTradeTimeframeSymbolHist (request);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
