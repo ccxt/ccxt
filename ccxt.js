@@ -3047,7 +3047,7 @@ var bitfinex2 = extend (bitfinex, {
         for (let i = 0; i < orderbook.length; i++) {
             let order = orderbook[i];
             let [ timestamp, price, amount ] = order;
-            let side = (amount > 0) ? 'bids': 'asks';
+            let side = (amount > 0) ? 'bids' : 'asks';
             amount = Math.abs (amount);
             result[side].push ([ price, amount, timestamp ]);
         }
@@ -3109,16 +3109,20 @@ var bitfinex2 = extend (bitfinex, {
         return this.parseTrades (response, market);
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        throw new NotSupported (this.id + ' createOrder not implemented yet');
     },
 
     async cancelOrder (id) {
-    },
-
-    parseOrder (order, market = undefined) {
+        throw new NotSupported (this.id + ' cancelOrder not implemented yet');
     },
 
     async fetchOrder (id, params = {}) {
+        throw new NotSupported (this.id + ' fetchOrder not implemented yet');
+    },
+
+    async withdraw (currency, amount, address, params = {}) {
+        throw new NotSupported (this.id + ' withdraw not implemented yet');
     },
 
     nonce () {

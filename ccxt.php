@@ -145,6 +145,7 @@ class Exchange {
         'bitbays',
         'bitcoincoid',
         'bitfinex',
+        'bitfinex2',
         'bitflyer',
         'bitlish',
         'bitmarket',

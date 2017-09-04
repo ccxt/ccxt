@@ -13,7 +13,7 @@ CCXT – CryptoCurrency eXchange Trading Library
     :target: https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master
 .. image:: https://badge.runkitcdn.com/ccxt.svg
     :target: https://npm.runkit.com/ccxt
-.. image:: https://img.shields.io/badge/exchanges-75-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-76-blue.svg
     :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
@@ -36,7 +36,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 75 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 76 cryptocurrency exchange markets and trading APIs:
 
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id              | name                                                      | ver   | doc                                                                                              | countries                                  |
@@ -58,6 +58,8 @@ The ccxt library currently supports the following 75 cryptocurrency exchange mar
 | bitcoincoid     | `Bitcoin.co.id <https://www.bitcoin.co.id>`__             | \*    | `API <https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf>`__                  | Indonesia                                  |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bitfinex        | `Bitfinex <https://www.bitfinex.com>`__                   | 1     | `API <https://bitfinex.readme.io/v1/docs>`__                                                     | US                                         |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| bitfinex2       | `Bitfinex v2 <https://www.bitfinex.com>`__                | 2     | `API <https://bitfinex.readme.io/v2/docs>`__                                                     | US                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bitflyer        | `bitFlyer <https://bitflyer.jp>`__                        | 1     | `API <https://bitflyer.jp/API>`__                                                                | Japan                                      |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
