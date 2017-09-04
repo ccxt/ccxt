@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.19';
+$version = '1.6.20';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3235,7 +3235,7 @@ class bitfinex2 extends bitfinex {
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($response); $b++) {
             $balance = $response[$b];
-            list ($type, $currency, $total, $interest, $available) = $account;
+            list ($type, $currency, $total, $interest, $available) = $balance;
             if ($currency[0] == 't')
                 $currency = mb_substr ($currency, 1);
             $uppercase = strtoupper ($currency);
@@ -3302,7 +3302,7 @@ class bitfinex2 extends bitfinex {
             'baseVolume' => null,
             'quoteVolume' => $volume,
             'info' => $ticker,
-        );    
+        );
     }
 
     public function parse_trade ($trade, $market) {
@@ -3364,7 +3364,7 @@ class bitfinex2 extends bitfinex {
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha384');
             $headers = array (
                 'bfx-nonce' => $nonce,
-                'bfx-apikey' => $this->apiKey,                
+                'bfx-apikey' => $this->apiKey,
                 'bfx-signature' => $signature,
                 'Content-Type' => 'application/json',
             );

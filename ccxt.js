@@ -3014,7 +3014,7 @@ var bitfinex2 = extend (bitfinex, {
         let result = { 'info': response };
         for (let b = 0; b < response.length; b++) {
             let balance = response[b];
-            let [ type, currency, total, interest, available ] = account;
+            let [ type, currency, total, interest, available ] = balance;
             if (currency[0] == 't')
                 currency = currency.slice (1);
             let uppercase = currency.toUpperCase ();
@@ -3081,7 +3081,7 @@ var bitfinex2 = extend (bitfinex, {
             'baseVolume': undefined,
             'quoteVolume': volume,
             'info': ticker,
-        };    
+        };
     },
 
     parseTrade (trade, market) {
@@ -3143,7 +3143,7 @@ var bitfinex2 = extend (bitfinex, {
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha384');
             headers = {
                 'bfx-nonce': nonce,
-                'bfx-apikey': this.apiKey,                
+                'bfx-apikey': this.apiKey,
                 'bfx-signature': signature,
                 'Content-Type': 'application/json',
             };

@@ -2222,7 +2222,7 @@ class bitfinex2 (bitfinex):
         result = {'info': response}
         for b in range(0, len(response)):
             balance = response[b]
-            type, currency, total, interest, available = account
+            type, currency, total, interest, available = balance
             if currency[0] == 't':
                 currency = currency[1:]
             uppercase = currency.upper()
@@ -2285,7 +2285,7 @@ class bitfinex2 (bitfinex):
             'baseVolume': None,
             'quoteVolume': volume,
             'info': ticker,
-        }    
+        }
 
     def parse_trade(self, trade, market):
         id, timestamp, amount, price = trade
@@ -2339,7 +2339,7 @@ class bitfinex2 (bitfinex):
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha384)
             headers = {
                 'bfx-nonce': nonce,
-                'bfx-apikey': self.apiKey,                
+                'bfx-apikey': self.apiKey,
                 'bfx-signature': signature,
                 'Content-Type': 'application/json',
             }
