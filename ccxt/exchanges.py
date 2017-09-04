@@ -5427,7 +5427,7 @@ class btctrader (Exchange):
         result[market['quote']] = quote
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         orderbook = self.publicGetOrderbook(params)
         timestamp = int(orderbook['timestamp'] * 1000)
         result = {
@@ -5447,7 +5447,7 @@ class btctrader (Exchange):
                 result[side].append([price, amount])
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         ticker = self.publicGetTicker()
         timestamp = int(ticker['timestamp'] * 1000)
         return {
@@ -5470,11 +5470,27 @@ class btctrader (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
-        maxCount = 50
-        return self.publicGetTrades(params)
+    def parse_trade(self, trade, market):
+        timestamp = trade['date'] * 1000
+        return {
+            'id': trade['tid'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': None,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        maxCount = 50
+        response = self.publicGetTrades(params)
+        return self.parse_trades(response, market)
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         method = 'privatePost' + self.capitalize(side)
         order = {
             'Type': 'BuyBtc' if(side == 'buy') else 'SelBtc',

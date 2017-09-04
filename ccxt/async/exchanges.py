@@ -5348,7 +5348,7 @@ class btctrader (Exchange):
         result[market['quote']] = quote
         return result
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         orderbook = await self.publicGetOrderbook(params)
         timestamp = int(orderbook['timestamp'] * 1000)
         result = {
@@ -5368,7 +5368,7 @@ class btctrader (Exchange):
                 result[side].append([price, amount])
         return result
 
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         ticker = await self.publicGetTicker()
         timestamp = int(ticker['timestamp'] * 1000)
         return {
@@ -5391,11 +5391,27 @@ class btctrader (Exchange):
             'info': ticker,
         }
 
-    async def fetch_trades(self, market, params={}):
-        maxCount = 50
-        return self.publicGetTrades(params)
+    def parse_trade(self, trade, market):
+        timestamp = trade['date'] * 1000
+        return {
+            'id': trade['tid'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': None,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        maxCount = 50
+        response = await self.publicGetTrades(params)
+        return self.parse_trades(response, market)
+
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         method = 'privatePost' + self.capitalize(side)
         order = {
             'Type': 'BuyBtc' if(side == 'buy') else 'SelBtc',

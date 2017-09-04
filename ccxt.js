@@ -6317,7 +6317,7 @@ var btctrader = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         let orderbook = await this.publicGetOrderbook (params);
         let timestamp = parseInt (orderbook['timestamp'] * 1000);
         let result = {
@@ -6340,7 +6340,7 @@ var btctrader = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         let ticker = await this.publicGetTicker ();
         let timestamp = parseInt (ticker['timestamp'] * 1000);
         return {
@@ -6364,12 +6364,29 @@ var btctrader = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        let maxCount = 50;
-        return this.publicGetTrades (params);
+    parseTrade (trade, market) {
+        let timestamp = trade['date'] * 1000;
+        return {
+            'id': trade['tid'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': undefined,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        };
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let maxCount = 50;
+        let response = await this.publicGetTrades (params);
+        return this.parseTrades (response, market);
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePost' + this.capitalize (side);
         let order = {
             'Type': (side == 'buy') ? 'BuyBtc' : 'SelBtc',
