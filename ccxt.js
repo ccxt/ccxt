@@ -6646,31 +6646,8 @@ var btctradeua = {
         return result;
     },
 
-    parseRussianDateTime (value) {
-        let [ day, month, year, unused, hoursMinutesSeconds ] = value.split (' ');
-        let number = parseInt (day);
-        if (number < 10)
-            day = '0' + number.toString ();
-        else
-            day = number.toString ()
-        month = month.replace ('января', '01');
-        month = month.replace ('февраля', '02');
-        month = month.replace ('марта', '03');
-        month = month.replace ('апреля', '04');
-        month = month.replace ('мая', '05');
-        month = month.replace ('июня', '06');
-        month = month.replace ('июля', '07');
-        month = month.replace ('августа', '08');
-        month = month.replace ('сентября', '09');
-        month = month.replace ('октября', '10');
-        month = month.replace ('ноября', '11');
-        month = month.replace ('декабря', '12');
-        let iso8601 = year + '-' + month + '-' + day + ' ' + hoursMinutesSeconds;
-        return this.parse8601 (iso8601);
-    },
-
     parseTrade (trade, market) {
-        let timestamp = this.parseRussianDateTime (trade['pub_date']);
+        let timestamp = this.milliseconds (); // until we have a better solution for python
         return {
             'id': trade['id'].toString (),
             'info': trade,
