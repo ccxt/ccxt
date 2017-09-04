@@ -5579,13 +5579,13 @@ class btctradeua (Exchange):
                 }
         return result
 
-    async def fetch_order_book(self, market, params={}):
-        p = self.market(market)
+    async def fetch_order_book(self, symbol, params={}):
+        market = self.market(symbol)
         bids = await self.publicGetTradesBuySymbol(self.extend({
-            'symbol': p['id'],
+            'symbol': market['id'],
         }, params))
         asks = await self.publicGetTradesSellSymbol(self.extend({
-            'symbol': p['id'],
+            'symbol': market['id'],
         }, params))
         orderbook = {
             'bids': [],
@@ -5615,9 +5615,9 @@ class btctradeua (Exchange):
                 result[side].append([price, amount])
         return result
 
-    async def fetch_ticker(self, market):
+    async def fetch_ticker(self, symbol):
         response = await self.publicGetJapanStatHighSymbol({
-            'symbol': self.market_id(market),
+            'symbol': self.market_id(symbol),
         })
         ticker = response['trades']
         timestamp = self.milliseconds()
@@ -5660,20 +5660,58 @@ class btctradeua (Exchange):
             result['quoteVolume'] = -1 * result['quoteVolume']
         return result
 
-    async def fetch_trades(self, market, params={}):
-        return self.publicGetDealsSymbol(self.extend({
-            'symbol': self.market_id(market),
-        }, params))
+    def parseRussianDateTime(self, value):
+        day, month, year, unused, hoursMinutesSeconds = value.split(' ')
+        number = int(day)
+        if number < 10:
+            day = '0' + str(number)
+        else:
+            day = str(number)
+        month = month.replace('января', '01')
+        month = month.replace('февраля', '02')
+        month = month.replace('марта', '03')
+        month = month.replace('апреля', '04')
+        month = month.replace('мая', '05')
+        month = month.replace('июня', '06')
+        month = month.replace('июля', '07')
+        month = month.replace('августа', '08')
+        month = month.replace('сентября', '09')
+        month = month.replace('октября', '10')
+        month = month.replace('ноября', '11')
+        month = month.replace('декабря', '12')
+        iso8601 = year + '-' + month + '-' + day + ' ' + hoursMinutesSeconds
+        return self.parse8601(iso8601)
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    def parse_trade(self, trade, market):
+        timestamp = self.parseRussianDateTime(trade['pub_date'])
+        return {
+            'id': str(trade['id']),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['type'],
+            'price': float(trade['price']),
+            'amount': float(trade['amnt_base']),
+        }
+
+    async def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = await self.publicGetDealsSymbol(self.extend({
+            'symbol': market['id'],
+        }, params))
+        return self.parse_trades(response, market)
+
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
-        p = self.market(market)
+        market = self.market(symbol)
         method = 'privatePost' + self.capitalize(side) + 'Id'
         order = {
             'count': amount,
-            'currency1': p['quote'],
-            'currency': p['base'],
+            'currency1': market['quote'],
+            'currency': market['base'],
             'price': price,
         }
         return getattr(self, method)(self.extend(order, params))

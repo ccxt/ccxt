@@ -6557,13 +6557,13 @@ var btctradeua = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
-        let p = this.market (market);
+    async fetchOrderBook (symbol, params = {}) {
+        let market = this.market (symbol);
         let bids = await this.publicGetTradesBuySymbol (this.extend ({
-            'symbol': p['id'],
+            'symbol': market['id'],
         }, params));
         let asks = await this.publicGetTradesSellSymbol (this.extend ({
-            'symbol': p['id'],
+            'symbol': market['id'],
         }, params));
         let orderbook = {
             'bids': [],
@@ -6598,9 +6598,9 @@ var btctradeua = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         let response = await this.publicGetJapanStatHighSymbol ({
-            'symbol': this.marketId (market),
+            'symbol': this.marketId (symbol),
         });
         let ticker = response['trades'];
         let timestamp = this.milliseconds ();
@@ -6646,21 +6646,61 @@ var btctradeua = {
         return result;
     },
 
-    async fetchTrades (market, params = {}) {
-        return this.publicGetDealsSymbol (this.extend ({
-            'symbol': this.marketId (market),
-        }, params));
+    parseRussianDateTime (value) {
+        let [ day, month, year, unused, hoursMinutesSeconds ] = value.split (' ');
+        let number = parseInt (day);
+        if (number < 10)
+            day = '0' + number.toString ();
+        else
+            day = number.toString ()
+        month = month.replace ('января', '01');
+        month = month.replace ('февраля', '02');
+        month = month.replace ('марта', '03');
+        month = month.replace ('апреля', '04');
+        month = month.replace ('мая', '05');
+        month = month.replace ('июня', '06');
+        month = month.replace ('июля', '07');
+        month = month.replace ('августа', '08');
+        month = month.replace ('сентября', '09');
+        month = month.replace ('октября', '10');
+        month = month.replace ('ноября', '11');
+        month = month.replace ('декабря', '12');
+        let iso8601 = year + '-' + month + '-' + day + ' ' + hoursMinutesSeconds;
+        return this.parse8601 (iso8601);
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    parseTrade (trade, market) {
+        let timestamp = this.parseRussianDateTime (trade['pub_date']);
+        return {
+            'id': trade['id'].toString (),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade['type'],
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amnt_base']),
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetDealsSymbol (this.extend ({
+            'symbol': market['id'],
+        }, params));
+        return this.parseTrades (response, market);
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
-        let p = this.market (market);
+        let market = this.market (symbol);
         let method = 'privatePost' + this.capitalize (side) + 'Id';
         let order = {
             'count': amount,
-            'currency1': p['quote'],
-            'currency': p['base'],
+            'currency1': market['quote'],
+            'currency': market['base'],
             'price': price,
         };
         return this[method] (this.extend (order, params));
