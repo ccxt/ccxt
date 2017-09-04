@@ -160,9 +160,22 @@ let testExchangeSymbol = async (exchange, symbol) => {
 
     if (exchange.hasFetchOHLCV) {
 
-        log (exchange.id.green, symbol.green, 'fetching OHLCV...')
-        let ohlcv = await exchange.fetchOHLCV (symbol)
-        log (exchange.id.green, symbol.green, 'fetched', Object.keys (ohlcv).length.toString ().green, 'OHLCVs')
+        try {
+
+            log (exchange.id.green, symbol.green, 'fetching OHLCV...')
+            let ohlcv = await exchange.fetchOHLCV (symbol)
+            log (exchange.id.green, symbol.green, 'fetched', Object.keys (ohlcv).length.toString ().green, 'OHLCVs')
+
+        } catch (e) {
+            
+            if (e instanceof ccxt.ExchangeError) {
+                warn (exchange.id, '[Exchange Error] ' + e.message)
+            } else if (e instanceof ccxt.NotSupported) {
+                warn (exchange.id, '[Not Supported] ' + e.message)
+            } else {
+                throw e;
+            }
+        }
 
     } else {
 
