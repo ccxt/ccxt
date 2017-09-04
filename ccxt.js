@@ -3013,6 +3013,38 @@ var bitfinex2 = extend (bitfinex, {
     },
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostAuthRWallets ();
+        console.log (response);
+        process.exit ();
+        let balances = {};
+        for (let b = 0; b < response.length; b++) {
+            let account = response[b];
+            if (account['type'] == 'exchange') {
+                let currency = account['currency'];
+                // issue #4 Bitfinex names Dash as DSH, instead of DASH
+                if (currency == 'DSH')
+                    currency = 'DASH';
+                let uppercase = currency.toUpperCase ();
+                balances[uppercase] = account;
+            }
+        }
+        let result = { 'info': response };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = {
+                'free': undefined,
+                'used': undefined,
+                'total': undefined,
+            };
+            if (currency in balances) {
+                account['free'] = parseFloat (balances[currency]['available']);
+                account['total'] = parseFloat (balances[currency]['amount']);
+                account['used'] = account['total'] - account['free'];
+            }
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -3117,20 +3149,15 @@ var bitfinex2 = extend (bitfinex, {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
-            let nonce = this.nonce ();
-            query = this.extend ({
-                'nonce': nonce.toString (),
-                'request': request,
-            }, query);
-            query = this.json (query);
-            query = this.encode (query);
-            let payload = this.stringToBase64 (query);
-            let secret = this.encode (this.secret);
-            let signature = this.hmac (payload, secret, 'sha384');
+            throw new ExchangeError (this.id + ' private API v2 not implemented yet');
+            let nonce = this.nonce ().toString ();
+            body = this.json (query);
+            let auth = '/api' + request + nonce + body;
+            let signature = this.hmac (this.encode (auth), this.encode (secret), 'sha384');
             headers = {
-                'X-BFX-APIKEY': this.apiKey,
-                'X-BFX-PAYLOAD': this.decode (payload),
-                'X-BFX-SIGNATURE': signature,
+                'bfx-nonce': nonce,
+                'bfx-apikey': this.apiKey,                
+                'bfx-signature': signature,
             };
         }
         let response = await this.fetch (url, method, headers, body);
