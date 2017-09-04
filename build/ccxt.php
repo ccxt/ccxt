@@ -6538,6 +6538,10 @@ class btctrader extends Exchange {
             'name' => 'BTCTrader',
             'countries' => array ( 'TR', 'GR', 'PH' ), // Turkey, Greece, Philippines
             'rateLimit' => 1000,
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1d' => '1d',
+            ),
             'comment' => 'base API for BTCExchange, BTCTurk',
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27992404-cda1e386-649c-11e7-8dc1-40bbd2897768.jpg',
@@ -6657,6 +6661,28 @@ class btctrader extends Exchange {
         $maxCount = 50;
         $response = $this->publicGetTrades ($params);
         return $this->parse_trades ($response, $market);
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+        $timestamp = $this->parse8601 ($ohlcv['Date']);
+        return [
+            $timestamp,
+            $ohlcv['Open'],
+            $ohlcv['High'],
+            $ohlcv['Low'],
+            $ohlcv['Close'],
+            $ohlcv['Volume'],
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1d', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $request = array ();
+        if ($limit)
+            $request['last'] = $limit;
+        $response = $this->publicGetOhlcdata (array_merge ($request, $params));
+        return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

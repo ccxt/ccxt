@@ -6267,6 +6267,10 @@ var btctrader = {
     'name': 'BTCTrader',
     'countries': [ 'TR', 'GR', 'PH' ], // Turkey, Greece, Philippines
     'rateLimit': 1000,
+    'hasFetchOHLCV': true,
+    'timeframes': {
+        '1d': '1d',
+    },
     'comment': 'base API for BTCExchange, BTCTurk',
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27992404-cda1e386-649c-11e7-8dc1-40bbd2897768.jpg',
@@ -6384,6 +6388,28 @@ var btctrader = {
         let maxCount = 50;
         let response = await this.publicGetTrades (params);
         return this.parseTrades (response, market);
+    },
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
+        let timestamp = this.parse8601 (ohlcv['Date']);
+        return [
+            timestamp,
+            ohlcv['Open'],
+            ohlcv['High'],
+            ohlcv['Low'],
+            ohlcv['Close'],
+            ohlcv['Volume'],
+        ];
+    },
+
+    async fetchOHLCV (symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {};
+        if (limit)
+            request['last'] = limit;
+        let response = await this.publicGetOhlcdata (this.extend (request, params));
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

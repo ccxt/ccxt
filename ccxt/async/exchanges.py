@@ -5296,6 +5296,10 @@ class btctrader (Exchange):
             'name': 'BTCTrader',
             'countries': ['TR', 'GR', 'PH'], # Turkey, Greece, Philippines
             'rateLimit': 1000,
+            'hasFetchOHLCV': True,
+            'timeframes': {
+                '1d': '1d',
+            },
             'comment': 'base API for BTCExchange, BTCTurk',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27992404-cda1e386-649c-11e7-8dc1-40bbd2897768.jpg',
@@ -5410,6 +5414,26 @@ class btctrader (Exchange):
         maxCount = 50
         response = await self.publicGetTrades(params)
         return self.parse_trades(response, market)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+        timestamp = self.parse8601(ohlcv['Date'])
+        return [
+            timestamp,
+            ohlcv['Open'],
+            ohlcv['High'],
+            ohlcv['Low'],
+            ohlcv['Close'],
+            ohlcv['Volume'],
+        ]
+
+    async def fetch_ohlcv(self, symbol, timeframe='1d', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {}
+        if limit:
+            request['last'] = limit
+        response = await self.publicGetOhlcdata(self.extend(request, params))
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         method = 'privatePost' + self.capitalize(side)
