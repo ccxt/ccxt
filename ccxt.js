@@ -2649,11 +2649,7 @@ var bitfinex = {
         let result = { 'info': response };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
-            let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
-            };
+            let account = this.account ();
             if (currency in balances) {
                 account['free'] = parseFloat (balances[currency]['available']);
                 account['total'] = parseFloat (balances[currency]['amount']);
@@ -3015,34 +3011,22 @@ var bitfinex2 = extend (bitfinex, {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostAuthRWallets ();
-        console.log (response);
-        process.exit ();
-        let balances = {};
-        for (let b = 0; b < response.length; b++) {
-            let account = response[b];
-            if (account['type'] == 'exchange') {
-                let currency = account['currency'];
-                // issue #4 Bitfinex names Dash as DSH, instead of DASH
-                if (currency == 'DSH')
-                    currency = 'DASH';
-                let uppercase = currency.toUpperCase ();
-                balances[uppercase] = account;
-            }
-        }
         let result = { 'info': response };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
-            let account = {
-                'free': undefined,
-                'used': undefined,
-                'total': undefined,
-            };
-            if (currency in balances) {
-                account['free'] = parseFloat (balances[currency]['available']);
-                account['total'] = parseFloat (balances[currency]['amount']);
+        for (let b = 0; b < response.length; b++) {
+            let balance = response[b];
+            let [ type, currency, total, interest, available ] = account;
+            if (currency[0] == 't')
+                currency = currency.slice (1);
+            let uppercase = currency.toUpperCase ();
+            // issue #4 Bitfinex names Dash as DSH, instead of DASH
+            if (uppercase == 'DSH')
+                uppercase = 'DASH';
+            let account = this.account ();
+            account['free'] = available;
+            account['total'] = total;
+            if (account['free'])
                 account['used'] = account['total'] - account['free'];
-            }
-            result[currency] = account;
+            result[uppercase] = account;
         }
         return result;
     },
@@ -3142,27 +3126,25 @@ var bitfinex2 = extend (bitfinex, {
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + this.version + '/' + this.implodeParams (path, params);
+        let request = this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + request;
+        let url = this.urls['api'] + '/' + request;
         if (api == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
-            throw new ExchangeError (this.id + ' private API v2 not implemented yet');
             let nonce = this.nonce ().toString ();
             body = this.json (query);
-            let auth = '/api' + request + nonce + body;
-            let signature = this.hmac (this.encode (auth), this.encode (secret), 'sha384');
+            let auth = '/api' + '/' + request + nonce + body;
+            let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha384');
             headers = {
                 'bfx-nonce': nonce,
                 'bfx-apikey': this.apiKey,                
                 'bfx-signature': signature,
+                'Content-Type': 'application/json',
             };
         }
         let response = await this.fetch (url, method, headers, body);
-        if (!response.length)
-            throw new ExchangeError (this.id + ' empty response: `' + this.json (response) + '`');
         if ('message' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
