@@ -1345,19 +1345,34 @@ class bitbay (Exchange):
             'info': ticker,
         }
 
-    async def fetch_trades(self, market, params={}):
-        return self.publicGetIdTrades(self.extend({
-            'id': self.market_id(market),
+    def parse_trade(self, trade, market):
+        timestamp = trade['date'] * 1000
+        return {
+            'id': trade['tid'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['type'],
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
+
+    async def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = await self.publicGetIdTrades(self.extend({
+            'id': market['id'],
         }, params))
+        return self.parse_trades(response, market)
 
-
-    async def create_order(self, market, type, side, amount, price=None, params={}):
-        p = self.market(market)
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        market = self.market(symbol)
         return self.privatePostTrade(self.extend({
             'type': side,
-            'currency': p['base'],
+            'currency': market['base'],
             'amount': amount,
-            'payment_currency': p['quote'],
+            'payment_currency': market['quote'],
             'rate': price,
         }, params))
 

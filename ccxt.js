@@ -2091,20 +2091,36 @@ var bitbay = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        return this.publicGetIdTrades (this.extend ({
-            'id': this.marketId (market),
-        }, params));
-
+    parseTrade (trade, market) {
+        let timestamp = trade['date'] * 1000;
+        return {
+            'id': trade['tid'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade['type'],
+            'price': trade['price'],
+            'amount': trade['amount'],
+        };
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
-        let p = this.market (market);
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetIdTrades (this.extend ({
+            'id': market['id'],
+        }, params));
+        return this.parseTrades (response, market);
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        let market = this.market (symbol);
         return this.privatePostTrade (this.extend ({
             'type': side,
-            'currency': p['base'],
+            'currency': market['base'],
             'amount': amount,
-            'payment_currency': p['quote'],
+            'payment_currency': market['quote'],
             'rate': price,
         }, params));
     },

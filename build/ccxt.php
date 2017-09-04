@@ -2295,20 +2295,36 @@ class bitbay extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetIdTrades (array_merge (array (
-            'id' => $this->market_id ($market),
-        ), $params));
-
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['date'] * 1000;
+        return array (
+            'id' => $trade['tid'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['type'],
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
-        $p = $this->market ($market);
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetIdTrades (array_merge (array (
+            'id' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response, $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $market = $this->market ($symbol);
         return $this->privatePostTrade (array_merge (array (
             'type' => $side,
-            'currency' => $p['base'],
+            'currency' => $market['base'],
             'amount' => $amount,
-            'payment_currency' => $p['quote'],
+            'payment_currency' => $market['quote'],
             'rate' => $price,
         ), $params));
     }
