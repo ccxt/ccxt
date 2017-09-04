@@ -60,8 +60,8 @@ def test_exchange_symbol_ohlcv(exchange, symbol):
     delay = int(exchange.rateLimit / 1000)
     time.sleep(delay)
     if exchange.hasFetchOHLCV:
-        ohlcv = exchange.fetch_ohlcv(symbol)
-        dump(green(exchange.id), 'fetched', green(len(list(ohlcv.keys()))), 'OHLCVs')
+        ohlcvs = exchange.fetch_ohlcv(symbol)
+        dump(green(exchange.id), 'fetched', green(len(ohlcvs)), 'OHLCVs')
     else:
         dump(yellow(exchange.id), 'fetching OHLCV not supported')
 

@@ -15,6 +15,8 @@ let rst = fs.readFileSync (readmeRst, 'utf8')
 let rstNew = 
     rst.replace (/\`([^\`]+)\s\<\#[^\`]+\>\`\_\_/g, '$1') // PyPI doesn't like urls containing anchor hash symbol '#', strip it off to plain text
         .replace (/\\\|/g, '|') // PyPI doesn't like escaped vertical bars
+        // .replace (/\|\\(\_[^\|]+)\|([\ ]+)\|/g, '|$1| $2|')
+        // .replace (/\|\\(\_[^\|]+)\|/g, '|$1|')
 
 let rstExchangeTableRegex = /([\s\S]+?)APIs:[\n][\n](\+\-\-[\s\S]+\-\-\+)[\n][\n]([\s\S]+)/
 let match = rstExchangeTableRegex.exec (rstNew)

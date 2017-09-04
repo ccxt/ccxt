@@ -73,9 +73,11 @@ import decimal
 try:
     import urllib.parse   as _urlencode # Python 3
     import urllib.request as _urllib
+    import http.client as httplib
 except ImportError:
     import urllib  as _urlencode        # Python 2
     import urllib2 as _urllib
+    import httplib
 
 #------------------------------------------------------------------------------
 
@@ -247,6 +249,8 @@ class Exchange (object):
                 error = ExchangeError
             self.raise_error(error, url, method, e, details)
         except _urllib.URLError as e:
+            self.raise_error(ExchangeNotAvailable, url, method, e)
+        except httplib.BadStatusLine as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
         encoding = response.info().get('Content-Encoding')
         if encoding in ('gzip', 'x-gzip', 'deflate'):
@@ -598,22 +602,34 @@ class Exchange (object):
     def fetchOpenOrders(self, market=None, params={}):
         return self.fetch_open_orders(market, params)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe=60, since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return ohlcv
 
-    def parse_ohlcvs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None):
+    def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
         result = []
-        for t in range(0, len(ohlcvs)):
-            result.append(self.parse_ohlcv(ohlcvs[t], market, timeframe, since, limit))
+        array = ohlcvs
+        if type(array) is dict:
+            array = list(array.values())
+        for t in range(0, len(array)):
+            result.append(self.parse_ohlcv(array[t], market, timeframe, since, limit))
         return result
 
-    def parseOHLCVs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None):
-        return self.parse_ohlcvs(self, ohlcvs, market=None, timeframe=60, since=None, limit=None)
+    def parseOHLCVs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
+        return self.parse_ohlcvs(self, ohlcvs, market, timeframe, since, limit)
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        raise NotSupported(self.id + ' API does not allow to fetch OHLCV series for now')
+
+    def fetchOHLCV(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        return self.fetch_ohlcv(self, timeframe, since, limit, params)
 
     def parse_trades(self, trades, market=None):
         result = []
-        for t in range(0, len(trades)):
-            result.append(self.parse_trade(trades[t], market))
+        array = trades
+        if type(array) is dict:
+            array = list(array.values())
+        for t in range(0, len(array)):
+            result.append(self.parse_trade(array[t], market))
         return result
 
     def parseTrades(self, trades, market=None):

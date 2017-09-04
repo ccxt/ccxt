@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.57';
+$version = '1.6.19';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -428,10 +428,11 @@ class Exchange {
         $this->twofa      = false;
         $this->marketsById = null;
         $this->markets_by_id = null;
-        $this->userAgent = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
+        $this->userAgent  = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
         $this->hasFetchTickers = false;
         $this->hasFetchOHLCV   = false;
+        $this->timeframes = null;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -739,8 +740,9 @@ class Exchange {
 
     public function parse_ohlcvs ($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
         $result = array ();
-        for ($t = 0; $t < count ($ohlcvs); $t++) {
-            $result[] = $this->parse_ohlcv ($ohlcvs[$t], $market, $timeframe, $since, $limit);
+        $array = array_values ($ohlcvs);
+        for ($t = 0; $t < count ($array); $t++) {
+            $result[] = $this->parse_ohlcv ($array[$t], $market, $timeframe, $since, $limit);
         }
         return $result;
     }
@@ -751,8 +753,9 @@ class Exchange {
 
     public function parse_trades ($trades, $market = null) {
         $result = array ();
-        for ($t = 0; $t < count ($trades); $t++) {
-            $result[] = $this->parse_trade ($trades[$t], $market);
+        $array = array_values ($trades);
+        for ($t = 0; $t < count ($array); $t++) {
+            $result[] = $this->parse_trade ($array[$t], $market);
         }
         return $result;
     }
@@ -822,6 +825,15 @@ class Exchange {
     
     public function fetchTrades ($market) {
         return $this->fetch_trades ($market);
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $exception = '\\ccxt\\NotSupported';
+        throw new $exception ($this->id . ' fetch_ohlcv() not suported or not implemented yet');
+    }
+
+    public function fetchOHLCV ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_ohlcv ($symbol, $timeframe, $since, $limit, $params);
     }
 
     public function create_limit_buy_order ($market, $amount, $price, $params = array ()) {

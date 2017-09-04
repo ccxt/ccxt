@@ -31,7 +31,7 @@ Current featurelist:
 -  an out-of-the box unified all-in-one API extremely easy to integrate
 -  works in Node 6+, Python 2 and 3, PHP 5.3+, web browsers
 
-`ccxt on GitHub <https://github.com/kroitor/ccxt>`__ | Install | Usage | `Manual <https://github.com/kroitor/ccxt/wiki>`__ | `Examples <https://github.com/kroitor/ccxt/tree/master/examples>`__ | Contributing | **Public Offer**
+`ccxt on GitHub <https://github.com/kroitor/ccxt>`__ | Install | Usage | `Manual <https://github.com/kroitor/ccxt/wiki>`__ | `Examples <https://github.com/kroitor/ccxt/tree/master/examples>`__ | `Changelog <https://github.com/kroitor/ccxt/blob/master/CHANGELOG.md>`__ | `Contributing <https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md>`__ | **Public Offer**
 
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
@@ -145,7 +145,7 @@ The ccxt library currently supports the following 75 cryptocurrency exchange mar
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | kraken          | `Kraken <https://www.kraken.com>`__                       | 0     | `API <https://www.kraken.com/en-us/help/api>`__                                                  | US                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| lakebtc         | `LakeBTC <https://www.lakebtc.com>`__                     | 2     | `API <https://www.lakebtc.com/s/api>`__                                                          | US                                         |
+| lakebtc         | `LakeBTC <https://www.lakebtc.com>`__                     | 2     | `API <https://www.lakebtc.com/s/api_v2>`__                                                       | US                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | livecoin        | `LiveCoin <https://www.livecoin.net>`__                   | \*    | `API <https://www.livecoin.net/api?lang=en>`__                                                   | US, UK, Russia                             |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+

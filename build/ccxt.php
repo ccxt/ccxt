@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.57';
+$version = '1.6.19';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -428,10 +428,11 @@ class Exchange {
         $this->twofa      = false;
         $this->marketsById = null;
         $this->markets_by_id = null;
-        $this->userAgent = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
+        $this->userAgent  = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
         $this->hasFetchTickers = false;
         $this->hasFetchOHLCV   = false;
+        $this->timeframes = null;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -739,8 +740,9 @@ class Exchange {
 
     public function parse_ohlcvs ($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
         $result = array ();
-        for ($t = 0; $t < count ($ohlcvs); $t++) {
-            $result[] = $this->parse_ohlcv ($ohlcvs[$t], $market, $timeframe, $since, $limit);
+        $array = array_values ($ohlcvs);
+        for ($t = 0; $t < count ($array); $t++) {
+            $result[] = $this->parse_ohlcv ($array[$t], $market, $timeframe, $since, $limit);
         }
         return $result;
     }
@@ -751,8 +753,9 @@ class Exchange {
 
     public function parse_trades ($trades, $market = null) {
         $result = array ();
-        for ($t = 0; $t < count ($trades); $t++) {
-            $result[] = $this->parse_trade ($trades[$t], $market);
+        $array = array_values ($trades);
+        for ($t = 0; $t < count ($array); $t++) {
+            $result[] = $this->parse_trade ($array[$t], $market);
         }
         return $result;
     }
@@ -822,6 +825,15 @@ class Exchange {
     
     public function fetchTrades ($market) {
         return $this->fetch_trades ($market);
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $exception = '\\ccxt\\NotSupported';
+        throw new $exception ($this->id . ' fetch_ohlcv() not suported or not implemented yet');
+    }
+
+    public function fetchOHLCV ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_ohlcv ($symbol, $timeframe, $since, $limit, $params);
     }
 
     public function create_limit_buy_order ($market, $amount, $price, $params = array ()) {
@@ -924,6 +936,13 @@ class _1broker extends Exchange {
             'countries' => 'US',
             'rateLimit' => 1500,
             'version' => 'v2',
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1m' => '60',
+                '15m' => '900',
+                '1h' => '3600',
+                '1d' => '86400',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg',
                 'api' => 'https://1broker.com/api',
@@ -1022,10 +1041,10 @@ class _1broker extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $response = $this->privateGetMarketQuotes (array_merge (array (
-            'symbols' => $this->market_id ($market),
+            'symbols' => $this->market_id ($symbol),
         ), $params));
         $orderbook = $response['response'][0];
         $timestamp = $this->parse8601 ($orderbook['updated']);
@@ -1041,18 +1060,18 @@ class _1broker extends Exchange {
         );
     }
 
-    public function fetch_trades ($market) {
+    public function fetch_trades ($symbol) {
         throw new ExchangeError ($this->id . ' fetchTrades () method not implemented yet');
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
         $result = $this->privateGetMarketBars (array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
             'resolution' => 60,
             'limit' => 1,
         ));
-        $orderbook = $this->fetchOrderBook ($market);
+        $orderbook = $this->fetchOrderBook ($symbol);
         $ticker = $result['response'][0];
         $timestamp = $this->parse8601 ($ticker['date']);
         return array (
@@ -1075,10 +1094,36 @@ class _1broker extends Exchange {
         );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        return [
+            $this->parse8601 ($ohlcv['date']),
+            floatval ($ohlcv['o']),
+            floatval ($ohlcv['h']),
+            floatval ($ohlcv['l']),
+            floatval ($ohlcv['c']),
+            null,
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+            'resolution' => $this->timeframes[$timeframe],
+        );
+        if ($since)
+            $request['date_start'] = $this->iso8601 ($since); // they also support date_end
+        if ($limit)
+            $request['limit'] = $limit;
+        $result = $this->privateGetMarketBars (array_merge ($request, $params));
+        return $this->parse_ohlcvs ($result['response'], $market, $timeframe, $since, $limit);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $order = array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
             'margin' => $amount,
             'direction' => ($side == 'sell') ? 'short' : 'long',
             'leverage' => 1,
@@ -1127,6 +1172,10 @@ class cryptocapital extends Exchange {
             'name' => 'Crypto Capital',
             'comment' => 'Crypto Capital API',
             'countries' => 'PA', // Panama
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1d' => '1year',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27993158-7a13f140-64ac-11e7-89cc-a3b441f0b0f8.jpg',
                 'www' => 'https://cryptocapital.co',
@@ -1233,17 +1282,58 @@ class cryptocapital extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetTransactions (array_merge (array (
-            'currency' => $this->market_id ($market),
-        ), $params));
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+        return [
+            $this->parse8601 ($ohlcv['date'] . ' 00:00:00'),
+            null,
+            null,
+            null,
+            floatval ($ohlcv['price']),
+            null,
+        ];
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1d', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $response = $this->publicGetHistoricalPrices (array_merge (array (
+            'currency' => $market['id'],
+            'timeframe' => $this->timeframes[$timeframe],
+        ), $params));
+        $ohlcvs = $this->omit ($response['historical-prices'], 'request_currency');
+        return $this->parse_ohlcvs ($ohlcvs, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_trade ($trade, $market) {
+        $timestamp = intval ($trade['timestamp']) * 1000;
+        return array (
+            'id' => $trade['id'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'order' => null,
+            'type' => null,
+            'side' => $trade['maker_type'],
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTransactions (array_merge (array (
+            'currency' => $market['id'],
+        ), $params));
+        $trades = $this->omit ($response['transactions'], 'request_currency');
+        return $this->parse_trades ($trades, $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $order = array (
             'side' => $side,
             'type' => $type,
-            'currency' => $this->market_id ($market),
+            'currency' => $this->market_id ($symbol),
             'amount' => $amount,
         );
         if ($type == 'limit')
@@ -1549,6 +1639,24 @@ class binance extends Exchange {
             'countries' => 'CN', // China
             'rateLimit' => 1000,
             'version' => 'v1',
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1m' => '1m',
+                '3m' => '3m',
+                '5m' => '5m',
+                '15m' => '15m',
+                '30m' => '30m',
+                '1h' => '1h',
+                '2h' => '2h',
+                '4h' => '4h',
+                '6h' => '6h',
+                '8h' => '8h',
+                '12h' => '12h',
+                '1d' => '1d',
+                '3d' => '3d',
+                '1w' => '1w',
+                '1M' => '1M',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api' => 'https://www.binance.com/api',
@@ -1632,10 +1740,10 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
-        $m = $this->market ($market);
+    public function fetch_order_book ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
         $orderbook = $this->publicGetDepth (array_merge (array (
-            'symbol' => $m['id'],
+            'symbol' => $market['id'],
             'limit' => 100, // default = maximum = 100
         ), $params));
         $timestamp = $this->milliseconds ();
@@ -1682,41 +1790,37 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_ticker ($market) {
-        $m = $this->market ($market);
+    public function fetch_ticker ($symbol) {
+        $market = $this->market ($symbol);
         $response = $this->publicGetTicker24hr (array (
-            'symbol' => $m['id'],
+            'symbol' => $market['id'],
         ));
-        return $this->parse_ticker ($response, $m);
+        return $this->parse_ticker ($response, $market);
     }
 
-    public function fetch_ohlcv ($market, $timeframe = 60, $since = null, $limit = null) {
-        // Kline/candlestick bars for a symbol. Klines are uniquely identified by their open time.
-        // Parameters:
-        // Name    Type    Mandatory   Description
-        // symbol  STRING  YES
-        // interval    ENUM    YES
-        // $limit   INT NO  Default 500; max 500.
-        // startTime   LONG    NO
-        // endTime LONG    NO
-        // If startTime and endTime are not sent, the most recent klines are returned.
-        // Response:
-        // array (        //   [
-        //     1499040000000,      // Open time
-        //     "0.01634790",       // Open
-        //     "0.80000000",       // High
-        //     "0.01575800",       // Low
-        //     "0.01577100",       // Close
-        //     "148976.11427815",  // Volume
-        //     1499644799999,      // Close time
-        //     "2434.19055334",    // Quote asset volume
-        //     308,                // Number of trades
-        //     "1756.87402397",    // Taker buy base asset volume
-        //     "28.46694368",      // Taker buy quote asset volume
-        //     "17928899.62484339" // Can be ignored
-        //  )
-        // ]
-        throw new NotImplemented ($this->id . ' fetchOHLCV is not implemented yet');
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        return [
+            $ohlcv[0],
+            floatval ($ohlcv[1]),
+            floatval ($ohlcv[2]),
+            floatval ($ohlcv[3]),
+            floatval ($ohlcv[4]),
+            floatval ($ohlcv[5]),
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+            'interval' => $this->timeframes[$timeframe],
+        );
+        $request['limit'] = ($limit) ? $limit : 500; // default == max == 500
+        if ($since)
+            $request['startTime'] = $since;
+        $response = $this->publicGetKlines (array_merge ($request, $params));
+        return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade ($trade, $market = null) {
@@ -1755,16 +1859,16 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        $m = $this->market ($market);
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
         $response = $this->publicGetAggTrades (array_merge (array (
-            'symbol' => $m['id'],
+            'symbol' => $market['id'],
             // 'fromId' => 123,    // ID to get aggregate trades from INCLUSIVE.
             // 'startTime' => 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
             // 'endTime' => 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
             'limit' => 500,        // default = maximum = 500
         ), $params));
-        return $this->parse_trades ($response, $m);
+        return $this->parse_trades ($response, $market);
     }
 
     public function parse_order ($order, $market = null) {
@@ -1783,12 +1887,12 @@ class binance extends Exchange {
         //   "icebergQty" => "0.0",
         //   "time" => 1499827319559
         // }
-        throw new NotImplemented ($this->id . ' parseOrder is not implemented yet');
+        throw new NotSupported ($this->id . ' parseOrder is not implemented yet');
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $order = array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
             'quantity' => sprintf ('%f', $amount),
             'price' => sprintf ('%f', $price),
             'type' => strtoupper ($type),
@@ -1822,7 +1926,7 @@ class binance extends Exchange {
         // recvWindow  LONG    NO
         // timestamp   LONG    YES
         // If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
-        throw new NotImplemented ($this->id . ' fetchOrders not implemented yet');
+        throw new NotSupported ($this->id . ' fetchOrders not implemented yet');
     }
 
     public function fetch_open_orders ($symbol = null, $params = array ()) {
@@ -2191,20 +2295,36 @@ class bitbay extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetIdTrades (array_merge (array (
-            'id' => $this->market_id ($market),
-        ), $params));
-
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['date'] * 1000;
+        return array (
+            'id' => $trade['tid'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['type'],
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
-        $p = $this->market ($market);
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetIdTrades (array_merge (array (
+            'id' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response, $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $market = $this->market ($symbol);
         return $this->privatePostTrade (array_merge (array (
             'type' => $side,
-            'currency' => $p['base'],
+            'currency' => $market['base'],
             'amount' => $amount,
-            'payment_currency' => $p['quote'],
+            'payment_currency' => $market['quote'],
             'rate' => $price,
         ), $params));
     }
@@ -2297,9 +2417,9 @@ class bitbays extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $response = $this->publicGetDepth (array_merge (array (
-            'market' => $this->market_id ($market),
+            'market' => $this->market_id ($symbol),
         ), $params));
         $orderbook = $response['result'];
         $timestamp = $this->milliseconds ();
@@ -2323,9 +2443,9 @@ class bitbays extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $response = $this->publicGetTicker (array (
-            'market' => $this->market_id ($market),
+            'market' => $this->market_id ($symbol),
         ));
         $ticker = $response['result'];
         $timestamp = $this->milliseconds ();
@@ -2350,15 +2470,32 @@ class bitbays extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetTrades (array_merge (array (
-            'market' => $this->market_id ($market),
-        ), $params));
+    public function parse_trade ($trade, $market) {
+        $timestamp = intval ($trade['date']) * 1000;
+        return array (
+            'id' => (string) $trade['id'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => null,
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTrades (array_merge (array (
+            'market' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response['result'], $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $order = array (
-            'market' => $this->market_id ($market),
+            'market' => $this->market_id ($symbol),
             'op' => $side,
             'amount' => $amount,
         );
@@ -2480,9 +2617,9 @@ class bitcoincoid extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $orderbook = $this->publicGetPairDepth (array_merge (array (
-            'pair' => $this->market_id ($market),
+            'pair' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -2507,15 +2644,15 @@ class bitcoincoid extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
-        $pair = $this->market ($market);
+    public function fetch_ticker ($symbol) {
+        $market = $this->market ($symbol);
         $response = $this->publicGetPairTicker (array (
-            'pair' => $pair['id'],
+            'pair' => $market['id'],
         ));
         $ticker = $response['ticker'];
         $timestamp = floatval ($ticker['server_time']) * 1000;
-        $baseVolume = 'vol_' . strtolower ($pair['baseId']);
-        $quoteVolume = 'vol_' . strtolower ($pair['quoteId']);
+        $baseVolume = 'vol_' . strtolower ($market['baseId']);
+        $quoteVolume = 'vol_' . strtolower ($market['quoteId']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -2537,20 +2674,37 @@ class bitcoincoid extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetPairTrades (array_merge (array (
-            'pair' => $this->market_id ($market),
-        ), $params));
+    public function parse_trade ($trade, $market) {
+        $timestamp = intval ($trade['date']) * 1000;
+        return array (
+            'id' => $trade['tid'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['type'],
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
-        $p = $this->market ($market);
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetPairTrades (array_merge (array (
+            'pair' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response, $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $market = $this->market ($symbol);
         $order = array (
-            'pair' => $p['id'],
+            'pair' => $market['id'],
             'type' => $side,
             'price' => $price,
         );
-        $base = strtolower ($p['base']);
+        $base = strtolower ($market['base']);
         $order[$base] = $amount;
         $result = $this->privatePostTrade (array_merge ($order, $params));
         return array (
@@ -2883,6 +3037,48 @@ class bitfinex extends Exchange {
         return $this->parse_order ($response);
     }
 
+    public function getCurrencyName ($currency) {
+        if ($currency == 'BTC') {
+            return 'bitcoin';
+        } else if ($currency == 'LTC') {
+            return 'litecoin';
+        } else if ($currency == 'ETH') {
+            return 'ethereum';
+        } else if ($currency == 'ETC') {
+            return 'ethereumc';
+        } else if ($currency == 'OMNI') {
+            return 'mastercoin'; // ???
+        } else if ($currency == 'ZEC') {
+            return 'zcash';
+        } else if ($currency == 'XMR') {
+            return 'monero';
+        } else if ($currency == 'USD') {
+            return 'wire';
+        } else if ($currency == 'DASH') {
+            return 'dash';
+        } else if ($currency == 'XRP') {
+            return 'ripple';
+        } else if ($currency == 'EOS') {
+            return 'eos';
+        }
+        throw new NotSupported ($this->id . ' ' . $currency . ' not supported for withdrawal');
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $name = $this->getCurrencyName ($currency);
+        $response = $this->privatePostWithdraw (array_merge (array (
+            'withdraw_type' => $name,
+            'walletselected' => 'exchange',
+            'amount' => $amount,
+            'address' => $address,
+        ), $params));
+        return array (
+            'info' => $response,
+            'id' => $response['withdrawal_id'],
+        );
+    }
+
     public function nonce () {
         return $this->milliseconds ();
     }
@@ -3029,10 +3225,10 @@ class bitflyer extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetBoard (array_merge (array (
-            'product_code' => $this->market_id ($market),
+            'product_code' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -3055,10 +3251,10 @@ class bitflyer extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
         $ticker = $this->publicGetTicker (array (
-            'product_code' => $this->market_id ($market),
+            'product_code' => $this->market_id ($symbol),
         ));
         $timestamp = $this->parse8601 ($ticker['timestamp']);
         return array (
@@ -3082,17 +3278,37 @@ class bitflyer extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        $this->load_markets ();
-        return $this->publicGetExecutions (array_merge (array (
-            'product_code' => $this->market_id ($market),
-        ), $params));
+    public function parse_trade ($trade, $market = null) {
+        $side = strtolower ($trade['side']);
+        $order = $side . '_child_order_acceptance_id';
+        $timestamp = $this->parse8601 ($trade['exec_date']);
+        return array (
+            'id' => (string) $trade['id'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'order' => $trade[$order],
+            'type' => null,
+            'side' => $side,
+            'price' => $trade['price'],
+            'amount' => $trade['size'],
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $response = $this->publicGetExecutions (array_merge (array (
+            'product_code' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response, $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $order = array (
-            'product_code' => $this->market_id ($market),
+            'product_code' => $this->market_id ($symbol),
             'child_order_type' => strtoupper ($type),
             'side' => strtoupper ($side),
             'price' => $price,
@@ -3277,15 +3493,15 @@ class bitlish extends Exchange {
         return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets ();
         $market = $this->market ($symbol);
         $now = $this->seconds ();
         $start = $now - 86400 * 30; // last 30 days
         $interval = array ((string) $start, null);
-        return $this->publicPostOhlcv (array (
+        return $this->publicPostOhlcv (array_merge (array (
             'time_range' => $interval,
-        ));
+        ), $params));
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -3428,6 +3644,17 @@ class bitmarket extends Exchange {
             'name' => 'BitMarket',
             'countries' => array ( 'PL', 'EU' ),
             'rateLimit' => 1500,
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '90m' => '90m',
+                '6h' => '6h',
+                '1d' => '1d',
+                '1w' => '7d',
+                '1M' => '1m',
+                '3M' => '3m',
+                '6M' => '6m',
+                '1y' => '1y',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg',
                 'api' => array (
@@ -3526,9 +3753,9 @@ class bitmarket extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $orderbook = $this->publicGetJsonMarketOrderbook (array_merge (array (
-            'market' => $this->market_id ($market),
+            'market' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -3538,12 +3765,11 @@ class bitmarket extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
         );
         return $result;
-
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $ticker = $this->publicGetJsonMarketTicker (array (
-            'market' => $this->market_id ($market),
+            'market' => $this->market_id ($symbol),
         ));
         $timestamp = $this->milliseconds ();
         return array (
@@ -3567,15 +3793,55 @@ class bitmarket extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetJsonMarketTrades (array_merge (array (
-            'market' => $this->market_id ($market),
-        ), $params));
+    public function parse_trade ($trade, $market = null) {
+        $side = ($trade['type'] == 'bid') ? 'buy' : 'sell';
+        $timestamp = $trade['date'] * 1000;
+        return array (
+            'id' => (string) $trade['tid'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'order' => null,
+            'type' => null,
+            'side' => $side,
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetJsonMarketTrades (array_merge (array (
+            'market' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response, $market);
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '90m', $since = null, $limit = null) {
+        return [
+            $ohlcv['time'] * 1000,
+            floatval ($ohlcv['open']),
+            floatval ($ohlcv['high']),
+            floatval ($ohlcv['low']),
+            floatval ($ohlcv['close']),
+            floatval ($ohlcv['vol']),
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '90m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets ();
+        $method = 'publicGetGraphsMarket' . $this->timeframes[$timeframe];
+        $market = $this->market ($symbol);
+        $response = $this->$method (array_merge (array (
+            'market' => $market['id'],
+        ), $params));
+        return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $response = $this->privatePostTrade (array_merge (array (
-            'market' => $this->market_id ($market),
+            'market' => $this->market_id ($symbol),
             'type' => $side,
             'amount' => $amount,
             'rate' => $price,
@@ -3623,6 +3889,13 @@ class bitmex extends Exchange {
             'countries' => 'SC', // Seychelles
             'version' => 'v1',
             'rateLimit' => 1500,
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1m' => '1m',
+                '5m' => '5m',
+                '1h' => '1h',
+                '1d' => '1d',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
                 'api' => 'https://www.bitmex.com',
@@ -3767,10 +4040,10 @@ class bitmex extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetOrderBookL2 (array_merge (array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -3791,10 +4064,10 @@ class bitmex extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
         $request = array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
             'binSize' => '1d',
             'partial' => true,
             'count' => 1,
@@ -3827,17 +4100,79 @@ class bitmex extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        $this->load_markets ();
-        return $this->publicGetTrade (array_merge (array (
-            'symbol' => $this->market_id ($market),
-        ), $params));
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        $timestamp = $this->parse8601 ($ohlcv['timestamp']);
+        return [
+            $timestamp,
+            $ohlcv['open'],
+            $ohlcv['high'],
+            $ohlcv['low'],
+            $ohlcv['close'],
+            $ohlcv['volume'],
+        ];
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets ();
+        // send JSON key/value pairs, such as array ("key" => "value")
+        // $filter by individual fields and do advanced queries on timestamps
+        $filter = array ( 'key' => 'value' );
+        // send a bare series (e.g. XBU) to nearest expiring contract in that series
+        // you can also send a $timeframe, e.g. XBU:monthly
+        // timeframes => daily, weekly, monthly, quarterly, and biquarterly
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+            'binSize' => $this->timeframes[$timeframe],
+            'partial' => true,     // true == include yet-incomplete current bins
+            // 'filter' => $filter, // $filter by individual fields and do advanced queries
+            // 'columns' => array (),    // will return all columns if omitted
+            // 'start' => 0,       // starting point for results (wtf?)
+            // 'reverse' => false, // true == newest first
+            // 'endTime' => '',    // ending date $filter for results
+        );
+        if ($since)
+            $request['startTime'] = $since; // starting date $filter for results
+        if ($limit)
+            $request['count'] = $limit; // default 100
+        $response = $this->publicGetTradeBucketed (array_merge ($request, $params));
+        return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $this->parse8601 ($trade['timestamp']);
+        $symbol = null;
+        if (!$market) {
+            if (array_key_exists ('symbol', $trade))
+                $market = $this->markets_by_id[$trade['symbol']];
+        }
+        return array (
+            'id' => $trade['trdMatchID'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'order' => null,
+            'type' => null,
+            'side' => strtolower ($trade['side']),
+            'price' => $trade['price'],
+            'amount' => $trade['size'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $this->load_markets ();
+        $response = $this->publicGetTrade (array_merge (array (
+            'symbol' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response, $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $order = array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
             'side' => $this->capitalize ($side),
             'orderQty' => $amount,
             'ordType' => $this->capitalize ($type),
@@ -3857,7 +4192,7 @@ class bitmex extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $query = '/$api/' . $this->version . '/' . $path;
+        $query = '/api' . '/' . $this->version . '/' . $path;
         if ($params)
             $query .= '?' . $this->urlencode ($params);
         $url = $this->urls['api'] . $query;
@@ -3983,10 +4318,10 @@ class bitso extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $response = $this->publicGetOrderBook (array_merge (array (
-            'book' => $this->market_id ($market),
+            'book' => $this->market_id ($symbol),
         ), $params));
         $orderbook = $response['payload'];
         $timestamp = $this->parse8601 ($orderbook['updated_at']);
@@ -4010,10 +4345,10 @@ class bitso extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
         $response = $this->publicGetTicker (array (
-            'book' => $this->market_id ($market),
+            'book' => $this->market_id ($symbol),
         ));
         $ticker = $response['payload'];
         $timestamp = $this->parse8601 ($ticker['created_at']);
@@ -4038,17 +4373,40 @@ class bitso extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        $this->load_markets ();
-        return $this->publicGetTrades (array_merge (array (
-            'book' => $this->market_id ($market),
-        ), $params));
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $this->parse8601 ($trade['created_at']);
+        $symbol = null;
+        if (!$market) {
+            if (array_key_exists ('book', $trade))
+                $market = $this->markets_by_id[$trade['book']];
+        }
+        return array (
+            'id' => (string) $trade['tid'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'order' => null,
+            'type' => null,
+            'side' => $trade['maker_side'],
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $this->load_markets ();
+        $response = $this->publicGetTrades (array_merge (array (
+            'book' => $this->market_id ($market),
+        ), $params));
+        return $this->parse_trades ($response['payload'], $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $order = array (
-            'book' => $this->market_id ($market),
+            'book' => $this->market_id ($symbol),
             'side' => $side,
             'type' => $type,
             'major' => $amount,
@@ -4318,7 +4676,7 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_order ($id) {
-        throw new NotImplemented ($this->id . ' fetchOrder is not implemented yet');
+        throw new NotSupported ($this->id . ' fetchOrder is not implemented yet');
         $this->load_markets ();
     }
 
@@ -4660,6 +5018,19 @@ class bittrex extends Exchange {
         return $this->parse_order ($response['result']);
     }
 
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $response = $this->accountGetWithdraw (array_merge (array (
+            'currency' => $currency,
+            'quantity' => $amount,
+            'address' => $address,
+        ), $params));
+        return array (
+            'info' => $response,
+            'id' => $response['result']['uuid'],
+        );
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/';
         if ($api == 'public') {
@@ -4749,11 +5120,11 @@ class blinktrade extends Exchange {
         ));
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
-        $p = $this->market ($market);
+    public function fetch_order_book ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
         $orderbook = $this->publicGetCurrencyOrderbook (array_merge (array (
-            'currency' => $p['quote'],
-            'crypto_currency' => $p['base'],
+            'currency' => $market['quote'],
+            'crypto_currency' => $market['base'],
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -4776,14 +5147,14 @@ class blinktrade extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
-        $p = $this->market ($market);
+    public function fetch_ticker ($symbol) {
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetCurrencyTicker (array (
-            'currency' => $p['quote'],
-            'crypto_currency' => $p['base'],
+            'currency' => $market['quote'],
+            'crypto_currency' => $market['base'],
         ));
         $timestamp = $this->milliseconds ();
-        $lowercaseQuote = strtolower ($p['quote']);
+        $lowercaseQuote = strtolower ($market['quote']);
         $quoteVolume = 'vol_' . $lowercaseQuote;
         return array (
             'timestamp' => $timestamp,
@@ -4806,26 +5177,42 @@ class blinktrade extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        $p = $this->market ($market);
-        return $this->publicGetCurrencyTrades (array_merge (array (
-            'currency' => $p['quote'],
-            'crypto_currency' => $p['base'],
-        ), $params));
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['date'] * 1000;
+        return array (
+            'id' => $trade['tid'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['side'],
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetCurrencyTrades (array_merge (array (
+            'currency' => $market['quote'],
+            'crypto_currency' => $market['base'],
+        ), $params));
+        return $this->parse_trades ($response, $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $order = array (
             'ClOrdID' => $this->nonce (),
-            'Symbol' => $p['id'],
+            'Symbol' => $market['id'],
             'Side' => $this->capitalize ($side),
             'OrdType' => '2',
             'Price' => $price,
             'OrderQty' => $amount,
-            'BrokerID' => $p['brokerId'],
+            'BrokerID' => $market['brokerId'],
         );
         $response = $this->privatePostD (array_merge ($order, $params));
         $indexed = $this->index_by ($response['Responses'], 'MsgType');
@@ -4971,8 +5358,8 @@ class bl3p extends Exchange {
             $orders = $orderbook[$side];
             for ($i = 0; $i < count ($orders); $i++) {
                 $order = $orders[$i];
-                $price = $order['price_int'] / 100000;
-                $amount = $order['amount_int'] / 100000000;
+                $price = $order['price_int'] / 100000.0;
+                $amount = $order['amount_int'] / 100000000.0;
                 $result[$side][] = array ($price, $amount);
             }
         }
@@ -5005,10 +5392,27 @@ class bl3p extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetMarketTrades (array_merge (array (
-            'market' => $this->market_id ($market),
+    public function parse_trade ($trade, $market) {
+        return array (
+            'id' => $trade['trade_id'],
+            'info' => $trade,
+            'timestamp' => $trade['date'],
+            'datetime' => $this->iso8601 ($trade['date']),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => null,
+            'price' => $trade['price_int'] / 100000.0,
+            'amount' => $trade['amount_int'] / 100000000.0,
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetMarketTrades (array_merge (array (
+            'market' => $market['id'],
         ), $params));
+        $result = $this->parse_trades ($response['data']['trades'], $market);
+        return $result;
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
@@ -5212,11 +5616,28 @@ class btcchina extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = intval ($trade['date']) * 1000;
+        return array (
+            'id' => $trade['tid'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => null,
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetTrades (array_merge (array (
-            'market' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTrades (array_merge (array (
+            'market' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
@@ -5391,14 +5812,14 @@ class btce extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $response = $this->publicGetDepthPair (array_merge (array (
-            'pair' => $p['id'],
+            'pair' => $market['id'],
         ), $params));
-        if (array_key_exists ($p['id'], $response)) {
-            $orderbook = $response[$p['id']];
+        if (array_key_exists ($market['id'], $response)) {
+            $orderbook = $response[$market['id']];
             $timestamp = $this->milliseconds ();
             $result = array (
                 'bids' => $orderbook['bids'],
@@ -5410,7 +5831,7 @@ class btce extends Exchange {
             $result['asks'] = $this->sort_by ($result['asks'], 0);
             return $result;
         }
-        throw new ExchangeError ($this->id . ' ' . $p['symbol'] . ' order book is empty or not available');
+        throw new ExchangeError ($this->id . ' ' . $market['symbol'] . ' order book is empty or not available');
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -5462,17 +5883,36 @@ class btce extends Exchange {
         return $tickers[$symbol];
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        $this->load_markets ();
-        return $this->publicGetTradesPair (array_merge (array (
-            'pair' => $this->market_id ($market),
-        ), $params));
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['timestamp'] * 1000;
+        $side = ($trade['type'] == 'ask') ? 'sell' : 'buy';
+        return array (
+            'id' => $trade['tid'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $side,
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $id = $market['id'];
+        $response = $this->publicGetTradesPair (array_merge (array (
+            'pair' => $id,
+        ), $params));
+        return $this->parse_trades ($response[$id], $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $order = array (
-            'pair' => $this->market_id ($market),
+            'pair' => $this->market_id ($symbol),
             'type' => $side,
             'amount' => $amount,
             'rate' => $price,
@@ -5644,11 +6084,11 @@ class btcmarkets extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
-        $m = $this->market ($market);
+        $market = $this->market ($symbol);
         $orderbook = $this->publicGetMarketIdOrderbook (array_merge (array (
-            'id' => $m['id'],
+            'id' => $market['id'],
         ), $params));
         $timestamp = $orderbook['timestamp'] * 1000;
         $result = array (
@@ -5688,32 +6128,50 @@ class btcmarkets extends Exchange {
         );
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $m = $this->market ($market);
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetMarketIdTick (array (
-            'id' => $m['id'],
+            'id' => $market['id'],
         ));
-        return $this->parse_ticker ($ticker, $m);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['date'] * 1000;
+        return array (
+            'info' => $trade,
+            'id' => (string) $trade['tid'],
+            'order' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => null,
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetMarketIdTrades (array_merge (array (
+        $market = $this->market ($symbol);
+        $response = $this->publicGetMarketIdTrades (array_merge (array (
             // 'since' => 59868345231,
-            'id' => $this->market_id ($market),
+            'id' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
-        $m = $this->market ($market);
+        $market = $this->market ($symbol);
         $multiplier = 100000000; // for $price and volume
         // does BTC Markets support $market orders at all?
         $orderSide = ($side == 'buy') ? 'Bid' : 'Ask';
         $order = $this->ordered (array (
-            'currency' => $m['quote'],
-            'instrument' => $m['base'],
+            'currency' => $market['quote'],
+            'instrument' => $market['base'],
             'price' => $price * $multiplier,
             'volume' => $amount * $multiplier,
             'orderSide' => $orderSide,
@@ -6465,10 +6923,10 @@ class bter extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetOrderBookId (array_merge (array (
-            'id' => $this->market_id ($market),
+            'id' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -6539,29 +6997,46 @@ class bter extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetTickerId (array (
-            'id' => $p['id'],
+            'id' => $market['id'],
         ));
-        return $this->parse_ticker ($ticker, $p);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = intval ($trade['timestamp']) * 1000;
+        return array (
+            'id' => $trade['tradeID'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['type'],
+            'price' => $trade['rate'],
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
         $this->load_markets ();
-        return $this->publicGetTradeHistoryId (array_merge (array (
-            'id' => $this->market_id ($market),
+        $response = $this->publicGetTradeHistoryId (array_merge (array (
+            'id' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response['data'], $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $this->load_markets ();
         $method = 'privatePost' . $this->capitalize ($side);
         $order = array (
-            'currencyPair' => $this->market_id ($market),
+            'currencyPair' => $this->market_id ($symbol),
             'rate' => $price,
             'amount' => $amount,
         );
@@ -6786,11 +7261,29 @@ class bxinth extends Exchange {
         return $this->parse_ticker ($ticker, $p);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = $this->parse8601 ($trade['trade_date']);
+        return array (
+            'id' => $trade['trade_id'],
+            'info' => $trade,
+            'order' => $trade['order_id'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['trade_type'],
+            'price' => floatval ($trade['rate']),
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetTrade (array_merge (array (
-            'pairing' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTrade (array_merge (array (
+            'pairing' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response['trades'], $market);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
@@ -6941,10 +7434,10 @@ class ccex extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $response = $this->publicGetOrderbook (array_merge (array (
-            'market' => $this->market_id ($market),
+            'market' => $this->market_id ($symbol),
             'type' => 'both',
             'depth' => 100,
         ), $params));
@@ -6995,30 +7488,48 @@ class ccex extends Exchange {
         );
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $response = $this->tickersGetMarket (array (
-            'market' => strtolower ($p['id']),
+            'market' => strtolower ($market['id']),
         ));
         $ticker = $response['ticker'];
-        return $this->parse_ticker ($ticker, $p);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = $this->parse8601 ($trade['TimeStamp']);
+        return array (
+            'id' => $trade['Id'],
+            'info' => $trade,
+            'order' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => strtolower ($trade['OrderType']),
+            'price' => $trade['Price'],
+            'amount' => $trade['Quantity'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetMarkethistory (array_merge (array (
+        $market = $this->market ($symbol);
+        $response = $this->publicGetMarkethistory (array_merge (array (
             'market' => $this->market_id ($market),
             'type' => 'both',
             'depth' => 100,
         ), $params));
+        return $this->parse_trades ($response['result'], $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $method = 'privateGet' . $this->capitalize ($side) . $type;
         $response = $this->$method (array_merge (array (
-            'market' => $this->market_id ($market),
+            'market' => $this->market_id ($symbol),
             'quantity' => $amount,
             'rate' => $price,
         ), $params));
@@ -7156,10 +7667,10 @@ class cex extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook =  $this->publicGetOrderBookPair (array_merge (array (
-            'pair' => $this->market_id ($market),
+            'pair' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $orderbook['timestamp'] * 1000;
         $result = array (
@@ -7211,26 +7722,43 @@ class cex extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetTickerPair (array (
-            'pair' => $p['id'],
+            'pair' => $market['id'],
         ));
-        return $this->parse_ticker ($ticker, $p);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = intval ($trade['date']) * 1000;
+        return array (
+            'info' => $trade,
+            'id' => $trade['tid'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['type'],
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetTradeHistoryPair (array_merge (array (
-            'pair' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTradeHistoryPair (array_merge (array (
+            'pair' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $order = array (
-            'pair' => $this->market_id ($market),
+            'pair' => $this->market_id ($symbol),
             'type' => $side,
             'amount' => $amount,
         );
@@ -7351,19 +7879,19 @@ class chbtc extends Exchange {
             $currency = $this->currencies[$c];
             $account = $this->account ();
             if (array_key_exists ($currency, $balances['balance']))
-                $account['free'] = $balances['balance'][$currency]['amount'];
+                $account['free'] = floatval ($balances['balance'][$currency]['amount']);
             if (array_key_exists ($currency, $balances['frozen']))
-                $account['used'] = $balances['frozen'][$currency]['amount'];
+                $account['used'] = floatval ($balances['frozen'][$currency]['amount']);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
-        $p = $this->market ($market);
+    public function fetch_order_book ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
         $orderbook = $this->publicGetDepth (array_merge (array (
-            'currency' => $p['id'],
+            'currency' => $market['id'],
         ), $params));
         $timestamp = $this->milliseconds ();
         $bids = null;
@@ -7385,9 +7913,9 @@ class chbtc extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $response = $this->publicGetTicker (array (
-            'currency' => $this->market_id ($market),
+            'currency' => $this->market_id ($symbol),
         ));
         $ticker = $response['ticker'];
         $timestamp = $this->milliseconds ();
@@ -7412,18 +7940,37 @@ class chbtc extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetTrades (array_merge (array (
-            'currency' => $this->market_id ($market),
-        ), $params));
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $trade['date'] * 1000;
+        $side = ($trade['trade_type'] == 'bid') ? 'buy' : 'sell';
+        return array (
+            'info' => $trade,
+            'id' => (string) $trade['tid'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $side,
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTrades (array_merge (array (
+            'currency' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response, $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $paramString = '&$price=' . (string) $price;
         $paramString .= '&$amount=' . (string) $amount;
         $tradeType = ($side == 'buy') ? '1' : '0';
         $paramString .= '&$tradeType=' . $tradeType;
-        $paramString .= '&currency=' . $this->market_id ($market);
+        $paramString .= '&currency=' . $this->market_id ($symbol);
         $response = $this->privatePostOrder ($paramString);
         return array (
             'info' => $response,
@@ -7653,8 +8200,25 @@ class coincheck extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetTrades ($params);
+    public function parse_trade ($trade, $market) {
+        $timestamp = $this->parse8601 ($trade['created_at']);
+        return array (
+            'id' => (string) $trade['id'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['order_type'],
+            'price' => floatval ($trade['rate']),
+            'amount' => floatval ($trade['amount']),
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTrades ($params);
+        return $this->parse_trades ($response, $market);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
@@ -7780,9 +8344,9 @@ class coinfloor extends Exchange {
         ));
     }
 
-    public function fetch_order_book ($market) {
+    public function fetch_order_book ($symbol) {
         $orderbook = $this->publicGetIdOrderBook (array (
-            'id' => $this->market_id ($market),
+            'id' => $this->market_id ($symbol),
         ));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -7834,22 +8398,40 @@ class coinfloor extends Exchange {
         );
     }
 
-    public function fetch_ticker ($market) {
-        $m = $this->market ($market);
+    public function fetch_ticker ($symbol) {
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetIdTicker (array (
-            'id' => $m['id'],
+            'id' => $market['id'],
         ));
-        return $this->parse_ticker ($ticker, $m);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetIdTransactions (array_merge (array (
-            'id' => $this->market_id ($market),
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['date'] * 1000;
+        return array (
+            'info' => $trade,
+            'id' => (string) $trade['tid'],
+            'order' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => null,
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetIdTransactions (array_merge (array (
+            'id' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
-        $order = array ( 'id' => $this->market_id ($market) );
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $order = array ( 'id' => $this->market_id ($symbol) );
         $method = 'privatePostId' . $this->capitalize ($side);
         if ($type == 'market') {
             $order['quantity'] = $amount;
@@ -7960,10 +8542,10 @@ class coingi extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
-        $p = $this->market ($market);
+    public function fetch_order_book ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
         $orderbook = $this->currentGetOrderBookPairAskCountBidCountDepth (array_merge (array (
-            'pair' => $p['id'],
+            'pair' => $market['id'],
             'askCount' => 512, // maximum returned number of asks 1-512
             'bidCount' => 512, // maximum returned number of bids 1-512
             'depth' => 32, // maximum number of depth range steps 1-32
@@ -8013,7 +8595,7 @@ class coingi extends Exchange {
         return $ticker;
     }
 
-    public function fetch_tickers () {
+    public function fetch_tickers ($symbols = null) {
         $response = $this->currentGet24hourRollingAggregation ();
         $result = array ();
         for ($t = 0; $t < count ($response); $t++) {
@@ -8027,35 +8609,39 @@ class coingi extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
-        $response = $this->currentGet24hourRollingAggregation ();
-        $tickers = array ();
-        for ($t = 0; $t < count ($response); $t++) {
-            $ticker = $response[$t];
-            $base = strtoupper ($ticker['currencyPair']['base']);
-            $quote = strtoupper ($ticker['currencyPair']['counter']);
-            $symbol = $base . '/' . $quote;
-            $tickers[$symbol] = $ticker;
-        }
-        $p = $this->market ($market);
-        $symbol = $p['symbol'];
-        if (array_key_exists ($symbol, $tickers)) {
-            $ticker = $tickers[$symbol];
-            return $this->parse_ticker ($ticker, $p);
-        }
-        throw new ExchangeError ($this->id . ' ' . $symbol . ' $ticker not found');
+    public function fetch_ticker ($symbol) {
+        $tickers = $this->fetchTickers ($symbol);
+        return $tickers[$symbol];
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->currentGetTransactionsPairMaxCount (array_merge (array (
-            'pair' => $this->market_id ($market),
+    public function parse_trade ($trade, $market = null) {
+        if (!$market)
+            $market = $this->markets_by_id[$trade['currencyPair']];
+        return array (
+            'id' => $trade['id'],
+            'info' => $trade,
+            'timestamp' => $trade['timestamp'],
+            'datetime' => $this->iso8601 ($trade['timestamp']),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => null, // type
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->currentGetTransactionsPairMaxCount (array_merge (array (
+            'pair' => $market['id'],
             'maxCount' => 128,
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $order = array (
-            'currencyPair' => $this->market_id ($market),
+            'currencyPair' => $this->market_id ($symbol),
             'volume' => $amount,
             'price' => $price,
             'orderType' => ($side == 'buy') ? 0 : 1,
@@ -8330,9 +8916,9 @@ class coinmate extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $response = $this->publicGetOrderBook (array_merge (array (
-            'currencyPair' => $this->market_id ($market),
+            'currencyPair' => $this->market_id ($symbol),
             'groupByPriceLimit' => 'False',
         ), $params));
         $orderbook = $response['data'];
@@ -8357,9 +8943,9 @@ class coinmate extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $response = $this->publicGetTicker (array (
-            'currencyPair' => $this->market_id ($market),
+            'currencyPair' => $this->market_id ($symbol),
         ));
         $ticker = $response['data'];
         $timestamp = $ticker['timestamp'] * 1000;
@@ -8384,17 +8970,36 @@ class coinmate extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetTransactions (array_merge (array (
-            'currencyPair' => $this->market_id ($market),
-            'minutesIntoHistory' => 10,
-        ), $params));
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $trade['timestamp'] * 1000;
+        if (!$market)
+            $market = $this->markets_by_id[$trade['currencyPair']];
+        return array (
+            'id' => $trade['transactionId'],
+            'info' => $trade,
+            'timestamp' => $trade['timestamp'],
+            'datetime' => $this->iso8601 ($trade['timestamp']),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => null,
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTransactions (array_merge (array (
+            'currencyPair' => $market['id'],
+            'minutesIntoHistory' => 10,
+        ), $params));
+        return $this->parse_trades ($response['data'], $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePost' . $this->capitalize ($side);
         $order = array (
-            'currencyPair' => $this->market_id ($market),
+            'currencyPair' => $this->market_id ($symbol),
         );
         if ($type == 'market') {
             if ($side == 'buy')
@@ -9459,13 +10064,13 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $response = $this->publicGetOrderBook (array_merge (array (
-            'pair' => $p['id'],
+            'pair' => $market['id'],
         ), $params));
-        $orderbook = $response[$p['id']];
+        $orderbook = $response[$market['id']];
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -9527,27 +10132,45 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
         $response = $this->publicGetTicker ();
-        $p = $this->market ($market);
-        return $this->parse_ticker ($response[$p['id']], $p);
+        $market = $this->market ($symbol);
+        return $this->parse_ticker ($response[$market['id']], $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['date'] * 1000;
+        return array (
+            'id' => (string) $trade['trade_id'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'order' => null,
+            'type' => null,
+            'side' => $trade['type'],
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetTrades (array_merge (array (
-            'pair' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTrades (array_merge (array (
+            'pair' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response[$market['id']], $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $prefix = '';
         if ($type == 'market')
             $prefix = 'market_';
         $order = array (
-            'pair' => $this->market_id ($market),
+            'pair' => $this->market_id ($symbol),
             'quantity' => $amount,
             'price' => $price || 0,
             'type' => $prefix . $side,
@@ -9678,11 +10301,11 @@ class flowbtc extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $orderbook = $this->publicPostGetOrderBook (array_merge (array (
-            'productPair' => $p['id'],
+            'productPair' => $market['id'],
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -9705,11 +10328,11 @@ class flowbtc extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $ticker = $this->publicPostGetTicker (array (
-            'productPair' => $p['id'],
+            'productPair' => $market['id'],
         ));
         $timestamp = $this->milliseconds ();
         return array (
@@ -9733,18 +10356,38 @@ class flowbtc extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        $this->load_markets ();
-        return $this->publicPostGetTrades (array_merge (array (
-            'ins' => $this->market_id ($market),
-        ), $params));
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['unixtime'] * 1000;
+        $side = ($trade['incomingOrderSide'] == 0) ? 'buy' : 'sell';
+        return array (
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'id' => (string) $trade['tid'],
+            'order' => null,
+            'type' => null,
+            'side' => $side,
+            'price' => $trade['px'],
+            'amount' => $trade['qty'],
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $response = $this->publicPostGetTrades (array_merge (array (
+            'ins' => $market['id'],
+            'startIndex' => -1,
+        ), $params));
+        return $this->parse_trades ($response['trades'], $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $orderType = ($type == 'market') ? 1 : 0;
         $order = array (
-            'ins' => $this->market_id ($market),
+            'ins' => $this->market_id ($symbol),
             'side' => $side,
             'orderType' => $orderType,
             'qty' => $amount,
@@ -9876,7 +10519,7 @@ class fyb extends Exchange {
         return $accounts;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $orderbook = $this->publicGetOrderbook ($params);
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -9899,7 +10542,7 @@ class fyb extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $ticker = $this->publicGetTickerdetailed ();
         $timestamp = $this->milliseconds ();
         $last = null;
@@ -9929,11 +10572,29 @@ class fyb extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetTrades ($params);
+    public function parse_trade ($trade, $market) {
+        $timestamp = intval ($trade['date']) * 1000;
+        return array (
+            'info' => $trade,
+            'id' => (string) $trade['tid'],
+            'order' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => null,
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTrades ($params);
+        return $this->parse_trades ($response, $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $response = $this->privatePostPlaceorder (array_merge (array (
             'qty' => $amount,
             'price' => $price,
@@ -10222,11 +10883,11 @@ class gatecoin extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $orderbook = $this->publicGetPublicMarketDepthCurrencyPair (array_merge (array (
-            'CurrencyPair' => $p['id'],
+            'CurrencyPair' => $market['id'],
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -10287,27 +10948,49 @@ class gatecoin extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $response = $this->publicGetPublicLiveTickerCurrencyPair (array (
-            'CurrencyPair' => $p['id'],
+            'CurrencyPair' => $market['id'],
         ));
         $ticker = $response['ticker'];
-        return $this->parse_ticker ($ticker, $p);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market = null) {
+        $side = ($trade['way'] == 'bid') ? 'buy' : 'sell';
+        $order = $trade['way'] . 'OrderId';
+        $timestamp = intval ($trade['transactionTime']) * 1000;
+        if (!$market)
+            $market = $this->markets_by_id[$trade['currencyPair']];
+        return array (
+            'info' => $trade,
+            'id' => (string) $trade['transactionId'],
+            'order' => $trade[$order],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $side,
+            'price' => $trade['price'],
+            'amount' => $trade['quantity'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetPublicTransactionsCurrencyPair (array_merge (array (
-            'CurrencyPair' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response = $this->publicGetPublicTransactionsCurrencyPair (array_merge (array (
+            'CurrencyPair' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response['transactions'], $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $order = array (
-            'Code' => $this->market_id ($market),
+            'Code' => $this->market_id ($symbol),
             'Way' => ($side == 'buy') ? 'Bid' : 'Ask',
             'Amount' => $amount,
         );
@@ -10372,6 +11055,21 @@ class gdax extends Exchange {
             'name' => 'GDAX',
             'countries' => 'US',
             'rateLimit' => 1000,
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1m' => 60,
+                '5m' => 300,
+                '15m' => 900,
+                '30m' => 1800,
+                '1h' => 3600,
+                '2h' => 7200,
+                '4h' => 14400,
+                '12h' => 43200,
+                '1d' => 86400,
+                '1w' => 604800,
+                '1M' => 2592000,
+                '1y' => 31536000,
+            ),
             'urls' => array (
                 'test' => 'https://api-public.sandbox.gdax.com',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg',
@@ -10553,7 +11251,7 @@ class gdax extends Exchange {
         ), $params));
     }
 
-    public function parseOHLCV ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return [
             $ohlcv[0] * 1000,
             $ohlcv[3],
@@ -10564,15 +11262,15 @@ class gdax extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets ();
         $market = $this->market ($symbol);
-        $response = $this->publicGetProductsIdCandles (array (
+        $response = $this->publicGetProductsIdCandles (array_merge (array (
             'id' => $market['id'],
-            'granularity' => $timeframe,
+            'granularity' => $this->timeframes[$timeframe],
             'start' => $since,
             'end' => $limit,
-        ));
+        ), $params));
         return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
@@ -10602,6 +11300,27 @@ class gdax extends Exchange {
     public function cancel_order ($id) {
         $this->load_markets ();
         return $this->privateDeleteOrdersId (array ( 'id' => $id ));
+    }
+
+    public function getPaymentMethods () {
+        $response = $this->privateGetPaymentMethods ();
+        return $response;
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        if (array_key_exists ('payment_method_id', $params)) {
+            $this->load_markets ();
+            $response = $this->privatePostWithdraw (array_merge (array (
+                'currency' => $currency,
+                'amount' => $amount,
+                // 'address' => $address, // they don't allow withdrawals to direct addresses
+            ), $params));
+            return array (
+                'info' => $response,
+                'id' => $response['result'],
+            );
+        }
+        throw new ExchangeError ($this->id . " withdraw requires a 'payment_method_id' parameter");
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -11103,6 +11822,19 @@ class hitbtc extends Exchange {
         ), $params));
     }
 
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $response = $this->paymentPostPayout (array_merge (array (
+            'currency_code' => $currency,
+            'amount' => $amount,
+            'address' => $address,
+        ), $params));
+        return array (
+            'info' => $response,
+            'id' => $response['transaction'],
+        );
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . 'api' . '/' . $this->version . '/' . $api . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
@@ -11146,6 +11878,18 @@ class huobi extends Exchange {
             'countries' => 'CN',
             'rateLimit' => 2000,
             'version' => 'v3',
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1m' => '001',
+                '5m' => '005',
+                '15m' => '015',
+                '30m' => '030',
+                '1h' => '060',
+                '1d' => '100',
+                '1w' => '200',
+                '1M' => '300',
+                '1y' => '400',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
                 'api' => 'http://api.huobi.com',
@@ -11265,19 +12009,61 @@ class huobi extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        $p = $this->market ($market);
-        $method = $p['type'] . 'GetDetailId';
-        return $this->$method (array_merge (array ( 'id' => $p['id'] ), $params));
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['ts'];
+        return array (
+            'info' => $trade,
+            'id' => (string) $trade['id'],
+            'order' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['direction'],
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
-        $p = $this->market ($market);
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $method = $market['type'] . 'GetDetailId';
+        $response = $this->$method (array_merge (array ( 
+            'id' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response['trades'], $market);
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        // not implemented yet
+        return [
+            $ohlcv[0],
+            $ohlcv[1],
+            $ohlcv[2],
+            $ohlcv[3],
+            $ohlcv[4],
+            $ohlcv[6],
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $market = $this->market ($symbol);
+        $method = $market['type'] . 'GetIdKlinePeriod';
+        $ohlcvs = $this->$method (array_merge (array (
+            'id' => $market['id'],
+            'period' => $this->timeframes[$timeframe],
+        ), $params));
+        return $ohlcvs;
+        // return $this->parse_ohlcvs ($market, $ohlcvs, $timeframe, $since, $limit);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $market = $this->market ($symbol);
         $method = 'tradePost' . $this->capitalize ($side);
         $order = array (
-            'coin_type' => $p['coinType'],
+            'coin_type' => $market['coinType'],
             'amount' => $amount,
-            'market' => strtolower ($p['quote']),
+            'market' => strtolower ($market['quote']),
         );
         if ($type == 'limit')
             $order['price'] = $price;
@@ -11386,9 +12172,9 @@ class itbit extends Exchange {
         ), $options));
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $orderbook = $this->publicGetMarketsSymbolOrderBook (array_merge (array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -11411,9 +12197,9 @@ class itbit extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $ticker = $this->publicGetMarketsSymbolTicker (array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
         ));
         $timestamp = $this->parse8601 ($ticker['serverTimeUTC']);
         $bid = null;
@@ -11445,10 +12231,29 @@ class itbit extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetMarketsSymbolTrades (array_merge (array (
-            'symbol' => $this->market_id ($market),
+    public function parse_trade ($trade, $market) {
+        $timestamp = $this->parse8601 ($trade['timestamp']);
+        $id = (string) $trade['matchNumber'];
+        return array (
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'id' => $id,
+            'order' => $id,
+            'type' => null,
+            'side' => null,
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetMarketsSymbolTrades (array_merge (array (
+            'symbol' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response['recentTrades'], $market);
     }
 
     public function fetch_balance ($params = array ()) {
@@ -11477,20 +12282,20 @@ class itbit extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $amount = (string) $amount;
         $price = (string) $price;
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $order = array (
             'side' => $side,
             'type' => $type,
-            'currency' => $p['base'],
+            'currency' => $market['base'],
             'amount' => $amount,
             'display' => $amount,
             'price' => $price,
-            'instrument' => $p['id'],
+            'instrument' => $market['id'],
         );
         $response = $this->privatePostTradeAdd (array_merge ($order, $params));
         return array (
@@ -11622,10 +12427,10 @@ class jubi extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetDepth (array_merge (array (
-            'coin' => $this->market_id ($market),
+            'coin' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -11676,29 +12481,47 @@ class jubi extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetTicker (array (
-            'coin' => $p['id'],
+            'coin' => $market['id'],
         ));
-        return $this->parse_ticker ($ticker, $p);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = intval ($trade['date']) * 1000;
+        return array (
+            'info' => $trade,
+            'id' => $trade['tid'],
+            'order' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['type'],
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetOrders (array_merge (array (
-            'coin' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response = $this->publicGetOrders (array_merge (array (
+            'coin' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostTradeAdd (array_merge (array (
             'amount' => $amount,
             'price' => $price,
             'type' => $side,
-            'coin' => $this->market_id ($market),
+            'coin' => $this->market_id ($symbol),
         ), $params));
         return array (
             'info' => $response,
@@ -11753,6 +12576,18 @@ class kraken extends Exchange {
             'version' => '0',
             'rateLimit' => 1500,
             'hasFetchTickers' => true,
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1m' => '1',
+                '5m' => '5',
+                '15m' => '15',
+                '30m' => '30',
+                '1h' => '60',
+                '4h' => '240',
+                '1d' => '1440',
+                '1w' => '10080',
+                '2w' => '21600',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg',
                 'api' => 'https://api.kraken.com',
@@ -11832,16 +12667,16 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
-        $darkpool = mb_strpos ($market, '.d') !== false;
+        $darkpool = mb_strpos ($symbol, '.d') !== false;
         if ($darkpool)
-            throw new ExchangeError ($this->id . ' does not provide an $order book for $darkpool symbol ' . $market);
-        $p = $this->market ($market);
+            throw new ExchangeError ($this->id . ' does not provide an $order book for $darkpool $symbol ' . $symbol);
+        $market = $this->market ($symbol);
         $response = $this->publicGetDepth (array_merge (array (
-            'pair' => $p['id'],
+            'pair' => $market['id'],
         ), $params));
-        $orderbook = $response['result'][$p['id']];
+        $orderbook = $response['result'][$market['id']];
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -11913,17 +12748,40 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $darkpool = mb_strpos ($market, '.d') !== false;
+        $darkpool = mb_strpos ($symbol, '.d') !== false;
         if ($darkpool)
-            throw new ExchangeError ($this->id . ' does not provide a $ticker for $darkpool symbol ' . $market);
-        $p = $this->market ($market);
+            throw new ExchangeError ($this->id . ' does not provide a $ticker for $darkpool $symbol ' . $symbol);
+        $market = $this->market ($symbol);
         $response = $this->publicGetTicker (array (
-            'pair' => $p['id'],
+            'pair' => $market['id'],
         ));
-        $ticker = $response['result'][$p['id']];
-        return $this->parse_ticker ($ticker, $p);
+        $ticker = $response['result'][$market['id']];
+        return $this->parse_ticker ($ticker, $market);
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        return [
+            $ohlcv[0] * 1000,
+            floatval ($ohlcv[1]),
+            floatval ($ohlcv[2]),
+            floatval ($ohlcv[3]),
+            floatval ($ohlcv[4]),
+            floatval ($ohlcv[6]),
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $response = $this->publicGetOHLC (array_merge (array (
+            'pair' => $market['id'],
+            'interval' => $this->timeframes[$timeframe],
+            'since' => $since,
+        ), $params));
+        $ohlcvs = $response['result'][$market['id']];
+        return $this->parse_ohlcvs ($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade ($trade, $market) {
@@ -11942,37 +12800,15 @@ class kraken extends Exchange {
         );
     }
 
-    public function parseOHLCV ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
-        return [
-            $ohlcv[0],
-            $ohlcv[1],
-            $ohlcv[2],
-            $ohlcv[3],
-            $ohlcv[4],
-            $ohlcv[6],
-        ];
-    }
-
-    public function fetch_ohlcv ($market, $timeframe = 60, $since = null, $limit = null) {
-        $m = $this->market ($market);
-        $response = $this->publicGetOHLC (array (
-            'pair' => $m['id'],
-            'interval' => intval ($timeframe / 60),
-            'since' => $since,
-        ));
-        $ohlcvs = $response[$m['id']];
-        return $this->parse_ohlcvs ($m, $ohlcvs, $timeframe, $since, $limit);
-    }
-
-    public function fetch_trades ($market, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        $m = $this->market ($market);
-        $id = $m['id'];
+        $market = $this->market ($symbol);
+        $id = $market['id'];
         $response = $this->publicGetTrades (array_merge (array (
             'pair' => $id,
         ), $params));
         $trades = $response['result'][$id];
-        return $this->parse_trades ($trades, $m);
+        return $this->parse_trades ($trades, $market);
     }
 
     public function fetch_balance ($params = array ()) {
@@ -12002,10 +12838,10 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $order = array (
-            'pair' => $this->market_id ($market),
+            'pair' => $this->market_id ($symbol),
             'type' => $side,
             'ordertype' => $type,
             'volume' => $amount,
@@ -12055,7 +12891,7 @@ class kraken extends Exchange {
     public function fetch_order ($id, $params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostQueryOrders (array_merge (array (
-            'trades' => true, // whether or not to include trades in output (optional.  default = false)
+            'trades' => true, // whether or not to include trades in output (optional, default false)
             'txid' => $id, // comma delimited list of transaction ids to query info about (20 maximum)
             // 'userref' => 'optional', // restrict results to given user reference $id (optional)
         ), $params));
@@ -12067,6 +12903,22 @@ class kraken extends Exchange {
     public function cancel_order ($id) {
         $this->load_markets ();
         return $this->privatePostCancelOrder (array ( 'txid' => $id ));
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        if (array_key_exists ('key', $params)) {
+            $this->load_markets ();
+            $response = $this->privatePostWithdraw (array_merge (array (
+                'asset' => $currency,
+                'amount' => $amount,
+                // 'address' => $address, // they don't allow withdrawals to direct addresses
+            ), $params));
+            return array (
+                'info' => $response,
+                'id' => $response['result'],
+            );
+        }
+        throw new ExchangeError ($this->id . " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -12115,8 +12967,8 @@ class lakebtc extends Exchange {
                 'api' => 'https://api.lakebtc.com',
                 'www' => 'https://www.lakebtc.com',
                 'doc' => array (
-                    'https://www.lakebtc.com/s/api',
                     'https://www.lakebtc.com/s/api_v2',
+                    'https://www.lakebtc.com/s/api',
                 ),
             ),
             'api' => array (
@@ -12211,14 +13063,18 @@ class lakebtc extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $tickers = $this->publicGetTicker (array (
-            'symbol' => $p['id'],
+            'symbol' => $market['id'],
         ));
-        $ticker = $tickers[$p['id']];
+        $ticker = $tickers[$market['id']];
         $timestamp = $this->milliseconds ();
+        $volume = null;
+        if (array_key_exists ('volume', $ticker))
+            if ($ticker['volume'])
+                $volume = floatval ($ticker['volume']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -12235,16 +13091,34 @@ class lakebtc extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'quoteVolume' => $volume,
             'info' => $ticker,
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['date'] * 1000;
+        return array (
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'id' => (string) $trade['tid'],
+            'order' => null,
+            'type' => null,
+            'side' => null,
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetBctrades (array_merge (array (
-            'symbol' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response = $this->publicGetBctrades (array_merge (array (
+            'symbol' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
@@ -12413,10 +13287,10 @@ class livecoin extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetExchangeOrderBook (array_merge (array (
-            'currencyPair' => $this->market_id ($market),
+            'currencyPair' => $this->market_id ($symbol),
             'groupByPrice' => 'false',
             'depth' => 100,
         ), $params));
@@ -12480,27 +13354,45 @@ class livecoin extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetExchangeTicker (array (
-            'currencyPair' => $p['id'],
+            'currencyPair' => $market['id'],
         ));
-        return $this->parse_ticker ($ticker, $p);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['time'] * 1000;
+        return array (
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'id' => (string) $trade['id'],
+            'order' => null,
+            'type' => null,
+            'side' => strtolower ($trade['type']),
+            'price' => $trade['price'],
+            'amount' => $trade['quantity'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetExchangeLastTrades (array_merge (array (
-            'currencyPair' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response = $this->publicGetExchangeLastTrades (array_merge (array (
+            'currencyPair' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $method = 'privatePostExchange' . $this->capitalize ($side) . $type;
         $order = array (
-            'currencyPair' => $this->market_id ($market),
+            'currencyPair' => $this->market_id ($symbol),
             'quantity' => $amount,
         );
         if ($type == 'limit')
@@ -12710,10 +13602,10 @@ class luno extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetOrderbook (array_merge (array (
-            'pair' => $this->market_id ($market),
+            'pair' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $orderbook['timestamp'];
         $result = array (
@@ -12776,20 +13668,38 @@ class luno extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetTicker (array (
-            'pair' => $p['id'],
+            'pair' => $market['id'],
         ));
-        return $this->parse_ticker ($ticker, $p);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $side = ($trade['is_buy']) ? 'buy' : 'sell';
+        return array (
+            'info' => $trade,
+            'id' => null,
+            'order' => null,
+            'timestamp' => $trade['timestamp'],
+            'datetime' => $this->iso8601 ($trade['timestamp']),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $side,
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['volume']),
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetTrades (array_merge (array (
-            'pair' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTrades (array_merge (array (
+            'pair' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response['trades'], $market);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
@@ -12899,9 +13809,9 @@ class mercado extends Exchange {
         ), $options));
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
-        $p = $this->market ($market);
-        $method = 'publicGetOrderbook' . $this->capitalize ($p['suffix']);
+    public function fetch_order_book ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $method = 'publicGetOrderbook' . $this->capitalize ($market['suffix']);
         $orderbook = $this->$method ($params);
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -12913,9 +13823,9 @@ class mercado extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
-        $p = $this->market ($market);
-        $method = 'publicGetV2Ticker' . $this->capitalize ($p['suffix']);
+    public function fetch_ticker ($symbol) {
+        $market = $this->market ($symbol);
+        $method = 'publicGetV2Ticker' . $this->capitalize ($market['suffix']);
         $response = $this->$method ();
         $ticker = $response['ticker'];
         $timestamp = intval ($ticker['date']) * 1000;
@@ -12940,10 +13850,27 @@ class mercado extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        $p = $this->market ($market);
-        $method = 'publicGetTrades' . $this->capitalize ($p['suffix']);
-        return $this->$method ($params);
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['date'] * 1000;
+        return array (
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'id' => (string) $trade['tid'],
+            'order' => null,
+            'type' => null,
+            'side' => $trade['type'],
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $method = 'publicGetTrades' . $this->capitalize ($market['suffix']);
+        $response = $this->$method ($params);
+        return $this->parse_trades ($response, $market);
     }
 
     public function fetch_balance ($params = array ()) {
@@ -12964,12 +13891,12 @@ class mercado extends Exchange {
         return $result;
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $method = 'privatePostPlace' . $this->capitalize ($side) . 'Order';
         $order = array (
-            'coin_pair' => $this->market_id ($market),
+            'coin_pair' => $this->market_id ($symbol),
             'quantity' => $amount,
             'limit_price' => $price,
         );
@@ -13019,6 +13946,22 @@ class okcoin extends Exchange {
         parent::__construct (array_merge(array (
             'version' => 'v1',
             'rateLimit' => 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1m' => '1min',
+                '3m' => '3min',
+                '5m' => '5min',
+                '15m' => '15min',
+                '30m' => '30min',
+                '1h' => '1hour',
+                '2h' => '2hour',
+                '4h' => '4hour',
+                '6h' => '6hour',
+                '12h' => '12hour',
+                '1d' => '1day',
+                '3d' => '3day',
+                '1w' => '1week',
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -13156,29 +14099,14 @@ class okcoin extends Exchange {
         return $this->parse_trades ($response, $market);
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = 1440, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 1440, $params = array ()) {
         $market = $this->market ($symbol);
-        $t = (string) $timeframe;
-        $timeframes = array (
-            '60' => '1min',
-            '180' => '3min',
-            '300' => '5min',
-            '900' => '15min',
-            '1800' => '30min',
-            '3600' => '1hour',
-            '7200' => '2hour',
-            '14400' => '4hour',
-            '21600' => '6hour',
-            '43200' => '12hour',
-            '86400' => '1day',
-            '259200' => '3day',
-            '604800' => '1week',
-        );
         $request = array (
             'symbol' => $market['id'],
-            'type' => $timeframes[$t],
-            'size' => intval ($limit),
+            'type' => $this->timeframes[$timeframe],
         );
+        if ($limit)
+            $request['size'] = intval ($limit);
         if ($since) {
             $request['since'] = $since;
         } else {
@@ -13336,9 +14264,9 @@ class okex extends okcoin {
         ), $options));
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $orderbook = $this->publicGetFutureDepth (array_merge (array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
             'contract_type' => 'this_week', // next_week, quarter
         ), $params));
         $timestamp = $this->milliseconds ();
@@ -13351,34 +14279,43 @@ class okex extends okcoin {
         return $result;
     }
 
-    public function fetch_ticker ($market, $params = array ()) {
-        $m = $this->market ($market);
+    public function fetch_ticker ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
         $response = $this->publicGetFutureTicker (array_merge (array (
-            'symbol' => $m['id'],
+            'symbol' => $market['id'],
             'contract_type' => 'this_week', // next_week, quarter
         ), $params));
         $timestamp = intval ($response['date']) * 1000;
         $ticker = array_merge ($response['ticker'], array ( 'timestamp' => $timestamp ));
-        return $this->parse_ticker ($ticker, $m);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetFutureTrades (array_merge (array (
-            'symbol' => $this->market_id ($market),
-            'contract_type' => 'this_week', // next_week, quarter
-        ), $params));
-    }
-
-    public function fetch_ohlcv ($symbol, $timeframe = 60, $since = null, $limit = null) {
+    public function fetch_trades ($symbol, $params = array ()) {
         $market = $this->market ($symbol);
-        $response = $this->publicGetFutureKline (array (
+        $response = $this->publicGetFutureTrades (array_merge (array (
             'symbol' => $market['id'],
             'contract_type' => 'this_week', // next_week, quarter
-            'type' => '1min',
+        ), $params));
+        return $this->parse_trades ($response, $market);
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+            'contract_type' => 'this_week', // next_week, quarter
+            'type' => $this->timeframes[$timeframe],
             'since' => $since,
-            'size' => intval ($limit),
-        ));
-        return $this->parse_ohlcvs ($market, $response, $timeframe, $since, $limit);
+        );
+        if ($limit)
+            $request['size'] = intval ($limit);
+        if ($since) {
+            $request['since'] = $since;
+        } else {
+            $request['since'] = $this->milliseconds () - 86400000; // last 24 hours
+        }
+        $response = $this->publicGetFutureKline (array_merge ($request, $params));
+        return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -13538,10 +14475,29 @@ class paymium extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetDataIdTrades (array_merge (array (
-            'id' => $this->market_id ($market),
+    public function parse_trade ($trade, $market) {
+        $timestamp = intval ($trade['created_at_int']) * 1000;
+        $volume = 'traded_' . strtolower ($market['base']);
+        return array (
+            'info' => $trade,
+            'id' => $trade['uuid'],
+            'order' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['side'],
+            'price' => $trade['price'],
+            'amount' => $trade[$volume],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetDataIdTrades (array_merge (array (
+            'id' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
@@ -13976,6 +14932,19 @@ class poloniex extends Exchange {
         ), $params));
     }
 
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $result = $this->privatePostWithdraw (array_merge (array (
+            'currency' => $currency,
+            'amount' => $amount,
+            'address' => $address,
+        ), $params));
+        return array (
+            'info' => $result,
+            'id' => $result['response'],
+        );
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         $query = array_merge (array ( 'command' => $path ), $params);
@@ -14068,9 +15037,9 @@ class quadrigacx extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $orderbook = $this->publicGetOrderBook (array_merge (array (
-            'book' => $this->market_id ($market),
+            'book' => $this->market_id ($symbol),
         ), $params));
         $timestamp = intval ($orderbook['timestamp']) * 1000;
         $result = array (
@@ -14093,9 +15062,9 @@ class quadrigacx extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $ticker = $this->publicGetTicker (array (
-            'book' => $this->market_id ($market),
+            'book' => $this->market_id ($symbol),
         ));
         $timestamp = intval ($ticker['timestamp']) * 1000;
         return array (
@@ -14119,17 +15088,35 @@ class quadrigacx extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetTransactions (array_merge (array (
-            'book' => $this->market_id ($market),
-        ), $params));
+    public function parse_trade ($trade, $market) {
+        $timestamp = intval ($trade['date']) * 1000;
+        return array (
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'id' => (string) $trade['tid'],
+            'order' => null,
+            'type' => null,
+            'side' => $trade['side'],
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['amount']),
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTransactions (array_merge (array (
+            'book' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response, $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePost' . $this->capitalize ($side);
         $order = array (
             'amount' => $amount,
-            'book' => $this->market_id ($market),
+            'book' => $this->market_id ($symbol),
         );
         if ($type == 'limit')
             $order['price'] = $price;
@@ -14276,10 +15263,10 @@ class quoine extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetProductsIdPriceLevels (array_merge (array (
-            'id' => $this->market_id ($market),
+            'id' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -14350,27 +15337,45 @@ class quoine extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetProductsId (array (
-            'id' => $p['id'],
+            'id' => $market['id'],
         ));
-        return $this->parse_ticker ($ticker, $p);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['created_at'] * 1000;
+        return array (
+            'info' => $trade,
+            'id' => (string) $trade['id'],
+            'order' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['taker_side'],
+            'price' => floatval ($trade['price']),
+            'amount' => floatval ($trade['quantity']),
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetExecutions (array_merge (array (
-            'product_id' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response = $this->publicGetExecutions (array_merge (array (
+            'product_id' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response['models'], $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $order = array (
             'order_type' => $type,
-            'product_id' => $this->market_id ($market),
+            'product_id' => $this->market_id ($symbol),
             'side' => $side,
             'quantity' => $amount,
         );
@@ -14504,10 +15509,10 @@ class southxchange extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetBookSymbol (array_merge (array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -14579,28 +15584,46 @@ class southxchange extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetPriceSymbol (array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $market['id'],
         ));
-        return $this->parse_ticker ($ticker, $p);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['At'] * 1000;
+        return array (
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'id' => null,
+            'order' => null,
+            'type' => null,
+            'side' => $trade['Type'],
+            'price' => $trade['Price'],
+            'amount' => $trade['Amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetTradesSymbol (array_merge (array (
-            'symbol' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTradesSymbol (array_merge (array (
+            'symbol' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $order = array (
-            'listingCurrency' => $p['base'],
-            'referenceCurrency' => $p['quote'],
+            'listingCurrency' => $market['base'],
+            'referenceCurrency' => $market['quote'],
             'type' => $side,
             'amount' => $amount,
         );
@@ -14771,10 +15794,10 @@ class therock extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
         $orderbook = $this->publicGetFundsIdOrderbook (array_merge (array (
-            'id' => $this->market_id ($market),
+            'id' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $this->parse8601 ($orderbook['date']);
         $result = array (
@@ -14836,28 +15859,48 @@ class therock extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetFundsIdTicker (array (
-            'id' => $p['id'],
+            'id' => $market['id'],
         ));
-        return $this->parse_ticker ($ticker, $p);
+        return $this->parse_ticker ($ticker, $market);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market = null) {
+        if (!$market)
+            $market = $this->markets_by_id[$trade['fund_id']];
+        $timestamp = $this->parse8601 ($trade['date']);
+        return array (
+            'info' => $trade,
+            'id' => (string) $trade['id'],
+            'order' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['side'],
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetFundsIdTrades (array_merge (array (
-            'id' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $response = $this->publicGetFundsIdTrades (array_merge (array (
+            'id' => $market['id'],
         ), $params));
+        return $this->parse_trades ($response['trades'], $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $response = $this->privatePostFundsFundIdOrders (array_merge (array (
-            'fund_id' => $this->market_id ($market),
+            'fund_id' => $this->market_id ($symbol),
             'side' => $side,
             'amount' => $amount,
             'price' => $price,
@@ -15076,9 +16119,27 @@ class vaultoro extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market) {
+        $timestamp = $this->parse8601 ($trade['Time']);
+        return array (
+            'id' => null,
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'order' => null,
+            'type' => null,
+            'side' => null,
+            'price' => $trade['Gold_Price'],
+            'amount' => $trade['Gold_Amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        return $this->publicGetTransactionsDay ($params);
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTransactionsDay ($params);
+        return $this->parse_trades ($response, $market);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
@@ -15407,6 +16468,7 @@ class xbtce extends Exchange {
             'rateLimit' => 2000, // responses are cached every 2 seconds
             'version' => 'v1',
             'hasFetchTickers' => true,
+            'hasFetchOHLCV' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
                 'api' => 'https://cryptottlivewebapi.xbtce.net:8443/api',
@@ -15644,6 +16706,36 @@ class xbtce extends Exchange {
         return $this->privateGetTrade ($params);
     }
 
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        return [
+            $ohlcv['Timestamp'],
+            $ohlcv['Open'],
+            $ohlcv['High'],
+            $ohlcv['Low'],
+            $ohlcv['Close'],
+            $ohlcv['Volume'],
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported ($this->id . ' fetchOHLCV is disabled by the exchange');
+        $minutes = intval ($timeframe / 60); // 1 minute by default
+        $periodicity = (string) $minutes;
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        if (!$since)
+            $since = $this->seconds () - 86400 * 7; // last day by defulat
+        if (!$limit)
+            $limit = 1000; // default
+        $response = $this->privateGetQuotehistorySymbolPeriodicityBarsBid (array_merge (array (
+            'symbol' => $market['id'],
+            'periodicity' => '5m', // $periodicity,
+            'timestamp' => $since,
+            'count' => $limit,
+        ), $params));
+        return $this->parse_ohlcvs ($response['Bars'], $market, $timeframe, $since, $limit);
+    }
+
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         if ($type == 'market')
@@ -15793,13 +16885,13 @@ class yobit extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $response = $this->apiGetDepthPairs (array_merge (array (
-            'pairs' => $p['id'],
+            'pairs' => $market['id'],
         ), $params));
-        $orderbook = $response[$p['id']];
+        $orderbook = $response[$market['id']];
         $timestamp = $this->milliseconds ();
         $bids = (array_key_exists ('bids', $orderbook)) ? $orderbook['bids'] : array ();
         $asks = (array_key_exists ('asks', $orderbook)) ? $orderbook['asks'] : array ();
@@ -15812,13 +16904,13 @@ class yobit extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $this->load_markets ();
-        $p = $this->market ($market);
+        $market = $this->market ($symbol);
         $tickers = $this->apiGetTickerPairs (array (
-            'pairs' => $p['id'],
+            'pairs' => $market['id'],
         ));
-        $ticker = $tickers[$p['id']];
+        $ticker = $tickers[$market['id']];
         $timestamp = $ticker['updated'] * 1000;
         return array (
             'timestamp' => $timestamp,
@@ -15841,20 +16933,38 @@ class yobit extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        $this->load_markets ();
-        return $this->apiGetTradesPairs (array_merge (array (
-            'pairs' => $this->market_id ($market),
-        ), $params));
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $trade['timestamp'] * 1000;
+        $side = ($trade['type'] == 'bid') ? 'buy' : 'sell';
+        return array (
+            'info' => $trade,
+            'id' => (string) $trade['tid'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $side,
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $response = $this->apiGetTradesPairs (array_merge (array (
+            'pairs' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response[$market['id']], $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $rate = (string) $price;
         $response = $this->tapiPostTrade (array_merge (array (
-            'pair' => $this->market_id ($market),
+            'pair' => $this->market_id ($symbol),
             'type' => $side,
             'amount' => $amount,
             'rate' => sprintf ('%.8f', $price),
@@ -15908,6 +17018,20 @@ class yunbi extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'hasFetchTickers' => true,
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1m' => '1',
+                '5m' => '5',
+                '15m' => '15',
+                '30m' => '30',
+                '1h' => '60',
+                '2h' => '120',
+                '4h' => '240',
+                '12h' => '720',
+                '1d' => '1440',
+                '3d' => '4320',
+                '1w' => '10080',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg',
                 'api' => 'https://yunbi.com',
@@ -16085,12 +17209,59 @@ class yunbi extends Exchange {
         return $this->parse_ticker ($response, $p);
     }
 
-    public function fetch_trades ($market, $params = array ()) {
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $trade['timestamp'] * 1000;
+        $side = ($trade['type'] == 'bid') ? 'buy' : 'sell';
+        return array (
+            'info' => $trade,
+            'id' => (string) $trade['tid'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $side,
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
-        $m = $this->market ($market);
-        return $this->publicGetTrades (array_merge (array (
-            'market' => $m['id'],
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTrades (array_merge (array (
+            'market' => $market['id'],
         ), $params));
+        // looks like they switched this endpoint off
+        // it returns 503 Service Temporarily Unavailable always
+        // return $this->parse_trades (reponse, $market);
+        return $response;
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        return [
+            $ohlcv[0] * 1000,
+            $ohlcv[1],
+            $ohlcv[2],
+            $ohlcv[3],
+            $ohlcv[4],
+            $ohlcv[5],
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        if (!$limit)
+            $limit = 500; // default is 30
+        $request = array (
+            'market' => $market['id'],
+            'period' => $this->timeframes[$timeframe],
+            'limit' => $limit,
+        );
+        if ($since)
+            $request['timestamp'] = $since;
+        $response = $this->publicGetK (array_merge ($request, $params));
+        return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {

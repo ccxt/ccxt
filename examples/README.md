@@ -21,6 +21,8 @@ node path/to/example.js # substitute for actual filename here
 
 [Python Examples](https://github.com/kroitor/ccxt/tree/master/examples/py) (work in progress)
 
+![basic-chart](https://user-images.githubusercontent.com/1294454/29979754-6d62354c-8f4f-11e7-9e0a-22e87b4a093b.jpg)
+
 ```shell
 python path/to/example.py # substitute for actual filename here
 ```
