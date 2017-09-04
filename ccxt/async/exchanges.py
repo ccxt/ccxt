@@ -1643,9 +1643,9 @@ class bitcoincoid (Exchange):
             result[currency] = account
         return result
 
-    async def fetch_order_book(self, market, params={}):
+    async def fetch_order_book(self, symbol, params={}):
         orderbook = await self.publicGetPairDepth(self.extend({
-            'pair': self.market_id(market),
+            'pair': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
         result = {
@@ -1667,15 +1667,15 @@ class bitcoincoid (Exchange):
                 result[key].append([price, amount])
         return result
 
-    async def fetch_ticker(self, market):
-        pair = self.market(market)
+    async def fetch_ticker(self, symbol):
+        market = self.market(symbol)
         response = await self.publicGetPairTicker({
-            'pair': pair['id'],
+            'pair': market['id'],
         })
         ticker = response['ticker']
         timestamp = float(ticker['server_time']) * 1000
-        baseVolume = 'vol_' + pair['baseId'].lower()
-        quoteVolume = 'vol_' + pair['quoteId'].lower()
+        baseVolume = 'vol_' + market['baseId'].lower()
+        quoteVolume = 'vol_' + market['quoteId'].lower()
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1696,19 +1696,35 @@ class bitcoincoid (Exchange):
             'info': ticker,
         }
 
-    async def fetch_trades(self, market, params={}):
-        return self.publicGetPairTrades(self.extend({
-            'pair': self.market_id(market),
-        }, params))
+    def parse_trade(self, trade, market):
+        timestamp = int(trade['date']) * 1000
+        return {
+            'id': trade['tid'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['type'],
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
+        }
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
-        p = self.market(market)
+    async def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = await self.publicGetPairTrades(self.extend({
+            'pair': market['id'],
+        }, params))
+        return self.parse_trades(response, market)
+
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        market = self.market(symbol)
         order = {
-            'pair': p['id'],
+            'pair': market['id'],
             'type': side,
             'price': price,
         }
-        base = p['base'].lower()
+        base = market['base'].lower()
         order[base] = amount
         result = self.privatePostTrade(self.extend(order, params))
         return {

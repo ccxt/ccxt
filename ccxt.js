@@ -2405,9 +2405,9 @@ var bitcoincoid = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         let orderbook = await this.publicGetPairDepth (this.extend ({
-            'pair': this.marketId (market),
+            'pair': this.marketId (symbol),
         }, params));
         let timestamp = this.milliseconds ();
         let result = {
@@ -2432,15 +2432,15 @@ var bitcoincoid = {
         return result;
     },
 
-    async fetchTicker (market) {
-        let pair = this.market (market);
+    async fetchTicker (symbol) {
+        let market = this.market (symbol);
         let response = await this.publicGetPairTicker ({
-            'pair': pair['id'],
+            'pair': market['id'],
         });
         let ticker = response['ticker'];
         let timestamp = parseFloat (ticker['server_time']) * 1000;
-        let baseVolume = 'vol_' + pair['baseId'].toLowerCase ();
-        let quoteVolume = 'vol_' + pair['quoteId'].toLowerCase ();
+        let baseVolume = 'vol_' + market['baseId'].toLowerCase ();
+        let quoteVolume = 'vol_' + market['quoteId'].toLowerCase ();
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -2462,20 +2462,37 @@ var bitcoincoid = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        return this.publicGetPairTrades (this.extend ({
-            'pair': this.marketId (market),
-        }, params));
+    parseTrade (trade, market) {
+        let timestamp = parseInt (trade['date']) * 1000;
+        return {
+            'id': trade['tid'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade['type'],
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
+        };
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
-        let p = this.market (market);
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetPairTrades (this.extend ({
+            'pair': market['id'],
+        }, params));
+        return this.parseTrades (response, market);
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        let market = this.market (symbol);
         let order = {
-            'pair': p['id'],
+            'pair': market['id'],
             'type': side,
             'price': price,
         };
-        let base = p['base'].toLowerCase ();
+        let base = market['base'].toLowerCase ();
         order[base] = amount;
         let result = this.privatePostTrade (this.extend (order, params));
         return {
