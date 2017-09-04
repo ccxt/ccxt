@@ -1799,54 +1799,27 @@ class binance extends Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        // Response:
-        // array (        //   [
-        //     1499040000000,      // Open time
-        //     "0.01634790",       // Open
-        //     "0.80000000",       // High
-        //     "0.01575800",       // Low
-        //     "0.01577100",       // Close
-        //     "148976.11427815",  // Volume
-        //     1499644799999,      // Close time
-        //     "2434.19055334",    // Quote asset volume
-        //     308,                // Number of trades
-        //     "1756.87402397",    // Taker buy base asset volume
-        //     "28.46694368",      // Taker buy quote asset volume
-        //     "17928899.62484339" // Can be ignored
-        //  )
-        // ]
         return [
-            $ohlcv['time'] * 1000,
-            floatval ($ohlcv['open']),
-            floatval ($ohlcv['high']),
-            floatval ($ohlcv['low']),
-            floatval ($ohlcv['close']),
-            floatval ($ohlcv['vol']),
+            $ohlcv[0],
+            floatval ($ohlcv[1]),
+            floatval ($ohlcv[2]),
+            floatval ($ohlcv[3]),
+            floatval ($ohlcv[4]),
+            floatval ($ohlcv[5]),
         ];
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        // Kline/candlestick bars for a $symbol. Klines are uniquely identified by their open time.
-        // Parameters:
-        // Name    Type    Mandatory   Description
-        // $symbol  STRING  YES
-        // interval    ENUM    YES
-        // $limit   INT NO  Default 500; max 500.
-        // startTime   LONG    NO
-        // endTime LONG    NO
-        // If startTime and endTime are not sent, the most recent klines are returned.
-        throw new NotSupported ($this->id . ' fetchOHLCV is not implemented yet');
         $this->load_markets ();
-        $method = 'publicGetGraphsMarket' . $timeframe;
         $market = $this->market ($symbol);
         $request = array (
-            'market' => $market['id'],
+            'symbol' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
         );
         $request['limit'] = ($limit) ? $limit : 500; // default == max == 500
         if ($since)
             $request['startTime'] = $since;
-        $response = $this->$method (array_merge ($request, $params));
+        $response = $this->publicGetKlines (array_merge ($request, $params));
         return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 

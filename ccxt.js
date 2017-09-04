@@ -1603,55 +1603,27 @@ var binance = {
     },
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        // Response:
-        // [
-        //   [
-        //     1499040000000,      // Open time
-        //     "0.01634790",       // Open
-        //     "0.80000000",       // High
-        //     "0.01575800",       // Low
-        //     "0.01577100",       // Close
-        //     "148976.11427815",  // Volume
-        //     1499644799999,      // Close time
-        //     "2434.19055334",    // Quote asset volume
-        //     308,                // Number of trades
-        //     "1756.87402397",    // Taker buy base asset volume
-        //     "28.46694368",      // Taker buy quote asset volume
-        //     "17928899.62484339" // Can be ignored
-        //   ]
-        // ]
         return [
-            ohlcv['time'] * 1000,
-            parseFloat (ohlcv['open']),
-            parseFloat (ohlcv['high']),
-            parseFloat (ohlcv['low']),
-            parseFloat (ohlcv['close']),
-            parseFloat (ohlcv['vol']),
+            ohlcv[0],
+            parseFloat (ohlcv[1]),
+            parseFloat (ohlcv[2]),
+            parseFloat (ohlcv[3]),
+            parseFloat (ohlcv[4]),
+            parseFloat (ohlcv[5]),
         ];
     },
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        // Kline/candlestick bars for a symbol. Klines are uniquely identified by their open time.
-        // Parameters:
-        // Name    Type    Mandatory   Description
-        // symbol  STRING  YES
-        // interval    ENUM    YES
-        // limit   INT NO  Default 500; max 500.
-        // startTime   LONG    NO
-        // endTime LONG    NO
-        // If startTime and endTime are not sent, the most recent klines are returned.
-        throw new NotSupported (this.id + ' fetchOHLCV is not implemented yet');
         await this.loadMarkets ();
-        let method = 'publicGetGraphsMarket' + timeframe;
         let market = this.market (symbol);
         let request = {
-            'market': market['id'],
+            'symbol': market['id'],
             'interval': this.timeframes[timeframe],
         };
         request['limit'] = (limit) ? limit : 500; // default == max == 500
         if (since)
             request['startTime'] = since;
-        let response = await this[method] (this.extend (request, params));
+        let response = await this.publicGetKlines (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     },
 
