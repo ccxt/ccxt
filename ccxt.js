@@ -2209,9 +2209,9 @@ var bitbays = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         let response = await this.publicGetDepth (this.extend ({
-            'market': this.marketId (market),
+            'market': this.marketId (symbol),
         }, params));
         let orderbook = response['result'];
         let timestamp = this.milliseconds ();
@@ -2235,9 +2235,9 @@ var bitbays = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         let response = await this.publicGetTicker ({
-            'market': this.marketId (market),
+            'market': this.marketId (symbol),
         });
         let ticker = response['result'];
         let timestamp = this.milliseconds ();
@@ -2262,15 +2262,32 @@ var bitbays = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        return this.publicGetTrades (this.extend ({
-            'market': this.marketId (market),
-        }, params));
+    parseTrade (trade, market) {
+        let timestamp = parseInt (trade['date']) * 1000;
+        return {
+            'id': trade['id'].toString (),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': undefined,
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
+        };
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetTrades (this.extend ({
+            'market': market['id'],
+        }, params));
+        return this.parseTrades (response['result'], market);
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let order = {
-            'market': this.marketId (market),
+            'market': this.marketId (symbol),
             'op': side,
             'amount': amount,
         };

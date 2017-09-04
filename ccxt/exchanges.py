@@ -1536,9 +1536,9 @@ class bitbays (Exchange):
             result[currency] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         response = self.publicGetDepth(self.extend({
-            'market': self.market_id(market),
+            'market': self.market_id(symbol),
         }, params))
         orderbook = response['result']
         timestamp = self.milliseconds()
@@ -1559,9 +1559,9 @@ class bitbays (Exchange):
                 result[side].append([price, amount])
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         response = self.publicGetTicker({
-            'market': self.market_id(market),
+            'market': self.market_id(symbol),
         })
         ticker = response['result']
         timestamp = self.milliseconds()
@@ -1585,14 +1585,30 @@ class bitbays (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
-        return self.publicGetTrades(self.extend({
-            'market': self.market_id(market),
-        }, params))
+    def parse_trade(self, trade, market):
+        timestamp = int(trade['date']) * 1000
+        return {
+            'id': str(trade['id']),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': None,
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
+        }
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = self.publicGetTrades(self.extend({
+            'market': market['id'],
+        }, params))
+        return self.parse_trades(response['result'], market)
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         order = {
-            'market': self.market_id(market),
+            'market': self.market_id(symbol),
             'op': side,
             'amount': amount,
         }
