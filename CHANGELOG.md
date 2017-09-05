@@ -1,13 +1,13 @@
 # Сhangelog
 
-- Unified most of fetchOHLCV implementations where available, [#169](https://github.com/kroitor/ccxt/issues/169)
+- Unified most of fetchOHLCV implementations where available, [related commits](https://github.com/kroitor/ccxt/search?q=fetchOHLCV&type=Commits&utf8=%E2%9C%93), [#169](https://github.com/kroitor/ccxt/issues/169)
 - Added initial support for Bitfinex v2 API, [#154](https://github.com/kroitor/ccxt/issues/154)
 - Added git/GitHub release tagging on Travis CI, [#151](https://github.com/kroitor/ccxt/issues/151)
 
 ## Version 1.6.x 2017-09-03
 
 - Added experimental fetchOHLCV implementations, [#169](https://github.com/kroitor/ccxt/issues/169)
-- Unified most of fetchTrades returns
+- Unified most of fetchTrades returns, [related commits](https://github.com/kroitor/ccxt/search?q=unified+fetchTrades+return&type=Commits&utf8=%E2%9C%93)
 - Added experimental unified `withdraw ()` method to Bitfinex, [#167](https://github.com/kroitor/ccxt/issues/167)
 - Added [examples/js/basic-chart.js](https://github.com/kroitor/ccxt/blob/master/examples/js/basic-chart.js) and [examples/py/basic-chart.py](https://github.com/kroitor/ccxt/blob/master/examples/py/basic-chart.py)
 - Changed fetchBalance to floats, [#166](https://github.com/kroitor/ccxt/issues/166)
