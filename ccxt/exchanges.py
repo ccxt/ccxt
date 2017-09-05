@@ -6476,6 +6476,7 @@ class ccex (Exchange):
             'name': 'C-CEX',
             'countries': ['DE', 'EU'],
             'rateLimit': 1500,
+            'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
                 'api': {
@@ -6585,8 +6586,11 @@ class ccex (Exchange):
                 result[key].append([price, amount])
         return result
 
-    def parse_ticker(self, ticker, market):
+    def parse_ticker(self, ticker, market=None):
         timestamp = ticker['updated'] * 1000
+        volume = None
+        if 'buysupport' in ticker:
+            volume = float(ticker['buysupport'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -6603,9 +6607,29 @@ class ccex (Exchange):
             'percentage': None,
             'average': float(ticker['avg']),
             'baseVolume': None,
-            'quoteVolume': float(ticker['buysupport']),
+            'quoteVolume': volume,
             'info': ticker,
         }
+
+    def fetch_tickers(self):
+        self.load_markets()
+        tickers = self.tickersGetPrices()
+        result = {'info': tickers}
+        ids = list(tickers.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            ticker = tickers[id]
+            uppercase = id.upper()
+            market = None
+            symbol = None
+            if uppercase in self.markets_by_id:
+                market = self.markets_by_id[uppercase]
+                symbol = market['symbol']
+            else:
+                base, quote = uppercase.split('-')
+                symbol = base + '/' + quote
+            result[symbol] = self.parse_ticker(ticker, market)
+        return result
 
     def fetch_ticker(self, symbol):
         self.load_markets()

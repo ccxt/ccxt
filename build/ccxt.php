@@ -7722,6 +7722,7 @@ class ccex extends Exchange {
             'name' => 'C-CEX',
             'countries' => array ( 'DE', 'EU' ),
             'rateLimit' => 1500,
+            'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
                 'api' => array (
@@ -7837,8 +7838,11 @@ class ccex extends Exchange {
         return $result;
     }
 
-    public function parse_ticker ($ticker, $market) {
+    public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['updated'] * 1000;
+        $volume = null;
+        if (array_key_exists ('buysupport', $ticker))
+            $volume = floatval ($ticker['buysupport']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -7855,9 +7859,32 @@ class ccex extends Exchange {
             'percentage' => null,
             'average' => floatval ($ticker['avg']),
             'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['buysupport']),
+            'quoteVolume' => $volume,
             'info' => $ticker,
         );
+    }
+
+    public function fetch_tickers () {
+        $this->load_markets ();
+        $tickers = $this->tickersGetPrices ();
+        $result = array ( 'info' => $tickers );
+        $ids = array_keys ($tickers);
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $ticker = $tickers[$id];
+            $uppercase = strtoupper ($id);
+            $market = null;
+            $symbol = null;
+            if (array_key_exists ($uppercase, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$uppercase];
+                $symbol = $market['symbol'];
+            } else {
+                list ($base, $quote) = explode ('-', $uppercase);
+                $symbol = $base . '/' . $quote;
+            }            
+            $result[$symbol] = $this->parse_ticker ($ticker, $market);
+        }
+        return $result;
     }
 
     public function fetch_ticker ($symbol) {

@@ -7422,6 +7422,7 @@ var ccex = {
     'name': 'C-CEX',
     'countries': [ 'DE', 'EU' ],
     'rateLimit': 1500,
+    'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
         'api': {
@@ -7535,8 +7536,11 @@ var ccex = {
         return result;
     },
 
-    parseTicker (ticker, market) {
+    parseTicker (ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
+        let volume = undefined;
+        if ('buysupport' in ticker)
+            volume = parseFloat (ticker['buysupport']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -7553,9 +7557,32 @@ var ccex = {
             'percentage': undefined,
             'average': parseFloat (ticker['avg']),
             'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['buysupport']),
+            'quoteVolume': volume,
             'info': ticker,
         };
+    },
+
+    async fetchTickers () {
+        await this.loadMarkets ();
+        let tickers = await this.tickersGetPrices ();
+        let result = { 'info': tickers };
+        let ids = Object.keys (tickers);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let ticker = tickers[id];
+            let uppercase = id.toUpperCase ();
+            let market = undefined;
+            let symbol = undefined;
+            if (uppercase in this.markets_by_id) {
+                market = this.markets_by_id[uppercase];
+                symbol = market['symbol'];
+            } else {
+                let [ base, quote ] = uppercase.split ('-');
+                symbol = base + '/' + quote;
+            }            
+            result[symbol] = this.parseTicker (ticker, market);
+        }
+        return result;
     },
 
     async fetchTicker (symbol) {
