@@ -9550,6 +9550,14 @@ class gatecoin (Exchange):
             'countries': 'HK', # Hong Kong
             'comment': 'a regulated/licensed exchange',
             'hasFetchTickers': True,
+            'hasFetchOHLCV': True,
+            'timeframes': {
+                '1m': '1m',
+                '15m': '15m',
+                '1h': '1h',
+                '6h': '6h',
+                '1d': '24h',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28646817-508457f2-726c-11e7-9eeb-3528d2413a58.jpg',
                 'api': 'https://api.gatecoin.com',
@@ -9836,6 +9844,29 @@ class gatecoin (Exchange):
             'CurrencyPair': market['id'],
         }, params))
         return self.parse_trades(response['transactions'], market)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        return [
+            int(ohlcv['createDateTime']) * 1000,
+            ohlcv['open'],
+            ohlcv['high'],
+            ohlcv['low'],
+            None,
+            ohlcv['volume'],
+        ]
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'CurrencyPair': market['id'],
+            'Timeframe': self.timeframes[timeframe],
+        }
+        if limit:
+            request['Count'] = limit
+        request = self.extend(request, params)
+        response = await self.publicGetPublicTickerHistoryCurrencyPairTimeframe(request)
+        return self.parse_ohlcvs(response['tickers'], market, timeframe, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

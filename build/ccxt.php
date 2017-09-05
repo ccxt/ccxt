@@ -11087,6 +11087,14 @@ class gatecoin extends Exchange {
             'countries' => 'HK', // Hong Kong
             'comment' => 'a regulated/licensed exchange',
             'hasFetchTickers' => true,
+            'hasFetchOHLCV' => true,
+            'timeframes' => array (
+                '1m' => '1m',
+                '15m' => '15m',
+                '1h' => '1h',
+                '6h' => '6h',
+                '1d' => '24h',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28646817-508457f2-726c-11e7-9eeb-3528d2413a58.jpg',
                 'api' => 'https://api.gatecoin.com',
@@ -11384,6 +11392,31 @@ class gatecoin extends Exchange {
             'CurrencyPair' => $market['id'],
         ), $params));
         return $this->parse_trades ($response['transactions'], $market);
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        return [
+            intval ($ohlcv['createDateTime']) * 1000,
+            $ohlcv['open'],
+            $ohlcv['high'],
+            $ohlcv['low'],
+            null,
+            $ohlcv['volume'],
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $request = array (
+            'CurrencyPair' => $market['id'],
+            'Timeframe' => $this->timeframes[$timeframe],
+        );
+        if ($limit)
+            $request['Count'] = $limit;
+        $request = array_merge ($request, $params);
+        $response = $this->publicGetPublicTickerHistoryCurrencyPairTimeframe ($request);
+        return $this->parse_ohlcvs ($response['tickers'], $market, $timeframe, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

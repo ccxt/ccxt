@@ -10706,6 +10706,14 @@ var gatecoin = {
     'countries': 'HK', // Hong Kong
     'comment': 'a regulated/licensed exchange',
     'hasFetchTickers': true,
+    'hasFetchOHLCV': true,
+    'timeframes': {
+        '1m': '1m',
+        '15m': '15m',
+        '1h': '1h',
+        '6h': '6h',
+        '1d': '24h',
+    },
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28646817-508457f2-726c-11e7-9eeb-3528d2413a58.jpg',
         'api': 'https://api.gatecoin.com',
@@ -11001,6 +11009,31 @@ var gatecoin = {
             'CurrencyPair': market['id'],
         }, params));
         return this.parseTrades (response['transactions'], market);
+    },
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            parseInt (ohlcv['createDateTime']) * 1000,
+            ohlcv['open'],
+            ohlcv['high'],
+            ohlcv['low'],
+            undefined,
+            ohlcv['volume'],
+        ];
+    },
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'CurrencyPair': market['id'],
+            'Timeframe': this.timeframes[timeframe],
+        };
+        if (limit)
+            request['Count'] = limit;
+        request = this.extend (request, params);
+        let response = await this.publicGetPublicTickerHistoryCurrencyPairTimeframe (request);
+        return this.parseOHLCVs (response['tickers'], market, timeframe, since, limit);
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
