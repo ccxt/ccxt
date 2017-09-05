@@ -6787,9 +6787,9 @@ var btcx = {
         return result;
     },
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         let orderbook = await this.publicGetDepthIdLimit (this.extend ({
-            'id': this.marketId (market),
+            'id': this.marketId (symbol),
             'limit': 1000,
         }, params));
         let timestamp = this.milliseconds ();
@@ -6813,9 +6813,9 @@ var btcx = {
         return result;
     },
 
-    async fetchTicker (market) {
+    async fetchTicker (symbol) {
         let ticker = await this.publicGetTickerId ({
-            'id': this.marketId (market),
+            'id': this.marketId (symbol),
         });
         let timestamp = ticker['time'] * 1000;
         return {
@@ -6839,17 +6839,35 @@ var btcx = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
-        return this.publicGetTradeIdLimit (this.extend ({
-            'id': this.marketId (market),
-            'limit': 1000,
-        }, params));
+    parseTrade (trade, market) {
+        let timestamp = parseInt (trade['date']) * 1000;
+        let side = (trade['type'] == 'ask') ? 'sell' : 'buy';
+        return {
+            'id': trade['id'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': side,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        };
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetTradeIdLimit (this.extend ({
+            'id': market['id'],
+            'limit': 1000,
+        }, params));
+        return this.parseTrades (response, market);
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let response = await this.privatePostTrade (this.extend ({
             'type': side.toUpperCase (),
-            'market': this.marketId (market),
+            'market': this.marketId (symbol),
             'amount': amount,
             'price': price,
         }, params));

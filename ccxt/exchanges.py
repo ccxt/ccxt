@@ -5880,9 +5880,9 @@ class btcx (Exchange):
             result[uppercase] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         orderbook = self.publicGetDepthIdLimit(self.extend({
-            'id': self.market_id(market),
+            'id': self.market_id(symbol),
             'limit': 1000,
         }, params))
         timestamp = self.milliseconds()
@@ -5903,9 +5903,9 @@ class btcx (Exchange):
                 result[side].append([price, amount])
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         ticker = self.publicGetTickerId({
-            'id': self.market_id(market),
+            'id': self.market_id(symbol),
         })
         timestamp = ticker['time'] * 1000
         return {
@@ -5928,16 +5928,33 @@ class btcx (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
-        return self.publicGetTradeIdLimit(self.extend({
-            'id': self.market_id(market),
+    def parse_trade(self, trade, market):
+        timestamp = int(trade['date']) * 1000
+        side = 'sell' if(trade['type'] == 'ask') else 'buy'
+        return {
+            'id': trade['id'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': side,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
+
+    def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = self.publicGetTradeIdLimit(self.extend({
+            'id': market['id'],
             'limit': 1000,
         }, params))
+        return self.parse_trades(response, market)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         response = self.privatePostTrade(self.extend({
             'type': side.upper(),
-            'market': self.market_id(market),
+            'market': self.market_id(symbol),
             'amount': amount,
             'price': price,
         }, params))

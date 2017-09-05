@@ -7076,9 +7076,9 @@ class btcx extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
+    public function fetch_order_book ($symbol, $params = array ()) {
         $orderbook = $this->publicGetDepthIdLimit (array_merge (array (
-            'id' => $this->market_id ($market),
+            'id' => $this->market_id ($symbol),
             'limit' => 1000,
         ), $params));
         $timestamp = $this->milliseconds ();
@@ -7102,9 +7102,9 @@ class btcx extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($market) {
+    public function fetch_ticker ($symbol) {
         $ticker = $this->publicGetTickerId (array (
-            'id' => $this->market_id ($market),
+            'id' => $this->market_id ($symbol),
         ));
         $timestamp = $ticker['time'] * 1000;
         return array (
@@ -7128,17 +7128,35 @@ class btcx extends Exchange {
         );
     }
 
-    public function fetch_trades ($market, $params = array ()) {
-        return $this->publicGetTradeIdLimit (array_merge (array (
-            'id' => $this->market_id ($market),
-            'limit' => 1000,
-        ), $params));
+    public function parse_trade ($trade, $market) {
+        $timestamp = intval ($trade['date']) * 1000;
+        $side = ($trade['type'] == 'ask') ? 'sell' : 'buy';
+        return array (
+            'id' => $trade['id'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $side,
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function fetch_trades ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTradeIdLimit (array_merge (array (
+            'id' => $market['id'],
+            'limit' => 1000,
+        ), $params));
+        return $this->parse_trades ($response, $market);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $response = $this->privatePostTrade (array_merge (array (
             'type' => strtoupper ($side),
-            'market' => $this->market_id ($market),
+            'market' => $this->market_id ($symbol),
             'amount' => $amount,
             'price' => $price,
         ), $params));

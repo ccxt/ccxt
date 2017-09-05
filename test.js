@@ -35,8 +35,6 @@ log.bright ('\nTESTING', ccxtFile.magenta, { exchange: exchangeId, symbol: excha
 /*  ------------------------------------------------------------------------ */
 
 let proxies = [
-    'https://crossorigin.me/',
-    'https://crossorigin.me/',
     '',
     'https://cors-anywhere.herokuapp.com/',
     'https://crossorigin.me/',
