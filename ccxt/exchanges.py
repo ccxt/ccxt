@@ -488,7 +488,6 @@ class cryptocapital (Exchange):
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1d', since=None, limit=None, params={}):
-        self.load_markets()
         market = self.market(symbol)
         response = self.publicGetHistoricalPrices(self.extend({
             'currency': market['id'],
@@ -974,7 +973,6 @@ class binance (Exchange):
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -3442,8 +3440,8 @@ class bitmex (Exchange):
         }
 
     def fetch_trades(self, symbol, params={}):
-        market = self.market(symbol)
         self.load_markets()
+        market = self.market(symbol)
         response = self.publicGetTrade(self.extend({
             'symbol': market['id'],
         }, params))
@@ -3661,8 +3659,8 @@ class bitso (Exchange):
         }
 
     def fetch_trades(self, symbol, params={}):
-        market = self.market(symbol)
         self.load_markets()
+        market = self.market(symbol)
         response = self.publicGetTrades(self.extend({
             'book': self.market_id(market),
         }, params))
@@ -4127,14 +4125,14 @@ class bittrex (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        m = self.market(market)
+        market = self.market(symbol)
         response = self.publicGetMarketsummary({
-            'market': m['id'],
+            'market': market['id'],
         })
         ticker = response['result'][0]
-        return self.parse_ticker(ticker, m)
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['TimeStamp'])
@@ -4156,13 +4154,13 @@ class bittrex (Exchange):
             'amount': trade['Quantity'],
         }
 
-    def fetch_trades(self, market, params={}):
+    def fetch_trades(self, symbol, params={}):
         self.load_markets()
-        m = self.market(market)
+        market = self.market(symbol)
         response = self.publicGetMarkethistory(self.extend({
-            'market': m['id'],
+            'market': market['id'],
         }, params))
-        return self.parse_trades(response['result'], m)
+        return self.parse_trades(response['result'], market)
 
     def fetch_open_orders(self, symbol=None, params={}):
         self.load_markets()
@@ -4174,11 +4172,11 @@ class bittrex (Exchange):
         response = self.marketGetOpenorders(self.extend(request, params))
         return self.parse_orders(response['result'], market)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         method = 'marketGet' + self.capitalize(side) + type
         order = {
-            'market': self.market_id(market),
+            'market': self.market_id(symbol),
             'quantity': amount,
         }
         if type == 'limit':
@@ -4533,10 +4531,10 @@ class bl3p (Exchange):
             result[currency] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
-        p = self.market(market)
+    def fetch_order_book(self, symbol, params={}):
+        market = self.market(symbol)
         response = self.publicGetMarketOrderbook(self.extend({
-            'market': p['id'],
+            'market': market['id'],
         }, params))
         orderbook = response['data']
         timestamp = self.milliseconds()
@@ -4557,9 +4555,9 @@ class bl3p (Exchange):
                 result[side].append([price, amount])
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         ticker = self.publicGetMarketTicker({
-            'market': self.market_id(market),
+            'market': self.market_id(symbol),
         })
         timestamp = ticker['timestamp'] * 1000
         return {
@@ -4603,12 +4601,12 @@ class bl3p (Exchange):
         result = self.parse_trades(response['data']['trades'], market)
         return result
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
-        p = self.market(market)
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
+        market = self.market(symbol)
         order = {
-            'market': p['id'],
+            'market': market['id'],
             'amount_int': amount,
-            'fee_currency': p['quote'],
+            'fee_currency': market['quote'],
             'type': 'bid' if(side == 'buy') else 'ask',
         }
         if type == 'limit':
@@ -4751,10 +4749,10 @@ class btcchina (Exchange):
             result[currency] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         self.load_markets()
         orderbook = self.publicGetOrderbook(self.extend({
-            'market': self.market_id(market),
+            'market': self.market_id(symbol),
         }, params))
         timestamp = orderbook['date'] * 1000
         result = {
@@ -4766,11 +4764,11 @@ class btcchina (Exchange):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         tickers = self.publicGetTicker({
-            'market': p['id'],
+            'market': market['id'],
         })
         ticker = tickers['ticker']
         timestamp = ticker['date'] * 1000
@@ -4816,12 +4814,12 @@ class btcchina (Exchange):
         }, params))
         return self.parse_trades(response, market)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         method = 'privatePost' + self.capitalize(side) + 'Order2'
         order = {}
-        id = p['id'].upper()
+        id = market['id'].upper()
         if type == 'market':
             order['params'] = [None, amount, id]
         else:
@@ -6328,10 +6326,10 @@ class bxinth (Exchange):
             result[code] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         self.load_markets()
         orderbook = self.publicGetOrderbook(self.extend({
-            'pairing': self.market_id(market),
+            'pairing': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
         result = {
@@ -6386,13 +6384,13 @@ class bxinth (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        p = self.market(market)
-        tickers = self.publicGet({'pairing': p['id']})
-        id = str(p['id'])
+        market = self.market(symbol)
+        tickers = self.publicGet({'pairing': market['id']})
+        id = str(market['id'])
         ticker = tickers[id]
-        return self.parse_ticker(ticker, p)
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
         timestamp = self.parse8601(trade['trade_date'])
@@ -6417,10 +6415,10 @@ class bxinth (Exchange):
         }, params))
         return self.parse_trades(response['trades'], market)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         response = self.privatePostOrder(self.extend({
-            'pairing': self.market_id(market),
+            'pairing': self.market_id(symbol),
             'type': side,
             'amount': amount,
             'rate': price,
@@ -7259,7 +7257,7 @@ class coincheck (Exchange):
             result[currency] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         orderbook =  self.publicGetOrderBooks(params)
         timestamp = self.milliseconds()
         result = {
@@ -7279,7 +7277,7 @@ class coincheck (Exchange):
                 result[side].append([price, amount])
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         ticker = self.publicGetTicker()
         timestamp = ticker['timestamp'] * 1000
         return {
@@ -7321,10 +7319,10 @@ class coincheck (Exchange):
         response = self.publicGetTrades(params)
         return self.parse_trades(response, market)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         prefix = ''
         order = {
-            'pair': self.market_id(market),
+            'pair': self.market_id(symbol),
         }
         if type == 'market':
             order_type = type + '_' + side
@@ -7882,16 +7880,16 @@ class coinmarketcap (Exchange):
             tickers[symbol] = self.parse_ticker(ticker, market)
         return tickers
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         request = {
-            'convert': p['quote'],
-            'id': p['baseId'],
+            'convert': market['quote'],
+            'id': market['baseId'],
         }
         response = self.publicGetTickerId(request)
         ticker = response[0]
-        return self.parse_ticker(ticker, p)
+        return self.parse_ticker(ticker, market)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
@@ -8428,10 +8426,10 @@ class coinspot (Exchange):
                 result[uppercase] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
-        p = self.market(market)
+    def fetch_order_book(self, symbol, params={}):
+        market = self.market(symbol)
         orderbook = self.privatePostOrders(self.extend({
-            'cointype': p['id'],
+            'cointype': market['id'],
         }, params))
         timestamp = self.milliseconds()
         result = {
@@ -8640,14 +8638,14 @@ class cryptopia (Exchange):
             'quoteVolume': float(ticker['Volume']),
         }
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        m = self.market(market)
+        market = self.market(symbol)
         response = self.publicGetMarketId({
-            'id': m['id'],
+            'id': market['id'],
         })
         ticker = response['Data']
-        return self.parse_ticker(ticker, m)
+        return self.parse_ticker(ticker, market)
 
     def fetch_tickers(self):
         self.load_markets()
@@ -8676,15 +8674,15 @@ class cryptopia (Exchange):
             'amount': trade['Amount'],
         }
 
-    def fetch_trades(self, market, params={}):
+    def fetch_trades(self, symbol, params={}):
         self.load_markets()
-        m = self.market(market)
+        market = self.market(symbol)
         response = self.publicGetMarketHistoryIdHours(self.extend({
-            'id': m['id'],
+            'id': market['id'],
             'hours': 24, # default
         }, params))
         trades = response['Data']
-        return self.parse_trades(trades, m)
+        return self.parse_trades(trades, market)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -8852,13 +8850,13 @@ class dsx (Exchange):
             result[currency] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         response = self.mapiGetDepthId(self.extend({
-            'id': p['id'],
+            'id': market['id'],
         }, params))
-        orderbook = response[p['id']]
+        orderbook = response[market['id']]
         timestamp = self.milliseconds()
         result = {
             'bids': [],
@@ -8877,13 +8875,13 @@ class dsx (Exchange):
                 result[side].append([price, amount])
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         response = self.mapiGetTickerId({
-            'id': p['id'],
+            'id': market['id'],
         })
-        ticker = response[p['id']]
+        ticker = response[market['id']]
         timestamp = ticker['updated'] * 1000
         return {
             'timestamp': timestamp,
@@ -8905,18 +8903,18 @@ class dsx (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
+    def fetch_trades(self, symbol, params={}):
         self.load_markets()
         return self.mapiGetTradesId(self.extend({
-            'id': self.market_id(market),
+            'id': self.market_id(symbol),
         }, params))
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         order = {
-            'pair': self.market_id(market),
+            'pair': self.market_id(symbol),
             'type': side,
             'rate': price,
             'amount': amount,
@@ -10138,14 +10136,14 @@ class gdax (Exchange):
                 result[side].append([price, amount])
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         ticker = self.publicGetProductsIdTicker({
-            'id': p['id'],
+            'id': market['id'],
         })
         quote = self.publicGetProductsIdStats({
-            'id': p['id'],
+            'id': market['id'],
         })
         timestamp = self.parse8601(ticker['time'])
         bid = None
@@ -10383,15 +10381,15 @@ class gemini (Exchange):
                 result[side].append([price, amount, timestamp])
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         ticker = self.publicGetPubtickerSymbol({
-            'symbol': p['id'],
+            'symbol': market['id'],
         })
         timestamp = ticker['volume']['timestamp']
-        baseVolume = p['base']
-        quoteVolume = p['quote']
+        baseVolume = market['base']
+        quoteVolume = market['quote']
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -10412,11 +10410,27 @@ class gemini (Exchange):
             'info': ticker,
         }
 
-    def fetch_trades(self, market, params={}):
+    def parse_trade(self, trade, market):
+        timestamp = trade['timestampms']
+        return {
+            'id': str(trade['tid']),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['type'],
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
+        }
+
+    def fetch_trades(self, symbol, params={}):
         self.load_markets()
-        return self.publicGetTradesSymbol(self.extend({
-            'symbol': self.market_id(market),
+        market = self.market(symbol)
+        response = self.publicGetTradesSymbol(self.extend({
+            'symbol': market['id'],
         }, params))
+        return self.parse_trades(response, market)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -10434,13 +10448,13 @@ class gemini (Exchange):
             result[currency] = account
         return result
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         order = {
             'client_order_id': self.nonce(),
-            'symbol': self.market_id(market),
+            'symbol': self.market_id(symbol),
             'amount': str(amount),
             'price': str(price),
             'side': side,
@@ -10594,10 +10608,10 @@ class hitbtc (Exchange):
             result[currency] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         self.load_markets()
         orderbook = self.publicGetSymbolOrderbook(self.extend({
-            'symbol': self.market_id(market),
+            'symbol': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
         result = {
@@ -10652,15 +10666,15 @@ class hitbtc (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         ticker = self.publicGetSymbolTicker({
-            'symbol': p['id'],
+            'symbol': market['id'],
         })
         if 'message' in ticker:
             raise ExchangeError(self.id + ' ' + ticker['message'])
-        return self.parse_ticker(ticker, p)
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
         return {
@@ -10696,20 +10710,20 @@ class hitbtc (Exchange):
         }, params))
         return self.parse_trades(response['trades'], market)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         # check if amount can be evenly divided into lots
         # they want integer quantity in lot units
-        quantity = float(amount) / p['lot']
+        quantity = float(amount) / market['lot']
         wholeLots = int(round(quantity))
         difference = quantity - wholeLots
-        if abs(difference) > p['step']:
-            raise ExchangeError(self.id + ' order amount should be evenly divisible by lot unit size of ' + str(p['lot']))
+        if abs(difference) > market['step']:
+            raise ExchangeError(self.id + ' order amount should be evenly divisible by lot unit size of ' + str(market['lot']))
         clientOrderId = self.milliseconds()
         order = {
             'clientOrderId': str(clientOrderId),
-            'symbol': p['id'],
+            'symbol': market['id'],
             'side': side,
             'quantity': str(wholeLots), # quantity in integer lot units
             'type': type,
@@ -10867,10 +10881,10 @@ class huobi (Exchange):
             result[currency] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
-        p = self.market(market)
-        method = p['type'] + 'GetDepthId'
-        orderbook = getattr(self, method)(self.extend({'id': p['id']}, params))
+    def fetch_order_book(self, symbol, params={}):
+        market = self.market(symbol)
+        method = market['type'] + 'GetDepthId'
+        orderbook = getattr(self, method)(self.extend({'id': market['id']}, params))
         timestamp = self.milliseconds()
         result = {
             'bids': orderbook['bids'],
@@ -10880,10 +10894,10 @@ class huobi (Exchange):
         }
         return result
 
-    def fetch_ticker(self, market):
-        p = self.market(market)
-        method = p['type'] + 'GetTickerId'
-        response = getattr(self, method)({'id': p['id']})
+    def fetch_ticker(self, symbol):
+        market = self.market(symbol)
+        method = market['type'] + 'GetTickerId'
+        response = getattr(self, method)({'id': market['id']})
         ticker = response['ticker']
         timestamp = int(response['time']) * 1000
         return {
@@ -12831,14 +12845,14 @@ class okcoin (Exchange):
             'info': ticker,
         }
 
-    def fetch_ticker(self, market):
-        m = self.market(market)
+    def fetch_ticker(self, symbol):
+        market = self.market(symbol)
         response = self.publicGetTicker({
-            'symbol': m['id'],
+            'symbol': market['id'],
         })
         timestamp = int(response['date']) * 1000
         ticker = self.extend(response['ticker'], {'timestamp': timestamp})
-        return self.parse_ticker(ticker, m)
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
         symbol = None
@@ -13454,12 +13468,12 @@ class poloniex (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        m = self.market(market)
+        market = self.market(symbol)
         tickers = self.publicGetReturnTicker()
-        ticker = tickers[m['id']]
-        return self.parse_ticker(ticker, m)
+        ticker = tickers[market['id']]
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['date'])
@@ -14692,7 +14706,7 @@ class vaultoro (Exchange):
             result[currency] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         self.load_markets()
         response = self.publicGetOrderbook(params)
         orderbook = {
@@ -14718,7 +14732,7 @@ class vaultoro (Exchange):
         result['bids'] = self.sort_by(result['bids'], 0, True)
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
         quote = self.publicGetBidandask()
         bidsLength = len(quote['bids'])
@@ -14768,12 +14782,12 @@ class vaultoro (Exchange):
         response = self.publicGetTransactionsDay(params)
         return self.parse_trades(response, market)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         method = 'privatePost' + self.capitalize(side) + 'SymbolType'
         response = getattr(self, method)(self.extend({
-            'symbol': p['quoteId'].lower(),
+            'symbol': market['quoteId'].lower(),
             'type': type,
             'gld': amount,
             'price': price or 1,
@@ -15196,11 +15210,11 @@ class xbtce (Exchange):
             result[uppercase] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         orderbook = self.privateGetLevel2Filter(self.extend({
-            'filter': p['id'],
+            'filter': market['id'],
         }, params))
         orderbook = orderbook[0]
         timestamp = orderbook['Timestamp']
@@ -15280,20 +15294,20 @@ class xbtce (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         tickers = self.publicGetTickerFilter({
-            'filter': p['id'],
+            'filter': market['id'],
         })
         length = len(tickers)
         if length < 1:
             raise ExchangeError(self.id + ' fetchTicker returned empty response, xBTCe public API error')
         tickers = self.index_by(tickers, 'Symbol')
-        ticker = tickers[p['id']]
-        return self.parse_ticker(ticker, p)
+        ticker = tickers[market['id']]
+        return self.parse_ticker(ticker, market)
 
-    def fetch_trades(self, market, params={}):
+    def fetch_trades(self, symbol, params={}):
         self.load_markets()
         # no method for trades?
         return self.privateGetTrade(params)
@@ -15326,12 +15340,12 @@ class xbtce (Exchange):
         }, params))
         return self.parse_ohlcvs(response['Bars'], market, timeframe, since, limit)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         response = self.tapiPostTrade(self.extend({
-            'pair': self.market_id(market),
+            'pair': self.market_id(symbol),
             'type': side,
             'amount': amount,
             'rate': price,
@@ -15686,11 +15700,11 @@ class yunbi (Exchange):
             result[uppercase] = account
         return result
 
-    def fetch_order_book(self, market, params={}):
+    def fetch_order_book(self, symbol, params={}):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         orderbook = self.publicGetDepth(self.extend({
-            'market': p['id'],
+            'market': market['id'],
             'limit': 300,
         }, params))
         timestamp = orderbook['timestamp'] * 1000
@@ -15760,13 +15774,13 @@ class yunbi (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_ticker(self, market):
+    def fetch_ticker(self, symbol):
         self.load_markets()
-        p = self.market(market)
+        market = self.market(symbol)
         response = self.publicGetTickersMarket({
-            'market': p['id'],
+            'market': market['id'],
         })
-        return self.parse_ticker(response, p)
+        return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
         timestamp = trade['timestamp'] * 1000
@@ -15819,10 +15833,10 @@ class yunbi (Exchange):
         response = self.publicGetK(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         order = {
-            'market': self.market_id(market),
+            'market': self.market_id(symbol),
             'side': side,
             'volume': str(amount),
             'ord_type': type,
