@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.37';
+$version = '1.6.38';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2057,18 +2057,8 @@ class bit2c extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        $sides = array ('bids', 'asks');
-        for ($s = 0; $s < count ($sides); $s++) {
-            $side = $sides[$s];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = $order[0];
-                $amount = $order[1];
-                $timestamp = $order[2] * 1000;
-                $result[$side][] = array ($price, $amount, $timestamp);
-            }
-        }
+        $result['bids'] = $this->parse_bidasks ($orderbook['bids']);
+        $result['asks'] = $this->parse_bidasks ($orderbook['asks']);
         return $result;
     }
 
@@ -2425,17 +2415,8 @@ class bitbays extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        $sides = array ('bids', 'asks');
-        for ($s = 0; $s < count ($sides); $s++) {
-            $side = $sides[$s];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = floatval ($order[0]);
-                $amount = floatval ($order[1]);
-                $result[$side][] = array ($price, $amount);
-            }
-        }
+        $result['bids'] = $this->parse_bidasks ($orderbook['bids']);
+        $result['asks'] = $this->parse_bidasks ($orderbook['asks']);
         return $result;
     }
 
@@ -2624,13 +2605,8 @@ class bitcoincoid extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        $sides = array ( 'bids' => 'buy', 'asks' => 'sell' );
-        $keys = array_keys ($sides);
-        for ($k = 0; $k < count ($keys); $k++) {
-            $key = $keys[$k];
-            $side = $sides[$key];
-            $result[$key] = $this->parse_bidasks ($orderbook[$side]);
-        }
+        $result['bids'] = $this->parse_bidasks ($orderbook['buy']);
+        $result['asks'] = $this->parse_bidasks ($orderbook['sell']);
         return $result;
     }
 
@@ -2878,11 +2854,8 @@ class bitfinex extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        $sides = array ('bids', 'asks');
-        for ($s = 0; $s < count ($sides); $s++) {
-            $side = $sides[$s];
-            $result[$side] = $this->parse_bidasks ($orderbook[$side], 'price', 'amount');
-        }
+        $result['bids'] = $this->parse_bidasks ($orderbook['bids'], 'price', 'amount');
+        $result['asks'] = $this->parse_bidasks ($orderbook['asks'], 'price', 'amount');
         return $result;
     }
 
@@ -3509,17 +3482,8 @@ class bitflyer extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        $sides = array ('bids', 'asks');
-        for ($s = 0; $s < count ($sides); $s++) {
-            $side = $sides[$s];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = floatval ($order['price']);
-                $amount = floatval ($order['size']);
-                $result[$side][] = array ($price, $amount);
-            }
-        }
+        $result['bids'] = $this->parse_bidasks ($orderbook['asks'], 'price', 'size');
+        $result['asks'] = $this->parse_bidasks ($orderbook['asks'], 'price', 'size');
         return $result;
     }
 

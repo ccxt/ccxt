@@ -1186,16 +1186,8 @@ class bit2c (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = ['bids', 'asks']
-        for s in range(0, len(sides)):
-            side = sides[s]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = order[0]
-                amount = order[1]
-                timestamp = order[2] * 1000
-                result[side].append([price, amount, timestamp])
+        result['bids'] = self.parse_bidasks(orderbook['bids'])
+        result['asks'] = self.parse_bidasks(orderbook['asks'])
         return result
 
     def fetch_ticker(self, market):
@@ -1529,15 +1521,8 @@ class bitbays (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = ['bids', 'asks']
-        for s in range(0, len(sides)):
-            side = sides[s]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order[0])
-                amount = float(order[1])
-                result[side].append([price, amount])
+        result['bids'] = self.parse_bidasks(orderbook['bids'])
+        result['asks'] = self.parse_bidasks(orderbook['asks'])
         return result
 
     def fetch_ticker(self, symbol):
@@ -1713,12 +1698,8 @@ class bitcoincoid (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = {'bids': 'buy', 'asks': 'sell'}
-        keys = list(sides.keys())
-        for k in range(0, len(keys)):
-            key = keys[k]
-            side = sides[key]
-            result[key] = self.parse_bidasks(orderbook[side])
+        result['bids'] = self.parse_bidasks(orderbook['buy'])
+        result['asks'] = self.parse_bidasks(orderbook['sell'])
         return result
 
     def fetch_ticker(self, symbol):
@@ -1951,10 +1932,8 @@ class bitfinex (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = ['bids', 'asks']
-        for s in range(0, len(sides)):
-            side = sides[s]
-            result[side] = self.parse_bidasks(orderbook[side], 'price', 'amount')
+        result['bids'] = self.parse_bidasks(orderbook['bids'], 'price', 'amount')
+        result['asks'] = self.parse_bidasks(orderbook['asks'], 'price', 'amount')
         return result
 
     def fetch_ticker(self, symbol):
@@ -2540,15 +2519,8 @@ class bitflyer (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = ['bids', 'asks']
-        for s in range(0, len(sides)):
-            side = sides[s]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order['price'])
-                amount = float(order['size'])
-                result[side].append([price, amount])
+        result['bids'] = self.parse_bidasks(orderbook['asks'], 'price', 'size')
+        result['asks'] = self.parse_bidasks(orderbook['asks'], 'price', 'size')
         return result
 
     def fetch_ticker(self, symbol):
