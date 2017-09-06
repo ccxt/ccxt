@@ -12133,19 +12133,12 @@ var hitbtc2 = extend (hitbtc, {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        // check if amount can be evenly divided into lots
-        // they want integer quantity in lot units
-        let quantity = parseFloat (amount) / market['lot'];
-        let wholeLots = Math.round (quantity);
-        let difference = quantity - wholeLots;
-        if (Math.abs (difference) > market['step'])
-            throw new ExchangeError (this.id + ' order amount should be evenly divisible by lot unit size of ' + market['lot'].toString ());
         let clientOrderId = this.milliseconds ();
         let order = {
             'clientOrderId': clientOrderId.toString (),
             'symbol': market['id'],
             'side': side,
-            'quantity': wholeLots.toString (), // quantity in integer lot units
+            'quantity': amount.toString (),
             'type': type,
         };
         if (type == 'limit')
@@ -12153,7 +12146,7 @@ var hitbtc2 = extend (hitbtc, {
         let response = await this.tradingPostNewOrder (this.extend (order, params));
         return {
             'info': response,
-            'id': response['ExecutionReport']['clientOrderId'],
+            'id': response['clientOrderId'],
         };
     },
 
