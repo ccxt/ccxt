@@ -527,6 +527,10 @@ class Exchange (object):
     def decode(string):
         return string.decode()
 
+    @staticmethod
+    def to_array(value):
+        return list(value.values ()) if type(value) is dict else value
+
     def nonce(self):
         return Exchange.seconds()
 
@@ -606,16 +610,25 @@ class Exchange (object):
         return ohlcv
 
     def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
-        result = []
-        array = ohlcvs
-        if type(array) is dict:
-            array = list(array.values())
-        for t in range(0, len(array)):
-            result.append(self.parse_ohlcv(array[t], market, timeframe, since, limit))
-        return result
+        array = self.to_array (ohlcvs)
+        return [self.parse_ohlcv(ohlcv, market, timeframe, since, limit) for ohlcv in array]
 
     def parseOHLCVs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
         return self.parse_ohlcvs(self, ohlcvs, market, timeframe, since, limit)
+
+    def parse_bidask(self, bidask, price_key=0, amount_key=0):
+        price = float(bidask[price_key])
+        amount = float(bidask[amount_key])
+        return [price, amount]
+
+    def parse_bidasks(self, bidasks, price_key=0, amount_key=0):
+        return [self.parse_bidask(bidask, price_key, amount_key) for bidask in bidasks]
+
+    def parseBidAsk(self, bidask, price_key=0, amount_key=0):
+        return self.parse_bidask(bidask, price_key, amount_key)
+
+    def parseBidAsks(self, bidask, price_key=0, amount_key=0):
+        return self.parse_bidasks(bidask, price_key, amount_key)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         raise NotSupported(self.id + ' API does not allow to fetch OHLCV series for now')
@@ -624,22 +637,14 @@ class Exchange (object):
         return self.fetch_ohlcv(self, timeframe, since, limit, params)
 
     def parse_trades(self, trades, market=None):
-        result = []
-        array = trades
-        if type(array) is dict:
-            array = list(array.values())
-        for t in range(0, len(array)):
-            result.append(self.parse_trade(array[t], market))
-        return result
+        array = self.to_array(trades)
+        return [self.parse_trade(trade, market) for trade in array]
 
     def parseTrades(self, trades, market=None):
         return self.parse_trades(trades, market)
 
     def parse_orders(self, orders, market=None):
-        result = []
-        for t in range(0, len(orders)):
-            result.append(self.parse_order(orders[t], market))
-        return result
+        return [self.parse_order(order, market) for order in orders]
 
     def parseOrders(self, orders, market=None):
         return self.parse_orders(orders, market)

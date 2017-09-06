@@ -185,6 +185,7 @@ class Exchange {
         'gdax',
         'gemini',
         'hitbtc',
+        'hitbtc2',
         'huobi',
         'itbit',
         'jubi',
@@ -742,9 +743,8 @@ class Exchange {
     public function parse_ohlcvs ($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
         $result = array ();
         $array = array_values ($ohlcvs);
-        for ($t = 0; $t < count ($array); $t++) {
-            $result[] = $this->parse_ohlcv ($array[$t], $market, $timeframe, $since, $limit);
-        }
+        foreach ($array as $ohlcv)
+            $result[] = $this->parse_ohlcv ($ohlcv, $market, $timeframe, $since, $limit);
         return $result;
     }
 
@@ -752,12 +752,33 @@ class Exchange {
         return $this->parse_ohlcvs ($ohlcv, $market, $timeframe, $since, $limit);
     }
 
+    public function parse_bidask ($bidask, $price_key = 0, $amount_key = 0) {
+        $price = floatval ($bidask[$price_key]);
+        $amount = floatval ($bidask[$amount_key]);
+        return array ($price, $amount);
+    }
+
+    public function parse_bidasks ($bidasks, $price_key = 0, $amount_key = 0) {
+        $result = array ();
+        $array = array_values ($bidasks);
+        foreach ($array as $bidask)
+            $result[] = $this->parse_bidask ($bidask, $price_key, $amount_key);
+        return $result;
+    }
+
+    public function parseBidAsk ($bidask, $price_key = 0, $amount_key = 0) {
+        return $this->parse_bidask ($bidask, $price_key, $amount_key);
+    }
+
+    public function parseBidAsks ($bidasks, $price_key = 0, $amount_key = 0) {
+        return $this->parse_bidasks ($bidasks, $price_key, $amount_key);
+    }
+
     public function parse_trades ($trades, $market = null) {
         $result = array ();
         $array = array_values ($trades);
-        for ($t = 0; $t < count ($array); $t++) {
-            $result[] = $this->parse_trade ($array[$t], $market);
-        }
+        foreach ($array as $trade)
+            $result[] = $this->parse_trade ($trade, $market);
         return $result;
     }
 
@@ -767,9 +788,8 @@ class Exchange {
 
     public function parse_orders ($orders, $market = null) {
         $result = array ();
-        for ($t = 0; $t < count ($orders); $t++) {
+        foreach ($orders as $order)
             $result[] = $this->parse_order ($orders[$t], $market);
-        }
         return $result;
     }
 

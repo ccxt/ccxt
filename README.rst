@@ -13,7 +13,7 @@ CCXT – CryptoCurrency eXchange Trading Library
     :target: https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master
 .. image:: https://badge.runkitcdn.com/ccxt.svg
     :target: https://npm.runkit.com/ccxt
-.. image:: https://img.shields.io/badge/exchanges-76-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-77-blue.svg
     :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
@@ -36,7 +36,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 76 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 77 cryptocurrency exchange markets and trading APIs:
 
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id              | name                                                      | ver   | doc                                                                                              | countries                                  |
@@ -138,6 +138,8 @@ The ccxt library currently supports the following 76 cryptocurrency exchange mar
 | gemini          | `Gemini <https://gemini.com>`__                           | 1     | `API <https://docs.gemini.com/rest-api>`__                                                       | US                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | hitbtc          | `HitBTC <https://hitbtc.com>`__                           | 1     | `API <https://hitbtc.com/api>`__                                                                 | Hong Kong                                  |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| hitbtc2         | `HitBTC v2 <https://hitbtc.com>`__                        | 2     | `API <https://api.hitbtc.com/api/2/explore>`__                                                   | Hong Kong                                  |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | huobi           | `Huobi <https://www.huobi.com>`__                         | 3     | `API <https://github.com/huobiapi/API_Docs_en/wiki>`__                                           | China                                      |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+

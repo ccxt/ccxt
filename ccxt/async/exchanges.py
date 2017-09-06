@@ -10519,7 +10519,8 @@ class hitbtc (Exchange):
         result = {'info': balances}
         for b in range(0, len(balances)):
             balance = balances[b]
-            currency = balance['currency_code']
+            code = balance['currency_code']
+            currency = self.commonCurrencyCode(code)
             account = {
                 'free': float(balance['cash']),
                 'used': float(balance['reserved']),
@@ -10699,6 +10700,272 @@ class hitbtc (Exchange):
             if 'ExecutionReport' in response:
                 if response['ExecutionReport']['orderRejectReason'] == 'orderExceedsLimit':
                     raise InsufficientFunds(self.id + ' ' + self.json(response))
+            raise ExchangeError(self.id + ' ' + self.json(response))
+        return response
+
+#------------------------------------------------------------------------------
+
+class hitbtc2 (hitbtc):
+
+    def __init__(self, config={}):
+        params = {
+            'id': 'hitbtc2',
+            'name': 'HitBTC v2',
+            'countries': 'HK', # Hong Kong
+            'rateLimit': 1500,
+            'version': '2',
+            'hasFetchTickers': True,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
+                'api': 'https://api.hitbtc.com',
+                'www': 'https://hitbtc.com',
+                'doc': 'https://api.hitbtc.com/api/2/explore',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'symbol', # Available Currency Symbols
+                        'symbol/{symbol}', #Get symbol info
+                        'currency', #Available Currencies
+                        'currency/{currency}', #Get currency info
+                        'ticker', #Ticker list for all symbols
+                        'ticker/{symbol}', #Ticker for symbol
+                        'trades/{symbol}', #Trades
+                        'orderbook/{symbol}', #Orderbook
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'order', # List your current open orders
+                        'order/{clientOrderId}', # Get a single order by clientOrderId
+                        'trading/balance', # Get trading balance
+                        'trading/fee/{symbol}', # Get trading fee rate
+                        'history/trades', # Get historical trades
+                        'history/order', # Get historical orders
+                        'history/order/{id}/trades', # Get historical trades by specified order
+                        'account/balance', # Get main acccount balance
+                        'account/transactions', # Get account transactions
+                        'account/transactions/{id}', # Get account transaction by id
+                        'account/crypto/address/{currency}', # Get deposit crypro address
+                    ],
+                    'post': [
+                        'order', # Create new order
+                        'account/crypto/withdraw', # Withdraw crypro
+                        'account/crypto/address/{currency}', # Create new deposit crypro address
+                        'account/transfer', # Transfer amount to trading
+                    ],
+                    'put': [
+                        'order/{clientOrderId}', # Create new order
+                        'account/crypto/withdraw/{id}', # Commit withdraw crypro
+                    ],
+                    'delete': [
+                        'order', # Cancel all open orders
+                        'order/{clientOrderId}', # Cancel order
+                        'account/crypto/withdraw/{id}', # Rollback withdraw crypro
+                    ],
+                    'patch': [
+                        'order/{clientOrderId}', # Cancel Replace order
+                    ],
+                },
+            },
+        }
+        params.update(config)
+        super(hitbtc2, self).__init__(params)
+
+    async def fetch_markets(self):
+        markets = await self.publicGetSymbol()
+        result = []
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = market['id']
+            base = market['baseCurrency']
+            quote = market['quoteCurrency']
+            lot = market['quantityIncrement']
+            step = market['tickSize']
+            base = self.commonCurrencyCode(base)
+            quote = self.commonCurrencyCode(quote)
+            symbol = base + '/' + quote
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'lot': lot,
+                'step': step,
+                'info': market,
+            })
+        return result
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        balances = await self.privateGetAccountBalance()
+        result = {'info': balances}
+        for b in range(0, len(balances)):
+            balance = balances[b]
+            code = balance['currency']
+            currency = self.commonCurrencyCode(code)
+            account = {
+                'free': float(balance['available']),
+                'used': float(balance['reserved']),
+                'total': 0.0,
+            }
+            account['total'] = self.sum(account['free'], account['used'])
+            result[currency] = account
+        return result
+
+    async def fetch_order_book(self, symbol, params={}):
+        await self.load_markets()
+        orderbook = await self.publicGetOrderbookSymbol(self.extend({
+            'symbol': self.market_id(symbol),
+        }, params))
+        timestamp = self.milliseconds()
+        result = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+        sides = {'bids': 'bid', 'asks': 'ask'}
+        keys = list(sides.keys())
+        for k in range(0, len(keys)):
+            key = keys[k]
+            side = sides[key]
+            result[key] = self.parse_bidasks(orderbook[side], 'price', 'size')
+        return result
+
+    def parse_ticker(self, ticker, market):
+        timestamp = self.parse8601(ticker['timestamp'])
+        high = float(ticker['high']) if(ticker['high']) else None
+        low = float(ticker['low']) if(ticker['low']) else None
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': high,
+            'low': low,
+            'bid': float(ticker['bid']),
+            'ask': float(ticker['ask']),
+            'vwap': None,
+            'open': float(ticker['open']),
+            'close': None,
+            'first': None,
+            'last': float(ticker['last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': float(ticker['volume']),
+            'quoteVolume': float(ticker['volumeQuote']),
+            'info': ticker,
+        }
+
+    async def fetch_tickers(self):
+        await self.load_markets()
+        tickers = await self.publicGetTicker()
+        result = {}
+        for i in range(0, len(tickers)):
+            ticker = tickers[i]
+            id = ticker['symbol']
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
+            result[symbol] = self.parse_ticker(ticker, market)
+        return result
+
+    async def fetch_ticker(self, symbol):
+        await self.load_markets()
+        market = self.market(symbol)
+        ticker = await self.publicGetTickerSymbol({
+            'symbol': market['id'],
+        })
+        if 'message' in ticker:
+            raise ExchangeError(self.id + ' ' + ticker['message'])
+        return self.parse_ticker(ticker, market)
+
+    def parse_trade(self, trade, market=None):
+        timestamp = self.parse8601(trade['timestamp'])
+        return {
+            'info': trade,
+            'id': str(trade['id']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['side'],
+            'price': float(trade['price']),
+            'amount': float(trade['quantity']),
+        }
+
+    async def fetch_trades(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        response = await self.publicGetTradesSymbol(self.extend({
+            'symbol': market['id'],
+        }, params))
+        return self.parse_trades(response, market)
+
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        # check if amount can be evenly divided into lots
+        # they want integer quantity in lot units
+        quantity = float(amount) / market['lot']
+        wholeLots = int(round(quantity))
+        difference = quantity - wholeLots
+        if abs(difference) > market['step']:
+            raise ExchangeError(self.id + ' order amount should be evenly divisible by lot unit size of ' + str(market['lot']))
+        clientOrderId = self.milliseconds()
+        order = {
+            'clientOrderId': str(clientOrderId),
+            'symbol': market['id'],
+            'side': side,
+            'quantity': str(wholeLots), # quantity in integer lot units
+            'type': type,
+        }
+        if type == 'limit':
+            order['price'] = '{:.10f}'.format(price)
+        response = await self.tradingPostNewOrder(self.extend(order, params))
+        return {
+            'info': response,
+            'id': response['ExecutionReport']['clientOrderId'],
+        }
+
+    async def cancel_order(self, id, params={}):
+        await self.load_markets()
+        return self.tradingPostCancelOrder(self.extend({
+            'clientOrderId': id,
+        }, params))
+
+    async def withdraw(self, currency, amount, address, params={}):
+        await self.load_markets()
+        response = await self.paymentPostPayout(self.extend({
+            'currency_code': currency,
+            'amount': amount,
+            'address': address,
+        }, params))
+        return {
+            'info': response,
+            'id': response['transaction'],
+        }
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        url = '/api' + '/' + self.version + '/'
+        query = self.omit(params, self.extract_params(path))
+        if api == 'public':
+            url += api + '/' + self.implode_params(path, params)
+            if query:
+                url += '?' + self.urlencode(query)
+        else:
+            url += self.implode_params(path, params) + '?' + self.urlencode(query)
+            if method != 'GET':
+                if query:
+                    body = self.json(query)
+            payload = self.encode(self.apiKey + ':' + self.secret)
+            auth = base64.b64encode(payload)
+            headers = {
+                'Authorization': "Basic " + self.decode(auth),
+                'Content-Type': 'application/json',
+            }
+        url = self.urls['api'] + url
+        response = await self.fetch(url, method, headers, body)
+        if 'error' in response:
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
