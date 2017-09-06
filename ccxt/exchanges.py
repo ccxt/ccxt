@@ -445,12 +445,7 @@ class cryptocapital (Exchange):
             key = keys[k]
             side = sides[key]
             orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                timestamp = int(order['timestamp']) * 1000
-                price = float(order['price'])
-                amount = float(order['order_amount'])
-                result[key].append([price, amount, timestamp])
+            result[key] = self.parse_bidasks(orderbook[side], 'price', 'order_amount')
         return result
 
     def fetch_ticker(self, market):
@@ -709,12 +704,7 @@ class anxpro (Exchange):
         sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order['price'])
-                amount = float(order['amount'])
-                result[side].append([price, amount])
+            result[side] = self.parse_bidasks(orderbook[side], 'price', 'amount')
         return result
 
     def fetch_ticker(self, market):
@@ -918,20 +908,11 @@ class binance (Exchange):
         }, params))
         timestamp = self.milliseconds()
         result = {
-            'bids': [],
-            'asks': [],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = ['bids', 'asks']
-        for s in range(0, len(sides)):
-            side = sides[s]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order[0])
-                amount = float(order[1])
-                result[side].append([price, amount])
+        result['bids'] = self.parse_bidasks(orderbook['bids'])
+        result['asks'] = self.parse_bidasks(orderbook['asks'])
         return result
 
     def parse_ticker(self, ticker, market):
