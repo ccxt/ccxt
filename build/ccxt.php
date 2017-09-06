@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.39';
+$version = '1.6.40';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5488,7 +5488,7 @@ class bl3p extends Exchange {
 
     public function parse_bidask ($bidask, $priceKey = 0, $amountKey = 0) {
         return [ 
-            $bidask['price_int'] / 100000.0, 
+            $bidask['price_int'] / 100000.0,
             $bidask['amount_int'] / 100000000.0,
         ];
     }

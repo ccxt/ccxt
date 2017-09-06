@@ -4394,7 +4394,7 @@ class bl3p (Exchange):
 
     def parse_bidask(self, bidask, priceKey=0, amountKey=0):
         return [
-            bidask['price_int'] / 100000.0, 
+            bidask['price_int'] / 100000.0,
             bidask['amount_int'] / 100000000.0,
         ]
 
