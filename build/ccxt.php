@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.33';
+$version = '1.6.34';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12559,6 +12559,7 @@ class hitbtc2 extends hitbtc {
         $this->load_markets ();
         $market = $this->market ($symbol);
         $clientOrderId = $this->milliseconds ();
+        $amount = floatval ($amount);
         $order = array (
             'clientOrderId' => (string) $clientOrderId,
             'symbol' => $market['id'],
@@ -12566,8 +12567,10 @@ class hitbtc2 extends hitbtc {
             'quantity' => (string) $amount,
             'type' => $type,
         );
-        if ($type == 'limit')
+        if ($type == 'limit') {
+            $price = floatval ($price);
             $order['price'] = sprintf ('%.10f', $price);
+        }
         $response = $this->privatePostOrder (array_merge ($order, $params));
         return array (
             'info' => $response,
@@ -12584,14 +12587,15 @@ class hitbtc2 extends hitbtc {
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $this->load_markets ();
-        $response = $this->paymentPostPayout (array_merge (array (
-            'currency_code' => $currency,
-            'amount' => $amount,
+        $amount = floatval ($amount);
+        $response = $this->privatePostAccountCryptoWithdraw (array_merge (array (
+            'currency' => $currency,
+            'amount' => (string) $amount,
             'address' => $address,
         ), $params));
         return array (
             'info' => $response,
-            'id' => $response['transaction'],
+            'id' => $response['id'],
         );
     }
 
