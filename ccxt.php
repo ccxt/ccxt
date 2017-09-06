@@ -376,9 +376,9 @@ class Exchange {
         
         // is_dst parameter has been removed in PHP 7.0.0.
         // http://php.net/manual/en/function.mktime.php
-        if(version_compare(PHP_VERSION, '7.0.0', '>=')){
+        if (version_compare (PHP_VERSION, '7.0.0', '>=')) {
             $t = mktime ($h, $m, $s, $mm, $dd, $yyyy);
-        }else{
+        } else {
             $t = mktime ($h, $m, $s, $mm, $dd, $yyyy, 0);
         }
         $t += $hours * 3600 + $minutes * 60;
