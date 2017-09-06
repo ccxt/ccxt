@@ -12049,6 +12049,9 @@ var hitbtc2 = extend (hitbtc, {
         let timestamp = this.parse8601 (ticker['timestamp']);
         let high = (ticker['high']) ? parseFloat (ticker['high']) : undefined;
         let low = (ticker['low']) ? parseFloat (ticker['low']) : undefined;
+        let open = (ticker['open']) ? parseFloat (ticker['open']) : undefined;
+        let close = (ticker['close']) ? parseFloat (ticker['close']) : undefined;
+        let last = (ticker['last']) ? parseFloat (ticker['last']) : undefined;
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
