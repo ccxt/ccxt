@@ -644,6 +644,16 @@ const Exchange = function (config) {
         return Object.values (bidasks).map (bidask => this.parseBidAsk (bidask, priceKey, amountKey))
     }
 
+    this.parseOrderBook = function (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
+        timestamp = timestamp || this.milliseconds ();
+        return {
+            'bids': this.parseBidAsks (orderbook[bidsKey], priceKey, amountKey),
+            'asks': this.parseBidAsks (orderbook[asksKey], priceKey, amountKey),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+    },
+
     this.parseTrades = function (trades, market = undefined) {
         return Object.values (trades).map (trade => this.parseTrade (trade, market))
     }
@@ -731,6 +741,8 @@ const Exchange = function (config) {
     this.fetch_trades             = this.fetchTrades
     this.fetch_order              = this.fetchOrder
     this.fetch_order_status       = this.fetchOrderStatus
+    this.parse_bidask             = this.parseBidAsk
+    this.parse_bidasks            = this.parseBidAsks
     this.parse_order_book         = this.parseOrderBook
     this.parse_trades             = this.parseTrades
     this.parse_orders             = this.parseOrders

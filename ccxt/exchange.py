@@ -621,14 +621,26 @@ class Exchange (object):
         amount = float(bidask[amount_key])
         return [price, amount]
 
-    def parse_bidasks(self, bidasks, price_key=0, amount_key=0):
+    def parse_bidasks(self, bidasks, price_key=0, amount_key=1):
         return [self.parse_bidask(bidask, price_key, amount_key) for bidask in bidasks]
 
-    def parseBidAsk(self, bidask, price_key=0, amount_key=0):
+    def parseBidAsk(self, bidask, price_key=0, amount_key=1):
         return self.parse_bidask(bidask, price_key, amount_key)
 
-    def parseBidAsks(self, bidask, price_key=0, amount_key=0):
+    def parseBidAsks(self, bidask, price_key=0, amount_key=1):
         return self.parse_bidasks(bidask, price_key, amount_key)
+
+    def parse_order_book(self, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
+        timestamp = timestamp or self.milliseconds ()
+        return {
+            'bids': self.parse_bidasks (orderbook[bids_key], price_key, amount_key),
+            'asks': self.parse_bidasks (orderbook[asks_key], price_key, amount_key),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        }
+
+    def parseOrderBook(self, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
+        return self.parse_order_book(orderbook, timestamp, bids_key, asks_key, price_key, amount_key)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         raise NotSupported(self.id + ' API does not allow to fetch OHLCV series for now')
