@@ -10995,32 +10995,25 @@ class hitbtc2 (hitbtc):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        # check if amount can be evenly divided into lots
-        # they want integer quantity in lot units
-        quantity = float(amount) / market['lot']
-        wholeLots = int(round(quantity))
-        difference = quantity - wholeLots
-        if abs(difference) > market['step']:
-            raise ExchangeError(self.id + ' order amount should be evenly divisible by lot unit size of ' + str(market['lot']))
         clientOrderId = self.milliseconds()
         order = {
             'clientOrderId': str(clientOrderId),
             'symbol': market['id'],
             'side': side,
-            'quantity': str(wholeLots), # quantity in integer lot units
+            'quantity': str(amount),
             'type': type,
         }
         if type == 'limit':
             order['price'] = '{:.10f}'.format(price)
-        response = self.tradingPostNewOrder(self.extend(order, params))
+        response = self.privatePostOrder(self.extend(order, params))
         return {
             'info': response,
-            'id': response['ExecutionReport']['clientOrderId'],
+            'id': response['clientOrderId'],
         }
 
     def cancel_order(self, id, params={}):
         self.load_markets()
-        return self.tradingPostCancelOrder(self.extend({
+        return self.privateDeleteOrder(self.extend({
             'clientOrderId': id,
         }, params))
 
