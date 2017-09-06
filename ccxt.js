@@ -1535,22 +1535,11 @@ var binance = {
         }, params));
         let timestamp = this.milliseconds ();
         let result = {
-            'bids': [],
-            'asks': [],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        let sides = [ 'bids', 'asks' ];
-        for (let s = 0; s < sides.length; s++) {
-            let side = sides[s];
-            let orders = orderbook[side];
-            for (let i = 0; i < orders.length; i++) {
-                let order = orders[i];
-                let price = parseFloat (order[0]);
-                let amount = parseFloat (order[1]);
-                result[side].push ([ price, amount ]);
-            }
-        }
+        result['bids'] = this.parseBidAsks (orderbook['bids']);
+        result['asks'] = this.parseBidAsks (orderbook['asks']);
         return result;
     },
 
