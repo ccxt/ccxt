@@ -3227,15 +3227,12 @@ var bitflyer = {
             'product_code': this.marketId (symbol),
         }, params));
         let timestamp = this.milliseconds ();
-        let result = {
-            'bids': [],
-            'asks': [],
+        return {
+            'bids': this.parseBidAsks (orderbook['bids'], 'price', 'size'),
+            'asks': this.parseBidAsks (orderbook['asks'], 'price', 'size'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        result['bids'] = this.parseBidAsks (orderbook['bids'], 'price', 'size');
-        result['asks'] = this.parseBidAsks (orderbook['asks'], 'price', 'size');
-        return result;
     },
 
     async fetchTicker (symbol) {
@@ -3494,13 +3491,11 @@ var bitlish = {
         }, params));
         let timestamp = parseInt (parseInt (orderbook['last']) / 1000);
         let result = {
-            'bids': [],
-            'asks': [],
+            'bids': this.parseBidAsks (orderbook['bid'], 'price', 'volume'),
+            'asks': this.parseBidAsks (orderbook['ask'], 'price', 'volume'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        result['bids'] = this.parseBidAsks (orderbook['bid'], 'price', 'volume');
-        result['asks'] = this.parseBidAsks (orderbook['ask'], 'price', 'volume');
         return result;
     },
 
@@ -4286,13 +4281,11 @@ var bitso = {
         let orderbook = response['payload'];
         let timestamp = this.parse8601 (orderbook['updated_at']);
         let result = {
-            'bids': [],
-            'asks': [],
+            'bids': this.parseBidAsks (orderbook['bids'], 'price', 'amount'),
+            'asks': this.parseBidAsks (orderbook['asks'], 'price', 'amount'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        result['bids'] = this.parseBidAsks (orderbook['bids'], 'price', 'amount');
-        result['asks'] = this.parseBidAsks (orderbook['asks'], 'price', 'amount');
         return result;
     },
 
@@ -4470,13 +4463,11 @@ var bitstamp = {
         }, params));
         let timestamp = parseInt (orderbook['timestamp']) * 1000;
         let result = {
-            'bids': [],
-            'asks': [],
+            'bids': this.parseBidAsks (orderbook['bids']),
+            'asks': this.parseBidAsks (orderbook['asks']),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        result['bids'] = this.parseBidAsks (orderbook['bids']);
-        result['asks'] = this.parseBidAsks (orderbook['asks']);
         return result;
     },
 
