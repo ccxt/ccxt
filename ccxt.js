@@ -11373,13 +11373,21 @@ var hitbtc2 = extend (hitbtc, {
         if ('last' in ticker)
             if (ticker['last'])
                 last = parseFloat (ticker['last']);
+        let bid = undefined;
+        if ('bid' in ticker)
+            if (ticker['bid'])
+                bid = parseFloat (ticker['bid']);
+        let ask = undefined;
+        if ('ask' in ticker)
+            if (ticker['ask'])
+                ask = parseFloat (ticker['ask']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': high,
             'low': low,
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
+            'bid': bid,
+            'ask': ask,
             'vwap': undefined,
             'open': open,
             'close': undefined,
