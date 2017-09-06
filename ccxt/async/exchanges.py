@@ -10916,6 +10916,7 @@ class hitbtc2 (hitbtc):
         await self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.milliseconds()
+        amount = float(amount)
         order = {
             'clientOrderId': str(clientOrderId),
             'symbol': market['id'],
@@ -10924,6 +10925,7 @@ class hitbtc2 (hitbtc):
             'type': type,
         }
         if type == 'limit':
+            price = float(price)
             order['price'] = '{:.10f}'.format(price)
         response = await self.privatePostOrder(self.extend(order, params))
         return {
@@ -10939,14 +10941,15 @@ class hitbtc2 (hitbtc):
 
     async def withdraw(self, currency, amount, address, params={}):
         await self.load_markets()
-        response = await self.paymentPostPayout(self.extend({
-            'currency_code': currency,
-            'amount': amount,
+        amount = float(amount)
+        response = await self.privatePostAccountCryptoWithdraw(self.extend({
+            'currency': currency,
+            'amount': str(amount),
             'address': address,
         }, params))
         return {
             'info': response,
-            'id': response['transaction'],
+            'id': response['id'],
         }
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
