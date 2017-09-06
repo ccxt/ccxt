@@ -4291,17 +4291,8 @@ var bitso = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        let sides = [ 'bids', 'asks' ];
-        for (let s = 0; s < sides.length; s++) {
-            let side = sides[s];
-            let orders = orderbook[side];
-            for (let i = 0; i < orders.length; i++) {
-                let order = orders[i];
-                let price = parseFloat (order['price']);
-                let amount = parseFloat (order['amount']);
-                result[side].push ([ price, amount ]);
-            }
-        }
+        result['bids'] = this.parseBidAsks (orderbook['bids'], 'price', 'amount');
+        result['asks'] = this.parseBidAsks (orderbook['asks'], 'price', 'amount');
         return result;
     },
 
