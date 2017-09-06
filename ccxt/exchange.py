@@ -631,12 +631,12 @@ class Exchange (object):
         return self.parse_bidasks(bidask, price_key, amount_key)
 
     def parse_order_book(self, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
-        timestamp = timestamp or self.milliseconds ()
+        timestamp = timestamp or self.milliseconds()
         return {
-            'bids': self.parse_bidasks (orderbook[bids_key], price_key, amount_key),
-            'asks': self.parse_bidasks (orderbook[asks_key], price_key, amount_key),
+            'bids': self.parse_bidasks(orderbook[bids_key], price_key, amount_key),
+            'asks': self.parse_bidasks(orderbook[asks_key], price_key, amount_key),
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': self.iso8601(timestamp),
         }
 
     def parseOrderBook(self, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):

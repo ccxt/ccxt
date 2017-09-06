@@ -101,6 +101,7 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('parseTicker',       'parse_ticker')
                         .replace ('parseTrades',       'parse_trades')
                         .replace ('parseTrade',        'parse_trade')
+                        .replace ('parseOrderBook',    'parse_order_book')
                         .replace ('parseBidAsks',      'parse_bidasks')
                         .replace ('parseBidAsk',       'parse_bidask')
                         .replace ('parseOrders',       'parse_orders')
@@ -154,6 +155,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.parseTicker\s/g, '.parse_ticker'],
             [ /\.parseTrades\s/g, '.parse_trades'],
             [ /\.parseTrade\s/g, '.parse_trade'],
+            [ /\.parseOrderBook\s/g, '.parse_order_book'],
             [ /\.parseBidAsks\s/g, '.parse_bidasks'],
             [ /\.parseBidAsk\s/g, '.parse_bidask'],
             [ /\.indexBy\s/g, '.index_by'],
@@ -238,6 +240,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.parseTicker/g, '.parse_ticker'],
             [ /\.parseTrades/g, '.parse_trades'],
             [ /\.parseTrade/g, '.parse_trade'],
+            [ /\.parseOrderBook/g, '.parse_order_book'],
             [ /\.parseBidAsks/g, '.parse_bidasks'],
             [ /\.parseBidAsk/g, '.parse_bidask'],
             [ /\.binaryConcat/g, '.binary_concat'],

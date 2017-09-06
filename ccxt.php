@@ -775,13 +775,17 @@ class Exchange {
     }
 
     public function parse_order_book ($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
-        // timestamp = timestamp or self.milliseconds ()
-        // return {
-        //     'bids': self.parse_bidasks (orderbook[bids_key], price_key, amount_key),
-        //     'asks': self.parse_bidasks (orderbook[asks_key], price_key, amount_key),
-        //     'timestamp': timestamp,
-        //     'datetime': this.iso8601 (timestamp),
-        // }
+        $timestamp = $timestamp ? $timestamp : $this->milliseconds ();
+        return array (
+            'bids' => $this->parse_bidasks ($orderbook[$bids_key], $price_key, $amount_key),
+            'asks' => $this->parse_bidasks ($orderbook[$asks_key], $price_key, $amount_key),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        }
+    }
+
+    public function parseOrderBook ($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
+        return $this->parse_order_book ($orderbook, $timestamp, $bids_key, $asks_key, $price_key, $amount_key);
     }
 
     public function parse_trades ($trades, $market = null) {
