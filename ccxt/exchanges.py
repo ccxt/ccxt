@@ -3924,17 +3924,6 @@ class bittrex (Exchange):
             result[currency] = account
         return result
 
-    def parse_bidask(self, bidask):
-        price = float(bidask['Rate'])
-        amount = float(bidask['Quantity'])
-        return [price, amount]
-
-    def parse_bidasks(self, bidasks):
-        result = []
-        for i in range(0, len(bidasks)):
-            result.append(self.parse_bidask(bidasks[i]))
-        return result
-
     def fetch_order_book(self, market, params={}):
         self.load_markets()
         response = self.publicGetOrderbook(self.extend({
@@ -3945,8 +3934,8 @@ class bittrex (Exchange):
         orderbook = response['result']
         timestamp = self.milliseconds()
         return {
-            'bids': self.parse_bidasks(orderbook['buy']),
-            'asks': self.parse_bidasks(orderbook['sell']),
+            'bids': self.parse_bidasks(orderbook['buy'], 'Rate', 'Quantity'),
+            'asks': self.parse_bidasks(orderbook['sell'], 'Rate', 'Quantity'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
@@ -5070,17 +5059,6 @@ class btcmarkets (Exchange):
                 'total': self.sum(free, used),
             }
             result[currency] = account
-        return result
-
-    def parse_bidask(self, bidask):
-        price = bidask[0]
-        amount = bidask[1]
-        return [price, amount]
-
-    def parse_bidasks(self, bidasks):
-        result = []
-        for i in range(0, len(bidasks)):
-            result.append(self.parse_bidask(bidasks[i]))
         return result
 
     def fetch_order_book(self, symbol, params={}):
@@ -10013,8 +9991,8 @@ class gemini (Exchange):
         }, params))
         timestamp = self.milliseconds()
         return {
-            'bids': self.parseOrderBook(orderbook['bids'], 'price', 'amount'),
-            'asks': self.parseOrderBook(orderbook['asks'], 'price', 'amount'),
+            'bids': self.parse_bidasks(orderbook['bids'], 'price', 'amount'),
+            'asks': self.parse_bidasks(orderbook['asks'], 'price', 'amount'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
@@ -11445,8 +11423,8 @@ class kraken (Exchange):
         orderbook = response['result'][market['id']]
         timestamp = self.milliseconds()
         return {
-            'bids': self.float(orderbook['bids']),
-            'asks': self.float(orderbook['asks']),
+            'bids': self.parse_bidasks(orderbook['bids']),
+            'asks': self.parse_bidasks(orderbook['asks']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
@@ -14739,7 +14717,7 @@ class virwox (Exchange):
         timestamp = self.milliseconds()
         return {
             'bids': self.parse_bidasks(orderbook['buy'], 'price', 'volume'),
-            'asks': self.parse_bidasks(orderbook['asks'], 'price', 'volume'),
+            'asks': self.parse_bidasks(orderbook['sell'], 'price', 'volume'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
@@ -14977,8 +14955,8 @@ class xbtce (Exchange):
         orderbook = orderbook[0]
         timestamp = orderbook['Timestamp']
         return {
-            'bids': self.parse_bidasks(orderbook['bids'], 'Price', 'Volume'),
-            'asks': self.parse_bidasks(orderbook['asks'], 'Price', 'Volume'),
+            'bids': self.parse_bidasks(orderbook['Bids'], 'Price', 'Volume'),
+            'asks': self.parse_bidasks(orderbook['Asks'], 'Price', 'Volume'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }

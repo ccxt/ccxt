@@ -15950,7 +15950,7 @@ var virwox = {
         let timestamp = this.milliseconds ();
         return {
             'bids': this.parseBidAsks (orderbook['buy'], 'price', 'volume'),
-            'asks': this.parseBidAsks (orderbook['asks'], 'price', 'volume'),
+            'asks': this.parseBidAsks (orderbook['sell'], 'price', 'volume'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
@@ -16196,8 +16196,8 @@ var xbtce = {
         orderbook = orderbook[0];
         let timestamp = orderbook['Timestamp'];
         return {
-            'bids': this.parseBidAsks (orderbook['bids'], 'Price', 'Volume'),
-            'asks': this.parseBidAsks (orderbook['asks'], 'Price', 'Volume'),
+            'bids': this.parseBidAsks (orderbook['Bids'], 'Price', 'Volume'),
+            'asks': this.parseBidAsks (orderbook['Asks'], 'Price', 'Volume'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };

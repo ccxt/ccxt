@@ -4977,20 +4977,6 @@ class bittrex extends Exchange {
         return $result;
     }
 
-    public function parse_bidask ($bidask) {
-        $price = floatval ($bidask['Rate']);
-        $amount = floatval ($bidask['Quantity']);
-        return array ($price, $amount);
-    }
-
-    public function parse_bidasks ($bidasks) {
-        $result = array ();
-        for ($i = 0; $i < count ($bidasks); $i++) {
-            $result[] = $this->parse_bidask ($bidasks[$i]);
-        }
-        return $result;
-    }
-
     public function fetch_order_book ($market, $params = array ()) {
         $this->load_markets ();
         $response = $this->publicGetOrderbook (array_merge (array (
@@ -5001,8 +4987,8 @@ class bittrex extends Exchange {
         $orderbook = $response['result'];
         $timestamp = $this->milliseconds ();
         return array (
-            'bids' => $this->parse_bidasks ($orderbook['buy']),
-            'asks' => $this->parse_bidasks ($orderbook['sell']),
+            'bids' => $this->parse_bidasks ($orderbook['buy'], 'Rate', 'Quantity'),
+            'asks' => $this->parse_bidasks ($orderbook['sell'], 'Rate', 'Quantity'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
@@ -6206,20 +6192,6 @@ class btcmarkets extends Exchange {
                 'total' => $this->sum ($free, $used),
             );
             $result[$currency] = $account;
-        }
-        return $result;
-    }
-
-    public function parse_bidask ($bidask) {
-        $price = $bidask[0];
-        $amount = $bidask[1];
-        return array ($price, $amount);
-    }
-
-    public function parse_bidasks ($bidasks) {
-        $result = array ();
-        for ($i = 0; $i < count ($bidasks); $i++) {
-            $result[] = $this->parse_bidask ($bidasks[$i]);
         }
         return $result;
     }
@@ -11467,8 +11439,8 @@ class gemini extends Exchange {
         ), $params));
         $timestamp = $this->milliseconds ();
         return array (
-            'bids' => $this->parse_orderBook ($orderbook['bids'], 'price', 'amount'),
-            'asks' => $this->parse_orderBook ($orderbook['asks'], 'price', 'amount'),
+            'bids' => $this->parse_bidasks ($orderbook['bids'], 'price', 'amount'),
+            'asks' => $this->parse_bidasks ($orderbook['asks'], 'price', 'amount'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
@@ -12985,8 +12957,8 @@ class kraken extends Exchange {
         $orderbook = $response['result'][$market['id']];
         $timestamp = $this->milliseconds ();
         return array (
-            'bids' => $this->floatval ($orderbook['bids']),
-            'asks' => $this->floatval ($orderbook['asks']),
+            'bids' => $this->parse_bidasks ($orderbook['bids']),
+            'asks' => $this->parse_bidasks ($orderbook['asks']),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
@@ -16496,7 +16468,7 @@ class virwox extends Exchange {
         $timestamp = $this->milliseconds ();
         return array (
             'bids' => $this->parse_bidasks ($orderbook['buy'], 'price', 'volume'),
-            'asks' => $this->parse_bidasks ($orderbook['asks'], 'price', 'volume'),
+            'asks' => $this->parse_bidasks ($orderbook['sell'], 'price', 'volume'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
@@ -16746,8 +16718,8 @@ class xbtce extends Exchange {
         $orderbook = $orderbook[0];
         $timestamp = $orderbook['Timestamp'];
         return array (
-            'bids' => $this->parse_bidasks ($orderbook['bids'], 'Price', 'Volume'),
-            'asks' => $this->parse_bidasks ($orderbook['asks'], 'Price', 'Volume'),
+            'bids' => $this->parse_bidasks ($orderbook['Bids'], 'Price', 'Volume'),
+            'asks' => $this->parse_bidasks ($orderbook['Asks'], 'Price', 'Volume'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
