@@ -12134,6 +12134,7 @@ var hitbtc2 = extend (hitbtc, {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let clientOrderId = this.milliseconds ();
+        amount = parseFloat (amount);
         let order = {
             'clientOrderId': clientOrderId.toString (),
             'symbol': market['id'],
@@ -12141,8 +12142,10 @@ var hitbtc2 = extend (hitbtc, {
             'quantity': amount.toString (),
             'type': type,
         };
-        if (type == 'limit')
+        if (type == 'limit') {
+            price = parseFloat (price);
             order['price'] = '%.10f'.sprintf (price);
+        }
         let response = await this.privatePostOrder (this.extend (order, params));
         return {
             'info': response,
@@ -12159,14 +12162,15 @@ var hitbtc2 = extend (hitbtc, {
 
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
-        let response = await this.paymentPostPayout (this.extend ({
-            'currency_code': currency,
-            'amount': amount,
+        amount = parseFloat (amount);
+        let response = await this.privatePostAccountCryptoWithdraw (this.extend ({
+            'currency': currency,
+            'amount': amount.toString (),
             'address': address,
         }, params));
         return {
             'info': response,
-            'id': response['transaction'],
+            'id': response['id'],
         };
     },
 
