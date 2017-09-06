@@ -12143,7 +12143,7 @@ var hitbtc2 = extend (hitbtc, {
         };
         if (type == 'limit')
             order['price'] = '%.10f'.sprintf (price);
-        let response = await this.tradingPostNewOrder (this.extend (order, params));
+        let response = await this.privatePostOrder (this.extend (order, params));
         return {
             'info': response,
             'id': response['clientOrderId'],
@@ -12152,7 +12152,7 @@ var hitbtc2 = extend (hitbtc, {
 
     async cancelOrder (id, params = {}) {
         await this.loadMarkets ();
-        return this.tradingPostCancelOrder (this.extend ({
+        return this.privateDeleteOrder (this.extend ({
             'clientOrderId': id,
         }, params));
     },
