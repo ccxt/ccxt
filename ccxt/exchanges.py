@@ -682,12 +682,7 @@ class anxpro (Exchange):
         orderbook = response['data']
         t = int(orderbook['dataUpdateTime'])
         timestamp = int(t / 1000)
-        return {
-            'bids': self.parse_bidasks(orderbook['bids'], 'price', 'amount'),
-            'asks': self.parse_bidasks(orderbook['asks'], 'price', 'amount'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def fetch_ticker(self, market):
         response = self.publicGetCurrencyPairMoneyTicker({
@@ -888,13 +883,7 @@ class binance (Exchange):
             'symbol': market['id'],
             'limit': 100, # default = maximum = 100
         }, params))
-        timestamp = self.milliseconds()
-        return {
-            'bids': self.parse_bidasks(orderbook['bids']),
-            'asks': self.parse_bidasks(orderbook['asks']),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        return self.parse_order_book(orderbook)
 
     def parse_ticker(self, ticker, market):
         timestamp = ticker['closeTime']
@@ -1160,13 +1149,7 @@ class bit2c (Exchange):
         orderbook = self.publicGetExchangesPairOrderbook(self.extend({
             'pair': self.market_id(market),
         }, params))
-        timestamp = self.milliseconds()
-        return {
-            'bids': self.parse_bidasks(orderbook['bids']),
-            'asks': self.parse_bidasks(orderbook['asks']),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        return self.parse_order_book(orderbook)
 
     def fetch_ticker(self, market):
         ticker = self.publicGetExchangesPairTicker({
@@ -1340,13 +1323,7 @@ class bitbay (Exchange):
         orderbook = self.publicGetIdOrderbook(self.extend({
             'id': self.market_id(market),
         }, params))
-        timestamp = self.milliseconds()
-        return {
-            'bids': orderbook['bids'],
-            'asks': orderbook['asks'],
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        return self.parse_order_book(orderbook)
 
     def fetch_ticker(self, market):
         ticker = self.publicGetIdTicker({
@@ -1491,13 +1468,7 @@ class bitbays (Exchange):
             'market': self.market_id(symbol),
         }, params))
         orderbook = response['result']
-        timestamp = self.milliseconds()
-        return {
-            'bids': self.parse_bidasks(orderbook['bids']),
-            'asks': self.parse_bidasks(orderbook['asks']),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        return self.parse_order_book(response['result'])
 
     def fetch_ticker(self, symbol):
         response = self.publicGetTicker({
@@ -1665,13 +1636,7 @@ class bitcoincoid (Exchange):
         orderbook = self.publicGetPairDepth(self.extend({
             'pair': self.market_id(symbol),
         }, params))
-        timestamp = self.milliseconds()
-        return {
-            'bids': self.parse_bidasks(orderbook['buy']),
-            'asks': self.parse_bidasks(orderbook['sell']),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        return self.parse_order_book(orderbook, None, 'buy', 'sell')
 
     def fetch_ticker(self, symbol):
         market = self.market(symbol)
@@ -1896,13 +1861,7 @@ class bitfinex (Exchange):
         orderbook = self.publicGetBookSymbol(self.extend({
             'symbol': self.market_id(symbol),
         }, params))
-        timestamp = self.milliseconds()
-        return {
-            'bids': self.parse_bidasks(orderbook['bids'], 'price', 'amount'),
-            'asks': self.parse_bidasks(orderbook['asks'], 'price', 'amount'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
     def fetch_ticker(self, symbol):
         self.load_markets()
@@ -2480,13 +2439,7 @@ class bitflyer (Exchange):
         orderbook = self.publicGetBoard(self.extend({
             'product_code': self.market_id(symbol),
         }, params))
-        timestamp = self.milliseconds()
-        return {
-            'bids': self.parse_bidasks(orderbook['bids'], 'price', 'size'),
-            'asks': self.parse_bidasks(orderbook['asks'], 'price', 'size'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'size')
 
     def fetch_ticker(self, symbol):
         self.load_markets()
@@ -2733,12 +2686,7 @@ class bitlish (Exchange):
             'pair_id': self.market_id(symbol),
         }, params))
         timestamp = int(int(orderbook['last']) / 1000)
-        return {
-            'bids': self.parse_bidasks(orderbook['bid'], 'price', 'volume'),
-            'asks': self.parse_bidasks(orderbook['ask'], 'price', 'volume'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        return self.parse_order_book(orderbook, timestamp, 'bid', 'ask', 'price', 'volume')
 
     def parse_trade(self, trade, market=None):
         side = 'buy' if(trade['dir'] == 'bid') else 'sell'
@@ -3486,12 +3434,7 @@ class bitso (Exchange):
         }, params))
         orderbook = response['payload']
         timestamp = self.parse8601(orderbook['updated_at'])
-        return {
-            'bids': self.parse_bidasks(orderbook['bids'], 'price', 'amount'),
-            'asks': self.parse_bidasks(orderbook['asks'], 'price', 'amount'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def fetch_ticker(self, symbol):
         self.load_markets()
@@ -3662,12 +3605,7 @@ class bitstamp (Exchange):
             'id': self.market_id(symbol),
         }, params))
         timestamp = int(orderbook['timestamp']) * 1000
-        return {
-            'bids': self.parse_bidasks(orderbook['bids']),
-            'asks': self.parse_bidasks(orderbook['asks']),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        return self.parse_order_book(orderbook, timestamp)
 
     def fetch_ticker(self, symbol):
         ticker = self.publicGetTickerId({
@@ -3927,13 +3865,7 @@ class bittrex (Exchange):
             'depth': 50,
         }, params))
         orderbook = response['result']
-        timestamp = self.milliseconds()
-        return {
-            'bids': self.parse_bidasks(orderbook['buy'], 'Rate', 'Quantity'),
-            'asks': self.parse_bidasks(orderbook['sell'], 'Rate', 'Quantity'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
 
     def parse_ticker(self, ticker, market):
         timestamp = self.parse8601(ticker['TimeStamp'])
@@ -4189,13 +4121,7 @@ class blinktrade (Exchange):
             'currency': market['quote'],
             'crypto_currency': market['base'],
         }, params))
-        timestamp = self.milliseconds()
-        return {
-            'bids': self.parse_bidasks(orderbook['bids']),
-            'asks': self.parse_bidasks(orderbook['bids']),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        return self.parse_order_book(orderbook)
 
     def fetch_ticker(self, symbol):
         market = self.market(symbol)
