@@ -2652,13 +2652,7 @@ class bitcoincoid extends Exchange {
         for ($k = 0; $k < count ($keys); $k++) {
             $key = $keys[$k];
             $side = $sides[$key];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = floatval ($order[0]);
-                $amount = floatval ($order[1]);
-                $result[$key][] = array ($price, $amount);
-            }
+            $result[$key] = $this->parse_bidasks ($orderbook[$side]);
         }
         return $result;
     }
@@ -2910,14 +2904,7 @@ class bitfinex extends Exchange {
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
             $side = $sides[$s];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = floatval ($order['price']);
-                $amount = floatval ($order['amount']);
-                $timestamp = intval (floatval ($order['timestamp']));
-                $result[$side][] = array ($price, $amount, $timestamp);
-            }
+            $result[$side] = $this->parse_bidasks ($orderbook[$side], 'price', 'amount');
         }
         return $result;
     }
@@ -3200,6 +3187,7 @@ class bitfinex2 extends bitfinex {
                     'post' => array (
                         'auth/r/wallets',
                         'auth/r/orders/{symbol}',
+                        'auth/r/orders/{symbol}/new',
                         'auth/r/orders/{symbol}/hist',
                         'auth/r/order/{symbol}:{id}/trades',
                         'auth/r/trades/{symbol}/hist',
@@ -3212,8 +3200,8 @@ class bitfinex2 extends bitfinex {
                         'auth/r/funding/trades/{symbol}/hist',
                         'auth/r/info/margin/{key}',
                         'auth/r/info/funding/{key}',
-                        'auth/r/movements/Currency/hist',
-                        'auth/r/stats/perf::1D/hist',
+                        'auth/r/movements/{currency}/hist',
+                        'auth/r/stats/perf:{timeframe}/hist',
                         'auth/r/alerts',
                         'auth/w/alert/set',
                         'auth/w/alert/{type}:{symbol}:{price}/del',
@@ -3263,7 +3251,6 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_balance ($params = array ()) {
-        $this->load_markets ();
         $response = $this->privatePostAuthRWallets ();
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($response); $b++) {
@@ -3286,7 +3273,6 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
-        $this->load_markets ();
         $orderbook = $this->publicGetBookSymbolPrecision (array_merge (array (
             'symbol' => $this->market_id ($symbol),
             'precision' => 'R0',
@@ -3311,7 +3297,6 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_ticker ($symbol) {
-        $this->load_markets ();
         $ticker = $this->publicGetTickerSymbol (array (
             'symbol' => $this->market_id ($symbol),
         ));
@@ -3355,7 +3340,6 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_trades ($symbol, $params = array ()) {
-        $this->load_markets ();
         $market = $this->market ($symbol);
         $response = $this->publicGetTradesSymbolHist (array_merge (array (
             'symbol' => $market['id'],
@@ -3364,8 +3348,6 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $this->load_markets ();
-        $method = 'publicGetGraphsMarket' . $this->timeframes[$timeframe];
         $market = $this->market ($symbol);
         $request = array (
             'symbol' => $market['id'],
@@ -3381,6 +3363,7 @@ class bitfinex2 extends bitfinex {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $market = $this->market ($symbol);
         throw new NotSupported ($this->id . ' createOrder not implemented yet');
     }
 
@@ -12351,7 +12334,10 @@ class hitbtc2 extends hitbtc {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api' => 'https://api.hitbtc.com',
                 'www' => 'https://hitbtc.com',
-                'doc' => 'https://api.hitbtc.com/api/2/explore',
+                'doc' => array (
+                    'https://api.hitbtc.com/api/2/explore',
+                    'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
+                ),
             ),
             'api' => array (
                 'public' => array (
@@ -12473,18 +12459,25 @@ class hitbtc2 extends hitbtc {
     public function parse_ticker ($ticker, $market) {
         $timestamp = $this->parse8601 ($ticker['timestamp']);
         $high = null;
-        if (array_key_exists (('high', $ticker)) && ($ticker['high']))
-            $high = floatval ($ticker['high']);
+        if (array_key_exists ('high', $ticker))
+            if ($ticker['high'])
+                $high = floatval ($ticker['high']);
         $low = null;
-        if (array_key_exists (('low', $ticker)) && ($ticker['low']))
-            $low = floatval ($ticker['low']);
+        if (array_key_exists ('low', $ticker))
+            if ($ticker['low'])
+                $low = floatval ($ticker['low']);
         $open = null;
-        if (array_key_exists (('open', $ticker)) && ($ticker['open']))
-            $open = floatval ($ticker['open']);
+        if (array_key_exists ('open', $ticker))
+            if ($ticker['open'])
+                $open = floatval ($ticker['open']);
         $close = null;
-        if (array_key_exists (('close', $ticker)) && ($ticker['close']))
-            $close = floatval ($ticker['close']);
-        $last = ($ticker['last']) ? floatval ($ticker['last']) : null;
+        if (array_key_exists ('close', $ticker))
+            if ($ticker['close'])
+                $close = floatval ($ticker['close']);
+        $last = null;
+        if (array_key_exists ('last', $ticker))
+            if ($ticker['last'])
+                $last = floatval ($ticker['last']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),

@@ -1657,12 +1657,7 @@ class bitcoincoid (Exchange):
         for k in range(0, len(keys)):
             key = keys[k]
             side = sides[key]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order[0])
-                amount = float(order[1])
-                result[key].append([price, amount])
+            result[key] = self.parse_bidasks(orderbook[side])
         return result
 
     async def fetch_ticker(self, symbol):
@@ -1898,13 +1893,7 @@ class bitfinex (Exchange):
         sides = ['bids', 'asks']
         for s in range(0, len(sides)):
             side = sides[s]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order['price'])
-                amount = float(order['amount'])
-                timestamp = int(float(order['timestamp']))
-                result[side].append([price, amount, timestamp])
+            result[side] = self.parse_bidasks(orderbook[side], 'price', 'amount')
         return result
 
     async def fetch_ticker(self, symbol):
@@ -2166,6 +2155,7 @@ class bitfinex2 (bitfinex):
                     'post': [
                         'auth/r/wallets',
                         'auth/r/orders/{symbol}',
+                        'auth/r/orders/{symbol}/new',
                         'auth/r/orders/{symbol}/hist',
                         'auth/r/order/{symbol}:{id}/trades',
                         'auth/r/trades/{symbol}/hist',
@@ -2178,8 +2168,8 @@ class bitfinex2 (bitfinex):
                         'auth/r/funding/trades/{symbol}/hist',
                         'auth/r/info/margin/{key}',
                         'auth/r/info/funding/{key}',
-                        'auth/r/movements/Currency/hist',
-                        'auth/r/stats/perf::1D/hist',
+                        'auth/r/movements/{currency}/hist',
+                        'auth/r/stats/perf:{timeframe}/hist',
                         'auth/r/alerts',
                         'auth/w/alert/set',
                         'auth/w/alert/{type}:{symbol}:{price}/del',
@@ -2230,7 +2220,6 @@ class bitfinex2 (bitfinex):
         super(bitfinex2, self).__init__(params)
 
     async def fetch_balance(self, params={}):
-        await self.load_markets()
         response = await self.privatePostAuthRWallets()
         result = {'info': response}
         for b in range(0, len(response)):
@@ -2251,7 +2240,6 @@ class bitfinex2 (bitfinex):
         return result
 
     async def fetch_order_book(self, symbol, params={}):
-        await self.load_markets()
         orderbook = await self.publicGetBookSymbolPrecision(self.extend({
             'symbol': self.market_id(symbol),
             'precision': 'R0',
@@ -2274,7 +2262,6 @@ class bitfinex2 (bitfinex):
         return result
 
     async def fetch_ticker(self, symbol):
-        await self.load_markets()
         ticker = await self.publicGetTickerSymbol({
             'symbol': self.market_id(symbol),
         })
@@ -2316,7 +2303,6 @@ class bitfinex2 (bitfinex):
         }
 
     async def fetch_trades(self, symbol, params={}):
-        await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetTradesSymbolHist(self.extend({
             'symbol': market['id'],
@@ -2324,8 +2310,6 @@ class bitfinex2 (bitfinex):
         return self.parse_trades(response, market)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        await self.load_markets()
-        method = 'publicGetGraphsMarket' + self.timeframes[timeframe]
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -2340,6 +2324,7 @@ class bitfinex2 (bitfinex):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        market = self.market(symbol)
         raise NotSupported(self.id + ' createOrder not implemented yet')
 
     async def cancel_order(self, id):
@@ -10719,7 +10704,10 @@ class hitbtc2 (hitbtc):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api': 'https://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
-                'doc': 'https://api.hitbtc.com/api/2/explore',
+                'doc': [
+                    'https://api.hitbtc.com/api/2/explore',
+                    'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
+                ],
             },
             'api': {
                 'public': {
@@ -10836,18 +10824,25 @@ class hitbtc2 (hitbtc):
     def parse_ticker(self, ticker, market):
         timestamp = self.parse8601(ticker['timestamp'])
         high = None
-        if('high' in list(ticker.keys())) and(ticker['high']):
-            high = float(ticker['high'])
+        if 'high' in ticker:
+            if ticker['high']:
+                high = float(ticker['high'])
         low = None
-        if('low' in list(ticker.keys())) and(ticker['low']):
-            low = float(ticker['low'])
+        if 'low' in ticker:
+            if ticker['low']:
+                low = float(ticker['low'])
         open = None
-        if('open' in list(ticker.keys())) and(ticker['open']):
-            open = float(ticker['open'])
+        if 'open' in ticker:
+            if ticker['open']:
+                open = float(ticker['open'])
         close = None
-        if('close' in list(ticker.keys())) and(ticker['close']):
-            close = float(ticker['close'])
-        last = float(ticker['last']) if(ticker['last']) else None
+        if 'close' in ticker:
+            if ticker['close']:
+                close = float(ticker['close'])
+        last = None
+        if 'last' in ticker:
+            if ticker['last']:
+                last = float(ticker['last'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

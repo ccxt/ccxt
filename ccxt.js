@@ -2415,13 +2415,7 @@ var bitcoincoid = {
         for (let k = 0; k < keys.length; k++) {
             let key = keys[k];
             let side = sides[key];
-            let orders = orderbook[side];
-            for (let i = 0; i < orders.length; i++) {
-                let order = orders[i];
-                let price = parseFloat (order[0]);
-                let amount = parseFloat (order[1]);
-                result[key].push ([ price, amount ]);
-            }
+            result[key] = this.parseBidAsks (orderbook[side]);
         }
         return result;
     },
@@ -2669,14 +2663,7 @@ var bitfinex = {
         let sides = [ 'bids', 'asks' ];
         for (let s = 0; s < sides.length; s++) {
             let side = sides[s];
-            let orders = orderbook[side];
-            for (let i = 0; i < orders.length; i++) {
-                let order = orders[i];
-                let price = parseFloat (order['price']);
-                let amount = parseFloat (order['amount']);
-                let timestamp = parseInt (parseFloat (order['timestamp']));
-                result[side].push ([ price, amount, timestamp ]);
-            }
+            result[side] = this.parseBidAsks (orderbook[side], 'price', 'amount');
         }
         return result;
     },
@@ -2957,6 +2944,7 @@ var bitfinex2 = extend (bitfinex, {
             'post': [
                 'auth/r/wallets',
                 'auth/r/orders/{symbol}',
+                'auth/r/orders/{symbol}/new',
                 'auth/r/orders/{symbol}/hist',
                 'auth/r/order/{symbol}:{id}/trades',
                 'auth/r/trades/{symbol}/hist',
@@ -2969,8 +2957,8 @@ var bitfinex2 = extend (bitfinex, {
                 'auth/r/funding/trades/{symbol}/hist',
                 'auth/r/info/margin/{key}',
                 'auth/r/info/funding/{key}',
-                'auth/r/movements/Currency/hist',
-                'auth/r/stats/perf::1D/hist',
+                'auth/r/movements/{currency}/hist',
+                'auth/r/stats/perf:{timeframe}/hist',
                 'auth/r/alerts',
                 'auth/w/alert/set',
                 'auth/w/alert/{type}:{symbol}:{price}/del',
@@ -3018,7 +3006,6 @@ var bitfinex2 = extend (bitfinex, {
     },
 
     async fetchBalance (params = {}) {
-        await this.loadMarkets ();
         let response = await this.privatePostAuthRWallets ();
         let result = { 'info': response };
         for (let b = 0; b < response.length; b++) {
@@ -3041,7 +3028,6 @@ var bitfinex2 = extend (bitfinex, {
     },
 
     async fetchOrderBook (symbol, params = {}) {
-        await this.loadMarkets ();
         let orderbook = await this.publicGetBookSymbolPrecision (this.extend ({
             'symbol': this.marketId (symbol),
             'precision': 'R0',
@@ -3066,7 +3052,6 @@ var bitfinex2 = extend (bitfinex, {
     },
 
     async fetchTicker (symbol) {
-        await this.loadMarkets ();
         let ticker = await this.publicGetTickerSymbol ({
             'symbol': this.marketId (symbol),
         });
@@ -3110,7 +3095,6 @@ var bitfinex2 = extend (bitfinex, {
     },
 
     async fetchTrades (symbol, params = {}) {
-        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTradesSymbolHist (this.extend ({
             'symbol': market['id'],
@@ -3119,8 +3103,6 @@ var bitfinex2 = extend (bitfinex, {
     },
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let method = 'publicGetGraphsMarket' + this.timeframes[timeframe];
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
@@ -3136,6 +3118,7 @@ var bitfinex2 = extend (bitfinex, {
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        let market = this.market (symbol);
         throw new NotSupported (this.id + ' createOrder not implemented yet');
     },
 
@@ -11928,7 +11911,10 @@ var hitbtc2 = extend (hitbtc, {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
         'api': 'https://api.hitbtc.com',
         'www': 'https://hitbtc.com',
-        'doc': 'https://api.hitbtc.com/api/2/explore',
+        'doc': [
+            'https://api.hitbtc.com/api/2/explore',
+            'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
+        ],
     },
     'api': {
         'public': {
@@ -12048,18 +12034,25 @@ var hitbtc2 = extend (hitbtc, {
     parseTicker (ticker, market) {
         let timestamp = this.parse8601 (ticker['timestamp']);
         let high = undefined;
-        if (('high' in ticker) && (ticker['high']))
-            high = parseFloat (ticker['high']);
+        if ('high' in ticker)
+            if (ticker['high'])
+                high = parseFloat (ticker['high']);
         let low = undefined;
-        if (('low' in ticker) && (ticker['low']))
-            low = parseFloat (ticker['low']);
+        if ('low' in ticker)
+            if (ticker['low'])
+                low = parseFloat (ticker['low']);
         let open = undefined;
-        if (('open' in ticker) && (ticker['open']))
-            open = parseFloat (ticker['open']);
+        if ('open' in ticker)
+            if (ticker['open'])
+                open = parseFloat (ticker['open']);
         let close = undefined;
-        if (('close' in ticker) && (ticker['close']))
-            close = parseFloat (ticker['close']);
-        let last = (ticker['last']) ? parseFloat (ticker['last']) : undefined;
+        if ('close' in ticker)
+            if (ticker['close'])
+                close = parseFloat (ticker['close']);
+        let last = undefined;
+        if ('last' in ticker)
+            if (ticker['last'])
+                last = parseFloat (ticker['last']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
