@@ -11022,8 +11022,8 @@ var gemini = {
         }, params));
         let timestamp = this.milliseconds ();
         return {
-            'bids': this.parseOrderBook (orderbook['bids'], 'price', 'amount'),
-            'asks': this.parseOrderBook (orderbook['asks'], 'price', 'amount'),
+            'bids': this.parseBidAsks (orderbook['bids'], 'price', 'amount'),
+            'asks': this.parseBidAsks (orderbook['asks'], 'price', 'amount'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
