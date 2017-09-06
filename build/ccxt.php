@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.48';
+$version = '1.6.49';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -13782,13 +13782,7 @@ class mercado extends Exchange {
         $market = $this->market ($symbol);
         $method = 'publicGetOrderbook' . $this->capitalize ($market['suffix']);
         $orderbook = $this->$method ($params);
-        $timestamp = $this->milliseconds ();
-        return array (
-            'bids' => $orderbook['bids'],
-            'asks' => $orderbook['asks'],
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
+        return $this->parse_order_book ($orderbook);
     }
 
     public function fetch_ticker ($symbol) {
@@ -14392,13 +14386,7 @@ class paymium extends Exchange {
         $orderbook = $this->publicGetDataIdDepth (array_merge (array (
             'id' => $this->market_id ($market),
         ), $params));
-        $timestamp = $this->milliseconds ();
-        $result = array (
-            'bids' => $this->parse_bidasks ($orderbook['bids'], 'price', 'amount'),
-            'asks' => $this->parse_bidasks ($orderbook['asks'], 'price', 'amount'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
+        $result = $this->parse_order_book ($orderbook, null, 'bids', 'asks', 'price', 'amount');
         $result['bids'] = $this->sort_by ($result['bids'], 0, true);
         return $result;
     }
@@ -14617,13 +14605,7 @@ class poloniex extends Exchange {
         $orderbook = $this->publicGetReturnOrderBook (array_merge (array (
             'currencyPair' => $this->market_id ($market),
         ), $params));
-        $timestamp = $this->milliseconds ();
-        return array (
-            'bids' => $this->parse_bidasks ($orderbook['bids']),
-            'asks' => $this->parse_bidasks ($orderbook['asks']),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
+        return $this->parse_order_book ($orderbook);
     }
 
     public function parse_ticker ($ticker, $market) {
@@ -14976,12 +14958,7 @@ class quadrigacx extends Exchange {
             'book' => $this->market_id ($symbol),
         ), $params));
         $timestamp = intval ($orderbook['timestamp']) * 1000;
-        return array (
-            'bids' => $this->parse_bidasks ($orderbook['bids']),
-            'asks' => $this->parse_bidasks ($orderbook['asks']),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
+        return $this->parse_order_book ($orderbook, $timestamp);
     }
 
     public function fetch_ticker ($symbol) {
@@ -15190,13 +15167,7 @@ class quoine extends Exchange {
         $orderbook = $this->publicGetProductsIdPriceLevels (array_merge (array (
             'id' => $this->market_id ($symbol),
         ), $params));
-        $timestamp = $this->milliseconds ();
-        return array (
-            'bids' => $this->parse_bidasks ($orderbook['buy_price_levels']),
-            'asks' => $this->parse_bidasks ($orderbook['sell_price_levels']),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
+        return $this->parse_order_book ($orderbook, null, 'buy_price_levels', 'sell_price_levels');
     }
 
     public function parse_ticker ($ticker, $market) {
@@ -15422,13 +15393,7 @@ class southxchange extends Exchange {
         $orderbook = $this->publicGetBookSymbol (array_merge (array (
             'symbol' => $this->market_id ($symbol),
         ), $params));
-        $timestamp = $this->milliseconds ();
-        return array (
-            'bids' => $this->parse_bidasks ($orderbook['BuyOrders'], 'Price', 'Amount'),
-            'asks' => $this->parse_bidasks ($orderbook['SellOrders'], 'Price', 'Amount'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
+        return $this->parse_order_book ($orderbook, null, 'BuyOrders', 'SellOrders', 'Price', 'Amount');
     }
 
     public function parse_ticker ($ticker, $market) {
@@ -15694,12 +15659,7 @@ class therock extends Exchange {
             'id' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $this->parse8601 ($orderbook['date']);
-        return array (
-            'bids' => $this->parse_bidasks ($orderbook['bids'], 'price', 'amount'),
-            'asks' => $this->parse_bidasks ($orderbook['asks'], 'price', 'amount'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
+        return $this->parse_order_book ($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_ticker ($ticker, $market) {
@@ -15949,13 +15909,7 @@ class vaultoro extends Exchange {
             'bids' => $response['data'][0]['b'],
             'asks' => $response['data'][1]['s'],
         );
-        $timestamp = $this->milliseconds ();
-        $result = array (
-            'bids' => $this->parse_bidasks ($orderbook['bids'], 'Gold_Price', 'Gold_Amount'),
-            'asks' => $this->parse_bidasks ($orderbook['asks'], 'Gold_Price', 'Gold_Amount'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
+        $result = $this->parse_order_book ($orderbook, null, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
         $result['bids'] = $this->sort_by ($result['bids'], 0, true);
         return $result;
     }
@@ -16206,13 +16160,7 @@ class virwox extends Exchange {
             'sellDepth' => 100,
         ), $params));
         $orderbook = $response['result'][0];
-        $timestamp = $this->milliseconds ();
-        return array (
-            'bids' => $this->parse_bidasks ($orderbook['buy'], 'price', 'volume'),
-            'asks' => $this->parse_bidasks ($orderbook['sell'], 'price', 'volume'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
+        return $this->parse_order_book ($orderbook, null, 'buy', 'sell', 'price', 'volume');
     }
 
     public function fetch_ticker ($symbol) {
@@ -16458,12 +16406,7 @@ class xbtce extends Exchange {
         ), $params));
         $orderbook = $orderbook[0];
         $timestamp = $orderbook['Timestamp'];
-        return array (
-            'bids' => $this->parse_bidasks ($orderbook['Bids'], 'Price', 'Volume'),
-            'asks' => $this->parse_bidasks ($orderbook['Asks'], 'Price', 'Volume'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
+        return $this->parse_order_book ($orderbook, $timestamp, 'Bids', 'Asks', 'Price', 'Volume');
     }
 
     public function parse_ticker ($ticker, $market) {
@@ -16970,12 +16913,7 @@ class yunbi extends Exchange {
             'limit' => 300,
         ), $params));
         $timestamp = $orderbook['timestamp'] * 1000;
-        $result = array (
-            'bids' => $this->parse_bidasks ($orderbook['bids']),
-            'asks' => $this->parse_bidasks ($orderbook['asks']),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
+        $result = $this->parse_order_book ($orderbook, $timestamp);
         $result['bids'] = $this->sort_by ($result['bids'], 0, true);
         $result['asks'] = $this->sort_by ($result['asks'], 0);
         return $result;
@@ -17265,13 +17203,7 @@ class zaif extends Exchange {
         $orderbook = $this->publicGetDepthPair (array_merge (array (
             'pair' => $this->market_id ($market),
         ), $params));
-        $timestamp = $this->milliseconds ();
-        return array (
-            'bids' => $orderbook['bids'],
-            'asks' => $orderbook['asks'],
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
+        return $this->parse_order_book ($orderbook);
     }
 
     public function fetch_ticker ($market) {
