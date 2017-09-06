@@ -12517,8 +12517,8 @@ var kraken = {
         let orderbook = response['result'][market['id']];
         let timestamp = this.milliseconds ();
         return {
-            'bids': this.parseFloat (orderbook['bids']),
-            'asks': this.parseFloat (orderbook['asks']),
+            'bids': this.parseBidAsks (orderbook['bids']),
+            'asks': this.parseBidAsks (orderbook['asks']),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
