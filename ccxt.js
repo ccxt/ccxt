@@ -5903,20 +5903,6 @@ var btcmarkets = {
         return result;
     },
 
-    parseBidAsk (bidask) {
-        let price = bidask[0];
-        let amount = bidask[1];
-        return [ price, amount ];
-    },
-
-    parseBidAsks (bidasks) {
-        let result = [];
-        for (let i = 0; i < bidasks.length; i++) {
-            result.push (this.parseBidAsk (bidasks[i]));
-        }
-        return result;
-    },
-
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
