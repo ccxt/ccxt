@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.36';
+$version = '1.6.37';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -1266,13 +1266,7 @@ class cryptocapital extends Exchange {
             $key = $keys[$k];
             $side = $sides[$key];
             $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $timestamp = intval ($order['timestamp']) * 1000;
-                $price = floatval ($order['price']);
-                $amount = floatval ($order['order_amount']);
-                $result[$key][] = array ($price, $amount, $timestamp);
-            }
+            $result[$key] = $this->parse_bidasks ($orderbook[$side], 'price', 'order_amount');
         }
         return $result;
     }
@@ -1547,13 +1541,7 @@ class anxpro extends Exchange {
         $sides = array ('bids', 'asks');
         for ($s = 0; $s < count ($sides); $s++) {
             $side = $sides[$s];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = floatval ($order['price']);
-                $amount = floatval ($order['amount']);
-                $result[$side][] = array ($price, $amount);
-            }
+            $result[$side] = $this->parse_bidasks ($orderbook[$side], 'price', 'amount');
         }
         return $result;
     }
@@ -1768,22 +1756,11 @@ class binance extends Exchange {
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
-            'bids' => array (),
-            'asks' => array (),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        $sides = array ('bids', 'asks');
-        for ($s = 0; $s < count ($sides); $s++) {
-            $side = $sides[$s];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = floatval ($order[0]);
-                $amount = floatval ($order[1]);
-                $result[$side][] = array ($price, $amount);
-            }
-        }
+        $result['bids'] = $this->parse_bidasks ($orderbook['bids']);
+        $result['asks'] = $this->parse_bidasks ($orderbook['asks']);
         return $result;
     }
 
