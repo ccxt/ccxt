@@ -3501,20 +3501,6 @@ var bitlish = {
         };
         result['bids'] = this.parseBidAsks (orderbook['bid'], 'price', 'volume');
         result['asks'] = this.parseBidAsks (orderbook['ask'], 'price', 'volume');
-
-        let sides = { 'bids': 'bid', 'asks': 'ask' };
-        let keys = Object.keys (sides);
-        for (let k = 0; k < keys.length; k++) {
-            let key = keys[k];
-            let side = sides[key];
-            let orders = orderbook[side];
-            for (let i = 0; i < orders.length; i++) {
-                let order = orders[i];
-                let price = parseFloat (order['price']);
-                let amount = parseFloat (order['volume']);
-                result[key].push ([ price, amount ]);
-            }
-        }
         return result;
     },
 
