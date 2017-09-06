@@ -1832,18 +1832,8 @@ var bit2c = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        let sides = [ 'bids', 'asks' ];
-        for (let s = 0; s < sides.length; s++) {
-            let side = sides[s];
-            let orders = orderbook[side];
-            for (let i = 0; i < orders.length; i++) {
-                let order = orders[i];
-                let price = order[0];
-                let amount = order[1];
-                let timestamp = order[2] * 1000;
-                result[side].push ([ price, amount, timestamp ]);
-            }
-        }
+        result['bids'] = this.parseBidAsks (orderbook['bids']);
+        result['asks'] = this.parseBidAsks (orderbook['asks']);
         return result;
     },
 
