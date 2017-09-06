@@ -10915,8 +10915,19 @@ class hitbtc2 (hitbtc):
 
     def parse_ticker(self, ticker, market):
         timestamp = self.parse8601(ticker['timestamp'])
-        high = float(ticker['high']) if(ticker['high']) else None
-        low = float(ticker['low']) if(ticker['low']) else None
+        high = None
+        if('high' in list(ticker.keys())) and(ticker['high']):
+            high = float(ticker['high'])
+        low = None
+        if('low' in list(ticker.keys())) and(ticker['low']):
+            low = float(ticker['low'])
+        open = None
+        if('open' in list(ticker.keys())) and(ticker['open']):
+            open = float(ticker['open'])
+        close = None
+        if('close' in list(ticker.keys())) and(ticker['close']):
+            close = float(ticker['close'])
+        last = float(ticker['last']) if(ticker['last']) else None
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
