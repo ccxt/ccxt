@@ -1266,13 +1266,12 @@ class bitbay (Exchange):
             'id': self.market_id(market),
         }, params))
         timestamp = self.milliseconds()
-        result = {
+        return {
             'bids': orderbook['bids'],
             'asks': orderbook['asks'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        return result
 
     async def fetch_ticker(self, market):
         ticker = await self.publicGetIdTicker({
@@ -2877,13 +2876,12 @@ class bitmarket (Exchange):
             'market': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
-        result = {
+        return {
             'bids': orderbook['bids'],
             'asks': orderbook['asks'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        return result
 
     async def fetch_ticker(self, symbol):
         ticker = await self.publicGetJsonMarketTicker({
@@ -6514,13 +6512,12 @@ class cex (Exchange):
             'pair': self.market_id(symbol),
         }, params))
         timestamp = orderbook['timestamp'] * 1000
-        result = {
+        return {
             'bids': orderbook['bids'],
             'asks': orderbook['asks'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        return result
 
     def parse_ticker(self, ticker, market):
         timestamp = int(ticker['timestamp']) * 1000
@@ -9701,22 +9698,12 @@ class gdax (Exchange):
             'level': 2, # 1 best bidask, 2 aggregated, 3 full
         }, params))
         timestamp = self.milliseconds()
-        result = {
-            'bids': [],
-            'asks': [],
+        return {
+            'bids': self.parse_bidasks(orderbook['bids']),
+            'asks': self.parse_bidasks(orderbook['asks']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = ['bids', 'asks']
-        for s in range(0, len(sides)):
-            side = sides[s]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order[0])
-                amount = float(order[1])
-                result[side].append([price, amount])
-        return result
 
     async def fetch_ticker(self, symbol):
         await self.load_markets()
@@ -9945,23 +9932,12 @@ class gemini (Exchange):
             'symbol': self.market_id(market),
         }, params))
         timestamp = self.milliseconds()
-        result = {
-            'bids': [],
-            'asks': [],
+        return {
+            'bids': self.parseOrderBook(orderbook['bids'], 'price', 'amount'),
+            'asks': self.parseOrderBook(orderbook['asks'], 'price', 'amount'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = ['bids', 'asks']
-        for s in range(0, len(sides)):
-            side = sides[s]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order['price'])
-                amount = float(order['amount'])
-                timestamp = int(order['timestamp']) * 1000
-                result[side].append([price, amount, timestamp])
-        return result
 
     async def fetch_ticker(self, symbol):
         await self.load_markets()
@@ -10197,22 +10173,12 @@ class hitbtc (Exchange):
             'symbol': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
-        result = {
-            'bids': [],
-            'asks': [],
+        return {
+            'bids': self.parse_bidasks(orderbook['bids']),
+            'asks': self.parse_bidasks(orderbook['asks']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = ['bids', 'asks']
-        for s in range(0, len(sides)):
-            side = sides[s]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order[0])
-                amount = float(order[1])
-                result[side].append([price, amount])
-        return result
 
     def parse_ticker(self, ticker, market):
         timestamp = ticker['timestamp']
@@ -10483,19 +10449,12 @@ class hitbtc2 (hitbtc):
             'symbol': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
-        result = {
-            'bids': [],
-            'asks': [],
+        return {
+            'bids': self.parse_bidasks(orderbook['bid'], 'price', 'size'),
+            'asks': self.parse_bidasks(orderbook['ask'], 'price', 'size'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = {'bids': 'bid', 'asks': 'ask'}
-        keys = list(sides.keys())
-        for k in range(0, len(keys)):
-            key = keys[k]
-            side = sides[key]
-            result[key] = self.parse_bidasks(orderbook[side], 'price', 'size')
-        return result
 
     def parse_ticker(self, ticker, market):
         timestamp = self.parse8601(ticker['timestamp'])
@@ -10752,13 +10711,12 @@ class huobi (Exchange):
         method = market['type'] + 'GetDepthId'
         orderbook = await getattr(self, method)(self.extend({'id': market['id']}, params))
         timestamp = self.milliseconds()
-        result = {
+        return {
             'bids': orderbook['bids'],
             'asks': orderbook['asks'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        return result
 
     async def fetch_ticker(self, symbol):
         market = self.market(symbol)
@@ -10946,22 +10904,12 @@ class itbit (Exchange):
             'symbol': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
-        result = {
-            'bids': [],
-            'asks': [],
+        return {
+            'bids': self.parse_bidasks(orderbook['bids']),
+            'asks': self.parse_bidasks(orderbook['asks']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = ['bids', 'asks']
-        for s in range(0, len(sides)):
-            side = sides[s]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order[0])
-                amount = float(order[1])
-                result[side].append([price, amount])
-        return result
 
     async def fetch_ticker(self, symbol):
         ticker = await self.publicGetMarketsSymbolTicker({
@@ -11416,23 +11364,12 @@ class kraken (Exchange):
         }, params))
         orderbook = response['result'][market['id']]
         timestamp = self.milliseconds()
-        result = {
-            'bids': [],
-            'asks': [],
+        return {
+            'bids': self.float(orderbook['bids']),
+            'asks': self.float(orderbook['asks']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = ['bids', 'asks']
-        for s in range(0, len(sides)):
-            side = sides[s]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order[0])
-                amount = float(order[1])
-                timestamp = order[2] * 1000
-                result[side].append([price, amount, timestamp])
-        return result
 
     def parse_ticker(self, ticker, market):
         timestamp = self.milliseconds()
@@ -11751,22 +11688,12 @@ class lakebtc (Exchange):
             'symbol': self.market_id(market),
         }, params))
         timestamp = self.milliseconds()
-        result = {
-            'bids': [],
-            'asks': [],
+        return {
+            'bids': self.parse_bidasks(orderbook['bids']),
+            'asks': self.parse_bidasks(orderbook['asks']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = ['bids', 'asks']
-        for s in range(0, len(sides)):
-            side = sides[s]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order[0])
-                amount = float(order[1])
-                result[side].append([price, amount])
-        return result
 
     async def fetch_ticker(self, symbol):
         await self.load_markets()
@@ -11989,22 +11916,12 @@ class livecoin (Exchange):
             'depth': 100,
         }, params))
         timestamp = orderbook['timestamp']
-        result = {
-            'bids': [],
-            'asks': [],
+        return {
+            'bids': self.parse_bidasks(orderbook['bids']),
+            'asks': self.parse_bidasks(orderbook['asks']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = ['bids', 'asks']
-        for s in range(0, len(sides)):
-            side = sides[s]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order[0])
-                amount = float(order[1])
-                result[side].append([price, amount])
-        return result
 
     def parse_ticker(self, ticker, market):
         timestamp = self.milliseconds()
@@ -12283,23 +12200,12 @@ class luno (Exchange):
             'pair': self.market_id(symbol),
         }, params))
         timestamp = orderbook['timestamp']
-        result = {
-            'bids': [],
-            'asks': [],
+        return {
+            'bids': self.parse_bidasks(orderbook['bids'], 'price', 'volume'),
+            'asks': self.parse_bidasks(orderbook['asks'], 'price', 'volume'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = ['bids', 'asks']
-        for s in range(0, len(sides)):
-            side = sides[s]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order['price'])
-                amount = float(order['volume'])
-                # timestamp = order[2] * 1000
-                result[side].append([price, amount])
-        return result
 
     def parse_ticker(self, ticker, market):
         timestamp = ticker['timestamp']
@@ -12475,13 +12381,12 @@ class mercado (Exchange):
         method = 'publicGetOrderbook' + self.capitalize(market['suffix'])
         orderbook = await getattr(self, method)(params)
         timestamp = self.milliseconds()
-        result = {
+        return {
             'bids': orderbook['bids'],
             'asks': orderbook['asks'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        return result
 
     async def fetch_ticker(self, symbol):
         market = self.market(symbol)
@@ -12681,13 +12586,12 @@ class okcoin (Exchange):
             'symbol': self.market_id(market),
         }, params))
         timestamp = self.milliseconds()
-        result = {
+        return {
             'bids': orderbook['bids'],
             'asks': self.sort_by(orderbook['asks'], 0),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        return result
 
     def parse_ticker(self, ticker, market):
         timestamp = ticker['timestamp']
@@ -12905,13 +12809,12 @@ class okex (okcoin):
             'contract_type': 'this_week', # next_week, quarter
         }, params))
         timestamp = self.milliseconds()
-        result = {
+        return {
             'bids': orderbook['bids'],
             'asks': self.sort_by(orderbook['asks'], 0),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        return result
 
     async def fetch_ticker(self, symbol, params={}):
         market = self.market(symbol)
@@ -13054,21 +12957,11 @@ class paymium (Exchange):
         }, params))
         timestamp = self.milliseconds()
         result = {
-            'bids': [],
-            'asks': [],
+            'bids': self.parse_bidasks(orderbook['bids'], 'price', 'amount'),
+            'asks': self.parse_bidasks(orderbook['asks'], 'price', 'amount'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = ['bids', 'asks']
-        for s in range(0, len(sides)):
-            side = sides[s]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = order['price']
-                amount = order['amount']
-                timestamp = order['timestamp'] * 1000
-                result[side].append([price, amount, timestamp])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         return result
 
@@ -13270,34 +13163,18 @@ class poloniex (Exchange):
             result[currency] = account
         return result
 
-    def parse_bidask(self, bidask):
-        price = float(bidask[0])
-        amount = float(bidask[1])
-        return [price, amount]
-
-    def parse_bidasks(self, bidasks):
-        result = []
-        for i in range(0, len(bidasks)):
-            result.append(self.parse_bidask(bidasks[i]))
-        return result
-
     async def fetch_order_book(self, market, params={}):
         await self.load_markets()
         orderbook = await self.publicGetReturnOrderBook(self.extend({
             'currencyPair': self.market_id(market),
         }, params))
         timestamp = self.milliseconds()
-        result = {
-            'bids': [],
-            'asks': [],
+        return {
+            'bids': self.parse_bidasks(orderbook['bids']),
+            'asks': self.parse_bidasks(orderbook['asks']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = ['bids', 'asks']
-        for s in range(0, len(sides)):
-            side = sides[s]
-            result[side] = self.parse_bidasks(orderbook[side])
-        return result
 
     def parse_ticker(self, ticker, market):
         timestamp = self.milliseconds()
@@ -13621,22 +13498,12 @@ class quadrigacx (Exchange):
             'book': self.market_id(symbol),
         }, params))
         timestamp = int(orderbook['timestamp']) * 1000
-        result = {
-            'bids': [],
-            'asks': [],
+        return {
+            'bids': self.parse_bidasks(orderbook['bids']),
+            'asks': self.parse_bidasks(orderbook['asks']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = ['bids', 'asks']
-        for s in range(0, len(sides)):
-            side = sides[s]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order[0])
-                amount = float(order[1])
-                result[side].append([price, amount])
-        return result
 
     async def fetch_ticker(self, symbol):
         ticker = await self.publicGetTicker({
@@ -13834,24 +13701,12 @@ class quoine (Exchange):
             'id': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
-        result = {
-            'bids': [],
-            'asks': [],
+        return {
+            'bids': self.parse_bidasks(orderbook['buy_price_levels']),
+            'asks': self.parse_bidasks(orderbook['sell_price_levels']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = {'bids': 'buy_price_levels', 'asks': 'sell_price_levels'}
-        keys = list(sides.keys())
-        for k in range(0, len(keys)):
-            key = keys[k]
-            side = sides[key]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order[0])
-                amount = float(order[1])
-                result[key].append([price, amount])
-        return result
 
     def parse_ticker(self, ticker, market):
         timestamp = self.milliseconds()
@@ -14061,24 +13916,12 @@ class southxchange (Exchange):
             'symbol': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
-        result = {
-            'bids': [],
-            'asks': [],
+        return {
+            'bids': self.parse_bidasks(orderbook['BuyOrders'], 'Price', 'Amount'),
+            'asks': self.parse_bidasks(orderbook['SellOrders'], 'Price', 'Amount'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = {'bids': 'BuyOrders', 'asks': 'SellOrders'}
-        keys = list(sides.keys())
-        for k in range(0, len(keys)):
-            key = keys[k]
-            side = sides[key]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order['Price'])
-                amount = float(order['Amount'])
-                result[key].append([price, amount])
-        return result
 
     def parse_ticker(self, ticker, market):
         timestamp = self.milliseconds()
@@ -14329,22 +14172,12 @@ class therock (Exchange):
             'id': self.market_id(symbol),
         }, params))
         timestamp = self.parse8601(orderbook['date'])
-        result = {
-            'bids': [],
-            'asks': [],
+        return {
+            'bids': self.parse_bidasks(orderbook['bids'], 'price', 'amount'),
+            'asks': self.parse_bidasks(orderbook['asks'], 'price', 'amount'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = ['bids', 'asks']
-        for s in range(0, len(sides)):
-            side = sides[s]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order['price'])
-                amount = float(order['amount'])
-                result[side].append([price, amount])
-        return result
 
     def parse_ticker(self, ticker, market):
         timestamp = self.parse8601(ticker['date'])
@@ -14581,20 +14414,11 @@ class vaultoro (Exchange):
         }
         timestamp = self.milliseconds()
         result = {
-            'bids': [],
-            'asks': [],
+            'bids': self.parse_bidasks(orderbook['bids'], 'Gold_Price', 'Gold_Amount'),
+            'asks': self.parse_bidasks(orderbook['asks'], 'Gold_Price', 'Gold_Amount'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = ['bids', 'asks']
-        for s in range(0, len(sides)):
-            side = sides[s]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = order['Gold_Price']
-                amount = order['Gold_Amount']
-                result[side].append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         return result
 
@@ -14833,24 +14657,12 @@ class virwox (Exchange):
         }, params))
         orderbook = response['result'][0]
         timestamp = self.milliseconds()
-        result = {
-            'bids': [],
-            'asks': [],
+        return {
+            'bids': self.parse_bidasks(orderbook['buy'], 'price', 'volume'),
+            'asks': self.parse_bidasks(orderbook['asks'], 'price', 'volume'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = {'bids': 'buy', 'asks': 'sell'}
-        keys = list(sides.keys())
-        for k in range(0, len(keys)):
-            key = keys[k]
-            side = sides[key]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order['price'])
-                amount = float(order['volume'])
-                result[key].append([price, amount])
-        return result
 
     async def fetch_ticker(self, symbol):
         await self.load_markets()
@@ -15084,23 +14896,12 @@ class xbtce (Exchange):
         }, params))
         orderbook = orderbook[0]
         timestamp = orderbook['Timestamp']
-        result = {
-            'bids': [],
-            'asks': [],
+        return {
+            'bids': self.parse_bidasks(orderbook['bids'], 'Price', 'Volume'),
+            'asks': self.parse_bidasks(orderbook['asks'], 'Price', 'Volume'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = ['bids', 'asks']
-        for s in range(0, len(sides)):
-            side = sides[s]
-            Side = self.capitalize(side)
-            orders = orderbook[Side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order['Price'])
-                amount = float(order['Volume'])
-                result[side].append([price, amount])
-        return result
 
     def parse_ticker(self, ticker, market):
         timestamp = 0
@@ -15354,13 +15155,12 @@ class yobit (Exchange):
         timestamp = self.milliseconds()
         bids = orderbook['bids'] if('bids' in list(orderbook.keys())) else []
         asks = orderbook['asks'] if('asks' in list(orderbook.keys())) else []
-        result = {
+        return {
             'bids': bids,
             'asks': asks,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        return result
 
     async def fetch_ticker(self, symbol):
         await self.load_markets()
@@ -15575,20 +15375,11 @@ class yunbi (Exchange):
         }, params))
         timestamp = orderbook['timestamp'] * 1000
         result = {
-            'bids': [],
-            'asks': [],
+            'bids': self.parse_bidasks(orderbook['bids']),
+            'asks': self.parse_bidasks(orderbook['asks']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        sides = ['bids', 'asks']
-        for s in range(0, len(sides)):
-            side = sides[s]
-            orders = orderbook[side]
-            for i in range(0, len(orders)):
-                order = orders[i]
-                price = float(order[0])
-                amount = float(order[1])
-                result[side].append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
@@ -15857,13 +15648,12 @@ class zaif (Exchange):
             'pair': self.market_id(market),
         }, params))
         timestamp = self.milliseconds()
-        result = {
+        return {
             'bids': orderbook['bids'],
             'asks': orderbook['asks'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        return result
 
     async def fetch_ticker(self, market):
         await self.load_markets()

@@ -4704,20 +4704,6 @@ var bittrex = {
         return result;
     },
 
-    parseBidAsk (bidask) {
-        let price = parseFloat (bidask['Rate']);
-        let amount = parseFloat (bidask['Quantity']);
-        return [ price, amount ];
-    },
-
-    parseBidAsks (bidasks) {
-        let result = [];
-        for (let i = 0; i < bidasks.length; i++) {
-            result.push (this.parseBidAsk (bidasks[i]));
-        }
-        return result;
-    },
-
     async fetchOrderBook (market, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetOrderbook (this.extend ({
@@ -4728,8 +4714,8 @@ var bittrex = {
         let orderbook = response['result'];
         let timestamp = this.milliseconds ();
         return {
-            'bids': this.parseBidAsks (orderbook['buy']),
-            'asks': this.parseBidAsks (orderbook['sell']),
+            'bids': this.parseBidAsks (orderbook['buy'], 'Rate', 'Quantity'),
+            'asks': this.parseBidAsks (orderbook['sell'], 'Rate', 'Quantity'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
