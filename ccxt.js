@@ -2368,13 +2368,8 @@ var bitcoincoid = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        let sides = { 'bids': 'buy', 'asks': 'sell' };
-        let keys = Object.keys (sides);
-        for (let k = 0; k < keys.length; k++) {
-            let key = keys[k];
-            let side = sides[key];
-            result[key] = this.parseBidAsks (orderbook[side]);
-        }
+        result['bids'] = this.parseBidAsks (orderbook['buy']);
+        result['asks'] = this.parseBidAsks (orderbook['sell']);
         return result;
     },
 
