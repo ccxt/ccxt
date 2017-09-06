@@ -2613,11 +2613,8 @@ var bitfinex = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        let sides = [ 'bids', 'asks' ];
-        for (let s = 0; s < sides.length; s++) {
-            let side = sides[s];
-            result[side] = this.parseBidAsks (orderbook[side], 'price', 'amount');
-        }
+        result['bids'] = this.parseBidAsks (orderbook['bids'], 'price', 'amount');
+        result['asks'] = this.parseBidAsks (orderbook['asks'], 'price', 'amount');
         return result;
     },
 
