@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.31';
+$version = '1.6.32';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12472,8 +12472,19 @@ class hitbtc2 extends hitbtc {
 
     public function parse_ticker ($ticker, $market) {
         $timestamp = $this->parse8601 ($ticker['timestamp']);
-        $high = ($ticker['high']) ? floatval ($ticker['high']) : null;
-        $low = ($ticker['low']) ? floatval ($ticker['low']) : null;
+        $high = null;
+        if (array_key_exists (('high', $ticker)) && ($ticker['high']))
+            $high = floatval ($ticker['high']);
+        $low = null;
+        if (array_key_exists (('low', $ticker)) && ($ticker['low']))
+            $low = floatval ($ticker['low']);
+        $open = null;
+        if (array_key_exists (('open', $ticker)) && ($ticker['open']))
+            $open = floatval ($ticker['open']);
+        $close = null;
+        if (array_key_exists (('close', $ticker)) && ($ticker['close']))
+            $close = floatval ($ticker['close']);
+        $last = ($ticker['last']) ? floatval ($ticker['last']) : null;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
