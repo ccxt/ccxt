@@ -1057,13 +1057,7 @@ var cryptocapital = {
             let key = keys[k];
             let side = sides[key];
             let orders = orderbook[side];
-            for (let i = 0; i < orders.length; i++) {
-                let order = orders[i];
-                let timestamp = parseInt (order['timestamp']) * 1000;
-                let price = parseFloat (order['price']);
-                let amount = parseFloat (order['order_amount']);
-                result[key].push ([ price, amount, timestamp ]);
-            }
+            result[key] = this.parseBidAsks (orderbook[side], 'price', 'order_amount');
         }
         return result;
     },
