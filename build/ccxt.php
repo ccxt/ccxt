@@ -12357,13 +12357,13 @@ class hitbtc2 extends hitbtc {
                 'public' => array (
                     'get' => array (
                         'symbol', // Available Currency Symbols
-                        'symbol/{symbol}', //Get symbol info
-                        'currency', //Available Currencies
-                        'currency/{currency}', //Get currency info
-                        'ticker', //Ticker list for all symbols
-                        'ticker/{symbol}', //Ticker for symbol
-                        'trades/{symbol}', //Trades
-                        'orderbook/{symbol}', //Orderbook
+                        'symbol/{symbol}', // Get symbol info
+                        'currency', // Available Currencies
+                        'currency/{currency}', // Get currency info
+                        'ticker', // Ticker list for all symbols
+                        'ticker/{symbol}', // Ticker for symbol
+                        'trades/{symbol}', // Trades
+                        'orderbook/{symbol}', // Orderbook
                     ),
                 ),
                 'private' => array (

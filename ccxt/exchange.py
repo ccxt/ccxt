@@ -529,7 +529,7 @@ class Exchange (object):
 
     @staticmethod
     def to_array(value):
-        return list(value.values ()) if type(value) is dict else value
+        return list(value.values()) if type(value) is dict else value
 
     def nonce(self):
         return Exchange.seconds()
@@ -610,7 +610,7 @@ class Exchange (object):
         return ohlcv
 
     def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
-        array = self.to_array (ohlcvs)
+        array = self.to_array(ohlcvs)
         return [self.parse_ohlcv(ohlcv, market, timeframe, since, limit) for ohlcv in array]
 
     def parseOHLCVs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
