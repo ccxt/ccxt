@@ -5135,13 +5135,7 @@ var bl3p = {
             'market': market['id'],
         }, params));
         let orderbook = response['data'];
-        let timestamp = this.milliseconds ();
-        return {
-            'bids': this.parseBidAsks (orderbook['bids']),
-            'asks': this.parseBidAsks (orderbook['asks']),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        return this.parseOrderBook (orderbook);
     },
 
     async fetchTicker (symbol) {
@@ -5350,13 +5344,8 @@ var btcchina = {
         let orderbook = await this.publicGetOrderbook (this.extend ({
             'market': this.marketId (symbol),
         }, params));
-        let timestamp = orderbook['date'] * 1000;;
-        let result = {
-            'bids': orderbook['bids'],
-            'asks': orderbook['asks'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        let timestamp = orderbook['date'] * 1000;
+        let result = this.parseOrderBook (orderbook, timestamp);
         result['asks'] = this.sortBy (result['asks'], 0);
         return result;
     },
