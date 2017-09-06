@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.41';
+$version = '1.6.42';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12025,10 +12025,10 @@ class hitbtc2 extends hitbtc {
             'bid' => floatval ($ticker['bid']),
             'ask' => floatval ($ticker['ask']),
             'vwap' => null,
-            'open' => floatval ($ticker['open']),
+            'open' => $open,
             'close' => null,
             'first' => null,
-            'last' => floatval ($ticker['last']),
+            'last' => $last,
             'change' => null,
             'percentage' => null,
             'average' => null,
