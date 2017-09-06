@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.45';
+$version = '1.6.46';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5416,13 +5416,7 @@ class bl3p extends Exchange {
             'market' => $market['id'],
         ), $params));
         $orderbook = $response['data'];
-        $timestamp = $this->milliseconds ();
-        return array (
-            'bids' => $this->parse_bidasks ($orderbook['bids']),
-            'asks' => $this->parse_bidasks ($orderbook['asks']),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
+        return $this->parse_order_book ($orderbook);
     }
 
     public function fetch_ticker ($symbol) {
@@ -5635,13 +5629,8 @@ class btcchina extends Exchange {
         $orderbook = $this->publicGetOrderbook (array_merge (array (
             'market' => $this->market_id ($symbol),
         ), $params));
-        $timestamp = $orderbook['date'] * 1000;;
-        $result = array (
-            'bids' => $orderbook['bids'],
-            'asks' => $orderbook['asks'],
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
+        $timestamp = $orderbook['date'] * 1000;
+        $result = $this->parse_order_book ($orderbook, $timestamp);
         $result['asks'] = $this->sort_by ($result['asks'], 0);
         return $result;
     }

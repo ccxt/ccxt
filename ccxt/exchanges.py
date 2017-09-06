@@ -4312,13 +4312,7 @@ class bl3p (Exchange):
             'market': market['id'],
         }, params))
         orderbook = response['data']
-        timestamp = self.milliseconds()
-        return {
-            'bids': self.parse_bidasks(orderbook['bids']),
-            'asks': self.parse_bidasks(orderbook['asks']),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        return self.parse_order_book(orderbook)
 
     def fetch_ticker(self, symbol):
         ticker = self.publicGetMarketTicker({
@@ -4520,12 +4514,7 @@ class btcchina (Exchange):
             'market': self.market_id(symbol),
         }, params))
         timestamp = orderbook['date'] * 1000
-        result = {
-            'bids': orderbook['bids'],
-            'asks': orderbook['asks'],
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        result = self.parse_order_book(orderbook, timestamp)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
