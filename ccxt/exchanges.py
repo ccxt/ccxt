@@ -10305,13 +10305,21 @@ class hitbtc2 (hitbtc):
         if 'last' in ticker:
             if ticker['last']:
                 last = float(ticker['last'])
+        bid = None
+        if 'bid' in ticker:
+            if ticker['bid']:
+                bid = float(ticker['bid'])
+        ask = None
+        if 'ask' in ticker:
+            if ticker['ask']:
+                ask = float(ticker['ask'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': high,
             'low': low,
-            'bid': float(ticker['bid']),
-            'ask': float(ticker['ask']),
+            'bid': bid,
+            'ask': ask,
             'vwap': None,
             'open': open,
             'close': None,

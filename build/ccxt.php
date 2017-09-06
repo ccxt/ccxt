@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.49';
+$version = '1.6.50';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -373,7 +373,14 @@ class Exchange {
         // $sign = intval ($sign . '1');
         // $hours = (intval ($hours) or 0) * $sign;
         // $minutes = (intval ($minutes) or 0) * $sign;
-        $t = mktime ($h, $m, $s, $mm, $dd, $yyyy, 0);
+        
+        // is_dst parameter has been removed in PHP 7.0.0.
+        // http://php.net/manual/en/function.mktime.php
+        if (version_compare (PHP_VERSION, '7.0.0', '>=')) {
+            $t = mktime ($h, $m, $s, $mm, $dd, $yyyy);
+        } else {
+            $t = mktime ($h, $m, $s, $mm, $dd, $yyyy, 0);
+        }
         $t += $hours * 3600 + $minutes * 60;
         $t *= 1000;
         return $t;
@@ -11798,13 +11805,21 @@ class hitbtc2 extends hitbtc {
         if (array_key_exists ('last', $ticker))
             if ($ticker['last'])
                 $last = floatval ($ticker['last']);
+        $bid = null;
+        if (array_key_exists ('bid', $ticker))
+            if ($ticker['bid'])
+                $bid = floatval ($ticker['bid']);
+        $ask = null;
+        if (array_key_exists ('ask', $ticker))
+            if ($ticker['ask'])
+                $ask = floatval ($ticker['ask']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => $high,
             'low' => $low,
-            'bid' => floatval ($ticker['bid']),
-            'ask' => floatval ($ticker['ask']),
+            'bid' => $bid,
+            'ask' => $ask,
             'vwap' => null,
             'open' => $open,
             'close' => null,
