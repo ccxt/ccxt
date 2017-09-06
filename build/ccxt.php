@@ -5488,7 +5488,7 @@ class bl3p extends Exchange {
 
     public function parse_bidask ($bidask, $priceKey = 0, $amountKey = 0) {
         return [ 
-            $bidask['price_int'] / 100000.0, 
+            $bidask['price_int'] / 100000.0,
             $bidask['amount_int'] / 100000000.0,
         ];
     }
@@ -9350,29 +9350,13 @@ class coinsecure extends Exchange {
     public function fetch_order_book ($market, $params = array ()) {
         $bids = $this->publicGetExchangeBidOrders ($params);
         $asks = $this->publicGetExchangeAskOrders ($params);
-        $orderbook = array (
-            'bids' => $bids['message'],
-            'asks' => $asks['message'],
-        );
         $timestamp = $this->milliseconds ();
-        $result = array (
-            'bids' => array (),
-            'asks' => array (),
+        return array (
+            'bids' => $this->parse_bidasks ($bids['message'], 'rate', 'vol'),
+            'asks' => $this->parse_bidasks ($asks['message'], 'rate', 'vol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        $sides = array ('bids', 'asks');
-        for ($s = 0; $s < count ($sides); $s++) {
-            $side = $sides[$s];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = $order['rate'];
-                $amount = $order['vol'];
-                $result[$side][] = array ($price, $amount);
-            }
-        }
-        return $result;
     }
 
     public function fetch_ticker ($market) {
@@ -9529,24 +9513,11 @@ class coinspot extends Exchange {
         ), $params));
         $timestamp = $this->milliseconds ();
         $result = array (
-            'bids' => array (),
-            'asks' => array (),
+            'bids' => $this->parse_bidasks ($orderbook['buyorders'], 'rate', 'amount'),
+            'asks' => $this->parse_bidasks ($orderbook['sellorders'], 'rate', 'amount'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        $sides = array ( 'bids' => 'buyorders', 'asks' => 'sellorders' );
-        $keys = array_keys ($sides);
-        for ($k = 0; $k < count ($keys); $k++) {
-            $key = $keys[$k];
-            $side = $sides[$key];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = floatval ($order['rate']);
-                $amount = floatval ($order['amount']);
-                $result[$key][] = array ($price, $amount);
-            }
-        }
         $result['bids'] = $this->sort_by ($result['bids'], 0, true);
         $result['asks'] = $this->sort_by ($result['asks'], 0);
         return $result;
@@ -9704,26 +9675,12 @@ class cryptopia extends Exchange {
         ), $params));
         $orderbook = $response['Data'];
         $timestamp = $this->milliseconds ();
-        $result = array (
-            'bids' => array (),
-            'asks' => array (),
+        return array (
+            'bids' => $this->parse_bidasks ($orderbook['Buy'], 'Price', 'Total'),
+            'asks' => $this->parse_bidasks ($orderbook['Sell'], 'Price', 'Total'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        $sides = array ( 'bids' => 'Buy', 'asks' => 'Sell' );
-        $keys = array_keys ($sides);
-        for ($k = 0; $k < count ($keys); $k++) {
-            $key = $keys[$k];
-            $side = $sides[$key];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = floatval ($order['Price']);
-                $amount = floatval ($order['Total']);
-                $result[$key][] = array ($price, $amount);
-            }
-        }
-        return $result;
     }
 
     public function parse_ticker ($ticker, $market) {
@@ -9984,24 +9941,12 @@ class dsx extends Exchange {
         ), $params));
         $orderbook = $response[$market['id']];
         $timestamp = $this->milliseconds ();
-        $result = array (
-            'bids' => array (),
-            'asks' => array (),
+        return array (
+            'bids' => $this->parse_bidasks ($orderbook['bids']),
+            'asks' => $this->parse_bidasks ($orderbook['asks']),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        $sides = array ('bids', 'asks');
-        for ($s = 0; $s < count ($sides); $s++) {
-            $side = $sides[$s];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = $order[0];
-                $amount = $order[1];
-                $result[$side][] = array ($price, $amount);
-            }
-        }
-        return $result;
     }
 
     public function fetch_ticker ($symbol) {
@@ -10192,26 +10137,12 @@ class exmo extends Exchange {
         ), $params));
         $orderbook = $response[$market['id']];
         $timestamp = $this->milliseconds ();
-        $result = array (
-            'bids' => array (),
-            'asks' => array (),
+        return array (
+            'bids' => $this->parse_bidasks ($orderbook['bid']),
+            'asks' => $this->parse_bidasks ($orderbook['ask']),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        $sides = array ( 'bids' => 'bid', 'asks' => 'ask' );
-        $keys = array_keys ($sides);
-        for ($k = 0; $k < count ($keys); $k++) {
-            $key = $keys[$k];
-            $side = $sides[$key];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = floatval ($order[0]);
-                $amount = floatval ($order[1]);
-                $result[$key][] = array ($price, $amount);
-            }
-        }
-        return $result;
     }
 
     public function parse_ticker ($ticker, $market) {
@@ -10428,24 +10359,12 @@ class flowbtc extends Exchange {
             'productPair' => $market['id'],
         ), $params));
         $timestamp = $this->milliseconds ();
-        $result = array (
-            'bids' => array (),
-            'asks' => array (),
+        return array (
+            'bids' => $this->parse_bidasks ($orderbook['bids'], 'px', 'qty'),
+            'asks' => $this->parse_bidasks ($orderbook['asks'], 'px', 'qty'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        $sides = array ('bids', 'asks');
-        for ($s = 0; $s < count ($sides); $s++) {
-            $side = $sides[$s];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = floatval ($order['px']);
-                $amount = floatval ($order['qty']);
-                $result[$side][] = array ($price, $amount);
-            }
-        }
-        return $result;
     }
 
     public function fetch_ticker ($symbol) {
@@ -10642,24 +10561,12 @@ class fyb extends Exchange {
     public function fetch_order_book ($symbol, $params = array ()) {
         $orderbook = $this->publicGetOrderbook ($params);
         $timestamp = $this->milliseconds ();
-        $result = array (
-            'bids' => array (),
-            'asks' => array (),
+        return array (
+            'bids' => $this->parse_bidasks ($orderbook['bids']),
+            'asks' => $this->parse_bidasks ($orderbook['asks']),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        $sides = array ('bids', 'asks');
-        for ($s = 0; $s < count ($sides); $s++) {
-            $side = $sides[$s];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = floatval ($order[0]);
-                $amount = floatval ($order[1]);
-                $result[$side][] = array ($price, $amount);
-            }
-        }
-        return $result;
     }
 
     public function fetch_ticker ($symbol) {
@@ -11018,24 +10925,12 @@ class gatecoin extends Exchange {
             'CurrencyPair' => $market['id'],
         ), $params));
         $timestamp = $this->milliseconds ();
-        $result = array (
-            'bids' => array (),
-            'asks' => array (),
+        return array (
+            'bids' => $this->parse_bidasks ($orderbook['bids'], 'price', 'volume'),
+            'asks' => $this->parse_bidasks ($orderbook['asks'], 'price', 'volume'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        $sides = array ('bids', 'asks');
-        for ($s = 0; $s < count ($sides); $s++) {
-            $side = $sides[$s];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = floatval ($order['price']);
-                $amount = floatval ($order['volume']);
-                $result[$side][] = array ($price, $amount);
-            }
-        }
-        return $result;
     }
 
     public function parse_ticker ($ticker, $market) {
