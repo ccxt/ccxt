@@ -1313,12 +1313,7 @@ var anxpro = {
         let orderbook = response['data'];
         let t = parseInt (orderbook['dataUpdateTime']);
         let timestamp = parseInt (t / 1000);
-        return {
-            'bids': this.parseBidAsks (orderbook['bids'], 'price', 'amount'),
-            'asks': this.parseBidAsks (orderbook['asks'], 'price', 'amount'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
     },
 
     async fetchTicker (market) {
@@ -1525,13 +1520,7 @@ var binance = {
             'symbol': market['id'],
             'limit': 100, // default = maximum = 100
         }, params));
-        let timestamp = this.milliseconds ();
-        return {
-            'bids': this.parseBidAsks (orderbook['bids']),
-            'asks': this.parseBidAsks (orderbook['asks']),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        return this.parseOrderBook (orderbook);
     },
 
     parseTicker (ticker, market) {
@@ -1816,13 +1805,7 @@ var bit2c = {
         let orderbook = await this.publicGetExchangesPairOrderbook (this.extend ({
             'pair': this.marketId (market),
         }, params));
-        let timestamp = this.milliseconds ();
-        return {
-            'bids': this.parseBidAsks (orderbook['bids']),
-            'asks': this.parseBidAsks (orderbook['asks']),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        return this.parseOrderBook (orderbook);
     },
 
     async fetchTicker (market) {
@@ -2004,13 +1987,7 @@ var bitbay = {
         let orderbook = await this.publicGetIdOrderbook (this.extend ({
             'id': this.marketId (market),
         }, params));
-        let timestamp = this.milliseconds ();
-        return {
-            'bids': orderbook['bids'],
-            'asks': orderbook['asks'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        return this.parseOrderBook (orderbook);
     },
 
     async fetchTicker (market) {
@@ -2162,13 +2139,7 @@ var bitbays = {
             'market': this.marketId (symbol),
         }, params));
         let orderbook = response['result'];
-        let timestamp = this.milliseconds ();
-        return {
-            'bids': this.parseBidAsks (orderbook['bids']),
-            'asks': this.parseBidAsks (orderbook['asks']),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        return this.parseOrderBook (response['result']);
     },
 
     async fetchTicker (symbol) {
@@ -2345,13 +2316,7 @@ var bitcoincoid = {
         let orderbook = await this.publicGetPairDepth (this.extend ({
             'pair': this.marketId (symbol),
         }, params));
-        let timestamp = this.milliseconds ();
-        return {
-            'bids': this.parseBidAsks (orderbook['buy']),
-            'asks': this.parseBidAsks (orderbook['sell']),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell');
     },
 
     async fetchTicker (symbol) {
@@ -2587,13 +2552,7 @@ var bitfinex = {
         let orderbook = await this.publicGetBookSymbol (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
-        let timestamp = this.milliseconds ();
-        return {
-            'bids': this.parseBidAsks (orderbook['bids'], 'price', 'amount'),
-            'asks': this.parseBidAsks (orderbook['asks'], 'price', 'amount'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
     },
 
     async fetchTicker (symbol) {
@@ -3204,13 +3163,7 @@ var bitflyer = {
         let orderbook = await this.publicGetBoard (this.extend ({
             'product_code': this.marketId (symbol),
         }, params));
-        let timestamp = this.milliseconds ();
-        return {
-            'bids': this.parseBidAsks (orderbook['bids'], 'price', 'size'),
-            'asks': this.parseBidAsks (orderbook['asks'], 'price', 'size'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'size');
     },
 
     async fetchTicker (symbol) {
@@ -3468,12 +3421,7 @@ var bitlish = {
             'pair_id': this.marketId (symbol),
         }, params));
         let timestamp = parseInt (parseInt (orderbook['last']) / 1000);
-        return {
-            'bids': this.parseBidAsks (orderbook['bid'], 'price', 'volume'),
-            'asks': this.parseBidAsks (orderbook['ask'], 'price', 'volume'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        return this.parseOrderBook (orderbook, timestamp, 'bid', 'ask', 'price', 'volume');
     },
 
     parseTrade (trade, market = undefined) {
@@ -4256,12 +4204,7 @@ var bitso = {
         }, params));
         let orderbook = response['payload'];
         let timestamp = this.parse8601 (orderbook['updated_at']);
-        return {
-            'bids': this.parseBidAsks (orderbook['bids'], 'price', 'amount'),
-            'asks': this.parseBidAsks (orderbook['asks'], 'price', 'amount'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
     },
 
     async fetchTicker (symbol) {
@@ -4437,12 +4380,7 @@ var bitstamp = {
             'id': this.marketId (symbol),
         }, params));
         let timestamp = parseInt (orderbook['timestamp']) * 1000;
-        return {
-            'bids': this.parseBidAsks (orderbook['bids']),
-            'asks': this.parseBidAsks (orderbook['asks']),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        return this.parseOrderBook (orderbook, timestamp);
     },
 
     async fetchTicker (symbol) {
@@ -4719,13 +4657,7 @@ var bittrex = {
             'depth': 50,
         }, params));
         let orderbook = response['result'];
-        let timestamp = this.milliseconds ();
-        return {
-            'bids': this.parseBidAsks (orderbook['buy'], 'Rate', 'Quantity'),
-            'asks': this.parseBidAsks (orderbook['sell'], 'Rate', 'Quantity'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     },
 
     parseTicker (ticker, market) {
@@ -4999,13 +4931,7 @@ var blinktrade = {
             'currency': market['quote'],
             'crypto_currency': market['base'],
         }, params));
-        let timestamp = this.milliseconds ();
-        return {
-            'bids': this.parseBidAsks (orderbook['bids']),
-            'asks': this.parseBidAsks (orderbook['bids']),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        return this.parseOrderBook (orderbook);
     },
 
     async fetchTicker (symbol) {
