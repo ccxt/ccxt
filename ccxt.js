@@ -1055,14 +1055,9 @@ var cryptocapital = {
         let response = await this.publicGetOrderBook (this.extend ({
             'currency': this.marketId (market),
         }, params));
-        let orderbook = response['order-book'];
         let timestamp = this.milliseconds ();
-        return {
-            'bids': this.parseBidAsks (orderbook['bid'], 'price', 'order_amount'),
-            'asks': this.parseBidAsks (orderbook['ask'], 'price', 'order_amount'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        let orderbook = response['order-book'];
+        return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'order_amount');
     },
 
     async fetchTicker (market) {

@@ -753,9 +753,7 @@ class Exchange {
     }
 
     public function parse_bidask ($bidask, $price_key = 0, $amount_key = 0) {
-        $price = floatval ($bidask[$price_key]);
-        $amount = floatval ($bidask[$amount_key]);
-        return array ($price, $amount);
+        return array (floatval ($bidask[$price_key]), floatval ($bidask[$amount_key]));
     }
 
     public function parse_bidasks ($bidasks, $price_key = 0, $amount_key = 0) {
@@ -781,7 +779,7 @@ class Exchange {
             'asks' => $this->parse_bidasks ($orderbook[$asks_key], $price_key, $amount_key),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-        }
+        );
     }
 
     public function parseOrderBook ($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {

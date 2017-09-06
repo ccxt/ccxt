@@ -431,14 +431,9 @@ class cryptocapital (Exchange):
         response = self.publicGetOrderBook(self.extend({
             'currency': self.market_id(market),
         }, params))
-        orderbook = response['order-book']
         timestamp = self.milliseconds()
-        return {
-            'bids': self.parse_bidasks(orderbook['bid'], 'price', 'order_amount'),
-            'asks': self.parse_bidasks(orderbook['ask'], 'price', 'order_amount'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        orderbook = response['order-book']
+        return self.parse_order_book(orderbook, None, 'bid', 'ask', 'price', 'order_amount')
 
     def fetch_ticker(self, market):
         response = self.publicGetStats({

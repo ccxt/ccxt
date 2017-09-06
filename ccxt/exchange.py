@@ -617,9 +617,7 @@ class Exchange (object):
         return self.parse_ohlcvs(self, ohlcvs, market, timeframe, since, limit)
 
     def parse_bidask(self, bidask, price_key=0, amount_key=0):
-        price = float(bidask[price_key])
-        amount = float(bidask[amount_key])
-        return [price, amount]
+        return [float(bidask[price_key]), float(bidask[amount_key])]
 
     def parse_bidasks(self, bidasks, price_key=0, amount_key=1):
         return [self.parse_bidask(bidask, price_key, amount_key) for bidask in bidasks]

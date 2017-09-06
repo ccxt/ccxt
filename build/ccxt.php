@@ -753,9 +753,7 @@ class Exchange {
     }
 
     public function parse_bidask ($bidask, $price_key = 0, $amount_key = 0) {
-        $price = floatval ($bidask[$price_key]);
-        $amount = floatval ($bidask[$amount_key]);
-        return array ($price, $amount);
+        return array (floatval ($bidask[$price_key]), floatval ($bidask[$amount_key]));
     }
 
     public function parse_bidasks ($bidasks, $price_key = 0, $amount_key = 0) {
@@ -775,13 +773,17 @@ class Exchange {
     }
 
     public function parse_order_book ($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
-        // timestamp = timestamp or self.milliseconds ()
-        // return {
-        //     'bids': self.parse_bidasks (orderbook[bids_key], price_key, amount_key),
-        //     'asks': self.parse_bidasks (orderbook[asks_key], price_key, amount_key),
-        //     'timestamp': timestamp,
-        //     'datetime': this.iso8601 (timestamp),
-        // }
+        $timestamp = $timestamp ? $timestamp : $this->milliseconds ();
+        return array (
+            'bids' => $this->parse_bidasks ($orderbook[$bids_key], $price_key, $amount_key),
+            'asks' => $this->parse_bidasks ($orderbook[$asks_key], $price_key, $amount_key),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+    }
+
+    public function parseOrderBook ($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
+        return $this->parse_order_book ($orderbook, $timestamp, $bids_key, $asks_key, $price_key, $amount_key);
     }
 
     public function parse_trades ($trades, $market = null) {
@@ -1262,14 +1264,9 @@ class cryptocapital extends Exchange {
         $response = $this->publicGetOrderBook (array_merge (array (
             'currency' => $this->market_id ($market),
         ), $params));
-        $orderbook = $response['order-book'];
         $timestamp = $this->milliseconds ();
-        return array (
-            'bids' => $this->parse_bidasks ($orderbook['bid'], 'price', 'order_amount'),
-            'asks' => $this->parse_bidasks ($orderbook['ask'], 'price', 'order_amount'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
+        $orderbook = $response['order-book'];
+        return $this->parse_order_book ($orderbook, null, 'bid', 'ask', 'price', 'order_amount');
     }
 
     public function fetch_ticker ($market) {
