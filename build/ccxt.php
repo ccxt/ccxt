@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.38';
+$version = '1.6.39';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3476,15 +3476,12 @@ class bitflyer extends Exchange {
             'product_code' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $this->milliseconds ();
-        $result = array (
-            'bids' => array (),
-            'asks' => array (),
+        return array (
+            'bids' => $this->parse_bidasks ($orderbook['bids'], 'price', 'size'),
+            'asks' => $this->parse_bidasks ($orderbook['asks'], 'price', 'size'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        $result['bids'] = $this->parse_bidasks ($orderbook['asks'], 'price', 'size');
-        $result['asks'] = $this->parse_bidasks ($orderbook['asks'], 'price', 'size');
-        return $result;
     }
 
     public function fetch_ticker ($symbol) {
@@ -3747,24 +3744,11 @@ class bitlish extends Exchange {
         ), $params));
         $timestamp = intval (intval ($orderbook['last']) / 1000);
         $result = array (
-            'bids' => array (),
-            'asks' => array (),
+            'bids' => $this->parse_bidasks ($orderbook['bid'], 'price', 'volume'),
+            'asks' => $this->parse_bidasks ($orderbook['ask'], 'price', 'volume'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        $sides = array ( 'bids' => 'bid', 'asks' => 'ask' );
-        $keys = array_keys ($sides);
-        for ($k = 0; $k < count ($keys); $k++) {
-            $key = $keys[$k];
-            $side = $sides[$key];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = floatval ($order['price']);
-                $amount = floatval ($order['volume']);
-                $result[$key][] = array ($price, $amount);
-            }
-        }
         return $result;
     }
 
@@ -4562,22 +4546,11 @@ class bitso extends Exchange {
         $orderbook = $response['payload'];
         $timestamp = $this->parse8601 ($orderbook['updated_at']);
         $result = array (
-            'bids' => array (),
-            'asks' => array (),
+            'bids' => $this->parse_bidasks ($orderbook['bids'], 'price', 'amount'),
+            'asks' => $this->parse_bidasks ($orderbook['asks'], 'price', 'amount'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        $sides = array ('bids', 'asks');
-        for ($s = 0; $s < count ($sides); $s++) {
-            $side = $sides[$s];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = floatval ($order['price']);
-                $amount = floatval ($order['amount']);
-                $result[$side][] = array ($price, $amount);
-            }
-        }
         return $result;
     }
 
@@ -4759,22 +4732,11 @@ class bitstamp extends Exchange {
         ), $params));
         $timestamp = intval ($orderbook['timestamp']) * 1000;
         $result = array (
-            'bids' => array (),
-            'asks' => array (),
+            'bids' => $this->parse_bidasks ($orderbook['bids']),
+            'asks' => $this->parse_bidasks ($orderbook['asks']),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
-        $sides = array ('bids', 'asks');
-        for ($s = 0; $s < count ($sides); $s++) {
-            $side = $sides[$s];
-            $orders = $orderbook[$side];
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $price = floatval ($order[0]);
-                $amount = floatval ($order[1]);
-                $result[$side][] = array ($price, $amount);
-            }
-        }
         return $result;
     }
 
