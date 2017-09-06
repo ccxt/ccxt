@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.32';
+$version = '1.6.33';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12558,33 +12558,26 @@ class hitbtc2 extends hitbtc {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $market = $this->market ($symbol);
-        // check if $amount can be evenly divided into lots
-        // they want integer $quantity in lot units
-        $quantity = floatval ($amount) / $market['lot'];
-        $wholeLots = (int) round ($quantity);
-        $difference = $quantity - $wholeLots;
-        if (abs ($difference) > $market['step'])
-            throw new ExchangeError ($this->id . ' $order $amount should be evenly divisible by lot unit size of ' . (string) $market['lot']);
         $clientOrderId = $this->milliseconds ();
         $order = array (
             'clientOrderId' => (string) $clientOrderId,
             'symbol' => $market['id'],
             'side' => $side,
-            'quantity' => (string) $wholeLots, // $quantity in integer lot units
+            'quantity' => (string) $amount,
             'type' => $type,
         );
         if ($type == 'limit')
             $order['price'] = sprintf ('%.10f', $price);
-        $response = $this->tradingPostNewOrder (array_merge ($order, $params));
+        $response = $this->privatePostOrder (array_merge ($order, $params));
         return array (
             'info' => $response,
-            'id' => $response['ExecutionReport']['clientOrderId'],
+            'id' => $response['clientOrderId'],
         );
     }
 
     public function cancel_order ($id, $params = array ()) {
         $this->load_markets ();
-        return $this->tradingPostCancelOrder (array_merge (array (
+        return $this->privateDeleteOrder (array_merge (array (
             'clientOrderId' => $id,
         ), $params));
     }
