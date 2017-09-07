@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.54';
+$version = '1.6.55';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3001,8 +3001,11 @@ class bitfinex extends Exchange {
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
-        if (array_key_exists ('message', $response))
+        if (array_key_exists ('message', $response)) {
+            if mb_strpos ((message, 'not enough exchange balance') !== false)
+                throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        }
         return $response;
     }
 }
@@ -3290,8 +3293,11 @@ class bitfinex2 extends bitfinex {
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
-        if (array_key_exists ('message', $response))
+        if (array_key_exists ('message', $response)) {
+            if mb_strpos ((message, 'not enough exchange balance') !== false)
+                throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        }
         return $response;
     }
 }

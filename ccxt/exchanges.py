@@ -2047,6 +2047,8 @@ class bitfinex (Exchange):
             }
         response = self.fetch(url, method, headers, body)
         if 'message' in response:
+            if message.find('not enough exchange balance') >= 0:
+                raise InsufficientFunds(self.id + ' ' + self.json(response))
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
@@ -2321,6 +2323,8 @@ class bitfinex2 (bitfinex):
             }
         response = self.fetch(url, method, headers, body)
         if 'message' in response:
+            if message.find('not enough exchange balance') >= 0:
+                raise InsufficientFunds(self.id + ' ' + self.json(response))
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
