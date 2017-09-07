@@ -2,9 +2,7 @@ language: node_js
 node_js:
 - node
 python:
-  - "2.7"
   - "3.5"
-  - "3.6"
 cache: pip
 before_install:
 - set -e
