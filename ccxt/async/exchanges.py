@@ -1754,26 +1754,21 @@ class bitfinex (Exchange):
 
     async def fetch_balance(self):
         await self.load_markets()
-        response = await self.privatePostBalances()
-        balances = {}
-        for b in range(0, len(response)):
-            account = response[b]
-            if account['type'] == 'exchange':
-                currency = account['currency']
-                # issue #4 Bitfinex names Dash as DSH, instead of DASH
-                if currency == 'DSH':
-                    currency = 'DASH'
+        balances = await self.privatePostBalances()
+        result = {'info': balances}
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            if balance['type'] == 'exchange':
+                currency = balance['currency']
                 uppercase = currency.upper()
-                balances[uppercase] = account
-        result = {'info': response}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
-            account = self.account()
-            if currency in balances:
-                account['free'] = float(balances[currency]['available'])
-                account['total'] = float(balances[currency]['amount'])
+                # issue #4 Bitfinex names dash as dsh
+                if uppercase == 'DSH':
+                    uppercase = 'DASH'
+                account = self.account()
+                account['free'] = float(balance['available'])
+                account['total'] = float(balance['amount'])
                 account['used'] = account['total'] - account['free']
-            result[currency] = account
+                result[uppercase] = account
         return result
 
     async def fetch_order_book(self, symbol, params={}):

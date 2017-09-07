@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.52';
+$version = '1.6.53';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2768,29 +2768,22 @@ class bitfinex extends Exchange {
 
     public function fetch_balance () {
         $this->load_markets ();
-        $response = $this->privatePostBalances ();
-        $balances = array ();
-        for ($b = 0; $b < count ($response); $b++) {
-            $account = $response[$b];
-            if ($account['type'] == 'exchange') {
-                $currency = $account['currency'];
-                // issue #4 Bitfinex names Dash as DSH, instead of DASH
-                if ($currency == 'DSH')
-                    $currency = 'DASH';
+        $balances = $this->privatePostBalances ();
+        $result = array ( 'info' => $balances );
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            if ($balance['type'] == 'exchange') {
+                $currency = $balance['currency'];
                 $uppercase = strtoupper ($currency);
-                $balances[$uppercase] = $account;
-            }
-        }
-        $result = array ( 'info' => $response );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
-            $account = $this->account ();
-            if (array_key_exists ($currency, $balances)) {
-                $account['free'] = floatval ($balances[$currency]['available']);
-                $account['total'] = floatval ($balances[$currency]['amount']);
+                // issue #4 Bitfinex names dash as dsh
+                if ($uppercase == 'DSH')
+                    $uppercase = 'DASH';
+                $account = $this->account ();
+                $account['free'] = floatval ($balance['available']);
+                $account['total'] = floatval ($balance['amount']);
                 $account['used'] = $account['total'] - $account['free'];
+                $result[$uppercase] = $account;
             }
-            $result[$currency] = $account;
         }
         return $result;
     }
