@@ -13608,11 +13608,12 @@ class southxchange (Exchange):
         return self.parse_order_book(orderbook, None, 'BuyOrders', 'SellOrders', 'Price', 'Amount')
 
     def parse_ticker(self, ticker, market):
-        print(ticker)
         timestamp = self.milliseconds()
         bid = None
         ask = None
         last = None
+        change = None
+        volume = None
         if 'Bid' in ticker:
             if ticker['Bid']:
                 bid = float(ticker['Bid'])
@@ -13622,6 +13623,12 @@ class southxchange (Exchange):
         if 'Last' in ticker:
             if ticker['Last']:
                 last = float(ticker['Last'])
+        if 'Variation24Hr' in ticker:
+            if ticker['Variation24Hr']:
+                change = float(ticker['Variation24Hr'])
+        if 'Volume24Hr' in ticker:
+            if ticker['Volume24Hr']:
+                volume = float(ticker['Volume24Hr'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -13634,11 +13641,11 @@ class southxchange (Exchange):
             'close': None,
             'first': None,
             'last': last,
-            'change': float(ticker['Variation24Hr']),
+            'change': change,
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': float(ticker['Volume24Hr']),
+            'quoteVolume': volume,
             'info': ticker,
         }
 
