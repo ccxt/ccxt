@@ -10349,15 +10349,20 @@ var gatecoin = {
     },
 
     parseTrade (trade, market = undefined) {
-        let side = (trade['way'] == 'bid') ? 'buy' : 'sell';
-        let order = trade['way'] + 'OrderId';
+        let side = undefined;
+        let order = undefined;
+        if ('way' in trade) {
+            side = (trade['way'] == 'bid') ? 'buy' : 'sell';
+            order = trade['way'] + 'OrderId';
+            orderId = trade[order];
+        }
         let timestamp = parseInt (trade['transactionTime']) * 1000;
         if (!market)
             market = this.markets_by_id[trade['currencyPair']];
         return {
             'info': trade,
             'id': trade['transactionId'].toString (),
-            'order': trade[order],
+            'order': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],

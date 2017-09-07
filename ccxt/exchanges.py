@@ -9326,15 +9326,20 @@ class gatecoin (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
-        side = 'buy' if(trade['way'] == 'bid') else 'sell'
-        order = trade['way'] + 'OrderId'
+        print(trade)
+        side = None
+        order = None
+        if 'way' in trade:
+            side = 'buy' if(trade['way'] == 'bid') else 'sell'
+            order = trade['way'] + 'OrderId'
+            orderId = trade[order]
         timestamp = int(trade['transactionTime']) * 1000
         if not market:
             market = self.markets_by_id[trade['currencyPair']]
         return {
             'info': trade,
             'id': str(trade['transactionId']),
-            'order': trade[order],
+            'order': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],

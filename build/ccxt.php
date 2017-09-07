@@ -10763,15 +10763,21 @@ class gatecoin extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $side = ($trade['way'] == 'bid') ? 'buy' : 'sell';
-        $order = $trade['way'] . 'OrderId';
+        var_dump ($trade);
+        $side = null;
+        $order = null;
+        if (array_key_exists ('way', $trade)) {
+            $side = ($trade['way'] == 'bid') ? 'buy' : 'sell';
+            $order = $trade['way'] . 'OrderId';
+            orderId = $trade[$order];
+        }
         $timestamp = intval ($trade['transactionTime']) * 1000;
         if (!$market)
             $market = $this->markets_by_id[$trade['currencyPair']];
         return array (
             'info' => $trade,
             'id' => (string) $trade['transactionId'],
-            'order' => $trade[$order],
+            'order' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
