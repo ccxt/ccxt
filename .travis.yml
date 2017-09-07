@@ -12,10 +12,10 @@ before_install:
 - sudo dpkg -i pandoc-1.19.2.1-1-amd64.deb
 - python --version
 - pip --version
-- pip install tox
 - pip install wheel
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
+- pip install tox
 - npm run build
 - tox -e qa,doc
 - node run-tests --js --python
