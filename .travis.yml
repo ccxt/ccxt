@@ -10,9 +10,9 @@ before_install:
 - set -e
 - sudo wget --quiet https://github.com/jgm/pandoc/releases/download/1.19.2.1/pandoc-1.19.2.1-1-amd64.deb
 - sudo dpkg -i pandoc-1.19.2.1-1-amd64.deb
-- python3 --version
-- pip3 --version
-- pip3 install --upgrade tox
+- python --version
+- pip --version
+- pip install --upgrade tox
 - pip install wheel
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
