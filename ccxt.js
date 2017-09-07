@@ -2520,29 +2520,22 @@ var bitfinex = {
 
     async fetchBalance () {
         await this.loadMarkets ();
-        let response = await this.privatePostBalances ();
-        let balances = {};
-        for (let b = 0; b < response.length; b++) {
-            let account = response[b];
-            if (account['type'] == 'exchange') {
-                let currency = account['currency'];
-                // issue #4 Bitfinex names Dash as DSH, instead of DASH
-                if (currency == 'DSH')
-                    currency = 'DASH';
+        let balances = await this.privatePostBalances ();
+        let result = { 'info': balances };
+        for (let i = 0; i < balances.length; i++) {
+            let balance = balances[i];
+            if (balance['type'] == 'exchange') {
+                let currency = balance['currency'];
                 let uppercase = currency.toUpperCase ();
-                balances[uppercase] = account;
-            }
-        }
-        let result = { 'info': response };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
-            let account = this.account ();
-            if (currency in balances) {
-                account['free'] = parseFloat (balances[currency]['available']);
-                account['total'] = parseFloat (balances[currency]['amount']);
+                // issue #4 Bitfinex names Dash as DSH, instead of DASH
+                if (uppercase == 'DSH')
+                    uppercase = 'DASH';
+                let account = this.account ();
+                account['free'] = parseFloat (balance['available']);
+                account['total'] = parseFloat (balance['amount']);
                 account['used'] = account['total'] - account['free'];
+                result[uppercase] = account;
             }
-            result[currency] = account;
         }
         return result;
     },
