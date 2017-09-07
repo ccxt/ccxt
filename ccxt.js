@@ -10353,8 +10353,8 @@ var gatecoin = {
         let order = undefined;
         if ('way' in trade) {
             side = (trade['way'] == 'bid') ? 'buy' : 'sell';
-            order = trade['way'] + 'OrderId';
-            orderId = trade[order];
+            let orderId = trade['way'] + 'OrderId';
+            order = trade[orderId];
         }
         let timestamp = parseInt (trade['transactionTime']) * 1000;
         if (!market)
