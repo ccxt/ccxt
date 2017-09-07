@@ -10763,13 +10763,12 @@ class gatecoin extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        var_dump ($trade);
         $side = null;
         $order = null;
         if (array_key_exists ('way', $trade)) {
             $side = ($trade['way'] == 'bid') ? 'buy' : 'sell';
-            $order = $trade['way'] . 'OrderId';
-            orderId = $trade[$order];
+            $orderId = $trade['way'] . 'OrderId';
+            $order = $trade[$orderId];
         }
         $timestamp = intval ($trade['transactionTime']) * 1000;
         if (!$market)
@@ -15418,15 +15417,20 @@ class southxchange extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market) {
+        var_dump ($ticker);
         $timestamp = $this->milliseconds ();
         $bid = null;
         $ask = null;
+        $last = null;
         if (array_key_exists ('Bid', $ticker))
             if ($ticker['Bid'])
                 $bid = floatval ($ticker['Bid']);
         if (array_key_exists ('Ask', $ticker))
             if ($ticker['Ask'])
                 $ask = floatval ($ticker['Ask']);
+        if (array_key_exists ('Last', $ticker))
+            if ($ticker['Last'])
+                $last = floatval ($ticker['Last']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -15438,7 +15442,7 @@ class southxchange extends Exchange {
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval ($ticker['Last']),
+            'last' => $last,
             'change' => floatval ($ticker['Variation24Hr']),
             'percentage' => null,
             'average' => null,

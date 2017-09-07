@@ -9326,13 +9326,12 @@ class gatecoin (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
-        print(trade)
         side = None
         order = None
         if 'way' in trade:
             side = 'buy' if(trade['way'] == 'bid') else 'sell'
-            order = trade['way'] + 'OrderId'
-            orderId = trade[order]
+            orderId = trade['way'] + 'OrderId'
+            order = trade[orderId]
         timestamp = int(trade['transactionTime']) * 1000
         if not market:
             market = self.markets_by_id[trade['currencyPair']]
@@ -13689,15 +13688,20 @@ class southxchange (Exchange):
         return self.parse_order_book(orderbook, None, 'BuyOrders', 'SellOrders', 'Price', 'Amount')
 
     def parse_ticker(self, ticker, market):
+        print(ticker)
         timestamp = self.milliseconds()
         bid = None
         ask = None
+        last = None
         if 'Bid' in ticker:
             if ticker['Bid']:
                 bid = float(ticker['Bid'])
         if 'Ask' in ticker:
             if ticker['Ask']:
                 ask = float(ticker['Ask'])
+        if 'Last' in ticker:
+            if ticker['Last']:
+                last = float(ticker['Last'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -13709,7 +13713,7 @@ class southxchange (Exchange):
             'open': None,
             'close': None,
             'first': None,
-            'last': float(ticker['Last']),
+            'last': last,
             'change': float(ticker['Variation24Hr']),
             'percentage': None,
             'average': None,

@@ -14921,12 +14921,24 @@ var southxchange = {
         let timestamp = this.milliseconds ();
         let bid = undefined;
         let ask = undefined;
+        let last = undefined;
+        let change = undefined;
+        let volume = undefined;
         if ('Bid' in ticker)
             if (ticker['Bid'])
                 bid = parseFloat (ticker['Bid']);
         if ('Ask' in ticker)
             if (ticker['Ask'])
                 ask = parseFloat (ticker['Ask']);
+        if ('Last' in ticker)
+            if (ticker['Last'])
+                last = parseFloat (ticker['Last']);        
+        if ('Variation24Hr' in ticker)
+            if (ticker['Variation24Hr'])
+                change = parseFloat (ticker['Variation24Hr']);
+        if ('Volume24Hr' in ticker)
+            if (ticker['Volume24Hr'])
+                volume = parseFloat (ticker['Volume24Hr']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -14938,12 +14950,12 @@ var southxchange = {
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': parseFloat (ticker['Last']),
-            'change': parseFloat (ticker['Variation24Hr']),
+            'last': last,
+            'change': change,
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['Volume24Hr']),
+            'quoteVolume': volume,
             'info': ticker,
         };
     },
