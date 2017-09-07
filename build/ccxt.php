@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.50';
+$version = '1.6.51';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -15417,11 +15417,12 @@ class southxchange extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market) {
-        var_dump ($ticker);
         $timestamp = $this->milliseconds ();
         $bid = null;
         $ask = null;
         $last = null;
+        $change = null;
+        $volume = null;
         if (array_key_exists ('Bid', $ticker))
             if ($ticker['Bid'])
                 $bid = floatval ($ticker['Bid']);
@@ -15431,6 +15432,12 @@ class southxchange extends Exchange {
         if (array_key_exists ('Last', $ticker))
             if ($ticker['Last'])
                 $last = floatval ($ticker['Last']);
+        if (array_key_exists ('Variation24Hr', $ticker))
+            if ($ticker['Variation24Hr'])
+                $change = floatval ($ticker['Variation24Hr']);
+        if (array_key_exists ('Volume24Hr', $ticker))
+            if ($ticker['Volume24Hr'])
+                $volume = floatval ($ticker['Volume24Hr']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -15443,11 +15450,11 @@ class southxchange extends Exchange {
             'close' => null,
             'first' => null,
             'last' => $last,
-            'change' => floatval ($ticker['Variation24Hr']),
+            'change' => $change,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['Volume24Hr']),
+            'quoteVolume' => $volume,
             'info' => $ticker,
         );
     }
