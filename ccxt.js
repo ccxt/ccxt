@@ -14932,7 +14932,7 @@ var southxchange = {
                 ask = parseFloat (ticker['Ask']);
         if ('Last' in ticker)
             if (ticker['Last'])
-                last = parseFloat (ticker['Last']);        
+                last = parseFloat (ticker['Last']);
         if ('Variation24Hr' in ticker)
             if (ticker['Variation24Hr'])
                 change = parseFloat (ticker['Variation24Hr']);
