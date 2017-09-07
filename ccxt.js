@@ -2753,8 +2753,11 @@ var bitfinex = {
             };
         }
         let response = await this.fetch (url, method, headers, body);
-        if ('message' in response)
+        if ('message' in response) {
+            if (message.indexOf ('not enough exchange balance') >= 0)
+                throw new InsufficientFunds (this.id + ' ' + this.json (response));
             throw new ExchangeError (this.id + ' ' + this.json (response));
+        }
         return response;
     },
 }
