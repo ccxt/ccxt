@@ -3002,7 +3002,7 @@ class bitfinex extends Exchange {
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('message', $response)) {
-            if mb_strpos ((message, 'not enough exchange balance') !== false)
+            if mb_strpos (($response['message'], 'not enough exchange balance') !== false)
                 throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }
@@ -3294,7 +3294,7 @@ class bitfinex2 extends bitfinex {
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('message', $response)) {
-            if mb_strpos ((message, 'not enough exchange balance') !== false)
+            if mb_strpos (($response['message'], 'not enough exchange balance') !== false)
                 throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }
