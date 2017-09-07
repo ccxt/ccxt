@@ -2527,7 +2527,7 @@ var bitfinex = {
             if (balance['type'] == 'exchange') {
                 let currency = balance['currency'];
                 let uppercase = currency.toUpperCase ();
-                // issue #4 Bitfinex names Dash as DSH, instead of DASH
+                // issue #4 Bitfinex names dash as dsh
                 if (uppercase == 'DSH')
                     uppercase = 'DASH';
                 let account = this.account ();
