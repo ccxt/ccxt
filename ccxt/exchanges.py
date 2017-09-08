@@ -357,10 +357,10 @@ class _1broker (Exchange):
         response = self.fetch(url, method)
         if 'warning' in response:
             if response['warning']:
-                raise ExchangeError(self.id + ' Warning: ' + response['warning_message'])
+                raise ExchangeError(self.id + ' ' + self.json(response))
         if 'error' in response:
             if response['error']:
-                raise ExchangeError(self.id + ' Error: ' + response['error_code'] + response['error_message'])
+                raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
 #------------------------------------------------------------------------------
