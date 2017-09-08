@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.68';
+$version = '1.6.69';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5247,7 +5247,7 @@ class bittrex extends Exchange {
             $exchange = $order['Exchange'];
             if (array_key_exists ($exchange, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$exchange];
-                $symbol = ['symbol'];
+                $symbol = $market['symbol'];
             }
         }
         $timestamp = $this->parse8601 ($order['Opened']);

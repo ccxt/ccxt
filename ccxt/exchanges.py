@@ -4143,7 +4143,7 @@ class bittrex (Exchange):
             exchange = order['Exchange']
             if exchange in self.markets_by_id:
                 market = self.markets_by_id[exchange]
-                symbol = ['symbol']
+                symbol = market['symbol']
         timestamp = self.parse8601(order['Opened'])
         result = {
             'info': order,
