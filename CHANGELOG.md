@@ -1,5 +1,7 @@
 # Сhangelog
 
+- Fixed Bitfinex DASH balance issue, [#178](https://github.com/kroitor/ccxt/issues/178)
+- Added missing ETH and BCH markets to BTCChina, [#175](https://github.com/kroitor/ccxt/issues/175) 
 - Added support for HitBTC v2 API, [#172](https://github.com/kroitor/ccxt/issues/172)
 - Unified most of fetchOHLCV implementations where available, [related commits](https://github.com/kroitor/ccxt/search?q=fetchOHLCV&type=Commits&utf8=%E2%9C%93), [#169](https://github.com/kroitor/ccxt/issues/169)
 - Added initial support for Bitfinex v2 API, [#154](https://github.com/kroitor/ccxt/issues/154)
