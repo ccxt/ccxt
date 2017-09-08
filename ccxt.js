@@ -2754,7 +2754,8 @@ var bitfinex = {
         }
         let response = await this.fetch (url, method, headers, body);
         if ('message' in response) {
-            if (response['message'].indexOf ('not enough exchange balance') >= 0)
+            let deficient = response['message'].indexOf ('not enough exchange balance') >= 0;
+            if (deficient)
                 throw new InsufficientFunds (this.id + ' ' + this.json (response));
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
@@ -3042,7 +3043,8 @@ var bitfinex2 = extend (bitfinex, {
         }
         let response = await this.fetch (url, method, headers, body);
         if ('message' in response) {
-            if (response['message'].indexOf ('not enough exchange balance') >= 0)
+            let deficient = response['message'].indexOf ('not enough exchange balance') >= 0;
+            if (deficient)
                 throw new InsufficientFunds (this.id + ' ' + this.json (response));
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
