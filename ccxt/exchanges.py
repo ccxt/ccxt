@@ -2871,6 +2871,7 @@ class bitmarket (Exchange):
             'countries': ['PL', 'EU'],
             'rateLimit': 1500,
             'hasFetchOHLCV': True,
+            'hasWithdraw': True,
             'timeframes': {
                 '90m': '90m',
                 '6h': '6h',
@@ -3105,7 +3106,7 @@ class bitmarket (Exchange):
                 if currency == 'PLN':
                     raise ExchangeError(self.id + ' requires withdrawal_note parameter to withdraw PLN')
         else:
-            method = 'privatePostWithdrawFiat'
+            method = 'privatePostWithdraw'
             request['address'] = address
         response = getattr(self, method)(self.extend(request, params))
         return {
@@ -3428,6 +3429,30 @@ class bitmex (Exchange):
     def cancel_order(self, id):
         self.load_markets()
         return self.privateDeleteOrder({'orderID': id})
+
+    def isFiat(self, currency):
+        if currency == 'EUR':
+            return True
+        if currency == 'PLN':
+            return True
+        return False
+
+    def withdraw(self, currency, amount, address, params={}):
+        self.load_markets()
+        if currency != 'BTC':
+            raise ExchangeError(self.id + ' supoprts BTC withdrawals only, other currencies coming soon...')
+        request = {
+            'currency': 'XBt', # temporarily
+            'amount': amount,
+            'address': address,
+            # 'otpToken': '123456', # requires if two-factor auth(OTP) is enabled
+            # 'fee': 0.001, # bitcoin network fee
+        }
+        response = self.privatePostUserRequestWithdrawal(self.extend(request, params))
+        return {
+            'info': response,
+            'id': response['transactID'],
+        }
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = '/api' + '/' + self.version + '/' + path

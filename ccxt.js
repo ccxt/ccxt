@@ -4206,6 +4206,32 @@ var bitmex = {
         return this.privateDeleteOrder ({ 'orderID': id });
     },
 
+    isFiat (currency) {
+        if (currency == 'EUR')
+            return true;
+        if (currency == 'PLN')
+            return true;
+        return false;
+    },
+
+    async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
+        if (currency != 'BTC')
+            throw new ExchangeError (this.id + ' supoprts BTC withdrawals only, other currencies coming soon...');
+        let request = {
+            'currency': 'XBt', // temporarily
+            'amount': amount,
+            'address': address,
+            // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
+            // 'fee': 0.001, // bitcoin network fee
+        };
+        let response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
+        return {
+            'info': response,
+            'id': response['transactID'],
+        };
+    },
+
     request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = '/api' + '/' + this.version + '/' + path;
         if (Object.keys (params).length)

@@ -3891,6 +3891,7 @@ class bitmarket extends Exchange {
             'countries' => array ( 'PL', 'EU' ),
             'rateLimit' => 1500,
             'hasFetchOHLCV' => true,
+            'hasWithdraw' => true,
             'timeframes' => array (
                 '90m' => '90m',
                 '6h' => '6h',
@@ -4138,7 +4139,7 @@ class bitmarket extends Exchange {
                     throw new ExchangeError ($this->id . ' requires withdrawal_note parameter to withdraw PLN');
             }
         } else {
-            $method = 'privatePostWithdrawFiat';
+            $method = 'privatePostWithdraw';
             $request['address'] = $address;
         }
         $response = $this->$method (array_merge ($request, $params));
@@ -4479,6 +4480,32 @@ class bitmex extends Exchange {
     public function cancel_order ($id) {
         $this->load_markets ();
         return $this->privateDeleteOrder (array ( 'orderID' => $id ));
+    }
+
+    public function isFiat ($currency) {
+        if ($currency == 'EUR')
+            return true;
+        if ($currency == 'PLN')
+            return true;
+        return false;
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        if ($currency != 'BTC')
+            throw new ExchangeError ($this->id . ' supoprts BTC withdrawals only, other currencies coming soon...');
+        $request = array (
+            'currency' => 'XBt', // temporarily
+            'amount' => $amount,
+            'address' => $address,
+            // 'otpToken' => '123456', // requires if two-factor auth (OTP) is enabled
+            // 'fee' => 0.001, // bitcoin network fee
+        );
+        $response = $this->privatePostUserRequestWithdrawal (array_merge ($request, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['transactID'],
+        );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
