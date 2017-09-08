@@ -1904,10 +1904,11 @@ class binance extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $price = floatval ($price);
         $order = array (
             'symbol' => $this->market_id ($symbol),
-            'quantity' => sprintf ('%f', $amount),
-            'price' => sprintf ('%f', $price),
+            'quantity' => sprintf ('%8f', $amount),
+            'price' => sprintf ('%8f', $price),
             'type' => strtoupper ($type),
             'side' => strtoupper ($side),
             'timeInForce' => 'GTC', // Good To Cancel
@@ -11784,7 +11785,7 @@ class hitbtc extends Exchange {
             'type' => $type,
         );
         if ($type == 'limit')
-            $order['price'] = sprintf ('%.10f', $price);
+            $order['price'] = sprintf ('%10f', $price);
         $response = $this->tradingPostNewOrder (array_merge ($order, $params));
         return array (
             'info' => $response,
@@ -12082,7 +12083,7 @@ class hitbtc2 extends hitbtc {
         );
         if ($type == 'limit') {
             $price = floatval ($price);
-            $order['price'] = sprintf ('%.10f', $price);
+            $order['price'] = sprintf ('%10f', $price);
         }
         $response = $this->privatePostOrder (array_merge ($order, $params));
         return array (
@@ -16965,7 +16966,7 @@ class yobit extends Exchange {
             'pair' => $this->market_id ($symbol),
             'type' => $side,
             'amount' => $amount,
-            'rate' => sprintf ('%.8f', $price),
+            'rate' => sprintf ('%8f', $price),
         ), $params));
         return array (
             'info' => $response,

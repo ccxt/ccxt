@@ -1668,10 +1668,11 @@ var binance = {
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        price = parseFloat (price);
         let order = {
             'symbol': this.marketId (symbol),
-            'quantity': '%f'.sprintf (amount),
-            'price': '%f'.sprintf (price),
+            'quantity': amount.toFixed (8),
+            'price': price.toFixed (8),
             'type': type.toUpperCase (),
             'side': side.toUpperCase (),
             'timeInForce': 'GTC', // Good To Cancel
@@ -11348,7 +11349,7 @@ var hitbtc = {
             'type': type,
         };
         if (type == 'limit')
-            order['price'] = '%.10f'.sprintf (price);
+            order['price'] = price.toFixed (10);
         let response = await this.tradingPostNewOrder (this.extend (order, params));
         return {
             'info': response,
@@ -11642,7 +11643,7 @@ var hitbtc2 = extend (hitbtc, {
         };
         if (type == 'limit') {
             price = parseFloat (price);
-            order['price'] = '%.10f'.sprintf (price);
+            order['price'] = price.toFixed (10);
         }
         let response = await this.privatePostOrder (this.extend (order, params));
         return {
@@ -16424,7 +16425,7 @@ var yobit = {
             'pair': this.marketId (symbol),
             'type': side,
             'amount': amount,
-            'rate': '%.8f'.sprintf (price),
+            'rate': price.toFixed (8),
         }, params));
         return {
             'info': response,

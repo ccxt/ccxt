@@ -1025,10 +1025,11 @@ class binance (Exchange):
         raise NotSupported(self.id + ' parseOrder is not implemented yet')
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        price = float(price)
         order = {
             'symbol': self.market_id(symbol),
-            'quantity': '{:f}'.format(amount),
-            'price': '{:f}'.format(price),
+            'quantity': '{:.8f}'.format(amount),
+            'price': '{:.8f}'.format(price),
             'type': type.upper(),
             'side': side.upper(),
             'timeInForce': 'GTC', # Good To Cancel
