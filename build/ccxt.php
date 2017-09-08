@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.67';
+$version = '1.6.68';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -1196,10 +1196,10 @@ class _1broker extends Exchange {
         $response = $this->fetch ($url, $method);
         if (array_key_exists ('warning', $response))
             if ($response['warning'])
-                throw new ExchangeError ($this->id . ' Warning => ' . $response['warning_message']);
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         if (array_key_exists ('error', $response))
             if ($response['error'])
-                throw new ExchangeError ($this->id . ' Error => ' . $response['error_code'] . $response['error_message']);
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }
