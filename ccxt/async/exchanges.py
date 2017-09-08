@@ -1331,7 +1331,7 @@ class bitbay (Exchange):
     async def cancel_order(self, id):
         return self.privatePostCancel({'id': id})
 
-    def isFiatCurrency(self, currency):
+    def isFiat(self, currency):
         if currency == 'USD':
             return True
         if currency == 'EUR':
@@ -1347,14 +1347,14 @@ class bitbay (Exchange):
             'currency': currency,
             'quantity': amount,
         }
-        if self.isFiatCurrency(currency):
+        if self.isFiat(currency):
             method = 'privatePostWithdraw'
             request['address'] = address
         else:
             method = 'privatePostTransfer'
             # request['account'] = params['account'] # they demand an account number
             # request['express'] = params['express'] # whatever it means, they don't explain
-            # request['bic'] = 'Bank Identifier Code(BIC)'
+            # request['bic'] = ''
         response = await getattr(self, method)(self.extend(request, params))
         return {
             'info': response,
@@ -2488,6 +2488,18 @@ class bitflyer (Exchange):
         return self.privatePostCancelchildorder(self.extend({
             'parent_order_id': id,
         }, params))
+
+    async def withdraw(self, currency, amount, address, params={}):
+        await self.load_markets()
+        response = await self.privatePostWithdraw(self.extend({
+            'currency_code': currency,
+            'amount': amount,
+            # 'bank_account_id': 1234,
+        }, params))
+        return {
+            'info': response,
+            'id': response['message_id'],
+        }
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + self.version + '/'

@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.63';
+$version = '1.6.64';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2321,7 +2321,7 @@ class bitbay extends Exchange {
         return $this->privatePostCancel (array ( 'id' => $id ));
     }
 
-    public function isFiatCurrency ($currency) {
+    public function isFiat ($currency) {
         if ($currency == 'USD')
             return true;
         if ($currency == 'EUR')
@@ -2338,14 +2338,14 @@ class bitbay extends Exchange {
             'currency' => $currency,
             'quantity' => $amount,
         );
-        if ($this->isFiatCurrency ($currency)) {
+        if ($this->isFiat ($currency)) {
             $method = 'privatePostWithdraw';
             $request['address'] = $address;
         } else {
             $method = 'privatePostTransfer';
             // $request['account'] = $params['account']; // they demand an account number
             // $request['express'] = $params['express']; // whatever it means, they don't explain
-            // $request['bic'] = 'Bank Identifier Code (BIC)';
+            // $request['bic'] = '';
         }
         $response = $this->$method (array_merge ($request, $params));
         return array (
@@ -3560,6 +3560,19 @@ class bitflyer extends Exchange {
         return $this->privatePostCancelchildorder (array_merge (array (
             'parent_order_id' => $id,
         ), $params));
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $response = $this->privatePostWithdraw (array_merge (array (
+            'currency_code' => $currency,
+            'amount' => $amount,
+            // 'bank_account_id' => 1234,
+        ), $params));
+        return array (
+            'info' => $response,
+            'id' => $response['message_id'],
+        );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
