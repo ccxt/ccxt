@@ -1,5 +1,8 @@
 # Сhangelog
 
+- Fixed float formatting issue, [#185](https://github.com/kroitor/ccxt/issues/185)
+- Fixed side issue with Bitflyer parseTrade, [#184](https://github.com/kroitor/ccxt/issues/184)
+- Fixed fetchOpenOrders amount/symbol with Bittrex and Poloniex [#183](https://github.com/kroitor/ccxt/issues/183)
 - Fixed Bitfinex DASH balance issue, [#178](https://github.com/kroitor/ccxt/issues/178)
 - Added missing ETH and BCH markets to BTCChina, [#175](https://github.com/kroitor/ccxt/issues/175) 
 - Added support for HitBTC v2 API, [#172](https://github.com/kroitor/ccxt/issues/172)
