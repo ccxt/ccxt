@@ -2524,8 +2524,14 @@ class bitflyer (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        side = trade['side'].lower()
-        order = side + '_child_order_acceptance_id'
+        side = None
+        order = None
+        if 'side' in trade:
+            if trade['side']:
+                side = trade['side'].lower()
+                id = side + '_child_order_acceptance_id'
+                if id in trade:
+                    order = trade[id]
         timestamp = self.parse8601(trade['exec_date'])
         return {
             'id': str(trade['id']),
@@ -2533,7 +2539,7 @@ class bitflyer (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
-            'order': trade[order],
+            'order': order,
             'type': None,
             'side': side,
             'price': trade['price'],

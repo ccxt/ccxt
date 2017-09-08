@@ -3513,8 +3513,15 @@ class bitflyer extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $side = strtolower ($trade['side']);
-        $order = $side . '_child_order_acceptance_id';
+        $side = null;
+        $order = null;
+        if (array_key_exists ('side', $trade))
+            if ($trade['side']) {
+                $side = strtolower ($trade['side']);
+                $id = $side . '_child_order_acceptance_id';
+                if (array_key_exists ($id, $trade))
+                    $order = $trade[$id];
+            }
         $timestamp = $this->parse8601 ($trade['exec_date']);
         return array (
             'id' => (string) $trade['id'],
@@ -3522,7 +3529,7 @@ class bitflyer extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
-            'order' => $trade[$order],
+            'order' => $order,
             'type' => null,
             'side' => $side,
             'price' => $trade['price'],
@@ -14927,7 +14934,7 @@ class poloniex extends Exchange {
             'type' => $order['type'],
             'side' => $order['side'],
             'price' => $order['price'],
-            'amount' => $order['amount'],
+            'amount' => floatval ($order['amount']),
             'trades' => $trades,
         );
     }

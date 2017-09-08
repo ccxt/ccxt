@@ -3249,8 +3249,15 @@ var bitflyer = {
     },
 
     parseTrade (trade, market = undefined) {
-        let side = trade['side'].toLowerCase ();
-        let order = side + '_child_order_acceptance_id';
+        let side = undefined;
+        let order = undefined;
+        if ('side' in trade)
+            if (trade['side']) {
+                side = trade['side'].toLowerCase ();
+                let id = side + '_child_order_acceptance_id';
+                if (id in trade)
+                    order = trade[id];
+            }
         let timestamp = this.parse8601 (trade['exec_date']);
         return {
             'id': trade['id'].toString (),
@@ -3258,7 +3265,7 @@ var bitflyer = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'order': trade[order],
+            'order': order,
             'type': undefined,
             'side': side,
             'price': trade['price'],
