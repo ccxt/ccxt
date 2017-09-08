@@ -803,8 +803,15 @@ var _1broker = {
     },
 
     async fetchCategories () {
-        let categories = await this.privateGetMarketCategories ();
-        return categories['response'];
+        let response = await this.privateGetMarketCategories ();
+        // they return an empty string among their categories, wtf?
+        let categories = response['response'];
+        let result = [];
+        for (let i = 0; i < categories.length; i++) {
+            if (categories[i])
+                result.push (categories[i]);
+        }
+        return result;
     },
 
     async fetchMarkets () {
@@ -1648,23 +1655,56 @@ var binance = {
         return this.parseTrades (response, market);
     },
 
+    parseOrderStatus (status) {
+        if (status == 'NEW')
+            return 'open';
+        if (status == 'PARTIALLY_FILLED')
+            return 'open';
+        if (status == 'FILLED')
+            return 'closed';
+        if (status == 'CANCELED')
+            return 'canceled';
+        return status.toLowerCase ();
+    },
+
     parseOrder (order, market = undefined) {
-        // {
-        //   "symbol": "LTCBTC",
-        //   "orderId": 1,
-        //   "clientOrderId": "myOrder1",
-        //   "price": "0.1",
-        //   "origQty": "1.0",
-        //   "executedQty": "0.0",
-        //   "status": "NEW",
-        //   "timeInForce": "GTC",
-        //   "type": "LIMIT",
-        //   "side": "BUY",
-        //   "stopPrice": "0.0",
-        //   "icebergQty": "0.0",
-        //   "time": 1499827319559
-        // }
-        throw new NotSupported (this.id + ' parseOrder is not implemented yet');
+        let status = this.parseOrderStatus (order['status']);
+        let symbol = undefined;
+        if (market) {
+            symbol = market['symbol'];
+        } else {
+            let id = order['symbol'];
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
+                symbol = market['symbol'];
+            }
+        }
+        let timestamp = order['time'];
+        let amount = parseFloat (order['origQty']);
+        let remaining = undefined;
+        let filled = undefined;
+        if ('executedQty' in order) {
+            if (order['executedQty']) {
+                filled = parseFloat (order['executedQty']);
+                remaining = amount - filled;
+            }
+        }
+        let executed = parseFloat (order['executedQty']);
+        let result = {
+            'info': order,
+            'id': order['orderId'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': order['type'].toLowerCase (),
+            'side': order['side'].toLowerCase (),
+            'price': parseFloat (order['price']),
+            'amount': amount,
+            'filled': executed,
+            'remaining': remaining,
+            'status': status,
+        };
+        return result;
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1675,7 +1715,7 @@ var binance = {
             'price': price.toFixed (8),
             'type': type.toUpperCase (),
             'side': side.toUpperCase (),
-            'timeInForce': 'GTC', // Good To Cancel
+            'timeInForce': 'GTC', // Good To Cancel (default)
             // 'timeInForce': 'IOC', // Immediate Or Cancel
         };
         let response = await this.privatePostOrder (this.extend (order, params));

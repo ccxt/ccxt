@@ -198,8 +198,14 @@ class _1broker (Exchange):
         super(_1broker, self).__init__(params)
 
     def fetchCategories(self):
-        categories = self.privateGetMarketCategories()
-        return categories['response']
+        response = self.privateGetMarketCategories()
+        # they return an empty string among their categories, wtf?
+        categories = response['response']
+        result = []
+        for i in range(0, len(categories)):
+            if categories[i]:
+                result.append(categories[i])
+        return result
 
     def fetch_markets(self):
         self_ = self # workaround for Babel bug(not passing `self` to _recursive() call)
@@ -1006,23 +1012,51 @@ class binance (Exchange):
         }, params))
         return self.parse_trades(response, market)
 
+    def parse_orderStatus(self, status):
+        if status == 'NEW':
+            return 'open'
+        if status == 'PARTIALLY_FILLED':
+            return 'open'
+        if status == 'FILLED':
+            return 'closed'
+        if status == 'CANCELED':
+            return 'canceled'
+        return status.lower()
+
     def parse_order(self, order, market=None):
-        # {
-        #   "symbol": "LTCBTC",
-        #   "orderId": 1,
-        #   "clientOrderId": "myOrder1",
-        #   "price": "0.1",
-        #   "origQty": "1.0",
-        #   "executedQty": "0.0",
-        #   "status": "NEW",
-        #   "timeInForce": "GTC",
-        #   "type": "LIMIT",
-        #   "side": "BUY",
-        #   "stopPrice": "0.0",
-        #   "icebergQty": "0.0",
-        #   "time": 1499827319559
-        #}
-        raise NotSupported(self.id + ' parseOrder is not implemented yet')
+        status = self.parseOrderStatus(order['status'])
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        else:
+            id = order['symbol']
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+        timestamp = order['time']
+        amount = float(order['origQty'])
+        remaining = None
+        filled = None
+        if 'executedQty' in order:
+            if order['executedQty']:
+                filled = float(order['executedQty'])
+                remaining = amount - filled
+        executed = float(order['executedQty'])
+        result = {
+            'info': order,
+            'id': order['orderId'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'type': order['type'].lower(),
+            'side': order['side'].lower(),
+            'price': float(order['price']),
+            'amount': amount,
+            'filled': executed,
+            'remaining': remaining,
+            'status': status,
+        }
+        return result
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         price = float(price)
@@ -1032,7 +1066,7 @@ class binance (Exchange):
             'price': '{:.8f}'.format(price),
             'type': type.upper(),
             'side': side.upper(),
-            'timeInForce': 'GTC', # Good To Cancel
+            'timeInForce': 'GTC', # Good To Cancel(default)
             # 'timeInForce': 'IOC', # Immediate Or Cancel
         }
         response = self.privatePostOrder(self.extend(order, params))

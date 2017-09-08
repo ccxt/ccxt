@@ -1023,8 +1023,15 @@ class _1broker extends Exchange {
     }
 
     public function fetchCategories () {
-        $categories = $this->privateGetMarketCategories ();
-        return $categories['response'];
+        $response = $this->privateGetMarketCategories ();
+        // they return an empty string among their $categories, wtf?
+        $categories = $response['response'];
+        $result = array ();
+        for ($i = 0; $i < count ($categories); $i++) {
+            if ($categories[$i])
+                $result[] = $categories[$i];
+        }
+        return $result;
     }
 
     public function fetch_markets () {
@@ -1884,23 +1891,56 @@ class binance extends Exchange {
         return $this->parse_trades ($response, $market);
     }
 
+    public function parse_orderStatus ($status) {
+        if ($status == 'NEW')
+            return 'open';
+        if ($status == 'PARTIALLY_FILLED')
+            return 'open';
+        if ($status == 'FILLED')
+            return 'closed';
+        if ($status == 'CANCELED')
+            return 'canceled';
+        return strtolower ($status);
+    }
+
     public function parse_order ($order, $market = null) {
-        // {
-        //   "symbol" => "LTCBTC",
-        //   "orderId" => 1,
-        //   "clientOrderId" => "myOrder1",
-        //   "price" => "0.1",
-        //   "origQty" => "1.0",
-        //   "executedQty" => "0.0",
-        //   "status" => "NEW",
-        //   "timeInForce" => "GTC",
-        //   "type" => "LIMIT",
-        //   "side" => "BUY",
-        //   "stopPrice" => "0.0",
-        //   "icebergQty" => "0.0",
-        //   "time" => 1499827319559
-        // }
-        throw new NotSupported ($this->id . ' parseOrder is not implemented yet');
+        $status = $this->parse_orderStatus ($order['status']);
+        $symbol = null;
+        if ($market) {
+            $symbol = $market['symbol'];
+        } else {
+            $id = $order['symbol'];
+            if (array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+            }
+        }
+        $timestamp = $order['time'];
+        $amount = floatval ($order['origQty']);
+        $remaining = null;
+        $filled = null;
+        if (array_key_exists ('executedQty', $order)) {
+            if ($order['executedQty']) {
+                $filled = floatval ($order['executedQty']);
+                $remaining = $amount - $filled;
+            }
+        }
+        $executed = floatval ($order['executedQty']);
+        $result = array (
+            'info' => $order,
+            'id' => $order['orderId'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'type' => strtolower ($order['type']),
+            'side' => strtolower ($order['side']),
+            'price' => floatval ($order['price']),
+            'amount' => $amount,
+            'filled' => $executed,
+            'remaining' => $remaining,
+            'status' => $status,
+        );
+        return $result;
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1911,7 +1951,7 @@ class binance extends Exchange {
             'price' => sprintf ('%8f', $price),
             'type' => strtoupper ($type),
             'side' => strtoupper ($side),
-            'timeInForce' => 'GTC', // Good To Cancel
+            'timeInForce' => 'GTC', // Good To Cancel (default)
             // 'timeInForce' => 'IOC', // Immediate Or Cancel
         );
         $response = $this->privatePostOrder (array_merge ($order, $params));
