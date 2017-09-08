@@ -14432,7 +14432,7 @@ var poloniex = {
             'type': order['type'],
             'side': order['side'],
             'price': order['price'],
-            'amount': order['amount'],
+            'amount': parseFloat (order['amount']),
             'trades': trades,
         };
     },
