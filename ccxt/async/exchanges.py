@@ -440,6 +440,18 @@ class cryptocapital (Exchange):
     async def cancel_order(self, id):
         return self.privatePostOrdersCancel({'id': id})
 
+    async def withdraw(self, currency, amount, address, params={}):
+        await self.load_markets()
+        response = await self.privatePostWithdrawalsNew(self.extend({
+            'currency': currency,
+            'amount': float(amount),
+            'address': address,
+        }, params))
+        return {
+            'info': response,
+            'id': response['result']['uuid'],
+        }
+
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if self.id == 'cryptocapital':
             raise ExchangeError(self.id + ' is an abstract base API for _1btcxe')

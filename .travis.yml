@@ -20,7 +20,6 @@ before_install:
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
 - npm run build
-# commented
 # - tox -e qa,doc 
 - node run-tests --js --python
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./push.sh; fi

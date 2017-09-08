@@ -1152,6 +1152,19 @@ var cryptocapital = {
         return this.privatePostOrdersCancel ({ 'id': id });
     },
 
+    async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostWithdrawalsNew (this.extend ({
+            'currency': currency,
+            'amount': parseFloat (amount),
+            'address': address,
+        }, params));
+        return {
+            'info': response,
+            'id': response['result']['uuid'],
+        };
+    },
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (this.id == 'cryptocapital')
             throw new ExchangeError (this.id + ' is an abstract base API for _1btcxe');

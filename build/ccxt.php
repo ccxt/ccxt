@@ -1368,6 +1368,19 @@ class cryptocapital extends Exchange {
         return $this->privatePostOrdersCancel (array ( 'id' => $id ));
     }
 
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $response = $this->privatePostWithdrawalsNew (array_merge (array (
+            'currency' => $currency,
+            'amount' => floatval ($amount),
+            'address' => $address,
+        ), $params));
+        return array (
+            'info' => $response,
+            'id' => $response['result']['uuid'],
+        );
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if ($this->id == 'cryptocapital')
             throw new ExchangeError ($this->id . ' is an abstract base API for _1btcxe');
