@@ -4959,7 +4959,7 @@ var bittrex = {
             let exchange = order['Exchange'];
             if (exchange in this.markets_by_id) {
                 market = this.markets_by_id[exchange];
-                symbol = ['symbol'];
+                symbol = market['symbol'];
             }
         }
         let timestamp = this.parse8601 (order['Opened']);
