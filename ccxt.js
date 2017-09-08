@@ -976,10 +976,10 @@ var _1broker = {
         let response = await this.fetch (url, method);
         if ('warning' in response)
             if (response['warning'])
-                throw new ExchangeError (this.id + ' Warning: ' + response['warning_message']);
+                throw new ExchangeError (this.id + ' ' + this.json (response));
         if ('error' in response)
             if (response['error'])
-                throw new ExchangeError (this.id + ' Error: ' + response['error_code'] + response['error_message']);
+                throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     },
 }
