@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.65';
+$version = '1.6.66';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3891,6 +3891,7 @@ class bitmarket extends Exchange {
             'countries' => array ( 'PL', 'EU' ),
             'rateLimit' => 1500,
             'hasFetchOHLCV' => true,
+            'hasWithdraw' => true,
             'timeframes' => array (
                 '90m' => '90m',
                 '6h' => '6h',
@@ -4138,7 +4139,7 @@ class bitmarket extends Exchange {
                     throw new ExchangeError ($this->id . ' requires withdrawal_note parameter to withdraw PLN');
             }
         } else {
-            $method = 'privatePostWithdrawFiat';
+            $method = 'privatePostWithdraw';
             $request['address'] = $address;
         }
         $response = $this->$method (array_merge ($request, $params));

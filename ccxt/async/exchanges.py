@@ -2791,6 +2791,7 @@ class bitmarket (Exchange):
             'countries': ['PL', 'EU'],
             'rateLimit': 1500,
             'hasFetchOHLCV': True,
+            'hasWithdraw': True,
             'timeframes': {
                 '90m': '90m',
                 '6h': '6h',
@@ -3025,7 +3026,7 @@ class bitmarket (Exchange):
                 if currency == 'PLN':
                     raise ExchangeError(self.id + ' requires withdrawal_note parameter to withdraw PLN')
         else:
-            method = 'privatePostWithdrawFiat'
+            method = 'privatePostWithdraw'
             request['address'] = address
         response = await getattr(self, method)(self.extend(request, params))
         return {
