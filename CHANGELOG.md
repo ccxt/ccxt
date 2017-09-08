@@ -1,5 +1,7 @@
 # Сhangelog
 
+![BitBays ceased operation](https://user-images.githubusercontent.com/1294454/30231444-90b89000-94f3-11e7-84ba-f3ca1fe8cd3b.png)
+
 - Fixed float formatting issue, [#185](https://github.com/kroitor/ccxt/issues/185)
 - Fixed side issue with Bitflyer parseTrade, [#184](https://github.com/kroitor/ccxt/issues/184)
 - Fixed fetchOpenOrders amount/symbol with Bittrex and Poloniex [#183](https://github.com/kroitor/ccxt/issues/183)
@@ -106,7 +108,7 @@
 - New tests system that launches individual market tests in parallel (now running 3 minutes instead of 20)
 - BTC-e shutdown
 
-<img width="949" alt="screen shot 2017-08-01 at 01 20 21" src="https://user-images.githubusercontent.com/1294454/28800889-9d03c61e-7657-11e7-881c-c4becb03903d.png">
+![BTCe shutdown](https://user-images.githubusercontent.com/1294454/28800889-9d03c61e-7657-11e7-881c-c4becb03903d.png)
 
 - Fixed a typo in Python examples, [#65](https://github.com/kroitor/ccxt/issues/65)
 - Fixed Yunbi and CHBTC orders, [#62](https://github.com/kroitor/ccxt/issues/62), [#63](https://github.com/kroitor/ccxt/issues/63)
