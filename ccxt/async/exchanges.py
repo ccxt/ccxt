@@ -3013,7 +3013,7 @@ class bitmarket (Exchange):
             if 'account' in params:
                 request['account'] = params['account'] # bank account code for withdrawal
             else:
-                raise ExchangeError(self.id + ' requires account parameter')
+                raise ExchangeError(self.id + ' requires account parameter to withdraw fiat currency')
             if 'account2' in params:
                 request['account2'] = params['account2'] # bank SWIFT code(EUR only)
             else:
@@ -3030,7 +3030,7 @@ class bitmarket (Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         return {
             'info': response,
-            'id': None,
+            'id': response,
         }
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

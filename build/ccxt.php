@@ -4123,7 +4123,7 @@ class bitmarket extends Exchange {
             if (array_key_exists ('account', $params)) {
                 $request['account'] = $params['account']; // bank account code for withdrawal
             } else {
-                throw new ExchangeError ($this->id . ' requires account parameter');
+                throw new ExchangeError ($this->id . ' requires account parameter to withdraw fiat currency');
             }
             if (array_key_exists ('account2', $params)) {
                 $request['account2'] = $params['account2']; // bank SWIFT code (EUR only)
@@ -4144,7 +4144,7 @@ class bitmarket extends Exchange {
         $response = $this->$method (array_merge ($request, $params));
         return array (
             'info' => $response,
-            'id' => null,
+            'id' => $response,
         );
     }
 

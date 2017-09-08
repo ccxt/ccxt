@@ -3851,7 +3851,7 @@ var bitmarket = {
             if ('account' in params) {
                 request['account'] = params['account']; // bank account code for withdrawal
             } else {
-                throw new ExchangeError (this.id + ' requires account parameter');
+                throw new ExchangeError (this.id + ' requires account parameter to withdraw fiat currency');
             }
             if ('account2' in params) {
                 request['account2'] = params['account2']; // bank SWIFT code (EUR only)
@@ -3872,7 +3872,7 @@ var bitmarket = {
         let response = await this[method] (this.extend (request, params));
         return {
             'info': response,
-            'id': undefined,
+            'id': response,
         };
     },
 
