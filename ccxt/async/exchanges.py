@@ -2750,6 +2750,22 @@ class bitlish (Exchange):
         await self.load_markets()
         return self.privatePostCancelTrade({'id': id})
 
+    async def withdraw(self, currency, amount, address, params={}):
+        await self.load_markets()
+        if currency != 'BTC':
+            # they did not document other types...
+            raise NotSupported(self.id + ' currently supports BTC withdrawals only, until they document other currencies...')
+        response = await self.privatePostWithdraw(self.extend({
+            'currency': currency.lower(),
+            'amount': float(amount),
+            'account': address,
+            'payment_method': 'bitcoin', # they did not document other types...
+        }, params))
+        return {
+            'info': response,
+            'id': response['message_id'],
+        }
+
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':

@@ -3575,6 +3575,24 @@ var bitlish = {
         return this.privatePostCancelTrade ({ 'id': id });
     },
 
+    async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
+        if (currency != 'BTC') {
+            // they did not document other types...
+            throw new NotSupported (this.id + ' currently supports BTC withdrawals only, until they document other currencies...');
+        }
+        let response = await this.privatePostWithdraw (this.extend ({
+            'currency': currency.toLowerCase (),
+            'amount': parseFloat (amount),
+            'account': address,
+            'payment_method': 'bitcoin', // they did not document other types...
+        }, params));
+        return {
+            'info': response,
+            'id': response['message_id'],
+        };
+    },
+
     request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (api == 'public') {

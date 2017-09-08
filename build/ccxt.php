@@ -3843,6 +3843,24 @@ class bitlish extends Exchange {
         return $this->privatePostCancelTrade (array ( 'id' => $id ));
     }
 
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        if ($currency != 'BTC') {
+            // they did not document other types...
+            throw new NotSupported ($this->id . ' currently supports BTC withdrawals only, until they document other currencies...');
+        }
+        $response = $this->privatePostWithdraw (array_merge (array (
+            'currency' => strtolower ($currency),
+            'amount' => floatval ($amount),
+            'account' => $address,
+            'payment_method' => 'bitcoin', // they did not document other types...
+        ), $params));
+        return array (
+            'info' => $response,
+            'id' => $response['message_id'],
+        );
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api == 'public') {
