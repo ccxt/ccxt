@@ -1597,11 +1597,11 @@ class anxpro extends Exchange {
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $order = array (
             'currency_pair' => $this->market_id ($market),
-            'amount_int' => $amount,
+            'amount_int' => intval ($amount * 100000000), // 10^8
             'type' => $side,
         );
         if ($type == 'limit')
-            $order['price_int'] = $price;
+            $order['price_int'] = intval ($price * 100000); // 10^5
         $result = $this->privatePostCurrencyPairOrderAdd (array_merge ($order, $params));
         return array (
             'info' => $result,
@@ -1611,6 +1611,19 @@ class anxpro extends Exchange {
 
     public function cancel_order ($id) {
         return $this->privatePostCurrencyPairOrderCancel (array ( 'oid' => $id ));
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $response = $this->privatePostMoneyCurrencySendSimple (array_merge (array (
+            'currency' => $currency,
+            'amount_int' => intval ($amount * 100000000), // 10^8
+            'address' => $address,
+        ), $params));
+        return array (
+            'info' => $response,
+            'id' => $response['result']['uuid'],
+        );
     }
 
     public function nonce () {

@@ -738,11 +738,11 @@ class anxpro (Exchange):
     def create_order(self, market, type, side, amount, price=None, params={}):
         order = {
             'currency_pair': self.market_id(market),
-            'amount_int': amount,
+            'amount_int': int(amount * 100000000), # 10^8
             'type': side,
         }
         if type == 'limit':
-            order['price_int'] = price
+            order['price_int'] = int(price * 100000) # 10^5
         result = self.privatePostCurrencyPairOrderAdd(self.extend(order, params))
         return {
             'info': result,
@@ -751,6 +751,18 @@ class anxpro (Exchange):
 
     def cancel_order(self, id):
         return self.privatePostCurrencyPairOrderCancel({'oid': id})
+
+    def withdraw(self, currency, amount, address, params={}):
+        self.load_markets()
+        response = self.privatePostMoneyCurrencySendSimple(self.extend({
+            'currency': currency,
+            'amount_int': int(amount * 100000000), # 10^8
+            'address': address,
+        }, params))
+        return {
+            'info': response,
+            'id': response['result']['uuid'],
+        }
 
     def nonce(self):
         return self.milliseconds()
