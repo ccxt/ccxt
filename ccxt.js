@@ -2077,7 +2077,7 @@ var bitbay = {
         return this.privatePostCancel ({ 'id': id });
     },
 
-    isFiatCurrency (currency) {
+    isFiat (currency) {
         if (currency == 'USD')
             return true;
         if (currency == 'EUR')
@@ -2094,14 +2094,14 @@ var bitbay = {
             'currency': currency,
             'quantity': amount,
         };
-        if (this.isFiatCurrency (currency)) {
+        if (this.isFiat (currency)) {
             method = 'privatePostWithdraw';
             request['address'] = address;
         } else {
             method = 'privatePostTransfer';
             // request['account'] = params['account']; // they demand an account number
             // request['express'] = params['express']; // whatever it means, they don't explain
-            // request['bic'] = 'Bank Identifier Code (BIC)';
+            // request['bic'] = '';
         }
         let response = await this[method] (this.extend (request, params));
         return {
@@ -3296,6 +3296,19 @@ var bitflyer = {
         return this.privatePostCancelchildorder (this.extend ({
             'parent_order_id': id,
         }, params));
+    },
+
+    async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostWithdraw (this.extend ({
+            'currency_code': currency,
+            'amount': amount,
+            // 'bank_account_id': 1234,
+        }, params));
+        return {
+            'info': response,
+            'id': response['message_id'],
+        };
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
