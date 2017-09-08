@@ -1,12 +1,13 @@
 # Сhangelog
 
-![BitBays ceased operation](https://user-images.githubusercontent.com/1294454/30231444-90b89000-94f3-11e7-84ba-f3ca1fe8cd3b.png)
-
 - Fixed float formatting issue, [#185](https://github.com/kroitor/ccxt/issues/185)
 - Fixed side issue with Bitflyer parseTrade, [#184](https://github.com/kroitor/ccxt/issues/184)
 - Fixed fetchOpenOrders amount/symbol with Bittrex and Poloniex [#183](https://github.com/kroitor/ccxt/issues/183)
 - Fixed Bitfinex DASH balance issue, [#178](https://github.com/kroitor/ccxt/issues/178)
 - Added missing ETH and BCH markets to BTCChina, [#175](https://github.com/kroitor/ccxt/issues/175) 
+
+![BitBays ceased operation](https://user-images.githubusercontent.com/1294454/30231444-90b89000-94f3-11e7-84ba-f3ca1fe8cd3b.png)
+
 - Added support for HitBTC v2 API, [#172](https://github.com/kroitor/ccxt/issues/172)
 - Unified most of fetchOHLCV implementations where available, [related commits](https://github.com/kroitor/ccxt/search?q=fetchOHLCV&type=Commits&utf8=%E2%9C%93), [#169](https://github.com/kroitor/ccxt/issues/169)
 - Added initial support for Bitfinex v2 API, [#154](https://github.com/kroitor/ccxt/issues/154)
