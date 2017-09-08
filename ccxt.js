@@ -3866,7 +3866,7 @@ var bitmarket = {
                     throw new ExchangeError (this.id + ' requires withdrawal_note parameter to withdraw PLN');
             }
         } else {
-            method = 'privatePostWithdrawFiat';
+            method = 'privatePostWithdraw';
             request['address'] = address;
         }
         let response = await this[method] (this.extend (request, params));
