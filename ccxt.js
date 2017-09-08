@@ -519,7 +519,6 @@ const Exchange = function (config) {
         }
     }
 
-    this.set_markets =
     this.setMarkets = function (markets) {
         let values = Object.values (markets)
         this.markets = indexBy (values, 'symbol')
@@ -533,7 +532,6 @@ const Exchange = function (config) {
         return this.markets
     }
 
-    this.load_markets =
     this.loadMarkets = function (reload = false) {
         if (!reload && this.markets) {
             if (!this.marketsById) {
@@ -546,16 +544,8 @@ const Exchange = function (config) {
         })
     }
 
-    this.fetch_tickers = function (symbols = undefined) {
-        return this.fetchTickers (symbols)
-    }
-
     this.fetchTickers = function (symbols = undefined) {
         throw new NotSupported (this.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
-    }
-
-    this.fetch_markets = function () {
-        return this.fetchMarkets ()
     }
 
     this.fetchMarkets = function () {
@@ -686,21 +676,24 @@ const Exchange = function (config) {
         return this.createOrder (market, 'market', 'sell', amount, undefined, params)
     }
 
-    this.iso8601        = timestamp => new Date (timestamp).toISOString ()
-    this.parse8601      = Date.parse
-    this.seconds        = () => Math.floor (this.milliseconds () / 1000)
-    this.microseconds   = () => Math.floor (this.milliseconds () * 1000)
-    this.milliseconds   = Date.now
-    this.nonce          = this.seconds
-    this.id             = undefined
-    this.rateLimit      = 2000  // milliseconds = seconds * 1000
-    this.timeout        = 10000 // milliseconds = seconds * 1000
-    this.verbose        = false
-    this.userAgent      = false
-    this.twofa          = false // two-factor authentication
+    this.iso8601         = timestamp => new Date (timestamp).toISOString ()
+    this.parse8601       = Date.parse
+    this.seconds         = () => Math.floor (this.milliseconds () / 1000)
+    this.microseconds    = () => Math.floor (this.milliseconds () * 1000)
+    this.milliseconds    = Date.now
+    this.nonce           = this.seconds
+    this.id              = undefined
+    this.rateLimit       = 2000  // milliseconds = seconds * 1000
+    this.timeout         = 10000 // milliseconds = seconds * 1000
+    this.verbose         = false
+    this.userAgent       = false
+    this.twofa           = false // two-factor authentication
     this.substituteCommonCurrencyCodes = true
-    this.timeframes     = undefined
-    this.hasFetchOHLCV  = false
+    this.timeframes      = undefined
+    this.hasFetchTickers = false
+    this.hasFetchOHLCV   = false
+    this.hasDeposit      = false
+    this.hasWithdraw     = false
     
     this.yyyymmddhhmmss = timestamp => {
         let date = new Date (timestamp)
@@ -728,19 +721,20 @@ const Exchange = function (config) {
     // prepended to URL, like https://proxy.com/https://exchange.com/api...
     this.proxy = ''
 
-    this.hasFetchTickers = false
-    this.hasFetchOHLCV   = false
-
     for (var property in config)
         this[property] = config[property]
 
     this.account                  = this.account
     this.fetch_balance            = this.fetchBalance
     this.fetch_order_book         = this.fetchOrderBook
+    this.fetch_tickers            = this.fetchTickers
     this.fetch_ticker             = this.fetchTicker
     this.fetch_trades             = this.fetchTrades
     this.fetch_order              = this.fetchOrder
     this.fetch_order_status       = this.fetchOrderStatus
+    this.fetch_markets            = this.fetchMarkets
+    this.load_markets             = this.loadMarkets
+    this.set_markets              = this.setMarkets
     this.parse_bidask             = this.parseBidAsk
     this.parse_bidasks            = this.parseBidAsks
     this.parse_order_book         = this.parseOrderBook
@@ -999,6 +993,7 @@ var cryptocapital = {
     'comment': 'Crypto Capital API',
     'countries': 'PA', // Panama
     'hasFetchOHLCV': true,
+    'hasWithdraw': true,
     'timeframes': {
         '1d': '1year',
     },
@@ -1252,6 +1247,7 @@ var anxpro = {
     'countries': [ 'JP', 'SG', 'HK', 'NZ' ],
     'version': '2',
     'rateLimit': 1500,
+    'hasWithdraw': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
         'api': 'https://anxpro.com/api',
@@ -1937,6 +1933,7 @@ var bitbay = {
     'name': 'BitBay',
     'countries': [ 'PL', 'EU' ], // Poland
     'rateLimit': 1000,
+    'hasWithdraw': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
         'www': 'https://bitbay.net',
@@ -2078,6 +2075,39 @@ var bitbay = {
 
     async cancelOrder (id) {
         return this.privatePostCancel ({ 'id': id });
+    },
+
+    isFiatCurrency (currency) {
+        if (currency == 'USD')
+            return true;
+        if (currency == 'EUR')
+            return true;
+        if (currency == 'PLN')
+            return true;
+        return false;
+    },
+
+    async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let method = undefined;
+        let request = {
+            'currency': currency,
+            'quantity': amount,
+        };
+        if (this.isFiatCurrency (currency)) {
+            method = 'privatePostWithdraw';
+            request['address'] = address;
+        } else {
+            method = 'privatePostTransfer';
+            // request['account'] = params['account']; // they demand an account number
+            // request['express'] = params['express']; // whatever it means, they don't explain
+            // request['bic'] = 'Bank Identifier Code (BIC)';
+        }
+        let response = await this[method] (this.extend (request, params));
+        return {
+            'info': response,
+            'id': undefined,
+        };
     },
 
     request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

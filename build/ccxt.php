@@ -441,6 +441,8 @@ class Exchange {
         $this->substituteCommonCurrencyCodes = true;
         $this->hasFetchTickers = false;
         $this->hasFetchOHLCV   = false;
+        $this->hasDeposit      = false;
+        $this->hasWithdraw     = false;
         $this->timeframes = null;
 
         if ($options)
@@ -1213,6 +1215,7 @@ class cryptocapital extends Exchange {
             'comment' => 'Crypto Capital API',
             'countries' => 'PA', // Panama
             'hasFetchOHLCV' => true,
+            'hasWithdraw' => true,
             'timeframes' => array (
                 '1d' => '1year',
             ),
@@ -1474,6 +1477,7 @@ class anxpro extends Exchange {
             'countries' => array ( 'JP', 'SG', 'HK', 'NZ' ),
             'version' => '2',
             'rateLimit' => 1500,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
                 'api' => 'https://anxpro.com/api',
@@ -2171,6 +2175,7 @@ class bitbay extends Exchange {
             'name' => 'BitBay',
             'countries' => array ( 'PL', 'EU' ), // Poland
             'rateLimit' => 1000,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
                 'www' => 'https://bitbay.net',
@@ -2314,6 +2319,39 @@ class bitbay extends Exchange {
 
     public function cancel_order ($id) {
         return $this->privatePostCancel (array ( 'id' => $id ));
+    }
+
+    public function isFiatCurrency ($currency) {
+        if ($currency == 'USD')
+            return true;
+        if ($currency == 'EUR')
+            return true;
+        if ($currency == 'PLN')
+            return true;
+        return false;
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $method = null;
+        $request = array (
+            'currency' => $currency,
+            'quantity' => $amount,
+        );
+        if ($this->isFiatCurrency ($currency)) {
+            $method = 'privatePostWithdraw';
+            $request['address'] = $address;
+        } else {
+            $method = 'privatePostTransfer';
+            // $request['account'] = $params['account']; // they demand an account number
+            // $request['express'] = $params['express']; // whatever it means, they don't explain
+            // $request['bic'] = 'Bank Identifier Code (BIC)';
+        }
+        $response = $this->$method (array_merge ($request, $params));
+        return array (
+            'info' => $response,
+            'id' => null,
+        );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

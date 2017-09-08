@@ -374,6 +374,7 @@ class cryptocapital (Exchange):
             'comment': 'Crypto Capital API',
             'countries': 'PA', # Panama
             'hasFetchOHLCV': True,
+            'hasWithdraw': True,
             'timeframes': {
                 '1d': '1year',
             },
@@ -620,6 +621,7 @@ class anxpro (Exchange):
             'countries': ['JP', 'SG', 'HK', 'NZ'],
             'version': '2',
             'rateLimit': 1500,
+            'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
                 'api': 'https://anxpro.com/api',
@@ -1271,6 +1273,7 @@ class bitbay (Exchange):
             'name': 'BitBay',
             'countries': ['PL', 'EU'], # Poland
             'rateLimit': 1000,
+            'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
                 'www': 'https://bitbay.net',
@@ -1407,6 +1410,36 @@ class bitbay (Exchange):
 
     def cancel_order(self, id):
         return self.privatePostCancel({'id': id})
+
+    def isFiatCurrency(self, currency):
+        if currency == 'USD':
+            return True
+        if currency == 'EUR':
+            return True
+        if currency == 'PLN':
+            return True
+        return False
+
+    def withdraw(self, currency, amount, address, params={}):
+        self.load_markets()
+        method = None
+        request = {
+            'currency': currency,
+            'quantity': amount,
+        }
+        if self.isFiatCurrency(currency):
+            method = 'privatePostWithdraw'
+            request['address'] = address
+        else:
+            method = 'privatePostTransfer'
+            # request['account'] = params['account'] # they demand an account number
+            # request['express'] = params['express'] # whatever it means, they don't explain
+            # request['bic'] = 'Bank Identifier Code(BIC)'
+        response = getattr(self, method)(self.extend(request, params))
+        return {
+            'info': response,
+            'id': None,
+        }
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]

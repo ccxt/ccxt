@@ -441,6 +441,8 @@ class Exchange {
         $this->substituteCommonCurrencyCodes = true;
         $this->hasFetchTickers = false;
         $this->hasFetchOHLCV   = false;
+        $this->hasDeposit      = false;
+        $this->hasWithdraw     = false;
         $this->timeframes = null;
 
         if ($options)
