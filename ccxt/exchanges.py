@@ -1429,12 +1429,12 @@ class bitbay (Exchange):
         }
         if self.isFiat(currency):
             method = 'privatePostWithdraw'
-            request['address'] = address
-        else:
-            method = 'privatePostTransfer'
             # request['account'] = params['account'] # they demand an account number
             # request['express'] = params['express'] # whatever it means, they don't explain
             # request['bic'] = ''
+        else:
+            method = 'privatePostTransfer'
+            request['address'] = address
         response = getattr(self, method)(self.extend(request, params))
         return {
             'info': response,
@@ -3073,6 +3073,45 @@ class bitmarket (Exchange):
 
     def cancel_order(self, id):
         return self.privatePostCancel({'id': id})
+
+    def isFiat(self, currency):
+        if currency == 'EUR':
+            return True
+        if currency == 'PLN':
+            return True
+        return False
+
+    def withdraw(self, currency, amount, address, params={}):
+        self.load_markets()
+        method = None
+        request = {
+            'currency': currency,
+            'quantity': amount,
+        }
+        if self.isFiat(currency):
+            method = 'privatePostWithdrawFiat'
+            if 'account' in params:
+                request['account'] = params['account'] # bank account code for withdrawal
+            else:
+                raise ExchangeError(self.id + ' requires account parameter')
+            if 'account2' in params:
+                request['account2'] = params['account2'] # bank SWIFT code(EUR only)
+            else:
+                if currency == 'EUR':
+                    raise ExchangeError(self.id + ' requires account2 parameter to withdraw EUR')
+            if 'withdrawal_note' in params:
+                request['withdrawal_note'] = params['withdrawal_note'] # a 10-character user-specified withdrawal note(PLN only)
+            else:
+                if currency == 'PLN':
+                    raise ExchangeError(self.id + ' requires withdrawal_note parameter to withdraw PLN')
+        else:
+            method = 'privatePostWithdrawFiat'
+            request['address'] = address
+        response = getattr(self, method)(self.extend(request, params))
+        return {
+            'info': response,
+            'id': None,
+        }
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]

@@ -2340,12 +2340,12 @@ class bitbay extends Exchange {
         );
         if ($this->isFiat ($currency)) {
             $method = 'privatePostWithdraw';
-            $request['address'] = $address;
-        } else {
-            $method = 'privatePostTransfer';
             // $request['account'] = $params['account']; // they demand an account number
             // $request['express'] = $params['express']; // whatever it means, they don't explain
             // $request['bic'] = '';
+        } else {
+            $method = 'privatePostTransfer';
+            $request['address'] = $address;
         }
         $response = $this->$method (array_merge ($request, $params));
         return array (
@@ -4101,6 +4101,51 @@ class bitmarket extends Exchange {
 
     public function cancel_order ($id) {
         return $this->privatePostCancel (array ( 'id' => $id ));
+    }
+
+    public function isFiat ($currency) {
+        if ($currency == 'EUR')
+            return true;
+        if ($currency == 'PLN')
+            return true;
+        return false;
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $method = null;
+        $request = array (
+            'currency' => $currency,
+            'quantity' => $amount,
+        );
+        if ($this->isFiat ($currency)) {
+            $method = 'privatePostWithdrawFiat';
+            if (array_key_exists ('account', $params)) {
+                $request['account'] = $params['account']; // bank account code for withdrawal
+            } else {
+                throw new ExchangeError ($this->id . ' requires account parameter');
+            }
+            if (array_key_exists ('account2', $params)) {
+                $request['account2'] = $params['account2']; // bank SWIFT code (EUR only)
+            } else {
+                if ($currency == 'EUR')
+                    throw new ExchangeError ($this->id . ' requires account2 parameter to withdraw EUR');
+            }
+            if (array_key_exists ('withdrawal_note', $params)) {
+                $request['withdrawal_note'] = $params['withdrawal_note']; // a 10-character user-specified withdrawal note (PLN only)
+            } else {
+                if ($currency == 'PLN')
+                    throw new ExchangeError ($this->id . ' requires withdrawal_note parameter to withdraw PLN');
+            }
+        } else {
+            $method = 'privatePostWithdrawFiat';
+            $request['address'] = $address;
+        }
+        $response = $this->$method (array_merge ($request, $params));
+        return array (
+            'info' => $response,
+            'id' => null,
+        );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -2096,12 +2096,12 @@ var bitbay = {
         };
         if (this.isFiat (currency)) {
             method = 'privatePostWithdraw';
-            request['address'] = address;
-        } else {
-            method = 'privatePostTransfer';
             // request['account'] = params['account']; // they demand an account number
             // request['express'] = params['express']; // whatever it means, they don't explain
             // request['bic'] = '';
+        } else {
+            method = 'privatePostTransfer';
+            request['address'] = address;
         }
         let response = await this[method] (this.extend (request, params));
         return {
@@ -3829,6 +3829,51 @@ var bitmarket = {
 
     async cancelOrder (id) {
         return this.privatePostCancel ({ 'id': id });
+    },
+
+    isFiat (currency) {
+        if (currency == 'EUR')
+            return true;
+        if (currency == 'PLN')
+            return true;
+        return false;
+    },
+
+    async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let method = undefined;
+        let request = {
+            'currency': currency,
+            'quantity': amount,
+        };
+        if (this.isFiat (currency)) {
+            method = 'privatePostWithdrawFiat';
+            if ('account' in params) {
+                request['account'] = params['account']; // bank account code for withdrawal
+            } else {
+                throw new ExchangeError (this.id + ' requires account parameter');
+            }
+            if ('account2' in params) {
+                request['account2'] = params['account2']; // bank SWIFT code (EUR only)
+            } else {
+                if (currency == 'EUR')
+                    throw new ExchangeError (this.id + ' requires account2 parameter to withdraw EUR');
+            }
+            if ('withdrawal_note' in params) {
+                request['withdrawal_note'] = params['withdrawal_note']; // a 10-character user-specified withdrawal note (PLN only)
+            } else {
+                if (currency == 'PLN')
+                    throw new ExchangeError (this.id + ' requires withdrawal_note parameter to withdraw PLN');
+            }
+        } else {
+            method = 'privatePostWithdrawFiat';
+            request['address'] = address;
+        }
+        let response = await this[method] (this.extend (request, params));
+        return {
+            'info': response,
+            'id': undefined,
+        };
     },
 
     request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
