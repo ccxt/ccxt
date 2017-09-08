@@ -3621,6 +3621,7 @@ var bitmarket = {
     'countries': [ 'PL', 'EU' ],
     'rateLimit': 1500,
     'hasFetchOHLCV': true,
+    'hasWithdraw': true,
     'timeframes': {
         '90m': '90m',
         '6h': '6h',
