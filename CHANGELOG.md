@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Fixed Bitflyer's private GET APIs, [#187](https://github.com/kroitor/ccxt/pull/187)
 - BitBays exchange was renamed to MixCoins, now operating in UK and Hong Kong only
 - Removed support for BTCe exchange (was shut down earlier)
 - Fixed float formatting issue, [#185](https://github.com/kroitor/ccxt/issues/185)
