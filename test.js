@@ -354,7 +354,7 @@ let testExchange = async exchange => {
 
     } else {
 
-        log (exchange.id.green, 'fetching OHLCV not supported')
+        log (exchange.id.green, 'fetching orders not supported')
     }
 
     // sleep (delay)
