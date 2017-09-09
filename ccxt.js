@@ -14550,7 +14550,7 @@ var poloniex = {
             'symbol': market['symbol'],
             'type': order['type'],
             'side': order['side'],
-            'price': order['price'],
+            'price': parseFloat (order['price']),
             'amount': parseFloat (order['amount']),
             'trades': trades,
         };
@@ -14628,8 +14628,8 @@ var poloniex = {
             'status': 'open',
             'type': type,
             'side': side,
-            'price': price,
-            'amount': amount,
+            'price': parseFloat (price),
+            'amount': parseFloat (amount),
         }, response), market);
         let id = order['id'];
         this.orders[id] = order;
