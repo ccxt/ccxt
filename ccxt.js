@@ -1780,7 +1780,7 @@ var binance = {
         let market = this.market (symbol);
         let response = await this.privateGetOpenOrders ({
             'symbol': market['id'],
-        });
+        }, params);
         return this.parseOrders (response, market);
     },
 
@@ -9485,6 +9485,70 @@ var cryptopia = {
             'Type': 'Trade',
             'OrderId': id,
         });
+    },
+
+    parseOrder (order, market = undefined) {
+        let description = order['descr'];
+        market = this.markets_by_id[description['pair']];
+        let symbol = undefined;
+        if (market) {
+            symbol = market['symbol'];
+        } else if ('Market' in order) {
+            let id = order['Market'];
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
+                symbol = market['symbol'];
+            }
+        }
+        let timestamp = this.parse8601 (order['TimeStamp']);
+        let amount = order['Amount'];
+        let remaining = order['Remaining'];
+        let filled = amount - remaining;
+        return {
+            'id': order['OrderId'].toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'status': order['status'],
+            'symbol': symbol,
+            'type': 'limit',
+            'side': order['Type'].toLowerCase (),
+            'price': order['Rate'],
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            // 'trades': this.parseTrades (order['trades'], market),
+        };
+    },
+
+    async fetchOpenOrders (symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
+        let market = this.market (symbol);
+        let response = await this.privatePostGetOpenOrders ({
+            'Market': market['id'],
+            // 'TradePairId': 123, // Cryptopia identifier (not required if 'Market' supplied)
+            // 'Count': 100, // default = 100
+        }, params);
+        let orders = response['Data'];
+        let result = [];
+        for (let i = 0; i < orders.length; i++) {
+            let order = orders[i];
+            result.push (this.extend (order, { 'status': 'open' }));
+        }
+        return this.parseOrders (result, market);
+    },
+
+    async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostSubmitWithdraw (this.extend ({
+            'Currency': currency,
+            'Amount': amount,
+            'Address': address, // Address must exist in you AddressBook in security settings
+        }, params));
+        return {
+            'info': response,
+            'id': response['Data'],
+        };
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

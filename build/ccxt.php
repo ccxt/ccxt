@@ -2024,7 +2024,7 @@ class binance extends Exchange {
         $market = $this->market ($symbol);
         $response = $this->privateGetOpenOrders (array (
             'symbol' => $market['id'],
-        ));
+        ), $params);
         return $this->parse_orders ($response, $market);
     }
 
@@ -9880,6 +9880,70 @@ class cryptopia extends Exchange {
             'Type' => 'Trade',
             'OrderId' => $id,
         ));
+    }
+
+    public function parse_order ($order, $market = null) {
+        $description = $order['descr'];
+        $market = $this->markets_by_id[$description['pair']];
+        $symbol = null;
+        if ($market) {
+            $symbol = $market['symbol'];
+        } else if (array_key_exists ('Market', $order)) {
+            $id = $order['Market'];
+            if (array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+            }
+        }
+        $timestamp = $this->parse8601 ($order['TimeStamp']);
+        $amount = $order['Amount'];
+        $remaining = $order['Remaining'];
+        $filled = $amount - $remaining;
+        return array (
+            'id' => (string) $order['OrderId'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'status' => $order['status'],
+            'symbol' => $symbol,
+            'type' => 'limit',
+            'side' => strtolower ($order['Type']),
+            'price' => $order['Rate'],
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            // 'trades' => $this->parse_trades ($order['trades'], $market),
+        );
+    }
+
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
+        $market = $this->market ($symbol);
+        $response = $this->privatePostGetOpenOrders (array (
+            'Market' => $market['id'],
+            // 'TradePairId' => 123, // Cryptopia identifier (not required if 'Market' supplied)
+            // 'Count' => 100, // default = 100
+        ), $params);
+        $orders = $response['Data'];
+        $result = array ();
+        for ($i = 0; $i < count ($orders); $i++) {
+            $order = $orders[$i];
+            $result[] = array_merge ($order, array ( 'status' => 'open' ));
+        }
+        return $this->parse_orders ($result, $market);
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $response = $this->privatePostSubmitWithdraw (array_merge (array (
+            'Currency' => $currency,
+            'Amount' => $amount,
+            'Address' => $address, // Address must exist in you AddressBook in security settings
+        ), $params));
+        return array (
+            'info' => $response,
+            'id' => $response['Data'],
+        );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

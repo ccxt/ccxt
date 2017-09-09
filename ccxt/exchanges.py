@@ -1104,7 +1104,7 @@ class binance (Exchange):
         market = self.market(symbol)
         response = self.privateGetOpenOrders({
             'symbol': market['id'],
-        })
+        }, params)
         return self.parse_orders(response, market)
 
     def cancel_order(self, id, params={}):
@@ -8447,6 +8447,64 @@ class cryptopia (Exchange):
             'Type': 'Trade',
             'OrderId': id,
         })
+
+    def parse_order(self, order, market=None):
+        description = order['descr']
+        market = self.markets_by_id[description['pair']]
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        elif 'Market' in order:
+            id = order['Market']
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+        timestamp = self.parse8601(order['TimeStamp'])
+        amount = order['Amount']
+        remaining = order['Remaining']
+        filled = amount - remaining
+        return {
+            'id': str(order['OrderId']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'status': order['status'],
+            'symbol': symbol,
+            'type': 'limit',
+            'side': order['Type'].lower(),
+            'price': order['Rate'],
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            # 'trades': self.parse_trades(order['trades'], market),
+        }
+
+    def fetch_open_orders(self, symbol=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
+        market = self.market(symbol)
+        response = self.privatePostGetOpenOrders({
+            'Market': market['id'],
+            # 'TradePairId': 123, # Cryptopia identifier(not required if 'Market' supplied)
+            # 'Count': 100, # default = 100
+        }, params)
+        orders = response['Data']
+        result = []
+        for i in range(0, len(orders)):
+            order = orders[i]
+            result.append(self.extend(order, {'status': 'open'}))
+        return self.parse_orders(result, market)
+
+    def withdraw(self, currency, amount, address, params={}):
+        self.load_markets()
+        response = self.privatePostSubmitWithdraw(self.extend({
+            'Currency': currency,
+            'Amount': amount,
+            'Address': address, # Address must exist in you AddressBook in security settings
+        }, params))
+        return {
+            'info': response,
+            'id': response['Data'],
+        }
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
