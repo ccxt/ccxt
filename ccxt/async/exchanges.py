@@ -2392,11 +2392,11 @@ class bitflyer (Exchange):
         if api == 'private':
             request += 'me/'
         request += path
-        url = self.urls['api'] + request
-        if api == 'public':
+        if method == 'GET':
             if params:
-                url += '?' + self.urlencode(params)
-        else:
+                request += '?' + self.urlencode(params)
+        url = self.urls['api'] + request
+        if api == 'private':
             nonce = str(self.nonce())
             body = self.json(params)
             auth = ''.join([nonce, method, request, body])
@@ -10095,6 +10095,14 @@ class hitbtc2 (hitbtc):
         if 'ask' in ticker:
             if ticker['ask']:
                 ask = float(ticker['ask'])
+        baseVolume = None
+        if 'volume' in ticker:
+            if ticker['volume']:
+                baseVolume = float(ticker['volume'])
+        quoteVolume = None
+        if 'quoteVolume' in ticker:
+            if ticker['quoteVolume']:
+                quoteVolume = float(ticker['quoteVolume'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -10110,8 +10118,8 @@ class hitbtc2 (hitbtc):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume']),
-            'quoteVolume': float(ticker['volumeQuote']),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 

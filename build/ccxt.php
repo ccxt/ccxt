@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.82';
+$version = '1.6.83';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3492,11 +3492,12 @@ class bitflyer extends Exchange {
         if ($api == 'private')
             $request .= 'me/';
         $request .= $path;
-        $url = $this->urls['api'] . $request;
-        if ($api == 'public') {
+        if ($method == 'GET') {
             if ($params)
-                $url .= '?' . $this->urlencode ($params);
-        } else {
+                $request .= '?' . $this->urlencode ($params);
+        }
+        $url = $this->urls['api'] . $request;
+        if ($api == 'private') {
             $nonce = (string) $this->nonce ();
             $body = $this->json ($params);
             $auth = implode ('', array ($nonce, $method, $request, $body));
@@ -11708,6 +11709,14 @@ class hitbtc2 extends hitbtc {
         if (array_key_exists ('ask', $ticker))
             if ($ticker['ask'])
                 $ask = floatval ($ticker['ask']);
+        $baseVolume = null;
+        if (array_key_exists ('volume', $ticker))
+            if ($ticker['volume'])
+                $baseVolume = floatval ($ticker['volume']);
+        $quoteVolume = null;
+        if (array_key_exists ('quoteVolume', $ticker))
+            if ($ticker['quoteVolume'])
+                $quoteVolume = floatval ($ticker['quoteVolume']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -11723,8 +11732,8 @@ class hitbtc2 extends hitbtc {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['volume']),
-            'quoteVolume' => floatval ($ticker['volumeQuote']),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }
