@@ -1041,7 +1041,6 @@ class binance (Exchange):
             if order['executedQty']:
                 filled = float(order['executedQty'])
                 remaining = amount - filled
-        executed = float(order['executedQty'])
         result = {
             'info': order,
             'id': order['orderId'],
@@ -1052,7 +1051,7 @@ class binance (Exchange):
             'side': order['side'].lower(),
             'price': float(order['price']),
             'amount': amount,
-            'filled': executed,
+            'filled': filled,
             'remaining': remaining,
             'status': status,
         }
@@ -3961,6 +3960,8 @@ class bittrex (Exchange):
             'version': 'v1.1',
             'rateLimit': 1500,
             'hasFetchTickers': True,
+            'hasFetchOrders': True,
+            'hasFetchOpenOrders': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
                 'api': 'https://bittrex.com/api',
@@ -4185,7 +4186,14 @@ class bittrex (Exchange):
             if exchange in self.markets_by_id:
                 market = self.markets_by_id[exchange]
                 symbol = market['symbol']
-        timestamp = self.parse8601(order['Opened'])
+        timestamp = None
+        if 'Opened' in order:
+            timestamp = self.parse8601(order['Opened'])
+        if 'TimeStamp' in order:
+            timestamp = self.parse8601(order['TimeStamp'])
+        amount = order['Quantity']
+        remaining = order['QuantityRemaining']
+        filled = amount - remaining
         result = {
             'info': order,
             'id': order['OrderUuid'],
@@ -4195,8 +4203,9 @@ class bittrex (Exchange):
             'type': 'limit',
             'side': side,
             'price': order['Price'],
-            'amount': order['Quantity'],
-            'remaining': order['QuantityRemaining'],
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
             'status': status,
         }
         return result
@@ -4205,6 +4214,11 @@ class bittrex (Exchange):
         self.load_markets()
         response = self.accountGetOrder({'uuid': id})
         return self.parse_order(response['result'])
+
+    def fetch_orders(self, params={}):
+        self.load_markets()
+        response = self.accountGetOrderhistory(params)
+        return self.parse_orders(response['result'])
 
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()

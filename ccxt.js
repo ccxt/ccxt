@@ -545,7 +545,23 @@ const Exchange = function (config) {
     }
 
     this.fetchTickers = function (symbols = undefined) {
-        throw new NotSupported (this.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now')
+        throw new NotSupported (this.id + ' fetchTickers not supoprted yet')
+    }
+
+    this.fetchOrder = function (id, params = {}) {
+        throw new NotSupported (this.id + ' fetchOrder not supported yet');
+    }
+
+    this.fetchOrders = function (params = {}) {
+        throw new NotSupported (this.id + ' fetchOrders not supported yet');
+    }
+
+    this.fetchOpenOrders = function (symbol = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchOpenOrders not supported yet');
+    }
+
+    this.fetchClosedOrders = function (symbol = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchClosedOrders not supported yet');
     }
 
     this.fetchMarkets = function () {
@@ -690,10 +706,14 @@ const Exchange = function (config) {
     this.twofa           = false // two-factor authentication
     this.substituteCommonCurrencyCodes = true
     this.timeframes      = undefined
-    this.hasFetchTickers = false
-    this.hasFetchOHLCV   = false
-    this.hasDeposit      = false
-    this.hasWithdraw     = false
+    this.hasFetchTickers      = false
+    this.hasFetchOHLCV        = false
+    this.hasFetchOrder        = false
+    this.hasFetchOrders       = false
+    this.hasFetchOpenOrders   = false
+    this.hasFetchClosedOrders = false 
+    this.hasDeposit           = false
+    this.hasWithdraw          = false
     
     this.yyyymmddhhmmss = timestamp => {
         let date = new Date (timestamp)
@@ -731,6 +751,9 @@ const Exchange = function (config) {
     this.fetch_ticker             = this.fetchTicker
     this.fetch_trades             = this.fetchTrades
     this.fetch_order              = this.fetchOrder
+    this.fetch_orders             = this.fetchOrders
+    this.fetch_open_orders        = this.fetchOpenOrders
+    this.fetch_closed_orders      = this.fetchClosedOrders
     this.fetch_order_status       = this.fetchOrderStatus
     this.fetch_markets            = this.fetchMarkets
     this.load_markets             = this.loadMarkets
@@ -1689,7 +1712,6 @@ var binance = {
                 remaining = amount - filled;
             }
         }
-        let executed = parseFloat (order['executedQty']);
         let result = {
             'info': order,
             'id': order['orderId'],
@@ -1700,7 +1722,7 @@ var binance = {
             'side': order['side'].toLowerCase (),
             'price': parseFloat (order['price']),
             'amount': amount,
-            'filled': executed,
+            'filled': filled,
             'remaining': remaining,
             'status': status,
         };
@@ -4768,6 +4790,8 @@ var bittrex = {
     'version': 'v1.1',
     'rateLimit': 1500,
     'hasFetchTickers': true,
+    'hasFetchOrders': true,
+    'hasFetchOpenOrders': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
         'api': 'https://bittrex.com/api',
@@ -5010,7 +5034,14 @@ var bittrex = {
                 symbol = market['symbol'];
             }
         }
-        let timestamp = this.parse8601 (order['Opened']);
+        let timestamp = undefined;
+        if ('Opened' in order)
+            timestamp = this.parse8601 (order['Opened']);
+        if ('TimeStamp' in order)
+            timestamp = this.parse8601 (order['TimeStamp']);
+        let amount = order['Quantity'];
+        let remaining = order['QuantityRemaining'];
+        let filled = amount - remaining;
         let result = {
             'info': order,
             'id': order['OrderUuid'],
@@ -5020,8 +5051,9 @@ var bittrex = {
             'type': 'limit',
             'side': side,
             'price': order['Price'],
-            'amount': order['Quantity'],
-            'remaining': order['QuantityRemaining'],
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
             'status': status,
         };
         return result;
@@ -5031,6 +5063,12 @@ var bittrex = {
         await this.loadMarkets ();
         let response = await this.accountGetOrder ({ 'uuid': id });
         return this.parseOrder (response['result']);
+    },
+
+    async fetchOrders (params = {}) {
+        await this.loadMarkets ();
+        let response = await this.accountGetOrderhistory (params);
+        return this.parseOrders (response['result']);
     },
 
     async withdraw (currency, amount, address, params = {}) {

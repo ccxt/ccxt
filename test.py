@@ -168,6 +168,17 @@ def test_exchange(exchange):
     dump(green(exchange.id), 'fetching balance...')
     balance = exchange.fetch_balance()
     dump(green(exchange.id), 'balance', balance)
+
+    if exchange.hasFetchOrders:
+        try:
+            dump(green(exchange.id), 'fetching orders...')
+            orders = exchange.fetch_orders()
+            dump(green(exchange.id), 'fetched', green(str(len(orders))), 'orders')
+        except (ccxt.ExchangeError, ccxt.NotSupported) as e:
+            dump(yellow(type(e).__name__), e.args)
+        # except ccxt.NotSupported as e:
+        #     dump(yellow(type(e).__name__), e.args)
+
     # time.sleep(delay)
 
     # amount = 1

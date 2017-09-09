@@ -439,11 +439,15 @@ class Exchange {
         $this->markets_by_id = null;
         $this->userAgent  = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
-        $this->hasFetchTickers = false;
-        $this->hasFetchOHLCV   = false;
-        $this->hasDeposit      = false;
-        $this->hasWithdraw     = false;
         $this->timeframes = null;
+        $this->hasFetchTickers      = false;
+        $this->hasFetchOHLCV        = false;
+        $this->hasDeposit           = false;
+        $this->hasWithdraw          = false;
+        $this->hasFetchOrder        = false;
+        $this->hasFetchOrders       = false;
+        $this->hasFetchOpenOrders   = false;
+        $this->hasFetchClosedOrders = false;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -836,6 +840,24 @@ class Exchange {
         return $this->fetch_order_status ($id);
     }
 
+    public function fetch_order ($id = null, $params = array ()) {
+        $exception = '\\ccxt\\NotSupported';
+        throw new $exception ($this->id . ' fetch_order() not implemented yet');
+    }
+
+    public function fetchOrder ($id = null, $params = array ()) {
+        return $this->fetch_order ($id, $params);
+    }
+
+    public function fetch_orders ($params = array ()) {
+        $exception = '\\ccxt\\NotSupported';
+        throw new $exception ($this->id . ' fetch_orders() not implemented yet');
+    }
+
+    public function fetchOrders ($params = array ()) {
+        return $this->fetch_orders ($params);
+    }
+
     public function fetch_open_orders ($market = null, $params = array ()) {
         $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' fetch_open_orders() not implemented yet');
@@ -843,6 +865,15 @@ class Exchange {
 
     public function fetchOpenOrders ($market = null, $params = array ()) {
         return $this->fetch_open_orders ($market, $params);
+    }
+
+    public function fetch_closed_orders ($market = null, $params = array ()) {
+        $exception = '\\ccxt\\NotSupported';
+        throw new $exception ($this->id . ' fetch_closed_orders() not implemented yet');
+    }
+
+    public function fetchClosedOrders ($market = null, $params = array ()) {
+        return $this->fetch_closed_orders ($market, $params);
     }
 
     public function fetch_markets () { // stub
@@ -1925,7 +1956,6 @@ class binance extends Exchange {
                 $remaining = $amount - $filled;
             }
         }
-        $executed = floatval ($order['executedQty']);
         $result = array (
             'info' => $order,
             'id' => $order['orderId'],
@@ -1936,7 +1966,7 @@ class binance extends Exchange {
             'side' => strtolower ($order['side']),
             'price' => floatval ($order['price']),
             'amount' => $amount,
-            'filled' => $executed,
+            'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
         );
@@ -5054,6 +5084,8 @@ class bittrex extends Exchange {
             'version' => 'v1.1',
             'rateLimit' => 1500,
             'hasFetchTickers' => true,
+            'hasFetchOrders' => true,
+            'hasFetchOpenOrders' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
                 'api' => 'https://bittrex.com/api',
@@ -5298,7 +5330,14 @@ class bittrex extends Exchange {
                 $symbol = $market['symbol'];
             }
         }
-        $timestamp = $this->parse8601 ($order['Opened']);
+        $timestamp = null;
+        if (array_key_exists ('Opened', $order))
+            $timestamp = $this->parse8601 ($order['Opened']);
+        if (array_key_exists ('TimeStamp', $order))
+            $timestamp = $this->parse8601 ($order['TimeStamp']);
+        $amount = $order['Quantity'];
+        $remaining = $order['QuantityRemaining'];
+        $filled = $amount - $remaining;
         $result = array (
             'info' => $order,
             'id' => $order['OrderUuid'],
@@ -5308,8 +5347,9 @@ class bittrex extends Exchange {
             'type' => 'limit',
             'side' => $side,
             'price' => $order['Price'],
-            'amount' => $order['Quantity'],
-            'remaining' => $order['QuantityRemaining'],
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
             'status' => $status,
         );
         return $result;
@@ -5319,6 +5359,12 @@ class bittrex extends Exchange {
         $this->load_markets ();
         $response = $this->accountGetOrder (array ( 'uuid' => $id ));
         return $this->parse_order ($response['result']);
+    }
+
+    public function fetch_orders ($params = array ()) {
+        $this->load_markets ();
+        $response = $this->accountGetOrderhistory ($params);
+        return $this->parse_orders ($response['result']);
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {

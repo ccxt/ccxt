@@ -211,7 +211,32 @@ let testExchangeSymbol = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
+let testExchangeFetchOrders = async (exchange) => {
+
+    await sleep (exchange.rateLimit)
+
+    try {
+
+        log (exchange.id.green, 'fetching orders...')
+        let orders = await exchange.fetchOrders ()
+        log (exchange.id.green, 'fetched', orders.length.toString ().green, 'orders')
+
+    } catch (e) {
+        
+        if (e instanceof ccxt.ExchangeError) {
+            warn (exchange.id, '[Exchange Error] ' + e.message)
+        } else if (e instanceof ccxt.NotSupported) {
+            warn (exchange.id, '[Not Supported] ' + e.message)
+        } else {
+            throw e;
+        }
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 let testExchangeBalance = async (exchange, symbol) => {
+
     await sleep (exchange.rateLimit)
     log (exchange.id.green, 'fetching balance...')
     let balance = await exchange.fetchBalance ()
@@ -322,6 +347,15 @@ let testExchange = async exchange => {
         return true
 
     await testExchangeBalance (exchange)
+
+    if (exchange.hasFetchOrders) {
+
+            await testExchangeFetchOrders (exchange);
+
+    } else {
+
+        log (exchange.id.green, 'fetching OHLCV not supported')
+    }
 
     // sleep (delay)
     // try {

@@ -439,11 +439,15 @@ class Exchange {
         $this->markets_by_id = null;
         $this->userAgent  = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
-        $this->hasFetchTickers = false;
-        $this->hasFetchOHLCV   = false;
-        $this->hasDeposit      = false;
-        $this->hasWithdraw     = false;
         $this->timeframes = null;
+        $this->hasFetchTickers      = false;
+        $this->hasFetchOHLCV        = false;
+        $this->hasDeposit           = false;
+        $this->hasWithdraw          = false;
+        $this->hasFetchOrder        = false;
+        $this->hasFetchOrders       = false;
+        $this->hasFetchOpenOrders   = false;
+        $this->hasFetchClosedOrders = false;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -836,6 +840,24 @@ class Exchange {
         return $this->fetch_order_status ($id);
     }
 
+    public function fetch_order ($id = null, $params = array ()) {
+        $exception = '\\ccxt\\NotSupported';
+        throw new $exception ($this->id . ' fetch_order() not implemented yet');
+    }
+
+    public function fetchOrder ($id = null, $params = array ()) {
+        return $this->fetch_order ($id, $params);
+    }
+
+    public function fetch_orders ($params = array ()) {
+        $exception = '\\ccxt\\NotSupported';
+        throw new $exception ($this->id . ' fetch_orders() not implemented yet');
+    }
+
+    public function fetchOrders ($params = array ()) {
+        return $this->fetch_orders ($params);
+    }
+
     public function fetch_open_orders ($market = null, $params = array ()) {
         $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' fetch_open_orders() not implemented yet');
@@ -843,6 +865,15 @@ class Exchange {
 
     public function fetchOpenOrders ($market = null, $params = array ()) {
         return $this->fetch_open_orders ($market, $params);
+    }
+
+    public function fetch_closed_orders ($market = null, $params = array ()) {
+        $exception = '\\ccxt\\NotSupported';
+        throw new $exception ($this->id . ' fetch_closed_orders() not implemented yet');
+    }
+
+    public function fetchClosedOrders ($market = null, $params = array ()) {
+        return $this->fetch_closed_orders ($market, $params);
     }
 
     public function fetch_markets () { // stub

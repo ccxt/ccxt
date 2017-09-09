@@ -117,6 +117,10 @@ class Exchange (object):
     hasFetchOHLCV = False
     hasDeposit = False
     hasWithdraw = False
+    hasFetchOrder = False
+    hasFetchOrders = False
+    hasFetchOpenOrders = False
+    hasFetchClosedOrders = False
     substituteCommonCurrencyCodes = True
 
     def __init__(self, config={}):
@@ -602,11 +606,29 @@ class Exchange (object):
         order = self.fetch_order(id)
         return order['status']
 
+    def fetch_order(self, id, params={}):
+        raise NotSupported(self.id + ' fetch_order() is not implemented yet')
+
+    def fetchOrder(self, id, params={}):
+        return self.fetch_order(id, params)
+
+    def fetch_orders(self, params={}):
+        raise NotSupported(self.id + ' fetch_orders() is not implemented yet')
+
+    def fetchOrders(self, params={}):
+        return self.fetch_orders(params)
+
     def fetch_open_orders(self, market=None, params={}):
         raise NotSupported(self.id + ' fetch_open_orders() not implemented yet')
 
     def fetchOpenOrders(self, market=None, params={}):
         return self.fetch_open_orders(market, params)
+
+    def fetch_closed_orders(self, market=None, params={}):
+        raise NotSupported(self.id + ' fetch_closed_orders() not implemented yet')
+
+    def fetchClosedOrders(self, market=None, params={}):
+        return self.fetch_closed_orders(market, params)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return ohlcv

@@ -109,6 +109,7 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('fetchTrades',       'fetch_trades')
                         .replace ('fetchOrderStatus',  'fetch_order_status')
                         .replace ('fetchOrderTrades',  'fetch_order_trades')
+                        .replace ('fetchOrders',       'fetch_orders')
                         .replace ('fetchOrder',        'fetch_order')
                         .replace ('fetchOpenOrders',   'fetch_open_orders')
                         .replace ('fetchMyTrades',     'fetch_my_trades')
@@ -158,14 +159,15 @@ while (exchanges = regex.exec (contents)) {
             [ /\.parseOrderBook\s/g, '.parse_order_book'],
             [ /\.parseBidAsks\s/g, '.parse_bidasks'],
             [ /\.parseBidAsk\s/g, '.parse_bidask'],
+            [ /\.parseOrders\s/g, '.parse_orders'],
+            [ /\.parseOrder\s/g, '.parse_order'],
             [ /\.indexBy\s/g, '.index_by'],
             [ /\.sortBy\s/g, '.sort_by'],
             [ /\.marketIds\s/g, '.market_ids'],
             [ /\.marketId\s/g, '.market_id'],
             [ /\.fetchOrderStatus\s/g, '.fetch_order_status'],
             [ /\.fetchOpenOrders\s/g, '.fetch_open_orders'],
-            [ /\.parseOrders\s/g, '.parse_orders'],
-            [ /\.parseOrder\s/g, '.parse_order'],
+            [ /\.fetchOrders\s/g, '.fetch_orders'],
             [ /\.loadMarkets\s/g, '.load_markets'],
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
@@ -254,6 +256,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.marketId/g, '.market_id'],
             [ /\.fetchOrderStatus/g, '.fetch_order_status'],
             [ /\.fetchOpenOrders/g, '.fetch_open_orders'],
+            [ /\.fetchOrders/g, '.fetch_orders'],
             [ /\.parseOrders/g, '.parse_orders'],
             [ /\.parseOrder/g, '.parse_order'],
             [ /\.loadMarkets/g, '.load_markets'],
