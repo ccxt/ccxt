@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.79';
+$version = '1.6.80';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -14040,7 +14040,7 @@ class mixcoins extends Exchange {
         parent::__construct (array_merge(array (
             'id' => 'mixcoins',
             'name' => 'MixCoins',
-            'countries' => array ( 'CN', 'GB', 'HK', 'AU', 'CA' ),
+            'countries' => array ( 'GB', 'HK' ),
             'rateLimit' => 1500,
             'version' => 'v1',
             'urls' => array (

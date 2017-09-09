@@ -12276,7 +12276,7 @@ class mixcoins (Exchange):
         params = {
             'id': 'mixcoins',
             'name': 'MixCoins',
-            'countries': ['CN', 'GB', 'HK', 'AU', 'CA'],
+            'countries': ['GB', 'HK'],
             'rateLimit': 1500,
             'version': 'v1',
             'urls': {
