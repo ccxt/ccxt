@@ -13224,7 +13224,7 @@ class poloniex (Exchange):
             'symbol': market['symbol'],
             'type': order['type'],
             'side': order['side'],
-            'price': order['price'],
+            'price': float(order['price']),
             'amount': float(order['amount']),
             'trades': trades,
         }
@@ -13295,8 +13295,8 @@ class poloniex (Exchange):
             'status': 'open',
             'type': type,
             'side': side,
-            'price': price,
-            'amount': amount,
+            'price': float(price),
+            'amount': float(amount),
         }, response), market)
         id = order['id']
         self.orders[id] = order

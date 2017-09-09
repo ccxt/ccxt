@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.81';
+$version = '1.6.82';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -15048,7 +15048,7 @@ class poloniex extends Exchange {
             'symbol' => $market['symbol'],
             'type' => $order['type'],
             'side' => $order['side'],
-            'price' => $order['price'],
+            'price' => floatval ($order['price']),
             'amount' => floatval ($order['amount']),
             'trades' => $trades,
         );
@@ -15126,8 +15126,8 @@ class poloniex extends Exchange {
             'status' => 'open',
             'type' => $type,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
+            'price' => floatval ($price),
+            'amount' => floatval ($amount),
         ), $response), $market);
         $id = $order['id'];
         $this->orders[$id] = $order;
