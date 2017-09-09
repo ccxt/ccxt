@@ -1,6 +1,6 @@
 # Сhangelog
 
-- Renamed BitBays → MixCoins, now operating in UK and Hong Kong only
+- BitBays exchange was renamed to MixCoins, now operating in UK and Hong Kong only
 - Removed support for BTCe exchange (was shut down earlier)
 - Fixed float formatting issue, [#185](https://github.com/kroitor/ccxt/issues/185)
 - Fixed side issue with Bitflyer parseTrade, [#184](https://github.com/kroitor/ccxt/issues/184)
