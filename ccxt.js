@@ -3225,11 +3225,12 @@ var bitflyer = {
         if (api == 'private')
             request += 'me/';
         request += path;
-        let url = this.urls['api'] + request;
-        if (api == 'public') {
+        if (method == 'GET') {
             if (Object.keys (params).length)
-                url += '?' + this.urlencode (params);
-        } else {
+                request += '?' + this.urlencode (params);
+        }
+        let url = this.urls['api'] + request;
+        if (api == 'private') {
             let nonce = this.nonce ().toString ();
             body = this.json (params);
             let auth = [ nonce, method, request, body ].join ('');
