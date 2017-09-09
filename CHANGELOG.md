@@ -5,6 +5,7 @@
 - Fixed fetchOpenOrders amount/symbol with Bittrex and Poloniex [#183](https://github.com/kroitor/ccxt/issues/183)
 - Fixed Bitfinex DASH balance issue, [#178](https://github.com/kroitor/ccxt/issues/178)
 - Added missing ETH and BCH markets to BTCChina, [#175](https://github.com/kroitor/ccxt/issues/175) 
+- BitBays ceased operation
 
 ![BitBays ceased operation](https://user-images.githubusercontent.com/1294454/30231444-90b89000-94f3-11e7-84ba-f3ca1fe8cd3b.png)
 
