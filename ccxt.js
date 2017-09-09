@@ -1751,22 +1751,27 @@ var binance = {
         let symbol = ('symbol' in params);
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol param');
+        symbol = params['symbol'];
         let market = this.market (symbol);
-        let response = await this.privateGetOrder (this.extend (params, {
+        let query = this.omit (params, 'symbol');
+        let response = await this.privateGetOrder (this.extend ({
             'symbol': market['id'],
             'orderId': id.toString (),
-        }));
+        }, query));
         return this.parseOrder (response, market);
     },
 
-    async fetchOrders () {
-        // symbol  STRING  YES
-        // orderId LONG    NO
-        // limit   INT NO  Default 500; max 500.
-        // recvWindow  LONG    NO
-        // timestamp   LONG    YES
-        // If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
-        throw new NotSupported (this.id + ' fetchOrders not implemented yet');
+    async fetchOrders (params = {}) {
+        if ('symbol' in params) {
+            let symbol = params['symbol'];
+            let market = this.market (symbol);
+            let query = this.omit (params, 'symbol');
+            let response = await this.privateGetAllOrders (this.extend ({
+                'symbol': market['id'],
+            }, query));
+            return this.parseOrders (response, market);
+        }
+        throw new ExchangeError (this.id + ' fetchOrders requires a symbol param');
     },
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
