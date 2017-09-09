@@ -11270,6 +11270,14 @@ var hitbtc2 = extend (hitbtc, {
         if ('ask' in ticker)
             if (ticker['ask'])
                 ask = parseFloat (ticker['ask']);
+        let baseVolume = undefined;
+        if ('volume' in ticker)
+            if (ticker['volume'])
+                baseVolume = parseFloat (ticker['volume']);
+        let quoteVolume = undefined;
+        if ('quoteVolume' in ticker)
+            if (ticker['quoteVolume'])
+                quoteVolume = parseFloat (ticker['quoteVolume']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -11285,8 +11293,8 @@ var hitbtc2 = extend (hitbtc, {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['volume']),
-            'quoteVolume': parseFloat (ticker['volumeQuote']),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     },
