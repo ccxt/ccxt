@@ -1022,9 +1022,9 @@ class binance (Exchange):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
         market = self.market(symbol)
-        response = await self.privateGetOpenOrders({
+        response = await self.privateGetOpenOrders(self.extend({
             'symbol': market['id'],
-        }, params)
+        }, params))
         return self.parse_orders(response, market)
 
     async def cancel_order(self, id, params={}):
@@ -11165,6 +11165,16 @@ class kraken (Exchange):
                 'id': response['result'],
             }
         raise ExchangeError(self.id + " withdraw requires a 'key' parameter(withdrawal key name, as set up on your account)")
+
+    async def fetch_open_orders(self, symbol=None, params={}):
+        raise NotSupported(self.id + ' fetchOpenOrders not implemented yet')
+        response = await self.privatePostOpenOrders(params)
+        return self.parse_orders(response, None)
+
+    async def fetchClosedOrders(self, symbol=None, params={}):
+        raise NotSupported(self.id + ' fetchClosedOrders not implemented yet')
+        response = await self.privatePostClosedOrders(params)
+        return self.parse_orders(response, None)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.version + '/' + api + '/' + path

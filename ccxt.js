@@ -1778,9 +1778,9 @@ var binance = {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
         let market = this.market (symbol);
-        let response = await this.privateGetOpenOrders ({
+        let response = await this.privateGetOpenOrders (this.extend ({
             'symbol': market['id'],
-        }, params);
+        }, params));
         return this.parseOrders (response, market);
     },
 
@@ -12397,6 +12397,18 @@ var kraken = {
             };
         }
         throw new ExchangeError (this.id + " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
+    },
+
+    async fetchOpenOrders (symbol = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchOpenOrders not implemented yet');
+        let response = await this.privatePostOpenOrders (params);
+        return this.parseOrders (response, undefined);
+    },
+
+    async fetchClosedOrders (symbol = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchClosedOrders not implemented yet');
+        let response = await this.privatePostClosedOrders (params);
+        return this.parseOrders (response, undefined);
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

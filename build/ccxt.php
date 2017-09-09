@@ -2021,9 +2021,9 @@ class binance extends Exchange {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
         $market = $this->market ($symbol);
-        $response = $this->privateGetOpenOrders (array (
+        $response = $this->privateGetOpenOrders (array_merge (array (
             'symbol' => $market['id'],
-        ), $params);
+        ), $params));
         return $this->parse_orders ($response, $market);
     }
 
@@ -12851,6 +12851,18 @@ class kraken extends Exchange {
             );
         }
         throw new ExchangeError ($this->id . " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
+    }
+
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
+        throw new NotSupported ($this->id . ' fetchOpenOrders not implemented yet');
+        $response = $this->privatePostOpenOrders ($params);
+        return $this->parse_orders ($response, null);
+    }
+
+    public function fetchClosedOrders ($symbol = null, $params = array ()) {
+        throw new NotSupported ($this->id . ' fetchClosedOrders not implemented yet');
+        $response = $this->privatePostClosedOrders ($params);
+        return $this->parse_orders ($response, null);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
