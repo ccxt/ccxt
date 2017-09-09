@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.76';
+$version = '1.6.77';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -1995,22 +1995,27 @@ class binance extends Exchange {
         $symbol = (array_key_exists ('symbol', $params));
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol param');
+        $symbol = $params['symbol'];
         $market = $this->market ($symbol);
-        $response = $this->privateGetOrder (array_merge ($params, array (
+        $query = $this->omit ($params, 'symbol');
+        $response = $this->privateGetOrder (array_merge (array (
             'symbol' => $market['id'],
             'orderId' => (string) $id,
-        )));
+        ), $query));
         return $this->parse_order ($response, $market);
     }
 
-    public function fetch_orders () {
-        // symbol  STRING  YES
-        // orderId LONG    NO
-        // limit   INT NO  Default 500; max 500.
-        // recvWindow  LONG    NO
-        // timestamp   LONG    YES
-        // If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
-        throw new NotSupported ($this->id . ' fetchOrders not implemented yet');
+    public function fetch_orders ($params = array ()) {
+        if (array_key_exists ('symbol', $params)) {
+            $symbol = $params['symbol'];
+            $market = $this->market ($symbol);
+            $query = $this->omit ($params, 'symbol');
+            $response = $this->privateGetAllOrders (array_merge (array (
+                'symbol' => $market['id'],
+            ), $query));
+            return $this->parse_orders ($response, $market);
+        }
+        throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol param');
     }
 
     public function fetch_open_orders ($symbol = null, $params = array ()) {

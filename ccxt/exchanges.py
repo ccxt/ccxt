@@ -1078,21 +1078,25 @@ class binance (Exchange):
         symbol = ('symbol' in list(params.keys()))
         if not symbol:
             raise ExchangeError(self.id + ' fetchOrder requires a symbol param')
+        symbol = params['symbol']
         market = self.market(symbol)
-        response = self.privateGetOrder(self.extend(params, {
+        query = self.omit(params, 'symbol')
+        response = self.privateGetOrder(self.extend({
             'symbol': market['id'],
             'orderId': str(id),
-        }))
+        }, query))
         return self.parse_order(response, market)
 
-    def fetch_orders(self):
-        # symbol  STRING  YES
-        # orderId LONG    NO
-        # limit   INT NO  Default 500 max 500.
-        # recvWindow  LONG    NO
-        # timestamp   LONG    YES
-        # If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
-        raise NotSupported(self.id + ' fetchOrders not implemented yet')
+    def fetch_orders(self, params={}):
+        if 'symbol' in params:
+            symbol = params['symbol']
+            market = self.market(symbol)
+            query = self.omit(params, 'symbol')
+            response = self.privateGetAllOrders(self.extend({
+                'symbol': market['id'],
+            }, query))
+            return self.parse_orders(response, market)
+        raise ExchangeError(self.id + ' fetchOrders requires a symbol param')
 
     def fetch_open_orders(self, symbol=None, params={}):
         if not symbol:
