@@ -142,7 +142,6 @@ class Exchange {
         'binance',
         'bit2c',
         'bitbay',
-        'bitbays',
         'bitcoincoid',
         'bitfinex',
         'bitfinex2',
