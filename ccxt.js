@@ -2200,172 +2200,6 @@ var bitbay = {
 
 //-----------------------------------------------------------------------------
 
-var bitbays = {
-
-    'id': 'bitbays',
-    'name': 'BitBays',
-    'countries': [ 'CN', 'GB', 'HK', 'AU', 'CA' ],
-    'rateLimit': 1500,
-    'version': 'v1',
-    'urls': {
-        'logo': 'https://user-images.githubusercontent.com/1294454/27808599-983687d2-6051-11e7-8d95-80dfcbe5cbb4.jpg',
-        'api': 'https://bitbays.com/api',
-        'www': 'https://bitbays.com',
-        'doc': 'https://bitbays.com/help/api/',
-    },
-    'api': {
-        'public': {
-            'get': [
-                'ticker',
-                'trades',
-                'depth',
-            ],
-        },
-        'private': {
-            'post': [
-                'cancel',
-                'info',
-                'orders',
-                'order',
-                'transactions',
-                'trade',
-            ],
-        },
-    },
-    'markets': {
-        'BTC/USD': { 'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
-        'BTC/CNY': { 'id': 'btc_cny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY' },
-        'ODS/BTC': { 'id': 'ods_btc', 'symbol': 'ODS/BTC', 'base': 'ODS', 'quote': 'BTC' },
-        'LSK/BTC': { 'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC' },
-        'LSK/CNY': { 'id': 'lsk_cny', 'symbol': 'LSK/CNY', 'base': 'LSK', 'quote': 'CNY' },
-    },
-
-    async fetchBalance (params = {}) {
-        let response = await this.privatePostInfo ();
-        let balance = response['result']['wallet'];
-        let result = { 'info': balance };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
-            let lowercase = currency.toLowerCase ();
-            let account = this.account ();
-            if (lowercase in balance) {
-                account['free'] = parseFloat (balance[lowercase]['avail']);
-                account['used'] = parseFloat (balance[lowercase]['lock']);
-                account['total'] = this.sum (account['free'], account['used']);
-            }
-            result[currency] = account;
-        }
-        return result;
-    },
-
-    async fetchOrderBook (symbol, params = {}) {
-        let response = await this.publicGetDepth (this.extend ({
-            'market': this.marketId (symbol),
-        }, params));
-        let orderbook = response['result'];
-        return this.parseOrderBook (response['result']);
-    },
-
-    async fetchTicker (symbol) {
-        let response = await this.publicGetTicker ({
-            'market': this.marketId (symbol),
-        });
-        let ticker = response['result'];
-        let timestamp = this.milliseconds ();
-        return {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy']),
-            'ask': parseFloat (ticker['sell']),
-            'vwap': undefined,
-            'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['vol']),
-            'info': ticker,
-        };
-    },
-
-    parseTrade (trade, market) {
-        let timestamp = parseInt (trade['date']) * 1000;
-        return {
-            'id': trade['id'].toString (),
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': undefined,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
-        };
-    },
-
-    async fetchTrades (symbol, params = {}) {
-        let market = this.market (symbol);
-        let response = await this.publicGetTrades (this.extend ({
-            'market': market['id'],
-        }, params));
-        return this.parseTrades (response['result'], market);
-    },
-
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        let order = {
-            'market': this.marketId (symbol),
-            'op': side,
-            'amount': amount,
-        };
-        if (type == 'market') {
-            order['order_type'] = 1;
-            order['price'] = price;
-        } else {
-            order['order_type'] = 0;
-        }
-        let response = await this.privatePostTrade (this.extend (order, params));
-        return {
-            'info': response,
-            'id': response['result']['id'].toString (),
-        };
-    },
-
-    async cancelOrder (id) {
-        return this.privatePostCancel ({ 'id': id });
-    },
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (api == 'public') {
-            if (Object.keys (params).length)
-                url += '?' + this.urlencode (params);
-        } else {
-            let nonce = this.nonce ();
-            body = this.urlencode (this.extend ({
-                'nonce': nonce,
-            }, params));
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
-                'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.secret, 'sha512'),
-            };
-        }
-        let response = await this.fetch (url, method, headers, body);
-        if ('status' in response)
-            if (response['status'] == 200)
-                return response;
-        throw new ExchangeError (this.id + ' ' + this.json (response));
-    },
-}
-
-//-----------------------------------------------------------------------------
-
 var bitcoincoid = {
 
     'id': 'bitcoincoid',
@@ -13724,6 +13558,173 @@ var mercado = {
 }
 
 //-----------------------------------------------------------------------------
+
+var mixcoins = {
+
+    'id': 'mixcoins',
+    'name': 'MixCoins',
+    'countries': [ 'CN', 'GB', 'HK', 'AU', 'CA' ],
+    'rateLimit': 1500,
+    'version': 'v1',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/30237212-ed29303c-9535-11e7-8af8-fcd381cfa20c.jpg',
+        'api': 'https://mixcoins.com/api',
+        'www': 'https://mixcoins.com',
+        'doc': 'https://mixcoins.com/help/api/',
+    },
+    'api': {
+        'public': {
+            'get': [
+                'ticker',
+                'trades',
+                'depth',
+            ],
+        },
+        'private': {
+            'post': [
+                'cancel',
+                'info',
+                'orders',
+                'order',
+                'transactions',
+                'trade',
+            ],
+        },
+    },
+    'markets': {
+        'BTC/USD': { 'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
+        'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
+        'BCH/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
+        'LSK/BTC': { 'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC' },
+        'BCH/USD': { 'id': 'bcc_usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD' },
+        'ETH/USD': { 'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD' },
+    },
+
+    async fetchBalance (params = {}) {
+        let response = await this.privatePostInfo ();
+        let balance = response['result']['wallet'];
+        let result = { 'info': balance };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let lowercase = currency.toLowerCase ();
+            let account = this.account ();
+            if (lowercase in balance) {
+                account['free'] = parseFloat (balance[lowercase]['avail']);
+                account['used'] = parseFloat (balance[lowercase]['lock']);
+                account['total'] = this.sum (account['free'], account['used']);
+            }
+            result[currency] = account;
+        }
+        return result;
+    },
+
+    async fetchOrderBook (symbol, params = {}) {
+        let response = await this.publicGetDepth (this.extend ({
+            'market': this.marketId (symbol),
+        }, params));
+        let orderbook = response['result'];
+        return this.parseOrderBook (response['result']);
+    },
+
+    async fetchTicker (symbol) {
+        let response = await this.publicGetTicker ({
+            'market': this.marketId (symbol),
+        });
+        let ticker = response['result'];
+        let timestamp = this.milliseconds ();
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['buy']),
+            'ask': parseFloat (ticker['sell']),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['vol']),
+            'info': ticker,
+        };
+    },
+
+    parseTrade (trade, market) {
+        let timestamp = parseInt (trade['date']) * 1000;
+        return {
+            'id': trade['id'].toString (),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': undefined,
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetTrades (this.extend ({
+            'market': market['id'],
+        }, params));
+        return this.parseTrades (response['result'], market);
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        let order = {
+            'market': this.marketId (symbol),
+            'op': side,
+            'amount': amount,
+        };
+        if (type == 'market') {
+            order['order_type'] = 1;
+            order['price'] = price;
+        } else {
+            order['order_type'] = 0;
+        }
+        let response = await this.privatePostTrade (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['result']['id'].toString (),
+        };
+    },
+
+    async cancelOrder (id) {
+        return this.privatePostCancel ({ 'id': id });
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + this.version + '/' + path;
+        if (api == 'public') {
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
+        } else {
+            let nonce = this.nonce ();
+            body = this.urlencode (this.extend ({
+                'nonce': nonce,
+            }, params));
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': body.length,
+                'Key': this.apiKey,
+                'Sign': this.hmac (this.encode (body), this.secret, 'sha512'),
+            };
+        }
+        let response = await this.fetch (url, method, headers, body);
+        if ('status' in response)
+            if (response['status'] == 200)
+                return response;
+        throw new ExchangeError (this.id + ' ' + this.json (response));
+    },
+}
+
+//-----------------------------------------------------------------------------
 // OKCoin
 // China
 // https://www.okcoin.com/
@@ -17156,7 +17157,6 @@ var exchanges = {
     'binance':       binance,
     'bit2c':         bit2c,
     'bitbay':        bitbay,
-    'bitbays':       bitbays,
     'bitcoincoid':   bitcoincoid,
     'bitfinex':      bitfinex,
     'bitfinex2':     bitfinex2,
@@ -17208,6 +17208,7 @@ var exchanges = {
     'liqui':         liqui,
     'luno':          luno,
     'mercado':       mercado,
+    'mixcoins':      mixcoins,
     'okcoincny':     okcoincny,
     'okcoinusd':     okcoinusd,
     'okex':          okex,

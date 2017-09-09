@@ -249,9 +249,10 @@ for id in ccxt.exchanges:
 # set up api keys appropriately
 tuples = list(ccxt.Exchange.keysort(config).items())
 for (id, params) in tuples:
-    options = list(params.items())
-    for key in params:
-        setattr(exchanges[id], key, params[key])
+    if id in exchanges:
+        options = list(params.items())
+        for key in params:
+            setattr(exchanges[id], key, params[key])
 
 # move gdax to sandbox
 exchanges['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
@@ -273,5 +274,6 @@ else:
 
     tuples = list(ccxt.Exchange.keysort(exchanges).items())
     for (id, params) in tuples:
-        exchange = exchanges[id]
-        try_all_proxies(exchange, proxies)
+        if id in exchanges:
+            exchange = exchanges[id]
+            try_all_proxies(exchange, proxies)
