@@ -16877,7 +16877,7 @@ var yobit = {
 
 //-----------------------------------------------------------------------------
 
-var yunbi = extends (acx, {
+var yunbi = extend (acx, {
 
     'id': 'yunbi',
     'name': 'YUNBI',
