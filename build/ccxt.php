@@ -440,6 +440,8 @@ class Exchange {
         $this->userAgent  = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
         $this->timeframes = null;
+        $this->hasPublicAPI         = true;
+        $this->hasPrivateAPI        = true;
         $this->hasFetchTickers      = false;
         $this->hasFetchOHLCV        = false;
         $this->hasDeposit           = false;
@@ -1009,6 +1011,7 @@ class _1broker extends Exchange {
             'countries' => 'US',
             'rateLimit' => 1500,
             'version' => 'v2',
+            'hasPublicAPI' => false,
             'hasFetchOHLCV' => true,
             'timeframes' => array (
                 '1m' => '60',
@@ -8779,6 +8782,7 @@ class coinmarketcap extends Exchange {
             'rateLimit' => 10000,
             'version' => 'v1',
             'countries' => 'US',
+            'hasPrivateAPI' => false,
             'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
@@ -16904,6 +16908,7 @@ class xbtce extends Exchange {
             'countries' => 'RU',
             'rateLimit' => 2000, // responses are cached every 2 seconds
             'version' => 'v1',
+            'hasPublicAPI' => false,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => false,
             'urls' => array (

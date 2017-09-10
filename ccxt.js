@@ -785,6 +785,7 @@ var _1broker = {
     'countries': 'US',
     'rateLimit': 1500,
     'version': 'v2',
+    'hasPublicAPI': false,
     'hasFetchOHLCV': true,
     'timeframes': {
         '1m': '60',
@@ -8408,6 +8409,7 @@ var coinmarketcap = {
     'rateLimit': 10000,
     'version': 'v1',
     'countries': 'US',
+    'hasPrivateAPI': false,
     'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
@@ -16363,6 +16365,7 @@ var xbtce = {
     'countries': 'RU',
     'rateLimit': 2000, // responses are cached every 2 seconds
     'version': 'v1',
+    'hasPublicAPI': false,
     'hasFetchTickers': true,
     'hasFetchOHLCV': false,
     'urls': {

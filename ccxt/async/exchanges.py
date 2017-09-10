@@ -72,6 +72,7 @@ class _1broker (Exchange):
             'countries': 'US',
             'rateLimit': 1500,
             'version': 'v2',
+            'hasPublicAPI': False,
             'hasFetchOHLCV': True,
             'timeframes': {
                 '1m': '60',
@@ -7329,6 +7330,7 @@ class coinmarketcap (Exchange):
             'rateLimit': 10000,
             'version': 'v1',
             'countries': 'US',
+            'hasPrivateAPI': False,
             'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
@@ -14959,6 +14961,7 @@ class xbtce (Exchange):
             'countries': 'RU',
             'rateLimit': 2000, # responses are cached every 2 seconds
             'version': 'v1',
+            'hasPublicAPI': False,
             'hasFetchTickers': True,
             'hasFetchOHLCV': False,
             'urls': {
