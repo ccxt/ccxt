@@ -138,6 +138,7 @@ class Exchange {
     public static $exchanges = array (
         '_1broker',
         '_1btcxe',
+        'acx',
         'anxpro',
         'binance',
         'bit2c',
