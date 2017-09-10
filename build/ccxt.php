@@ -1767,7 +1767,7 @@ class acx extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/$api/' . $this->version . '/' . $this->implode_params ($path, $params) . '.json';
+        $request = '/api' . '/' . $this->version . '/' . $this->implode_params ($path, $params) . '.json';
         $query = $this->omit ($params, $this->extract_params ($path));
         $url = $this->urls['api'] . $request;
         if ($api == 'public') {
@@ -17690,7 +17690,7 @@ class yunbi extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/$api/' . $this->version . '/' . $this->implode_params ($path, $params) . '.json';
+        $request = '/api' . '/' . $this->version . '/' . $this->implode_params ($path, $params) . '.json';
         $query = $this->omit ($params, $this->extract_params ($path));
         $url = $this->urls['api'] . $request;
         if ($api == 'public') {

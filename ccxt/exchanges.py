@@ -863,7 +863,7 @@ class acx (Exchange):
         return self.privatePostOrderDelete({'id': id})
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/api/' + self.version + '/' + self.implode_params(path, params) + '.json'
+        request = '/api' + '/' + self.version + '/' + self.implode_params(path, params) + '.json'
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'] + request
         if api == 'public':
@@ -15775,7 +15775,7 @@ class yunbi (Exchange):
         return self.privatePostOrderDelete({'id': id})
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/api/' + self.version + '/' + self.implode_params(path, params) + '.json'
+        request = '/api' + '/' + self.version + '/' + self.implode_params(path, params) + '.json'
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'] + request
         if api == 'public':
