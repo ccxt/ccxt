@@ -113,6 +113,8 @@ class Exchange (object):
     twofa = False
     marketsById = None
     markets_by_id = None
+    hasPublicAPI = True
+    hasPrivateAPI = True
     hasFetchTickers = False
     hasFetchOHLCV = False
     hasDeposit = False

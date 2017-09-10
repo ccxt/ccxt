@@ -440,6 +440,8 @@ class Exchange {
         $this->userAgent  = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
         $this->timeframes = null;
+        $this->hasPublicAPI         = true;
+        $this->hasPrivateAPI        = true;
         $this->hasFetchTickers      = false;
         $this->hasFetchOHLCV        = false;
         $this->hasDeposit           = false;
