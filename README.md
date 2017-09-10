@@ -13,7 +13,7 @@ Current featurelist:
 - support for many exchange markets, even more upcoming soon
 - fully implemented public and private APIs for all exchanges
 - all currencies, altcoins and symbols, prices, order books, trades, tickers, etc...
-- optional normalised data for cross-exchange or cross-currency analytics and arbitrage
+- optional normalized data for cross-exchange or cross-currency analytics and arbitrage
 - an out-of-the box unified all-in-one API extremely easy to integrate
 - works in Node 6+, Python 2 and 3, PHP 5.3+, web browsers
 
