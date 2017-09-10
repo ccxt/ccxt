@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Added `.hasPublicAPI / .hasPrivateAPI` properties
 - Added support for a new exchange: [ACX](https://acx.io) (Australia)
 - Fixed Bitflyer's private GET APIs, [#187](https://github.com/kroitor/ccxt/pull/187)
 - BitBays exchange was renamed to MixCoins, now operating in UK and Hong Kong
