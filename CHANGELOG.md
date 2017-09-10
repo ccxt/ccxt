@@ -2,7 +2,7 @@
 
 - Added support for a new exchange: [ACX](https://acx.io) (Australia)
 - Fixed Bitflyer's private GET APIs, [#187](https://github.com/kroitor/ccxt/pull/187)
-- BitBays exchange was renamed to MixCoins, now operating in UK and Hong Kong only
+- BitBays exchange was renamed to MixCoins, now operating in UK and Hong Kong
 - Removed support for BTCe exchange (was shut down earlier)
 - Fixed float formatting issue, [#185](https://github.com/kroitor/ccxt/issues/185)
 - Fixed side issue with Bitflyer parseTrade, [#184](https://github.com/kroitor/ccxt/issues/184)
