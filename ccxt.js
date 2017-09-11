@@ -9382,6 +9382,7 @@ var cryptopia = {
     async fetchOpenOrders (symbol = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostGetOpenOrders ({
             'Market': market['id'],
