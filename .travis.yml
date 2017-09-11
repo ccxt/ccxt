@@ -7,6 +7,7 @@ before_install:
 - . $HOME/.nvm/nvm.sh
 - nvm install stable
 - nvm use stable
+- npm install
 - sudo wget --quiet https://github.com/jgm/pandoc/releases/download/1.19.2.1/pandoc-1.19.2.1-1-amd64.deb
 - sudo dpkg -i pandoc-1.19.2.1-1-amd64.deb
 - sudo apt-get install python3-pip
