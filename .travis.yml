@@ -5,6 +5,7 @@ cache: pip
 before_install:
 - set -e
 - . $HOME/.nvm/nvm.sh
+- nvm ls
 - nvm install stable
 - nvm use stable
 - npm install
