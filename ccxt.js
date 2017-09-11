@@ -9326,7 +9326,7 @@ var cryptopia = {
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
-            'Market': this.marketId (market),
+            'TradePairId': this.marketId (market),
             'Type': this.capitalize (side),
             'Rate': price,
             'Amount': amount,
@@ -9385,8 +9385,8 @@ var cryptopia = {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostGetOpenOrders ({
-            'Market': market['id'],
-            // 'TradePairId': 123, // Cryptopia identifier (not required if 'Market' supplied)
+            // 'Market': market['id'],
+            'TradePairId': market['id'], // Cryptopia identifier (not required if 'Market' supplied)
             // 'Count': 100, // default = 100
         }, params);
         let orders = response['Data'];

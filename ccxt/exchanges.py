@@ -8293,7 +8293,7 @@ class cryptopia (Exchange):
     def create_order(self, market, type, side, amount, price=None, params={}):
         self.load_markets()
         order = {
-            'Market': self.market_id(market),
+            'TradePairId': self.market_id(market),
             'Type': self.capitalize(side),
             'Rate': price,
             'Amount': amount,
@@ -8344,10 +8344,11 @@ class cryptopia (Exchange):
     def fetch_open_orders(self, symbol=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
+        self.load_markets()
         market = self.market(symbol)
         response = self.privatePostGetOpenOrders({
-            'Market': market['id'],
-            # 'TradePairId': 123, # Cryptopia identifier(not required if 'Market' supplied)
+            # 'Market': market['id'],
+            'TradePairId': market['id'], # Cryptopia identifier(not required if 'Market' supplied)
             # 'Count': 100, # default = 100
         }, params)
         orders = response['Data']

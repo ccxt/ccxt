@@ -9717,7 +9717,7 @@ class cryptopia extends Exchange {
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
         $order = array (
-            'Market' => $this->market_id ($market),
+            'TradePairId' => $this->market_id ($market),
             'Type' => $this->capitalize ($side),
             'Rate' => $price,
             'Amount' => $amount,
@@ -9773,10 +9773,11 @@ class cryptopia extends Exchange {
     public function fetch_open_orders ($symbol = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
+        $this->load_markets ();
         $market = $this->market ($symbol);
         $response = $this->privatePostGetOpenOrders (array (
-            'Market' => $market['id'],
-            // 'TradePairId' => 123, // Cryptopia identifier (not required if 'Market' supplied)
+            // 'Market' => $market['id'],
+            'TradePairId' => $market['id'], // Cryptopia identifier (not required if 'Market' supplied)
             // 'Count' => 100, // default = 100
         ), $params);
         $orders = $response['Data'];
