@@ -13479,11 +13479,35 @@ var liqui = {
         return result;
     },
 
+    parseOrders (orders, market = undefined) {
+        let ids = Object.keys (orders);
+        let result = [];
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let order = orders[id];
+            let extended = this.extend (order, { 'id': id });
+            result.push (this.parseOrder (extended, market));
+        }
+        return result;
+    },
+
     async fetchOrder (id) {
         await this.loadMarkets ();
         let response = await this.privatePostOrderInfo ({ 'order_id': id });
         let order = response['return'][id];
         return this.parseOrder (this.extend ({ 'id': id }, order));
+    },
+
+    async fetchOpenOrders (symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' requires a symbol');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'pair': market['id'],
+        };
+        let response = await this.privatePostActiveOrders (this.extend (request, params));
+        return this.parseOrders (response['return'], market);
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -17232,6 +17256,7 @@ var zaif = {
     },
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = undefined;
         // let request = {
         //     'is_token': false,
