@@ -13,7 +13,7 @@ CCXT – CryptoCurrency eXchange Trading Library
     :target: https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master
 .. image:: https://badge.runkitcdn.com/ccxt.svg
     :target: https://npm.runkit.com/ccxt
-.. image:: https://img.shields.io/badge/exchanges-77-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-78-blue.svg
     :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
@@ -36,7 +36,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 77 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 78 cryptocurrency exchange markets and trading APIs:
 
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id              | name                                                      | ver   | doc                                                                                              | countries                                  |
@@ -76,6 +76,8 @@ The ccxt library currently supports the following 77 cryptocurrency exchange mar
 | bittrex         | `Bittrex <https://bittrex.com>`__                         | 1.1   | `API <https://bittrex.com/Home/Api>`__                                                           | US                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bl3p            | `BL3P <https://bl3p.eu>`__                                | 1     | `API <https://github.com/BitonicNL/bl3p-api/tree/master/docs>`__                                 | Netherlands, EU                            |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| bleutrade       | `Bleutrade <https://bleutrade.com>`__                     | 2     | `API <https://bleutrade.com/help/API>`__                                                         | Brazil                                     |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | btcchina        | `BTCChina <https://www.btcchina.com>`__                   | 1     | `API <https://www.btcchina.com/apidocs>`__                                                       | China                                      |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+

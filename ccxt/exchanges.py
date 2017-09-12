@@ -45,6 +45,7 @@ exchanges = [
     'bitstamp',
     'bittrex',
     'bl3p',
+    'bleutrade',
     'btcchina',
     'btcexchange',
     'btcmarkets',
@@ -4176,6 +4177,8 @@ class bittrex (Exchange):
             'type': 'both',
             'depth': 50,
         }, params))
+        print(response)
+        sys.exit()
         orderbook = response['result']
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
 
@@ -4239,8 +4242,11 @@ class bittrex (Exchange):
         elif trade['OrderType'] == 'SELL':
             side = 'sell'
         type = None
+        id = None
+        if 'Id' in trade:
+            id = str(trade['Id'])
         return {
-            'id': str(trade['Id']),
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -4724,6 +4730,38 @@ class bl3p (Exchange):
                 'Rest-Sign': signature,
             }
         return self.fetch(url, method, headers, body)
+
+#------------------------------------------------------------------------------
+
+class bleutrade (bittrex):
+
+    def __init__(self, config={}):
+        params = {
+            'id': 'bleutrade',
+            'name': 'Bleutrade',
+            'countries': 'BR', # Brazil
+            'rateLimit': 1000,
+            'version': 'v2',
+            'hasFetchTickers': True,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
+                'api': 'https://bleutrade.com/api',
+                'www': 'https://bleutrade.com',
+                'doc': 'https://bleutrade.com/help/API',
+            },
+        }
+        params.update(config)
+        super(bleutrade, self).__init__(params)
+
+    def fetch_order_book(self, market, params={}):
+        self.load_markets()
+        response = self.publicGetOrderbook(self.extend({
+            'market': self.market_id(market),
+            'type': 'ALL',
+            'depth': 50,
+        }, params))
+        orderbook = response['result']
+        return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
 
 #------------------------------------------------------------------------------
 

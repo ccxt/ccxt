@@ -154,6 +154,7 @@ class Exchange {
         'bitstamp',
         'bittrex',
         'bl3p',
+        'bleutrade',
         'btcchina',
         'btcexchange',
         'btcmarkets',
@@ -5316,6 +5317,8 @@ class bittrex extends Exchange {
             'type' => 'both',
             'depth' => 50,
         ), $params));
+        var_dump ($response);
+        exit ();
         $orderbook = $response['result'];
         return $this->parse_order_book ($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
     }
@@ -5386,8 +5389,11 @@ class bittrex extends Exchange {
             $side = 'sell';
         }
         $type = null;
+        $id = null;
+        if (array_key_exists ('Id', $trade))
+            $id = (string) $trade['Id'];
         return array (
-            'id' => (string) $trade['Id'],
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -5911,6 +5917,39 @@ class bl3p extends Exchange {
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
+    }
+}
+
+//------------------------------------------------------------------------------
+
+class bleutrade extends bittrex {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge(array (
+            'id' => 'bleutrade',
+            'name' => 'Bleutrade',
+            'countries' => 'BR', // Brazil
+            'rateLimit' => 1000,
+            'version' => 'v2',
+            'hasFetchTickers' => true,
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
+                'api' => 'https://bleutrade.com/api',
+                'www' => 'https://bleutrade.com',
+                'doc' => 'https://bleutrade.com/help/API',
+            ),
+        ), $options));
+    }
+
+    public function fetch_order_book ($market, $params = array ()) {
+        $this->load_markets ();
+        $response = $this->publicGetOrderbook (array_merge (array (
+            'market' => $this->market_id ($market),
+            'type' => 'ALL',
+            'depth' => 50,
+        ), $params));
+        $orderbook = $response['result'];
+        return $this->parse_order_book ($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
     }
 }
 
