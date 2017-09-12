@@ -12301,6 +12301,18 @@ class liqui (Exchange):
         response = self.privatePostActiveOrders(self.extend(request, params))
         return self.parse_orders(response['return'], market)
 
+    def withdraw(self, currency, amount, address, params={}):
+        self.load_markets()
+        response = self.privatePostWithdrawCoin(self.extend({
+            'coinName': currency,
+            'amount': float(amount),
+            'address': address,
+        }, params))
+        return {
+            'info': response,
+            'id': response['return']['tId'],
+        }
+
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         query = self.omit(params, self.extract_params(path))

@@ -13987,6 +13987,19 @@ class liqui extends Exchange {
         return $this->parse_orders ($response['return'], $market);
     }
 
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $response = $this->privatePostWithdrawCoin (array_merge (array (
+            'coinName' => $currency,
+            'amount' => floatval ($amount),
+            'address' => $address,
+        ), $params));
+        return array (
+            'info' => $response,
+            'id' => $response['return']['tId'],
+        );
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         $query = $this->omit ($params, $this->extract_params ($path));
