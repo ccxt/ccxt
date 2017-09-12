@@ -12274,11 +12274,32 @@ class liqui (Exchange):
         }
         return result
 
+    def parse_orders(self, orders, market=None):
+        ids = list(orders.keys())
+        result = []
+        for i in range(0, len(ids)):
+            id = ids[i]
+            order = orders[id]
+            extended = self.extend(order, {'id': id})
+            result.append(self.parse_order(extended, market))
+        return result
+
     def fetch_order(self, id):
         self.load_markets()
         response = self.privatePostOrderInfo({'order_id': id})
         order = response['return'][id]
         return self.parse_order(self.extend({'id': id}, order))
+
+    def fetch_open_orders(self, symbol=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' requires a symbol')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
+        }
+        response = self.privatePostActiveOrders(self.extend(request, params))
+        return self.parse_orders(response['return'], market)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
@@ -15875,6 +15896,7 @@ class zaif (Exchange):
         return result
 
     def fetch_open_orders(self, symbol=None, params={}):
+        self.load_markets()
         market = None
         # request = {
         #     'is_token': False,

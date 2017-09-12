@@ -13956,11 +13956,35 @@ class liqui extends Exchange {
         return $result;
     }
 
+    public function parse_orders ($orders, $market = null) {
+        $ids = array_keys ($orders);
+        $result = array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $order = $orders[$id];
+            $extended = array_merge ($order, array ( 'id' => $id ));
+            $result[] = $this->parse_order ($extended, $market);
+        }
+        return $result;
+    }
+
     public function fetch_order ($id) {
         $this->load_markets ();
         $response = $this->privatePostOrderInfo (array ( 'order_id' => $id ));
         $order = $response['return'][$id];
         return $this->parse_order (array_merge (array ( 'id' => $id ), $order));
+    }
+
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' requires a symbol');
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $request = array (
+            'pair' => $market['id'],
+        );
+        $response = $this->privatePostActiveOrders (array_merge ($request, $params));
+        return $this->parse_orders ($response['return'], $market);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -17794,6 +17818,7 @@ class zaif extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $params = array ()) {
+        $this->load_markets ();
         $market = null;
         // $request = array (
         //     'is_token' => false,
