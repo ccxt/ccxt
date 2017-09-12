@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.94';
+$version = '1.6.95';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9775,8 +9775,6 @@ class cryptopia extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $description = $order['descr'];
-        $market = $this->markets_by_id[$description['pair']];
         $symbol = null;
         if ($market) {
             $symbol = $market['symbol'];
