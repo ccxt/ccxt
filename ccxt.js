@@ -13510,6 +13510,19 @@ var liqui = {
         return this.parseOrders (response['return'], market);
     },
 
+    async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostWithdrawCoin (this.extend ({
+            'coinName': currency,
+            'amount': parseFloat (amount),
+            'address': address,
+        }, params));
+        return {
+            'info': response,
+            'id': response['return']['tId'],
+        };
+    },
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         let query = this.omit (params, this.extractParams (path));
