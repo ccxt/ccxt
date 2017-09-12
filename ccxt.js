@@ -12415,6 +12415,7 @@ var kraken = {
     'rateLimit': 1500,
     'hasFetchTickers': true,
     'hasFetchOHLCV': true,
+    'marketsByAltname': {},
     'timeframes': {
         '1m': '1',
         '5m': '5',
@@ -12498,8 +12499,10 @@ var kraken = {
                 'quote': quote,
                 'darkpool': darkpool,
                 'info': market,
+                'altname': market['altname'],
             });
         }
+        this.marketsByAltname = this.indexBy (result, 'altname');
         return result;
     },
 
@@ -12675,25 +12678,34 @@ var kraken = {
     },
 
     parseOrder (order, market = undefined) {
-        console.log (order);
         let description = order['descr'];
-        market = this.markets_by_id[description['pair']];
         let side = description['type'];
         let type = description['ordertype'];
-        let symbol = (market) ? market['symbol'] : undefined;
-        let timestamp = order['opentm'] * 1000;
+        let symbol = undefined;
+        if (!market) {
+            let pair = description['pair'];
+            if (pair in this.marketsByAltname) {
+                market = this.marketsByAltname[pair];
+            } else if (pair in this.markets_by_id) {
+                market = this.markets_by_id[pair];
+            }
+        }
+        if (market)
+            symbol = market['symbol'];
+        let timestamp = parseInt (order['opentm'] * 1000);
         let amount = parseFloat (order['vol']);
         let filled = parseFloat (order['vol_exec']);
         let remaining = amount - filled;
         return {
-            'id': order['refid'],
+            'id': order['id'],
+            'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'status': order['status'],
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': order['price'],
+            'price': parseFloat (order['price']),
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
