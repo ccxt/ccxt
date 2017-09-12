@@ -5020,6 +5020,8 @@ var bittrex = {
             'type': 'both',
             'depth': 50,
         }, params));
+        console.log (response);
+        process.exit ();
         let orderbook = response['result'];
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     },
@@ -5090,8 +5092,11 @@ var bittrex = {
             side = 'sell';
         }
         let type = undefined;
+        let id = undefined;
+        if ('Id' in trade)
+            id = trade['Id'].toString ();
         return {
-            'id': trade['Id'].toString (),
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -5609,6 +5614,35 @@ var bl3p = {
         return this.fetch (url, method, headers, body);
     },
 }
+
+//-----------------------------------------------------------------------------
+
+var bleutrade = extend (bittrex, {
+
+    'id': 'bleutrade',
+    'name': 'Bleutrade',
+    'countries': 'BR', // Brazil
+    'rateLimit': 1000,
+    'version': 'v2',
+    'hasFetchTickers': true,
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
+        'api': 'https://bleutrade.com/api',
+        'www': 'https://bleutrade.com',
+        'doc': 'https://bleutrade.com/help/API',
+    },
+
+    async fetchOrderBook (market, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.publicGetOrderbook (this.extend ({
+            'market': this.marketId (market),
+            'type': 'ALL',
+            'depth': 50,
+        }, params));
+        let orderbook = response['result'];
+        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
+    },
+})
 
 //-----------------------------------------------------------------------------
 
@@ -17262,6 +17296,7 @@ var exchanges = {
     'bitstamp':      bitstamp,
     'bittrex':       bittrex,
     'bl3p':          bl3p,
+    'bleutrade':     bleutrade,
     'btcchina':      btcchina,
     'btcexchange':   btcexchange,
     'btcmarkets':    btcmarkets,
