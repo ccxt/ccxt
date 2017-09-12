@@ -11544,7 +11544,7 @@ class kraken (Exchange):
         ids = list(orders.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            order = self.extend({'id': id,}, orders[id])
+            order = self.extend({'id': id}, orders[id])
             result.append(self.parse_order(order, market))
         return result
 
