@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.95';
+$version = '1.6.96';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -13985,6 +13985,19 @@ class liqui extends Exchange {
         );
         $response = $this->privatePostActiveOrders (array_merge ($request, $params));
         return $this->parse_orders ($response['return'], $market);
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $response = $this->privatePostWithdrawCoin (array_merge (array (
+            'coinName' => $currency,
+            'amount' => floatval ($amount),
+            'address' => $address,
+        ), $params));
+        return array (
+            'info' => $response,
+            'id' => $response['return']['tId'],
+        );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
