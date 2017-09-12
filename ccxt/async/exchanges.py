@@ -8267,8 +8267,6 @@ class cryptopia (Exchange):
         })
 
     def parse_order(self, order, market=None):
-        description = order['descr']
-        market = self.markets_by_id[description['pair']]
         symbol = None
         if market:
             symbol = market['symbol']
