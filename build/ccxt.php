@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.93';
+$version = '1.6.94';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5317,8 +5317,6 @@ class bittrex extends Exchange {
             'type' => 'both',
             'depth' => 50,
         ), $params));
-        var_dump ($response);
-        exit ();
         $orderbook = $response['result'];
         return $this->parse_order_book ($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
     }
@@ -12877,6 +12875,7 @@ class kraken extends Exchange {
             'rateLimit' => 1500,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
+            'marketsByAltname' => array (),
             'timeframes' => array (
                 '1m' => '1',
                 '5m' => '5',
@@ -12962,8 +12961,10 @@ class kraken extends Exchange {
                 'quote' => $quote,
                 'darkpool' => $darkpool,
                 'info' => $market,
+                'altname' => $market['altname'],
             );
         }
+        $this->marketsByAltname = $this->index_by ($result, 'altname');
         return $result;
     }
 
@@ -13139,25 +13140,34 @@ class kraken extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        var_dump ($order);
         $description = $order['descr'];
-        $market = $this->markets_by_id[$description['pair']];
         $side = $description['type'];
         $type = $description['ordertype'];
-        $symbol = ($market) ? $market['symbol'] : null;
-        $timestamp = $order['opentm'] * 1000;
+        $symbol = null;
+        if (!$market) {
+            $pair = $description['pair'];
+            if (array_key_exists ($pair, $this->marketsByAltname)) {
+                $market = $this->marketsByAltname[$pair];
+            } else if (array_key_exists ($pair, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$pair];
+            }
+        }
+        if ($market)
+            $symbol = $market['symbol'];
+        $timestamp = intval ($order['opentm'] * 1000);
         $amount = floatval ($order['vol']);
         $filled = floatval ($order['vol_exec']);
         $remaining = $amount - $filled;
         return array (
-            'id' => $order['refid'],
+            'id' => $order['id'],
+            'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'status' => $order['status'],
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'price' => $order['price'],
+            'price' => floatval ($order['price']),
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,

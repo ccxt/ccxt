@@ -4096,8 +4096,6 @@ class bittrex (Exchange):
             'type': 'both',
             'depth': 50,
         }, params))
-        print(response)
-        sys.exit()
         orderbook = response['result']
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
 
@@ -11186,6 +11184,7 @@ class kraken (Exchange):
             'rateLimit': 1500,
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
+            'marketsByAltname': {},
             'timeframes': {
                 '1m': '1',
                 '5m': '5',
@@ -11272,7 +11271,9 @@ class kraken (Exchange):
                 'quote': quote,
                 'darkpool': darkpool,
                 'info': market,
+                'altname': market['altname'],
             })
+        self.marketsByAltname = self.index_by(result, 'altname')
         return result
 
     async def fetch_order_book(self, symbol, params={}):
@@ -11433,25 +11434,32 @@ class kraken (Exchange):
         }
 
     def parse_order(self, order, market=None):
-        print(order)
         description = order['descr']
-        market = self.markets_by_id[description['pair']]
         side = description['type']
         type = description['ordertype']
-        symbol = market['symbol'] if(market) else None
-        timestamp = order['opentm'] * 1000
+        symbol = None
+        if not market:
+            pair = description['pair']
+            if pair in self.marketsByAltname:
+                market = self.marketsByAltname[pair]
+            elif pair in self.markets_by_id:
+                market = self.markets_by_id[pair]
+        if market:
+            symbol = market['symbol']
+        timestamp = int(order['opentm'] * 1000)
         amount = float(order['vol'])
         filled = float(order['vol_exec'])
         remaining = amount - filled
         return {
-            'id': order['refid'],
+            'id': order['id'],
+            'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'status': order['status'],
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': order['price'],
+            'price': float(order['price']),
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
