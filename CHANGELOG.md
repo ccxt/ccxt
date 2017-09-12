@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Added fetchOpenOrders/fetchClosedOrders implementation to Kraken, [#71](https://github.com/kroitor/ccxt/issues/71)
 - Added support for a new exchange: [Bleutrade](https://bleutrade.com) (Brazil)
 - Fixed Cryptopia fetchOpenOrders issue, [#192](https://github.com/kroitor/ccxt/issues/192)
 - Added `.hasPublicAPI / .hasPrivateAPI` properties to all derived exchanges
