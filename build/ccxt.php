@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.92';
+$version = '1.6.93';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -13170,7 +13170,7 @@ class kraken extends Exchange {
         $ids = array_keys ($orders);
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $order = array_merge (array ( 'id' => $id, ), $orders[$id]);
+            $order = array_merge (array ( 'id' => $id ), $orders[$id]);
             $result[] = $this->parse_order ($order, $market);
         }
         return $result;
