@@ -12675,12 +12675,16 @@ var kraken = {
     },
 
     parseOrder (order, market = undefined) {
+        console.log (order);
         let description = order['descr'];
         market = this.markets_by_id[description['pair']];
         let side = description['type'];
         let type = description['ordertype'];
         let symbol = (market) ? market['symbol'] : undefined;
         let timestamp = order['opentm'] * 1000;
+        let amount = parseFloat (order['vol']);
+        let filled = parseFloat (order['vol_exec']);
+        let remaining = amount - filled;
         return {
             'id': order['refid'],
             'timestamp': timestamp,
@@ -12690,7 +12694,9 @@ var kraken = {
             'type': type,
             'side': side,
             'price': order['price'],
-            'amount': order['vol'],
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
             // 'trades': this.parseTrades (order['trades'], market),
         };
     },
@@ -12700,7 +12706,8 @@ var kraken = {
         let ids = Object.keys (orders);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let order = this.parseOrder (orders[id]);
+            let order = this.extend ({ 'id': id, }, orders[id]);
+            result.push (this.parseOrder (order, market));
         }
         return result;
     },
@@ -12739,15 +12746,21 @@ var kraken = {
     },
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchOpenOrders not implemented yet');
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol)
+            market = this.marketId (symbol);
         let response = await this.privatePostOpenOrders (params);
-        return this.parseOrders (response, undefined);
+        return this.parseOrders (response['result']['open'], market);
     },
 
     async fetchClosedOrders (symbol = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchClosedOrders not implemented yet');
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol)
+            market = this.marketId (symbol);
         let response = await this.privatePostClosedOrders (params);
-        return this.parseOrders (response, undefined);
+        return this.parseOrders (response['result']['closed'], market);
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -16177,7 +16190,7 @@ var virwox = {
 
     'id': 'virwox',
     'name': 'VirWoX',
-    'countries': 'AT',
+    'countries': [ 'AT', 'EU' ],
     'rateLimit': 1000,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg',
