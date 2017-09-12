@@ -13139,12 +13139,16 @@ class kraken extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
+        var_dump ($order);
         $description = $order['descr'];
         $market = $this->markets_by_id[$description['pair']];
         $side = $description['type'];
         $type = $description['ordertype'];
         $symbol = ($market) ? $market['symbol'] : null;
         $timestamp = $order['opentm'] * 1000;
+        $amount = floatval ($order['vol']);
+        $filled = floatval ($order['vol_exec']);
+        $remaining = $amount - $filled;
         return array (
             'id' => $order['refid'],
             'timestamp' => $timestamp,
@@ -13154,7 +13158,9 @@ class kraken extends Exchange {
             'type' => $type,
             'side' => $side,
             'price' => $order['price'],
-            'amount' => $order['vol'],
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
             // 'trades' => $this->parse_trades ($order['trades'], $market),
         );
     }
@@ -13164,7 +13170,8 @@ class kraken extends Exchange {
         $ids = array_keys ($orders);
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $order = $this->parse_order ($orders[$id]);
+            $order = array_merge (array ( 'id' => $id, ), $orders[$id]);
+            $result[] = $this->parse_order ($order, $market);
         }
         return $result;
     }
@@ -13203,15 +13210,21 @@ class kraken extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $params = array ()) {
-        throw new NotSupported ($this->id . ' fetchOpenOrders not implemented yet');
+        $this->load_markets ();
+        $market = null;
+        if ($symbol)
+            $market = $this->market_id ($symbol);
         $response = $this->privatePostOpenOrders ($params);
-        return $this->parse_orders ($response, null);
+        return $this->parse_orders ($response['result']['open'], $market);
     }
 
     public function fetchClosedOrders ($symbol = null, $params = array ()) {
-        throw new NotSupported ($this->id . ' fetchClosedOrders not implemented yet');
+        $this->load_markets ();
+        $market = null;
+        if ($symbol)
+            $market = $this->market_id ($symbol);
         $response = $this->privatePostClosedOrders ($params);
-        return $this->parse_orders ($response, null);
+        return $this->parse_orders ($response['result']['closed'], $market);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -16721,7 +16734,7 @@ class virwox extends Exchange {
         parent::__construct (array_merge(array (
             'id' => 'virwox',
             'name' => 'VirWoX',
-            'countries' => 'AT',
+            'countries' => array ( 'AT', 'EU' ),
             'rateLimit' => 1000,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg',

@@ -11433,12 +11433,16 @@ class kraken (Exchange):
         }
 
     def parse_order(self, order, market=None):
+        print(order)
         description = order['descr']
         market = self.markets_by_id[description['pair']]
         side = description['type']
         type = description['ordertype']
         symbol = market['symbol'] if(market) else None
         timestamp = order['opentm'] * 1000
+        amount = float(order['vol'])
+        filled = float(order['vol_exec'])
+        remaining = amount - filled
         return {
             'id': order['refid'],
             'timestamp': timestamp,
@@ -11448,7 +11452,9 @@ class kraken (Exchange):
             'type': type,
             'side': side,
             'price': order['price'],
-            'amount': order['vol'],
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
             # 'trades': self.parse_trades(order['trades'], market),
         }
 
@@ -11457,7 +11463,8 @@ class kraken (Exchange):
         ids = list(orders.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            order = self.parse_order(orders[id])
+            order = self.extend({'id': id,}, orders[id])
+            result.append(self.parse_order(order, market))
         return result
 
     async def fetch_order(self, id, params={}):
@@ -11490,14 +11497,20 @@ class kraken (Exchange):
         raise ExchangeError(self.id + " withdraw requires a 'key' parameter(withdrawal key name, as set up on your account)")
 
     async def fetch_open_orders(self, symbol=None, params={}):
-        raise NotSupported(self.id + ' fetchOpenOrders not implemented yet')
+        await self.load_markets()
+        market = None
+        if symbol:
+            market = self.market_id(symbol)
         response = await self.privatePostOpenOrders(params)
-        return self.parse_orders(response, None)
+        return self.parse_orders(response['result']['open'], market)
 
     async def fetchClosedOrders(self, symbol=None, params={}):
-        raise NotSupported(self.id + ' fetchClosedOrders not implemented yet')
+        await self.load_markets()
+        market = None
+        if symbol:
+            market = self.market_id(symbol)
         response = await self.privatePostClosedOrders(params)
-        return self.parse_orders(response, None)
+        return self.parse_orders(response['result']['closed'], market)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.version + '/' + api + '/' + path
@@ -14785,7 +14798,7 @@ class virwox (Exchange):
         params = {
             'id': 'virwox',
             'name': 'VirWoX',
-            'countries': 'AT',
+            'countries': ['AT', 'EU'],
             'rateLimit': 1000,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg',

@@ -12706,7 +12706,7 @@ var kraken = {
         let ids = Object.keys (orders);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let order = this.extend ({ 'id': id, }, orders[id]);
+            let order = this.extend ({ 'id': id }, orders[id]);
             result.push (this.parseOrder (order, market));
         }
         return result;
