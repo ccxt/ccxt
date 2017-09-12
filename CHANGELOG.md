@@ -1,6 +1,7 @@
 # Сhangelog
 
 - Added support for a new exchange: [Bleutrade](https://bleutrade.com) (Brazil)
+- Fixed Cryptopia fetchOpenOrders issue, [#192](https://github.com/kroitor/ccxt/issues/192)
 - Added `.hasPublicAPI / .hasPrivateAPI` properties to all derived exchanges
 - Added support for a new exchange: [ACX](https://acx.io) (Australia)
 - Fixed Bitflyer's private GET APIs, [#187](https://github.com/kroitor/ccxt/pull/187)
