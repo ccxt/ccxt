@@ -5020,8 +5020,6 @@ var bittrex = {
             'type': 'both',
             'depth': 50,
         }, params));
-        console.log (response);
-        process.exit ();
         let orderbook = response['result'];
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     },
