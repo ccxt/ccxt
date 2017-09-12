@@ -9379,8 +9379,6 @@ var cryptopia = {
     },
 
     parseOrder (order, market = undefined) {
-        let description = order['descr'];
-        market = this.markets_by_id[description['pair']];
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
