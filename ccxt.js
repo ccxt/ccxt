@@ -2909,7 +2909,7 @@ var bitfinex = {
         if (exchange) {
             let [ prefix, orderType ] = order['type'].split (' ');
         }
-        let timestamp = order['timestamp'] * 1000;
+        let timestamp = parseInt (parseFloat (order['timestamp']) * 1000);
         let result = {
             'info': order,
             'id': order['id'],
