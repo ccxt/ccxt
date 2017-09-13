@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.100';
+$version = '1.6.101';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8123,6 +8123,9 @@ class chbtc extends Exchange {
                 'ETC/CNY' => array ( 'id' => 'etc_cny', 'symbol' => 'ETC/CNY', 'base' => 'ETC', 'quote' => 'CNY' ),
                 'BTS/CNY' => array ( 'id' => 'bts_cny', 'symbol' => 'BTS/CNY', 'base' => 'BTS', 'quote' => 'CNY' ),
                 'EOS/CNY' => array ( 'id' => 'eos_cny', 'symbol' => 'EOS/CNY', 'base' => 'EOS', 'quote' => 'CNY' ),
+                'BCH/CNY' => array ( 'id' => 'bcc_cny', 'symbol' => 'BCH/CNY', 'base' => 'BCH', 'quote' => 'CNY' ),
+                'HSR/CNY' => array ( 'id' => 'hsr_cny', 'symbol' => 'HSR/CNY', 'base' => 'HSR', 'quote' => 'CNY' ),
+                'QTUM/CNY' => array ( 'id' => 'qtum_cny', 'symbol' => 'QTUM/CNY', 'base' => 'QTUM', 'quote' => 'CNY' ),
             ),
         ), $options));
     }
