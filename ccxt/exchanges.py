@@ -4775,6 +4775,7 @@ class btcchina (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg',
                 'api': {
+                    'plus': 'https://plus-api.btcchina.com/market',
                     'public': 'https://data.btcchina.com/data',
                     'private': 'https://api.btcchina.com/api_trade_v1.php',
                 },
@@ -4782,6 +4783,13 @@ class btcchina (Exchange):
                 'doc': 'https://www.btcchina.com/apidocs'
             },
             'api': {
+                'plus': {
+                    'get': [
+                        'orderbook',
+                        'ticker',
+                        'trade',
+                    ],
+                },
                 'public': {
                     'get': [
                         'historydata',
@@ -4823,11 +4831,11 @@ class btcchina (Exchange):
                 },
             },
             'markets': {
-                'BTC/CNY': {'id': 'btccny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY'},
-                'LTC/CNY': {'id': 'ltccny', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY'},
-                'LTC/BTC': {'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
-                'BCH/CNY': {'id': 'bcccny', 'symbol': 'BCH/CNY', 'base': 'BCH', 'quote': 'CNY'},
-                'ETH/CNY': {'id': 'ethcny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY'},
+                'BTC/CNY': {'id': 'btccny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', 'api': 'public', 'plus': False},
+                'LTC/CNY': {'id': 'ltccny', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', 'api': 'public', 'plus': False},
+                'LTC/BTC': {'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'api': 'public', 'plus': False},
+                'BCH/CNY': {'id': 'bcccny', 'symbol': 'BCH/CNY', 'base': 'BCH', 'quote': 'CNY', 'api': 'plus', 'plus': True},
+                'ETH/CNY': {'id': 'ethcny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY', 'api': 'plus', 'plus': True},
             },
         }
         params.update(config)
@@ -4876,23 +4884,24 @@ class btcchina (Exchange):
             result[currency] = account
         return result
 
+    def createMarketRequest(self, market):
+        request = {}
+        field = 'symbol' if(market['plus']) else 'market'
+        request[field] = market['id']
+        return request
+
     def fetch_order_book(self, symbol, params={}):
         self.load_markets()
-        orderbook = self.publicGetOrderbook(self.extend({
-            'market': self.market_id(symbol),
-        }, params))
+        market = self.market(symbol)
+        method = market['api'] + 'GetOrderbook'
+        request = self.createMarketRequest(market)
+        orderbook = getattr(self, method)(self.extend(request, params))
         timestamp = orderbook['date'] * 1000
         result = self.parse_order_book(orderbook, timestamp)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    def fetch_ticker(self, symbol):
-        self.load_markets()
-        market = self.market(symbol)
-        tickers = self.publicGetTicker({
-            'market': market['id'],
-        })
-        ticker = tickers['ticker']
+    def parse_ticker(self, ticker, market):
         timestamp = ticker['date'] * 1000
         return {
             'timestamp': timestamp,
@@ -4909,10 +4918,43 @@ class btcchina (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['vol']),
+            'baseVolume': float(ticker['vol']),
+            'quoteVolume': None,
             'info': ticker,
         }
+
+    def parse_tickerPlus(self, ticker, market):
+        timestamp = ticker['Timestamp']
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': float(ticker['High']),
+            'low': float(ticker['Low']),
+            'bid': float(ticker['BidPrice']),
+            'ask': float(ticker['AskPrice']),
+            'vwap': None,
+            'open': float(ticker['Open']),
+            'close': float(ticker['PrevCls']),
+            'first': None,
+            'last': float(ticker['Last']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': float(ticker['Volume24H']),
+            'quoteVolume': None,
+            'info': ticker,
+        }
+
+    def fetch_ticker(self, symbol):
+        self.load_markets()
+        market = self.market(symbol)
+        method = market['api'] + 'GetTicker'
+        request = self.createMarketRequest(market)
+        tickers = getattr(self, method)(request)
+        ticker = tickers['ticker']
+        if market['plus']:
+            return self.parseTickerPlus(ticker, market)
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
         timestamp = int(trade['date']) * 1000
@@ -4928,12 +4970,40 @@ class btcchina (Exchange):
             'amount': trade['amount'],
         }
 
+    def parse_tradePlus(self, trade, market):
+        timestamp = self.parse8601(trade['timestamp'])
+        return {
+            'id': None,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['side'].lower(),
+            'price': trade['price'],
+            'amount': trade['size'],
+        }
+
+    def parse_tradesPlus(self, trades, market=None):
+        result = []
+        for i in range(0, len(trades)):
+            result.append(self.parseTradePlus(trades[i], market))
+        return result
+
     def fetch_trades(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTrades(self.extend({
-            'market': market['id'],
-        }, params))
+        method = market['api'] + 'GetTrade'
+        request = self.createMarketRequest(market)
+        if market['plus']:
+            now = self.milliseconds()
+            request['start_time'] = now - 86400 * 1000
+            request['end_time'] = now
+        else:
+            method += 's' # trades vs trade
+        response = getattr(self, method)(self.extend(request, params))
+        if market['plus']:
+            return self.parseTradesPlus(response['trades'], market)
         return self.parse_trades(response, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -4964,10 +5034,7 @@ class btcchina (Exchange):
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + path
-        if api == 'public':
-            if params:
-                url += '?' + self.urlencode(params)
-        else:
+        if api == 'private':
             if not self.apiKey:
                 raise AuthenticationError(self.id + ' requires `' + self.id + '.apiKey` property for authentication')
             if not self.secret:
@@ -4998,6 +5065,9 @@ class btcchina (Exchange):
                 'Authorization': 'Basic ' + base64.b64encode(auth),
                 'Json-Rpc-Tonce': nonce,
             }
+        else:
+            if params:
+                url += '?' + self.urlencode(params)
         return self.fetch(url, method, headers, body)
 
 #------------------------------------------------------------------------------

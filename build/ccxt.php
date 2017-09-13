@@ -5965,6 +5965,7 @@ class btcchina extends Exchange {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg',
                 'api' => array (
+                    'plus' => 'https://plus-api.btcchina.com/market',
                     'public' => 'https://data.btcchina.com/data',
                     'private' => 'https://api.btcchina.com/api_trade_v1.php',
                 ),
@@ -5972,6 +5973,13 @@ class btcchina extends Exchange {
                 'doc' => 'https://www.btcchina.com/apidocs'
             ),
             'api' => array (
+                'plus' => array (
+                    'get' => array (
+                        'orderbook',
+                        'ticker',
+                        'trade',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         'historydata',
@@ -6013,11 +6021,11 @@ class btcchina extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/CNY' => array ( 'id' => 'btccny', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY' ),
-                'LTC/CNY' => array ( 'id' => 'ltccny', 'symbol' => 'LTC/CNY', 'base' => 'LTC', 'quote' => 'CNY' ),
-                'LTC/BTC' => array ( 'id' => 'ltcbtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
-                'BCH/CNY' => array ( 'id' => 'bcccny', 'symbol' => 'BCH/CNY', 'base' => 'BCH', 'quote' => 'CNY' ),
-                'ETH/CNY' => array ( 'id' => 'ethcny', 'symbol' => 'ETH/CNY', 'base' => 'ETH', 'quote' => 'CNY' ),
+                'BTC/CNY' => array ( 'id' => 'btccny', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY', 'api' => 'public', 'plus' => false ),
+                'LTC/CNY' => array ( 'id' => 'ltccny', 'symbol' => 'LTC/CNY', 'base' => 'LTC', 'quote' => 'CNY', 'api' => 'public', 'plus' => false ),
+                'LTC/BTC' => array ( 'id' => 'ltcbtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'api' => 'public', 'plus' => false ),
+                'BCH/CNY' => array ( 'id' => 'bcccny', 'symbol' => 'BCH/CNY', 'base' => 'BCH', 'quote' => 'CNY', 'api' => 'plus', 'plus' => true ),
+                'ETH/CNY' => array ( 'id' => 'ethcny', 'symbol' => 'ETH/CNY', 'base' => 'ETH', 'quote' => 'CNY', 'api' => 'plus', 'plus' => true ),
             ),
         ), $options));
     }
@@ -6069,24 +6077,26 @@ class btcchina extends Exchange {
         return $result;
     }
 
+    public function createMarketRequest ($market) {
+        $request = array ();
+        $field = ($market['plus']) ? 'symbol' : 'market';
+        $request[$field] = $market['id'];
+        return $request;
+    }
+
     public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
-        $orderbook = $this->publicGetOrderbook (array_merge (array (
-            'market' => $this->market_id ($symbol),
-        ), $params));
+        $market = $this->market ($symbol);
+        $method = $market['api'] . 'GetOrderbook';
+        $request = $this->createMarketRequest ($market);
+        $orderbook = $this->$method (array_merge ($request, $params));
         $timestamp = $orderbook['date'] * 1000;
         $result = $this->parse_order_book ($orderbook, $timestamp);
         $result['asks'] = $this->sort_by ($result['asks'], 0);
         return $result;
     }
 
-    public function fetch_ticker ($symbol) {
-        $this->load_markets ();
-        $market = $this->market ($symbol);
-        $tickers = $this->publicGetTicker (array (
-            'market' => $market['id'],
-        ));
-        $ticker = $tickers['ticker'];
+    public function parse_ticker ($ticker, $market) {
         $timestamp = $ticker['date'] * 1000;
         return array (
             'timestamp' => $timestamp,
@@ -6103,10 +6113,45 @@ class btcchina extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['vol']),
+            'baseVolume' => floatval ($ticker['vol']),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
+    }
+
+    public function parse_tickerPlus ($ticker, $market) {
+        $timestamp = $ticker['Timestamp'];
+        return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => floatval ($ticker['High']),
+            'low' => floatval ($ticker['Low']),
+            'bid' => floatval ($ticker['BidPrice']),
+            'ask' => floatval ($ticker['AskPrice']),
+            'vwap' => null,
+            'open' => floatval ($ticker['Open']),
+            'close' => floatval ($ticker['PrevCls']),
+            'first' => null,
+            'last' => floatval ($ticker['Last']),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => floatval ($ticker['Volume24H']),
+            'quoteVolume' => null,
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_ticker ($symbol) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $method = $market['api'] . 'GetTicker';
+        $request = $this->createMarketRequest ($market);
+        $tickers = $this->$method ($request);
+        $ticker = $tickers['ticker'];
+        if ($market['plus'])
+            return $this->parse_tickerPlus ($ticker, $market);
+        return $this->parse_ticker ($ticker, $market);
     }
 
     public function parse_trade ($trade, $market) {
@@ -6124,12 +6169,45 @@ class btcchina extends Exchange {
         );
     }
 
+    public function parse_tradePlus ($trade, $market) {
+        $timestamp = $this->parse8601 ($trade['timestamp']);
+        return array (
+            'id' => null,
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => strtolower ($trade['side']),
+            'price' => $trade['price'],
+            'amount' => $trade['size'],
+        );
+    }
+
+    public function parse_tradesPlus ($trades, $market = null) {
+        $result = array ();
+        for ($i = 0; $i < count ($trades); $i++) {
+            $result[] = $this->parse_tradePlus ($trades[$i], $market);
+        }
+        return $result;
+    }
+
     public function fetch_trades ($symbol, $params = array ()) {
         $this->load_markets ();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTrades (array_merge (array (
-            'market' => $market['id'],
-        ), $params));
+        $method = $market['api'] . 'GetTrade';
+        $request = $this->createMarketRequest ($market);
+        if ($market['plus']) {
+            $now = $this->milliseconds ();
+            $request['start_time'] = $now - 86400 * 1000;
+            $request['end_time'] = $now;
+        } else {
+            $method .= 's'; // trades vs trade
+        }
+        $response = $this->$method (array_merge ($request, $params));
+        if ($market['plus']) {
+            return $this->parse_tradesPlus ($response['trades'], $market);
+        }
         return $this->parse_trades ($response, $market);
     }
 
@@ -6165,10 +6243,7 @@ class btcchina extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
-        if ($api == 'public') {
-            if ($params)
-                $url .= '?' . $this->urlencode ($params);
-        } else {
+        if ($api == 'private') {
             if (!$this->apiKey)
                 throw new AuthenticationError ($this->id . ' requires `' . $this->id . '.apiKey` property for authentication');
             if (!$this->secret)
@@ -6199,6 +6274,9 @@ class btcchina extends Exchange {
                 'Authorization' => 'Basic ' . base64_encode ($auth),
                 'Json-Rpc-Tonce' => $nonce,
             );
+        } else {
+            if ($params)
+                $url .= '?' . $this->urlencode ($params);
         }
         return $this->fetch ($url, $method, $headers, $body);
     }
