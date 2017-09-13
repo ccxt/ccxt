@@ -11936,34 +11936,75 @@ var huobi1 = {
         };
     },
 
+    async fetchOrderBook (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.marketGetDepth (this.extend ({
+            'symbol': market['id'],
+            'type': 'step0',
+        }, params));
+        return this.parseOrderBook (response['tick'], response['tick']['ts']);
+    },
+
     async fetchTicker (symbol) {
         let market = this.market (symbol);
         let response = await this.marketGetDetailMerged ({ 'symbol': market['id'] });
         return this.parseTicker (response['tick'], market);
     },
 
+    parseTrade (trade, market) {
+        let timestamp = trade['ts'];
+        return {
+            'info': trade,
+            'id': trade['id'].toString (),
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': trade['direction'],
+            'price': trade['price'],
+            'amount': trade['amount'],
+        };
+    },
+
+    parseTradesData (data, market) {
+        let result = [];
+        for (let i = 0; i < data.length; i++) {
+            let trades = this.parseTrades (data[i]['data'], market);
+            for (let k = 0; k < trades.length; k++)
+                result.push (trades[k]);
+        }
+        return result;
+    },
+
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.marketGetHistoryTrade (this.extend ({ 
+            'symbol': market['id'],
+            'size': 2000,
+        }, params));
+        return this.parseTradesData (response['data'], market);
+    },
+
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        // not implemented yet
         return [
-            ohlcv[0],
-            ohlcv[1],
-            ohlcv[2],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[6],
+            ohlcv['id'] * 1000,
+            ohlcv['open'],
+            ohlcv['high'],
+            ohlcv['low'],
+            ohlcv['close'],
+            ohlcv['vol'],
         ];
     },
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
-        let ohlcvs = await this.marketGetHistoryKline (this.extend ({
+        let response = await this.marketGetHistoryKline (this.extend ({
             'symbol': market['id'],
             'period': this.timeframes[timeframe],
             'size': 2000, // max = 2000
         }, params));
-        console.log (ohlcvs);
-        process.exit ();
-        return this.parseOHLCVs (market, ohlcvs, timeframe, since, limit);
+        return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     },
 
     async request (path, api = 'trade', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -12218,7 +12259,7 @@ var huobi = {
             'period': this.timeframes[timeframe],
         }, params));
         return ohlcvs;
-        // return this.parseOHLCVs (market, ohlcvs, timeframe, since, limit);
+        // return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
