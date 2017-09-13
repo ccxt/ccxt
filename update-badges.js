@@ -58,14 +58,25 @@ let badges = [
     pypiBadgeRST, 
     npmDownloadsRST, 
     // pypiDownloadsRST, // always shows 0
-    scrutinizerRST, 
+    // scrutinizerRST, 
     runkitRST,
     exchangesRST,
 ].join ("\n")
 
+
+let badgeTitles = [
+    '|Build Status|',
+    '|npm|',
+    '|PyPI|',
+    '|NPM Downloads|', 
+    // '|Scrutinizer Code Quality|',
+    '|Try ccxt on RunKit|',
+    '|Supported Exchanges|',
+].join (' ')
+
 rstNew = match[1] + "APIs:\n\n" + newRstExchangeTable + "\n\n" + match[3]
 rstNew = rstNew.replace (/\.\.[^\n]+image\:\:[^\n]+[\n]/g, '')
-rstNew = rstNew.replace ('|Build Status| |npm| |PyPI| |NPM Downloads| |Scrutinizer Code Quality| |Try ccxt on RunKit| |Supported Exchanges|', badges)
+rstNew = rstNew.replace (badgeTitles, badges)
 rstNew = rstNew.replace (/   :target[^#]+$/g, '')
 fs.truncateSync (readmeRst)
 fs.writeFileSync (readmeRst, rstNew)
