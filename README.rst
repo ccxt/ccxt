@@ -9,8 +9,6 @@ CCXT – CryptoCurrency eXchange Trading Library
     :target: https://pypi.python.org/pypi/ccxt
 .. image:: https://img.shields.io/npm/dm/ccxt.svg
     :target: https://www.npmjs.com/package/ccxt
-.. image:: https://img.shields.io/scrutinizer/g/kroitor/ccxt.svg
-    :target: https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master
 .. image:: https://badge.runkitcdn.com/ccxt.svg
     :target: https://npm.runkit.com/ccxt
 .. image:: https://img.shields.io/badge/exchanges-78-blue.svg
@@ -493,4 +491,11 @@ Contact Us
 +--------------------------+------------------------------+
 | rocket.mind@gmail.com    | https://github.com/xpl       |
 +--------------------------+------------------------------+
+
+Support CCXT Development
+------------------------
+
+BTC: 1N1kptzFWbSLKLPJTNYDKq2FkTojb5s8qX
+
+ETH: 0x811DCfeb6dC0b9ed825808B6B060Ca469b83fB81
 

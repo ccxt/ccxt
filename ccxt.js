@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.6.102'
+const version = '1.6.105'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -2879,7 +2879,7 @@ var bitfinex = {
 
     async cancelOrder (id) {
         await this.loadMarkets ();
-        return this.privatePostOrderCancel ({ 'order_id': id });
+        return this.privatePostOrderCancel ({ 'order_id': parseInt (id) });
     },
 
     parseOrder (order, market = undefined) {
@@ -2909,7 +2909,7 @@ var bitfinex = {
         if (exchange) {
             let [ prefix, orderType ] = order['type'].split (' ');
         }
-        let timestamp = order['timestamp'] * 1000;
+        let timestamp = parseInt (parseFloat (order['timestamp']) * 1000);
         let result = {
             'info': order,
             'id': order['id'],

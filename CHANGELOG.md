@@ -1,5 +1,7 @@
 # Сhangelog
 
+- Fixed Bitfinex parseOrder timestamp issue, [#200](https://github.com/kroitor/ccxt/issues/200)
+- Fixed Bitfinex cancelOrder error, [#199](https://github.com/kroitor/ccxt/issues/199)
 - Removed EOS market from CHBTC, [#197](https://github.com/kroitor/ccxt/issues/197)
 - Added missing BCH/HSR/QTUM markets to CHBTC, [#197](https://github.com/kroitor/ccxt/issues/197)
 - Added missing BCH/ETH/ETC markets to OKCoin CNY, [#196](https://github.com/kroitor/ccxt/issues/196)
