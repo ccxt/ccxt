@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Removed EOS market from CHBTC, [#197](https://github.com/kroitor/ccxt/issues/197)
 - Added missing BCH/HSR/QTUM markets to CHBTC, [#197](https://github.com/kroitor/ccxt/issues/197)
 - Added missing BCH/ETH/ETC markets to OKCoin CNY, [#196](https://github.com/kroitor/ccxt/issues/196)
 - Fixed BCH/ETH markets with BTCChina, [#194](https://github.com/kroitor/ccxt/issues/194)
