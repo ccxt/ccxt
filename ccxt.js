@@ -11884,6 +11884,26 @@ var huobi1 = {
             ],
         },
     },
+
+    async fetchMarkets () {
+        let markets = await this.publicGetPairSettings ();
+        let keys = Object.keys (markets);
+        let result = [];
+        for (let p = 0; p < keys.length; p++) {
+            let id = keys[p];
+            let market = markets[id];
+            let symbol = id.replace ('_', '/');
+            let [ base, quote ] = symbol.split ('/');
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': market,
+            });
+        }
+        return result;
+    },
 }
 
 //-----------------------------------------------------------------------------
@@ -17574,6 +17594,8 @@ var exchanges = {
     'hitbtc':        hitbtc,
     'hitbtc2':       hitbtc2,
     'huobi':         huobi,
+    'huobicny':      huobycny,
+    'huobipro':      huobipro,
     'itbit':         itbit,
     'jubi':          jubi,
     'kraken':        kraken,
