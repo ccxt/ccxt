@@ -58,7 +58,7 @@ let badges = [
     pypiBadgeRST, 
     npmDownloadsRST, 
     // pypiDownloadsRST, // always shows 0
-    // scrutinizerRST, 
+    scrutinizerRST, 
     runkitRST,
     exchangesRST,
 ].join ("\n")
@@ -69,7 +69,7 @@ let badgeTitles = [
     '|npm|',
     '|PyPI|',
     '|NPM Downloads|', 
-    // '|Scrutinizer Code Quality|',
+    '|Scrutinizer Code Quality|',
     '|Try ccxt on RunKit|',
     '|Supported Exchanges|',
 ].join (' ')
