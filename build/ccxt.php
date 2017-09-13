@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.104';
+$version = '1.6.105';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3144,7 +3144,7 @@ class bitfinex extends Exchange {
 
     public function cancel_order ($id) {
         $this->load_markets ();
-        return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
+        return $this->privatePostOrderCancel (array ( 'order_id' => intval ($id) ));
     }
 
     public function parse_order ($order, $market = null) {

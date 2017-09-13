@@ -2065,7 +2065,7 @@ class bitfinex (Exchange):
 
     async def cancel_order(self, id):
         await self.load_markets()
-        return self.privatePostOrderCancel({'order_id': id})
+        return self.privatePostOrderCancel({'order_id': int(id)})
 
     def parse_order(self, order, market=None):
         side = order['side']
