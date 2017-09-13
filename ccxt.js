@@ -2879,7 +2879,7 @@ var bitfinex = {
 
     async cancelOrder (id) {
         await this.loadMarkets ();
-        return this.privatePostOrderCancel ({ 'order_id': id });
+        return this.privatePostOrderCancel ({ 'order_id': parseInt (id) });
     },
 
     parseOrder (order, market = undefined) {
