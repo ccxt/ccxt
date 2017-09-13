@@ -11831,7 +11831,7 @@ var hitbtc2 = extend (hitbtc, {
 var huobi1 = {
 
     'id': 'huobi1',
-    'name': 'Huobi',
+    'name': 'Huobi v1',
     'countries': 'CN',
     'rateLimit': 2000,
     'version': 'v1',
@@ -11848,14 +11848,18 @@ var huobi1 = {
         '1y': '1year',
     },
     'api': {
+        'market': {
+            'get': [
+                'history/kline', // 获取K线数据
+                'detail/merged', // 获取聚合行情(Ticker)
+                'depth', // 获取 Market Depth 数据
+                'trade', // 获取 Trade Detail 数据
+                'history/trade', // 批量获取最近的交易记录
+                'detail', // 获取 Market Detail 24小时成交量数据
+            ],
+        },
         'public': {
             'get': [
-                'market/history/kline', // 获取K线数据
-                'market/detail/merged', // 获取聚合行情(Ticker)
-                'market/depth', // 获取 Market Depth 数据
-                'market/trade', // 获取 Trade Detail 数据
-                'market/history/trade', // 批量获取最近的交易记录
-                'market/detail', // 获取 Market Detail 24小时成交量数据
                 'common/symbols', // 查询系统支持的所有交易对
                 'common/currencys', // 查询系统支持的所有币种
                 'common/timestamp', // 查询系统当前时间
@@ -11886,14 +11890,19 @@ var huobi1 = {
     },
 
     async fetchMarkets () {
-        let markets = await this.publicGetPairSettings ();
-        let keys = Object.keys (markets);
+        let response = await this.publicGetCommonSymbols ();
+        let markets = response['data'];
         let result = [];
-        for (let p = 0; p < keys.length; p++) {
-            let id = keys[p];
-            let market = markets[id];
-            let symbol = id.replace ('_', '/');
-            let [ base, quote ] = symbol.split ('/');
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
+            let baseId = market['base-currency'];
+            let quoteId = market['quote-currency'];
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
+            let id = baseId + quoteId;
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
+            let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -11903,6 +11912,94 @@ var huobi1 = {
             });
         }
         return result;
+    },
+
+    parseTicker (ticker, market) {
+        return {
+            'timestamp': ticker['ts'],
+            'datetime': this.iso8601 (ticker['ts']),
+            'high': ticker['high'],
+            'low': ticker['low'],
+            'bid': ticker['bid'][0],
+            'ask': ticker['ask'][0],
+            'vwap': undefined,
+            'open': ticker['open'],
+            'close': ticker['close'],
+            'first': undefined,
+            'last': ticker['last'],
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': parseFloat (ticker['amount']),
+            'quoteVolume': ticker['vol'],
+            'info': ticker,
+        };
+    },
+
+    async fetchTicker (symbol) {
+        let market = this.market (symbol);
+        let response = await this.marketGetDetailMerged ({ 'symbol': market['id'] });
+        return this.parseTicker (response['tick'], market);
+    },
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        // not implemented yet
+        return [
+            ohlcv[0],
+            ohlcv[1],
+            ohlcv[2],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[6],
+        ];
+    },
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        let market = this.market (symbol);
+        let ohlcvs = await this.marketGetHistoryKline (this.extend ({
+            'symbol': market['id'],
+            'period': this.timeframes[timeframe],
+            'size': 2000, // max = 2000
+        }, params));
+        console.log (ohlcvs);
+        process.exit ();
+        return this.parseOHLCVs (market, ohlcvs, timeframe, since, limit);
+    },
+
+    async request (path, api = 'trade', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/';
+        if (api == 'market')
+            url += '/' + api + '/';
+        else
+            url += this.version + '/';
+        url += path;
+        if (api == 'trade') {
+            url += '/api' + this.version;
+            let query = this.keysort (this.extend ({
+                'method': path,
+                'access_key': this.apiKey,
+                'created': this.nonce (),
+            }, params));
+            let queryString = this.urlencode (this.omit (query, 'market'));
+            // secret key must be at the end of query to be signed
+            queryString += '&secret_key=' + this.secret;
+            query['sign'] = this.hash (this.encode (queryString));
+            body = this.urlencode (query);
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': body.length,
+            };
+        } else {
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
+        }
+        let response = await this.fetch (url, method, headers, body);
+        if ('status' in response)
+            if (response['status'] == 'error')
+                throw new ExchangeError (this.id + ' ' + this.json (response));
+        if ('code' in response)
+            throw new ExchangeError (this.id + ' ' + this.json (response));
+        return response;
     },
 }
 
@@ -11915,17 +12012,14 @@ var huobicny = extend (huobi1, {
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
         'api': 'https://be.huobi.com',
-            'be': 
-            'pro': 'https://api.huobi.pro',
-        },
         'www': 'https://www.huobi.com',
         'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
     },
-    'markets': {
-        'ETH/CNY': { 'id': 'ethcny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY' },
-        'ETC/CNY': { 'id': 'etccny', 'symbol': 'ETC/CNY', 'base': 'ETC', 'quote': 'CNY' },
-        'BCH/CNY': { 'id': 'bcccny', 'symbol': 'BCH/CNY', 'base': 'BCH', 'quote': 'CNY' },
-    },
+    // 'markets': {
+    //     'ETH/CNY': { 'id': 'ethcny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY' },
+    //     'ETC/CNY': { 'id': 'etccny', 'symbol': 'ETC/CNY', 'base': 'ETC', 'quote': 'CNY' },
+    //     'BCH/CNY': { 'id': 'bcccny', 'symbol': 'BCH/CNY', 'base': 'BCH', 'quote': 'CNY' },
+    // },
 })
 
 //-----------------------------------------------------------------------------
@@ -11940,12 +12034,12 @@ var huobipro = extend (huobi1, {
         'www': 'https://www.huobi.pro',
         'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
     },
-    'markets': {
-        'ETH/BTC': { 'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
-        'ETC/BTC': { 'id': 'etccny', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC' },
-        'LTC/BTC': { 'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
-        'BCH/BTC': { 'id': 'bcccny', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
-    },
+    // 'markets': {
+    //     'ETH/BTC': { 'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
+    //     'ETC/BTC': { 'id': 'etccny', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC' },
+    //     'LTC/BTC': { 'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+    //     'BCH/BTC': { 'id': 'bcccny', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
+    // },
 })
 
 //-----------------------------------------------------------------------------
@@ -17594,7 +17688,7 @@ var exchanges = {
     'hitbtc':        hitbtc,
     'hitbtc2':       hitbtc2,
     'huobi':         huobi,
-    'huobicny':      huobycny,
+    'huobicny':      huobicny,
     'huobipro':      huobipro,
     'itbit':         itbit,
     'jubi':          jubi,
