@@ -383,3 +383,8 @@ Please, contact us on GitHub or by email if you're interested in integrating thi
 |---------------|------------------------|----------------------------|
 | Igor Kroitor  | igor.kroitor@gmail.com | https://github.com/kroitor |
 | Vitaly Gordon | rocket.mind@gmail.com  | https://github.com/xpl     |
+
+## Support CCXT Development
+
+BTC: 1N1kptzFWbSLKLPJTNYDKq2FkTojb5s8qX
+ETH: 0x811DCfeb6dC0b9ed825808B6B060Ca469b83fB81
