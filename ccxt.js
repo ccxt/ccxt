@@ -11828,6 +11828,108 @@ var hitbtc2 = extend (hitbtc, {
 
 //-----------------------------------------------------------------------------
 
+var huobi1 = {
+
+    'id': 'huobi1',
+    'name': 'Huobi',
+    'countries': 'CN',
+    'rateLimit': 2000,
+    'version': 'v1',
+    'hasFetchOHLCV': true,
+    'timeframes': {
+        '1m': '1min',
+        '5m': '5min',
+        '15m': '15min',
+        '30m': '30min',
+        '1h': '60min',
+        '1d': '1day',
+        '1w': '1week',
+        '1M': '1mon',
+        '1y': '1year',
+    },
+    'api': {
+        'public': {
+            'get': [
+                'market/history/kline', // 获取K线数据
+                'market/detail/merged', // 获取聚合行情(Ticker)
+                'market/depth', // 获取 Market Depth 数据
+                'market/trade', // 获取 Trade Detail 数据
+                'market/history/trade', // 批量获取最近的交易记录
+                'market/detail', // 获取 Market Detail 24小时成交量数据
+                'common/symbols', // 查询系统支持的所有交易对
+                'common/currencys', // 查询系统支持的所有币种
+                'common/timestamp', // 查询系统当前时间
+            ],
+        },
+        'private': {
+            'get': [
+                'account/accounts', // 查询当前用户的所有账户(即account-id)
+                'account/accounts/{account-id}/balance', // 查询指定账户的余额
+                'order/orders/{order-id}', // 查询某个订单详情
+                'order/orders/{order-id}/matchresults', // 查询某个订单的成交明细
+                'order/orders', // 查询当前委托、历史委托
+                'order/matchresults', // 查询当前成交、历史成交
+                'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
+            ],
+            'post': [
+                'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
+                'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
+                'order/orders/{order-id}/place', // 执行一个订单 （仅执行已创建的订单）
+                'order/orders/{order-id}/submitcancel', // 申请撤销一个订单请求
+                'order/orders/batchcancel', // 批量撤销订单
+                'dw/balance/transfer', // 资产划转
+                'dw/withdraw-virtual/create', // 申请提现虚拟币
+                'dw/withdraw-virtual/{withdraw-id}/place', // 确认申请虚拟币提现
+                'dw/withdraw-virtual/{withdraw-id}/cancel', // 申请取消提现虚拟币
+            ],
+        },
+    },
+}
+
+//-----------------------------------------------------------------------------
+
+var huobicny = extend (huobi1, {
+
+    'id': 'huobicny',
+    'name': 'Huobi CNY',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
+        'api': 'https://be.huobi.com',
+            'be': 
+            'pro': 'https://api.huobi.pro',
+        },
+        'www': 'https://www.huobi.com',
+        'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
+    },
+    'markets': {
+        'ETH/CNY': { 'id': 'ethcny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY' },
+        'ETC/CNY': { 'id': 'etccny', 'symbol': 'ETC/CNY', 'base': 'ETC', 'quote': 'CNY' },
+        'BCH/CNY': { 'id': 'bcccny', 'symbol': 'BCH/CNY', 'base': 'BCH', 'quote': 'CNY' },
+    },
+})
+
+//-----------------------------------------------------------------------------
+
+var huobipro = extend (huobi1, {
+
+    'id': 'huobipro',
+    'name': 'Huobi Pro',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
+        'api': 'https://api.huobi.pro',
+        'www': 'https://www.huobi.pro',
+        'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
+    },
+    'markets': {
+        'ETH/BTC': { 'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
+        'ETC/BTC': { 'id': 'etccny', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC' },
+        'LTC/BTC': { 'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+        'BCH/BTC': { 'id': 'bcccny', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
+    },
+})
+
+//-----------------------------------------------------------------------------
+
 var huobi = {
 
     'id': 'huobi',
