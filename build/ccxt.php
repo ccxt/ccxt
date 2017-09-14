@@ -246,16 +246,16 @@ class Exchange {
         $result = [];
         foreach ($array as $element)
             if (isset ($key, $element))
-                $result[] = $element[$key]; 
-        return $result; 
+                $result[] = $element[$key];
+        return $result;
     }
 
     public static function index_by ($array, $key) {
         $result = array ();
         foreach ($array as $element) {
             if (isset ($element[$key])) {
-                $result[$element[$key]] = $element;    
-            }            
+                $result[$element[$key]] = $element;
+            }
         }
         return $result;
     }
@@ -298,11 +298,11 @@ class Exchange {
     public static function sum () {
         return array_sum (array_filter (func_get_args (), function ($x) { return isset ($x) ? $x : 0; }));
     }
-    
+
     public static function extractParams ($string) {
         return Exchange::extract_params ($string);
     }
-    
+
     public static function implodeParams ($string, $params) {
         return Exchange::implode_params ($string, $params);
     }
@@ -330,16 +330,16 @@ class Exchange {
             $result .= '?' . Exchange::urlencode ($query);
         return $result;
     }
-   
+
     public static function seconds () {
         return time ();
     }
-    
-    public static function milliseconds () { 
+
+    public static function milliseconds () {
         list ($msec, $sec) = explode (' ', microtime ());
         return $sec . substr ($msec, 2, 3);
     }
-    
+
     public static function microseconds () {
         list ($msec, $sec) = explode (' ', microtime ());
         return $sec . str_pad (substr ($msec, 2, 6), 6, '0');
@@ -374,7 +374,7 @@ class Exchange {
         // $sign = intval ($sign . '1');
         // $hours = (intval ($hours) or 0) * $sign;
         // $minutes = (intval ($minutes) or 0) * $sign;
-        
+
         // is_dst parameter has been removed in PHP 7.0.0.
         // http://php.net/manual/en/function.mktime.php
         if (version_compare (PHP_VERSION, '7.0.0', '>=')) {
@@ -387,8 +387,8 @@ class Exchange {
         return $t;
     }
 
-    public static function yyyymmddhhmmss ($timestamp) {
-        return gmdate ('Y-m-d H:i:s', (int) round ($timestamp / 1000));
+    public static function YmdHMS ($timestamp, $infix = ' ') {
+        return gmdate ('Y-m-d' . $infix . 'H:i:s', (int) round ($timestamp / 1000));
     }
 
     public static function binary_concat () {
@@ -469,7 +469,7 @@ class Exchange {
                 foreach ($paths as $path) {
 
                     $splitPath = mb_split ('[^a-zA-Z0-9]', $path);
-                    
+
                     $uppercaseMethod  = mb_strtoupper ($http_method);
                     $lowercaseMethod  = mb_strtolower ($http_method);
                     $camelcaseMethod  = Exchange::capitalize ($lowercaseMethod);
@@ -516,7 +516,7 @@ class Exchange {
         $binary = ($digest === 'binary');
         $hmac = hash_hmac ($type, $request, $secret, ($binary || $base64) ? true : false);
         if ($base64)
-            $hmac = base64_encode ($hmac);        
+            $hmac = base64_encode ($hmac);
         return $hmac;
     }
 
@@ -531,16 +531,16 @@ class Exchange {
     public function raise_error ($exception_type, $url, $method = 'GET', $error = null, $details = null) {
         $exception = '\\ccxt\\' . $exception_type;
         throw new $exception (implode (' ', array (
-            $this->id, 
+            $this->id,
             $method,
             $url,
             $error,
             $details,
-        )));   
+        )));
     }
 
     public function fetch ($url, $method = 'GET', $headers = null, $body = null) {
-                
+
         if (strlen ($this->proxy))
             $headers['Origin'] = '*';
 
@@ -561,7 +561,7 @@ class Exchange {
 
         if ($this->timeout) {
             $seconds = intval ($this->timeout / 1000);
-            curl_setopt ($this->curl, CURLOPT_CONNECTTIMEOUT, $seconds); 
+            curl_setopt ($this->curl, CURLOPT_CONNECTTIMEOUT, $seconds);
             curl_setopt ($this->curl, CURLOPT_TIMEOUT, $seconds);
         }
 
@@ -582,7 +582,7 @@ class Exchange {
         if ($method == 'GET') {
 
             curl_setopt ($this->curl, CURLOPT_HTTPGET, true);
-        
+
         } else if ($method == 'POST') {
 
             curl_setopt ($this->curl, CURLOPT_POST, true);
@@ -597,7 +597,7 @@ class Exchange {
             $headers[] = 'X-HTTP-Method-Override: PUT';
 
         } else if ($method == 'DELETE') {
-                       
+
         }
 
         if ($headers)
@@ -609,7 +609,7 @@ class Exchange {
         $result = curl_exec ($this->curl);
 
         if ($result === false) {
-            
+
             $curl_errno = curl_errno ($this->curl);
             $curl_error = curl_error ($this->curl);
 
@@ -626,19 +626,19 @@ class Exchange {
 
         if ($http_status_code == 429) {
 
-            $this->raise_error ('DDoSProtection', $url, $method, 
+            $this->raise_error ('DDoSProtection', $url, $method,
                 'not accessible from this location at the moment');
         }
 
         if (in_array ($http_status_code, array (404, 409, 422, 500, 501, 502))) {
 
-            $this->raise_error ('ExchangeNotAvailable', $url, $method, 
+            $this->raise_error ('ExchangeNotAvailable', $url, $method,
                 'not accessible from this location at the moment');
         }
 
         if (in_array ($http_status_code, array (408, 504))) {
 
-            $this->raise_error ('RequestTimeout', $url, $method, 
+            $this->raise_error ('RequestTimeout', $url, $method,
                 'not accessible from this location at the moment');
         }
 
@@ -647,44 +647,44 @@ class Exchange {
             $details = '(possible reasons: ' . implode (', ', array (
                 'invalid API keys',
                 'bad or old nonce',
-                'exchange is down or offline', 
+                'exchange is down or offline',
                 'on maintenance',
                 'DDoS protection',
                 'rate-limiting in effect',
             )) . ')';
 
-            $this->raise_error ('AuthenticationError', $url, $method, 
+            $this->raise_error ('AuthenticationError', $url, $method,
                 'check your API keys', $details);
         }
 
         if (in_array ($http_status_code, array (400, 403, 405, 503, 520, 521, 522, 525))) {
 
             if (preg_match ('#cloudflare|incapsula#i', $result)) {
-        
-                $this->raise_error ('DDoSProtection', $url, $method, 
+
+                $this->raise_error ('DDoSProtection', $url, $method,
                     'not accessible from this location at the moment');
-        
+
             } else {
-        
+
                 $details = '(possible reasons: ' . implode (', ', array (
                     'invalid API keys',
                     'bad or old nonce',
-                    'exchange is down or offline', 
+                    'exchange is down or offline',
                     'on maintenance',
                     'DDoS protection',
                     'rate-limiting in effect',
                 )) . ')';
-        
-                $this->raise_error ('ExchangeNotAvailable', $url, $method, 
+
+                $this->raise_error ('ExchangeNotAvailable', $url, $method,
                     'not accessible from this location at the moment', $details);
-            }            
+            }
         }
 
         if ((gettype ($result) != 'string') || (strlen ($result) < 2))
             $this->raise_error ('ExchangeNotAvailable', $url, $method, 'returned empty response');
 
         $decoded = json_decode ($result, $as_associative_array = true);
-        
+
         if (!$decoded) {
 
             if (preg_match ('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
@@ -696,16 +696,16 @@ class Exchange {
                     'rate-limiting in effect',
                 )) . ')';
 
-                $this->raise_error ('ExchangeNotAvailable', $url, $method, 
+                $this->raise_error ('ExchangeNotAvailable', $url, $method,
                     'not accessible from this location at the moment', $details);
             }
 
             if (preg_match ('#cloudflare|incapsula#i', $result)) {
-                $this->raise_error ('DDoSProtection', $url, $method, 
+                $this->raise_error ('DDoSProtection', $url, $method,
                     'not accessible from this location at the moment');
             }
         }
-        
+
         return $decoded;
     }
 
@@ -718,7 +718,7 @@ class Exchange {
         sort ($this->symbols);
         $this->ids = array_keys ($this->markets_by_id);
         sort ($this->ids);
-        $base = $this->pluck (array_filter ($values, function ($market) { 
+        $base = $this->pluck (array_filter ($values, function ($market) {
             return array_key_exists ('base', $market);
         }), 'base');
         $quote = $this->pluck (array_filter ($values, function ($market) {
@@ -880,9 +880,9 @@ class Exchange {
     }
 
     public function fetch_markets () { // stub
-        return $this->markets; 
+        return $this->markets;
     }
-    
+
     public function fetchMarkets  () {
         return $this->fetch_markets ();
     }
@@ -890,15 +890,15 @@ class Exchange {
     public function fetchBalance () {
         return $this->fetch_balance ();
     }
-    
+
     public function fetchOrderBook ($market) {
         return $this->fetch_order_book ($market);
     }
-    
+
     public function fetchTicker ($market) {
         return $this->fetch_ticker ($market);
     }
-    
+
     public function fetchTrades ($market) {
         return $this->fetch_trades ($market);
     }
@@ -936,7 +936,7 @@ class Exchange {
         return $this->create_limit_sell_order ($market, $amount, $price, $params);
     }
 
-    public function createMarketBuyOrder ($market, $amount, $params = array ()) { 
+    public function createMarketBuyOrder ($market, $amount, $params = array ()) {
         return $this->create_market_buy_order ($market, $amount, $params);
     }
 
@@ -965,9 +965,9 @@ class Exchange {
     }
 
     public function market ($market) {
-        return ((gettype ($market) === 'string') && 
-                   isset ($this->markets)        && 
-                   isset ($this->markets[$market])) ? 
+        return ((gettype ($market) === 'string') &&
+                   isset ($this->markets)        &&
+                   isset ($this->markets[$market])) ?
                         $this->markets[$market] : $market;
     }
 
@@ -5716,7 +5716,7 @@ class blinktrade extends Exchange {
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
-        if (array_key_exists ('Status', $response)) 
+        if (array_key_exists ('Status', $response))
             if ($response['Status'] != 200)
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
@@ -5809,7 +5809,7 @@ class bl3p extends Exchange {
     }
 
     public function parse_bidask ($bidask, $priceKey = 0, $amountKey = 0) {
-        return [ 
+        return [
             $bidask['price_int'] / 100000.0,
             $bidask['amount_int'] / 100000000.0,
         ];
@@ -7744,7 +7744,7 @@ class ccex extends Exchange {
             } else {
                 list ($base, $quote) = explode ('-', $uppercase);
                 $symbol = $base . '/' . $quote;
-            }            
+            }
             $result[$symbol] = $this->parse_ticker ($ticker, $market);
         }
         return $result;
@@ -8662,7 +8662,7 @@ class coinfloor extends Exchange {
         } else {
             $order['price'] = $price;
             $order['amount'] = $amount;
-        }        
+        }
         return $this->$method (array_merge ($order, $params));
     }
 
@@ -12277,6 +12277,333 @@ class hitbtc2 extends hitbtc {
 
 //------------------------------------------------------------------------------
 
+class huobi1 extends Exchange {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge(array (
+            'id' => 'huobi1',
+            'name' => 'Huobi v1',
+            'countries' => 'CN',
+            'rateLimit' => 2000,
+            'version' => 'v1',
+            'hasFetchOHLCV' => true,
+            'accounts' => undefined,
+            'accountsById' => undefined,
+            'timeframes' => array (
+                '1m' => '1min',
+                '5m' => '5min',
+                '15m' => '15min',
+                '30m' => '30min',
+                '1h' => '60min',
+                '1d' => '1day',
+                '1w' => '1week',
+                '1M' => '1mon',
+                '1y' => '1year',
+            ),
+            'api' => array (
+                'market' => array (
+                    'get' => array (
+                        'history/kline', // 获取K线数据
+                        'detail/merged', // 获取聚合行情(Ticker)
+                        'depth', // 获取 Market Depth 数据
+                        'trade', // 获取 Trade Detail 数据
+                        'history/trade', // 批量获取最近的交易记录
+                        'detail', // 获取 Market Detail 24小时成交量数据
+                    ),
+                ),
+                'public' => array (
+                    'get' => array (
+                        'common/symbols', // 查询系统支持的所有交易对
+                        'common/currencys', // 查询系统支持的所有币种
+                        'common/timestamp', // 查询系统当前时间
+                    ),
+                ),
+                'private' => array (
+                    'get' => array (
+                        'account/accounts', // 查询当前用户的所有账户(即account-id)
+                        'account/accounts/{id}/balance', // 查询指定账户的余额
+                        'order/orders/{id}', // 查询某个订单详情
+                        'order/orders/{id}/matchresults', // 查询某个订单的成交明细
+                        'order/orders', // 查询当前委托、历史委托
+                        'order/matchresults', // 查询当前成交、历史成交
+                        'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
+                    ),
+                    'post' => array (
+                        'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
+                        'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
+                        'order/orders/{id}/place', // 执行一个订单 （仅执行已创建的订单）
+                        'order/orders/{id}/submitcancel', // 申请撤销一个订单请求
+                        'order/orders/batchcancel', // 批量撤销订单
+                        'dw/balance/transfer', // 资产划转
+                        'dw/withdraw-virtual/create', // 申请提现虚拟币
+                        'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现
+                        'dw/withdraw-virtual/{id}/cancel', // 申请取消提现虚拟币
+                    ),
+                ),
+            ),
+        ), $options));
+    }
+
+    public function fetch_markets () {
+        $response = $this->publicGetCommonSymbols ();
+        $markets = $response['data'];
+        $result = array ();
+        for ($i = 0; $i < count ($markets); $i++) {
+            $market = $markets[$i];
+            $baseId = $market['base-currency'];
+            $quoteId = $market['quote-currency'];
+            $base = strtoupper ($baseId);
+            $quote = strtoupper ($quoteId);
+            $id = $baseId . $quoteId;
+            $base = $this->commonCurrencyCode ($base);
+            $quote = $this->commonCurrencyCode ($quote);
+            $symbol = $base . '/' . $quote;
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'info' => $market,
+            );
+        }
+        return $result;
+    }
+
+    public function parse_ticker ($ticker, $market) {
+        return array (
+            'timestamp' => $ticker['ts'],
+            'datetime' => $this->iso8601 ($ticker['ts']),
+            'high' => $ticker['high'],
+            'low' => $ticker['low'],
+            'bid' => $ticker['bid'][0],
+            'ask' => $ticker['ask'][0],
+            'vwap' => null,
+            'open' => $ticker['open'],
+            'close' => $ticker['close'],
+            'first' => null,
+            'last' => $ticker['last'],
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => floatval ($ticker['amount']),
+            'quoteVolume' => $ticker['vol'],
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_order_book ($symbol, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $response = $this->marketGetDepth (array_merge (array (
+            'symbol' => $market['id'],
+            'type' => 'step0',
+        ), $params));
+        return $this->parse_order_book ($response['tick'], $response['tick']['ts']);
+    }
+
+    public function fetch_ticker ($symbol) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $response = $this->marketGetDetailMerged (array ( 'symbol' => $market['id'] ));
+        return $this->parse_ticker ($response['tick'], $market);
+    }
+
+    public function parse_trade ($trade, $market) {
+        $timestamp = $trade['ts'];
+        return array (
+            'info' => $trade,
+            'id' => (string) $trade['id'],
+            'order' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => $trade['direction'],
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
+        );
+    }
+
+    public function parse_tradesData ($data, $market) {
+        $result = array ();
+        for ($i = 0; $i < count ($data); $i++) {
+            $trades = $this->parse_trades ($data[$i]['data'], $market);
+            for ($k = 0; $k < count ($trades); $k++)
+                $result[] = $trades[$k];
+        }
+        return $result;
+    }
+
+    public function fetch_trades ($symbol, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $response = $this->marketGetHistoryTrade (array_merge (array (
+            'symbol' => $market['id'],
+            'size' => 2000,
+        ), $params));
+        return $this->parse_tradesData ($response['data'], $market);
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        return [
+            $ohlcv['id'] * 1000,
+            $ohlcv['open'],
+            $ohlcv['high'],
+            $ohlcv['low'],
+            $ohlcv['close'],
+            $ohlcv['vol'],
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $response = $this->marketGetHistoryKline (array_merge (array (
+            'symbol' => $market['id'],
+            'period' => $this->timeframes[$timeframe],
+            'size' => 2000, // max = 2000
+        ), $params));
+        return $this->parse_ohlcvs ($response['data'], $market, $timeframe, $since, $limit);
+    }
+
+    public function loadAccounts ($reload = false) {
+        if ($reload) {
+            $this->accounts = $this->fetchAccounts ();
+        } else {
+            if ($this->accounts) {
+                return $this->accounts;
+            } else {
+                $this->accounts = $this->fetchAccounts ();
+                $this->accountsById = $this->index_by ($this->accounts, 'id');
+            }
+        }
+        return $this->accounts;
+    }
+
+    public function fetchAccounts () {
+        $this->load_markets ();
+        $response = $this->privateGetAccountAccounts ();
+        return $response['data'];
+    }
+
+    public function fetch_balance ($params = array ()) {
+        $this->load_markets ();
+        $this->loadAccounts ();
+        var_dump ($this->accounts);
+        $id = $this->accounts[0]['id'];
+        $response = $this->privateGetAccountAccountsIdBalance (array_merge (array (
+            'id' => $id,
+        ), $params));
+        $balances = $response['data']['list']
+        $result = array ( 'info' => $response );
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $uppercase = strtoupper ($balance['currency']);
+            $currency = $this->commonCurrencyCode ($uppercase);
+            $account = $this->account ();
+            $account['free'] = floatval ($balance['balance']);
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$currency] = $account;
+        }
+        return $result;
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = '/';
+        if ($api == 'market')
+            $url .= $api;
+        else
+            $url .= $this->version;
+        $url .= '/' . $this->implode_params ($path, $params);
+        $query = $this->omit ($params, $this->extract_params ($path));
+        if ($api == 'private') {
+            $timestamp = $this->YmdHMS ($this->milliseconds (), 'T');
+            var_dump ($timestamp);
+            $request = $this->keysort (array_merge (array (
+                'SignatureMethod' => 'HmacSHA256',
+                'SignatureVersion' => '2',
+                'AccessKeyId' => $this->apiKey,
+                'Timestamp' => $timestamp,
+            ), $query));
+            $auth = $this->urlencode ($request);
+            $payload = implode ("\n", array ($method, $this->hostname, $url, $auth));
+            var_dump ($payload);
+            $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha256', 'base64');
+            $auth .= '&' . $this->urlencode (array ( 'Signature' => $signature ));
+            if ($method == 'GET') {
+                $url .= '?' . $auth;
+            }
+            // var_dump ($auth);
+            // exit ();
+            // $body = $this->urlencode ($query);
+            // $headers = array (
+            //     'Content-Type' => 'application/x-www-form-urlencoded',
+            //     'Content-Length' => strlen ($body),
+            // );
+        } else {
+            if ($params)
+                $url .= '?' . $this->urlencode ($params);
+        }
+        $url = $this->urls['api'] . $url;
+        $response = $this->fetch ($url, $method, $headers, $body);
+        if (array_key_exists ('status', $response))
+            if ($response['status'] == 'error')
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        return $response;
+    }
+}
+
+//------------------------------------------------------------------------------
+
+class huobicny extends huobi1 {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge(array (
+            'id' => 'huobicny',
+            'name' => 'Huobi CNY',
+            'hostname' => 'be.huobi.com',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
+                'api' => 'https://be.huobi.com',
+                'www' => 'https://www.huobi.com',
+                'doc' => 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
+            ),
+            // 'markets' => array (
+            //     'ETH/CNY' => array ( 'id' => 'ethcny', 'symbol' => 'ETH/CNY', 'base' => 'ETH', 'quote' => 'CNY' ),
+            //     'ETC/CNY' => array ( 'id' => 'etccny', 'symbol' => 'ETC/CNY', 'base' => 'ETC', 'quote' => 'CNY' ),
+            //     'BCH/CNY' => array ( 'id' => 'bcccny', 'symbol' => 'BCH/CNY', 'base' => 'BCH', 'quote' => 'CNY' ),
+            // ),
+        ), $options));
+    }
+}
+
+//------------------------------------------------------------------------------
+
+class huobipro extends huobi1 {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge(array (
+            'id' => 'huobipro',
+            'name' => 'Huobi Pro',
+            'hostname' => 'api.huobi.pro',
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
+                'api' => 'https://api.huobi.pro',
+                'www' => 'https://www.huobi.pro',
+                'doc' => 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
+            ),
+            // 'markets' => array (
+            //     'ETH/BTC' => array ( 'id' => 'ethbtc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC' ),
+            //     'ETC/BTC' => array ( 'id' => 'etccny', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC' ),
+            //     'LTC/BTC' => array ( 'id' => 'ltcbtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+            //     'BCH/BTC' => array ( 'id' => 'bcccny', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC' ),
+            // ),
+        ), $options));
+    }
+}
+
+//------------------------------------------------------------------------------
+
 class huobi extends Exchange {
 
     public function __construct ($options = array ()) {
@@ -12429,7 +12756,7 @@ class huobi extends Exchange {
     public function fetch_trades ($symbol, $params = array ()) {
         $market = $this->market ($symbol);
         $method = $market['type'] . 'GetDetailId';
-        $response = $this->$method (array_merge (array ( 
+        $response = $this->$method (array_merge (array (
             'id' => $market['id'],
         ), $params));
         return $this->parse_trades ($response['trades'], $market);
@@ -12455,7 +12782,7 @@ class huobi extends Exchange {
             'period' => $this->timeframes[$timeframe],
         ), $params));
         return $ohlcvs;
-        // return $this->parse_ohlcvs ($market, $ohlcvs, $timeframe, $since, $limit);
+        // return $this->parse_ohlcvs ($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -12491,7 +12818,7 @@ class huobi extends Exchange {
                 'created' => $this->nonce (),
             ), $params));
             $queryString = $this->urlencode ($this->omit ($query, 'market'));
-            // secret key must be at the end of $query to be signed
+            // secret key must be appended to the $query before signing
             $queryString .= '&secret_key=' . $this->secret;
             $query['sign'] = $this->hash ($this->encode ($queryString));
             $body = $this->urlencode ($query);
@@ -16987,8 +17314,8 @@ class virwox extends Exchange {
         $start = $end - 86400000;
         $response = $this->publicGetTradedPriceVolume (array (
             'instrument' => $symbol,
-            'endDate' => $this->yyyymmddhhmmss ($end),
-            'startDate' => $this->yyyymmddhhmmss ($start),
+            'endDate' => $this->YmdHMS ($end),
+            'startDate' => $this->YmdHMS ($start),
             'HLOC' => 1,
         ));
         $tickers = $response['result']['priceVolumeList'];

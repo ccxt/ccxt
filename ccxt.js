@@ -11836,8 +11836,8 @@ var huobi1 = {
     'rateLimit': 2000,
     'version': 'v1',
     'hasFetchOHLCV': true,
-    'accounts': [],
-    'accountsById': {},
+    'accounts': undefined,
+    'accountsById': undefined,
     'timeframes': {
         '1m': '1min',
         '5m': '5min',
@@ -12036,6 +12036,7 @@ var huobi1 = {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
+        console.log (this.accounts);
         let id = this.accounts[0]['id'];
         let response = await this.privateGetAccountAccountsIdBalance (this.extend ({
             'id': id,
@@ -12078,7 +12079,6 @@ var huobi1 = {
             auth += '&' + this.urlencode ({ 'Signature': signature });
             if (method == 'GET') {
                 url += '?' + auth;
-            } else {
             }
             // console.log (auth);
             // process.exit ();

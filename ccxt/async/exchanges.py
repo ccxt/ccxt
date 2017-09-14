@@ -10617,6 +10617,313 @@ class hitbtc2 (hitbtc):
 
 #------------------------------------------------------------------------------
 
+class huobi1 (Exchange):
+
+    def __init__(self, config={}):
+        params = {
+            'id': 'huobi1',
+            'name': 'Huobi v1',
+            'countries': 'CN',
+            'rateLimit': 2000,
+            'version': 'v1',
+            'hasFetchOHLCV': True,
+            'accounts': undefined,
+            'accountsById': undefined,
+            'timeframes': {
+                '1m': '1min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
+                '1h': '60min',
+                '1d': '1day',
+                '1w': '1week',
+                '1M': '1mon',
+                '1y': '1year',
+            },
+            'api': {
+                'market': {
+                    'get': [
+                        'history/kline', # 获取K线数据
+                        'detail/merged', # 获取聚合行情(Ticker)
+                        'depth', # 获取 Market Depth 数据
+                        'trade', # 获取 Trade Detail 数据
+                        'history/trade', # 批量获取最近的交易记录
+                        'detail', # 获取 Market Detail 24小时成交量数据
+                    ],
+                },
+                'public': {
+                    'get': [
+                        'common/symbols', # 查询系统支持的所有交易对
+                        'common/currencys', # 查询系统支持的所有币种
+                        'common/timestamp', # 查询系统当前时间
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'account/accounts', # 查询当前用户的所有账户(即account-id)
+                        'account/accounts/{id}/balance', # 查询指定账户的余额
+                        'order/orders/{id}', # 查询某个订单详情
+                        'order/orders/{id}/matchresults', # 查询某个订单的成交明细
+                        'order/orders', # 查询当前委托、历史委托
+                        'order/matchresults', # 查询当前成交、历史成交
+                        'dw/withdraw-virtual/addresses', # 查询虚拟币提现地址
+                    ],
+                    'post': [
+                        'order/orders/place', # 创建并执行一个新订单 (一步下单， 推荐使用)
+                        'order/orders', # 创建一个新的订单请求 （仅创建订单，不执行下单）
+                        'order/orders/{id}/place', # 执行一个订单 （仅执行已创建的订单）
+                        'order/orders/{id}/submitcancel', # 申请撤销一个订单请求
+                        'order/orders/batchcancel', # 批量撤销订单
+                        'dw/balance/transfer', # 资产划转
+                        'dw/withdraw-virtual/create', # 申请提现虚拟币
+                        'dw/withdraw-virtual/{id}/place', # 确认申请虚拟币提现
+                        'dw/withdraw-virtual/{id}/cancel', # 申请取消提现虚拟币
+                    ],
+                },
+            },
+        }
+        params.update(config)
+        super(huobi1, self).__init__(params)
+
+    async def fetch_markets(self):
+        response = await self.publicGetCommonSymbols()
+        markets = response['data']
+        result = []
+        for i in range(0, len(markets)):
+            market = markets[i]
+            baseId = market['base-currency']
+            quoteId = market['quote-currency']
+            base = baseId.upper()
+            quote = quoteId.upper()
+            id = baseId + quoteId
+            base = self.commonCurrencyCode(base)
+            quote = self.commonCurrencyCode(quote)
+            symbol = base + '/' + quote
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': market,
+            })
+        return result
+
+    def parse_ticker(self, ticker, market):
+        return {
+            'timestamp': ticker['ts'],
+            'datetime': self.iso8601(ticker['ts']),
+            'high': ticker['high'],
+            'low': ticker['low'],
+            'bid': ticker['bid'][0],
+            'ask': ticker['ask'][0],
+            'vwap': None,
+            'open': ticker['open'],
+            'close': ticker['close'],
+            'first': None,
+            'last': ticker['last'],
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': float(ticker['amount']),
+            'quoteVolume': ticker['vol'],
+            'info': ticker,
+        }
+
+    async def fetch_order_book(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        response = await self.marketGetDepth(self.extend({
+            'symbol': market['id'],
+            'type': 'step0',
+        }, params))
+        return self.parse_order_book(response['tick'], response['tick']['ts'])
+
+    async def fetch_ticker(self, symbol):
+        await self.load_markets()
+        market = self.market(symbol)
+        response = await self.marketGetDetailMerged({'symbol': market['id']})
+        return self.parse_ticker(response['tick'], market)
+
+    def parse_trade(self, trade, market):
+        timestamp = trade['ts']
+        return {
+            'info': trade,
+            'id': str(trade['id']),
+            'order': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': trade['direction'],
+            'price': trade['price'],
+            'amount': trade['amount'],
+        }
+
+    def parse_tradesData(self, data, market):
+        result = []
+        for i in range(0, len(data)):
+            trades = self.parse_trades(data[i]['data'], market)
+            for(k = 0 k < len(trades) k++)
+                result.append(trades[k])
+        return result
+
+    async def fetch_trades(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        response = await self.marketGetHistoryTrade(self.extend({
+            'symbol': market['id'],
+            'size': 2000,
+        }, params))
+        return self.parseTradesData(response['data'], market)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        return [
+            ohlcv['id'] * 1000,
+            ohlcv['open'],
+            ohlcv['high'],
+            ohlcv['low'],
+            ohlcv['close'],
+            ohlcv['vol'],
+        ]
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        response = await self.marketGetHistoryKline(self.extend({
+            'symbol': market['id'],
+            'period': self.timeframes[timeframe],
+            'size': 2000, # max = 2000
+        }, params))
+        return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
+
+    async def loadAccounts(self, reload=false):
+        if reload:
+            self.accounts = await self.fetchAccounts()
+        else:
+            if self.accounts:
+                return self.accounts
+            else:
+                self.accounts = await self.fetchAccounts()
+                self.accountsById = self.index_by(self.accounts, 'id')
+        return self.accounts
+
+    async def fetchAccounts(self):
+        await self.load_markets()
+        response = await self.privateGetAccountAccounts()
+        return response['data']
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        await self.loadAccounts()
+        print(self.accounts)
+        id = self.accounts[0]['id']
+        response = await self.privateGetAccountAccountsIdBalance(self.extend({
+            'id': id,
+        }, params))
+        balances = response['data']['list']
+        result = {'info': response}
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            uppercase = balance['currency'].upper()
+            currency = self.commonCurrencyCode(uppercase)
+            account = self.account()
+            account['free'] = float(balance['balance'])
+            account['total'] = self.sum(account['free'], account['used'])
+            result[currency] = account
+        return result
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        url = '/'
+        if api == 'market':
+            url += api
+        else:
+            url += self.version
+        url += '/' + self.implode_params(path, params)
+        query = self.omit(params, self.extract_params(path))
+        if api == 'private':
+            timestamp = self.YmdHMS(self.milliseconds(), 'T')
+            print(timestamp)
+            request = self.keysort(self.extend({
+                'SignatureMethod': 'HmacSHA256',
+                'SignatureVersion': '2',
+                'AccessKeyId': self.apiKey,
+                'Timestamp': timestamp,
+            }, query))
+            auth = self.urlencode(request)
+            payload = "\n".join([method, self.hostname, url, auth])
+            print(payload)
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
+            auth += '&' + self.urlencode({'Signature': signature})
+            if method == 'GET':
+                url += '?' + auth
+            # print(auth)
+            # sys.exit()
+            # body = self.urlencode(query)
+            # headers = {
+            #     'Content-Type': 'application/x-www-form-urlencoded',
+            #     'Content-Length': len(body),
+            #}
+        else:
+            if params:
+                url += '?' + self.urlencode(params)
+        url = self.urls['api'] + url
+        response = await self.fetch(url, method, headers, body)
+        if 'status' in response:
+            if response['status'] == 'error':
+                raise ExchangeError(self.id + ' ' + self.json(response))
+        return response
+
+#------------------------------------------------------------------------------
+
+class huobicny (huobi1):
+
+    def __init__(self, config={}):
+        params = {
+            'id': 'huobicny',
+            'name': 'Huobi CNY',
+            'hostname': 'be.huobi.com',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
+                'api': 'https://be.huobi.com',
+                'www': 'https://www.huobi.com',
+                'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
+            },
+            # 'markets': {
+            #     'ETH/CNY': {'id': 'ethcny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY'},
+            #     'ETC/CNY': {'id': 'etccny', 'symbol': 'ETC/CNY', 'base': 'ETC', 'quote': 'CNY'},
+            #     'BCH/CNY': {'id': 'bcccny', 'symbol': 'BCH/CNY', 'base': 'BCH', 'quote': 'CNY'},
+            #},
+        }
+        params.update(config)
+        super(huobicny, self).__init__(params)
+
+#------------------------------------------------------------------------------
+
+class huobipro (huobi1):
+
+    def __init__(self, config={}):
+        params = {
+            'id': 'huobipro',
+            'name': 'Huobi Pro',
+            'hostname': 'api.huobi.pro',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
+                'api': 'https://api.huobi.pro',
+                'www': 'https://www.huobi.pro',
+                'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
+            },
+            # 'markets': {
+            #     'ETH/BTC': {'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC'},
+            #     'ETC/BTC': {'id': 'etccny', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC'},
+            #     'LTC/BTC': {'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
+            #     'BCH/BTC': {'id': 'bcccny', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC'},
+            #},
+        }
+        params.update(config)
+        super(huobipro, self).__init__(params)
+
+#------------------------------------------------------------------------------
+
 class huobi (Exchange):
 
     def __init__(self, config={}):
@@ -10789,7 +11096,7 @@ class huobi (Exchange):
             'period': self.timeframes[timeframe],
         }, params))
         return ohlcvs
-        # return self.parse_ohlcvs(market, ohlcvs, timeframe, since, limit)
+        # return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         market = self.market(symbol)
@@ -10822,7 +11129,7 @@ class huobi (Exchange):
                 'created': self.nonce(),
             }, params))
             queryString = self.urlencode(self.omit(query, 'market'))
-            # secret key must be at the end of query to be signed
+            # secret key must be appended to the query before signing
             queryString += '&secret_key=' + self.secret
             query['sign'] = self.hash(self.encode(queryString))
             body = self.urlencode(query)
@@ -15032,8 +15339,8 @@ class virwox (Exchange):
         start = end - 86400000
         response = await self.publicGetTradedPriceVolume({
             'instrument': symbol,
-            'endDate': self.yyyymmddhhmmss(end),
-            'startDate': self.yyyymmddhhmmss(start),
+            'endDate': self.YmdHMS(end),
+            'startDate': self.YmdHMS(start),
             'HLOC': 1,
         })
         tickers = response['result']['priceVolumeList']
