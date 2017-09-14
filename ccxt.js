@@ -91,7 +91,7 @@ class InsufficientFunds extends ExchangeError {
         this.constructor = InsufficientFunds
         this.__proto__   = InsufficientFunds.prototype
         this.message     = message
-    }   
+    }
 }
 
 class NetworkError extends CCXTError {
@@ -675,7 +675,7 @@ const Exchange = function (config) {
     this.parseOHLCVs = function (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return Object.values (ohlcvs).map (ohlcv => this.parseOHLCV (ohlcv, market, timeframe, since, limit))
     }
-    
+
     this.createLimitBuyOrder = function (market, amount, price, params = {}) {
         return this.createOrder  (market, 'limit', 'buy', amount, price, params)
     }
@@ -713,24 +713,24 @@ const Exchange = function (config) {
     this.hasFetchOrder        = false
     this.hasFetchOrders       = false
     this.hasFetchOpenOrders   = false
-    this.hasFetchClosedOrders = false 
+    this.hasFetchClosedOrders = false
     this.hasDeposit           = false
     this.hasWithdraw          = false
-    
-    this.yyyymmddhhmmss = timestamp => {
+
+    this.YmdHMS = function (timestamp, infix = ' ') {
         let date = new Date (timestamp)
-        let yyyy = date.getUTCFullYear ()
-        let MM = date.getUTCMonth ()
-        let dd = date.getUTCDay ()
-        let hh = date.getUTCHours ()
-        let mm = date.getUTCMinutes ()
-        let ss = date.getUTCSeconds ()
-        MM = MM < 10 ? ('0' + MM) : MM
-        dd = dd < 10 ? ('0' + dd) : dd
-        hh = hh < 10 ? ('0' + hh) : hh
-        mm = mm < 10 ? ('0' + mm) : mm
-        ss = ss < 10 ? ('0' + ss) : ss
-        return yyyy + '-' + MM + '-' + dd + ' ' + hh + ':' + mm + ':' + ss
+        let Y = date.getUTCFullYear ()
+        let m = date.getUTCMonth () + 1
+        let d = date.getUTCDate ()
+        let H = date.getUTCHours ()
+        let M = date.getUTCMinutes ()
+        let S = date.getUTCSeconds ()
+        m = m < 10 ? ('0' + m) : m
+        d = d < 10 ? ('0' + d) : d
+        H = H < 10 ? ('0' + H) : H
+        M = M < 10 ? ('0' + M) : M
+        S = S < 10 ? ('0' + S) : S
+        return Y + '-' + m + '-' + d + infix + H + ':' + M + ':' + S
     }
 
     if (isNode)
@@ -1465,7 +1465,7 @@ var acx = {
             'price': trade['price'],
             'amount': trade['amount'],
         };
-    },        
+    },
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
@@ -3676,7 +3676,7 @@ var bitlish = {
         return this.parseTicker (ticker, market);
     },
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {        
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let now = this.seconds ();
@@ -5415,7 +5415,7 @@ var blinktrade = {
             };
         }
         let response = await this.fetch (url, method, headers, body);
-        if ('Status' in response) 
+        if ('Status' in response)
             if (response['Status'] != 200)
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
@@ -5504,7 +5504,7 @@ var bl3p = {
     },
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 0) {
-        return [ 
+        return [
             bidask['price_int'] / 100000.0,
             bidask['amount_int'] / 100000000.0,
         ];
@@ -7394,7 +7394,7 @@ var ccex = {
             } else {
                 let [ base, quote ] = uppercase.split ('-');
                 symbol = base + '/' + quote;
-            }            
+            }
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
@@ -8290,7 +8290,7 @@ var coinfloor = {
         } else {
             order['price'] = price;
             order['amount'] = amount;
-        }        
+        }
         return this[method] (this.extend (order, params));
     },
 
@@ -11836,6 +11836,8 @@ var huobi1 = {
     'rateLimit': 2000,
     'version': 'v1',
     'hasFetchOHLCV': true,
+    'accounts': [],
+    'accountsById': {},
     'timeframes': {
         '1m': '1min',
         '5m': '5min',
@@ -11868,9 +11870,9 @@ var huobi1 = {
         'private': {
             'get': [
                 'account/accounts', // 查询当前用户的所有账户(即account-id)
-                'account/accounts/{account-id}/balance', // 查询指定账户的余额
-                'order/orders/{order-id}', // 查询某个订单详情
-                'order/orders/{order-id}/matchresults', // 查询某个订单的成交明细
+                'account/accounts/{id}/balance', // 查询指定账户的余额
+                'order/orders/{id}', // 查询某个订单详情
+                'order/orders/{id}/matchresults', // 查询某个订单的成交明细
                 'order/orders', // 查询当前委托、历史委托
                 'order/matchresults', // 查询当前成交、历史成交
                 'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
@@ -11878,13 +11880,13 @@ var huobi1 = {
             'post': [
                 'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
                 'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
-                'order/orders/{order-id}/place', // 执行一个订单 （仅执行已创建的订单）
-                'order/orders/{order-id}/submitcancel', // 申请撤销一个订单请求
+                'order/orders/{id}/place', // 执行一个订单 （仅执行已创建的订单）
+                'order/orders/{id}/submitcancel', // 申请撤销一个订单请求
                 'order/orders/batchcancel', // 批量撤销订单
                 'dw/balance/transfer', // 资产划转
                 'dw/withdraw-virtual/create', // 申请提现虚拟币
-                'dw/withdraw-virtual/{withdraw-id}/place', // 确认申请虚拟币提现
-                'dw/withdraw-virtual/{withdraw-id}/cancel', // 申请取消提现虚拟币
+                'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现
+                'dw/withdraw-virtual/{id}/cancel', // 申请取消提现虚拟币
             ],
         },
     },
@@ -11937,6 +11939,7 @@ var huobi1 = {
     },
 
     async fetchOrderBook (symbol, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.marketGetDepth (this.extend ({
             'symbol': market['id'],
@@ -11946,6 +11949,7 @@ var huobi1 = {
     },
 
     async fetchTicker (symbol) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.marketGetDetailMerged ({ 'symbol': market['id'] });
         return this.parseTicker (response['tick'], market);
@@ -11978,8 +11982,9 @@ var huobi1 = {
     },
 
     async fetchTrades (symbol, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.marketGetHistoryTrade (this.extend ({ 
+        let response = await this.marketGetHistoryTrade (this.extend ({
             'symbol': market['id'],
             'size': 2000,
         }, params));
@@ -11998,6 +12003,7 @@ var huobi1 = {
     },
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.marketGetHistoryKline (this.extend ({
             'symbol': market['id'],
@@ -12007,39 +12013,89 @@ var huobi1 = {
         return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     },
 
-    async request (path, api = 'trade', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/';
+    async loadAccounts (reload = false) {
+        if (reload) {
+            this.accounts = await this.fetchAccounts ();
+        } else {
+            if (this.accounts) {
+                return this.accounts;
+            } else {
+                this.accounts = await this.fetchAccounts ();
+                this.accountsById = this.indexBy (this.accounts, 'id');
+            }
+        }
+        return this.accounts;
+    },
+
+    async fetchAccounts () {
+        await this.loadMarkets ();
+        let response = await this.privateGetAccountAccounts ();
+        return response['data'];
+    },
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        let id = this.accounts[0]['id'];
+        let response = await this.privateGetAccountAccountsIdBalance (this.extend ({
+            'id': id,
+        }, params));
+        let balances = response['data']['list']
+        let result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            let balance = balances[i];
+            let uppercase = balance['currency'].toUpperCase ();
+            let currency = this.commonCurrencyCode (uppercase);
+            let account = this.account ();
+            account['free'] = parseFloat (balance['balance']);
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = '/';
         if (api == 'market')
-            url += '/' + api + '/';
+            url += api;
         else
-            url += this.version + '/';
-        url += path;
-        if (api == 'trade') {
-            url += '/api' + this.version;
-            let query = this.keysort (this.extend ({
-                'method': path,
-                'access_key': this.apiKey,
-                'created': this.nonce (),
-            }, params));
-            let queryString = this.urlencode (this.omit (query, 'market'));
-            // secret key must be at the end of query to be signed
-            queryString += '&secret_key=' + this.secret;
-            query['sign'] = this.hash (this.encode (queryString));
-            body = this.urlencode (query);
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
-            };
+            url += this.version;
+        url += '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (api == 'private') {
+            let timestamp = this.YmdHMS (this.milliseconds (), 'T');
+            console.log (timestamp);
+            let request = this.keysort (this.extend ({
+                'SignatureMethod': 'HmacSHA256',
+                'SignatureVersion': '2',
+                'AccessKeyId': this.apiKey,
+                'Timestamp': timestamp,
+            }, query));
+            let auth = this.urlencode (request);
+            let payload = [ method, this.hostname, url, auth ].join ("\n");
+            console.log (payload);
+            let signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+            auth += '&' + this.urlencode ({ 'Signature': signature });
+            if (method == 'GET') {
+                url += '?' + auth;
+            } else {
+            }
+            // console.log (auth);
+            // process.exit ();
+            // body = this.urlencode (query);
+            // headers = {
+            //     'Content-Type': 'application/x-www-form-urlencoded',
+            //     'Content-Length': body.length,
+            // };
         } else {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         }
+        url = this.urls['api'] + url;
         let response = await this.fetch (url, method, headers, body);
         if ('status' in response)
             if (response['status'] == 'error')
                 throw new ExchangeError (this.id + ' ' + this.json (response));
-        if ('code' in response)
-            throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     },
 }
@@ -12050,6 +12106,7 @@ var huobicny = extend (huobi1, {
 
     'id': 'huobicny',
     'name': 'Huobi CNY',
+    'hostname': 'be.huobi.com',
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
         'api': 'https://be.huobi.com',
@@ -12069,6 +12126,7 @@ var huobipro = extend (huobi1, {
 
     'id': 'huobipro',
     'name': 'Huobi Pro',
+    'hostname': 'api.huobi.pro',
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
         'api': 'https://api.huobi.pro',
@@ -12233,7 +12291,7 @@ var huobi = {
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
         let method = market['type'] + 'GetDetailId';
-        let response = await this[method] (this.extend ({ 
+        let response = await this[method] (this.extend ({
             'id': market['id'],
         }, params));
         return this.parseTrades (response['trades'], market);
@@ -12295,7 +12353,7 @@ var huobi = {
                 'created': this.nonce (),
             }, params));
             let queryString = this.urlencode (this.omit (query, 'market'));
-            // secret key must be at the end of query to be signed
+            // secret key must be appended to the query before signing
             queryString += '&secret_key=' + this.secret;
             query['sign'] = this.hash (this.encode (queryString));
             body = this.urlencode (query);
@@ -13693,7 +13751,7 @@ var liqui = {
         }
         throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
     },
-    
+
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
         return {
@@ -13716,7 +13774,7 @@ var liqui = {
             'info': ticker,
         };
     },
-    
+
     async fetchTickers (symbols = undefined) {
         await this.loadMarkets ();
         let ids = (symbols) ? this.marketIds (symbols) : this.ids;
@@ -15341,7 +15399,7 @@ var poloniex = {
         }
         return result;
     },
-    
+
     async fetchOrderStatus (id, market = undefined) {
         await this.loadMarkets ();
         let orders = await this.fetchOpenOrders (market);
@@ -16698,8 +16756,8 @@ var virwox = {
         let start = end - 86400000;
         let response = await this.publicGetTradedPriceVolume ({
             'instrument': symbol,
-            'endDate': this.yyyymmddhhmmss (end),
-            'startDate': this.yyyymmddhhmmss (start),
+            'endDate': this.YmdHMS (end),
+            'startDate': this.YmdHMS (start),
             'HLOC': 1,
         });
         let tickers = response['result']['priceVolumeList'];
@@ -17255,7 +17313,7 @@ var yobit = {
             'price': trade['price'],
             'amount': trade['amount'],
         };
-    },        
+    },
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();

@@ -450,8 +450,8 @@ class Exchange (object):
         return (utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z')
 
     @staticmethod
-    def yyyymmddhhmmss(timestamp):
-        return datetime.datetime.fromtimestamp(int(round(timestamp / 1000))).strftime('%Y-%m-%d %H:%M:%S')
+    def YmdHMS(timestamp, infix=' '):
+        return datetime.datetime.fromtimestamp(int(round(timestamp / 1000))).strftime('%Y-%m-%d' + infix + '%H:%M:%S')
 
     @staticmethod
     def parse8601(timestamp):
