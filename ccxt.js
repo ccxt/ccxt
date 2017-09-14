@@ -4733,7 +4733,7 @@ var bitstamp1 = {
 
     async fetchOrderBook (symbol, params = {}) {
         if (symbol != 'BTC/USD')
-        throw new ExchangeError (this.id + ' ' + this.version + " fetchOrderBook doesn't support " + symbol + ', use it for BTC/USD only');
+            throw new ExchangeError (this.id + ' ' + this.version + " fetchOrderBook doesn't support " + symbol + ', use it for BTC/USD only');
         let orderbook = await this.publicGetOrderBook (params);
         let timestamp = parseInt (orderbook['timestamp']) * 1000;
         return this.parseOrderBook (orderbook, timestamp);
@@ -4741,7 +4741,7 @@ var bitstamp1 = {
 
     async fetchTicker (symbol) {
         if (symbol != 'BTC/USD')
-        throw new ExchangeError (this.id + ' ' + this.version + " fetchTicker doesn't support " + symbol + ', use it for BTC/USD only');
+            throw new ExchangeError (this.id + ' ' + this.version + " fetchTicker doesn't support " + symbol + ', use it for BTC/USD only');
         let ticker = await this.publicGetTicker ();
         let timestamp = parseInt (ticker['timestamp']) * 1000;
         return {

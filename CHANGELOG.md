@@ -1,5 +1,7 @@
 # Сhangelog
 
+- Added missing endpoints to Bitstamp v2, [#198](https://github.com/kroitor/ccxt/issues/198)
+- Added support for older Bitstamp v1 API, [#198](https://github.com/kroitor/ccxt/issues/198)
 - Removed BTC/USD market from Huobi, [#195](https://github.com/kroitor/ccxt/issues/195)
 - Added Huobi PRO API: BCH/BTC, ETC/BTC, ETH/BTC, LTC/BTC, [#195](https://github.com/kroitor/ccxt/issues/195)
 - Added Huobi CNY API: BCH/CNY, ETH/CNY, ETC/CNY, [#195](https://github.com/kroitor/ccxt/issues/195)
