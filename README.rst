@@ -11,7 +11,7 @@ CCXT – CryptoCurrency eXchange Trading Library
     :target: https://www.npmjs.com/package/ccxt
 .. image:: https://badge.runkitcdn.com/ccxt.svg
     :target: https://npm.runkit.com/ccxt
-.. image:: https://img.shields.io/badge/exchanges-80-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-81-blue.svg
     :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
@@ -34,7 +34,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 80 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 81 cryptocurrency exchange markets and trading APIs:
 
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id              | name                                                      | ver   | doc                                                                                              | countries                                  |
@@ -68,6 +68,8 @@ The ccxt library currently supports the following 80 cryptocurrency exchange mar
 | bitmex          | `BitMEX <https://www.bitmex.com>`__                       | 1     | `API <https://www.bitmex.com/app/apiOverview>`__                                                 | Seychelles                                 |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bitso           | `Bitso <https://bitso.com>`__                             | 3     | `API <https://bitso.com/api_info>`__                                                             | Mexico                                     |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| bitstamp1       | `Bitstamp v1 <https://www.bitstamp.net>`__                | 1     | `API <https://www.bitstamp.net/api>`__                                                           | UK                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bitstamp        | `Bitstamp <https://www.bitstamp.net>`__                   | 2     | `API <https://www.bitstamp.net/api>`__                                                           | UK                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+

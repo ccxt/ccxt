@@ -1,6 +1,6 @@
 # CCXT – CryptoCurrency eXchange Trading Library
 
-[![Build Status](https://travis-ci.org/kroitor/ccxt.svg?branch=master)](https://travis-ci.org/kroitor/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Try ccxt on RunKit](https://badge.runkitcdn.com/ccxt.svg)](https://npm.runkit.com/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-80-blue.svg)](https://github.com/kroitor/ccxt/wiki/Exchange-Markets)
+[![Build Status](https://travis-ci.org/kroitor/ccxt.svg?branch=master)](https://travis-ci.org/kroitor/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Try ccxt on RunKit](https://badge.runkitcdn.com/ccxt.svg)](https://npm.runkit.com/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-81-blue.svg)](https://github.com/kroitor/ccxt/wiki/Exchange-Markets)
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
@@ -21,7 +21,7 @@ Current featurelist:
 
 ## Supported Cryptocurrency Exchange Markets
 
-The ccxt library currently supports the following 80 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 81 cryptocurrency exchange markets and trading APIs:
 
 |                                                                                                                      | id            | name                                                 | ver | doc                                                                                         | countries                               |
 |----------------------------------------------------------------------------------------------------------------------|---------------|------------------------------------------------------|:---:|:-------------------------------------------------------------------------------------------:|-----------------------------------------|
@@ -40,6 +40,7 @@ The ccxt library currently supports the following 80 cryptocurrency exchange mar
 |![bitmarket](https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg)     | bitmarket     | [BitMarket](https://www.bitmarket.pl)                | *   | [API](https://www.bitmarket.net/docs.php?file=api_public.html)                              | Poland, EU                              |
 |![bitmex](https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg)        | bitmex        | [BitMEX](https://www.bitmex.com)                     | 1   | [API](https://www.bitmex.com/app/apiOverview)                                               | Seychelles                              |
 |![bitso](https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg)         | bitso         | [Bitso](https://bitso.com)                           | 3   | [API](https://bitso.com/api_info)                                                           | Mexico                                  |
+|![bitstamp1](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)     | bitstamp1     | [Bitstamp v1](https://www.bitstamp.net)              | 1   | [API](https://www.bitstamp.net/api)                                                         | UK                                      |
 |![bitstamp](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)      | bitstamp      | [Bitstamp](https://www.bitstamp.net)                 | 2   | [API](https://www.bitstamp.net/api)                                                         | UK                                      |
 |![bittrex](https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg)       | bittrex       | [Bittrex](https://bittrex.com)                       | 1.1 | [API](https://bittrex.com/Home/Api)                                                         | US                                      |
 |![bl3p](https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg)          | bl3p          | [BL3P](https://bl3p.eu)                              | 1   | [API](https://github.com/BitonicNL/bl3p-api/tree/master/docs)                               | Netherlands, EU                         |

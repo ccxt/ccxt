@@ -151,6 +151,7 @@ class Exchange {
         'bitmarket',
         'bitmex',
         'bitso',
+        'bitstamp1',
         'bitstamp',
         'bittrex',
         'bl3p',
