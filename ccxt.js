@@ -11917,7 +11917,6 @@ var huobi1 = {
     },
 
     parseTicker (ticker, market) {
-        console.log (ticker);
         let last = undefined;
         if ('last' in ticker)
             last = ticker['last'];
@@ -12041,7 +12040,6 @@ var huobi1 = {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        console.log (this.accounts);
         let id = this.accounts[0]['id'];
         let response = await this.privateGetAccountAccountsIdBalance (this.extend ({
             'id': id,
@@ -12078,14 +12076,11 @@ var huobi1 = {
             }, query));
             let auth = this.urlencode (request);
             let payload = [ method, this.hostname, url, auth ].join ("\n");
-            console.log (payload);
             let signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             auth += '&' + this.urlencode ({ 'Signature': signature });
             if (method == 'GET') {
                 url += '?' + auth;
             }
-            // console.log (auth);
-            // process.exit ();
             // body = this.urlencode (query);
             // headers = {
             //     'Content-Type': 'application/x-www-form-urlencoded',
@@ -12217,7 +12212,7 @@ var huobi = {
     'markets': {
         'BTC/CNY': { 'id': 'btc', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', 'type': 'staticmarket', 'coinType': 1 },
         'LTC/CNY': { 'id': 'ltc', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', 'type': 'staticmarket', 'coinType': 2 },
-        'BTC/USD': { 'id': 'btc', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'usdmarket',    'coinType': 1 },
+        // 'BTC/USD': { 'id': 'btc', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'usdmarket',    'coinType': 1 },
     },
 
     async fetchBalance (params = {}) {

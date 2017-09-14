@@ -1,6 +1,9 @@
 # Сhangelog
 
-- Fixed Bitfinex parseOrder timestamp issue, [#200](https://github.com/kroitor/ccxt/issues/200)
+- Removed BTC/USD market from Huobi, [#195](https://github.com/kroitor/ccxt/issues/195)
+- Added Huobi PRO API: BCH/BTC, ETC/BTC, ETH/BTC, LTC/BTC, [#195](https://github.com/kroitor/ccxt/issues/195)
+- Added Huobi CNY API: BCH/CNY, ETH/CNY, ETC/CNY, [#195](https://github.com/kroitor/ccxt/issues/195)
+- Fixed Bitfinex parseOrder timestamp, [#200](https://github.com/kroitor/ccxt/issues/200)
 - Fixed Bitfinex cancelOrder error, [#199](https://github.com/kroitor/ccxt/issues/199)
 - Removed EOS market from CHBTC, [#197](https://github.com/kroitor/ccxt/issues/197)
 - Added missing BCH/HSR/QTUM markets to CHBTC, [#197](https://github.com/kroitor/ccxt/issues/197)
@@ -18,7 +21,7 @@
 - Fixed side issue with Bitflyer parseTrade, [#184](https://github.com/kroitor/ccxt/issues/184)
 - Fixed fetchOpenOrders amount/symbol with Bittrex and Poloniex [#183](https://github.com/kroitor/ccxt/issues/183)
 - Fixed Bitfinex DASH balance issue, [#178](https://github.com/kroitor/ccxt/issues/178)
-- Added missing ETH and BCH markets to BTCChina, [#175](https://github.com/kroitor/ccxt/issues/175) 
+- Added missing ETH and BCH markets to BTCChina, [#175](https://github.com/kroitor/ccxt/issues/175)
 - BitBays ceased operation in China
 
 ![BitBays ceased operation](https://user-images.githubusercontent.com/1294454/30231444-90b89000-94f3-11e7-84ba-f3ca1fe8cd3b.png)
@@ -50,7 +53,7 @@
 
 ## Version 1.5.x 2017-08-24
 
-- Added support for a new exchange: [OKEX](https://www.okex.com) (China, US) 
+- Added support for a new exchange: [OKEX](https://www.okex.com) (China, US)
 - Fixed Kraken KeyError: 'txid' exception, [#143](https://github.com/kroitor/ccxt/issues/143)
 - Added `hasFetchTickers` property to indicate method availability [#145](https://github.com/kroitor/ccxt/issues/145)
 - Added support for a new exchange: [Binance](https://www.binance.com) (China) [#142](https://github.com/kroitor/ccxt/issues/142)

@@ -12372,7 +12372,6 @@ class huobi1 extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market) {
-        var_dump ($ticker);
         $last = null;
         if (array_key_exists ('last', $ticker))
             $last = $ticker['last'];
@@ -12496,7 +12495,6 @@ class huobi1 extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $this->loadAccounts ();
-        var_dump ($this->accounts);
         $id = $this->accounts[0]['id'];
         $response = $this->privateGetAccountAccountsIdBalance (array_merge (array (
             'id' => $id,
@@ -12533,14 +12531,11 @@ class huobi1 extends Exchange {
             ), $query));
             $auth = $this->urlencode ($request);
             $payload = implode ("\n", array ($method, $this->hostname, $url, $auth));
-            var_dump ($payload);
             $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha256', 'base64');
             $auth .= '&' . $this->urlencode (array ( 'Signature' => $signature ));
             if ($method == 'GET') {
                 $url .= '?' . $auth;
             }
-            // var_dump ($auth);
-            // exit ();
             // $body = $this->urlencode ($query);
             // $headers = array (
             //     'Content-Type' => 'application/x-www-form-urlencoded',
@@ -12682,7 +12677,7 @@ class huobi extends Exchange {
             'markets' => array (
                 'BTC/CNY' => array ( 'id' => 'btc', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY', 'type' => 'staticmarket', 'coinType' => 1 ),
                 'LTC/CNY' => array ( 'id' => 'ltc', 'symbol' => 'LTC/CNY', 'base' => 'LTC', 'quote' => 'CNY', 'type' => 'staticmarket', 'coinType' => 2 ),
-                'BTC/USD' => array ( 'id' => 'btc', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'type' => 'usdmarket',    'coinType' => 1 ),
+                // 'BTC/USD' => array ( 'id' => 'btc', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'type' => 'usdmarket',    'coinType' => 1 ),
             ),
         ), $options));
     }

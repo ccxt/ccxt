@@ -10792,7 +10792,6 @@ class huobi1 (Exchange):
         return result
 
     def parse_ticker(self, ticker, market):
-        print(ticker)
         last = None
         if 'last' in ticker:
             last = ticker['last']
@@ -10902,7 +10901,6 @@ class huobi1 (Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         self.loadAccounts()
-        print(self.accounts)
         id = self.accounts[0]['id']
         response = self.privateGetAccountAccountsIdBalance(self.extend({
             'id': id,
@@ -10937,13 +10935,10 @@ class huobi1 (Exchange):
             }, query))
             auth = self.urlencode(request)
             payload = "\n".join([method, self.hostname, url, auth])
-            print(payload)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             auth += '&' + self.urlencode({'Signature': signature})
             if method == 'GET':
                 url += '?' + auth
-            # print(auth)
-            # sys.exit()
             # body = self.urlencode(query)
             # headers = {
             #     'Content-Type': 'application/x-www-form-urlencoded',
@@ -11082,7 +11077,7 @@ class huobi (Exchange):
             'markets': {
                 'BTC/CNY': {'id': 'btc', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', 'type': 'staticmarket', 'coinType': 1},
                 'LTC/CNY': {'id': 'ltc', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', 'type': 'staticmarket', 'coinType': 2},
-                'BTC/USD': {'id': 'btc', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'usdmarket',    'coinType': 1},
+                # 'BTC/USD': {'id': 'btc', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'usdmarket',    'coinType': 1},
             },
         }
         params.update(config)
