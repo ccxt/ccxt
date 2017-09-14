@@ -88,7 +88,7 @@ except NameError:
 
 #------------------------------------------------------------------------------
 
-class Exchange (object):
+class Exchange(object):
 
     id = None
     version = None
@@ -103,6 +103,7 @@ class Exchange (object):
     ids = None
     currencies = None
     tickers = None
+    api = None
     orders = {}
     trades = {}
     proxy = ''
@@ -142,27 +143,27 @@ class Exchange (object):
             self.set_markets(self.markets)
 
     def define_rest_api(self, api, method_name, options={}):
-        for apiType, methods in api.items():
+        for api_type, methods in api.items():
             for http_method, urls in methods.items():
                 for url in urls:
                     url = url.strip()
-                    splitPath = re.compile('[^a-zA-Z0-9]').split(url)
+                    split_path = re.compile('[^a-zA-Z0-9]').split(url)
 
-                    uppercaseMethod = http_method.upper()
-                    lowercaseMethod = http_method.lower()
-                    camelcaseMethod = lowercaseMethod.capitalize()
-                    camelcaseSuffix = ''.join([Exchange.capitalize(x) for x in splitPath])
-                    lowercasePath = [x.strip().lower() for x in splitPath]
-                    underscoreSuffix = '_'.join([k for k in lowercasePath if len(k)])
+                    uppercase_method = http_method.upper()
+                    lowercase_method = http_method.lower()
+                    camelcase_method = lowercase_method.capitalize()
+                    camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
+                    lowercase_path = [x.strip().lower() for x in split_path]
+                    underscore_suffix = '_'.join([k for k in lowercase_path if len(k)])
 
-                    if camelcaseSuffix.find(camelcaseMethod) == 0:
-                        camelcaseSuffix = camelcaseSuffix[len(camelcaseMethod):]
+                    if camelcase_suffix.find(camelcase_method) == 0:
+                        camelcase_suffix = camelcase_suffix[len(camelcase_method):]
 
-                    if underscoreSuffix.find(lowercaseMethod) == 0:
-                        underscoreSuffix = underscoreSuffix[len(lowercaseMethod):]
+                    if underscore_suffix.find(lowercase_method) == 0:
+                        underscore_suffix = underscore_suffix[len(lowercase_method):]
 
-                    camelcase = apiType + camelcaseMethod + Exchange.capitalize(camelcaseSuffix)
-                    underscore = apiType + '_' + lowercaseMethod + '_' + underscoreSuffix.lower()
+                    camelcase = api_type + camelcase_method + Exchange.capitalize(camelcase_suffix)
+                    underscore = api_type + '_' + lowercase_method + '_' + underscore_suffix.lower()
 
                     if 'suffixes' in options:
                         if 'camelcase' in options['suffixes']:
@@ -170,7 +171,7 @@ class Exchange (object):
                         if 'underscore' in options['suffixes']:
                             underscore += options['suffixes']['underscore']
 
-                    partial = functools.partial(getattr(self, method_name), url, apiType, uppercaseMethod)
+                    partial = functools.partial(getattr(self, method_name), url, api_type, uppercase_method)
                     setattr(self, camelcase, partial)
                     setattr(self, underscore, partial)
 
@@ -447,7 +448,7 @@ class Exchange (object):
     @staticmethod
     def iso8601(timestamp):
         utc = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
-        return (utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z')
+        return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
 
     @staticmethod
     def YmdHMS(timestamp, infix=' '):
