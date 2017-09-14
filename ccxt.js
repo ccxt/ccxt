@@ -12040,9 +12040,8 @@ var huobi1 = {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        let id = this.accounts[0]['id'];
         let response = await this.privateGetAccountAccountsIdBalance (this.extend ({
-            'id': id,
+            'id': this.accounts[0]['id'],
         }, params));
         let balances = response['data']['list'];
         let result = { 'info': response };
@@ -12056,6 +12055,29 @@ var huobi1 = {
             result[currency] = account;
         }
         return result;
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        let market = this.market (symbol);
+        let order = {
+            'account-id': this.accounts[0]['id'],
+            'amount': amount.toFixed (10),
+            'symbol': market['id'],
+            'type': side + '-' + type,
+        };
+        if (type == 'limit')
+            order['price'] = price.toFixed (10);
+        let response = await this.privatePostOrderOrdersPlace (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['data'],
+        };
+    },
+
+    async cancelOrder (id) {
+        return this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -12080,12 +12102,13 @@ var huobi1 = {
             auth += '&' + this.urlencode ({ 'Signature': signature });
             if (method == 'GET') {
                 url += '?' + auth;
+            } else {
+                body = this.json (query);
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Content-Length': body.length,
+                };
             }
-            // body = this.urlencode (query);
-            // headers = {
-            //     'Content-Type': 'application/x-www-form-urlencoded',
-            //     'Content-Length': body.length,
-            // };
         } else {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);

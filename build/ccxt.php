@@ -12495,9 +12495,8 @@ class huobi1 extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $this->loadAccounts ();
-        $id = $this->accounts[0]['id'];
         $response = $this->privateGetAccountAccountsIdBalance (array_merge (array (
-            'id' => $id,
+            'id' => $this->accounts[0]['id'],
         ), $params));
         $balances = $response['data']['list'];
         $result = array ( 'info' => $response );
@@ -12511,6 +12510,29 @@ class huobi1 extends Exchange {
             $result[$currency] = $account;
         }
         return $result;
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets ();
+        $this->loadAccounts ();
+        $market = $this->market ($symbol);
+        $order = array (
+            'account-id' => $this->accounts[0]['id'],
+            'amount' => sprintf ('%10f', $amount),
+            'symbol' => $market['id'],
+            'type' => $side . '-' . $type,
+        );
+        if ($type == 'limit')
+            $order['price'] = sprintf ('%10f', $price);
+        $response = $this->privatePostOrderOrdersPlace (array_merge ($order, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['data'],
+        );
+    }
+
+    public function cancel_order ($id) {
+        return $this->privatePostOrderOrdersIdSubmitcancel (array ( 'id' => $id ));
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -12535,12 +12557,13 @@ class huobi1 extends Exchange {
             $auth .= '&' . $this->urlencode (array ( 'Signature' => $signature ));
             if ($method == 'GET') {
                 $url .= '?' . $auth;
+            } else {
+                $body = $this->json ($query);
+                $headers = array (
+                    'Content-Type' => 'application/json',
+                    'Content-Length' => strlen ($body),
+                );
             }
-            // $body = $this->urlencode ($query);
-            // $headers = array (
-            //     'Content-Type' => 'application/x-www-form-urlencoded',
-            //     'Content-Length' => strlen ($body),
-            // );
         } else {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);

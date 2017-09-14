@@ -10818,9 +10818,8 @@ class huobi1 (Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         await self.loadAccounts()
-        id = self.accounts[0]['id']
         response = await self.privateGetAccountAccountsIdBalance(self.extend({
-            'id': id,
+            'id': self.accounts[0]['id'],
         }, params))
         balances = response['data']['list']
         result = {'info': response}
@@ -10833,6 +10832,27 @@ class huobi1 (Exchange):
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
         return result
+
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        await self.load_markets()
+        await self.loadAccounts()
+        market = self.market(symbol)
+        order = {
+            'account-id': self.accounts[0]['id'],
+            'amount': '{:.10f}'.format(amount),
+            'symbol': market['id'],
+            'type': side + '-' + type,
+        }
+        if type == 'limit':
+            order['price'] = '{:.10f}'.format(price)
+        response = await self.privatePostOrderOrdersPlace(self.extend(order, params))
+        return {
+            'info': response,
+            'id': response['data'],
+        }
+
+    async def cancel_order(self, id):
+        return self.privatePostOrderOrdersIdSubmitcancel({'id': id})
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'
@@ -10856,11 +10876,12 @@ class huobi1 (Exchange):
             auth += '&' + self.urlencode({'Signature': signature})
             if method == 'GET':
                 url += '?' + auth
-            # body = self.urlencode(query)
-            # headers = {
-            #     'Content-Type': 'application/x-www-form-urlencoded',
-            #     'Content-Length': len(body),
-            #}
+            else:
+                body = self.json(query)
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Content-Length': len(body),
+                }
         else:
             if params:
                 url += '?' + self.urlencode(params)
