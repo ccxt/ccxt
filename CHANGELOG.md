@@ -1,5 +1,7 @@
 # Сhangelog
 
+## Version 1.7.x 2017-09-15
+
 - Added missing endpoints to Bitstamp v2, [#198](https://github.com/kroitor/ccxt/issues/198)
 - Added support for older Bitstamp v1 API, [#198](https://github.com/kroitor/ccxt/issues/198)
 - Removed BTC/USD market from Huobi, [#195](https://github.com/kroitor/ccxt/issues/195)
