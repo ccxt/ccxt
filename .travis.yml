@@ -1,7 +1,12 @@
 language: python
 python:
-  - "3.5"
-cache: pip
+  - "3.6"
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/.npm
+    - node_modules
+
 before_install:
 - set -e
 - . $HOME/.nvm/nvm.sh
@@ -14,10 +19,8 @@ before_install:
 - sudo apt-get install python3-pip
 - python3 --version
 - pip3 --version
-- pip install wheel
-- pip3 install wheel
-- sudo pip3 install --upgrade tox
-- sudo pip3 install twine
+- sudo -H pip3 install --upgrade setuptools pip wheel
+- sudo -H pip3 install --upgrade tox twine
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
 - npm run build
