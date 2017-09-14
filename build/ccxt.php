@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.6.109';
+$version = '1.7.0';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5464,11 +5464,24 @@ class bittrex extends Exchange {
             'version' => 'v1.1',
             'rateLimit' => 1500,
             'hasFetchTickers' => true,
+            'hasFetchOHLCV' => true,
             'hasFetchOrders' => true,
             'hasFetchOpenOrders' => true,
+            'timeframes' => array (
+                '1m' => 'oneMin',
+                '5m' => 'fiveMin',
+                '30m' => 'thirtyMin',
+                '1h' => 'hour',
+                '1d' => 'day',
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
-                'api' => 'https://bittrex.com/api',
+                'api' => array (
+                    'public' => 'https://bittrex.com/api',
+                    'account' => 'https://bittrex.com/api',
+                    'market' => 'https://bittrex.com/api',
+                    'v2' => 'https://bittrex.com/api/v2.0/pub',
+                ),
                 'www' => 'https://bittrex.com',
                 'doc' => array (
                     'https://bittrex.com/Home/Api',
@@ -5476,6 +5489,15 @@ class bittrex extends Exchange {
                 ),
             ),
             'api' => array (
+                'v2' => array (
+                    'get' => array (
+                        'currencies/GetBTCPrice',
+                        'market/GetTicks',
+                        'market/GetLatestTick',
+                        'Markets/GetMarketSummaries',
+                        'market/GetLatestTick',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         'currencies',
@@ -5657,6 +5679,29 @@ class bittrex extends Exchange {
         return $this->parse_trades ($response['result'], $market);
     }
 
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+        $timestamp = $this->parse8601 ($ohlcv['T']);
+        return [
+            $timestamp,
+            $ohlcv['O'],
+            $ohlcv['H'],
+            $ohlcv['L'],
+            $ohlcv['C'],
+            $ohlcv['V'],
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $request = array (
+            'tickInterval' => $this->timeframes[$timeframe],
+            'marketName' => $market['id'],
+        );
+        $response = $this->v2GetMarketGetTicks (array_merge ($request, $params));
+        return $this->parse_ohlcvs ($response['result'], $market, $timeframe, $since, $limit);
+    }
+
     public function fetch_open_orders ($symbol = null, $params = array ()) {
         $this->load_markets ();
         $request = array ();
@@ -5764,9 +5809,15 @@ class bittrex extends Exchange {
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/';
+        $url = $this->urls['api'][$api] . '/';
+        if ($api != 'v2')
+            $url .= $this->version . '/';
         if ($api == 'public') {
             $url .= $api . '/' . strtolower ($method) . $path;
+            if ($params)
+                $url .= '?' . $this->urlencode ($params);
+        } else if ($api == 'v2') {
+            $url .= $path;
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {

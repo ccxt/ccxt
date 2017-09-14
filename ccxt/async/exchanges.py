@@ -4228,11 +4228,24 @@ class bittrex (Exchange):
             'version': 'v1.1',
             'rateLimit': 1500,
             'hasFetchTickers': True,
+            'hasFetchOHLCV': True,
             'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
+            'timeframes': {
+                '1m': 'oneMin',
+                '5m': 'fiveMin',
+                '30m': 'thirtyMin',
+                '1h': 'hour',
+                '1d': 'day',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
-                'api': 'https://bittrex.com/api',
+                'api': {
+                    'public': 'https://bittrex.com/api',
+                    'account': 'https://bittrex.com/api',
+                    'market': 'https://bittrex.com/api',
+                    'v2': 'https://bittrex.com/api/v2.0/pub',
+                },
                 'www': 'https://bittrex.com',
                 'doc': [
                     'https://bittrex.com/Home/Api',
@@ -4240,6 +4253,15 @@ class bittrex (Exchange):
                 ],
             },
             'api': {
+                'v2': {
+                    'get': [
+                        'currencies/GetBTCPrice',
+                        'market/GetTicks',
+                        'market/GetLatestTick',
+                        'Markets/GetMarketSummaries',
+                        'market/GetLatestTick',
+                    ],
+                },
                 'public': {
                     'get': [
                         'currencies',
@@ -4408,6 +4430,27 @@ class bittrex (Exchange):
         }, params))
         return self.parse_trades(response['result'], market)
 
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+        timestamp = self.parse8601(ohlcv['T'])
+        return [
+            timestamp,
+            ohlcv['O'],
+            ohlcv['H'],
+            ohlcv['L'],
+            ohlcv['C'],
+            ohlcv['V'],
+        ]
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'tickInterval': self.timeframes[timeframe],
+            'marketName': market['id'],
+        }
+        response = await self.v2GetMarketGetTicks(self.extend(request, params))
+        return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
+
     async def fetch_open_orders(self, symbol=None, params={}):
         await self.load_markets()
         request = {}
@@ -4504,9 +4547,15 @@ class bittrex (Exchange):
         }
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/'
+        url = self.urls['api'][api] + '/'
+        if api != 'v2':
+            url += self.version + '/'
         if api == 'public':
             url += api + '/' + method.lower() + path
+            if params:
+                url += '?' + self.urlencode(params)
+        elif api == 'v2':
+            url += path
             if params:
                 url += '?' + self.urlencode(params)
         else:

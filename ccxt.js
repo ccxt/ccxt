@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.6.109'
+const version = '1.7.0'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -5162,11 +5162,24 @@ var bittrex = {
     'version': 'v1.1',
     'rateLimit': 1500,
     'hasFetchTickers': true,
+    'hasFetchOHLCV': true,
     'hasFetchOrders': true,
     'hasFetchOpenOrders': true,
+    'timeframes': {
+        '1m': 'oneMin',
+        '5m': 'fiveMin',
+        '30m': 'thirtyMin',
+        '1h': 'hour',
+        '1d': 'day',
+    },
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
-        'api': 'https://bittrex.com/api',
+        'api': {
+            'public': 'https://bittrex.com/api',
+            'account': 'https://bittrex.com/api',
+            'market': 'https://bittrex.com/api',
+            'v2': 'https://bittrex.com/api/v2.0/pub',
+        },
         'www': 'https://bittrex.com',
         'doc': [
             'https://bittrex.com/Home/Api',
@@ -5174,6 +5187,15 @@ var bittrex = {
         ],
     },
     'api': {
+        'v2': {
+            'get': [
+                'currencies/GetBTCPrice',
+                'market/GetTicks',
+                'market/GetLatestTick',
+                'Markets/GetMarketSummaries',
+                'market/GetLatestTick',
+            ],
+        },
         'public': {
             'get': [
                 'currencies',
@@ -5353,6 +5375,29 @@ var bittrex = {
         return this.parseTrades (response['result'], market);
     },
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
+        let timestamp = this.parse8601 (ohlcv['T']);
+        return [
+            timestamp,
+            ohlcv['O'],
+            ohlcv['H'],
+            ohlcv['L'],
+            ohlcv['C'],
+            ohlcv['V'],
+        ];
+    },
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'tickInterval': this.timeframes[timeframe],
+            'marketName': market['id'],
+        };
+        let response = await this.v2GetMarketGetTicks (this.extend (request, params));
+        return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
+    },
+
     async fetchOpenOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
@@ -5460,9 +5505,15 @@ var bittrex = {
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/';
+        let url = this.urls['api'][api] + '/';
+        if (api != 'v2')
+            url += this.version + '/';
         if (api == 'public') {
             url += api + '/' + method.toLowerCase () + path;
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
+        } else if (api == 'v2') {
+            url += path;
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
