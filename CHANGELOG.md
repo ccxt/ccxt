@@ -1,5 +1,8 @@
 # Сhangelog
 
+- Fixed empty cex DASH/USD fetchTicker
+- Added Bittrex v2 fetchOHLCV (alpha-stage of their new API)
+
 ## Version 1.7.x 2017-09-15
 
 - Added missing endpoints to Bitstamp v2, [#198](https://github.com/kroitor/ccxt/issues/198)
