@@ -1,7 +1,12 @@
 language: python
 python:
   - "3.5"
-cache: pip
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/.cache/bower
+    - $HOME/.npm
+
 before_install:
 - set -e
 - . $HOME/.nvm/nvm.sh
