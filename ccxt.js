@@ -7824,18 +7824,31 @@ var cex = {
 
     parseTicker (ticker, market) {
         let timestamp = parseInt (ticker['timestamp']) * 1000;
+        let volume = parseFloat (ticker['volume']);
+        let high = undefined;
+        let low = undefined;
+        let bid = undefined;
+        let ask = undefined;
+        let last = undefined;
+        if (volume > 0) {
+            high = parseFloat (ticker['high']);
+            low = parseFloat (ticker['low']);
+            bid = parseFloat (ticker['bid']);
+            ask = parseFloat (ticker['ask']);
+            last = parseFloat (ticker['last']);
+        }
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
+            'high': high,
+            'low': low,
+            'bid': bid,
+            'ask': ask,
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'last': last,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,

@@ -6765,18 +6765,30 @@ class cex (Exchange):
 
     def parse_ticker(self, ticker, market):
         timestamp = int(ticker['timestamp']) * 1000
+        volume = float(ticker['volume'])
+        high = None
+        low = None
+        bid = None
+        ask = None
+        last = None
+        if volume > 0:
+            high = float(ticker['high'])
+            low = float(ticker['low'])
+            bid = float(ticker['bid'])
+            ask = float(ticker['ask'])
+            last = float(ticker['last'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
-            'ask': float(ticker['ask']),
+            'high': high,
+            'low': low,
+            'bid': bid,
+            'ask': ask,
             'vwap': None,
             'open': None,
             'close': None,
             'first': None,
-            'last': float(ticker['last']),
+            'last': last,
             'change': None,
             'percentage': None,
             'average': None,

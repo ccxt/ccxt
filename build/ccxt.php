@@ -8185,18 +8185,31 @@ class cex extends Exchange {
 
     public function parse_ticker ($ticker, $market) {
         $timestamp = intval ($ticker['timestamp']) * 1000;
+        $volume = floatval ($ticker['volume']);
+        $high = null;
+        $low = null;
+        $bid = null;
+        $ask = null;
+        $last = null;
+        if ($volume > 0) {
+            $high = floatval ($ticker['high']);
+            $low = floatval ($ticker['low']);
+            $bid = floatval ($ticker['bid']);
+            $ask = floatval ($ticker['ask']);
+            $last = floatval ($ticker['last']);
+        }
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['bid']),
-            'ask' => floatval ($ticker['ask']),
+            'high' => $high,
+            'low' => $low,
+            'bid' => $bid,
+            'ask' => $ask,
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval ($ticker['last']),
+            'last' => $last,
             'change' => null,
             'percentage' => null,
             'average' => null,
