@@ -15681,6 +15681,22 @@ var poloniex = {
         };
     },
 
+    parseOpenOrders (orders, market, result = []) {
+        for (let i = 0; i < orders.length; i++) {
+            let order = orders[i];
+            let timestamp = this.parse8601 (order['date']);
+            let extended = this.extend (order, {
+                'timestamp': timestamp,
+                'status': 'open',
+                'type': 'limit',
+                'side': order['type'],
+                'price': order['rate'],
+            });
+            result.push (this.parseOrder (extended, market));
+        }
+        return result;
+    },
+
     async fetchOpenOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
@@ -15690,41 +15706,16 @@ var poloniex = {
         let response = await this.privatePostReturnOpenOrders (this.extend ({
             'currencyPair': pair,
         }));
+        if (market)
+            return this.parseOpenOrders (response, market);
+        let ids = Object.keys (response);
         let result = [];
-        if (market) {
-            let orders = response;
-            for (let i = 0; i < orders.length; i++) {
-                let order = orders[i];
-                let timestamp = this.parse8601 (order['date']);
-                let extended = this.extend (order, {
-                    'timestamp': timestamp,
-                    'status': 'open',
-                    'type': 'limit',
-                    'side': order['type'],
-                    'price': order['rate'],
-                });
-                result.push (this.parseOrder (extended, market));
-            }
-        } else {
-            let ids = Object.keys (response);
-            for (let i = 0; i < ids.length; i++) {
-                let id = ids[i];
-                let orders = response[id];
-                let market = this.markets_by_id[id];
-                let symbol = market['symbol'];
-                for (let o = 0; o < orders.length; o++) {
-                    let order = orders[o];
-                    let timestamp = this.parse8601 (order['date']);
-                    let extended = this.extend (order, {
-                        'timestamp': timestamp,
-                        'status': 'open',
-                        'type': 'limit',
-                        'side': order['type'],
-                        'price': order['rate'],
-                    });
-                    result.push (this.parseOrder (extended, market));
-                }
-            }
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let orders = response[id];
+            let market = this.markets_by_id[id];
+            let symbol = market['symbol'];
+            this.parseOpenOrders (orders, market, result);
         }
         return result;
     },

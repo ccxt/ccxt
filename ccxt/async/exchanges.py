@@ -14298,6 +14298,20 @@ class poloniex (Exchange):
             'trades': trades,
         }
 
+    def parseOpenOrders(self, orders, market, result=[]):
+        for i in range(0, len(orders)):
+            order = orders[i]
+            timestamp = self.parse8601(order['date'])
+            extended = self.extend(order, {
+                'timestamp': timestamp,
+                'status': 'open',
+                'type': 'limit',
+                'side': order['type'],
+                'price': order['rate'],
+            })
+            result.append(self.parse_order(extended, market))
+        return result
+
     async def fetch_open_orders(self, symbol=None, params={}):
         await self.load_markets()
         market = None
@@ -14307,38 +14321,16 @@ class poloniex (Exchange):
         response = await self.privatePostReturnOpenOrders(self.extend({
             'currencyPair': pair,
         }))
-        result = []
         if market:
-            orders = response
-            for i in range(0, len(orders)):
-                order = orders[i]
-                timestamp = self.parse8601(order['date'])
-                extended = self.extend(order, {
-                    'timestamp': timestamp,
-                    'status': 'open',
-                    'type': 'limit',
-                    'side': order['type'],
-                    'price': order['rate'],
-                })
-                result.append(self.parse_order(extended, market))
-        else:
-            ids = list(response.keys())
-            for i in range(0, len(ids)):
-                id = ids[i]
-                orders = response[id]
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
-                for o in range(0, len(orders)):
-                    order = orders[o]
-                    timestamp = self.parse8601(order['date'])
-                    extended = self.extend(order, {
-                        'timestamp': timestamp,
-                        'status': 'open',
-                        'type': 'limit',
-                        'side': order['type'],
-                        'price': order['rate'],
-                    })
-                    result.append(self.parse_order(extended, market))
+            return self.parseOpenOrders(response, market)
+        ids = list(response.keys())
+        result = []
+        for i in range(0, len(ids)):
+            id = ids[i]
+            orders = response[id]
+            market = self.markets_by_id[id]
+            symbol = market['symbol']
+            self.parseOpenOrders(orders, market, result)
         return result
 
     async def fetch_order_status(self, id, market=None):

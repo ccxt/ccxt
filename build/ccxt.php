@@ -16208,6 +16208,22 @@ class poloniex extends Exchange {
         );
     }
 
+    public function parseOpenOrders ($orders, $market, $result = []) {
+        for ($i = 0; $i < count ($orders); $i++) {
+            $order = $orders[$i];
+            $timestamp = $this->parse8601 ($order['date']);
+            $extended = array_merge ($order, array (
+                'timestamp' => $timestamp,
+                'status' => 'open',
+                'type' => 'limit',
+                'side' => $order['type'],
+                'price' => $order['rate'],
+            ));
+            $result[] = $this->parse_order ($extended, $market);
+        }
+        return $result;
+    }
+
     public function fetch_open_orders ($symbol = null, $params = array ()) {
         $this->load_markets ();
         $market = null;
@@ -16217,41 +16233,16 @@ class poloniex extends Exchange {
         $response = $this->privatePostReturnOpenOrders (array_merge (array (
             'currencyPair' => $pair,
         )));
+        if ($market)
+            return $this->parseOpenOrders ($response, $market);
+        $ids = array_keys ($response);
         $result = array ();
-        if ($market) {
-            $orders = $response;
-            for ($i = 0; $i < count ($orders); $i++) {
-                $order = $orders[$i];
-                $timestamp = $this->parse8601 ($order['date']);
-                $extended = array_merge ($order, array (
-                    'timestamp' => $timestamp,
-                    'status' => 'open',
-                    'type' => 'limit',
-                    'side' => $order['type'],
-                    'price' => $order['rate'],
-                ));
-                $result[] = $this->parse_order ($extended, $market);
-            }
-        } else {
-            $ids = array_keys ($response);
-            for ($i = 0; $i < count ($ids); $i++) {
-                $id = $ids[$i];
-                $orders = $response[$id];
-                $market = $this->markets_by_id[$id];
-                $symbol = $market['symbol'];
-                for ($o = 0; $o < count ($orders); $o++) {
-                    $order = $orders[$o];
-                    $timestamp = $this->parse8601 ($order['date']);
-                    $extended = array_merge ($order, array (
-                        'timestamp' => $timestamp,
-                        'status' => 'open',
-                        'type' => 'limit',
-                        'side' => $order['type'],
-                        'price' => $order['rate'],
-                    ));
-                    $result[] = $this->parse_order ($extended, $market);
-                }
-            }
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $orders = $response[$id];
+            $market = $this->markets_by_id[$id];
+            $symbol = $market['symbol'];
+            $this->parseOpenOrders ($orders, $market, $result);
         }
         return $result;
     }
