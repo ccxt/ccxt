@@ -1,6 +1,6 @@
 # CCXT – CryptoCurrency eXchange Trading Library
 
-[![Build Status](https://travis-ci.org/kroitor/ccxt.svg?branch=master)](https://travis-ci.org/kroitor/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Try ccxt on RunKit](https://badge.runkitcdn.com/ccxt.svg)](https://npm.runkit.com/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-78-blue.svg)](https://github.com/kroitor/ccxt/wiki/Exchange-Markets)
+[![Build Status](https://travis-ci.org/kroitor/ccxt.svg?branch=master)](https://travis-ci.org/kroitor/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Try ccxt on RunKit](https://badge.runkitcdn.com/ccxt.svg)](https://npm.runkit.com/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-80-blue.svg)](https://github.com/kroitor/ccxt/wiki/Exchange-Markets)
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
@@ -21,7 +21,7 @@ Current featurelist:
 
 ## Supported Cryptocurrency Exchange Markets
 
-The ccxt library currently supports the following 78 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 80 cryptocurrency exchange markets and trading APIs:
 
 |                                                                                                                      | id            | name                                                 | ver | doc                                                                                         | countries                               |
 |----------------------------------------------------------------------------------------------------------------------|---------------|------------------------------------------------------|:---:|:-------------------------------------------------------------------------------------------:|-----------------------------------------|
@@ -76,6 +76,8 @@ The ccxt library currently supports the following 78 cryptocurrency exchange mar
 |![hitbtc](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)        | hitbtc        | [HitBTC](https://hitbtc.com)                         | 1   | [API](https://hitbtc.com/api)                                                               | Hong Kong                               |
 |![hitbtc2](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)       | hitbtc2       | [HitBTC v2](https://hitbtc.com)                      | 2   | [API](https://api.hitbtc.com/api/2/explore)                                                 | Hong Kong                               |
 |![huobi](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)         | huobi         | [Huobi](https://www.huobi.com)                       | 3   | [API](https://github.com/huobiapi/API_Docs_en/wiki)                                         | China                                   |
+|![huobicny](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)      | huobicny      | [Huobi CNY](https://www.huobi.com)                   | 1   | [API](https://github.com/huobiapi/API_Docs/wiki/REST_api_reference)                         | China                                   |
+|![huobipro](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)      | huobipro      | [Huobi Pro](https://www.huobi.pro)                   | 1   | [API](https://github.com/huobiapi/API_Docs/wiki/REST_api_reference)                         | China                                   |
 |![itbit](https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg)         | itbit         | [itBit](https://www.itbit.com)                       | 1   | [API](https://api.itbit.com/docs)                                                           | US                                      |
 |![jubi](https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg)          | jubi          | [jubi.com](https://www.jubi.com)                     | 1   | [API](https://www.jubi.com/help/api.html)                                                   | China                                   |
 |![kraken](https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg)        | kraken        | [Kraken](https://www.kraken.com)                     | 0   | [API](https://www.kraken.com/en-us/help/api)                                                | US                                      |

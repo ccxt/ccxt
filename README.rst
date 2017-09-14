@@ -11,7 +11,7 @@ CCXT – CryptoCurrency eXchange Trading Library
     :target: https://www.npmjs.com/package/ccxt
 .. image:: https://badge.runkitcdn.com/ccxt.svg
     :target: https://npm.runkit.com/ccxt
-.. image:: https://img.shields.io/badge/exchanges-78-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-80-blue.svg
     :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
@@ -34,7 +34,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 78 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 80 cryptocurrency exchange markets and trading APIs:
 
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id              | name                                                      | ver   | doc                                                                                              | countries                                  |
@@ -140,6 +140,10 @@ The ccxt library currently supports the following 78 cryptocurrency exchange mar
 | hitbtc2         | `HitBTC v2 <https://hitbtc.com>`__                        | 2     | `API <https://api.hitbtc.com/api/2/explore>`__                                                   | Hong Kong                                  |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | huobi           | `Huobi <https://www.huobi.com>`__                         | 3     | `API <https://github.com/huobiapi/API_Docs_en/wiki>`__                                           | China                                      |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| huobicny        | `Huobi CNY <https://www.huobi.com>`__                     | 1     | `API <https://github.com/huobiapi/API_Docs/wiki/REST_api_reference>`__                           | China                                      |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| huobipro        | `Huobi Pro <https://www.huobi.pro>`__                     | 1     | `API <https://github.com/huobiapi/API_Docs/wiki/REST_api_reference>`__                           | China                                      |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | itbit           | `itBit <https://www.itbit.com>`__                         | 1     | `API <https://api.itbit.com/docs>`__                                                             | US                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+

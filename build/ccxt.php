@@ -187,6 +187,8 @@ class Exchange {
         'hitbtc',
         'hitbtc2',
         'huobi',
+        'huobicny',
+        'huobipro',
         'itbit',
         'jubi',
         'kraken',
@@ -388,7 +390,7 @@ class Exchange {
     }
 
     public static function YmdHMS ($timestamp, $infix = ' ') {
-        return gmdate ('Y-m-d' . $infix . 'H:i:s', (int) round ($timestamp / 1000));
+        return gmdate ('Y-m-d\\' . $infix . 'H:i:s', (int) round ($timestamp / 1000));
     }
 
     public static function binary_concat () {
@@ -12287,8 +12289,8 @@ class huobi1 extends Exchange {
             'rateLimit' => 2000,
             'version' => 'v1',
             'hasFetchOHLCV' => true,
-            'accounts' => undefined,
-            'accountsById' => undefined,
+            'accounts' => null,
+            'accountsById' => null,
             'timeframes' => array (
                 '1m' => '1min',
                 '5m' => '5min',
@@ -12370,6 +12372,10 @@ class huobi1 extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market) {
+        var_dump ($ticker);
+        $last = null;
+        if (array_key_exists ('last', $ticker))
+            $last = $ticker['last'];
         return array (
             'timestamp' => $ticker['ts'],
             'datetime' => $this->iso8601 ($ticker['ts']),
@@ -12381,7 +12387,7 @@ class huobi1 extends Exchange {
             'open' => $ticker['open'],
             'close' => $ticker['close'],
             'first' => null,
-            'last' => $ticker['last'],
+            'last' => $last,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -12424,12 +12430,13 @@ class huobi1 extends Exchange {
         );
     }
 
-    public function parse_tradesData ($data, $market) {
+    public function parse_trades_data ($data, $market) {
         $result = array ();
         for ($i = 0; $i < count ($data); $i++) {
             $trades = $this->parse_trades ($data[$i]['data'], $market);
-            for ($k = 0; $k < count ($trades); $k++)
+            for ($k = 0; $k < count ($trades); $k++) {
                 $result[] = $trades[$k];
+            }
         }
         return $result;
     }
@@ -12441,7 +12448,7 @@ class huobi1 extends Exchange {
             'symbol' => $market['id'],
             'size' => 2000,
         ), $params));
-        return $this->parse_tradesData ($response['data'], $market);
+        return $this->parse_trades_data ($response['data'], $market);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
@@ -12494,7 +12501,7 @@ class huobi1 extends Exchange {
         $response = $this->privateGetAccountAccountsIdBalance (array_merge (array (
             'id' => $id,
         ), $params));
-        $balances = $response['data']['list']
+        $balances = $response['data']['list'];
         $result = array ( 'info' => $response );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
@@ -12518,7 +12525,6 @@ class huobi1 extends Exchange {
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'private') {
             $timestamp = $this->YmdHMS ($this->milliseconds (), 'T');
-            var_dump ($timestamp);
             $request = $this->keysort (array_merge (array (
                 'SignatureMethod' => 'HmacSHA256',
                 'SignatureVersion' => '2',

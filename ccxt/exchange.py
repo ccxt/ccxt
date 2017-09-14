@@ -451,7 +451,7 @@ class Exchange (object):
 
     @staticmethod
     def YmdHMS(timestamp, infix=' '):
-        return datetime.datetime.fromtimestamp(int(round(timestamp / 1000))).strftime('%Y-%m-%d' + infix + '%H:%M:%S')
+        return datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000))).strftime('%Y-%m-%d' + infix + '%H:%M:%S')
 
     @staticmethod
     def parse8601(timestamp):

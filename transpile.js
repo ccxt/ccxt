@@ -48,6 +48,7 @@ while (exchanges = regex.exec (contents)) {
         .join ("\n        ")
         .replace (/ true/g, ' True')
         .replace (/ false/g, ' False')
+        .replace (/ undefined/g, ' None')
         .replace (/ \/\//g, ' #')
         .replace (/\{ /g, '{')              // PEP8 E201
         .replace (/\[ /g, '[')              // PEP8 E201
@@ -63,18 +64,27 @@ while (exchanges = regex.exec (contents)) {
         py.push ('        ' + pyParams + ((all.length > 1) ? ',' : ''))
         py.push ('        }')
         py.push ('        params.update(config)')
-        py.push ('        super(' + id + ', self).__init__(params)')        
+        py.push ('        super(' + id + ', self).__init__(params)')
     }
 
     pyAddClass (py);
     pyAddClass (pyAsync);
+
+    let phParams = params
+        .join ("\n        ")
+        .replace (/ undefined/g, ' null')
+        .replace (/': /g, "' => ")
+        .replace (/ {/g, ' array (')
+        .replace (/ \[/g, ' array (')
+        .replace (/\}([\,\n]|$)/g, ')$1')
+        .replace (/\]/g, ')')
 
     ph.push ('')
     ph.push ('class ' + id + ' extends ' + (parent ? parent : 'Exchange') + ' {')
     ph.push ('')
     ph.push ('    public function __construct ($options = array ()) {')
     ph.push ('        parent::__construct (array_merge(array (')
-    ph.push ('        ' + params.join ("\n        ").replace (/': /g, "' => ").replace (/ {/g, ' array (').replace (/ \[/g, ' array (').replace (/\}([\,\n]|$)/g, ')$1').replace (/\]/g, ')') + ((all.length > 1) ? ',' : ''))
+    ph.push ('        ' +  phParams + ((all.length > 1) ? ',' : ''))
     ph.push ('        ), $options));')
     ph.push ('    }')
 
@@ -99,6 +109,7 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('fetchTickers',      'fetch_tickers')
                         .replace ('fetchTicker',       'fetch_ticker')
                         .replace ('parseTicker',       'parse_ticker')
+                        .replace ('parseTradesData',   'parse_trades_data')
                         .replace ('parseTrades',       'parse_trades')
                         .replace ('parseTrade',        'parse_trade')
                         .replace ('parseOrderBook',    'parse_order_book')
@@ -154,6 +165,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.parseOHLCVs/g, '.parse_ohlcvs'],
             [ /\.parseOHLCV/g, '.parse_ohlcv'],
             [ /\.parseTicker\s/g, '.parse_ticker'],
+            [ /\.parseTradesData\s/g, '.parse_trades_data'],
             [ /\.parseTrades\s/g, '.parse_trades'],
             [ /\.parseTrade\s/g, '.parse_trade'],
             [ /\.parseOrderBook\s/g, '.parse_order_book'],
@@ -241,6 +253,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.parseOHLCVs/g, '.parse_ohlcvs'],
             [ /\.parseOHLCV/g, '.parse_ohlcv'],
             [ /\.parseTicker/g, '.parse_ticker'],
+            [ /\.parseTradesData/g, '.parse_trades_data'],
             [ /\.parseTrades/g, '.parse_trades'],
             [ /\.parseTrade/g, '.parse_trade'],
             [ /\.parseOrderBook/g, '.parse_order_book'],
@@ -328,12 +341,14 @@ while (exchanges = regex.exec (contents)) {
             pyBody = pyBody.replace (orderedRegex, '\.ordered ([' + replaced + '])')
         }
 
+        let pyString = 'def ' + method + '(self' + (pyArgs.length ? ', ' + pyArgs.replace (/undefined/g, 'None').replace (/false/g, 'False').replace (/true/g, 'True') : '') + '):'
+
         py.push ('');
-        py.push ('    def ' + method + '(self' + (pyArgs.length ? ', ' + pyArgs.replace (/undefined/g, 'None') : '') + '):');
+        py.push ('    ' + pyString);
         py.push (pyBody);
 
         pyAsync.push ('');
-        pyAsync.push ('    ' + keyword + 'def ' + method + '(self' + (pyArgs.length ? ', ' + pyArgs.replace (/undefined/g, 'None') : '') + '):');
+        pyAsync.push ('    ' + keyword + pyString);
         pyAsync.push (pyBodyAsync);
 
         let phBody = regexAll (body, phRegex.concat (phVarsRegex))

@@ -78,6 +78,8 @@ exchanges = [
     'hitbtc',
     'hitbtc2',
     'huobi',
+    'huobicny',
+    'huobipro',
     'itbit',
     'jubi',
     'kraken',
@@ -10708,8 +10710,8 @@ class huobi1 (Exchange):
             'rateLimit': 2000,
             'version': 'v1',
             'hasFetchOHLCV': True,
-            'accounts': undefined,
-            'accountsById': undefined,
+            'accounts': None,
+            'accountsById': None,
             'timeframes': {
                 '1m': '1min',
                 '5m': '5min',
@@ -10790,6 +10792,10 @@ class huobi1 (Exchange):
         return result
 
     def parse_ticker(self, ticker, market):
+        print(ticker)
+        last = None
+        if 'last' in ticker:
+            last = ticker['last']
         return {
             'timestamp': ticker['ts'],
             'datetime': self.iso8601(ticker['ts']),
@@ -10801,7 +10807,7 @@ class huobi1 (Exchange):
             'open': ticker['open'],
             'close': ticker['close'],
             'first': None,
-            'last': ticker['last'],
+            'last': last,
             'change': None,
             'percentage': None,
             'average': None,
@@ -10840,11 +10846,11 @@ class huobi1 (Exchange):
             'amount': trade['amount'],
         }
 
-    def parse_tradesData(self, data, market):
+    def parse_trades_data(self, data, market):
         result = []
         for i in range(0, len(data)):
             trades = self.parse_trades(data[i]['data'], market)
-            for(k = 0 k < len(trades) k++)
+            for k in range(0, len(trades)):
                 result.append(trades[k])
         return result
 
@@ -10855,7 +10861,7 @@ class huobi1 (Exchange):
             'symbol': market['id'],
             'size': 2000,
         }, params))
-        return self.parseTradesData(response['data'], market)
+        return self.parse_trades_data(response['data'], market)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
@@ -10877,7 +10883,7 @@ class huobi1 (Exchange):
         }, params))
         return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
 
-    def loadAccounts(self, reload=false):
+    def loadAccounts(self, reload=False):
         if reload:
             self.accounts = self.fetchAccounts()
         else:
@@ -10923,7 +10929,6 @@ class huobi1 (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
             timestamp = self.YmdHMS(self.milliseconds(), 'T')
-            print(timestamp)
             request = self.keysort(self.extend({
                 'SignatureMethod': 'HmacSHA256',
                 'SignatureVersion': '2',

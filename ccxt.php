@@ -187,6 +187,8 @@ class Exchange {
         'hitbtc',
         'hitbtc2',
         'huobi',
+        'huobicny',
+        'huobipro',
         'itbit',
         'jubi',
         'kraken',
@@ -388,7 +390,7 @@ class Exchange {
     }
 
     public static function YmdHMS ($timestamp, $infix = ' ') {
-        return gmdate ('Y-m-d' . $infix . 'H:i:s', (int) round ($timestamp / 1000));
+        return gmdate ('Y-m-d\\' . $infix . 'H:i:s', (int) round ($timestamp / 1000));
     }
 
     public static function binary_concat () {

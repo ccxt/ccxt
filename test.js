@@ -340,7 +340,7 @@ let testExchange = async exchange => {
 
     log.green ('SYMBOL:', symbol)
     if ((symbol.indexOf ('.d') < 0)) {
-        // await testExchangeSymbol (exchange, symbol)
+        await testExchangeSymbol (exchange, symbol)
     }
 
     if (!exchange.apiKey || (exchange.apiKey.length < 1))

@@ -11917,6 +11917,10 @@ var huobi1 = {
     },
 
     parseTicker (ticker, market) {
+        console.log (ticker);
+        let last = undefined;
+        if ('last' in ticker)
+            last = ticker['last'];
         return {
             'timestamp': ticker['ts'],
             'datetime': this.iso8601 (ticker['ts']),
@@ -11928,7 +11932,7 @@ var huobi1 = {
             'open': ticker['open'],
             'close': ticker['close'],
             'first': undefined,
-            'last': ticker['last'],
+            'last': last,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -11975,8 +11979,9 @@ var huobi1 = {
         let result = [];
         for (let i = 0; i < data.length; i++) {
             let trades = this.parseTrades (data[i]['data'], market);
-            for (let k = 0; k < trades.length; k++)
+            for (let k = 0; k < trades.length; k++) {
                 result.push (trades[k]);
+            }
         }
         return result;
     },
@@ -12041,7 +12046,7 @@ var huobi1 = {
         let response = await this.privateGetAccountAccountsIdBalance (this.extend ({
             'id': id,
         }, params));
-        let balances = response['data']['list']
+        let balances = response['data']['list'];
         let result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
@@ -12065,7 +12070,6 @@ var huobi1 = {
         let query = this.omit (params, this.extractParams (path));
         if (api == 'private') {
             let timestamp = this.YmdHMS (this.milliseconds (), 'T');
-            console.log (timestamp);
             let request = this.keysort (this.extend ({
                 'SignatureMethod': 'HmacSHA256',
                 'SignatureVersion': '2',
