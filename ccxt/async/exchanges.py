@@ -16527,6 +16527,7 @@ class zaif (Exchange):
         return self.parse_orders(response['return'], market)
 
     async def fetchClosedOrders(self, symbol=None, params={}):
+        await self.load_markets()
         market = None
         # request = {
         #     'from': 0,
@@ -16544,6 +16545,23 @@ class zaif (Exchange):
             request['currency_pair'] = market['id']
         response = await self.privatePostTradeHistory(self.extend(request, params))
         return self.parse_orders(response['return'], market)
+
+    async def withdraw(self, currency, amount, address, params={}):
+        await self.load_markets()
+        if currency == 'JPY':
+            raise ExchangeError(self.id + ' does not allow ' + currency + ' withdrawals')
+        result = await self.privatePostWithdraw(self.extend({
+            'currency': currency,
+            'amount': amount,
+            'address': address,
+            # 'message': 'Hinot ', # XEM only
+            # 'opt_fee': 0.003, # BTC and MONA only
+        }, params))
+        return {
+            'info': result,
+            'id': result['return']['txid'],
+            'fee': result['return']['fee'],
+        }
 
     async def request(self, path, api='api', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/'

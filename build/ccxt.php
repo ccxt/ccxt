@@ -18585,6 +18585,7 @@ class zaif extends Exchange {
     }
 
     public function fetchClosedOrders ($symbol = null, $params = array ()) {
+        $this->load_markets ();
         $market = null;
         // $request = array (
         //     'from' => 0,
@@ -18603,6 +18604,24 @@ class zaif extends Exchange {
         }
         $response = $this->privatePostTradeHistory (array_merge ($request, $params));
         return $this->parse_orders ($response['return'], $market);
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        if ($currency == 'JPY')
+            throw new ExchangeError ($this->id . ' does not allow ' . $currency . ' withdrawals');
+        $result = $this->privatePostWithdraw (array_merge (array (
+            'currency' => $currency,
+            'amount' => $amount,
+            'address' => $address,
+            // 'message' => 'Hi!', // XEM only
+            // 'opt_fee' => 0.003, // BTC and MONA only
+        ), $params));
+        return array (
+            'info' => $result,
+            'id' => $result['return']['txid'],
+            'fee' => $result['return']['fee'],
+        );
     }
 
     public function request ($path, $api = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -18004,6 +18004,7 @@ var zaif = {
     },
 
     async fetchClosedOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = undefined;
         // let request = {
         //     'from': 0,
@@ -18022,6 +18023,24 @@ var zaif = {
         }
         let response = await this.privatePostTradeHistory (this.extend (request, params));
         return this.parseOrders (response['return'], market);
+    },
+
+    async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
+        if (currency == 'JPY')
+            throw new ExchangeError (this.id + ' does not allow ' + currency + ' withdrawals');
+        let result = await this.privatePostWithdraw (this.extend ({
+            'currency': currency,
+            'amount': amount,
+            'address': address,
+            // 'message': 'Hi!', // XEM only
+            // 'opt_fee': 0.003, // BTC and MONA only
+        }, params));
+        return {
+            'info': result,
+            'id': result['return']['txid'],
+            'fee': result['return']['fee'],
+        };
     },
 
     async request (path, api = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
