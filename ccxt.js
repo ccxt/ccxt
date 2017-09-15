@@ -699,6 +699,7 @@ const Exchange = function (config) {
     this.milliseconds    = Date.now
     this.nonce           = this.seconds
     this.id              = undefined
+    this.enableRateLimit = false
     this.rateLimit       = 2000  // milliseconds = seconds * 1000
     this.timeout         = 10000 // milliseconds = seconds * 1000
     this.verbose         = false
