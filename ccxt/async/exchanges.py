@@ -4493,7 +4493,7 @@ class bittrex (Exchange):
 
     async def cancel_order(self, id):
         await self.load_markets()
-        return self.marketGetCancel({'uuid': id})
+        return await self.marketGetCancel({'uuid': id})
 
     def parse_order(self, order, market=None):
         side = None
