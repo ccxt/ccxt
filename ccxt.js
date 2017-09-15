@@ -7894,8 +7894,17 @@ var cex = {
     },
 
     parseTicker (ticker, market) {
-        let timestamp = parseInt (ticker['timestamp']) * 1000;
-        let volume = parseFloat (ticker['volume']);
+        let timestamp = undefined;
+        let iso8601 = undefined;
+        if ('timestamp' in ticker) {
+            timestamp = parseInt (ticker['timestamp']) * 1000;
+            iso8601 = this.iso8601 (timestamp);
+        }
+        let volume = undefined;
+        if ('volume' in ticker)
+            volume = parseFloat (ticker['volume']);
+        else
+            throw new ExchangeError (this.id + ' unrecognized ticker ' + this.json (ticker));
         let high = undefined;
         let low = undefined;
         let bid = undefined;
@@ -7910,7 +7919,7 @@ var cex = {
         }
         return {
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': iso8601,
             'high': high,
             'low': low,
             'bid': bid,
@@ -7924,7 +7933,7 @@ var cex = {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['volume']),
+            'quoteVolume': volume,
             'info': ticker,
         };
     },

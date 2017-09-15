@@ -6916,8 +6916,16 @@ class cex (Exchange):
         return self.parse_order_book(orderbook, timestamp)
 
     def parse_ticker(self, ticker, market):
-        timestamp = int(ticker['timestamp']) * 1000
-        volume = float(ticker['volume'])
+        timestamp = None
+        iso8601 = None
+        if 'timestamp' in ticker:
+            timestamp = int(ticker['timestamp']) * 1000
+            iso8601 = self.iso8601(timestamp)
+        volume = None
+        if 'volume' in ticker:
+            volume = float(ticker['volume'])
+        else:
+            raise ExchangeError(self.id + ' unrecognized ticker ' + self.json(ticker))
         high = None
         low = None
         bid = None
@@ -6931,7 +6939,7 @@ class cex (Exchange):
             last = float(ticker['last'])
         return {
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': iso8601,
             'high': high,
             'low': low,
             'bid': bid,
@@ -6945,7 +6953,7 @@ class cex (Exchange):
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': float(ticker['volume']),
+            'quoteVolume': volume,
             'info': ticker,
         }
 

@@ -8255,8 +8255,17 @@ class cex extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market) {
-        $timestamp = intval ($ticker['timestamp']) * 1000;
-        $volume = floatval ($ticker['volume']);
+        $timestamp = null;
+        $iso8601 = null;
+        if (array_key_exists ('timestamp', $ticker)) {
+            $timestamp = intval ($ticker['timestamp']) * 1000;
+            $iso8601 = $this->iso8601 ($timestamp);
+        }
+        $volume = null;
+        if (array_key_exists ('volume', $ticker))
+            $volume = floatval ($ticker['volume']);
+        else
+            throw new ExchangeError ($this->id . ' unrecognized $ticker ' . $this->json ($ticker));
         $high = null;
         $low = null;
         $bid = null;
@@ -8271,7 +8280,7 @@ class cex extends Exchange {
         }
         return array (
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $iso8601,
             'high' => $high,
             'low' => $low,
             'bid' => $bid,
@@ -8285,7 +8294,7 @@ class cex extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'quoteVolume' => $volume,
             'info' => $ticker,
         );
     }
