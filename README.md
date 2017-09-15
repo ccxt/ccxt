@@ -4,7 +4,7 @@
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
-The **CCXT** library is used to connect and trade with cryptocurrency / altcoin exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, webshop integration and related software engineering. 
+The **CCXT** library is used to connect and trade with cryptocurrency / altcoin exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, webshop integration and related software engineering.
 
 It is intended to be used by **coders, developers, technically-skilled traders, data-scientists and financial analysts** for building trading algorithms on top of it.
 
@@ -132,7 +132,7 @@ You can also clone it into your project directory from [ccxt GitHub repository](
 git clone https://github.com/kroitor/ccxt.git
 ```
 
-An alternative way of installing this library into your code is to copy a single file manually into your working directory with language extension appropriate for your environment. 
+An alternative way of installing this library into your code is to copy a single file manually into your working directory with language extension appropriate for your environment.
 
 ### JavaScript (NPM)
 
@@ -203,7 +203,7 @@ var_dump (\cxxt\Exchange::$exchanges); // print a list of all available exchange
 
 ### Intro
 
-The ccxt library consists of a public part and a private part. Anyone can use the public part out-of-the-box immediately after installation. Public APIs open access to public information from all exchange markets without registering user accounts and without having API keys. 
+The ccxt library consists of a public part and a private part. Anyone can use the public part out-of-the-box immediately after installation. Public APIs open access to public information from all exchange markets without registering user accounts and without having API keys.
 
 Public APIs include the following:
 
@@ -274,8 +274,8 @@ var ccxt = require ('ccxt')
 
     // buy 1 BTC/USD for $2500, you pay $2500 and receive 1 BTC when the order is closed
     console.log (okcoinusd.id, await okcoinusd.createLimitBuyOrder ('BTC/USD', 1, 2500.00))
-    
-    // pass/redefine custom exchange-specific order params: type, amount, price or whatever 
+
+    // pass/redefine custom exchange-specific order params: type, amount, price or whatever
     // use a custom order type
     bitfinex.createLimitSellOrder ('BTC/USD', 1, 10, { 'type': 'trailing-stop' })
 }) ()
@@ -360,7 +360,7 @@ Please read the [CONTRIBUTING](https://github.com/kroitor/ccxt/blob/master/CONTR
 
 ## Public Offer
 
-Developer team is open to collaboration and available for hiring and outsourcing. 
+Developer team is open to collaboration and available for hiring and outsourcing.
 
 We can:
 
@@ -389,6 +389,7 @@ Please, contact us on GitHub or by email if you're interested in integrating thi
 
 ## Support CCXT Development
 
-BTC: 1N1kptzFWbSLKLPJTNYDKq2FkTojb5s8qX
-
-ETH: 0x811DCfeb6dC0b9ed825808B6B060Ca469b83fB81
+```
+BTC 1N1kptzFWbSLKLPJTNYDKq2FkTojb5s8qX
+ETH 0x811DCfeb6dC0b9ed825808B6B060Ca469b83fB81
+```
