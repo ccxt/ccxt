@@ -1574,6 +1574,7 @@ class acx extends Exchange {
                         'orders/multi', // Create multiple sell/buy orders
                         'orders/clear', // Cancel all my orders
                         'order/delete', // Cancel an order
+                        'withdraw', // Create a withdraw
                     ),
                 ),
             ),
@@ -1771,6 +1772,19 @@ class acx extends Exchange {
     public function cancel_order ($id) {
         $this->load_markets ();
         return $this->privatePostOrderDelete (array ( 'id' => $id ));
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $result = $this->privatePostWithdraw (array_merge (array (
+            'currency' => strtolower ($currency),
+            'sum' => $amount,
+            'address' => $address,
+        ), $params));
+        return array (
+            'info' => $result,
+            'id' => null,
+        );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

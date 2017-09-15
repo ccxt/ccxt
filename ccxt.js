@@ -1332,6 +1332,7 @@ var acx = {
                 'orders/multi', // Create multiple sell/buy orders
                 'orders/clear', // Cancel all my orders
                 'order/delete', // Cancel an order
+                'withdraw', // Create a withdraw
             ],
         },
     },
@@ -1527,6 +1528,19 @@ var acx = {
     async cancelOrder (id) {
         await this.loadMarkets ();
         return this.privatePostOrderDelete ({ 'id': id });
+    },
+
+    async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let result = await this.privatePostWithdraw (this.extend ({
+            'currency': currency.toLowerCase (),
+            'sum': amount,
+            'address': address,
+        }, params));
+        return {
+            'info': result,
+            'id': undefined,
+        };
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

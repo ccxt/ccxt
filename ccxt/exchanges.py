@@ -684,6 +684,7 @@ class acx (Exchange):
                         'orders/multi', # Create multiple sell/buy orders
                         'orders/clear', # Cancel all my orders
                         'order/delete', # Cancel an order
+                        'withdraw', # Create a withdraw
                     ],
                 },
             },
@@ -866,6 +867,18 @@ class acx (Exchange):
     def cancel_order(self, id):
         self.load_markets()
         return self.privatePostOrderDelete({'id': id})
+
+    def withdraw(self, currency, amount, address, params={}):
+        self.load_markets()
+        result = self.privatePostWithdraw(self.extend({
+            'currency': currency.lower(),
+            'sum': amount,
+            'address': address,
+        }, params))
+        return {
+            'info': result,
+            'id': None,
+        }
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/api' + '/' + self.version + '/' + self.implode_params(path, params) + '.json'
