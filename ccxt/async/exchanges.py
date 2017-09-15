@@ -3331,10 +3331,11 @@ class bitmex (Exchange):
         super(bitmex, self).__init__(params)
 
     async def fetch_markets(self):
-        markets = await self.publicGetInstrumentActive()
+        markets = await self.publicGetInstrumentActiveAndIndices()
         result = []
         for p in range(0, len(markets)):
             market = markets[p]
+            print(market)
             id = market['symbol']
             base = market['underlying']
             quote = market['quoteCurrency']
@@ -16202,6 +16203,18 @@ class yobit (Exchange):
         return self.tapiPostCancelOrder(self.extend({
             'order_id': id,
         }, params))
+
+    async def withdraw(self, currency, amount, address, params={}):
+        await self.load_markets()
+        result = await self.tapiPostWithdrawCoinsToAddress(self.extend({
+            'coinName': currency,
+            'amount': amount,
+            'address': address,
+        }, params))
+        return {
+            'info': result,
+            'id': None,
+        }
 
     async def request(self, path, api='api', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + api

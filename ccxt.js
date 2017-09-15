@@ -4214,10 +4214,11 @@ var bitmex = {
     },
 
     async fetchMarkets () {
-        let markets = await this.publicGetInstrumentActive ();
+        let markets = await this.publicGetInstrumentActiveAndIndices ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
+            console.log (market);
             let id = market['symbol'];
             let base = market['underlying'];
             let quote = market['quoteCurrency'];
@@ -17666,6 +17667,19 @@ var yobit = {
         return this.tapiPostCancelOrder (this.extend ({
             'order_id': id,
         }, params));
+    },
+
+    async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let result = await this.tapiPostWithdrawCoinsToAddress (this.extend ({
+            'coinName': currency,
+            'amount': amount,
+            'address': address,
+        }, params));
+        return {
+            'info': result,
+            'id': undefined,
+        };
     },
 
     async request (path, api = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {

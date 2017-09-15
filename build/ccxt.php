@@ -4502,10 +4502,11 @@ class bitmex extends Exchange {
     }
 
     public function fetch_markets () {
-        $markets = $this->publicGetInstrumentActive ();
+        $markets = $this->publicGetInstrumentActiveAndIndices ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
             $market = $markets[$p];
+            var_dump ($market);
             $id = $market['symbol'];
             $base = $market['underlying'];
             $quote = $market['quoteCurrency'];
@@ -18239,6 +18240,19 @@ class yobit extends Exchange {
         return $this->tapiPostCancelOrder (array_merge (array (
             'order_id' => $id,
         ), $params));
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $result = $this->tapiPostWithdrawCoinsToAddress (array_merge (array (
+            'coinName' => $currency,
+            'amount' => $amount,
+            'address' => $address,
+        ), $params));
+        return array (
+            'info' => $result,
+            'id' => null,
+        );
     }
 
     public function request ($path, $api = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
