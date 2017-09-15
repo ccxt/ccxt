@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.6';
+$version = '1.7.7';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8160,7 +8160,7 @@ class cex extends Exchange {
             'name' => 'CEX.IO',
             'countries' => array ( 'GB', 'EU', 'CY', 'RU' ),
             'rateLimit' => 1500,
-            'hasFetchTickers' => true,
+            'hasFetchTickers' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
                 'api' => 'https://cex.io/api',

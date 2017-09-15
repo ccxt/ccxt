@@ -378,8 +378,8 @@ JavaScript
 
         // buy 1 BTC/USD for $2500, you pay $2500 and receive 1 BTC when the order is closed
         console.log (okcoinusd.id, await okcoinusd.createLimitBuyOrder ('BTC/USD', 1, 2500.00))
-        
-        // pass/redefine custom exchange-specific order params: type, amount, price or whatever 
+
+        // pass/redefine custom exchange-specific order params: type, amount, price or whatever
         // use a custom order type
         bitfinex.createLimitSellOrder ('BTC/USD', 1, 10, { 'type': 'trailing-stop' })
     }) ()
@@ -501,7 +501,8 @@ Contact Us
 Support CCXT Development
 ------------------------
 
-BTC: 1N1kptzFWbSLKLPJTNYDKq2FkTojb5s8qX
+::
 
-ETH: 0x811DCfeb6dC0b9ed825808B6B060Ca469b83fB81
+    BTC 1N1kptzFWbSLKLPJTNYDKq2FkTojb5s8qX
+    ETH 0x811DCfeb6dC0b9ed825808B6B060Ca469b83fB81
 
