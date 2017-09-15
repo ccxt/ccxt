@@ -5444,7 +5444,7 @@ var bittrex = {
 
     async cancelOrder (id) {
         await this.loadMarkets ();
-        return this.marketGetCancel ({ 'uuid': id });
+        return await this.marketGetCancel ({ 'uuid': id });
     },
 
     parseOrder (order, market = undefined) {
