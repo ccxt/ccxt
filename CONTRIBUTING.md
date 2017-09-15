@@ -29,19 +29,17 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 
 Below is a list of functionality we would like to have implemented in the library in the first place. Most of these tasks are already in progress, implemented for some exchanges, but not all of them:
 
-- Unified OHLC(v) series
-- Unified fetchTrades (public)
 - Unified fetchOrder
 - Unified fetchOrders, fetchOpenOrders, fetchClosedOrders
 - Unified fetchMyTrades, fetchOrderTrades
 - Unified deposit method
 - Unified withdraw method
 - Unified fees
+- Improved proxy support
 - WebSocket interfaces:
   - Pub: Methods for trading and private calls where supported
   - Sub: Real-time balance, orderbooks and other properties with each exchange
 - REST long-poller with round-robin scheduler for HTTP requests
-- Improved proxy support
 
 If you want to contribute by submitting partial implementations be sure to look up examples of how it's done inside the library (where implemented already) and copy the adopted practices.
 

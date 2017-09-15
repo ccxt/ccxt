@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.5.43",
+  "version": "1.7.7",
   "description": "A library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs",
   "main": "build/ccxt.es5.js",
   "unpkg": "build/ccxt.browser.js",
@@ -26,7 +26,7 @@
     "qs": "6.5.0"
   },
   "devDependencies": {
-    "ansicolor": "^1.0.68",
+    "ansicolor": "^1.1.68",
     "as-table": "^1.0.22",
     "asciichart": "^1.5.1",
     "babel-cli": "^6.24.1",
@@ -37,7 +37,7 @@
     "coveralls": "^2.13.1",
     "istanbul": "^0.4.5",
     "nyc": "^11.0.3",
-    "ololog": "^1.0.11"
+    "ololog": "^1.0.16"
   },
   "author": {
     "name": "Igor Kroitor",
@@ -120,6 +120,8 @@
     "zerocoin",
     "1Broker",
     "1BTCXE",
+    "ACX",
+    "acx.io",
     "ANX",
     "ANXPro",
     "Binance",
@@ -140,6 +142,8 @@
     "Bitstamp",
     "Bittrex",
     "BL3P",
+    "Bleutrade",
+    "bleutrade.com",
     "BlinkTrade",
     "BTCC",
     "BTCChina",

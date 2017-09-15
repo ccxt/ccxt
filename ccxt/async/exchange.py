@@ -174,37 +174,43 @@ class Exchange (BaseExchange):
     async def fetchBalance(self):
         return await self.fetch_balance()
 
-    async def fetchOrderBook(self, market):
-        return await self.fetch_order_book(market)
+    async def fetchOrderBook(self, symbol):
+        return await self.fetch_order_book(symbol)
 
-    async def fetchTicker(self, market):
-        return await self.fetch_ticker(market)
+    async def fetchTicker(self, symbol):
+        return await self.fetch_ticker(symbol)
 
-    async def fetchTrades(self, market):
-        return await self.fetch_trades(market)
+    async def fetchTrades(self, symbol):
+        return await self.fetch_trades(symbol)
 
-    async def create_limit_buy_order(self, market, amount, price, params={}):
-        return await self.create_order(market, 'limit', 'buy', amount, price, params)
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        raise NotSupported(self.id + ' API does not allow to fetch OHLCV series for now')
 
-    async def create_limit_sell_order(self, market, amount, price, params={}):
-        return await self.create_order(market, 'limit', 'sell', amount, price, params)
+    async def fetchOHLCV(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        return self.fetch_ohlcv(self, timeframe, since, limit, params)
 
-    async def create_market_buy_order(self, market, amount, params={}):
-        return await self.create_order(market, 'market', 'buy', amount, None, params)
+    async def create_limit_buy_order(self, symbol, amount, price, params={}):
+        return await self.create_order(symbol, 'limit', 'buy', amount, price, params)
 
-    async def create_market_sell_order(self, market, amount, params={}):
-        return await self.create_order(market, 'market', 'sell', amount, None, params)
+    async def create_limit_sell_order(self, symbol, amount, price, params={}):
+        return await self.create_order(symbol, 'limit', 'sell', amount, price, params)
 
-    async def createLimitBuyOrder(self, market, amount, price, params={}):
-        return await self.create_limit_buy_order(market, amount, price, params)
+    async def create_market_buy_order(self, symbol, amount, params={}):
+        return await self.create_order(symbol, 'market', 'buy', amount, None, params)
 
-    async def createLimitSellOrder(self, market, amount, price, params={}):
-        return await self.create_limit_sell_order(market, amount, price, params)
+    async def create_market_sell_order(self, symbol, amount, params={}):
+        return await self.create_order(symbol, 'market', 'sell', amount, None, params)
 
-    async def createMarketBuyOrder(self, market, amount, params={}):
-        return await self.create_market_buy_order(market, amount, params)
+    async def createLimitBuyOrder(self, symbol, amount, price, params={}):
+        return await self.create_limit_buy_order(symbol, amount, price, params)
 
-    async def createMarketSellOrder(self, market, amount, params={}):
-        return await self.create_market_sell_order(market, amount, params)
+    async def createLimitSellOrder(self, symbol, amount, price, params={}):
+        return await self.create_limit_sell_order(symbol, amount, price, params)
+
+    async def createMarketBuyOrder(self, symbol, amount, params={}):
+        return await self.create_market_buy_order(symbol, amount, params)
+
+    async def createMarketSellOrder(self, symbol, amount, params={}):
+        return await self.create_market_sell_order(symbol, amount, params)
 
 #==============================================================================

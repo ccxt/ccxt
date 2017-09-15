@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.5.43';
+$version = '1.7.7';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -138,23 +138,25 @@ class Exchange {
     public static $exchanges = array (
         '_1broker',
         '_1btcxe',
+        'acx',
         'anxpro',
         'binance',
         'bit2c',
         'bitbay',
-        'bitbays',
         'bitcoincoid',
         'bitfinex',
+        'bitfinex2',
         'bitflyer',
         'bitlish',
         'bitmarket',
         'bitmex',
         'bitso',
+        'bitstamp1',
         'bitstamp',
         'bittrex',
         'bl3p',
+        'bleutrade',
         'btcchina',
-        'btce',
         'btcexchange',
         'btcmarkets',
         'btctradeua',
@@ -184,7 +186,10 @@ class Exchange {
         'gdax',
         'gemini',
         'hitbtc',
+        'hitbtc2',
         'huobi',
+        'huobicny',
+        'huobipro',
         'itbit',
         'jubi',
         'kraken',
@@ -193,6 +198,7 @@ class Exchange {
         'liqui',
         'luno',
         'mercado',
+        'mixcoins',
         'okcoincny',
         'okcoinusd',
         'okex',
@@ -243,16 +249,16 @@ class Exchange {
         $result = [];
         foreach ($array as $element)
             if (isset ($key, $element))
-                $result[] = $element[$key]; 
-        return $result; 
+                $result[] = $element[$key];
+        return $result;
     }
 
     public static function index_by ($array, $key) {
         $result = array ();
         foreach ($array as $element) {
             if (isset ($element[$key])) {
-                $result[$element[$key]] = $element;    
-            }            
+                $result[$element[$key]] = $element;
+            }
         }
         return $result;
     }
@@ -295,11 +301,11 @@ class Exchange {
     public static function sum () {
         return array_sum (array_filter (func_get_args (), function ($x) { return isset ($x) ? $x : 0; }));
     }
-    
+
     public static function extractParams ($string) {
         return Exchange::extract_params ($string);
     }
-    
+
     public static function implodeParams ($string, $params) {
         return Exchange::implode_params ($string, $params);
     }
@@ -327,16 +333,16 @@ class Exchange {
             $result .= '?' . Exchange::urlencode ($query);
         return $result;
     }
-   
+
     public static function seconds () {
         return time ();
     }
-    
-    public static function milliseconds () { 
+
+    public static function milliseconds () {
         list ($msec, $sec) = explode (' ', microtime ());
         return $sec . substr ($msec, 2, 3);
     }
-    
+
     public static function microseconds () {
         list ($msec, $sec) = explode (' ', microtime ());
         return $sec . str_pad (substr ($msec, 2, 6), 6, '0');
@@ -371,14 +377,21 @@ class Exchange {
         // $sign = intval ($sign . '1');
         // $hours = (intval ($hours) or 0) * $sign;
         // $minutes = (intval ($minutes) or 0) * $sign;
-        $t = mktime ($h, $m, $s, $mm, $dd, $yyyy, 0);
+
+        // is_dst parameter has been removed in PHP 7.0.0.
+        // http://php.net/manual/en/function.mktime.php
+        if (version_compare (PHP_VERSION, '7.0.0', '>=')) {
+            $t = mktime ($h, $m, $s, $mm, $dd, $yyyy);
+        } else {
+            $t = mktime ($h, $m, $s, $mm, $dd, $yyyy, 0);
+        }
         $t += $hours * 3600 + $minutes * 60;
         $t *= 1000;
         return $t;
     }
 
-    public static function yyyymmddhhmmss ($timestamp) {
-        return gmdate ('Y-m-d H:i:s', (int) round ($timestamp / 1000));
+    public static function YmdHMS ($timestamp, $infix = ' ') {
+        return gmdate ('Y-m-d\\' . $infix . 'H:i:s', (int) round ($timestamp / 1000));
     }
 
     public static function binary_concat () {
@@ -428,9 +441,19 @@ class Exchange {
         $this->twofa      = false;
         $this->marketsById = null;
         $this->markets_by_id = null;
-        $this->userAgent = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
+        $this->userAgent  = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
-        $this->hasFetchTickers = false;
+        $this->timeframes = null;
+        $this->hasPublicAPI         = true;
+        $this->hasPrivateAPI        = true;
+        $this->hasFetchTickers      = false;
+        $this->hasFetchOHLCV        = false;
+        $this->hasDeposit           = false;
+        $this->hasWithdraw          = false;
+        $this->hasFetchOrder        = false;
+        $this->hasFetchOrders       = false;
+        $this->hasFetchOpenOrders   = false;
+        $this->hasFetchClosedOrders = false;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -449,7 +472,7 @@ class Exchange {
                 foreach ($paths as $path) {
 
                     $splitPath = mb_split ('[^a-zA-Z0-9]', $path);
-                    
+
                     $uppercaseMethod  = mb_strtoupper ($http_method);
                     $lowercaseMethod  = mb_strtolower ($http_method);
                     $camelcaseMethod  = Exchange::capitalize ($lowercaseMethod);
@@ -496,7 +519,7 @@ class Exchange {
         $binary = ($digest === 'binary');
         $hmac = hash_hmac ($type, $request, $secret, ($binary || $base64) ? true : false);
         if ($base64)
-            $hmac = base64_encode ($hmac);        
+            $hmac = base64_encode ($hmac);
         return $hmac;
     }
 
@@ -511,16 +534,16 @@ class Exchange {
     public function raise_error ($exception_type, $url, $method = 'GET', $error = null, $details = null) {
         $exception = '\\ccxt\\' . $exception_type;
         throw new $exception (implode (' ', array (
-            $this->id, 
+            $this->id,
             $method,
             $url,
             $error,
             $details,
-        )));   
+        )));
     }
 
     public function fetch ($url, $method = 'GET', $headers = null, $body = null) {
-                
+
         if (strlen ($this->proxy))
             $headers['Origin'] = '*';
 
@@ -541,7 +564,7 @@ class Exchange {
 
         if ($this->timeout) {
             $seconds = intval ($this->timeout / 1000);
-            curl_setopt ($this->curl, CURLOPT_CONNECTTIMEOUT, $seconds); 
+            curl_setopt ($this->curl, CURLOPT_CONNECTTIMEOUT, $seconds);
             curl_setopt ($this->curl, CURLOPT_TIMEOUT, $seconds);
         }
 
@@ -562,7 +585,7 @@ class Exchange {
         if ($method == 'GET') {
 
             curl_setopt ($this->curl, CURLOPT_HTTPGET, true);
-        
+
         } else if ($method == 'POST') {
 
             curl_setopt ($this->curl, CURLOPT_POST, true);
@@ -577,7 +600,7 @@ class Exchange {
             $headers[] = 'X-HTTP-Method-Override: PUT';
 
         } else if ($method == 'DELETE') {
-                       
+
         }
 
         if ($headers)
@@ -589,7 +612,7 @@ class Exchange {
         $result = curl_exec ($this->curl);
 
         if ($result === false) {
-            
+
             $curl_errno = curl_errno ($this->curl);
             $curl_error = curl_error ($this->curl);
 
@@ -606,19 +629,19 @@ class Exchange {
 
         if ($http_status_code == 429) {
 
-            $this->raise_error ('DDoSProtection', $url, $method, 
+            $this->raise_error ('DDoSProtection', $url, $method,
                 'not accessible from this location at the moment');
         }
 
         if (in_array ($http_status_code, array (404, 409, 422, 500, 501, 502))) {
 
-            $this->raise_error ('ExchangeNotAvailable', $url, $method, 
+            $this->raise_error ('ExchangeNotAvailable', $url, $method,
                 'not accessible from this location at the moment');
         }
 
         if (in_array ($http_status_code, array (408, 504))) {
 
-            $this->raise_error ('RequestTimeout', $url, $method, 
+            $this->raise_error ('RequestTimeout', $url, $method,
                 'not accessible from this location at the moment');
         }
 
@@ -627,44 +650,44 @@ class Exchange {
             $details = '(possible reasons: ' . implode (', ', array (
                 'invalid API keys',
                 'bad or old nonce',
-                'exchange is down or offline', 
+                'exchange is down or offline',
                 'on maintenance',
                 'DDoS protection',
                 'rate-limiting in effect',
             )) . ')';
 
-            $this->raise_error ('AuthenticationError', $url, $method, 
+            $this->raise_error ('AuthenticationError', $url, $method,
                 'check your API keys', $details);
         }
 
         if (in_array ($http_status_code, array (400, 403, 405, 503, 520, 521, 522, 525))) {
 
             if (preg_match ('#cloudflare|incapsula#i', $result)) {
-        
-                $this->raise_error ('DDoSProtection', $url, $method, 
+
+                $this->raise_error ('DDoSProtection', $url, $method,
                     'not accessible from this location at the moment');
-        
+
             } else {
-        
+
                 $details = '(possible reasons: ' . implode (', ', array (
                     'invalid API keys',
                     'bad or old nonce',
-                    'exchange is down or offline', 
+                    'exchange is down or offline',
                     'on maintenance',
                     'DDoS protection',
                     'rate-limiting in effect',
                 )) . ')';
-        
-                $this->raise_error ('ExchangeNotAvailable', $url, $method, 
+
+                $this->raise_error ('ExchangeNotAvailable', $url, $method,
                     'not accessible from this location at the moment', $details);
-            }            
+            }
         }
 
         if ((gettype ($result) != 'string') || (strlen ($result) < 2))
             $this->raise_error ('ExchangeNotAvailable', $url, $method, 'returned empty response');
 
         $decoded = json_decode ($result, $as_associative_array = true);
-        
+
         if (!$decoded) {
 
             if (preg_match ('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
@@ -676,16 +699,16 @@ class Exchange {
                     'rate-limiting in effect',
                 )) . ')';
 
-                $this->raise_error ('ExchangeNotAvailable', $url, $method, 
+                $this->raise_error ('ExchangeNotAvailable', $url, $method,
                     'not accessible from this location at the moment', $details);
             }
 
             if (preg_match ('#cloudflare|incapsula#i', $result)) {
-                $this->raise_error ('DDoSProtection', $url, $method, 
+                $this->raise_error ('DDoSProtection', $url, $method,
                     'not accessible from this location at the moment');
             }
         }
-        
+
         return $decoded;
     }
 
@@ -698,7 +721,7 @@ class Exchange {
         sort ($this->symbols);
         $this->ids = array_keys ($this->markets_by_id);
         sort ($this->ids);
-        $base = $this->pluck (array_filter ($values, function ($market) { 
+        $base = $this->pluck (array_filter ($values, function ($market) {
             return array_key_exists ('base', $market);
         }), 'base');
         $quote = $this->pluck (array_filter ($values, function ($market) {
@@ -738,9 +761,9 @@ class Exchange {
 
     public function parse_ohlcvs ($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
         $result = array ();
-        for ($t = 0; $t < count ($ohlcvs); $t++) {
-            $result[] = $this->parse_ohlcv ($ohlcvs[$t], $market, $timeframe, $since, $limit);
-        }
+        $array = array_values ($ohlcvs);
+        foreach ($array as $ohlcv)
+            $result[] = $this->parse_ohlcv ($ohlcv, $market, $timeframe, $since, $limit);
         return $result;
     }
 
@@ -748,11 +771,45 @@ class Exchange {
         return $this->parse_ohlcvs ($ohlcv, $market, $timeframe, $since, $limit);
     }
 
+    public function parse_bidask ($bidask, $price_key = 0, $amount_key = 0) {
+        return array (floatval ($bidask[$price_key]), floatval ($bidask[$amount_key]));
+    }
+
+    public function parse_bidasks ($bidasks, $price_key = 0, $amount_key = 0) {
+        $result = array ();
+        $array = array_values ($bidasks);
+        foreach ($array as $bidask)
+            $result[] = $this->parse_bidask ($bidask, $price_key, $amount_key);
+        return $result;
+    }
+
+    public function parseBidAsk ($bidask, $price_key = 0, $amount_key = 0) {
+        return $this->parse_bidask ($bidask, $price_key, $amount_key);
+    }
+
+    public function parseBidAsks ($bidasks, $price_key = 0, $amount_key = 0) {
+        return $this->parse_bidasks ($bidasks, $price_key, $amount_key);
+    }
+
+    public function parse_order_book ($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
+        $timestamp = $timestamp ? $timestamp : $this->milliseconds ();
+        return array (
+            'bids' => $this->parse_bidasks ($orderbook[$bids_key], $price_key, $amount_key),
+            'asks' => $this->parse_bidasks ($orderbook[$asks_key], $price_key, $amount_key),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+        );
+    }
+
+    public function parseOrderBook ($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
+        return $this->parse_order_book ($orderbook, $timestamp, $bids_key, $asks_key, $price_key, $amount_key);
+    }
+
     public function parse_trades ($trades, $market = null) {
         $result = array ();
-        for ($t = 0; $t < count ($trades); $t++) {
-            $result[] = $this->parse_trade ($trades[$t], $market);
-        }
+        $array = array_values ($trades);
+        foreach ($array as $trade)
+            $result[] = $this->parse_trade ($trade, $market);
         return $result;
     }
 
@@ -762,9 +819,8 @@ class Exchange {
 
     public function parse_orders ($orders, $market = null) {
         $result = array ();
-        for ($t = 0; $t < count ($orders); $t++) {
+        foreach ($orders as $order)
             $result[] = $this->parse_order ($orders[$t], $market);
-        }
         return $result;
     }
 
@@ -790,6 +846,24 @@ class Exchange {
         return $this->fetch_order_status ($id);
     }
 
+    public function fetch_order ($id = null, $params = array ()) {
+        $exception = '\\ccxt\\NotSupported';
+        throw new $exception ($this->id . ' fetch_order() not implemented yet');
+    }
+
+    public function fetchOrder ($id = null, $params = array ()) {
+        return $this->fetch_order ($id, $params);
+    }
+
+    public function fetch_orders ($params = array ()) {
+        $exception = '\\ccxt\\NotSupported';
+        throw new $exception ($this->id . ' fetch_orders() not implemented yet');
+    }
+
+    public function fetchOrders ($params = array ()) {
+        return $this->fetch_orders ($params);
+    }
+
     public function fetch_open_orders ($market = null, $params = array ()) {
         $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' fetch_open_orders() not implemented yet');
@@ -799,10 +873,19 @@ class Exchange {
         return $this->fetch_open_orders ($market, $params);
     }
 
-    public function fetch_markets () { // stub
-        return $this->markets; 
+    public function fetch_closed_orders ($market = null, $params = array ()) {
+        $exception = '\\ccxt\\NotSupported';
+        throw new $exception ($this->id . ' fetch_closed_orders() not implemented yet');
     }
-    
+
+    public function fetchClosedOrders ($market = null, $params = array ()) {
+        return $this->fetch_closed_orders ($market, $params);
+    }
+
+    public function fetch_markets () { // stub
+        return $this->markets;
+    }
+
     public function fetchMarkets  () {
         return $this->fetch_markets ();
     }
@@ -810,17 +893,26 @@ class Exchange {
     public function fetchBalance () {
         return $this->fetch_balance ();
     }
-    
+
     public function fetchOrderBook ($market) {
         return $this->fetch_order_book ($market);
     }
-    
+
     public function fetchTicker ($market) {
         return $this->fetch_ticker ($market);
     }
-    
+
     public function fetchTrades ($market) {
         return $this->fetch_trades ($market);
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $exception = '\\ccxt\\NotSupported';
+        throw new $exception ($this->id . ' fetch_ohlcv() not suported or not implemented yet');
+    }
+
+    public function fetchOHLCV ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_ohlcv ($symbol, $timeframe, $since, $limit, $params);
     }
 
     public function create_limit_buy_order ($market, $amount, $price, $params = array ()) {
@@ -847,12 +939,20 @@ class Exchange {
         return $this->create_limit_sell_order ($market, $amount, $price, $params);
     }
 
-    public function createMarketBuyOrder ($market, $amount, $params = array ()) { 
+    public function createMarketBuyOrder ($market, $amount, $params = array ()) {
         return $this->create_market_buy_order ($market, $amount, $params);
     }
 
     public function createMarketSellOrder ($market, $amount, $params = array ()) {
         return $this->create_market_sell_order ($market, $amount, $params);
+    }
+
+    public static function account () {
+        return array (
+            'free' => 0.0,
+            'used' => 0.0,
+            'total' => 0.0,
+        );
     }
 
     public function commonCurrencyCode ($currency) {
@@ -868,9 +968,9 @@ class Exchange {
     }
 
     public function market ($market) {
-        return ((gettype ($market) === 'string') && 
-                   isset ($this->markets)        && 
-                   isset ($this->markets[$market])) ? 
+        return ((gettype ($market) === 'string') &&
+                   isset ($this->markets)        &&
+                   isset ($this->markets[$market])) ?
                         $this->markets[$market] : $market;
     }
 

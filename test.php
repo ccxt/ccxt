@@ -44,7 +44,7 @@ foreach ($config as $id => $params)
 $exchanges['gdax']->urls['api'] = 'https://api-public.sandbox.gdax.com';
 $exchanges['anxpro']->proxy = 'https://cors-anywhere.herokuapp.com/';
 
-function test_exchange_symbol_ticker ($exchange, $symbol) { 
+function test_exchange_symbol_ticker ($exchange, $symbol) {
     dump (green ($exchange->id), green ($symbol), 'fetching ticker...');
     $ticker = $exchange->fetch_ticker ($symbol);
     dump (green ($exchange->id), green ($symbol), 'ticker:', implode (' ', array (
@@ -80,7 +80,7 @@ function test_exchange_symbol ($exchange, $symbol) {
 
 function load_exchange ($exchange) {
     $markets = $exchange->load_markets ();
-    $symbols = array_keys ($markets);    
+    $symbols = array_keys ($markets);
     dump (green ($exchange->id), green (count ($symbols)), 'symbols:', implode (', ', $symbols));
 }
 
@@ -174,9 +174,9 @@ $proxies = array (
 );
 
 if (count ($argv) > 1) {
-    
+
     if ($exchanges[$argv[1]]) {
-    
+
         $id = $argv[1];
         $exchange = $exchanges[$id];
 
@@ -193,14 +193,14 @@ if (count ($argv) > 1) {
         }
 
     } else {
-    
+
         echo $argv[1] + " not found.\n";
     }
 
 } else {
 
     foreach ($exchanges as $id => $exchange) {
-    
+
         try_all_proxies ($exchange, $proxies);
     }
 

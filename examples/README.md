@@ -21,6 +21,8 @@ node path/to/example.js # substitute for actual filename here
 
 [Python Examples](https://github.com/kroitor/ccxt/tree/master/examples/py) (work in progress)
 
+![basic-chart](https://user-images.githubusercontent.com/1294454/29979754-6d62354c-8f4f-11e7-9e0a-22e87b4a093b.jpg)
+
 ```shell
 python path/to/example.py # substitute for actual filename here
 ```
@@ -45,4 +47,4 @@ It uses the [asciichart](https://github.com/kroitor/asciichart) JavaScript modul
 
 ![asciichart](https://cloud.githubusercontent.com/assets/1294454/22818709/9f14e1c2-ef7f-11e6-978f-34b5b595fb63.png)
 
-Special thx to [MitchTalmadge](https://github.com/MitchTalmadge) for porting this package to Java! If you're a Java-guy, check it out here: [ASCIIGraph](https://github.com/MitchTalmadge/ASCIIGraph).
+Special thx to [MitchTalmadge](https://github.com/MitchTalmadge) for porting this package to Java language! Java-people, check it out here: [ASCIIGraph](https://github.com/MitchTalmadge/ASCIIGraph).

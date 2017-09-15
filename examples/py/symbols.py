@@ -2,8 +2,13 @@
 
 import os
 import sys
+
+#------------------------------------------------------------------------------
+
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root)
+
+#------------------------------------------------------------------------------
 
 import ccxt  # noqa: E402
 
@@ -30,7 +35,7 @@ try:
     exchange_found = id in ccxt.exchanges
 
     if exchange_found:
-        dump('Instantiating', green(id), 'exchange exchange')
+        dump('Instantiating', green(id), 'exchange')
 
         # instantiate the exchange by id
         exchange = getattr(ccxt, id)()
@@ -39,7 +44,7 @@ try:
         markets = exchange.load_markets()
 
         # output a list of all market symbols
-        dump(green(id), 'has', len(exchange.symbols), 'symbols:', yellow(', '.join(exchange.symbols)))
+        dump(green(id), 'has', len(exchange.symbols), 'symbols:', exchange.symbols)
 
         # output a table of all markets
         dump(pink('{:<15} {:<15} {:<15} {:<15}'.format('id', 'symbol', 'base', 'quote')))

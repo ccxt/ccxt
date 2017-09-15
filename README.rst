@@ -9,16 +9,14 @@ CCXT – CryptoCurrency eXchange Trading Library
     :target: https://pypi.python.org/pypi/ccxt
 .. image:: https://img.shields.io/npm/dm/ccxt.svg
     :target: https://www.npmjs.com/package/ccxt
-.. image:: https://img.shields.io/scrutinizer/g/kroitor/ccxt.svg
-    :target: https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master
 .. image:: https://badge.runkitcdn.com/ccxt.svg
     :target: https://npm.runkit.com/ccxt
-.. image:: https://img.shields.io/badge/exchanges-75-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-81-blue.svg
     :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
-The ccxt library is used to connect and trade with cryptocurrency / altcoin exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, webshop integration and related software engineering.
+The **CCXT** library is used to connect and trade with cryptocurrency / altcoin exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, webshop integration and related software engineering.
 
 It is intended to be used by **coders, developers, technically-skilled traders, data-scientists and financial analysts** for building trading algorithms on top of it.
 
@@ -27,16 +25,16 @@ Current featurelist:
 -  support for many exchange markets, even more upcoming soon
 -  fully implemented public and private APIs for all exchanges
 -  all currencies, altcoins and symbols, prices, order books, trades, tickers, etc...
--  optional normalised data for cross-exchange or cross-currency analytics and arbitrage
+-  optional normalized data for cross-exchange or cross-currency analytics and arbitrage
 -  an out-of-the box unified all-in-one API extremely easy to integrate
 -  works in Node 6+, Python 2 and 3, PHP 5.3+, web browsers
 
-`ccxt on GitHub <https://github.com/kroitor/ccxt>`__ | Install | Usage | `Manual <https://github.com/kroitor/ccxt/wiki>`__ | `Examples <https://github.com/kroitor/ccxt/tree/master/examples>`__ | Contributing | **Public Offer**
+`ccxt on GitHub <https://github.com/kroitor/ccxt>`__ | Install | Usage | `Manual <https://github.com/kroitor/ccxt/wiki>`__ | `Examples <https://github.com/kroitor/ccxt/tree/master/examples>`__ | `Changelog <https://github.com/kroitor/ccxt/blob/master/CHANGELOG.md>`__ | `Contributing <https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md>`__ | **Public Offer**
 
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 75 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 81 cryptocurrency exchange markets and trading APIs:
 
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id              | name                                                      | ver   | doc                                                                                              | countries                                  |
@@ -44,6 +42,8 @@ The ccxt library currently supports the following 75 cryptocurrency exchange mar
 | \_1broker       | `1Broker <https://1broker.com>`__                         | 2     | `API <https://1broker.com/?c=en/content/api-documentation>`__                                    | US                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | \_1btcxe        | `1BTCXE <https://1btcxe.com>`__                           | \*    | `API <https://1btcxe.com/api-docs.php>`__                                                        | Panama                                     |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| acx             | `ACX <https://acx.io>`__                                  | 2     | `API <https://acx.io/documents/api_v2>`__                                                        | Australia                                  |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | anxpro          | `ANXPro <https://anxpro.com>`__                           | 2     | `API <http://docs.anxv2.apiary.io>`__                                                            | Japan, Singapore, Hong Kong, New Zealand   |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -53,11 +53,11 @@ The ccxt library currently supports the following 75 cryptocurrency exchange mar
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bitbay          | `BitBay <https://bitbay.net>`__                           | \*    | `API <https://bitbay.net/public-api>`__                                                          | Poland, EU                                 |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| bitbays         | `BitBays <https://bitbays.com>`__                         | 1     | `API <https://bitbays.com/help/api/>`__                                                          | China, UK, Hong Kong, Australia, Canada    |
-+-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bitcoincoid     | `Bitcoin.co.id <https://www.bitcoin.co.id>`__             | \*    | `API <https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf>`__                  | Indonesia                                  |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bitfinex        | `Bitfinex <https://www.bitfinex.com>`__                   | 1     | `API <https://bitfinex.readme.io/v1/docs>`__                                                     | US                                         |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| bitfinex2       | `Bitfinex v2 <https://www.bitfinex.com>`__                | 2     | `API <https://bitfinex.readme.io/v2/docs>`__                                                     | US                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bitflyer        | `bitFlyer <https://bitflyer.jp>`__                        | 1     | `API <https://bitflyer.jp/API>`__                                                                | Japan                                      |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -69,15 +69,17 @@ The ccxt library currently supports the following 75 cryptocurrency exchange mar
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bitso           | `Bitso <https://bitso.com>`__                             | 3     | `API <https://bitso.com/api_info>`__                                                             | Mexico                                     |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| bitstamp1       | `Bitstamp v1 <https://www.bitstamp.net>`__                | 1     | `API <https://www.bitstamp.net/api>`__                                                           | UK                                         |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bitstamp        | `Bitstamp <https://www.bitstamp.net>`__                   | 2     | `API <https://www.bitstamp.net/api>`__                                                           | UK                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bittrex         | `Bittrex <https://bittrex.com>`__                         | 1.1   | `API <https://bittrex.com/Home/Api>`__                                                           | US                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bl3p            | `BL3P <https://bl3p.eu>`__                                | 1     | `API <https://github.com/BitonicNL/bl3p-api/tree/master/docs>`__                                 | Netherlands, EU                            |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| btcchina        | `BTCChina <https://www.btcchina.com>`__                   | 1     | `API <https://www.btcchina.com/apidocs>`__                                                       | China                                      |
+| bleutrade       | `Bleutrade <https://bleutrade.com>`__                     | 2     | `API <https://bleutrade.com/help/API>`__                                                         | Brazil                                     |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| btce            | `BTC-e <https://btc-e.com>`__                             | 3     | `API <https://btc-e.com/api/3/docs>`__                                                           | Bulgaria, Russia                           |
+| btcchina        | `BTCChina <https://www.btcchina.com>`__                   | 1     | `API <https://www.btcchina.com/apidocs>`__                                                       | China                                      |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | btcexchange     | `BTCExchange <https://www.btcexchange.ph>`__              | \*    | `API <https://github.com/BTCTrader/broker-api-docs>`__                                           | Philippines                                |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -137,7 +139,13 @@ The ccxt library currently supports the following 75 cryptocurrency exchange mar
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | hitbtc          | `HitBTC <https://hitbtc.com>`__                           | 1     | `API <https://hitbtc.com/api>`__                                                                 | Hong Kong                                  |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| hitbtc2         | `HitBTC v2 <https://hitbtc.com>`__                        | 2     | `API <https://api.hitbtc.com/api/2/explore>`__                                                   | Hong Kong                                  |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | huobi           | `Huobi <https://www.huobi.com>`__                         | 3     | `API <https://github.com/huobiapi/API_Docs_en/wiki>`__                                           | China                                      |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| huobicny        | `Huobi CNY <https://www.huobi.com>`__                     | 1     | `API <https://github.com/huobiapi/API_Docs/wiki/REST_api_reference>`__                           | China                                      |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| huobipro        | `Huobi Pro <https://www.huobi.pro>`__                     | 1     | `API <https://github.com/huobiapi/API_Docs/wiki/REST_api_reference>`__                           | China                                      |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | itbit           | `itBit <https://www.itbit.com>`__                         | 1     | `API <https://api.itbit.com/docs>`__                                                             | US                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -145,7 +153,7 @@ The ccxt library currently supports the following 75 cryptocurrency exchange mar
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | kraken          | `Kraken <https://www.kraken.com>`__                       | 0     | `API <https://www.kraken.com/en-us/help/api>`__                                                  | US                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| lakebtc         | `LakeBTC <https://www.lakebtc.com>`__                     | 2     | `API <https://www.lakebtc.com/s/api>`__                                                          | US                                         |
+| lakebtc         | `LakeBTC <https://www.lakebtc.com>`__                     | 2     | `API <https://www.lakebtc.com/s/api_v2>`__                                                       | US                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | livecoin        | `LiveCoin <https://www.livecoin.net>`__                   | \*    | `API <https://www.livecoin.net/api?lang=en>`__                                                   | US, UK, Russia                             |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -154,6 +162,8 @@ The ccxt library currently supports the following 75 cryptocurrency exchange mar
 | luno            | `luno <https://www.luno.com>`__                           | 1     | `API <https://www.luno.com/en/api>`__                                                            | UK, Singapore, South Africa                |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | mercado         | `Mercado Bitcoin <https://www.mercadobitcoin.com.br>`__   | 3     | `API <https://www.mercadobitcoin.com.br/api-doc>`__                                              | Brazil                                     |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| mixcoins        | `MixCoins <https://mixcoins.com>`__                       | 1     | `API <https://mixcoins.com/help/api/>`__                                                         | UK, Hong Kong                              |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | okcoincny       | `OKCoin CNY <https://www.okcoin.cn>`__                    | 1     | `API <https://www.okcoin.cn/rest_getStarted.html>`__                                             | China                                      |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -181,7 +191,7 @@ The ccxt library currently supports the following 75 cryptocurrency exchange mar
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | vbtc            | `VBTC <https://vbtc.exchange>`__                          | 1     | `API <https://blinktrade.com/docs>`__                                                            | Vietnam                                    |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
-| virwox          | `VirWoX <https://www.virwox.com>`__                       | \*    | `API <https://www.virwox.com/developers.php>`__                                                  | Austria                                    |
+| virwox          | `VirWoX <https://www.virwox.com>`__                       | \*    | `API <https://www.virwox.com/developers.php>`__                                                  | Austria, EU                                |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | xbtce           | `xBTCe <https://www.xbtce.com>`__                         | 1     | `API <https://www.xbtce.com/tradeapi>`__                                                         | Russia                                     |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -368,8 +378,8 @@ JavaScript
 
         // buy 1 BTC/USD for $2500, you pay $2500 and receive 1 BTC when the order is closed
         console.log (okcoinusd.id, await okcoinusd.createLimitBuyOrder ('BTC/USD', 1, 2500.00))
-        
-        // pass/redefine custom exchange-specific order params: type, amount, price or whatever 
+
+        // pass/redefine custom exchange-specific order params: type, amount, price or whatever
         // use a custom order type
         bitfinex.createLimitSellOrder ('BTC/USD', 1, 10, { 'type': 'trailing-stop' })
     }) ()
@@ -487,4 +497,12 @@ Contact Us
 +--------------------------+------------------------------+
 | rocket.mind@gmail.com    | https://github.com/xpl       |
 +--------------------------+------------------------------+
+
+Support CCXT Development
+------------------------
+
+::
+
+    BTC 1N1kptzFWbSLKLPJTNYDKq2FkTojb5s8qX
+    ETH 0x811DCfeb6dC0b9ed825808B6B060Ca469b83fB81
 

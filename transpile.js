@@ -48,6 +48,7 @@ while (exchanges = regex.exec (contents)) {
         .join ("\n        ")
         .replace (/ true/g, ' True')
         .replace (/ false/g, ' False')
+        .replace (/ undefined/g, ' None')
         .replace (/ \/\//g, ' #')
         .replace (/\{ /g, '{')              // PEP8 E201
         .replace (/\[ /g, '[')              // PEP8 E201
@@ -63,18 +64,27 @@ while (exchanges = regex.exec (contents)) {
         py.push ('        ' + pyParams + ((all.length > 1) ? ',' : ''))
         py.push ('        }')
         py.push ('        params.update(config)')
-        py.push ('        super(' + id + ', self).__init__(params)')        
+        py.push ('        super(' + id + ', self).__init__(params)')
     }
 
     pyAddClass (py);
     pyAddClass (pyAsync);
+
+    let phParams = params
+        .join ("\n        ")
+        .replace (/ undefined/g, ' null')
+        .replace (/': /g, "' => ")
+        .replace (/ {/g, ' array (')
+        .replace (/ \[/g, ' array (')
+        .replace (/\}([\,\n]|$)/g, ')$1')
+        .replace (/\]/g, ')')
 
     ph.push ('')
     ph.push ('class ' + id + ' extends ' + (parent ? parent : 'Exchange') + ' {')
     ph.push ('')
     ph.push ('    public function __construct ($options = array ()) {')
     ph.push ('        parent::__construct (array_merge(array (')
-    ph.push ('        ' + params.join ("\n        ").replace (/': /g, "' => ").replace (/ {/g, ' array (').replace (/ \[/g, ' array (').replace (/\}([\,\n]|$)/g, ')$1').replace (/\]/g, ')') + ((all.length > 1) ? ',' : ''))
+    ph.push ('        ' +  phParams + ((all.length > 1) ? ',' : ''))
     ph.push ('        ), $options));')
     ph.push ('    }')
 
@@ -88,30 +98,36 @@ while (exchanges = regex.exec (contents)) {
         let method = matches[2]
         let args = matches[3].trim ()
 
-        method = method.replace ('fetchBalance',      'fetch_balance')
+        method = method.replace ('fetchBalance',       'fetch_balance')
                         // .replace ('fetchCategories', 'fetch_categories')
-                        .replace ('fetchMarkets',     'fetch_markets')
-                        .replace ('fetchOrderBook',   'fetch_order_book')
-                        .replace ('fetchOHLCV',       'fetch_ohlcv')
-                        .replace ('fetchTickers',     'fetch_tickers')
-                        .replace ('fetchTicker',      'fetch_ticker')
-                        .replace ('parseTicker',      'parse_ticker')
-                        .replace ('parseTrades',      'parse_trades')
-                        .replace ('parseTrade',       'parse_trade')
-                        .replace ('parseBidAsks',     'parse_bidasks')
-                        .replace ('parseBidAsk',      'parse_bidask')
-                        .replace ('parseOrders',      'parse_orders')
-                        .replace ('parseOrder',       'parse_order')
-                        .replace ('fetchTrades',      'fetch_trades')
-                        .replace ('fetchOrderStatus', 'fetch_order_status')
-                        .replace ('fetchOrderTrades', 'fetch_order_trades')
-                        .replace ('fetchOrder',       'fetch_order')
-                        .replace ('fetchOpenOrders',  'fetch_open_orders')
-                        .replace ('fetchMyTrades',    'fetch_my_trades')
-                        .replace ('fetchAllMyTrades', 'fetch_all_my_trades')
-                        .replace ('createOrder',      'create_order')
-                        .replace ('cancelOrder',      'cancel_order')
-                        .replace ('signIn',           'sign_in')
+                        .replace ('loadMarkets',       'load_markets')
+                        .replace ('fetchMarkets',      'fetch_markets')
+                        .replace ('fetchOrderBook',    'fetch_order_book')
+                        .replace ('fetchOHLCV',        'fetch_ohlcv')
+                        .replace ('parseOHLCVs',       'parse_ohlcvs')
+                        .replace ('parseOHLCV',        'parse_ohlcv')
+                        .replace ('fetchTickers',      'fetch_tickers')
+                        .replace ('fetchTicker',       'fetch_ticker')
+                        .replace ('parseTicker',       'parse_ticker')
+                        .replace ('parseTradesData',   'parse_trades_data')
+                        .replace ('parseTrades',       'parse_trades')
+                        .replace ('parseTrade',        'parse_trade')
+                        .replace ('parseOrderBook',    'parse_order_book')
+                        .replace ('parseBidAsks',      'parse_bidasks')
+                        .replace ('parseBidAsk',       'parse_bidask')
+                        .replace ('parseOrders',       'parse_orders')
+                        .replace ('parseOrder',        'parse_order')
+                        .replace ('fetchTrades',       'fetch_trades')
+                        .replace ('fetchOrderStatus',  'fetch_order_status')
+                        .replace ('fetchOrderTrades',  'fetch_order_trades')
+                        .replace ('fetchOrders',       'fetch_orders')
+                        .replace ('fetchOrder',        'fetch_order')
+                        .replace ('fetchOpenOrders',   'fetch_open_orders')
+                        .replace ('fetchMyTrades',     'fetch_my_trades')
+                        .replace ('fetchAllMyTrades',  'fetch_all_my_trades')
+                        .replace ('createOrder',       'create_order')
+                        .replace ('cancelOrder',       'cancel_order')
+                        .replace ('signIn',            'sign_in')
 
         args = args.length ? args.split (',').map (x => x.trim ()) : []
 
@@ -149,18 +165,22 @@ while (exchanges = regex.exec (contents)) {
             [ /\.parseOHLCVs/g, '.parse_ohlcvs'],
             [ /\.parseOHLCV/g, '.parse_ohlcv'],
             [ /\.parseTicker\s/g, '.parse_ticker'],
+            [ /\.parseTradesData\s/g, '.parse_trades_data'],
             [ /\.parseTrades\s/g, '.parse_trades'],
             [ /\.parseTrade\s/g, '.parse_trade'],
+            [ /\.parseOrderBook\s/g, '.parse_order_book'],
             [ /\.parseBidAsks\s/g, '.parse_bidasks'],
             [ /\.parseBidAsk\s/g, '.parse_bidask'],
+            [ /\.parseOrders\s/g, '.parse_orders'],
+            [ /\.parseOrder\s/g, '.parse_order'],
             [ /\.indexBy\s/g, '.index_by'],
             [ /\.sortBy\s/g, '.sort_by'],
             [ /\.marketIds\s/g, '.market_ids'],
             [ /\.marketId\s/g, '.market_id'],
             [ /\.fetchOrderStatus\s/g, '.fetch_order_status'],
             [ /\.fetchOpenOrders\s/g, '.fetch_open_orders'],
-            [ /\.parseOrders\s/g, '.parse_orders'],
-            [ /\.parseOrder\s/g, '.parse_order'],
+            [ /\.fetchOrders\s/g, '.fetch_orders'],
+            [ /\.loadMarkets\s/g, '.load_markets'],
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
             [ /this\./g, 'self.' ],
@@ -194,7 +214,8 @@ while (exchanges = regex.exec (contents)) {
             [ /\.toUpperCase\s*/g, '.upper' ],
             [ /\.toLowerCase\s*/g, '.lower' ],
             [ /JSON\.stringify\s*/g, 'json.dumps' ],
-            [ /\'%([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "'{:$1}'.format($2)" ],
+            // [ /\'%([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "'{:$1}'.format($2)" ],
+            [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "'{:.$2f}'.format($1)" ],
             [ /parseFloat\s*/g, 'float'],
             [ /parseInt\s*/g, 'int'],
             [ /self\[([^\]+]+)\]/g, 'getattr(self, $1)' ],
@@ -232,8 +253,10 @@ while (exchanges = regex.exec (contents)) {
             [ /\.parseOHLCVs/g, '.parse_ohlcvs'],
             [ /\.parseOHLCV/g, '.parse_ohlcv'],
             [ /\.parseTicker/g, '.parse_ticker'],
+            [ /\.parseTradesData/g, '.parse_trades_data'],
             [ /\.parseTrades/g, '.parse_trades'],
             [ /\.parseTrade/g, '.parse_trade'],
+            [ /\.parseOrderBook/g, '.parse_order_book'],
             [ /\.parseBidAsks/g, '.parse_bidasks'],
             [ /\.parseBidAsk/g, '.parse_bidask'],
             [ /\.binaryConcat/g, '.binary_concat'],
@@ -246,9 +269,11 @@ while (exchanges = regex.exec (contents)) {
             [ /\.marketId/g, '.market_id'],
             [ /\.fetchOrderStatus/g, '.fetch_order_status'],
             [ /\.fetchOpenOrders/g, '.fetch_open_orders'],
-            [ /\.parseOrders\s/g, '.parse_orders'],
-            [ /\.parseOrder\s/g, '.parse_order'],
-            [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
+            [ /\.fetchOrders/g, '.fetch_orders'],
+            [ /\.parseOrders/g, '.parse_orders'],
+            [ /\.parseOrder/g, '.parse_order'],
+            [ /\.loadMarkets/g, '.load_markets'],
+            [ /\.encodeURIComponent/g, '.encode_uri_component'],
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
             [ /([^'])this_\./g, '$1$this_->' ],
@@ -273,7 +298,8 @@ while (exchanges = regex.exec (contents)) {
             [ /\[\s*([^\]]+?)\s*\]\.join\s*\(\s*([^\)]+?)\s*\)/g, "implode ($2, array ($1))" ],
             [ /\[\s([^\]]+?)\s\]/g, 'array ($1)' ],
             [ /JSON\.stringify/g, 'json_encode' ],
-            [ /\'([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "sprintf ('$1', $2)" ],
+            // [ /\'([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "sprintf ('$1', $2)" ],
+            [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "sprintf ('%$2f', $1)" ],
             [ /parseFloat\s/g, 'floatval '],
             [ /parseInt\s/g, 'intval '],
             [ / \+ /g, ' . ' ],
@@ -289,7 +315,9 @@ while (exchanges = regex.exec (contents)) {
             [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs ($1)' ],
             [ /Math\.round\s*\(([^\)]+)\)/g, '(int) round ($1)' ],
             [ /([^\(\s]+)\s+%\s+([^\s\)]+)/g, 'fmod ($1, $2)' ],
+            [ /\(([^\s]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0\)/g, '(mb_strpos ($1, $2) !== false)' ],
             [ /([^\s]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0/g, 'mb_strpos ($1, $2) !== false' ],
+            [ /([^\s]+)\.indexOf\s*\(([^\)]+)\)/g, 'mb_strpos ($1, $2)' ],
             [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '(array_key_exists ($1, $2))' ],
             [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode ($2, $1)' ],
             [ /Math\.(max|min)/g, '$1' ],
@@ -313,12 +341,14 @@ while (exchanges = regex.exec (contents)) {
             pyBody = pyBody.replace (orderedRegex, '\.ordered ([' + replaced + '])')
         }
 
+        let pyString = 'def ' + method + '(self' + (pyArgs.length ? ', ' + pyArgs.replace (/undefined/g, 'None').replace (/false/g, 'False').replace (/true/g, 'True') : '') + '):'
+
         py.push ('');
-        py.push ('    def ' + method + '(self' + (pyArgs.length ? ', ' + pyArgs.replace (/undefined/g, 'None') : '') + '):');
+        py.push ('    ' + pyString);
         py.push (pyBody);
 
         pyAsync.push ('');
-        pyAsync.push ('    ' + keyword + 'def ' + method + '(self' + (pyArgs.length ? ', ' + pyArgs.replace (/undefined/g, 'None') : '') + '):');
+        pyAsync.push ('    ' + keyword + pyString);
         pyAsync.push (pyBodyAsync);
 
         let phBody = regexAll (body, phRegex.concat (phVarsRegex))

@@ -1,5 +1,52 @@
 # Сhangelog
 
+- Fixed empty cex DASH/USD fetchTicker
+- Added Bittrex v2 fetchOHLCV (alpha-stage of their new API)
+
+## Version 1.7.x 2017-09-15
+
+- Added missing endpoints to Bitstamp v2, [#198](https://github.com/kroitor/ccxt/issues/198)
+- Added support for older Bitstamp v1 API, [#198](https://github.com/kroitor/ccxt/issues/198)
+- Removed BTC/USD market from Huobi, [#195](https://github.com/kroitor/ccxt/issues/195)
+- Added Huobi PRO API: BCH/BTC, ETC/BTC, ETH/BTC, LTC/BTC, [#195](https://github.com/kroitor/ccxt/issues/195)
+- Added Huobi CNY API: BCH/CNY, ETH/CNY, ETC/CNY, [#195](https://github.com/kroitor/ccxt/issues/195)
+- Fixed Bitfinex parseOrder timestamp, [#200](https://github.com/kroitor/ccxt/issues/200)
+- Fixed Bitfinex cancelOrder error, [#199](https://github.com/kroitor/ccxt/issues/199)
+- Removed EOS market from CHBTC, [#197](https://github.com/kroitor/ccxt/issues/197)
+- Added missing BCH/HSR/QTUM markets to CHBTC, [#197](https://github.com/kroitor/ccxt/issues/197)
+- Added missing BCH/ETH/ETC markets to OKCoin CNY, [#196](https://github.com/kroitor/ccxt/issues/196)
+- Fixed BCH/ETH markets with BTCChina, [#194](https://github.com/kroitor/ccxt/issues/194)
+- Added fetchOpenOrders/fetchClosedOrders implementation to Kraken, [#71](https://github.com/kroitor/ccxt/issues/71)
+- Added support for a new exchange: [Bleutrade](https://bleutrade.com) (Brazil)
+- Fixed Cryptopia fetchOpenOrders issue, [#192](https://github.com/kroitor/ccxt/issues/192)
+- Added `.hasPublicAPI / .hasPrivateAPI` properties to all derived exchanges
+- Added support for a new exchange: [ACX](https://acx.io) (Australia)
+- Fixed Bitflyer's private GET APIs, [#187](https://github.com/kroitor/ccxt/pull/187)
+- BitBays exchange was renamed to MixCoins, now operating in UK and Hong Kong
+- Removed support for BTCe exchange (was shut down earlier)
+- Fixed float formatting issue, [#185](https://github.com/kroitor/ccxt/issues/185)
+- Fixed side issue with Bitflyer parseTrade, [#184](https://github.com/kroitor/ccxt/issues/184)
+- Fixed fetchOpenOrders amount/symbol with Bittrex and Poloniex [#183](https://github.com/kroitor/ccxt/issues/183)
+- Fixed Bitfinex DASH balance issue, [#178](https://github.com/kroitor/ccxt/issues/178)
+- Added missing ETH and BCH markets to BTCChina, [#175](https://github.com/kroitor/ccxt/issues/175)
+- BitBays ceased operation in China
+
+![BitBays ceased operation](https://user-images.githubusercontent.com/1294454/30231444-90b89000-94f3-11e7-84ba-f3ca1fe8cd3b.png)
+
+- Added support for HitBTC v2 API, [#172](https://github.com/kroitor/ccxt/issues/172)
+- Unified most of fetchOHLCV implementations where available, [related commits](https://github.com/kroitor/ccxt/search?q=fetchOHLCV&type=Commits&utf8=%E2%9C%93), [#169](https://github.com/kroitor/ccxt/issues/169)
+- Added initial support for Bitfinex v2 API, [#154](https://github.com/kroitor/ccxt/issues/154)
+- Added git release tags on Travis CI, [#151](https://github.com/kroitor/ccxt/issues/151)
+
+## Version 1.6.x 2017-09-03
+
+- Added experimental fetchOHLCV implementations, [#169](https://github.com/kroitor/ccxt/issues/169)
+- Unified most of fetchTrades returns, [related commits](https://github.com/kroitor/ccxt/search?q=unified+fetchTrades+return&type=Commits&utf8=%E2%9C%93)
+- Added experimental unified `withdraw ()` method to Bitfinex, [#167](https://github.com/kroitor/ccxt/issues/167)
+- Added [examples/js/basic-chart.js](https://github.com/kroitor/ccxt/blob/master/examples/js/basic-chart.js) and [examples/py/basic-chart.py](https://github.com/kroitor/ccxt/blob/master/examples/py/basic-chart.py)
+- Changed fetchBalance to floats, [#166](https://github.com/kroitor/ccxt/issues/166)
+- Added handling of InsufficientFunds for HitBTC [#164](https://github.com/kroitor/ccxt/issues/164)
+- Prepared for an API update on Bitfinex [#154](https://github.com/kroitor/ccxt/issues/154)
 - Changed order type handling for margin orders on Bitfinex, [#130](https://github.com/kroitor/ccxt/issues/130), [#157](https://github.com/kroitor/ccxt/issues/157)
 - Added experimental fetchClosedOrders, fetchOpenOrders to Zaif, [#71](https://github.com/kroitor/ccxt/issues/71)
 - Fixed BlinkTrade createOrder response
@@ -13,7 +60,7 @@
 
 ## Version 1.5.x 2017-08-24
 
-- Added support for a new exchange: [OKEX](https://www.okex.com) (China, US) 
+- Added support for a new exchange: [OKEX](https://www.okex.com) (China, US)
 - Fixed Kraken KeyError: 'txid' exception, [#143](https://github.com/kroitor/ccxt/issues/143)
 - Added `hasFetchTickers` property to indicate method availability [#145](https://github.com/kroitor/ccxt/issues/145)
 - Added support for a new exchange: [Binance](https://www.binance.com) (China) [#142](https://github.com/kroitor/ccxt/issues/142)
@@ -87,7 +134,7 @@
 - New tests system that launches individual market tests in parallel (now running 3 minutes instead of 20)
 - BTC-e shutdown
 
-<img width="949" alt="screen shot 2017-08-01 at 01 20 21" src="https://user-images.githubusercontent.com/1294454/28800889-9d03c61e-7657-11e7-881c-c4becb03903d.png">
+![BTCe shutdown](https://user-images.githubusercontent.com/1294454/28800889-9d03c61e-7657-11e7-881c-c4becb03903d.png)
 
 - Fixed a typo in Python examples, [#65](https://github.com/kroitor/ccxt/issues/65)
 - Fixed Yunbi and CHBTC orders, [#62](https://github.com/kroitor/ccxt/issues/62), [#63](https://github.com/kroitor/ccxt/issues/63)

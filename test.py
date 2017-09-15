@@ -56,6 +56,17 @@ def test_exchange_symbol_orderbook(exchange, symbol):
 
 # ------------------------------------------------------------------------------
 
+def test_exchange_symbol_ohlcv(exchange, symbol):
+    delay = int(exchange.rateLimit / 1000)
+    time.sleep(delay)
+    if exchange.hasFetchOHLCV:
+        ohlcvs = exchange.fetch_ohlcv(symbol)
+        dump(green(exchange.id), 'fetched', green(len(ohlcvs)), 'OHLCVs')
+    else:
+        dump(yellow(exchange.id), 'fetching OHLCV not supported')
+
+# ------------------------------------------------------------------------------
+
 def test_exchange_all_tickers(exchange):
     delay = int(exchange.rateLimit / 1000)
     time.sleep(delay)
@@ -112,6 +123,7 @@ def test_exchange_symbol(exchange, symbol):
         test_exchange_symbol_trades(exchange, symbol)
 
     test_exchange_all_tickers(exchange)
+    test_exchange_symbol_ohlcv(exchange, symbol)
 
 # ------------------------------------------------------------------------------
 
@@ -156,6 +168,17 @@ def test_exchange(exchange):
     dump(green(exchange.id), 'fetching balance...')
     balance = exchange.fetch_balance()
     dump(green(exchange.id), 'balance', balance)
+
+    if exchange.hasFetchOrders:
+        try:
+            dump(green(exchange.id), 'fetching orders...')
+            orders = exchange.fetch_orders()
+            dump(green(exchange.id), 'fetched', green(str(len(orders))), 'orders')
+        except (ccxt.ExchangeError, ccxt.NotSupported) as e:
+            dump(yellow(type(e).__name__), e.args)
+        # except ccxt.NotSupported as e:
+        #     dump(yellow(type(e).__name__), e.args)
+
     # time.sleep(delay)
 
     # amount = 1
@@ -226,9 +249,10 @@ for id in ccxt.exchanges:
 # set up api keys appropriately
 tuples = list(ccxt.Exchange.keysort(config).items())
 for (id, params) in tuples:
-    options = list(params.items())
-    for key in params:
-        setattr(exchanges[id], key, params[key])
+    if id in exchanges:
+        options = list(params.items())
+        for key in params:
+            setattr(exchanges[id], key, params[key])
 
 # move gdax to sandbox
 exchanges['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
@@ -250,5 +274,6 @@ else:
 
     tuples = list(ccxt.Exchange.keysort(exchanges).items())
     for (id, params) in tuples:
-        exchange = exchanges[id]
-        try_all_proxies(exchange, proxies)
+        if id in exchanges:
+            exchange = exchanges[id]
+            try_all_proxies(exchange, proxies)

@@ -15,6 +15,8 @@ let rst = fs.readFileSync (readmeRst, 'utf8')
 let rstNew = 
     rst.replace (/\`([^\`]+)\s\<\#[^\`]+\>\`\_\_/g, '$1') // PyPI doesn't like urls containing anchor hash symbol '#', strip it off to plain text
         .replace (/\\\|/g, '|') // PyPI doesn't like escaped vertical bars
+        // .replace (/\|\\(\_[^\|]+)\|([\ ]+)\|/g, '|$1| $2|')
+        // .replace (/\|\\(\_[^\|]+)\|/g, '|$1|')
 
 let rstExchangeTableRegex = /([\s\S]+?)APIs:[\n][\n](\+\-\-[\s\S]+\-\-\+)[\n][\n]([\s\S]+)/
 let match = rstExchangeTableRegex.exec (rstNew)
@@ -56,14 +58,25 @@ let badges = [
     pypiBadgeRST, 
     npmDownloadsRST, 
     // pypiDownloadsRST, // always shows 0
-    scrutinizerRST, 
+    // scrutinizerRST, 
     runkitRST,
     exchangesRST,
 ].join ("\n")
 
+
+let badgeTitles = [
+    '|Build Status|',
+    '|npm|',
+    '|PyPI|',
+    '|NPM Downloads|', 
+    // '|Scrutinizer Code Quality|',
+    '|Try ccxt on RunKit|',
+    '|Supported Exchanges|',
+].join (' ')
+
 rstNew = match[1] + "APIs:\n\n" + newRstExchangeTable + "\n\n" + match[3]
 rstNew = rstNew.replace (/\.\.[^\n]+image\:\:[^\n]+[\n]/g, '')
-rstNew = rstNew.replace ('|Build Status| |npm| |PyPI| |NPM Downloads| |Scrutinizer Code Quality| |Try ccxt on RunKit| |Supported Exchanges|', badges)
+rstNew = rstNew.replace (badgeTitles, badges)
 rstNew = rstNew.replace (/   :target[^#]+$/g, '')
 fs.truncateSync (readmeRst)
 fs.writeFileSync (readmeRst, rstNew)

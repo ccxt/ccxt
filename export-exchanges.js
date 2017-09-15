@@ -200,11 +200,7 @@ exchangesByCountries = exchangesByCountries.sort ((a, b) => {
     let filename = wikiPath + '/Exchange-Markets-By-Country.md'
     fs.truncateSync (filename)
     fs.writeFileSync (filename, result)
-    // console.log (result)
 }) ();
-
-// console.log (exchangesByCountries)
-// console.log (asTable.configure ({ delimiter: ' | ' }) (exchangesByCountries))
 
 log.bright ('Exporting exchange ids to'.cyan, 'exchanges.json'.yellow)
 fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids: Object.keys (exchanges).filter (x => x != 'btce') }, null, 4))
