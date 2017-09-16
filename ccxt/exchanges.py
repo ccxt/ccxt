@@ -8629,7 +8629,7 @@ class cryptopia (Exchange):
             'id': self.market_id(market),
         }, params))
         orderbook = response['Data']
-        return self.parse_order_book(orderbook, None, 'Buy', 'Sell', 'Price', 'Total')
+        return self.parse_order_book(orderbook, None, 'Buy', 'Sell', 'Price', 'Volume')
 
     def parse_ticker(self, ticker, market):
         timestamp = self.milliseconds()
