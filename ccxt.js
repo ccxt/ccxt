@@ -434,10 +434,7 @@ const Exchange = function (config) {
             if (elapsed < this.rateLimit)
                 await sleep (this.rateLimit - elapsed);
 
-            // pop from the beginning of the queue
             let { url, method, headers, body, resolve, reject } = this.restRequestQueue.shift ()
-
-            // execute the request and resolve or reject the promise
             this.executeRestRequest (url, method, headers, body).then (resolve).catch (reject)
         }
 
@@ -449,11 +446,7 @@ const Exchange = function (config) {
         if (this.enableRateLimit) {
 
             let promise = new Promise ((resolve, reject) => {
-
-                // push to the end of queue
                 this.restRequestQueue.push ({ url, method, headers, body, resolve, reject })
-
-                // run the loop
                 this.runRestPollerLoop ()
             })
 
@@ -12284,6 +12277,9 @@ var huobi1 = {
     async fetchMarkets () {
         let response = await this.publicGetCommonSymbols ();
         let markets = response['data'];
+        let numMarkets = markets.length;
+        if (numMarkets < 1)
+            throw new ExchangeError (this.id + ' publicGetCommonSymbols returned empty response: ' + this.json (response));
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
@@ -12545,12 +12541,12 @@ var huobipro = extend (huobi1, {
         'www': 'https://www.huobi.pro',
         'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
     },
-    // 'markets': {
-    //     'ETH/BTC': { 'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
-    //     'ETC/BTC': { 'id': 'etccny', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC' },
-    //     'LTC/BTC': { 'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
-    //     'BCH/BTC': { 'id': 'bcccny', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
-    // },
+    'markets': {
+        'ETH/BTC': { 'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
+        'ETC/BTC': { 'id': 'etccny', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC' },
+        'LTC/BTC': { 'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+        'BCH/BTC': { 'id': 'bcccny', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
+    },
 })
 
 //-----------------------------------------------------------------------------

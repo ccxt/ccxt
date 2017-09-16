@@ -286,6 +286,7 @@ let testExchangeBalance = async (exchange, symbol) => {
 let loadExchange = async exchange => {
 
     let markets  = await exchange.loadMarkets ()
+
     let symbols = [
         'BTC/CNY',
         'BTC/USD',
@@ -319,6 +320,8 @@ let loadExchange = async exchange => {
 //-----------------------------------------------------------------------------
 
 let testExchange = async exchange => {
+
+    await loadExchange (exchange)
 
     let delay = exchange.rateLimit
     let symbol = exchange.symbols[0]
@@ -430,7 +433,6 @@ let tryAllProxies = async function (exchange, proxies) {
         try {
 
             exchange.proxy = proxies[currentProxy]
-            await loadExchange (exchange)
             await testExchange (exchange)
             break
 
