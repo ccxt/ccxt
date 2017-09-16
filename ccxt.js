@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.7.11'
+const version = '1.7.10'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -717,6 +717,8 @@ const Exchange = function (config) {
     this.hasFetchClosedOrders = false
     this.hasDeposit           = false
     this.hasWithdraw          = false
+
+    this.requests = [] // internal rate limiter
 
     this.YmdHMS = function (timestamp, infix = ' ') {
         let date = new Date (timestamp)
@@ -9672,7 +9674,7 @@ var cryptopia = {
             'id': this.marketId (market),
         }, params));
         let orderbook = response['Data'];
-        return this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Total');
+        return this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');
     },
 
     parseTicker (ticker, market) {
