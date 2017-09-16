@@ -430,11 +430,19 @@ const Exchange = function (config) {
         while (this.restRequestQueue.length > 0) {
 
             // rate limiter
-            let elapsed = this.milliseconds () - this.lastRestRequestTimestamp
-            if (elapsed < this.rateLimit) {
-                let delay = Math.max (this.rateLimit - elapsed, 0)
-                if (delay)
-                    await sleep (delay)
+            while (true) {
+
+                let elapsed = this.milliseconds () - this.lastRestRequestTimestamp
+
+                if (elapsed < this.rateLimit) {
+                    let delay = Math.max (this.rateLimit - elapsed, 0)
+                    if (delay > 0)
+                        await sleep (delay)
+                    else
+                        break
+                } else {
+                    break
+                }
             }
 
             let { url, method, headers, body, resolve, reject } = this.restRequestQueue.shift ()
@@ -447,6 +455,7 @@ const Exchange = function (config) {
     this.issueRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
         if (this.enableRateLimit)
+
             return new Promise ((resolve, reject) => {
                 this.restRequestQueue.push ({ url, method, headers, body, resolve, reject })
                 this.runRestPollerLoop ()
