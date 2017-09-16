@@ -7468,7 +7468,6 @@ class coincheck (Exchange):
             auth = nonce + url + (body or '')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': length,
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': self.hmac(self.encode(auth), self.encode(self.secret)),

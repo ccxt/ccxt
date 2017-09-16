@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.17';
+$version = '1.7.18';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8842,7 +8842,6 @@ class coincheck extends Exchange {
             $auth = $nonce . $url . ($body || '');
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'Content-Length' => $length,
                 'ACCESS-KEY' => $this->apiKey,
                 'ACCESS-NONCE' => $nonce,
                 'ACCESS-SIGNATURE' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret)),
