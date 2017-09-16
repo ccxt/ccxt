@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.11';
+$version = '1.7.12';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10074,7 +10074,7 @@ class cryptopia extends Exchange {
             'id' => $this->market_id ($market),
         ), $params));
         $orderbook = $response['Data'];
-        return $this->parse_order_book ($orderbook, null, 'Buy', 'Sell', 'Price', 'Total');
+        return $this->parse_order_book ($orderbook, null, 'Buy', 'Sell', 'Price', 'Volume');
     }
 
     public function parse_ticker ($ticker, $market) {
