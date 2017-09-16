@@ -354,12 +354,12 @@ const Exchange = function (config) {
         this.orders = {}
         this.trades = {}
         if (this.api)
-            this.defineRESTAPI (this.api, 'request');
+            this.defineRestApi (this.api, 'request');
         if (this.markets)
             this.setMarkets (this.markets);
     }
 
-    this.defineRESTAPI = function (api, methodName, options = {}) {
+    this.defineRestApi = function (api, methodName, options = {}) {
         Object.keys (api).forEach (type => {
             Object.keys (api[type]).forEach (httpMethod => {
                 let urls = api[type][httpMethod]
@@ -420,6 +420,66 @@ const Exchange = function (config) {
     //     })
     // },
 
+    this.runRestPollerLoop = async function () {
+
+        if (this.restPollerLoopIsRunning)
+            return false
+
+        this.restPollerLoopIsRunning = true
+
+        while (this.restRequestQueue.length > 0) {
+
+            // rate limiter
+            let elapsed = this.milliseconds () - this.lastRestRequestTimestamp
+            if (elapsed < this.rateLimit)
+                await sleep (this.rateLimit - elapsed);
+
+            // pop from the beginning of the queue
+            let { url, method, headers, body, resolve, reject } = this.restRequestQueue.shift ()
+
+            // execute the request and resolve or reject the promise
+            this.executeRestRequest (url, method, headers, body).then (resolve).catch (reject)
+        }
+
+        this.restPollerLoopIsRunning = false
+    }
+
+    this.issueRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
+
+        if (this.enableRateLimit) {
+
+            let promise = new Promise ((resolve, reject) => {
+
+                // push to the end of queue
+                this.restRequestQueue.push ({ url, method, headers, body, resolve, reject })
+
+                // run the loop
+                this.runRestPollerLoop ()
+            })
+
+        } else {
+
+            return this.executeRestRequest (url, method, headers, body)
+        }
+    }
+
+    this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
+
+        this.lastRestRequestTimestamp = this.milliseconds ()
+
+        let promise =
+            fetch (url, { 'method': method, 'headers': headers, 'body': body })
+                .catch (e => {
+                    if (isNode)
+                        throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
+                    throw e // rethrow all unknown errors
+                })
+                .then (response => this.handleRestErrors (response, url, method, headers, body ))
+                .then (response => this.handleRestResponse (response, url, method, headers, body))
+
+        return timeout (this.timeout, promise)
+    }
+
     this.fetch = function (url, method = 'GET', headers = undefined, body = undefined) {
 
         if (isNode && this.userAgent)
@@ -431,75 +491,69 @@ const Exchange = function (config) {
         if (this.proxy.length)
             headers = extend ({ 'Origin': '*' }, headers)
 
-        let options = { 'method': method, 'headers': headers, 'body': body }
-
         url = this.proxy + url
 
         if (this.verbose)
-            console.log (this.id, method, url, "\nRequest:\n", options)
+            console.log (this.id, method, url, "\nRequest:\n", headers, body)
 
-        return timeout (this.timeout, fetch (url, options)
-            .catch (e => {
-                if (isNode) {
-                    throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
-                }
-                throw e // rethrow all unknown errors
-            })
-            .then (response => {
-
-                if (typeof response == 'string')
-                    return response
-
-                return response.text ().then (text => {
-                    if (this.verbose)
-                        console.log (this.id, method, url, text ? ("\nResponse:\n" + text) : '')
-                    if ((response.status >= 200) && (response.status <= 300))
-                        return text
-                    let error = undefined
-                    let details = text
-                    if ([ 429 ].indexOf (response.status) >= 0) {
-                        error = DDoSProtection
-                    } else if ([ 404, 409, 422, 500, 501, 502, 520, 521, 522, 525 ].indexOf (response.status) >= 0) {
-                        error = ExchangeNotAvailable
-                    } else if ([ 400, 403, 405, 503 ].indexOf (response.status) >= 0) {
-                        let ddosProtection = text.match (/cloudflare|incapsula/i)
-                        if (ddosProtection) {
-                            error = DDoSProtection
-                        } else {
-                            error = ExchangeNotAvailable
-                            details = text + ' (possible reasons: ' + [
-                                'invalid API keys',
-                                'bad or old nonce',
-                                'exchange is down or offline',
-                                'on maintenance',
-                                'DDoS protection',
-                                'rate-limiting',
-                            ].join (', ') + ')'
-                        }
-                    } else if ([ 408, 504 ].indexOf (response.status) >= 0) {
-                        error = RequestTimeout
-                    } else if ([ 401, 511 ].indexOf (response.status) >= 0) {
-                        error = AuthenticationError
-                    } else {
-                        error = ExchangeError
-                    }
-                    throw new error ([ this.id, method, url, response.status, response.statusText, details ].join (' '))
-                })
-            }).then (response => this.handleResponse (url, method, headers, response)))
+        return this.issueRestRequest (url, method, headers, body)
     }
 
-    this.handleResponse = function (url, method = 'GET', headers = undefined, body = undefined) {
+    this.handleRestErrors = function (response, url, method = 'GET', headers = undefined, body = undefined) {
+
+        if (typeof response == 'string')
+            return response
+
+        return response.text ().then (text => {
+            if (this.verbose)
+                console.log (this.id, method, url, text ? ("\nResponse:\n" + text) : '')
+            if ((response.status >= 200) && (response.status <= 300))
+                return text
+            let error = undefined
+            let details = text
+            if ([ 429 ].indexOf (response.status) >= 0) {
+                error = DDoSProtection
+            } else if ([ 404, 409, 422, 500, 501, 502, 520, 521, 522, 525 ].indexOf (response.status) >= 0) {
+                error = ExchangeNotAvailable
+            } else if ([ 400, 403, 405, 503 ].indexOf (response.status) >= 0) {
+                let ddosProtection = text.match (/cloudflare|incapsula/i)
+                if (ddosProtection) {
+                    error = DDoSProtection
+                } else {
+                    error = ExchangeNotAvailable
+                    details = text + ' (possible reasons: ' + [
+                        'invalid API keys',
+                        'bad or old nonce',
+                        'exchange is down or offline',
+                        'on maintenance',
+                        'DDoS protection',
+                        'rate-limiting',
+                    ].join (', ') + ')'
+                }
+            } else if ([ 408, 504 ].indexOf (response.status) >= 0) {
+                error = RequestTimeout
+            } else if ([ 401, 511 ].indexOf (response.status) >= 0) {
+                error = AuthenticationError
+            } else {
+                error = ExchangeError
+            }
+            throw new error ([ this.id, method, url, response.status, response.statusText, details ].join (' '))
+        })
+    }
+
+    this.handleRestResponse = function (response, url, method = 'GET', headers = undefined, body = undefined) {
 
         try {
 
-            if ((typeof body != 'string') || (body.length < 2))
+            if ((typeof response != 'string') || (response.length < 2))
                 throw new ExchangeError ([this.id, method, url, 'returned empty response'].join (' '))
-            return JSON.parse (body)
+
+            return JSON.parse (response)
 
         } catch (e) {
 
-            let maintenance = body.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
-            let ddosProtection = body.match (/cloudflare|incapsula|overload/i)
+            let maintenance = response.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
+            let ddosProtection = response.match (/cloudflare|incapsula|overload/i)
 
             if (e instanceof SyntaxError) {
 
@@ -513,7 +567,7 @@ const Exchange = function (config) {
             }
 
             if (this.verbose)
-                console.log (this.id, method, url, 'error', e, "response body:\n'" + body + "'")
+                console.log (this.id, method, url, 'error', e, "response body:\n'" + response + "'")
 
             throw e
         }
@@ -718,7 +772,9 @@ const Exchange = function (config) {
     this.hasDeposit           = false
     this.hasWithdraw          = false
 
-    this.requests = [] // internal rate limiter
+    // internal rate limiting REST poller
+    this.lastRestRequestTimestamp = 0
+    this.restRequestQueue = []
 
     this.YmdHMS = function (timestamp, infix = ' ') {
         let date = new Date (timestamp)
