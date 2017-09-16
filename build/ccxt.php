@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.14';
+$version = '1.7.15';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12685,6 +12685,9 @@ class huobi1 extends Exchange {
     public function fetch_markets () {
         $response = $this->publicGetCommonSymbols ();
         $markets = $response['data'];
+        $numMarkets = count ($markets);
+        if ($numMarkets < 1)
+            throw new ExchangeError ($this->id . ' publicGetCommonSymbols returned empty $response => ' . $this->json ($response));
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
@@ -12952,12 +12955,12 @@ class huobipro extends huobi1 {
                 'www' => 'https://www.huobi.pro',
                 'doc' => 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
             ),
-            // 'markets' => array (
-            //     'ETH/BTC' => array ( 'id' => 'ethbtc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC' ),
-            //     'ETC/BTC' => array ( 'id' => 'etccny', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC' ),
-            //     'LTC/BTC' => array ( 'id' => 'ltcbtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
-            //     'BCH/BTC' => array ( 'id' => 'bcccny', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC' ),
-            // ),
+            'markets' => array (
+                'ETH/BTC' => array ( 'id' => 'ethbtc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC' ),
+                'ETC/BTC' => array ( 'id' => 'etccny', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC' ),
+                'LTC/BTC' => array ( 'id' => 'ltcbtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                'BCH/BTC' => array ( 'id' => 'bcccny', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC' ),
+            ),
         ), $options));
     }
 }
