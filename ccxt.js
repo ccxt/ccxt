@@ -431,8 +431,11 @@ const Exchange = function (config) {
 
             // rate limiter
             let elapsed = this.milliseconds () - this.lastRestRequestTimestamp
-            if (elapsed < this.rateLimit)
-                await sleep (this.rateLimit - elapsed);
+            if (elapsed < this.rateLimit) {
+                let delay = Math.max (this.rateLimit - elapsed, 0)
+                if (delay)
+                    await sleep (delay)
+            }
 
             let { url, method, headers, body, resolve, reject } = this.restRequestQueue.shift ()
             this.executeRestRequest (url, method, headers, body).then (resolve).catch (reject)
@@ -443,17 +446,13 @@ const Exchange = function (config) {
 
     this.issueRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
-        if (this.enableRateLimit) {
-
-            let promise = new Promise ((resolve, reject) => {
+        if (this.enableRateLimit)
+            return new Promise ((resolve, reject) => {
                 this.restRequestQueue.push ({ url, method, headers, body, resolve, reject })
                 this.runRestPollerLoop ()
             })
 
-        } else {
-
-            return this.executeRestRequest (url, method, headers, body)
-        }
+        return this.executeRestRequest (url, method, headers, body)
     }
 
     this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
@@ -765,7 +764,7 @@ const Exchange = function (config) {
     this.hasDeposit           = false
     this.hasWithdraw          = false
 
-    // internal rate limiting REST poller
+    // internal rate-limiting REST poller
     this.lastRestRequestTimestamp = 0
     this.restRequestQueue = []
 
@@ -12541,12 +12540,12 @@ var huobipro = extend (huobi1, {
         'www': 'https://www.huobi.pro',
         'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
     },
-    'markets': {
-        'ETH/BTC': { 'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
-        'ETC/BTC': { 'id': 'etccny', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC' },
-        'LTC/BTC': { 'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
-        'BCH/BTC': { 'id': 'bcccny', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
-    },
+    // 'markets': {
+    //     'ETH/BTC': { 'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
+    //     'ETC/BTC': { 'id': 'etccny', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC' },
+    //     'LTC/BTC': { 'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+    //     'BCH/BTC': { 'id': 'bcccny', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
+    // },
 })
 
 //-----------------------------------------------------------------------------
