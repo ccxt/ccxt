@@ -1,6 +1,8 @@
 # Сhangelog
 
-- Fixed empty cex DASH/USD fetchTicker
+- Fixed Cryptopia fetchTicker volume [#206](https://github.com/kroitor/ccxt/issues/206)
+- Fixed Bittrex await cancelOrder [#205](https://github.com/kroitor/ccxt/issues/205)
+- Fixed empty CEX DASH/USD fetchTicker
 - Added Bittrex v2 fetchOHLCV (alpha-stage of their new API)
 
 ## Version 1.7.x 2017-09-15
