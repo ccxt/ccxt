@@ -11086,6 +11086,9 @@ class huobi1 (Exchange):
     def fetch_markets(self):
         response = self.publicGetCommonSymbols()
         markets = response['data']
+        numMarkets = len(markets)
+        if numMarkets < 1:
+            raise ExchangeError(self.id + ' publicGetCommonSymbols returned empty response: ' + self.json(response))
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -11329,12 +11332,12 @@ class huobipro (huobi1):
                 'www': 'https://www.huobi.pro',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
             },
-            # 'markets': {
-            #     'ETH/BTC': {'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC'},
-            #     'ETC/BTC': {'id': 'etccny', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC'},
-            #     'LTC/BTC': {'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
-            #     'BCH/BTC': {'id': 'bcccny', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC'},
-            #},
+            'markets': {
+                'ETH/BTC': {'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC'},
+                'ETC/BTC': {'id': 'etccny', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC'},
+                'LTC/BTC': {'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
+                'BCH/BTC': {'id': 'bcccny', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC'},
+            },
         }
         params.update(config)
         super(huobipro, self).__init__(params)
