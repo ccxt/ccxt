@@ -12010,9 +12010,14 @@ var hitbtc2 = extend (hitbtc, {
         return result;
     },
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = 'main') {
         await this.loadMarkets ();
-        let balances = await this.privateGetAccountBalance ();
+        let balances;
+        if (params === 'trading') {
+            balances = await this.privateGetTradingBalance ();
+        } else {
+            balances = await this.privateGetAccountBalance ();
+        }
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
