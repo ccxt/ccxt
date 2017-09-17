@@ -12745,7 +12745,7 @@ var huobi = {
 
 var independentreserve = {
 
-    'id': 'independentreserve'
+    'id': 'independentreserve',
     'name': 'Independent Reserve',
     'countries': [ 'AU', 'NZ', ], // Australia, New Zealand
     'rateLimit': 1000,
@@ -12797,8 +12797,8 @@ var independentreserve = {
     async fetchMarkets () {
         let primary = await this.publicGetValidPrimaryCurrencyCodes ();
         let secondary = await this.publicGetValidSecondaryCurrencyCodes ();
-        let primaryKeys = Objects.keys (primary);
-        let secondaryKeys = Objects.keys (primary);
+        let primaryKeys = Object.keys (primary);
+        let secondaryKeys = Object.keys (primary);
         let result = [];
         for (let i = 0; i < primaryKeys.length; i++) {
             let primaryKey = primaryKeys[i];
@@ -12824,59 +12824,169 @@ var independentreserve = {
         return result;
     },
 
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostUserInfo ();
+        let result = { 'info': response };
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = this.account ();
+            if (currency in response['balances'])
+                account['free'] = parseFloat (response['balances'][currency]);
+            if (currency in response['reserved'])
+                account['used'] = parseFloat (response['reserved'][currency]);
+            account['total'] = this.sum (account['free'], account['used']);
+            result[currency] = account;
+        }
+        return result;
+    },
+
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetOrderBook ({
+        let response = await this.publicGetOrderBook (this.extend ({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
-        })
-        console.log (response);
-        process.exit ();
-        return this.parseOrderBook (response, undefined, 'BuyOrders', 'SellOrders', 'price', 'volume');
+        }, params));
+        let timestamp = this.parse8601 (response['CreatedTimestampUtc']);
+        return this.parseOrderBook (response, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
     },
 
-    request (path, type = 'public', method = 'GET', params = {}) {
+    parseTicker (ticker, market) {
+        let timestamp = this.parse8601 (ticker['CreatedTimestampUtc']);
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': ticker['DayHighestPrice'],
+            'low': ticker['DayLowestPrice'],
+            'bid': ticker['CurrentHighestBidPrice'],
+            'ask': ticker['CurrentLowestOfferPrice'],
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': ticker['LastPrice'],
+            'change': undefined,
+            'percentage': undefined,
+            'average': ticker['DayAvgPrice'],
+            'baseVolume': ticker['DayVolumeXbt'],
+            'quoteVolume': ticker['DayVolumeXbtInSecondaryCurrrency'],
+            'info': ticker,
+        };
+    },
 
-/*
+    async fetchTicker (symbol) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.publicGetMarketSummary ({
+            'primaryCurrencyCode': market['baseId'],
+            'secondaryCurrencyCode': market['quoteId'],
+        });
+        return this.parseTicker (response, market);
+    },
 
-url='https://api.independentreserve.com/Private/GetOpenOrders'
-key='api_key'
-secret='api_secret'
-nonce=int(time.time())
-parameters = [
-    url,
-    'apiKey=' + key,
-    'nonce=' + str(nonce),
-    'pageIndex=1',
-    'pageSize=10',
-    'primaryCurrencyCode=Xbt',
-    'secondaryCurrencyCode=Usd'
-]
+    parseTrade (trade, market) {
+        let timestamp = this.parse8601 (trade['TradeTimestampUtc']);
+        return {
+            'id': undefined,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': undefined,
+            'type': undefined,
+            'side': undefined,
+            'price': trade['SecondaryCurrencyTradePrice'],
+            'amount': trade['PrimaryCurrencyAmount'],
+        };
+    },
 
-message = ','.join(parameters)
+    async fetchTrades (symbol, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.publicGetRecentTrades (this.extend ({
+            'primaryCurrencyCode': market['baseId'],
+            'secondaryCurrencyCode': market['quoteId'],
+            'numberOfRecentTradesToRetrieve': 50, // max = 50
+        }, params));
+        return this.parseTrades (response['Trades'], market);
+    },
 
-signature=hmac.new(
-    secret.encode('utf-8'),
-    msg=message.encode('utf-8'),
-    digestmod=hashlib.sha256).hexdigest().upper()
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        let prefix = '';
+        if (type == 'market')
+            prefix = 'market_';
+        let order = {
+            'pair': this.marketId (symbol),
+            'quantity': amount,
+            'price': price || 0,
+            'type': prefix + side,
+        };
+        let response = await this.privatePostOrderCreate (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['order_id'].toString (),
+        };
+    },
 
-data = {
-    "apiKey": key,
-    "nonce": nonce,
-    "signature": str(signature),
-    "primaryCurrencyCode": "Xbt",
-    "secondaryCurrencyCode": "Usd",
-    "pageIndex":1,
-    "pageSize":10
-}
+    async cancelOrder (id) {
+        await this.loadMarkets ();
+        return this.privatePostOrderCancel ({ 'order_id': id });
+    },
 
-headers={'Content-Type': 'application/json'}
-r = requests.post(url, data=json.dumps(data, sort_keys=True), headers=headers)
-print(r.content)
-
-*/
-
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api] + '/' + path;
+        if (api == 'public') {
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
+        } else {
+            // url = 'https://api.independentreserve.com/Private/GetOpenOrders'
+            // key = 'api_key'
+            // secret = 'api_secret'
+            // nonce = int(time.time())
+            // parameters = [
+            //     url,
+            //     'apiKey=' + key,
+            //     'nonce=' + str(nonce),
+            //     'pageIndex=1',
+            //     'pageSize=10',
+            //     'primaryCurrencyCode=Xbt',
+            //     'secondaryCurrencyCode=Usd'
+            // ]
+            // message = ','.join(parameters)
+            // signature = hmac.new(
+            //     secret.encode('utf-8'),
+            //     msg=message.encode('utf-8'),
+            //     digestmod=hashlib.sha256).hexdigest().upper()
+            // data = {
+            //     "apiKey": key,
+            //     "nonce": nonce,
+            //     "signature": str(signature),
+            //     "primaryCurrencyCode": "Xbt",
+            //     "secondaryCurrencyCode": "Usd",
+            //     "pageIndex": 1,
+            //     "pageSize": 10
+            // }
+            // headers={'Content-Type': 'application/json'}
+            // r = requests.post(url, data=json.dumps(data, sort_keys=True), headers=headers)
+            // print(r.content)
+            let nonce = this.nonce ();
+            body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': body.length,
+                'Key': this.apiKey,
+                'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+            };
+        }
+        let response = await this.fetch (url, method, headers, body);
+        if ('result' in response) {
+            if (response['result'])
+                return response;
+            throw new ExchangeError (this.id + ' ' + this.json (response));
+        }
+        return response;
     },
 }
 
@@ -18468,88 +18578,89 @@ var zaif = {
 
 var exchanges = {
 
-    '_1broker':      _1broker,
-    '_1btcxe':       _1btcxe,
-    'acx':           acx,
-    'anxpro':        anxpro,
-    'binance':       binance,
-    'bit2c':         bit2c,
-    'bitbay':        bitbay,
-    'bitcoincoid':   bitcoincoid,
-    'bitfinex':      bitfinex,
-    'bitfinex2':     bitfinex2,
-    'bitflyer':      bitflyer,
-    'bitlish':       bitlish,
-    'bitmarket':     bitmarket,
-    'bitmex':        bitmex,
-    'bitso':         bitso,
-    'bitstamp1':     bitstamp1,
-    'bitstamp':      bitstamp,
-    'bittrex':       bittrex,
-    'bl3p':          bl3p,
-    'bleutrade':     bleutrade,
-    'btcchina':      btcchina,
-    'btcexchange':   btcexchange,
-    'btcmarkets':    btcmarkets,
-    'btctradeua':    btctradeua,
-    'btcturk':       btcturk,
-    'btcx':          btcx,
-    'bter':          bter,
-    'bxinth':        bxinth,
-    'ccex':          ccex,
-    'cex':           cex,
-    'chbtc':         chbtc,
-    'chilebit':      chilebit,
-    'coincheck':     coincheck,
-    'coinfloor':     coinfloor,
-    'coingi':        coingi,
-    'coinmarketcap': coinmarketcap,
-    'coinmate':      coinmate,
-    'coinsecure':    coinsecure,
-    'coinspot':      coinspot,
-    'cryptopia':     cryptopia,
-    'dsx':           dsx,
-    'exmo':          exmo,
-    'flowbtc':       flowbtc,
-    'foxbit':        foxbit,
-    'fybse':         fybse,
-    'fybsg':         fybsg,
-    'gatecoin':      gatecoin,
-    'gdax':          gdax,
-    'gemini':        gemini,
-    'hitbtc':        hitbtc,
-    'hitbtc2':       hitbtc2,
-    'huobi':         huobi,
-    'huobicny':      huobicny,
-    'huobipro':      huobipro,
-    'itbit':         itbit,
-    'jubi':          jubi,
-    'kraken':        kraken,
-    'lakebtc':       lakebtc,
-    'livecoin':      livecoin,
-    'liqui':         liqui,
-    'luno':          luno,
-    'mercado':       mercado,
-    'mixcoins':      mixcoins,
-    'nova':          nova,
-    'okcoincny':     okcoincny,
-    'okcoinusd':     okcoinusd,
-    'okex':          okex,
-    'paymium':       paymium,
-    'poloniex':      poloniex,
-    'quadrigacx':    quadrigacx,
-    'quoine':        quoine,
-    'southxchange':  southxchange,
-    'surbitcoin':    surbitcoin,
-    'therock':       therock,
-    'urdubit':       urdubit,
-    'vaultoro':      vaultoro,
-    'vbtc':          vbtc,
-    'virwox':        virwox,
-    'xbtce':         xbtce,
-    'yobit':         yobit,
-    'yunbi':         yunbi,
-    'zaif':          zaif,
+    '_1broker':          _1broker,
+    '_1btcxe':           _1btcxe,
+    'acx':                acx,
+    'anxpro':             anxpro,
+    'binance':            binance,
+    'bit2c':              bit2c,
+    'bitbay':             bitbay,
+    'bitcoincoid':        bitcoincoid,
+    'bitfinex':           bitfinex,
+    'bitfinex2':          bitfinex2,
+    'bitflyer':           bitflyer,
+    'bitlish':            bitlish,
+    'bitmarket':          bitmarket,
+    'bitmex':             bitmex,
+    'bitso':              bitso,
+    'bitstamp1':          bitstamp1,
+    'bitstamp':           bitstamp,
+    'bittrex':            bittrex,
+    'bl3p':               bl3p,
+    'bleutrade':          bleutrade,
+    'btcchina':           btcchina,
+    'btcexchange':        btcexchange,
+    'btcmarkets':         btcmarkets,
+    'btctradeua':         btctradeua,
+    'btcturk':            btcturk,
+    'btcx':               btcx,
+    'bter':               bter,
+    'bxinth':             bxinth,
+    'ccex':               ccex,
+    'cex':                cex,
+    'chbtc':              chbtc,
+    'chilebit':           chilebit,
+    'coincheck':          coincheck,
+    'coinfloor':          coinfloor,
+    'coingi':             coingi,
+    'coinmarketcap':      coinmarketcap,
+    'coinmate':           coinmate,
+    'coinsecure':         coinsecure,
+    'coinspot':           coinspot,
+    'cryptopia':          cryptopia,
+    'dsx':                dsx,
+    'exmo':               exmo,
+    'flowbtc':            flowbtc,
+    'foxbit':             foxbit,
+    'fybse':              fybse,
+    'fybsg':              fybsg,
+    'gatecoin':           gatecoin,
+    'gdax':               gdax,
+    'gemini':             gemini,
+    'hitbtc':             hitbtc,
+    'hitbtc2':            hitbtc2,
+    'huobi':              huobi,
+    'huobicny':           huobicny,
+    'huobipro':           huobipro,
+    'independentreserve': independentreserve,
+    'itbit':              itbit,
+    'jubi':               jubi,
+    'kraken':             kraken,
+    'lakebtc':            lakebtc,
+    'livecoin':           livecoin,
+    'liqui':              liqui,
+    'luno':               luno,
+    'mercado':            mercado,
+    'mixcoins':           mixcoins,
+    'nova':               nova,
+    'okcoincny':          okcoincny,
+    'okcoinusd':          okcoinusd,
+    'okex':               okex,
+    'paymium':            paymium,
+    'poloniex':           poloniex,
+    'quadrigacx':         quadrigacx,
+    'quoine':             quoine,
+    'southxchange':       southxchange,
+    'surbitcoin':         surbitcoin,
+    'therock':            therock,
+    'urdubit':            urdubit,
+    'vaultoro':           vaultoro,
+    'vbtc':               vbtc,
+    'virwox':             virwox,
+    'xbtce':              xbtce,
+    'yobit':              yobit,
+    'yunbi':              yunbi,
+    'zaif':               zaif,
 }
 
 let defineAllExchanges = function (exchanges) {
