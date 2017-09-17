@@ -13165,7 +13165,7 @@ class independentreserve extends Exchange {
         parent::__construct (array_merge(array (
             'id' => 'independentreserve',
             'name' => 'Independent Reserve',
-            'countries' => array ( 'AU', 'NZ', ), // Australia, New Zealand
+            'countries' => array ( 'AU', 'NZ' ), // Australia, New Zealand
             'rateLimit' => 1000,
             'urls' => array (
                 'api' => array (
@@ -13250,13 +13250,14 @@ class independentreserve extends Exchange {
         $result = array ( 'info' => $balances );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $currency = $balance['CurrencyCode'];
-            $uppercase = $this->commonCurrencyCode strtoupper (($currency));
+            $currencyCode = $balance['CurrencyCode'];
+            $uppercase = strtoupper ($currencyCode)
+            $currency = $this->commonCurrencyCode ($uppercase);
             $account = $this->account ();
             $account['free'] = $balance['AvailableBalance'];
             $account['total'] = $balance['TotalBalance'];
             $account['used'] = $account['total'] - $account['free'];
-            $result[$uppercase] = $account;
+            $result[$currency] = $account;
         }
         return $result;
     }
@@ -15583,7 +15584,7 @@ class nova extends Exchange {
         parent::__construct (array_merge(array (
             'id' => 'nova',
             'name' => 'Novaexchange',
-            'countries' => 'TZ',
+            'countries' => 'TZ', // Tanzania
             'rateLimit' => 2000,
             'version' => 'v2',
             'urls' => array (

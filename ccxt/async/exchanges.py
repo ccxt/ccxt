@@ -11441,7 +11441,7 @@ class independentreserve (Exchange):
         params = {
             'id': 'independentreserve',
             'name': 'Independent Reserve',
-            'countries': ['AU', 'NZ',], # Australia, New Zealand
+            'countries': ['AU', 'NZ'], # Australia, New Zealand
             'rateLimit': 1000,
             'urls': {
                 'api': {
@@ -11524,13 +11524,14 @@ class independentreserve (Exchange):
         result = {'info': balances}
         for i in range(0, len(balances)):
             balance = balances[i]
-            currency = balance['CurrencyCode']
-            uppercase = self.commonCurrencyCode(currency.upper())
+            currencyCode = balance['CurrencyCode']
+            uppercase = currencyCode.upper()
+            currency = self.commonCurrencyCode(uppercase)
             account = self.account()
             account['free'] = balance['AvailableBalance']
             account['total'] = balance['TotalBalance']
             account['used'] = account['total'] - account['free']
-            result[uppercase] = account
+            result[currency] = account
         return result
 
     async def fetch_order_book(self, symbol, params={}):
@@ -13699,7 +13700,7 @@ class nova (Exchange):
         params = {
             'id': 'nova',
             'name': 'Novaexchange',
-            'countries': 'TZ',
+            'countries': 'TZ', # Tanzania
             'rateLimit': 2000,
             'version': 'v2',
             'urls': {

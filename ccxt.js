@@ -15206,21 +15206,13 @@ var nova = {
         });
         let ticker = response['markets'][0];
         let timestamp = this.milliseconds ();
-        let bid = undefined;
-        let ask = undefined;
-        if ('bid' in ticker)
-            if (ticker['bid'])
-                bid = parseFloat (ticker['bid']);
-        if ('ask' in ticker)
-            if (ticker['ask'])
-                ask = parseFloat (ticker['ask']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high24h']),
             'low': parseFloat (ticker['low24h']),
-            'bid': bid,
-            'ask': ask,
+            'bid': this.safeFloat (ticker, 'bid'),
+            'ask': this.safeFloat (ticker, 'ask'),
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
