@@ -2612,19 +2612,14 @@ var bitcoincoid = {
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostGetInfo ();
-        let balance = response['return']['balance'];
-        let frozen = response['return']['balance_hold'];
+        let balance = response['return'];
         let result = { 'info': balance };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
             let account = this.account ();
-            if (lowercase in balance) {
-                account['free'] = parseFloat (balance[lowercase]);
-            }
-            if (lowercase in frozen) {
-                account['used'] = parseFloat (frozen[lowercase]);
-            }
+            account['free'] = parseFloat (balance['balance'], lowercase, 0.0);
+            account['used'] = parseFloat (balance['balance_hold'], lowercase, 0.0);
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
