@@ -12037,9 +12037,9 @@ var hitbtc2 = extend (hitbtc, {
         return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'size');
     },
 
-    safeParseFloat (object, key) {
-        if (key in object)
-            if (object[key])
+    safeParseFloat (ticker, key) {
+        if (key in ticker)
+            if (ticker[key])
                 return parseFloat (ticker[key]);
         return undefined;
     },
