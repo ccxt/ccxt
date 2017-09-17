@@ -12743,6 +12743,145 @@ var huobi = {
 
 //-----------------------------------------------------------------------------
 
+var independentreserve = {
+
+    'id': 'independentreserve'
+    'name': 'Independent Reserve',
+    'countries': [ 'AU', 'NZ', ], // Australia, New Zealand
+    'rateLimit': 1000,
+    'urls': {
+        'api': {
+            'public': 'https://api.independentreserve.com/Public',
+            'private': 'https://api.independentreserve.com/Private',
+        },
+        'www': 'https://www.independentreserve.com',
+        'docs': 'https://www.independentreserve.com/API',
+    },
+    'api': {
+        'public': {
+            'get': [
+                'GetValidPrimaryCurrencyCodes',
+                'GetValidSecondaryCurrencyCodes',
+                'GetValidLimitOrderTypes',
+                'GetValidMarketOrderTypes',
+                'GetValidOrderTypes',
+                'GetValidTransactionTypes',
+                'GetMarketSummary',
+                'GetOrderBook',
+                'GetTradeHistorySummary',
+                'GetRecentTrades',
+                'GetFxRates',
+            ],
+        },
+        'private': {
+            'post': [
+                'PlaceLimitOrder',
+                'PlaceMarketOrder',
+                'CancelOrder',
+                'GetOpenOrders',
+                'GetClosedOrders',
+                'GetClosedFilledOrders',
+                'GetOrderDetails',
+                'GetAccounts',
+                'GetTransactions',
+                'GetDigitalCurrencyDepositAddress',
+                'GetDigitalCurrencyDepositAddresses',
+                'SynchDigitalCurrencyDepositAddressWithBlockchain',
+                'WithdrawDigitalCurrency',
+                'RequestFiatWithdrawal',
+                'GetTrades',
+            ],
+        },
+    },
+
+    async fetchMarkets () {
+        let primary = await this.publicGetValidPrimaryCurrencyCodes ();
+        let secondary = await this.publicGetValidSecondaryCurrencyCodes ();
+        let primaryKeys = Objects.keys (primary);
+        let secondaryKeys = Objects.keys (primary);
+        let result = [];
+        for (let i = 0; i < primaryKeys.length; i++) {
+            let primaryKey = primaryKeys[i];
+            let baseId = primary[primaryKey];
+            let base = this.commonCurrencyCode (baseId.toUpperCase ());
+            for (let j = 0; j < secondaryKeys.length; j++) {
+                let secondaryKey = secondaryKeys[j];
+                let quoteId = secondary[secondaryKey];
+                let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+                let id = baseId + '/' + quoteId;
+                let symbol = base + '/' + quote;
+                result.push ({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'info': id,
+                });
+            }
+        }
+        return result;
+    },
+
+    async fetchOrderBook (symbol, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.publicGetOrderBook ({
+            'primaryCurrencyCode': market['baseId'],
+            'secondaryCurrencyCode': market['quoteId'],
+        })
+        console.log (response);
+        process.exit ();
+        return this.parseOrderBook (response, undefined, 'BuyOrders', 'SellOrders', 'price', 'volume');
+    },
+
+    request (path, type = 'public', method = 'GET', params = {}) {
+
+/*
+
+url='https://api.independentreserve.com/Private/GetOpenOrders'
+key='api_key'
+secret='api_secret'
+nonce=int(time.time())
+parameters = [
+    url,
+    'apiKey=' + key,
+    'nonce=' + str(nonce),
+    'pageIndex=1',
+    'pageSize=10',
+    'primaryCurrencyCode=Xbt',
+    'secondaryCurrencyCode=Usd'
+]
+
+message = ','.join(parameters)
+
+signature=hmac.new(
+    secret.encode('utf-8'),
+    msg=message.encode('utf-8'),
+    digestmod=hashlib.sha256).hexdigest().upper()
+
+data = {
+    "apiKey": key,
+    "nonce": nonce,
+    "signature": str(signature),
+    "primaryCurrencyCode": "Xbt",
+    "secondaryCurrencyCode": "Usd",
+    "pageIndex":1,
+    "pageSize":10
+}
+
+headers={'Content-Type': 'application/json'}
+r = requests.post(url, data=json.dumps(data, sort_keys=True), headers=headers)
+print(r.content)
+
+*/
+
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var itbit = {
 
     'id': 'itbit',
@@ -12807,21 +12946,13 @@ var itbit = {
             'symbol': this.marketId (symbol),
         });
         let timestamp = this.parse8601 (ticker['serverTimeUTC']);
-        let bid = undefined;
-        let ask = undefined;
-        if ('bid' in ticker)
-            if (ticker['bid'])
-                bid = parseFloat (ticker['bid']);
-        if ('ask' in ticker)
-            if (ticker['ask'])
-                ask = parseFloat (ticker['ask']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high24h']),
             'low': parseFloat (ticker['low24h']),
-            'bid': bid,
-            'ask': ask,
+            'bid': this.safeFloat (ticker, 'bid'),
+            'ask': this.safeFloat (ticker, 'ask'),
             'vwap': parseFloat (ticker['vwap24h']),
             'open': parseFloat (ticker['openToday']),
             'close': undefined,
