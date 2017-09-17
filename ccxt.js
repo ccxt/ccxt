@@ -15021,7 +15021,7 @@ var nova = {
             'low': parseFloat (ticker['low24h']),
             'bid': bid,
             'ask': ask,
-            'vwap': parseFloat (ticker['vwap24h']),
+            'vwap': undefined,
             'open': parseFloat (ticker['openToday']),
             'close': undefined,
             'first': undefined,
