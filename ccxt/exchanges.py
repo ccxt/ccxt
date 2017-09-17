@@ -13832,7 +13832,7 @@ class nova (Exchange):
             # base = market['currency']
             # quote = market['basecurrency']
             id = market['marketname']
-            base, quote = id.split('_')
+            quote, base = id.split('_')
             symbol = base + '/' + quote
             result.append({
                 'id': id,
