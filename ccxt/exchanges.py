@@ -13843,12 +13843,14 @@ class nova (Exchange):
         return result
 
     def fetch_order_book(self, symbol, params={}):
+        self.load_markets()
         orderbook = self.publicGetMarketOpenordersPairBoth(self.extend({
             'pair': self.market_id(symbol),
         }, params))
         return self.parse_order_book(orderbook, None, 'buyorders', 'sellorders', 'price', 'amount')
 
     def fetch_ticker(self, symbol):
+        self.load_markets()
         response = self.publicGetMarketInfoPair({
             'pair': self.market_id(symbol),
         })
@@ -13890,6 +13892,7 @@ class nova (Exchange):
         }
 
     def fetch_trades(self, symbol, params={}):
+        self.load_markets()
         market = self.market(symbol)
         response = self.publicGetMarketOrderhistoryPair(self.extend({
             'pair': market['id'],
@@ -13897,6 +13900,7 @@ class nova (Exchange):
         return self.parse_trades(response['items'], market)
 
     def fetch_balance(self, params={}):
+        self.load_markets()
         response = self.privatePostGetbalances()
         balances = response['balances']
         result = {'info': response}
@@ -13916,6 +13920,7 @@ class nova (Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
+        self.load_markets()
         amount = str(amount)
         price = str(price)
         market = self.market(symbol)

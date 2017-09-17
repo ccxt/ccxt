@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.32';
+$version = '1.7.33';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -15643,6 +15643,7 @@ class nova extends Exchange {
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
+        $this->load_markets ();
         $orderbook = $this->publicGetMarketOpenordersPairBoth (array_merge (array (
             'pair' => $this->market_id ($symbol),
         ), $params));
@@ -15650,6 +15651,7 @@ class nova extends Exchange {
     }
 
     public function fetch_ticker ($symbol) {
+        $this->load_markets ();
         $response = $this->publicGetMarketInfoPair (array (
             'pair' => $this->market_id ($symbol),
         ));
@@ -15693,6 +15695,7 @@ class nova extends Exchange {
     }
 
     public function fetch_trades ($symbol, $params = array ()) {
+        $this->load_markets ();
         $market = $this->market ($symbol);
         $response = $this->publicGetMarketOrderhistoryPair (array_merge (array (
             'pair' => $market['id'],
@@ -15701,6 +15704,7 @@ class nova extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
+        $this->load_markets ();
         $response = $this->privatePostGetbalances ();
         $balances = $response['balances'];
         $result = array ( 'info' => $response );
@@ -15722,6 +15726,7 @@ class nova extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
+        $this->load_markets ();
         $amount = (string) $amount;
         $price = (string) $price;
         $market = $this->market ($symbol);
