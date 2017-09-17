@@ -8595,11 +8595,6 @@ var coinfloor = {
     parseTicker (ticker, market) {
         // rewrite to get the timestamp from HTTP headers
         let timestamp = this.milliseconds ();
-        // they sometimes return null for vwap
-        let vwap = undefined;
-        if ('vwap' in ticker)
-            if (ticker['vwap'])
-                vwap = parseFloat (ticker['vwap']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -8607,7 +8602,7 @@ var coinfloor = {
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
             'ask': parseFloat (ticker['ask']),
-            'vwap': vwap,
+            'vwap': this.safeFloat (ticker, 'vwap'),
             'open': undefined,
             'close': undefined,
             'first': undefined,
