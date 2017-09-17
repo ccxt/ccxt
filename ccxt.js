@@ -14924,7 +14924,7 @@ var nova = {
 
     'id': 'nova',
     'name': 'Novaexchange',
-    'countries': 'US',
+    'countries': 'TZ',
     'rateLimit': 2000,
     'version': 'v2',
     'urls': {

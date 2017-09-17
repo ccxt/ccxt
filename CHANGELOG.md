@@ -1,5 +1,8 @@
 # Сhangelog
 
+- Added support for a new exchange: [Nova Exchange](https://novaexchange.com) (Tanzania)
+- Fixed itBit createOrder/cancelOrder for walletId
+- Fixed Jubi cancelOrder
 - Switched HitBTC v2 fetchBalance to trading account by default, [#210](https://github.com/kroitor/ccxt/pull/210)
 - Added an internal rate-limiting REST poller to JS (experimental)
 - Fixed Cryptopia fetchTicker volume [#206](https://github.com/kroitor/ccxt/issues/206)
