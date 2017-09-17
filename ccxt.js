@@ -12796,19 +12796,15 @@ var independentreserve = {
     },
 
     async fetchMarkets () {
-        let primary = await this.publicGetValidPrimaryCurrencyCodes ();
-        let secondary = await this.publicGetValidSecondaryCurrencyCodes ();
-        let primaryKeys = Object.keys (primary);
-        let secondaryKeys = Object.keys (primary);
+        let baseCurrencies = await this.publicGetValidPrimaryCurrencyCodes ();
+        let quoteCurrencies = await this.publicGetValidSecondaryCurrencyCodes ();
         let result = [];
-        for (let i = 0; i < primaryKeys.length; i++) {
-            let primaryKey = primaryKeys[i];
-            let baseId = primary[primaryKey];
+        for (let i = 0; i < baseCurrencies.length; i++) {
+            let baseId = baseCurrencies[i];
             let baseIdUppercase = baseId.toUpperCase ();
             let base = this.commonCurrencyCode (baseIdUppercase);
-            for (let j = 0; j < secondaryKeys.length; j++) {
-                let secondaryKey = secondaryKeys[j];
-                let quoteId = secondary[secondaryKey];
+            for (let j = 0; j < quoteCurrencies.length; j++) {
+                let quoteId = quoteCurrencies[j];
                 let quoteIdUppercase = quoteId.toUpperCase ();
                 let quote = this.commonCurrencyCode (quoteIdUppercase);
                 let id = baseId + '/' + quoteId;

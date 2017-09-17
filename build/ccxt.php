@@ -13216,19 +13216,15 @@ class independentreserve extends Exchange {
     }
 
     public function fetch_markets () {
-        $primary = $this->publicGetValidPrimaryCurrencyCodes ();
-        $secondary = $this->publicGetValidSecondaryCurrencyCodes ();
-        $primaryKeys = array_keys ($primary);
-        $secondaryKeys = array_keys ($primary);
+        $baseCurrencies = $this->publicGetValidPrimaryCurrencyCodes ();
+        $quoteCurrencies = $this->publicGetValidSecondaryCurrencyCodes ();
         $result = array ();
-        for ($i = 0; $i < count ($primaryKeys); $i++) {
-            $primaryKey = $primaryKeys[$i];
-            $baseId = $primary[$primaryKey];
+        for ($i = 0; $i < count ($baseCurrencies); $i++) {
+            $baseId = $baseCurrencies[$i];
             $baseIdUppercase = strtoupper ($baseId);
             $base = $this->commonCurrencyCode ($baseIdUppercase);
-            for ($j = 0; $j < count ($secondaryKeys); $j++) {
-                $secondaryKey = $secondaryKeys[$j];
-                $quoteId = $secondary[$secondaryKey];
+            for ($j = 0; $j < count ($quoteCurrencies); $j++) {
+                $quoteId = $quoteCurrencies[$j];
                 $quoteIdUppercase = strtoupper ($quoteId);
                 $quote = $this->commonCurrencyCode ($quoteIdUppercase);
                 $id = $baseId . '/' . $quoteId;

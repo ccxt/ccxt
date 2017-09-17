@@ -11579,19 +11579,15 @@ class independentreserve (Exchange):
         super(independentreserve, self).__init__(params)
 
     def fetch_markets(self):
-        primary = self.publicGetValidPrimaryCurrencyCodes()
-        secondary = self.publicGetValidSecondaryCurrencyCodes()
-        primaryKeys = list(primary.keys())
-        secondaryKeys = list(primary.keys())
+        baseCurrencies = self.publicGetValidPrimaryCurrencyCodes()
+        quoteCurrencies = self.publicGetValidSecondaryCurrencyCodes()
         result = []
-        for i in range(0, len(primaryKeys)):
-            primaryKey = primaryKeys[i]
-            baseId = primary[primaryKey]
+        for i in range(0, len(baseCurrencies)):
+            baseId = baseCurrencies[i]
             baseIdUppercase = baseId.upper()
             base = self.commonCurrencyCode(baseIdUppercase)
-            for j in range(0, len(secondaryKeys)):
-                secondaryKey = secondaryKeys[j]
-                quoteId = secondary[secondaryKey]
+            for j in range(0, len(quoteCurrencies)):
+                quoteId = quoteCurrencies[j]
                 quoteIdUppercase = quoteId.upper()
                 quote = self.commonCurrencyCode(quoteIdUppercase)
                 id = baseId + '/' + quoteId
