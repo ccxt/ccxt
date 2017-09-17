@@ -7707,9 +7707,6 @@ var ccex = {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
-        let volume = undefined;
-        if ('buysupport' in ticker)
-            volume = parseFloat (ticker['buysupport']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -7726,7 +7723,7 @@ var ccex = {
             'percentage': undefined,
             'average': parseFloat (ticker['avg']),
             'baseVolume': undefined,
-            'quoteVolume': volume,
+            'quoteVolume': this.safeFloat (ticker, 'buysupport'),
             'info': ticker,
         };
     },
