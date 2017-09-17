@@ -6818,22 +6818,12 @@ class cex (Exchange):
         if 'timestamp' in ticker:
             timestamp = int(ticker['timestamp']) * 1000
             iso8601 = self.iso8601(timestamp)
-        volume = None
-        if 'volume' in ticker:
-            volume = float(ticker['volume'])
-        else:
-            raise ExchangeError(self.id + ' unrecognized ticker ' + self.json(ticker))
-        high = None
-        low = None
-        bid = None
-        ask = None
-        last = None
-        if volume > 0:
-            high = float(ticker['high'])
-            low = float(ticker['low'])
-            bid = float(ticker['bid'])
-            ask = float(ticker['ask'])
-            last = float(ticker['last'])
+        volume = self.safe_float(ticker, 'volume')
+        high = self.safe_float(ticker, 'high')
+        low = self.safe_float(ticker, 'low')
+        bid = self.safe_float(ticker, 'bid')
+        ask = self.safe_float(ticker, 'ask')
+        last = self.safe_float(ticker, 'last')
         return {
             'timestamp': timestamp,
             'datetime': iso8601,

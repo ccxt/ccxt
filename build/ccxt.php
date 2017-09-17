@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.33';
+$version = '1.7.34';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8247,23 +8247,12 @@ class cex extends Exchange {
             $timestamp = intval ($ticker['timestamp']) * 1000;
             $iso8601 = $this->iso8601 ($timestamp);
         }
-        $volume = null;
-        if (array_key_exists ('volume', $ticker))
-            $volume = floatval ($ticker['volume']);
-        else
-            throw new ExchangeError ($this->id . ' unrecognized $ticker ' . $this->json ($ticker));
-        $high = null;
-        $low = null;
-        $bid = null;
-        $ask = null;
-        $last = null;
-        if ($volume > 0) {
-            $high = floatval ($ticker['high']);
-            $low = floatval ($ticker['low']);
-            $bid = floatval ($ticker['bid']);
-            $ask = floatval ($ticker['ask']);
-            $last = floatval ($ticker['last']);
-        }
+        $volume = $this->safe_float ($ticker, 'volume');
+        $high = $this->safe_float ($ticker, 'high');
+        $low = $this->safe_float ($ticker, 'low');
+        $bid = $this->safe_float ($ticker, 'bid');
+        $ask = $this->safe_float ($ticker, 'ask');
+        $last = $this->safe_float ($ticker, 'last');
         return array (
             'timestamp' => $timestamp,
             'datetime' => $iso8601,
