@@ -425,7 +425,7 @@ let tryAllProxies = async function (exchange, proxies) {
     let maxRetries   = proxies.length
 
     // a special case for ccex
-    if (exchange.id == 'ccex')
+    if ((exchange.id == 'ccex') || (exchange.id == 'nova'))
         currentProxy = 1
 
     for (let numRetries = 0; numRetries < maxRetries; numRetries++) {

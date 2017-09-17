@@ -14945,6 +14945,228 @@ var mixcoins = {
 }
 
 //-----------------------------------------------------------------------------
+
+var nova = {
+
+    'id': 'nova',
+    'name': 'Novaexchange',
+    'countries': 'US',
+    'rateLimit': 2000,
+    'version': 'v2',
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
+        'api': 'https://novaexchange.com/remote',
+        'www': 'https://novaexchange.com',
+        'doc': 'https://novaexchange.com/remote/faq',
+    },
+    'api': {
+        'public': {
+            'get': [
+                'markets/',
+                'markets/{basecurrency}',
+                'market/info/{pair}/',
+                'market/orderhistory/{pair}/',
+                'market/openorders/{pair}/buy/',
+                'market/openorders/{pair}/sell/',
+                'market/openorders/{pair}/both/',
+                'market/openorders/{pair}/{ordertype}/',
+            ],
+        },
+        'private': {
+            'post': [
+                'getbalances/',
+                'getbalance/{currency}/',
+                'getdeposits/',
+                'getwithdrawals/',
+                'getnewdepositaddress/{currency}/',
+                'getdepositaddress/{currency}/',
+                'myopenorders/',
+                'myopenorders_market/{pair}/',
+                'cancelorder/{orderid}/',
+                'withdraw/{currency}/',
+                'trade/{pair}/',
+                'tradehistory/',
+                'getdeposithistory/',
+                'getwithdrawalhistory/',
+                'walletstatus/',
+                'walletstatus/{currency}/',
+            ],
+        },
+    },
+
+    async fetchMarkets () {
+        let response = await this.publicGetMarkets ();
+        let markets = response['markets'];
+        let result = [];
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
+            // let base = market['currency'];
+            // let quote = market['basecurrency'];
+            let id = market['marketname'];
+            let [ base, quote ] = id.split ('_');
+            let symbol = base + '/' + quote;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': market,
+            });
+        }
+        return result;
+    },
+
+    async fetchOrderBook (symbol, params = {}) {
+        let orderbook = await this.publicGetMarketOpenordersPairBoth (this.extend ({
+            'pair': this.marketId (symbol),
+        }, params));
+        return this.parseOrderBook (orderbook, undefined, 'buyorders', 'sellorders', 'price', 'amount');
+    },
+
+    async fetchTicker (symbol) {
+        let response = await this.publicGetMarketInfoPair ({
+            'pair': this.marketId (symbol),
+        });
+        let ticker = response['markets'][0];
+        let timestamp = this.milliseconds ();
+        let bid = undefined;
+        let ask = undefined;
+        if ('bid' in ticker)
+            if (ticker['bid'])
+                bid = parseFloat (ticker['bid']);
+        if ('ask' in ticker)
+            if (ticker['ask'])
+                ask = parseFloat (ticker['ask']);
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high24h']),
+            'low': parseFloat (ticker['low24h']),
+            'bid': bid,
+            'ask': ask,
+            'vwap': parseFloat (ticker['vwap24h']),
+            'open': parseFloat (ticker['openToday']),
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last_price']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['volume24h']),
+            'info': ticker,
+        };
+    },
+
+    parseTrade (trade, market) {
+        let timestamp = this.parse8601 (trade['timestamp']);
+        let id = trade['matchNumber'].toString ();
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'id': id,
+            'order': id,
+            'type': undefined,
+            'side': undefined,
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetMarketsSymbolTrades (this.extend ({
+            'symbol': market['id'],
+        }, params));
+        return this.parseTrades (response['recentTrades'], market);
+    },
+
+    async fetchBalance (params = {}) {
+        let response = await this.privateGetBalances ();
+        let balances = response['balances'];
+        let result = { 'info': response };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = balance['currency'];
+            let account = {
+                'free': parseFloat (balance['availableBalance']),
+                'used': 0.0,
+                'total': parseFloat (balance['totalBalance']),
+            };
+            account['used'] = account['total'] - account['free'];
+            result[currency] = account;
+        }
+        return result;
+    },
+
+    fetchWallets () {
+        return this.privateGetWallets ();
+    },
+
+    nonce () {
+        return this.milliseconds ();
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type == 'market')
+            throw new ExchangeError (this.id + ' allows limit orders only');
+        amount = amount.toString ();
+        price = price.toString ();
+        let market = this.market (symbol);
+        let order = {
+            'side': side,
+            'type': type,
+            'currency': market['base'],
+            'amount': amount,
+            'display': amount,
+            'price': price,
+            'instrument': market['id'],
+        };
+        let response = await this.privatePostTradeAdd (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['id'],
+        };
+    },
+
+    async cancelOrder (id, params = {}) {
+        return this.privateDeleteWalletsWalletIdOrdersId (this.extend ({
+            'id': id,
+        }, params));
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + this.version + '/';
+        if (api == 'private')
+            url += api + '/';
+        url += this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (api == 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            let nonce = this.nonce ().toString ();
+            url += '?' + this.urlencode ({ 'nonce': nonce });
+            let signature = this.hmac (this.encode (url), this.encode (this.secret), 'sha512', 'base64');
+            body = this.urlencode (this.extend ({
+                'apikey': this.apiKey,
+                'signature': signature,
+            }, query));
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
+        }
+        let response = this.fetch (url, method, headers, body);
+        if ('status' in response)
+            if (response['status'] != 'success')
+                throw new ExchangeError (this.id + ' ' + this.json (response));
+        return response;
+    },
+}
+
+//-----------------------------------------------------------------------------
 // OKCoin
 // China
 // https://www.okcoin.com/
@@ -18237,6 +18459,7 @@ var exchanges = {
     'luno':          luno,
     'mercado':       mercado,
     'mixcoins':      mixcoins,
+    'nova':          nova,
     'okcoincny':     okcoincny,
     'okcoinusd':     okcoinusd,
     'okex':          okex,
