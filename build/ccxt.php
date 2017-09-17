@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.26';
+$version = '1.7.27';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -14790,20 +14790,20 @@ class liqui extends Exchange {
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => $ticker['high'] ? $ticker['high'] : null,
-            'low' => $ticker['low'] ? $ticker['low'] : null,
-            'bid' => $ticker['sell'] ? $ticker['buy'] : null,
-            'ask' => $ticker['buy'] ? $ticker['sell'] : null,
+            'high' => $this->safe_float ($ticker, 'high'),
+            'low' => $this->safe_float ($ticker, 'low'),
+            'bid' => $this->safe_float ($ticker, 'buy'),
+            'ask' => $this->safe_float ($ticker, 'sell'),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => $ticker['last'] ? $ticker['last'] : null,
+            'last' => $this->safe_float ($ticker, 'last'),
             'change' => null,
             'percentage' => null,
-            'average' => $ticker['avg'] ? $ticker['avg'] : null,
-            'baseVolume' => $ticker['vol_cur'] ? $ticker['vol_cur'] : null,
-            'quoteVolume' => $ticker['vol'] ? $ticker['vol'] : null,
+            'average' => $this->safe_float ($ticker, 'avg'),
+            'baseVolume' => $this->safe_float ($ticker, 'vol_cur'),
+            'quoteVolume' => $this->safe_float ($ticker, 'vol'),
             'info' => $ticker,
         );
     }
@@ -17274,43 +17274,23 @@ class southxchange extends Exchange {
 
     public function parse_ticker ($ticker, $market) {
         $timestamp = $this->milliseconds ();
-        $bid = null;
-        $ask = null;
-        $last = null;
-        $change = null;
-        $volume = null;
-        if (array_key_exists ('Bid', $ticker))
-            if ($ticker['Bid'])
-                $bid = floatval ($ticker['Bid']);
-        if (array_key_exists ('Ask', $ticker))
-            if ($ticker['Ask'])
-                $ask = floatval ($ticker['Ask']);
-        if (array_key_exists ('Last', $ticker))
-            if ($ticker['Last'])
-                $last = floatval ($ticker['Last']);
-        if (array_key_exists ('Variation24Hr', $ticker))
-            if ($ticker['Variation24Hr'])
-                $change = floatval ($ticker['Variation24Hr']);
-        if (array_key_exists ('Volume24Hr', $ticker))
-            if ($ticker['Volume24Hr'])
-                $volume = floatval ($ticker['Volume24Hr']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $bid,
-            'ask' => $ask,
+            'bid' => $this->safe_float ($ticker, 'Bid'),
+            'ask' => $this->safe_float ($ticker, 'Ask'),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => $last,
-            'change' => $change,
+            'last' => $this->safe_float ($ticker, 'Last'),
+            'change' => $this->safe_float ($ticker, 'Variation24Hr'),
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => $volume,
+            'quoteVolume' => $this->safe_float ($ticker, 'Volume24Hr'),
             'info' => $ticker,
         );
     }
