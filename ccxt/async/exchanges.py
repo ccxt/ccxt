@@ -347,10 +347,8 @@ class cryptocapital (Exchange):
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             account = self.account()
-            if currency in balance['available']:
-                account['free'] = float(balance['available'][currency])
-            if currency in balance['on_hold']:
-                account['used'] = float(balance['on_hold'][currency])
+            account['free'] = self.safe_float(balance['available'], currency, 0.0)
+            account['used'] = self.safe_float(balance['on_hold'], currency, 0.0)
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
         return result
@@ -920,12 +918,8 @@ class anxpro (Exchange):
         ticker = response['data']
         t = int(ticker['dataUpdateTime'])
         timestamp = int(t / 1000)
-        bid = None
-        ask = None
-        if ticker['buy']['value']:
-            bid = float(ticker['buy']['value'])
-        if ticker['sell']['value']:
-            ask = float(ticker['sell']['value'])
+        bid = self.safe_float(ticker['buy'], 'value')
+        ask = self.safe_float(ticker['sell'], 'value')
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1244,12 +1238,8 @@ class binance (Exchange):
                 symbol = market['symbol']
         timestamp = order['time']
         amount = float(order['origQty'])
-        remaining = None
-        filled = None
-        if 'executedQty' in order:
-            if order['executedQty']:
-                filled = float(order['executedQty'])
-                remaining = amount - filled
+        filled = self.safe_float(order, 'executedQty', 0.0)
+        remaining = max(amount - filled, 0.0)
         result = {
             'info': order,
             'id': order['orderId'],

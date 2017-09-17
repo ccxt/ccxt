@@ -2071,14 +2071,8 @@ var binance = {
         }
         let timestamp = order['time'];
         let amount = parseFloat (order['origQty']);
-        let remaining = undefined;
-        let filled = undefined;
-        if ('executedQty' in order) {
-            if (order['executedQty']) {
-                filled = parseFloat (order['executedQty']);
-                remaining = amount - filled;
-            }
-        }
+        let filled = this.safeFloat (order, 'executedQty', 0.0);
+        let remaining = Math.max (amount - filled, 0.0);
         let result = {
             'info': order,
             'id': order['orderId'],

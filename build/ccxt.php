@@ -228,11 +228,11 @@ class Exchange {
         return '' + $number;
     }
 
-    public static function safe_float ($object, $key) {
+    public static function safe_float ($object, $key, $default_value = null) {
         if (array_key_exists ($key, $object))
             if ($object[$key])
                 return floatval ($object[$key]);
-        return null;
+        return $default_value;
     }
 
     public static function capitalize ($string) {
@@ -1313,10 +1313,8 @@ class cryptocapital extends Exchange {
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $account = $this->account ();
-            if (array_key_exists ($currency, $balance['available']))
-                $account['free'] = floatval ($balance['available'][$currency]);
-            if (array_key_exists ($currency, $balance['on_hold']))
-                $account['used'] = floatval ($balance['on_hold'][$currency]);
+            $account['free'] = $this->safe_float ($balance['available'], $currency, 0.0);
+            $account['used'] = $this->safe_float ($balance['on_hold'], $currency, 0.0);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
@@ -1926,12 +1924,8 @@ class anxpro extends Exchange {
         $ticker = $response['data'];
         $t = intval ($ticker['dataUpdateTime']);
         $timestamp = intval ($t / 1000);
-        $bid = null;
-        $ask = null;
-        if ($ticker['buy']['value'])
-            $bid = floatval ($ticker['buy']['value']);
-        if ($ticker['sell']['value'])
-            $ask = floatval ($ticker['sell']['value']);
+        $bid = $this->safe_float ($ticker['buy'], 'value');
+        $ask = $this->safe_float ($ticker['sell'], 'value');;
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -2272,14 +2266,8 @@ class binance extends Exchange {
         }
         $timestamp = $order['time'];
         $amount = floatval ($order['origQty']);
-        $remaining = null;
-        $filled = null;
-        if (array_key_exists ('executedQty', $order)) {
-            if ($order['executedQty']) {
-                $filled = floatval ($order['executedQty']);
-                $remaining = $amount - $filled;
-            }
-        }
+        $filled = $this->safe_float ($order, 'executedQty', 0.0);
+        $remaining = max ($amount - $filled, 0.0);
         $result = array (
             'info' => $order,
             'id' => $order['orderId'],
