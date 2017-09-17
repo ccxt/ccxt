@@ -241,7 +241,9 @@ exchange.methodName ()  // camelcase pseudocode
 exchange.method_name () // underscore pseudocode
 ```
 
-See the [Manual](https://github.com/kroitor/ccxt/wiki) for more details.
+### Documentation
+
+Read the [Manual](https://github.com/kroitor/ccxt/wiki) for more details.
 
 ### JavaScript
 
@@ -391,7 +393,18 @@ Please, contact us on GitHub or by email if you're interested in integrating thi
 
 ## Support CCXT Development
 
+### BTC
+
 ```
-BTC 1N1kptzFWbSLKLPJTNYDKq2FkTojb5s8qX
-ETH 0x811DCfeb6dC0b9ed825808B6B060Ca469b83fB81
+1N1kptzFWbSLKLPJTNYDKq2FkTojb5s8qX
 ```
+
+![Support CCXT Development BTC Wallet QR Code](https://user-images.githubusercontent.com/1294454/30524709-42654654-9c01-11e7-9145-92b9e8fa711c.jpg)
+
+### ETH
+
+```
+0x811DCfeb6dC0b9ed825808B6B060Ca469b83fB81
+```
+
+![Support CCXT Development ETH Wallet QR Code](https://user-images.githubusercontent.com/1294454/30524713-4c375f78-9c01-11e7-89de-eef9f941fa48.jpg)

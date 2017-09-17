@@ -269,32 +269,35 @@ class Exchange(object):
             else:
                 data = gzip.GzipFile('', 'rb', 9, io.BytesIO(text))
                 text = data.read()
-        body = text.decode('utf-8')
+        decoded_text = text.decode('utf-8')
         if self.verbose:
-            print(method, url, "\nResponse:", headers, body)
-        return self.handle_response(url, method, headers, body)
+            print(method, url, "\nResponse:", headers, decoded_text)
+        return self.handle_rest_response(decoded_text, url, method, headers, body)
 
-    def handle_response(self, url, method='GET', headers=None, body=None):
+    def handle_rest_errors(self, response, url, method='GET', headers=None, body=None):
+        pass
+
+    def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
         try:
-            if (len(body) < 2):
+            if (len(response) < 2):
                 raise ExchangeError(''.join([self.id, method, url, 'returned empty response']))
-            return json.loads(body)
+            return json.loads(response)
         except Exception as e:
-            ddos_protection = re.search('(cloudflare|incapsula)', body, flags=re.IGNORECASE)
-            exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', body, flags=re.IGNORECASE)
+            ddos_protection = re.search('(cloudflare|incapsula)', response, flags=re.IGNORECASE)
+            exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE)
             if ddos_protection:
-                raise DDoSProtection(' '.join([self.id, method, url, body]))
+                raise DDoSProtection(' '.join([self.id, method, url, response]))
             if exchange_not_available:
                 message = 'exchange downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
                 raise ExchangeNotAvailable(' '.join([
                     self.id,
                     method,
                     url,
-                    body,
+                    response,
                     message,
                 ]))
             if isinstance(e, ValueError):
-                raise ExchangeError(' '.join([self.id, method, url, body, str(e)]))
+                raise ExchangeError(' '.join([self.id, method, url, response, str(e)]))
             raise
 
     @staticmethod
@@ -343,16 +346,16 @@ class Exchange(object):
         return result
 
     @staticmethod
-    def indexBy(l, key):
-        return Exchange.index_by(l, key)
+    def indexBy(array, key):
+        return Exchange.index_by(array, key)
 
     @staticmethod
-    def sort_by(l, key, descending=False):
-        return sorted(l, key=lambda k: k[key], reverse=descending)
+    def sort_by(array, key, descending=False):
+        return sorted(array, key=lambda k: k[key], reverse=descending)
 
     @staticmethod
-    def sortBy(l, key, descending=False):
-        return Exchange.sort_by(l, key, descending)
+    def sortBy(array, key, descending=False):
+        return Exchange.sort_by(array, key, descending)
 
     @staticmethod
     def extract_params(string):
@@ -407,11 +410,15 @@ class Exchange(object):
 
     @staticmethod
     def pluck(array, key):
-        return [element[key] for element in array if (key in element) and (element[key] is not None)]
+        return [
+            element[key]
+            for element in array
+            if (key in element) and (element[key] is not None)
+        ]
 
     @staticmethod
     def sum(*args):
-        return sum([arg for arg in args if isinstance(arg, int) or isinstance(arg, float)])
+        return sum([arg for arg in args if isinstance(arg, (float, int))])
 
     @staticmethod
     def ordered(array):
@@ -460,7 +467,8 @@ class Exchange(object):
 
     @staticmethod
     def YmdHMS(timestamp, infix=' '):
-        return datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000))).strftime('%Y-%m-%d' + infix + '%H:%M:%S')
+        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
 
     @staticmethod
     def parse8601(timestamp):

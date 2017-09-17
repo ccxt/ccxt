@@ -97,8 +97,9 @@ class Exchange (BaseExchange):
             print(url, method, url, "\nRequest:", headers, body)
         if body:
             body = body.encode()
+        encoded_body = body.encode() if body else None
         session_method = getattr(self.aiohttp_session, method.lower())
-        async with session_method(url, data=body or None, headers=headers, timeout=(self.timeout / 1000)) as response:
+        async with session_method(url, data=encoded_body, headers=headers, timeout=(self.timeout / 1000)) as response:
             text = await response.text()
             error = None
             details = text if text else None
@@ -132,7 +133,7 @@ class Exchange (BaseExchange):
                 self.raise_error(error, url, method, str(response.status), details)
         if self.verbose:
             print(method, url, "\nResponse:", headers, text)
-        return self.handle_response(url, method, headers, text)
+        return self.handle_rest_response(text, url, method, headers, body)
 
     async def load_markets(self, reload=False):
         if not reload:
