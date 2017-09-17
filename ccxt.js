@@ -12912,6 +12912,9 @@ var itbit = {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
+        let walletIdInParams = ('walletId' in params);
+        if (!walletIdInParams)
+            throw new ExchangeError (this.id + ' createOrder requires a walletId parameter');
         amount = amount.toString ();
         price = price.toString ();
         let market = this.market (symbol);
@@ -12932,6 +12935,9 @@ var itbit = {
     },
 
     async cancelOrder (id, params = {}) {
+        let walletIdInParams = ('walletId' in params);
+        if (!walletIdInParams)
+            throw new ExchangeError (this.id + ' cancelOrder requires a walletId parameter');
         return this.privateDeleteWalletsWalletIdOrdersId (this.extend ({
             'id': id,
         }, params));
@@ -15030,17 +15036,16 @@ var nova = {
     },
 
     parseTrade (trade, market) {
-        let timestamp = this.parse8601 (trade['timestamp']);
-        let id = trade['matchNumber'].toString ();
+        let timestamp = trade['unix_t_datestamp'] * 1000;
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'id': id,
-            'order': id,
+            'id': undefined,
+            'order': undefined,
             'type': undefined,
-            'side': undefined,
+            'side': trade['tradetype'].toLowerCase (),
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amount']),
         };
@@ -15048,10 +15053,10 @@ var nova = {
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
-        let response = await this.publicGetMarketsSymbolTrades (this.extend ({
-            'symbol': market['id'],
+        let response = await this.publicGetMarketOrderhistoryPair (this.extend ({
+            'pair': market['id'],
         }, params));
-        return this.parseTrades (response['recentTrades'], market);
+        return this.parseTrades (response['items'], market);
     },
 
     async fetchBalance (params = {}) {
@@ -15072,9 +15077,9 @@ var nova = {
         return result;
     },
 
-    fetchWallets () {
-        return this.privateGetWallets ();
-    },
+    // fetchWallets () {
+    //     return this.privateGetWallets ();
+    // },
 
     nonce () {
         return this.milliseconds ();
