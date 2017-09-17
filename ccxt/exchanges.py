@@ -13586,7 +13586,7 @@ class nova (Exchange):
         params = {
             'id': 'nova',
             'name': 'Novaexchange',
-            'countries': 'US',
+            'countries': 'TZ',
             'rateLimit': 2000,
             'version': 'v2',
             'urls': {
