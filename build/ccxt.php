@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.27';
+$version = '1.7.28';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8008,9 +8008,6 @@ class ccex extends Exchange {
 
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['updated'] * 1000;
-        $volume = null;
-        if (array_key_exists ('buysupport', $ticker))
-            $volume = floatval ($ticker['buysupport']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -8027,7 +8024,7 @@ class ccex extends Exchange {
             'percentage' => null,
             'average' => floatval ($ticker['avg']),
             'baseVolume' => null,
-            'quoteVolume' => $volume,
+            'quoteVolume' => $this->safe_float ($ticker, 'buysupport'),
             'info' => $ticker,
         );
     }
@@ -8921,11 +8918,6 @@ class coinfloor extends Exchange {
     public function parse_ticker ($ticker, $market) {
         // rewrite to get the $timestamp from HTTP headers
         $timestamp = $this->milliseconds ();
-        // they sometimes return null for $vwap
-        $vwap = null;
-        if (array_key_exists ('vwap', $ticker))
-            if ($ticker['vwap'])
-                $vwap = floatval ($ticker['vwap']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -8933,7 +8925,7 @@ class coinfloor extends Exchange {
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['bid']),
             'ask' => floatval ($ticker['ask']),
-            'vwap' => $vwap,
+            'vwap' => $this->safe_float ($ticker, 'vwap'),
             'open' => null,
             'close' => null,
             'first' => null,

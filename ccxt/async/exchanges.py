@@ -6596,9 +6596,6 @@ class ccex (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['updated'] * 1000
-        volume = None
-        if 'buysupport' in ticker:
-            volume = float(ticker['buysupport'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -6615,7 +6612,7 @@ class ccex (Exchange):
             'percentage': None,
             'average': float(ticker['avg']),
             'baseVolume': None,
-            'quoteVolume': volume,
+            'quoteVolume': self.safe_float(ticker, 'buysupport'),
             'info': ticker,
         }
 
@@ -7454,11 +7451,6 @@ class coinfloor (Exchange):
     def parse_ticker(self, ticker, market):
         # rewrite to get the timestamp from HTTP headers
         timestamp = self.milliseconds()
-        # they sometimes return null for vwap
-        vwap = None
-        if 'vwap' in ticker:
-            if ticker['vwap']:
-                vwap = float(ticker['vwap'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -7466,7 +7458,7 @@ class coinfloor (Exchange):
             'low': float(ticker['low']),
             'bid': float(ticker['bid']),
             'ask': float(ticker['ask']),
-            'vwap': vwap,
+            'vwap': self.safe_float(ticker, 'vwap'),
             'open': None,
             'close': None,
             'first': None,
