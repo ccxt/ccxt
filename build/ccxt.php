@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.20';
+$version = '1.7.21';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -15374,7 +15374,7 @@ class nova extends Exchange {
         parent::__construct (array_merge(array (
             'id' => 'nova',
             'name' => 'Novaexchange',
-            'countries' => 'US',
+            'countries' => 'TZ',
             'rateLimit' => 2000,
             'version' => 'v2',
             'urls' => array (
