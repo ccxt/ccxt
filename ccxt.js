@@ -12914,19 +12914,24 @@ var independentreserve = {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let prefix = '';
+        let capitalizedOrderType = this.capitalize (type);
+        let method = 'Place' + capitalizedOrderType + 'Order';
         if (type == 'market')
             prefix = 'market_';
-        let order = {
-            'pair': this.marketId (symbol),
-            'quantity': amount,
-            'price': price || 0,
-            'type': prefix + side,
-        };
-        let response = await this.privatePostOrderCreate (this.extend (order, params));
+        let orderType = capitalizedOrderType;
+        orderType += (side == 'sell') ?  'Offer' : 'Bid';
+        let order = this.ordered ({
+            'primaryCurrencyCode': market['baseId'],
+            'secondaryCurrencyCode': market['quoteId'],
+            'orderType': orderType,
+        });
+        if (type == 'limit')
+            order['price'] = price;
+        order['volume'] = amount;
+        let response = await this[method] (this.extend (order, params));
         return {
             'info': response,
-            'id': response['order_id'].toString (),
+            'id': response['OrderGuid'],
         };
     },
 
