@@ -12037,9 +12037,9 @@ var hitbtc2 = extend (hitbtc, {
         return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'size');
     },
 
-    parseTickerFloat (ticker, key) {
-        if (key in ticker)
-            if (ticker[key])
+    safeParseFloat (object, key) {
+        if (key in object)
+            if (object[key])
                 return parseFloat (ticker[key]);
         return undefined;
     },
@@ -12049,20 +12049,20 @@ var hitbtc2 = extend (hitbtc, {
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.parseTickerFloat (ticker, 'high'),
-            'low': this.parseTickerFloat (ticker, 'low'),
-            'bid': this.parseTickerFloat (ticker, 'bid'),
-            'ask': this.parseTickerFloat (ticker, 'ask'),
+            'high': this.safeParseFloat (ticker, 'high'),
+            'low': this.safeParseFloat (ticker, 'low'),
+            'bid': this.safeParseFloat (ticker, 'bid'),
+            'ask': this.safeParseFloat (ticker, 'ask'),
             'vwap': undefined,
-            'open': this.parseTickerFloat (ticker, 'open'),
-            'close': this.parseTickerFloat (ticker, 'close'),
+            'open': this.safeParseFloat (ticker, 'open'),
+            'close': this.safeParseFloat (ticker, 'close'),
             'first': undefined,
-            'last': this.parseTickerFloat (ticker, 'last'),
+            'last': this.safeParseFloat (ticker, 'last'),
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.parseTickerFloat (ticker, 'volume'),
-            'quoteVolume': this.parseTickerFloat (ticker, 'quoteVolume'),
+            'baseVolume': this.safeParseFloat (ticker, 'volume'),
+            'quoteVolume': this.safeParseFloat (ticker, 'quoteVolume'),
             'info': ticker,
         };
     },
