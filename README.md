@@ -401,6 +401,8 @@ Please, contact us on GitHub or by email if you're interested in integrating thi
 
 ![Support CCXT Development BTC Wallet QR Code](https://user-images.githubusercontent.com/1294454/30524709-42654654-9c01-11e7-9145-92b9e8fa711c.jpg)
 
+--------------------------------------------------------------------
+
 ### ETH
 
 ```
