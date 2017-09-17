@@ -199,6 +199,7 @@ class Exchange {
         'luno',
         'mercado',
         'mixcoins',
+        'nova',
         'okcoincny',
         'okcoinusd',
         'okex',

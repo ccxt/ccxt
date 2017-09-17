@@ -11,7 +11,7 @@ CCXT – CryptoCurrency eXchange Trading Library
     :target: https://www.npmjs.com/package/ccxt
 .. image:: https://badge.runkitcdn.com/ccxt.svg
     :target: https://npm.runkit.com/ccxt
-.. image:: https://img.shields.io/badge/exchanges-81-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-82-blue.svg
     :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
@@ -34,7 +34,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 81 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 82 cryptocurrency exchange markets and trading APIs:
 
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id              | name                                                      | ver   | doc                                                                                              | countries                                  |
@@ -164,6 +164,8 @@ The ccxt library currently supports the following 81 cryptocurrency exchange mar
 | mercado         | `Mercado Bitcoin <https://www.mercadobitcoin.com.br>`__   | 3     | `API <https://www.mercadobitcoin.com.br/api-doc>`__                                              | Brazil                                     |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | mixcoins        | `MixCoins <https://mixcoins.com>`__                       | 1     | `API <https://mixcoins.com/help/api/>`__                                                         | UK, Hong Kong                              |
++-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| nova            | `Novaexchange <https://novaexchange.com>`__               | 2     | `API <https://novaexchange.com/remote/faq>`__                                                    | US                                         |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | okcoincny       | `OKCoin CNY <https://www.okcoin.cn>`__                    | 1     | `API <https://www.okcoin.cn/rest_getStarted.html>`__                                             | China                                      |
 +-----------------+-----------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+

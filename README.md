@@ -1,6 +1,6 @@
 # CCXT – CryptoCurrency eXchange Trading Library
 
-[![Build Status](https://travis-ci.org/kroitor/ccxt.svg?branch=master)](https://travis-ci.org/kroitor/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Try ccxt on RunKit](https://badge.runkitcdn.com/ccxt.svg)](https://npm.runkit.com/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-81-blue.svg)](https://github.com/kroitor/ccxt/wiki/Exchange-Markets)
+[![Build Status](https://travis-ci.org/kroitor/ccxt.svg?branch=master)](https://travis-ci.org/kroitor/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Try ccxt on RunKit](https://badge.runkitcdn.com/ccxt.svg)](https://npm.runkit.com/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-82-blue.svg)](https://github.com/kroitor/ccxt/wiki/Exchange-Markets)
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
@@ -21,7 +21,7 @@ Current featurelist:
 
 ## Supported Cryptocurrency Exchange Markets
 
-The ccxt library currently supports the following 81 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 82 cryptocurrency exchange markets and trading APIs:
 
 |                                                                                                                      | id            | name                                                 | ver | doc                                                                                         | countries                               |
 |----------------------------------------------------------------------------------------------------------------------|---------------|------------------------------------------------------|:---:|:-------------------------------------------------------------------------------------------:|-----------------------------------------|
@@ -88,6 +88,7 @@ The ccxt library currently supports the following 81 cryptocurrency exchange mar
 |![luno](https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg)          | luno          | [luno](https://www.luno.com)                         | 1   | [API](https://www.luno.com/en/api)                                                          | UK, Singapore, South Africa             |
 |![mercado](https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg)       | mercado       | [Mercado Bitcoin](https://www.mercadobitcoin.com.br) | 3   | [API](https://www.mercadobitcoin.com.br/api-doc)                                            | Brazil                                  |
 |![mixcoins](https://user-images.githubusercontent.com/1294454/30237212-ed29303c-9535-11e7-8af8-fcd381cfa20c.jpg)      | mixcoins      | [MixCoins](https://mixcoins.com)                     | 1   | [API](https://mixcoins.com/help/api/)                                                       | UK, Hong Kong                           |
+|![nova](https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg)          | nova          | [Novaexchange](https://novaexchange.com)             | 2   | [API](https://novaexchange.com/remote/faq)                                                  | US                                      |
 |![okcoincny](https://user-images.githubusercontent.com/1294454/27766792-8be9157a-5ee5-11e7-926c-6d69b8d3378d.jpg)     | okcoincny     | [OKCoin CNY](https://www.okcoin.cn)                  | 1   | [API](https://www.okcoin.cn/rest_getStarted.html)                                           | China                                   |
 |![okcoinusd](https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg)     | okcoinusd     | [OKCoin USD](https://www.okcoin.com)                 | 1   | [API](https://www.okcoin.com/rest_getStarted.html)                                          | China, US                               |
 |![okex](https://user-images.githubusercontent.com/1294454/29562593-9038a9bc-8742-11e7-91cc-8201f845bfc1.jpg)          | okex          | [OKEX](https://www.okex.com)                         | 1   | [API](https://www.okex.com/rest_getStarted.html)                                            | China, US                               |

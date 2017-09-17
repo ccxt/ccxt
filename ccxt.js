@@ -15066,23 +15066,16 @@ var nova = {
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let currency = balance['currency'];
+            let lockbox = parseFloat (balance['amount_lockbox']);
+            let trades = parseFloat (balance['amount_trades']);
             let account = {
-                'free': parseFloat (balance['availableBalance']),
-                'used': 0.0,
-                'total': parseFloat (balance['totalBalance']),
+                'free': parseFloat (balance['amount']),
+                'used': this.sum (lockbox, trades),
+                'total': parseFloat (balance['amount_total']),
             };
-            account['used'] = account['total'] - account['free'];
             result[currency] = account;
         }
         return result;
-    },
-
-    // fetchWallets () {
-    //     return this.privateGetWallets ();
-    // },
-
-    nonce () {
-        return this.milliseconds ();
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -15092,24 +15085,22 @@ var nova = {
         price = price.toString ();
         let market = this.market (symbol);
         let order = {
-            'side': side,
-            'type': type,
-            'currency': market['base'],
-            'amount': amount,
-            'display': amount,
-            'price': price,
-            'instrument': market['id'],
+            'tradetype': side.toUpperCase (),
+            'tradeamount': amount,
+            'tradeprice': price,
+            'tradebase': 1,
+            'pair': market['id'],
         };
-        let response = await this.privatePostTradeAdd (this.extend (order, params));
+        let response = await this.privatePostTradePair (this.extend (order, params));
         return {
             'info': response,
-            'id': response['id'],
+            'id': undefined,
         };
     },
 
     async cancelOrder (id, params = {}) {
-        return this.privateDeleteWalletsWalletIdOrdersId (this.extend ({
-            'id': id,
+        return this.privatePostCancelorder (this.extend ({
+            'orderid': id,
         }, params));
     },
 

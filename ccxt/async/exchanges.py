@@ -11601,6 +11601,9 @@ class itbit (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
+        walletIdInParams = ('walletId' in list(params.keys()))
+        if not walletIdInParams:
+            raise ExchangeError(self.id + ' createOrder requires a walletId parameter')
         amount = str(amount)
         price = str(price)
         market = self.market(symbol)
@@ -11620,6 +11623,9 @@ class itbit (Exchange):
         }
 
     async def cancel_order(self, id, params={}):
+        walletIdInParams = ('walletId' in list(params.keys()))
+        if not walletIdInParams:
+            raise ExchangeError(self.id + ' cancelOrder requires a walletId parameter')
         return self.privateDeleteWalletsWalletIdOrdersId(self.extend({
             'id': id,
         }, params))
@@ -11825,7 +11831,7 @@ class jubi (Exchange):
 
     async def cancel_order(self, id, params={}):
         await self.load_markets()
-        return self.privateDeleteWalletsWalletIdOrdersId(self.extend({
+        return self.privatePostTradeCancel(self.extend({
             'id': id,
         }, params))
 
@@ -13496,6 +13502,210 @@ class mixcoins (Exchange):
             if response['status'] == 200:
                 return response
         raise ExchangeError(self.id + ' ' + self.json(response))
+
+#------------------------------------------------------------------------------
+
+class nova (Exchange):
+
+    def __init__(self, config={}):
+        params = {
+            'id': 'nova',
+            'name': 'Novaexchange',
+            'countries': 'US',
+            'rateLimit': 2000,
+            'version': 'v2',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
+                'api': 'https://novaexchange.com/remote',
+                'www': 'https://novaexchange.com',
+                'doc': 'https://novaexchange.com/remote/faq',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'markets/',
+                        'markets/{basecurrency}',
+                        'market/info/{pair}/',
+                        'market/orderhistory/{pair}/',
+                        'market/openorders/{pair}/buy/',
+                        'market/openorders/{pair}/sell/',
+                        'market/openorders/{pair}/both/',
+                        'market/openorders/{pair}/{ordertype}/',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'getbalances/',
+                        'getbalance/{currency}/',
+                        'getdeposits/',
+                        'getwithdrawals/',
+                        'getnewdepositaddress/{currency}/',
+                        'getdepositaddress/{currency}/',
+                        'myopenorders/',
+                        'myopenorders_market/{pair}/',
+                        'cancelorder/{orderid}/',
+                        'withdraw/{currency}/',
+                        'trade/{pair}/',
+                        'tradehistory/',
+                        'getdeposithistory/',
+                        'getwithdrawalhistory/',
+                        'walletstatus/',
+                        'walletstatus/{currency}/',
+                    ],
+                },
+            },
+        }
+        params.update(config)
+        super(nova, self).__init__(params)
+
+    async def fetch_markets(self):
+        response = await self.publicGetMarkets()
+        markets = response['markets']
+        result = []
+        for i in range(0, len(markets)):
+            market = markets[i]
+            # base = market['currency']
+            # quote = market['basecurrency']
+            id = market['marketname']
+            base, quote = id.split('_')
+            symbol = base + '/' + quote
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'info': market,
+            })
+        return result
+
+    async def fetch_order_book(self, symbol, params={}):
+        orderbook = await self.publicGetMarketOpenordersPairBoth(self.extend({
+            'pair': self.market_id(symbol),
+        }, params))
+        return self.parse_order_book(orderbook, None, 'buyorders', 'sellorders', 'price', 'amount')
+
+    async def fetch_ticker(self, symbol):
+        response = await self.publicGetMarketInfoPair({
+            'pair': self.market_id(symbol),
+        })
+        ticker = response['markets'][0]
+        timestamp = self.milliseconds()
+        bid = None
+        ask = None
+        if 'bid' in ticker:
+            if ticker['bid']:
+                bid = float(ticker['bid'])
+        if 'ask' in ticker:
+            if ticker['ask']:
+                ask = float(ticker['ask'])
+        return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': float(ticker['high24h']),
+            'low': float(ticker['low24h']),
+            'bid': bid,
+            'ask': ask,
+            'vwap': float(ticker['vwap24h']),
+            'open': float(ticker['openToday']),
+            'close': None,
+            'first': None,
+            'last': float(ticker['last_price']),
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': float(ticker['volume24h']),
+            'info': ticker,
+        }
+
+    def parse_trade(self, trade, market):
+        timestamp = trade['unix_t_datestamp'] * 1000
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'id': None,
+            'order': None,
+            'type': None,
+            'side': trade['tradetype'].lower(),
+            'price': float(trade['price']),
+            'amount': float(trade['amount']),
+        }
+
+    async def fetch_trades(self, symbol, params={}):
+        market = self.market(symbol)
+        response = await self.publicGetMarketOrderhistoryPair(self.extend({
+            'pair': market['id'],
+        }, params))
+        return self.parse_trades(response['items'], market)
+
+    async def fetch_balance(self, params={}):
+        response = await self.privateGetBalances()
+        balances = response['balances']
+        result = {'info': response}
+        for b in range(0, len(balances)):
+            balance = balances[b]
+            currency = balance['currency']
+            lockbox = float(balance['amount_lockbox'])
+            trades = float(balance['amount_trades'])
+            account = {
+                'free': float(balance['amount']),
+                'used': self.sum(lockbox, trades),
+                'total': float(balance['amount_total']),
+            }
+            result[currency] = account
+        return result
+
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        if type == 'market':
+            raise ExchangeError(self.id + ' allows limit orders only')
+        amount = str(amount)
+        price = str(price)
+        market = self.market(symbol)
+        order = {
+            'tradetype': side.upper(),
+            'tradeamount': amount,
+            'tradeprice': price,
+            'tradebase': 1,
+            'pair': market['id'],
+        }
+        response = await self.privatePostTradePair(self.extend(order, params))
+        return {
+            'info': response,
+            'id': None,
+        }
+
+    async def cancel_order(self, id, params={}):
+        return self.privatePostCancelorder(self.extend({
+            'orderid': id,
+        }, params))
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        url = self.urls['api'] + '/' + self.version + '/'
+        if api == 'private':
+            url += api + '/'
+        url += self.implode_params(path, params)
+        query = self.omit(params, self.extract_params(path))
+        if api == 'public':
+            if query:
+                url += '?' + self.urlencode(query)
+        else:
+            nonce = str(self.nonce())
+            url += '?' + self.urlencode({'nonce': nonce})
+            signature = self.hmac(self.encode(url), self.encode(self.secret), hashlib.sha512, 'base64')
+            body = self.urlencode(self.extend({
+                'apikey': self.apiKey,
+                'signature': signature,
+            }, query))
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
+        response = self.fetch(url, method, headers, body)
+        if 'status' in response:
+            if response['status'] != 'success':
+                raise ExchangeError(self.id + ' ' + self.json(response))
+        return response
 
 #------------------------------------------------------------------------------
 
