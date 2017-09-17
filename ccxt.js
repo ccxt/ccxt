@@ -15026,7 +15026,7 @@ var nova = {
             'close': undefined,
             'first': undefined,
             'last': parseFloat (ticker['last_price']),
-            'change': parseFloat (ticker['change']),
+            'change': parseFloat (ticker['change24h']),
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
