@@ -12010,9 +12010,9 @@ var hitbtc2 = extend (hitbtc, {
         return result;
     },
 
-    async fetchBalance (params = {}) {
+    async fetchBalance () {
         await this.loadMarkets ();
-        let balances = await this.privateGetAccountBalance ();
+        let balances = await this.privateGetTradingBalance ();
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
@@ -12037,61 +12037,32 @@ var hitbtc2 = extend (hitbtc, {
         return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'size');
     },
 
+    parseTickerFloat (ticker, key) {
+        if (key in ticker)
+            if (ticker[key])
+                return parseFloat (ticker[key]);
+        return undefined;
+    },
+
     parseTicker (ticker, market) {
         let timestamp = this.parse8601 (ticker['timestamp']);
-        let high = undefined;
-        if ('high' in ticker)
-            if (ticker['high'])
-                high = parseFloat (ticker['high']);
-        let low = undefined;
-        if ('low' in ticker)
-            if (ticker['low'])
-                low = parseFloat (ticker['low']);
-        let open = undefined;
-        if ('open' in ticker)
-            if (ticker['open'])
-                open = parseFloat (ticker['open']);
-        let close = undefined;
-        if ('close' in ticker)
-            if (ticker['close'])
-                close = parseFloat (ticker['close']);
-        let last = undefined;
-        if ('last' in ticker)
-            if (ticker['last'])
-                last = parseFloat (ticker['last']);
-        let bid = undefined;
-        if ('bid' in ticker)
-            if (ticker['bid'])
-                bid = parseFloat (ticker['bid']);
-        let ask = undefined;
-        if ('ask' in ticker)
-            if (ticker['ask'])
-                ask = parseFloat (ticker['ask']);
-        let baseVolume = undefined;
-        if ('volume' in ticker)
-            if (ticker['volume'])
-                baseVolume = parseFloat (ticker['volume']);
-        let quoteVolume = undefined;
-        if ('quoteVolume' in ticker)
-            if (ticker['quoteVolume'])
-                quoteVolume = parseFloat (ticker['quoteVolume']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': high,
-            'low': low,
-            'bid': bid,
-            'ask': ask,
+            'high': this.parseTickerFloat (ticker, 'high'),
+            'low': this.parseTickerFloat (ticker, 'low'),
+            'bid': this.parseTickerFloat (ticker, 'bid'),
+            'ask': this.parseTickerFloat (ticker, 'ask'),
             'vwap': undefined,
-            'open': open,
-            'close': undefined,
+            'open': this.parseTickerFloat (ticker, 'open'),
+            'close': this.parseTickerFloat (ticker, 'close'),
             'first': undefined,
-            'last': last,
+            'last': this.parseTickerFloat (ticker, 'last'),
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': this.parseTickerFloat (ticker, 'volume'),
+            'quoteVolume': this.parseTickerFloat (ticker, 'quoteVolume'),
             'info': ticker,
         };
     },
