@@ -14347,20 +14347,20 @@ var liqui = {
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': ticker['high'] ? ticker['high'] : undefined,
-            'low': ticker['low'] ? ticker['low'] : undefined,
-            'bid': ticker['sell'] ? ticker['buy'] : undefined,
-            'ask': ticker['buy'] ? ticker['sell'] : undefined,
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
+            'ask': this.safeFloat (ticker, 'sell'),
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': ticker['last'] ? ticker['last'] : undefined,
+            'last': this.safeFloat (ticker, 'last'),
             'change': undefined,
             'percentage': undefined,
-            'average': ticker['avg'] ? ticker['avg'] : undefined,
-            'baseVolume': ticker['vol_cur'] ? ticker['vol_cur'] : undefined,
-            'quoteVolume': ticker['vol'] ? ticker['vol'] : undefined,
+            'average': this.safeFloat (ticker, 'avg'),
+            'baseVolume': this.safeFloat (ticker, 'vol_cur'),
+            'quoteVolume': this.safeFloat (ticker, 'vol'),
             'info': ticker,
         };
     },
@@ -16784,43 +16784,23 @@ var southxchange = {
 
     parseTicker (ticker, market) {
         let timestamp = this.milliseconds ();
-        let bid = undefined;
-        let ask = undefined;
-        let last = undefined;
-        let change = undefined;
-        let volume = undefined;
-        if ('Bid' in ticker)
-            if (ticker['Bid'])
-                bid = parseFloat (ticker['Bid']);
-        if ('Ask' in ticker)
-            if (ticker['Ask'])
-                ask = parseFloat (ticker['Ask']);
-        if ('Last' in ticker)
-            if (ticker['Last'])
-                last = parseFloat (ticker['Last']);
-        if ('Variation24Hr' in ticker)
-            if (ticker['Variation24Hr'])
-                change = parseFloat (ticker['Variation24Hr']);
-        if ('Volume24Hr' in ticker)
-            if (ticker['Volume24Hr'])
-                volume = parseFloat (ticker['Volume24Hr']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': bid,
-            'ask': ask,
+            'bid': this.safeFloat (ticker, 'Bid'),
+            'ask': this.safeFloat (ticker, 'Ask'),
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': last,
-            'change': change,
+            'last': this.safeFloat (ticker, 'Last'),
+            'change': this.safeFloat (ticker, 'Variation24Hr'),
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': volume,
+            'quoteVolume': this.safeFloat (ticker, 'Volume24Hr'),
             'info': ticker,
         };
     },
