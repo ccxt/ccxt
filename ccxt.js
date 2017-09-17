@@ -12747,7 +12747,7 @@ var independentreserve = {
 
     'id': 'independentreserve',
     'name': 'Independent Reserve',
-    'countries': [ 'AU', 'NZ', ], // Australia, New Zealand
+    'countries': [ 'AU', 'NZ' ], // Australia, New Zealand
     'rateLimit': 1000,
     'urls': {
         'api': {
@@ -15127,7 +15127,7 @@ var nova = {
 
     'id': 'nova',
     'name': 'Novaexchange',
-    'countries': 'TZ',
+    'countries': 'TZ', // Tanzania
     'rateLimit': 2000,
     'version': 'v2',
     'urls': {
