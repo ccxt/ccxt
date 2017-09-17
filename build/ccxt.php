@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.23';
+$version = '1.7.24';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2819,19 +2819,14 @@ class bitcoincoid extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostGetInfo ();
-        $balance = $response['return']['balance'];
-        $frozen = $response['return']['balance_hold'];
+        $balance = $response['return'];
         $result = array ( 'info' => $balance );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = $this->account ();
-            if (array_key_exists ($lowercase, $balance)) {
-                $account['free'] = floatval ($balance[$lowercase]);
-            }
-            if (array_key_exists ($lowercase, $frozen)) {
-                $account['used'] = floatval ($frozen[$lowercase]);
-            }
+            $account['free'] = $this->safe_float ($balance['balance'], $lowercase, 0.0);
+            $account['used'] = $this->safe_float ($balance['balance_hold'], $lowercase, 0.0);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
@@ -5122,12 +5117,9 @@ class bitstamp1 extends Exchange {
             $free = $lowercase . '_available';
             $used = $lowercase . '_reserved';
             $account = $this->account ();
-            if (array_key_exists ($free, $balance))
-                $account['free'] = floatval ($balance[$free]);
-            if (array_key_exists ($used, $balance))
-                $account['used'] = floatval ($balance[$used]);
-            if (array_key_exists ($total, $balance))
-                $account['total'] = floatval ($balance[$total]);
+            $account['free'] = $this->safe_float ($balance, $free, 0.0);
+            $account['used'] = $this->safe_float ($balance, $used, 0.0);
+            $account['total'] = $this->safe_float ($balance, $total, 0.0);
             $result[$currency] = $account;
         }
         return $result;

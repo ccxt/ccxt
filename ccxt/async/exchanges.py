@@ -1753,17 +1753,14 @@ class bitcoincoid (Exchange):
 
     async def fetch_balance(self, params={}):
         response = await self.privatePostGetInfo()
-        balance = response['return']['balance']
-        frozen = response['return']['balance_hold']
+        balance = response['return']
         result = {'info': balance}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
             lowercase = currency.lower()
             account = self.account()
-            if lowercase in balance:
-                account['free'] = float(balance[lowercase])
-            if lowercase in frozen:
-                account['used'] = float(frozen[lowercase])
+            account['free'] = self.safe_float(balance['balance'], lowercase, 0.0)
+            account['used'] = self.safe_float(balance['balance_hold'], lowercase, 0.0)
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
         return result
@@ -3906,12 +3903,9 @@ class bitstamp1 (Exchange):
             free = lowercase + '_available'
             used = lowercase + '_reserved'
             account = self.account()
-            if free in balance:
-                account['free'] = float(balance[free])
-            if used in balance:
-                account['used'] = float(balance[used])
-            if total in balance:
-                account['total'] = float(balance[total])
+            account['free'] = self.safe_float(balance, free, 0.0)
+            account['used'] = self.safe_float(balance, used, 0.0)
+            account['total'] = self.safe_float(balance, total, 0.0)
             result[currency] = account
         return result
 
