@@ -520,6 +520,8 @@ BTC
 
    Support CCXT Development BTC Wallet QR Code
 
+--------------
+
 ETH
 ~~~
 
