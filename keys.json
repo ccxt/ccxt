@@ -41,7 +41,6 @@
     "liqui":         { "apiKey": "3CCPNOH2-7W0SYD8F-UNEVV304-NDU3MVJE-Z43H2I05", "secret": "9c6aad97f1e0b97b58fc3a69ac88b57483215f9b4037c668151d946871e177f4" },
     "livecoin":      { "apiKey": "W5z7bvQM2pEShvGmqq1bXZkb1MR32GKw", "secret": "n8FrknvqwsRnTpGeNAbC51waYdE4xxSB" },
     "luno":          { "apiKey": "nrpzg7rkd8pnf", "secret": "Ps0DXw0TpTzdJ2Yek8V5TzFDfTWzyU5vfLdCiBP6vsI" },
-    "nova":          { "apiKey": "nrpzg7rkd8pnf", "secret": "Ps0DXw0TpTzdJ2Yek8V5TzFDfTWzyU5vfLdCiBP6vsI", "timeout": 30000 },
     "okcoinusd":     { "apiKey": "da83cf1b-6fdc-495a-af55-f809bec64e2b", "secret": "614D2E6D3428C2C5E54C81139A500BE0" },
     "okex":          { "apiKey": "da83cf1b-6fdc-495a-af55-f809bec64e2b", "secret": "614D2E6D3428C2C5E54C81139A500BE0" },
     "poloniex":      { "apiKey": "LWMI8IK7-A9213MUB-W02YZL9K-KSP9AY1M", "secret": "a4bbe32d3612d254689e930a9aca78c576f661f36c50e95012900b2109e19ebe8941f2827e09b7900fe6578a7edc431b9855930e2c535d3433ed056be3a3cab2" },
