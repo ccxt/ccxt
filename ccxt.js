@@ -15170,7 +15170,7 @@ var nova = {
             // let base = market['currency'];
             // let quote = market['basecurrency'];
             let id = market['marketname'];
-            let [ base, quote ] = id.split ('_');
+            let [ quote, base ] = id.split ('_');
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
