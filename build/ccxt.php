@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.18';
+$version = '1.7.19';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12406,9 +12406,9 @@ class hitbtc2 extends hitbtc {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance () {
         $this->load_markets ();
-        $balances = $this->privateGetAccountBalance ();
+        $balances = $this->privateGetTradingBalance ();
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
@@ -12433,61 +12433,32 @@ class hitbtc2 extends hitbtc {
         return $this->parse_order_book ($orderbook, null, 'bid', 'ask', 'price', 'size');
     }
 
+    public function safeParseFloat ($ticker, $key) {
+        if (array_key_exists ($key, $ticker))
+            if ($ticker[$key])
+                return floatval ($ticker[$key]);
+        return null;
+    }
+
     public function parse_ticker ($ticker, $market) {
         $timestamp = $this->parse8601 ($ticker['timestamp']);
-        $high = null;
-        if (array_key_exists ('high', $ticker))
-            if ($ticker['high'])
-                $high = floatval ($ticker['high']);
-        $low = null;
-        if (array_key_exists ('low', $ticker))
-            if ($ticker['low'])
-                $low = floatval ($ticker['low']);
-        $open = null;
-        if (array_key_exists ('open', $ticker))
-            if ($ticker['open'])
-                $open = floatval ($ticker['open']);
-        $close = null;
-        if (array_key_exists ('close', $ticker))
-            if ($ticker['close'])
-                $close = floatval ($ticker['close']);
-        $last = null;
-        if (array_key_exists ('last', $ticker))
-            if ($ticker['last'])
-                $last = floatval ($ticker['last']);
-        $bid = null;
-        if (array_key_exists ('bid', $ticker))
-            if ($ticker['bid'])
-                $bid = floatval ($ticker['bid']);
-        $ask = null;
-        if (array_key_exists ('ask', $ticker))
-            if ($ticker['ask'])
-                $ask = floatval ($ticker['ask']);
-        $baseVolume = null;
-        if (array_key_exists ('volume', $ticker))
-            if ($ticker['volume'])
-                $baseVolume = floatval ($ticker['volume']);
-        $quoteVolume = null;
-        if (array_key_exists ('quoteVolume', $ticker))
-            if ($ticker['quoteVolume'])
-                $quoteVolume = floatval ($ticker['quoteVolume']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => $high,
-            'low' => $low,
-            'bid' => $bid,
-            'ask' => $ask,
+            'high' => $this->safeParseFloat ($ticker, 'high'),
+            'low' => $this->safeParseFloat ($ticker, 'low'),
+            'bid' => $this->safeParseFloat ($ticker, 'bid'),
+            'ask' => $this->safeParseFloat ($ticker, 'ask'),
             'vwap' => null,
-            'open' => $open,
-            'close' => null,
+            'open' => $this->safeParseFloat ($ticker, 'open'),
+            'close' => $this->safeParseFloat ($ticker, 'close'),
             'first' => null,
-            'last' => $last,
+            'last' => $this->safeParseFloat ($ticker, 'last'),
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $baseVolume,
-            'quoteVolume' => $quoteVolume,
+            'baseVolume' => $this->safeParseFloat ($ticker, 'volume'),
+            'quoteVolume' => $this->safeParseFloat ($ticker, 'quoteVolume'),
             'info' => $ticker,
         );
     }

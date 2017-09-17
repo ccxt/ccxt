@@ -10822,9 +10822,9 @@ class hitbtc2 (hitbtc):
             })
         return result
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self):
         self.load_markets()
-        balances = self.privateGetAccountBalance()
+        balances = self.privateGetTradingBalance()
         result = {'info': balances}
         for b in range(0, len(balances)):
             balance = balances[b]
@@ -10846,61 +10846,31 @@ class hitbtc2 (hitbtc):
         }, params))
         return self.parse_order_book(orderbook, None, 'bid', 'ask', 'price', 'size')
 
+    def safeParseFloat(self, ticker, key):
+        if key in ticker:
+            if ticker[key]:
+                return float(ticker[key])
+        return None
+
     def parse_ticker(self, ticker, market):
         timestamp = self.parse8601(ticker['timestamp'])
-        high = None
-        if 'high' in ticker:
-            if ticker['high']:
-                high = float(ticker['high'])
-        low = None
-        if 'low' in ticker:
-            if ticker['low']:
-                low = float(ticker['low'])
-        open = None
-        if 'open' in ticker:
-            if ticker['open']:
-                open = float(ticker['open'])
-        close = None
-        if 'close' in ticker:
-            if ticker['close']:
-                close = float(ticker['close'])
-        last = None
-        if 'last' in ticker:
-            if ticker['last']:
-                last = float(ticker['last'])
-        bid = None
-        if 'bid' in ticker:
-            if ticker['bid']:
-                bid = float(ticker['bid'])
-        ask = None
-        if 'ask' in ticker:
-            if ticker['ask']:
-                ask = float(ticker['ask'])
-        baseVolume = None
-        if 'volume' in ticker:
-            if ticker['volume']:
-                baseVolume = float(ticker['volume'])
-        quoteVolume = None
-        if 'quoteVolume' in ticker:
-            if ticker['quoteVolume']:
-                quoteVolume = float(ticker['quoteVolume'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': high,
-            'low': low,
-            'bid': bid,
-            'ask': ask,
+            'high': self.safeParseFloat(ticker, 'high'),
+            'low': self.safeParseFloat(ticker, 'low'),
+            'bid': self.safeParseFloat(ticker, 'bid'),
+            'ask': self.safeParseFloat(ticker, 'ask'),
             'vwap': None,
-            'open': open,
-            'close': None,
+            'open': self.safeParseFloat(ticker, 'open'),
+            'close': self.safeParseFloat(ticker, 'close'),
             'first': None,
-            'last': last,
+            'last': self.safeParseFloat(ticker, 'last'),
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': self.safeParseFloat(ticker, 'volume'),
+            'quoteVolume': self.safeParseFloat(ticker, 'quoteVolume'),
             'info': ticker,
         }
 
