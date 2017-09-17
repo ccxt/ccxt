@@ -214,7 +214,7 @@ const sum = (...args) => {
 }
 
 const safeFloat = (object, key, defaultValue = undefined) => {
-    return ((key in object) && (object[key])) ? return parseFloat (object[key]) : defaultValue
+    return ((key in object) && (object[key])) ? parseFloat (object[key]) : defaultValue
 }
 
 const ordered = x => x // a stub to keep assoc keys in order, in JS it does nothing, it's mostly for Python
