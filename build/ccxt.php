@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.29';
+$version = '1.7.30';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -15701,7 +15701,7 @@ class nova extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
-        $response = $this->privatePostGetBalances ();
+        $response = $this->privatePostGetbalances ();
         $balances = $response['balances'];
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($balances); $b++) {
