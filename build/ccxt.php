@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.21';
+$version = '1.7.22';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -228,11 +228,11 @@ class Exchange {
         return '' + $number;
     }
 
-    public static function safe_float ($object, $key) {
+    public static function safe_float ($object, $key, $default_value = null) {
         if (array_key_exists ($key, $object))
             if ($object[$key])
                 return floatval ($object[$key]);
-        return null;
+        return $default_value;
     }
 
     public static function capitalize ($string) {
