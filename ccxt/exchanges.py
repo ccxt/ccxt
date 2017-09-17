@@ -13049,20 +13049,20 @@ class liqui (Exchange):
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': ticker['high'] if ticker['high'] else None,
-            'low': ticker['low'] if ticker['low'] else None,
-            'bid': ticker['buy'] if ticker['sell'] else None,
-            'ask': ticker['sell'] if ticker['buy'] else None,
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
+            'ask': self.safe_float(ticker, 'sell'),
             'vwap': None,
             'open': None,
             'close': None,
             'first': None,
-            'last': ticker['last'] if ticker['last'] else None,
+            'last': self.safe_float(ticker, 'last'),
             'change': None,
             'percentage': None,
-            'average': ticker['avg'] if ticker['avg'] else None,
-            'baseVolume': ticker['vol_cur'] if ticker['vol_cur'] else None,
-            'quoteVolume': ticker['vol'] if ticker['vol'] else None,
+            'average': self.safe_float(ticker, 'avg'),
+            'baseVolume': self.safe_float(ticker, 'vol_cur'),
+            'quoteVolume': self.safe_float(ticker, 'vol'),
             'info': ticker,
         }
 
@@ -15371,43 +15371,23 @@ class southxchange (Exchange):
 
     def parse_ticker(self, ticker, market):
         timestamp = self.milliseconds()
-        bid = None
-        ask = None
-        last = None
-        change = None
-        volume = None
-        if 'Bid' in ticker:
-            if ticker['Bid']:
-                bid = float(ticker['Bid'])
-        if 'Ask' in ticker:
-            if ticker['Ask']:
-                ask = float(ticker['Ask'])
-        if 'Last' in ticker:
-            if ticker['Last']:
-                last = float(ticker['Last'])
-        if 'Variation24Hr' in ticker:
-            if ticker['Variation24Hr']:
-                change = float(ticker['Variation24Hr'])
-        if 'Volume24Hr' in ticker:
-            if ticker['Volume24Hr']:
-                volume = float(ticker['Volume24Hr'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': bid,
-            'ask': ask,
+            'bid': self.safe_float(ticker, 'Bid'),
+            'ask': self.safe_float(ticker, 'Ask'),
             'vwap': None,
             'open': None,
             'close': None,
             'first': None,
-            'last': last,
-            'change': change,
+            'last': self.safe_float(ticker, 'Last'),
+            'change': self.safe_float(ticker, 'Variation24Hr'),
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': volume,
+            'quoteVolume': self.safe_float(ticker, 'Volume24Hr'),
             'info': ticker,
         }
 
