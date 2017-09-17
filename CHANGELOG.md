@@ -1,6 +1,7 @@
 # Сhangelog
 
-- Added support for a new exchange: [Nova Exchange](https://novaexchange.com) (Tanzania)
+- Added experimental support for a new exchange: [Independent Reserve](https://www.independentreserve.com/) (Australia, New Zealand)
+- Added experimental support for a new exchange: [Nova Exchange](https://novaexchange.com) (Tanzania)
 - Fixed itBit createOrder/cancelOrder for walletId
 - Fixed Jubi cancelOrder
 - Switched HitBTC v2 fetchBalance to trading account by default, [#210](https://github.com/kroitor/ccxt/pull/210)
