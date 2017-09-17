@@ -1733,12 +1733,8 @@ var anxpro = {
         let ticker = response['data'];
         let t = parseInt (ticker['dataUpdateTime']);
         let timestamp = parseInt (t / 1000);
-        let bid = undefined;
-        let ask = undefined;
-        if (ticker['buy']['value'])
-            bid = parseFloat (ticker['buy']['value']);
-        if (ticker['sell']['value'])
-            ask = parseFloat (ticker['sell']['value']);
+        let bid = this.safeFloat (ticker['buy'], 'value');
+        let ask = this.safeFloat (ticker['sell'], 'value');;
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
