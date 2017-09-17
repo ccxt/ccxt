@@ -15167,18 +15167,18 @@ var nova = {
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
-            // let base = market['currency'];
-            // let quote = market['basecurrency'];
-            let id = market['marketname'];
-            let [ quote, base ] = id.split ('_');
-            let symbol = base + '/' + quote;
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': market,
-            });
+            if (!market['disabled']) {
+                let id = market['marketname'];
+                let [ quote, base ] = id.split ('_');
+                let symbol = base + '/' + quote;
+                result.push ({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'info': market,
+                });
+            }
         }
         return result;
     },
