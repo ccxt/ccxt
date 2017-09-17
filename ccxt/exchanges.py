@@ -10846,7 +10846,7 @@ class hitbtc2 (hitbtc):
         }, params))
         return self.parse_order_book(orderbook, None, 'bid', 'ask', 'price', 'size')
 
-    def parse_tickerFloat(self, ticker, key):
+    def safeParseFloat(self, ticker, key):
         if key in ticker:
             if ticker[key]:
                 return float(ticker[key])
@@ -10857,20 +10857,20 @@ class hitbtc2 (hitbtc):
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.parseTickerFloat(ticker, 'high'),
-            'low': self.parseTickerFloat(ticker, 'low'),
-            'bid': self.parseTickerFloat(ticker, 'bid'),
-            'ask': self.parseTickerFloat(ticker, 'ask'),
+            'high': self.safeParseFloat(ticker, 'high'),
+            'low': self.safeParseFloat(ticker, 'low'),
+            'bid': self.safeParseFloat(ticker, 'bid'),
+            'ask': self.safeParseFloat(ticker, 'ask'),
             'vwap': None,
-            'open': self.parseTickerFloat(ticker, 'open'),
-            'close': self.parseTickerFloat(ticker, 'close'),
+            'open': self.safeParseFloat(ticker, 'open'),
+            'close': self.safeParseFloat(ticker, 'close'),
             'first': None,
-            'last': self.parseTickerFloat(ticker, 'last'),
+            'last': self.safeParseFloat(ticker, 'last'),
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.parseTickerFloat(ticker, 'volume'),
-            'quoteVolume': self.parseTickerFloat(ticker, 'quoteVolume'),
+            'baseVolume': self.safeParseFloat(ticker, 'volume'),
+            'quoteVolume': self.safeParseFloat(ticker, 'quoteVolume'),
             'info': ticker,
         }
 

@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.18';
+$version = '1.7.19';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12433,7 +12433,7 @@ class hitbtc2 extends hitbtc {
         return $this->parse_order_book ($orderbook, null, 'bid', 'ask', 'price', 'size');
     }
 
-    public function parse_tickerFloat ($ticker, $key) {
+    public function safeParseFloat ($ticker, $key) {
         if (array_key_exists ($key, $ticker))
             if ($ticker[$key])
                 return floatval ($ticker[$key]);
@@ -12445,20 +12445,20 @@ class hitbtc2 extends hitbtc {
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => $this->parse_tickerFloat ($ticker, 'high'),
-            'low' => $this->parse_tickerFloat ($ticker, 'low'),
-            'bid' => $this->parse_tickerFloat ($ticker, 'bid'),
-            'ask' => $this->parse_tickerFloat ($ticker, 'ask'),
+            'high' => $this->safeParseFloat ($ticker, 'high'),
+            'low' => $this->safeParseFloat ($ticker, 'low'),
+            'bid' => $this->safeParseFloat ($ticker, 'bid'),
+            'ask' => $this->safeParseFloat ($ticker, 'ask'),
             'vwap' => null,
-            'open' => $this->parse_tickerFloat ($ticker, 'open'),
-            'close' => $this->parse_tickerFloat ($ticker, 'close'),
+            'open' => $this->safeParseFloat ($ticker, 'open'),
+            'close' => $this->safeParseFloat ($ticker, 'close'),
             'first' => null,
-            'last' => $this->parse_tickerFloat ($ticker, 'last'),
+            'last' => $this->safeParseFloat ($ticker, 'last'),
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->parse_tickerFloat ($ticker, 'volume'),
-            'quoteVolume' => $this->parse_tickerFloat ($ticker, 'quoteVolume'),
+            'baseVolume' => $this->safeParseFloat ($ticker, 'volume'),
+            'quoteVolume' => $this->safeParseFloat ($ticker, 'quoteVolume'),
             'info' => $ticker,
         );
     }
