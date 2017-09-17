@@ -1134,10 +1134,8 @@ var cryptocapital = {
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
             let account = this.account ();
-            if (currency in balance['available'])
-                account['free'] = parseFloat (balance['available'][currency]);
-            if (currency in balance['on_hold'])
-                account['used'] = parseFloat (balance['on_hold'][currency]);
+            account['free'] = this.safeFloat (balance['available'], currency, 0.0);
+            account['used'] = this.safeFloat (balance['on_hold'], currency, 0.0);
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
