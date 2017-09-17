@@ -228,11 +228,11 @@ class Exchange {
         return '' + $number;
     }
 
-    public static function safe_float ($object, $key) {
+    public static function safe_float ($object, $key, $default_value = null) {
         if (array_key_exists ($key, $object))
             if ($object[$key])
                 return floatval ($object[$key]);
-        return null;
+        return $default_value;
     }
 
     public static function capitalize ($string) {
