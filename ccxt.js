@@ -15242,7 +15242,7 @@ var nova = {
     },
 
     async fetchBalance (params = {}) {
-        let response = await this.privatePostGetBalances ();
+        let response = await this.privatePostGetbalances ();
         let balances = response['balances'];
         let result = { 'info': response };
         for (let b = 0; b < balances.length; b++) {
