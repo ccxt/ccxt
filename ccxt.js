@@ -13154,7 +13154,7 @@ var jubi = {
 
     async cancelOrder (id, params = {}) {
         await this.loadMarkets ();
-        return this.privateDeleteWalletsWalletIdOrdersId (this.extend ({
+        return this.privatePostTradeCancel (this.extend ({
             'id': id,
         }, params));
     },
