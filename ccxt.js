@@ -12830,13 +12830,14 @@ var independentreserve = {
         let result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
-            let currency = balance['CurrencyCode'];
-            let uppercase = this.commonCurrencyCode (currency.toUpperCase ());
+            let currencyCode = balance['CurrencyCode'];
+            let uppercase = currencyCode.toUpperCase ()
+            let currency = this.commonCurrencyCode (uppercase);
             let account = this.account ();
             account['free'] = balance['AvailableBalance'];
             account['total'] = balance['TotalBalance'];
             account['used'] = account['total'] - account['free'];
-            result[uppercase] = account;
+            result[currency] = account;
         }
         return result;
     },

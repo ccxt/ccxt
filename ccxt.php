@@ -190,6 +190,7 @@ class Exchange {
         'huobi',
         'huobicny',
         'huobipro',
+        'independentreserve',
         'itbit',
         'jubi',
         'kraken',
