@@ -10847,31 +10847,25 @@ class hitbtc2 (hitbtc):
         }, params))
         return self.parse_order_book(orderbook, None, 'bid', 'ask', 'price', 'size')
 
-    def safeParseFloat(self, ticker, key):
-        if key in ticker:
-            if ticker[key]:
-                return float(ticker[key])
-        return None
-
     def parse_ticker(self, ticker, market):
         timestamp = self.parse8601(ticker['timestamp'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safeParseFloat(ticker, 'high'),
-            'low': self.safeParseFloat(ticker, 'low'),
-            'bid': self.safeParseFloat(ticker, 'bid'),
-            'ask': self.safeParseFloat(ticker, 'ask'),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
+            'ask': self.safe_float(ticker, 'ask'),
             'vwap': None,
-            'open': self.safeParseFloat(ticker, 'open'),
-            'close': self.safeParseFloat(ticker, 'close'),
+            'open': self.safe_float(ticker, 'open'),
+            'close': self.safe_float(ticker, 'close'),
             'first': None,
-            'last': self.safeParseFloat(ticker, 'last'),
+            'last': self.safe_float(ticker, 'last'),
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safeParseFloat(ticker, 'volume'),
-            'quoteVolume': self.safeParseFloat(ticker, 'quoteVolume'),
+            'baseVolume': self.safe_float(ticker, 'volume'),
+            'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
             'info': ticker,
         }
 
@@ -12418,27 +12412,23 @@ class lakebtc (Exchange):
         })
         ticker = tickers[market['id']]
         timestamp = self.milliseconds()
-        volume = None
-        if 'volume' in ticker:
-            if ticker['volume']:
-                volume = float(ticker['volume'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
-            'ask': float(ticker['ask']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
+            'ask': self.safe_float(ticker, 'ask'),
             'vwap': None,
             'open': None,
             'close': None,
             'first': None,
-            'last': float(ticker['last']),
+            'last': self.safe_float(ticker, 'last'),
             'change': None,
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': volume,
+            'quoteVolume': self.safe_float(ticker, 'volume'),
             'info': ticker,
         }
 
@@ -13690,12 +13680,12 @@ class nova (Exchange):
             'low': float(ticker['low24h']),
             'bid': bid,
             'ask': ask,
-            'vwap': float(ticker['vwap24h']),
-            'open': float(ticker['openToday']),
+            'vwap': None,
+            'open': None,
             'close': None,
             'first': None,
             'last': float(ticker['last_price']),
-            'change': None,
+            'change': float(ticker['change24h']),
             'percentage': None,
             'average': None,
             'baseVolume': None,

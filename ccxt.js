@@ -213,6 +213,13 @@ const sum = (...args) => {
         result.reduce ((sum, value) => sum + value, 0) : undefined
 }
 
+const safeFloat = (object, key) => {
+    if (key in object)
+        if (object[key])
+            return parseFloat (object[key])
+    return undefined
+}
+
 const ordered = x => x // a stub to keep assoc keys in order, in JS it does nothing, it's mostly for Python
 
 //-----------------------------------------------------------------------------
@@ -339,6 +346,7 @@ const Exchange = function (config) {
     this.sortBy = sortBy
     this.keysort = keysort
     this.decimal = decimal
+    this.safeFloat = safeFloat
     this.capitalize = capitalize
     this.json = JSON.stringify
     this.sum = sum
@@ -12037,32 +12045,25 @@ var hitbtc2 = extend (hitbtc, {
         return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'size');
     },
 
-    safeParseFloat (ticker, key) {
-        if (key in ticker)
-            if (ticker[key])
-                return parseFloat (ticker[key]);
-        return undefined;
-    },
-
     parseTicker (ticker, market) {
         let timestamp = this.parse8601 (ticker['timestamp']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeParseFloat (ticker, 'high'),
-            'low': this.safeParseFloat (ticker, 'low'),
-            'bid': this.safeParseFloat (ticker, 'bid'),
-            'ask': this.safeParseFloat (ticker, 'ask'),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'ask': this.safeFloat (ticker, 'ask'),
             'vwap': undefined,
-            'open': this.safeParseFloat (ticker, 'open'),
-            'close': this.safeParseFloat (ticker, 'close'),
+            'open': this.safeFloat (ticker, 'open'),
+            'close': this.safeFloat (ticker, 'close'),
             'first': undefined,
-            'last': this.safeParseFloat (ticker, 'last'),
+            'last': this.safeFloat (ticker, 'last'),
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeParseFloat (ticker, 'volume'),
-            'quoteVolume': this.safeParseFloat (ticker, 'quoteVolume'),
+            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
             'info': ticker,
         };
     },
@@ -13687,27 +13688,23 @@ var lakebtc = {
         });
         let ticker = tickers[market['id']];
         let timestamp = this.milliseconds ();
-        let volume = undefined;
-        if ('volume' in ticker)
-            if (ticker['volume'])
-                volume = parseFloat (ticker['volume']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'ask': this.safeFloat (ticker, 'ask'),
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'last': this.safeFloat (ticker, 'last'),
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': volume,
+            'quoteVolume': this.safeFloat (ticker, 'volume'),
             'info': ticker,
         };
     },
@@ -18491,6 +18488,7 @@ const ccxt = Object.assign (defineAllExchanges (exchanges), {
     urlencode,
     sum,
     decimal,
+    safeFloat,
 
     // underscore aliases
 

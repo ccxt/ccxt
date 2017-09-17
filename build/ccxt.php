@@ -228,6 +228,13 @@ class Exchange {
         return '' + $number;
     }
 
+    public static function safe_float ($object, $key) {
+        if (array_key_exists ($key, $object))
+            if ($object[$key])
+                return floatval ($object[$key]);
+        return null;
+    }
+
     public static function capitalize ($string) {
         return mb_strtoupper (mb_substr ($string, 0, 1)) . mb_substr ($string, 1);
     }
@@ -12434,32 +12441,25 @@ class hitbtc2 extends hitbtc {
         return $this->parse_order_book ($orderbook, null, 'bid', 'ask', 'price', 'size');
     }
 
-    public function safeParseFloat ($ticker, $key) {
-        if (array_key_exists ($key, $ticker))
-            if ($ticker[$key])
-                return floatval ($ticker[$key]);
-        return null;
-    }
-
     public function parse_ticker ($ticker, $market) {
         $timestamp = $this->parse8601 ($ticker['timestamp']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => $this->safeParseFloat ($ticker, 'high'),
-            'low' => $this->safeParseFloat ($ticker, 'low'),
-            'bid' => $this->safeParseFloat ($ticker, 'bid'),
-            'ask' => $this->safeParseFloat ($ticker, 'ask'),
+            'high' => $this->safe_float ($ticker, 'high'),
+            'low' => $this->safe_float ($ticker, 'low'),
+            'bid' => $this->safe_float ($ticker, 'bid'),
+            'ask' => $this->safe_float ($ticker, 'ask'),
             'vwap' => null,
-            'open' => $this->safeParseFloat ($ticker, 'open'),
-            'close' => $this->safeParseFloat ($ticker, 'close'),
+            'open' => $this->safe_float ($ticker, 'open'),
+            'close' => $this->safe_float ($ticker, 'close'),
             'first' => null,
-            'last' => $this->safeParseFloat ($ticker, 'last'),
+            'last' => $this->safe_float ($ticker, 'last'),
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safeParseFloat ($ticker, 'volume'),
-            'quoteVolume' => $this->safeParseFloat ($ticker, 'quoteVolume'),
+            'baseVolume' => $this->safe_float ($ticker, 'volume'),
+            'quoteVolume' => $this->safe_float ($ticker, 'quoteVolume'),
             'info' => $ticker,
         );
     }
@@ -14115,27 +14115,23 @@ class lakebtc extends Exchange {
         ));
         $ticker = $tickers[$market['id']];
         $timestamp = $this->milliseconds ();
-        $volume = null;
-        if (array_key_exists ('volume', $ticker))
-            if ($ticker['volume'])
-                $volume = floatval ($ticker['volume']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['bid']),
-            'ask' => floatval ($ticker['ask']),
+            'high' => $this->safe_float ($ticker, 'high'),
+            'low' => $this->safe_float ($ticker, 'low'),
+            'bid' => $this->safe_float ($ticker, 'bid'),
+            'ask' => $this->safe_float ($ticker, 'ask'),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval ($ticker['last']),
+            'last' => $this->safe_float ($ticker, 'last'),
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => $volume,
+            'quoteVolume' => $this->safe_float ($ticker, 'volume'),
             'info' => $ticker,
         );
     }
@@ -15474,12 +15470,12 @@ class nova extends Exchange {
             'low' => floatval ($ticker['low24h']),
             'bid' => $bid,
             'ask' => $ask,
-            'vwap' => floatval ($ticker['vwap24h']),
-            'open' => floatval ($ticker['openToday']),
+            'vwap' => null,
+            'open' => null,
             'close' => null,
             'first' => null,
             'last' => floatval ($ticker['last_price']),
-            'change' => null,
+            'change' => floatval ($ticker['change24h']),
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,

@@ -302,6 +302,13 @@ class Exchange(object):
         return str(decimal.Decimal(str(number)))
 
     @staticmethod
+    def safe_float(object, key):
+        if key in object:
+            if object[key]:
+                return float(object[key])
+        return None
+
+    @staticmethod
     def capitalize(string): # first character only, rest characters unchanged
         if len(string) > 1:
             return "%s%s" % (string[0].upper(), string[1:])
