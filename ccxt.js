@@ -12803,11 +12803,13 @@ var independentreserve = {
         for (let i = 0; i < primaryKeys.length; i++) {
             let primaryKey = primaryKeys[i];
             let baseId = primary[primaryKey];
-            let base = this.commonCurrencyCode (baseId.toUpperCase ());
+            let baseIdUppercase = baseId.toUpperCase ();
+            let base = this.commonCurrencyCode (baseIdUppercase);
             for (let j = 0; j < secondaryKeys.length; j++) {
                 let secondaryKey = secondaryKeys[j];
                 let quoteId = secondary[secondaryKey];
-                let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+                let quoteIdUppercase = quoteId.toUpperCase ();
+                let quote = this.commonCurrencyCode (quoteIdUppercase);
                 let id = baseId + '/' + quoteId;
                 let symbol = base + '/' + quote;
                 result.push ({
@@ -12831,7 +12833,7 @@ var independentreserve = {
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             let currencyCode = balance['CurrencyCode'];
-            let uppercase = currencyCode.toUpperCase ()
+            let uppercase = currencyCode.toUpperCase ();
             let currency = this.commonCurrencyCode (uppercase);
             let account = this.account ();
             account['free'] = balance['AvailableBalance'];
@@ -12915,10 +12917,9 @@ var independentreserve = {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let capitalizedOrderType = this.capitalize (type);
         let method = 'Place' + capitalizedOrderType + 'Order';
-        if (type == 'market')
-            prefix = 'market_';
         let orderType = capitalizedOrderType;
         orderType += (side == 'sell') ?  'Offer' : 'Bid';
         let order = this.ordered ({
@@ -12960,7 +12961,7 @@ var independentreserve = {
                 auth.push (key + '=' + params[key]);
             }
             let message = ','.join (auth);
-            let signature = this.hmac (this.encode (message), this.encode (secret));
+            let signature = this.hmac (this.encode (message), this.encode (this.secret));
             let query = this.keysort (this.extend ({
                 'apiKey': this.apiKey,
                 'nonce': nonce,

@@ -11586,11 +11586,13 @@ class independentreserve (Exchange):
         for i in range(0, len(primaryKeys)):
             primaryKey = primaryKeys[i]
             baseId = primary[primaryKey]
-            base = self.commonCurrencyCode(baseId.upper())
+            baseIdUppercase = baseId.upper()
+            base = self.commonCurrencyCode(baseIdUppercase)
             for j in range(0, len(secondaryKeys)):
                 secondaryKey = secondaryKeys[j]
                 quoteId = secondary[secondaryKey]
-                quote = self.commonCurrencyCode(quoteId.upper())
+                quoteIdUppercase = quoteId.upper()
+                quote = self.commonCurrencyCode(quoteIdUppercase)
                 id = baseId + '/' + quoteId
                 symbol = base + '/' + quote
                 result.append({
@@ -11688,10 +11690,9 @@ class independentreserve (Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
+        market = self.market(symbol)
         capitalizedOrderType = self.capitalize(type)
         method = 'Place' + capitalizedOrderType + 'Order'
-        if type == 'market':
-            prefix = 'market_'
         orderType = capitalizedOrderType
         orderType += 'Offer' if(side == 'sell') else 'Bid'
         order = self.ordered({
@@ -11730,7 +11731,7 @@ class independentreserve (Exchange):
                 key = keys[i]
                 auth.append(key + '=' + params[key])
             message = auth.join(',')
-            signature = self.hmac(self.encode(message), self.encode(secret))
+            signature = self.hmac(self.encode(message), self.encode(self.secret))
             query = self.keysort(self.extend({
                 'apiKey': self.apiKey,
                 'nonce': nonce,
@@ -13865,21 +13866,13 @@ class nova (Exchange):
         })
         ticker = response['markets'][0]
         timestamp = self.milliseconds()
-        bid = None
-        ask = None
-        if 'bid' in ticker:
-            if ticker['bid']:
-                bid = float(ticker['bid'])
-        if 'ask' in ticker:
-            if ticker['ask']:
-                ask = float(ticker['ask'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high24h']),
             'low': float(ticker['low24h']),
-            'bid': bid,
-            'ask': ask,
+            'bid': self.safe_float(ticker, 'bid'),
+            'ask': self.safe_float(ticker, 'ask'),
             'vwap': None,
             'open': None,
             'close': None,

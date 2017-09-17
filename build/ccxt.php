@@ -13223,11 +13223,13 @@ class independentreserve extends Exchange {
         for ($i = 0; $i < count ($primaryKeys); $i++) {
             $primaryKey = $primaryKeys[$i];
             $baseId = $primary[$primaryKey];
-            $base = $this->commonCurrencyCode strtoupper (($baseId));
+            $baseIdUppercase = strtoupper ($baseId);
+            $base = $this->commonCurrencyCode ($baseIdUppercase);
             for ($j = 0; $j < count ($secondaryKeys); $j++) {
                 $secondaryKey = $secondaryKeys[$j];
                 $quoteId = $secondary[$secondaryKey];
-                $quote = $this->commonCurrencyCode strtoupper (($quoteId));
+                $quoteIdUppercase = strtoupper ($quoteId);
+                $quote = $this->commonCurrencyCode ($quoteIdUppercase);
                 $id = $baseId . '/' . $quoteId;
                 $symbol = $base . '/' . $quote;
                 $result[] = array (
@@ -13251,7 +13253,7 @@ class independentreserve extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyCode = $balance['CurrencyCode'];
-            $uppercase = strtoupper ($currencyCode)
+            $uppercase = strtoupper ($currencyCode);
             $currency = $this->commonCurrencyCode ($uppercase);
             $account = $this->account ();
             $account['free'] = $balance['AvailableBalance'];
@@ -13335,15 +13337,14 @@ class independentreserve extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
+        $market = $this->market ($symbol);
         $capitalizedOrderType = $this->capitalize ($type);
         $method = 'Place' . $capitalizedOrderType . 'Order';
-        if ($type == 'market')
-            prefix = 'market_';
         $orderType = $capitalizedOrderType;
         $orderType .= ($side == 'sell') ?  'Offer' : 'Bid';
         $order = $this->ordered (array (
-            'primaryCurrencyCode' => market['baseId'],
-            'secondaryCurrencyCode' => market['quoteId'],
+            'primaryCurrencyCode' => $market['baseId'],
+            'secondaryCurrencyCode' => $market['quoteId'],
             'orderType' => $orderType,
         ));
         if ($type == 'limit')
@@ -13379,7 +13380,7 @@ class independentreserve extends Exchange {
                 $auth[] = $key . '=' . $params[$key];
             }
             $message = implode ($auth, ',');
-            $signature = $this->hmac ($this->encode ($message), $this->encode (secret));
+            $signature = $this->hmac ($this->encode ($message), $this->encode ($this->secret));
             $query = $this->keysort (array_merge (array (
                 'apiKey' => $this->apiKey,
                 'nonce' => $nonce,
@@ -15665,21 +15666,13 @@ class nova extends Exchange {
         ));
         $ticker = $response['markets'][0];
         $timestamp = $this->milliseconds ();
-        $bid = null;
-        $ask = null;
-        if (array_key_exists ('bid', $ticker))
-            if ($ticker['bid'])
-                $bid = floatval ($ticker['bid']);
-        if (array_key_exists ('ask', $ticker))
-            if ($ticker['ask'])
-                $ask = floatval ($ticker['ask']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['high24h']),
             'low' => floatval ($ticker['low24h']),
-            'bid' => $bid,
-            'ask' => $ask,
+            'bid' => $this->safe_float ($ticker, 'bid'),
+            'ask' => $this->safe_float ($ticker, 'ask'),
             'vwap' => null,
             'open' => null,
             'close' => null,
