@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.30';
+$version = '1.7.31';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -15629,7 +15629,7 @@ class nova extends Exchange {
             // $base = $market['currency'];
             // $quote = $market['basecurrency'];
             $id = $market['marketname'];
-            list ($base, $quote) = explode ('_', $id);
+            list ($quote, $base) = explode ('_', $id);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
