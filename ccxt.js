@@ -12826,17 +12826,17 @@ var independentreserve = {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostUserInfo ();
-        let result = { 'info': response };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let balances = await this.privatePostGetAccounts ();
+        let result = { 'info': balances };
+        for (let i = 0; i < balances.length; i++) {
+            let balance = balances[i];
+            let currency = balance['CurrencyCode'];
+            let uppercase = this.commonCurrencyCode (currency.toUpperCase ());
             let account = this.account ();
-            if (currency in response['balances'])
-                account['free'] = parseFloat (response['balances'][currency]);
-            if (currency in response['reserved'])
-                account['used'] = parseFloat (response['reserved'][currency]);
-            account['total'] = this.sum (account['free'], account['used']);
-            result[currency] = account;
+            account['free'] = balance['AvailableBalance'];
+            account['total'] = balance['TotalBalance'];
+            account['used'] = account['total'] - account['free'];
+            result[uppercase] = account;
         }
         return result;
     },
@@ -12941,51 +12941,30 @@ var independentreserve = {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
-            // url = 'https://api.independentreserve.com/Private/GetOpenOrders'
-            // key = 'api_key'
-            // secret = 'api_secret'
-            // nonce = int(time.time())
-            // parameters = [
-            //     url,
-            //     'apiKey=' + key,
-            //     'nonce=' + str(nonce),
-            //     'pageIndex=1',
-            //     'pageSize=10',
-            //     'primaryCurrencyCode=Xbt',
-            //     'secondaryCurrencyCode=Usd'
-            // ]
-            // message = ','.join(parameters)
-            // signature = hmac.new(
-            //     secret.encode('utf-8'),
-            //     msg=message.encode('utf-8'),
-            //     digestmod=hashlib.sha256).hexdigest().upper()
-            // data = {
-            //     "apiKey": key,
-            //     "nonce": nonce,
-            //     "signature": str(signature),
-            //     "primaryCurrencyCode": "Xbt",
-            //     "secondaryCurrencyCode": "Usd",
-            //     "pageIndex": 1,
-            //     "pageSize": 10
-            // }
-            // headers={'Content-Type': 'application/json'}
-            // r = requests.post(url, data=json.dumps(data, sort_keys=True), headers=headers)
-            // print(r.content)
             let nonce = this.nonce ();
-            body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
-                'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
-            };
+            let auth = [
+                url,
+                'apiKey=' + this.apiKey,
+                'nonce=' + nonce.toString (),
+            ];
+            let keysorted = this.keysort (params);
+            let keys = Object.keys (params);
+            for (let i = 0; i < keys.length; i++) {
+                let key = keys[i];
+                auth.push (key + '=' + params[key]);
+            }
+            let message = ','.join (auth);
+            let signature = this.hmac (this.encode (message), this.encode (secret));
+            let query = this.keysort (this.extend ({
+                'apiKey': this.apiKey,
+                'nonce': nonce,
+                'signature': signature,
+            }, params));
+            body = this.json (query);
+            headers = { 'Content-Type': 'application/json' };
         }
         let response = await this.fetch (url, method, headers, body);
-        if ('result' in response) {
-            if (response['result'])
-                return response;
-            throw new ExchangeError (this.id + ' ' + this.json (response));
-        }
+        // todo error handling
         return response;
     },
 }
