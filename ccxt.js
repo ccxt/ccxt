@@ -12937,7 +12937,7 @@ var independentreserve = {
 
     async cancelOrder (id) {
         await this.loadMarkets ();
-        return this.privatePostOrderCancel ({ 'order_id': id });
+        return this.privatePostCancelOrder ({ 'orderGuid': id });
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
