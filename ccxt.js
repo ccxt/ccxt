@@ -7942,23 +7942,12 @@ var cex = {
             timestamp = parseInt (ticker['timestamp']) * 1000;
             iso8601 = this.iso8601 (timestamp);
         }
-        let volume = undefined;
-        if ('volume' in ticker)
-            volume = parseFloat (ticker['volume']);
-        else
-            throw new ExchangeError (this.id + ' unrecognized ticker ' + this.json (ticker));
-        let high = undefined;
-        let low = undefined;
-        let bid = undefined;
-        let ask = undefined;
-        let last = undefined;
-        if (volume > 0) {
-            high = parseFloat (ticker['high']);
-            low = parseFloat (ticker['low']);
-            bid = parseFloat (ticker['bid']);
-            ask = parseFloat (ticker['ask']);
-            last = parseFloat (ticker['last']);
-        }
+        let volume = this.safeFloat (ticker, 'volume');
+        let high = this.safeFloat (ticker, 'high');
+        let low = this.safeFloat (ticker, 'low');
+        let bid = this.safeFloat (ticker, 'bid');
+        let ask = this.safeFloat (ticker, 'ask');
+        let last = this.safeFloat (ticker, 'last');
         return {
             'timestamp': timestamp,
             'datetime': iso8601,
