@@ -13898,7 +13898,7 @@ class nova (Exchange):
         return self.parse_trades(response['items'], market)
 
     def fetch_balance(self, params={}):
-        response = self.privateGetBalances()
+        response = self.privatePostGetBalances()
         balances = response['balances']
         result = {'info': response}
         for b in range(0, len(balances)):
