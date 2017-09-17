@@ -2618,8 +2618,8 @@ var bitcoincoid = {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
             let account = this.account ();
-            account['free'] = parseFloat (balance['balance'], lowercase, 0.0);
-            account['used'] = parseFloat (balance['balance_hold'], lowercase, 0.0);
+            account['free'] = this.safeFloat (balance['balance'], lowercase, 0.0);
+            account['used'] = this.safeFloat (balance['balance_hold'], lowercase, 0.0);
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
@@ -4878,12 +4878,9 @@ var bitstamp1 = {
             let free = lowercase + '_available';
             let used = lowercase + '_reserved';
             let account = this.account ();
-            if (free in balance)
-                account['free'] = parseFloat (balance[free]);
-            if (used in balance)
-                account['used'] = parseFloat (balance[used]);
-            if (total in balance)
-                account['total'] = parseFloat (balance[total]);
+            account['free'] = this.safeFloat (balance, free, 0.0);
+            account['used'] = this.safeFloat (balance, used, 0.0);
+            account['total'] = this.safeFloat (balance, total, 0.0);
             result[currency] = account;
         }
         return result;
