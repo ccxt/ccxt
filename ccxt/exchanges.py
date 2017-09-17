@@ -13829,18 +13829,17 @@ class nova (Exchange):
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            # base = market['currency']
-            # quote = market['basecurrency']
-            id = market['marketname']
-            quote, base = id.split('_')
-            symbol = base + '/' + quote
-            result.append({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': market,
-            })
+            if not market['disabled']:
+                id = market['marketname']
+                quote, base = id.split('_')
+                symbol = base + '/' + quote
+                result.append({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'info': market,
+                })
         return result
 
     def fetch_order_book(self, symbol, params={}):
