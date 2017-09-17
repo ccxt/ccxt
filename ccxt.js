@@ -15184,6 +15184,7 @@ var nova = {
     },
 
     async fetchOrderBook (symbol, params = {}) {
+        await this.loadMarkets ();
         let orderbook = await this.publicGetMarketOpenordersPairBoth (this.extend ({
             'pair': this.marketId (symbol),
         }, params));
@@ -15191,6 +15192,7 @@ var nova = {
     },
 
     async fetchTicker (symbol) {
+        await this.loadMarkets ();
         let response = await this.publicGetMarketInfoPair ({
             'pair': this.marketId (symbol),
         });
@@ -15234,6 +15236,7 @@ var nova = {
     },
 
     async fetchTrades (symbol, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetMarketOrderhistoryPair (this.extend ({
             'pair': market['id'],
@@ -15242,6 +15245,7 @@ var nova = {
     },
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         let response = await this.privatePostGetbalances ();
         let balances = response['balances'];
         let result = { 'info': response };
@@ -15263,6 +15267,7 @@ var nova = {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
+        await this.loadMarkets ();
         amount = amount.toString ();
         price = price.toString ();
         let market = this.market (symbol);
