@@ -17832,7 +17832,7 @@ var xbtce = {
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
         // no method for trades?
-        return this.privateGetTrade (params);
+        return await this.privateGetTrade (params);
     },
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -17883,7 +17883,7 @@ var xbtce = {
 
     async cancelOrder (id, params = {}) {
         await this.loadMarkets ();
-        return this.privateDeleteTrade (this.extend ({
+        return await this.privateDeleteTrade (this.extend ({
             'Type': 'Cancel',
             'Id': id,
         }, params));

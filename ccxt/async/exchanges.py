@@ -16299,7 +16299,7 @@ class xbtce (Exchange):
     async def fetch_trades(self, symbol, params={}):
         await self.load_markets()
         # no method for trades?
-        return self.privateGetTrade(params)
+        return await self.privateGetTrade(params)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
@@ -16346,7 +16346,7 @@ class xbtce (Exchange):
 
     async def cancel_order(self, id, params={}):
         await self.load_markets()
-        return self.privateDeleteTrade(self.extend({
+        return await self.privateDeleteTrade(self.extend({
             'Type': 'Cancel',
             'Id': id,
         }, params))
