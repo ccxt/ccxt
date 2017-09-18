@@ -90,7 +90,8 @@ let testExchangeSymbolTicker = async (exchange, symbol) => {
         'ask: '     + human_value (ticker['ask']),
         'volume: '  + human_value (ticker['quoteVolume']))
 
-    assert (ticker['bid'] <= ticker['ask'])
+    if (ticker['bid'] && ticker['ask'])
+        assert (ticker['bid'] <= ticker['ask'])
 
     return ticker;
 }
