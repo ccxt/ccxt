@@ -10885,7 +10885,6 @@ class flowbtc extends Exchange {
             ), $params));
             $headers = array (
                 'Content-Type' => 'application/json',
-                'Content-Length' => strlen ($body),
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
@@ -12842,7 +12841,6 @@ class huobi1 extends Exchange {
                 $body = $this->json ($query);
                 $headers = array (
                     'Content-Type' => 'application/json',
-                    'Content-Length' => strlen ($body),
                 );
             }
         } else {

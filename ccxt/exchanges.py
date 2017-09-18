@@ -9376,7 +9376,6 @@ class flowbtc (Exchange):
             }, params))
             headers = {
                 'Content-Type': 'application/json',
-                'Content-Length': len(body),
             }
         response = self.fetch(url, method, headers, body)
         if 'isAccepted' in response:
@@ -11217,7 +11216,6 @@ class huobi1 (Exchange):
                 body = self.json(query)
                 headers = {
                     'Content-Type': 'application/json',
-                    'Content-Length': len(body),
                 }
         else:
             if params:
