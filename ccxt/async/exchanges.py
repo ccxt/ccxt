@@ -12605,7 +12605,7 @@ class lakebtc (Exchange):
                 'Content-Length': len(body),
                 'Content-Type': 'application/json',
             }
-        response = self.fetch(url, method, headers, body)
+        response = await self.fetch(url, method, headers, body)
         if 'error' in response:
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
@@ -13871,7 +13871,7 @@ class nova (Exchange):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        response = self.fetch(url, method, headers, body)
+        response = await self.fetch(url, method, headers, body)
         if 'status' in response:
             if response['status'] != 'success':
                 raise ExchangeError(self.id + ' ' + self.json(response))
