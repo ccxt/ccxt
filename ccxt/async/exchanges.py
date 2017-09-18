@@ -2682,7 +2682,7 @@ class bitflyer (Exchange):
                 'ACCESS-SIGN': self.hmac(self.encode(auth), self.secret),
                 'Content-Type': 'application/json',
             }
-        return self.fetch(url, method, headers, body)
+        return await self.fetch(url, method, headers, body)
 
 #------------------------------------------------------------------------------
 
