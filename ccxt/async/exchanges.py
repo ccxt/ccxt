@@ -11800,7 +11800,7 @@ class itbit (Exchange):
             'id': response['id'],
         }
 
-    async def cancel_order(self, id, params={}):
+    def cancel_order(self, id, params={}):
         walletIdInParams = ('walletId' in list(params.keys()))
         if not walletIdInParams:
             raise ExchangeError(self.id + ' cancelOrder requires a walletId parameter')
@@ -11832,7 +11832,7 @@ class itbit (Exchange):
                 'X-Auth-Timestamp': timestamp,
                 'X-Auth-Nonce': nonce,
             }
-        response = self.fetch(url, method, headers, body)
+        response = await self.fetch(url, method, headers, body)
         if 'code' in response:
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
