@@ -714,8 +714,8 @@ const Exchange = function (config) {
     this.parseOrderBook = function (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
         timestamp = timestamp || this.milliseconds ();
         return {
-            'bids': this.parseBidAsks (orderbook[bidsKey], priceKey, amountKey),
-            'asks': this.parseBidAsks (orderbook[asksKey], priceKey, amountKey),
+            'bids': (bidsKey in orderbook) ? this.parseBidAsks (orderbook[bidsKey], priceKey, amountKey) : [],
+            'asks': (asksKey in orderbook) ? this.parseBidAsks (orderbook[asksKey], priceKey, amountKey) : [],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
@@ -3584,7 +3584,7 @@ var bitflyer = {
         };
     },
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.version + '/';
         if (api == 'private')
             request += 'me/';
@@ -3605,7 +3605,7 @@ var bitflyer = {
                 'Content-Type': 'application/json',
             };
         }
-        return await this.fetch (url, method, headers, body);
+        return this.fetch (url, method, headers, body);
     },
 }
 

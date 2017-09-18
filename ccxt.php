@@ -803,8 +803,12 @@ class Exchange {
     public function parse_order_book ($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
         $timestamp = $timestamp ? $timestamp : $this->milliseconds ();
         return array (
-            'bids' => $this->parse_bidasks ($orderbook[$bids_key], $price_key, $amount_key),
-            'asks' => $this->parse_bidasks ($orderbook[$asks_key], $price_key, $amount_key),
+            'bids' => array_key_exists ($bids_key, $orderbook) ?
+                $this->parse_bidasks ($orderbook[$bids_key], $price_key, $amount_key) :
+                array (),
+            'asks' => array_key_exists ($asks_key, $orderbook) ?
+                $this->parse_bidasks ($orderbook[$asks_key], $price_key, $amount_key) :
+                array (),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
