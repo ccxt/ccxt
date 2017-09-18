@@ -1494,7 +1494,6 @@ class bit2c (Exchange):
             body = self.urlencode(query)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len(body),
                 'key': self.apiKey,
                 'sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512, 'base64'),
             }
@@ -1689,7 +1688,6 @@ class bitbay (Exchange):
             }, params))
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len(body),
                 'API-Key': self.apiKey,
                 'API-Hash': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
@@ -1852,7 +1850,6 @@ class bitcoincoid (Exchange):
             }, params))
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len(body),
                 'Key': self.apiKey,
                 'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
@@ -3978,7 +3975,6 @@ class bitstamp1 (Exchange):
             body = self.urlencode(query)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': str(len(body)),
             }
         response = await self.fetch(url, method, headers, body)
         if 'status' in response:
@@ -4211,7 +4207,6 @@ class bitstamp (Exchange):
             body = self.urlencode(query)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': str(len(body)),
             }
         response = await self.fetch(url, method, headers, body)
         if 'status' in response:
@@ -5648,7 +5643,6 @@ class btctrader (Exchange):
                 'X-Stamp': str(nonce),
                 'X-Signature': self.hmac(self.encode(auth), secret, hashlib.sha256, 'base64'),
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len(body),
             }
         return self.fetch(url, method, headers, body)
 
@@ -5871,7 +5865,6 @@ class btctradeua (Exchange):
                 'public-key': self.apiKey,
                 'api-sign': self.hash(self.encode(auth), 'sha256'),
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len(body),
             }
         return self.fetch(url, method, headers, body)
 
@@ -6487,7 +6480,6 @@ class bxinth (Exchange):
             }, params))
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len(body),
             }
         response = await self.fetch(url, method, headers, body)
         if api == 'public':
