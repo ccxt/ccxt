@@ -6525,7 +6525,7 @@ var btcmarkets = {
             }
             let secret = this.base64ToBinary (this.secret);
             let signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
-            headers['signature'] = signature;
+            headers['signature'] = this.decode (signature);
         }
         let response = await this.fetch (url, method, headers, body);
         if (api == 'private') {
