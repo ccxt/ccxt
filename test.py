@@ -14,6 +14,7 @@ class Argv (object):
 argv = Argv()
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
@@ -244,7 +245,7 @@ with open('./keys.json') as file:
 # instantiate all exchanges
 for id in ccxt.exchanges:
     exchange = getattr(ccxt, id)
-    exchanges[id] = exchange({'verbose': False})
+    exchanges[id] = exchange({'verbose': argv.verbose})
 
 # set up api keys appropriately
 tuples = list(ccxt.Exchange.keysort(config).items())

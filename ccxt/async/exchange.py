@@ -104,6 +104,8 @@ class Exchange (BaseExchange):
                 self.handle_rest_errors(None, response.status, text, url, method)
         except concurrent.futures._base.TimeoutError as e:
             raise RequestTimeout(' '.join([self.id, method, url, 'request timeout']))
+        except aiohttp.client_exceptions.ServerDisconnectedError as e:
+            self.raise_error(ExchangeError, url, method, e, text if text else None)
         if self.verbose:
             print(method, url, "\nResponse:", headers, text)
         return self.handle_rest_response(text, url, method, headers, body)
