@@ -451,7 +451,6 @@ const Exchange = function (config) {
             }
 
             let { url, method, headers, body, resolve, reject } = this.restRequestQueue.shift ()
-            this.lastRestRequestTimestamp = this.milliseconds ()
             this.executeRestRequest (url, method, headers, body).then (resolve).catch (reject)
         }
 
@@ -472,6 +471,7 @@ const Exchange = function (config) {
 
     this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
+        this.lastRestRequestTimestamp = this.milliseconds ()
         let promise =
             fetch (url, { 'method': method, 'headers': headers, 'body': body })
                 .catch (e => {
