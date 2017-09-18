@@ -9903,7 +9903,6 @@ var cryptopia = {
             let auth = 'amx ' + this.apiKey + ':' + this.binaryToString (signature) + ':' + nonce;
             headers = {
                 'Content-Type': 'application/json',
-                'Content-Length': body.length,
                 'Authorization': auth,
             };
         }
