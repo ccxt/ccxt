@@ -9916,8 +9916,8 @@ var dsx = {
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
         'api': {
-            'mapi': 'https://dsx.uk/mapi',  // market data
-            'tapi': 'https://dsx.uk/tapi',  // trading
+            'mapi': 'https://dsx.uk/mapi', // market data
+            'tapi': 'https://dsx.uk/tapi', // trading
             'dwapi': 'https://dsx.uk/dwapi', // deposit/withdraw
         },
         'www': 'https://dsx.uk',
@@ -9929,7 +9929,8 @@ var dsx = {
         ],
     },
     'api': {
-        'mapi': { // market data (public)
+        // market data (public)
+        'mapi': {
             'get': [
                 'barsFromMoment/{id}/{period}/{start}', // empty reply :\
                 'depth/{id}',
@@ -9940,7 +9941,8 @@ var dsx = {
                 'trades/{id}',
             ],
         },
-        'tapi': { // trading (private)
+        // trading (private)
+        'tapi': {
             'post': [
                 'getInfo',
                 'TransHistory',
@@ -9951,7 +9953,8 @@ var dsx = {
                 'CancelOrder',
             ],
         },
-        'dwapi': { // deposit / withdraw (private)
+        // deposit / withdraw (private)
+        'dwapi': {
             'post': [
                 'getCryptoDepositAddress',
                 'cryptoWithdraw',
@@ -10082,15 +10085,15 @@ var dsx = {
                 url += '?' + this.urlencode (query);
         } else {
             let nonce = this.nonce ();
-            let method = path;
             body = this.urlencode (this.extend ({
                 'method': path,
                 'nonce': nonce,
             }, query));
+            let signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512', 'base64');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512', 'base64'),
+                'Sign': this.decode (signature),
             };
         }
         let response = await this.fetch (url, method, headers, body);

@@ -10267,8 +10267,8 @@ class dsx extends Exchange {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
                 'api' => array (
-                    'mapi' => 'https://dsx.uk/mapi',  // market data
-                    'tapi' => 'https://dsx.uk/tapi',  // trading
+                    'mapi' => 'https://dsx.uk/mapi', // market data
+                    'tapi' => 'https://dsx.uk/tapi', // trading
                     'dwapi' => 'https://dsx.uk/dwapi', // deposit/withdraw
                 ),
                 'www' => 'https://dsx.uk',
@@ -10280,7 +10280,8 @@ class dsx extends Exchange {
                 ),
             ),
             'api' => array (
-                'mapi' => array ( // market data (public)
+                // market data (public)
+                'mapi' => array (
                     'get' => array (
                         'barsFromMoment/{id}/{period}/{start}', // empty reply :\
                         'depth/{id}',
@@ -10291,7 +10292,8 @@ class dsx extends Exchange {
                         'trades/{id}',
                     ),
                 ),
-                'tapi' => array ( // trading (private)
+                // trading (private)
+                'tapi' => array (
                     'post' => array (
                         'getInfo',
                         'TransHistory',
@@ -10302,7 +10304,8 @@ class dsx extends Exchange {
                         'CancelOrder',
                     ),
                 ),
-                'dwapi' => array ( // deposit / withdraw (private)
+                // deposit / withdraw (private)
+                'dwapi' => array (
                     'post' => array (
                         'getCryptoDepositAddress',
                         'cryptoWithdraw',
@@ -10435,15 +10438,15 @@ class dsx extends Exchange {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = $this->nonce ();
-            $method = $path;
             $body = $this->urlencode (array_merge (array (
                 'method' => $path,
                 'nonce' => $nonce,
             ), $query));
+            $signature = $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512', 'base64');
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512', 'base64'),
+                'Sign' => $this->decode ($signature),
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);

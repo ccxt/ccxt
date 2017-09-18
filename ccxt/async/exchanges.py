@@ -8710,8 +8710,8 @@ class dsx (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
                 'api': {
-                    'mapi': 'https://dsx.uk/mapi',  # market data
-                    'tapi': 'https://dsx.uk/tapi',  # trading
+                    'mapi': 'https://dsx.uk/mapi', # market data
+                    'tapi': 'https://dsx.uk/tapi', # trading
                     'dwapi': 'https://dsx.uk/dwapi', # deposit/withdraw
                 },
                 'www': 'https://dsx.uk',
@@ -8723,7 +8723,8 @@ class dsx (Exchange):
                 ],
             },
             'api': {
-                'mapi': {# market data (public)
+                # market data (public)
+                'mapi': {
                     'get': [
                         'barsFromMoment/{id}/{period}/{start}', # empty reply :\
                         'depth/{id}',
@@ -8734,7 +8735,8 @@ class dsx (Exchange):
                         'trades/{id}',
                     ],
                 },
-                'tapi': {# trading (private)
+                # trading (private)
+                'tapi': {
                     'post': [
                         'getInfo',
                         'TransHistory',
@@ -8745,7 +8747,8 @@ class dsx (Exchange):
                         'CancelOrder',
                     ],
                 },
-                'dwapi': {# deposit / withdraw (private)
+                # deposit / withdraw (private)
+                'dwapi': {
                     'post': [
                         'getCryptoDepositAddress',
                         'cryptoWithdraw',
@@ -8870,15 +8873,15 @@ class dsx (Exchange):
                 url += '?' + self.urlencode(query)
         else:
             nonce = self.nonce()
-            method = path
             body = self.urlencode(self.extend({
                 'method': path,
                 'nonce': nonce,
             }, query))
+            signature = self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512, 'base64')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': self.apiKey,
-                'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512, 'base64'),
+                'Sign': self.decode(signature),
             }
         response = await self.fetch(url, method, headers, body)
         if api == 'mapi':
