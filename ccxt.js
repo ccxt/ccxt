@@ -454,24 +454,24 @@ const Exchange = function (config) {
                 }
             }
 
-            let { url, method, headers, body, resolve, reject } = this_.restRequestQueue.shift ()
+            let { args, resolve, reject } = this_.restRequestQueue.shift ()
             this_.lastRestPollTimestamp = this_.milliseconds ()
-            this_.executeRestRequest (url, method, headers, body).then (resolve).catch (reject)
+            this_.executeRestRequest (...args).then (resolve).catch (reject)
         }
 
         this.restPollerLoopIsRunning = false
     }
 
-    this.issueRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
+    this.issueRestRequest = function (...args) {
 
         if (this.enableRateLimit) {
             return new Promise ((resolve, reject) => {
-                this.restRequestQueue.push ({ url, method, headers, body, resolve, reject })
+                this.restRequestQueue.push ({ args, resolve, reject })
                 this.runRestPollerLoop ()
             })
+        } else {
+            return this.executeRestRequest (...args)
         }
-
-        return this.executeRestRequest (url, method, headers, body)
     }
 
     this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
@@ -484,7 +484,7 @@ const Exchange = function (config) {
                         throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
                     throw e // rethrow all unknown errors
                 })
-                .then (response => this.handleRestErrors (response, url, method, headers, body ))
+                .then (response => this.handleRestErrors (response, url, method, headers, body))
                 .then (response => this.handleRestResponse (response, url, method, headers, body))
 
         return timeout (this.timeout, promise)
