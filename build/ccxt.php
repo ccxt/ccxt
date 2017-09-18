@@ -3652,10 +3652,18 @@ class bitflyer extends Exchange {
             $quote = null;
             $symbol = $id;
             $numCurrencies = count ($currencies);
-            if ($numCurrencies == 2) {
+            if ($numCurrencies == 1) {
+                $symbol = $id;
+                $base = mb_substr ($symbol, 0, 3);
+                $quote = mb_substr ($symbol, 3, 6);
+            } else if ($numCurrencies == 2) {
                 $base = $currencies[0];
                 $quote = $currencies[1];
-                $symbol = $base . '/' . $quote;
+                $symbol = $base . '/' . $quote
+            } else {
+                $symbol = $id;
+                $base = $currencies[1];
+                $quote = $currencies[2];
             }
             $result[] = array (
                 'id' => $id,

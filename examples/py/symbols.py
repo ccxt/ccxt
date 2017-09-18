@@ -38,7 +38,9 @@ try:
         dump('Instantiating', green(id), 'exchange')
 
         # instantiate the exchange by id
-        exchange = getattr(ccxt, id)()
+        exchange = getattr(ccxt, id)({
+            # 'proxy':'https://cors-anywhere.herokuapp.com/',
+        })
 
         # load all markets from the exchange
         markets = exchange.load_markets()
