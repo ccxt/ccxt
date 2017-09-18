@@ -260,7 +260,7 @@ exchanges['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
 
 # ------------------------------------------------------------------------------
 
-async def main ():
+async def main():
 
     if argv.exchange:
 
@@ -283,4 +283,4 @@ async def main ():
 
 # ------------------------------------------------------------------------------
 
-asyncio.get_event_loop ().run_until_complete (main ())
+asyncio.get_event_loop().run_until_complete (main())
