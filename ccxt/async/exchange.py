@@ -95,8 +95,6 @@ class Exchange (BaseExchange):
         url = self.proxy + url
         if self.verbose:
             print(url, method, url, "\nRequest:", headers, body)
-        if body:
-            body = body.encode()
         encoded_body = body.encode() if body else None
         session_method = getattr(self.aiohttp_session, method.lower())
         async with session_method(url, data=encoded_body, headers=headers, timeout=(self.timeout / 1000)) as response:
