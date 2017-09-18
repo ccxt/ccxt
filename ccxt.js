@@ -12099,7 +12099,7 @@ var hitbtc2 = extend (hitbtc, {
 
     async cancelOrder (id, params = {}) {
         await this.loadMarkets ();
-        return this.privateDeleteOrder (this.extend ({
+        return this.privateDeleteOrderClientOrderId (this.extend ({
             'clientOrderId': id,
         }, params));
     },
