@@ -8866,7 +8866,6 @@ var coingi = {
             body = this.json (request);
             headers = {
                 'Content-Type': 'application/json',
-                'Content-Length': body.length,
             };
         }
         let response = await this.fetch (url, method, headers, body);
