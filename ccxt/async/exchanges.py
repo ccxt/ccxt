@@ -10053,7 +10053,7 @@ class gdax (Exchange):
 
     async def fetch_trades(self, market, params={}):
         await self.load_markets()
-        return self.publicGetProductsIdTrades(self.extend({
+        return await self.publicGetProductsIdTrades(self.extend({
             'id': self.market_id(market), # fixes issue #2
         }, params))
 
@@ -10101,7 +10101,7 @@ class gdax (Exchange):
 
     async def cancel_order(self, id):
         await self.load_markets()
-        return self.privateDeleteOrdersId({'id': id})
+        return await self.privateDeleteOrdersId({'id': id})
 
     async def getPaymentMethods(self):
         response = await self.privateGetPaymentMethods()
