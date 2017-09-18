@@ -12116,7 +12116,6 @@ class jubi (Exchange):
             body = self.urlencode(query)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len(body),
             }
         response = self.fetch(url, method, headers, body)
         if 'result' in response:

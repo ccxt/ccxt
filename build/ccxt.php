@@ -13795,7 +13795,6 @@ class jubi extends Exchange {
             $body = $this->urlencode ($query);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'Content-Length' => strlen ($body),
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
