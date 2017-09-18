@@ -101,36 +101,7 @@ class Exchange (BaseExchange):
         session_method = getattr(self.aiohttp_session, method.lower())
         async with session_method(url, data=encoded_body, headers=headers, timeout=(self.timeout / 1000)) as response:
             text = await response.text()
-            error = None
-            details = text if text else None
-            if response.status == 429:
-                error = DDoSProtection
-            elif response.status in [404, 409, 422, 500, 501, 502, 521, 522, 525]:
-                details = str(response.status) + ' ' + text
-                error = ExchangeNotAvailable
-            elif response.status in [400, 403, 405, 503]:
-                # special case to detect ddos protection
-                reason = text
-                ddos_protection = re.search('(cloudflare|incapsula)', reason, flags=re.IGNORECASE)
-                if ddos_protection:
-                    error = DDoSProtection
-                else:
-                    error = ExchangeNotAvailable
-                    details = '(possible reasons: ' + ', '.join([
-                        'invalid API keys',
-                        'bad or old nonce',
-                        'exchange is down or offline',
-                        'on maintenance',
-                        'DDoS protection',
-                        'rate-limiting',
-                        reason,
-                    ]) + ')'
-            elif response.status in [408, 504]:
-                error = RequestTimeout
-            elif response.status in [401, 511]:
-                error = AuthenticationError
-            if error:
-                self.raise_error(error, url, method, str(response.status), details)
+            self.handle_rest_errors(None, response.status, text, url, method)
         if self.verbose:
             print(method, url, "\nResponse:", headers, text)
         return self.handle_rest_response(text, url, method, headers, body)

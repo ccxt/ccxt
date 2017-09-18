@@ -227,37 +227,8 @@ class Exchange(object):
         except ssl.SSLError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
         except _urllib.HTTPError as e:
-            error = None
-            details = text if text else None
-            if e.code == 429:
-                error = DDoSProtection
-            elif e.code in [404, 409, 422, 500, 501, 502, 520, 521, 522, 525]:
-                details = e.read().decode('utf-8', 'ignore') if e else None
-                error = ExchangeNotAvailable
-            elif e.code in [400, 403, 405, 503]:
-                # special case to detect ddos protection
-                reason = e.read().decode('utf-8', 'ignore')
-                ddos_protection = re.search('(cloudflare|incapsula)', reason, flags=re.IGNORECASE)
-                if ddos_protection:
-                    error = DDoSProtection
-                else:
-                    error = ExchangeNotAvailable
-                    details = '(possible reasons: ' + ', '.join([
-                        'invalid API keys',
-                        'bad or old nonce',
-                        'exchange is down or offline',
-                        'on maintenance',
-                        'DDoS protection',
-                        'rate-limiting',
-                        reason,
-                    ]) + ')'
-            elif e.code in [408, 504]:
-                error = RequestTimeout
-            elif e.code in [401, 511]:
-                error = AuthenticationError
-            else:
-                error = ExchangeError
-            self.raise_error(error, url, method, e, details)
+            self.handle_rest_errors(e, e.code, text, url, method)
+            self.raise_error(ExchangeError, url, method, e, text if text else None)
         except _urllib.URLError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
         except httplib.BadStatusLine as e:
@@ -274,8 +245,37 @@ class Exchange(object):
             print(method, url, "\nResponse:", headers, decoded_text)
         return self.handle_rest_response(decoded_text, url, method, headers, body)
 
-    def handle_rest_errors(self, response, url, method='GET', headers=None, body=None):
-        pass
+    def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
+        error = None
+        details = response if response else None
+        if http_status_code == 429:
+            error = DDoSProtection
+        elif http_status_code in [404, 409, 422, 500, 501, 502, 520, 521, 522, 525]:
+            details = exception.read().decode('utf-8', 'ignore') if exception else (str(http_status_code) + ' ' + response)
+            error = ExchangeNotAvailable
+        elif http_status_code in [400, 403, 405, 503]:
+            # special case to detect ddos protection
+            reason = exception.read().decode('utf-8', 'ignore') if exception else response
+            ddos_protection = re.search('(cloudflare|incapsula)', reason, flags=re.IGNORECASE)
+            if ddos_protection:
+                error = DDoSProtection
+            else:
+                error = ExchangeNotAvailable
+                details = '(possible reasons: ' + ', '.join([
+                    'invalid API keys',
+                    'bad or old nonce',
+                    'exchange is down or offline',
+                    'on maintenance',
+                    'DDoS protection',
+                    'rate-limiting',
+                    reason,
+                ]) + ')'
+        elif http_status_code in [408, 504]:
+            error = RequestTimeout
+        elif http_status_code in [401, 511]:
+            error = AuthenticationError
+        if error:
+            self.raise_error(error, url, method, exception if exception else str(http_status_code), details)
 
     def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
         try:
