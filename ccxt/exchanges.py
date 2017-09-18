@@ -11518,7 +11518,7 @@ class independentreserve (Exchange):
                     'private': 'https://api.independentreserve.com/Private',
                 },
                 'www': 'https://www.independentreserve.com',
-                'docs': 'https://www.independentreserve.com/API',
+                'doc': 'https://www.independentreserve.com/API',
             },
             'api': {
                 'public': {
@@ -11709,7 +11709,7 @@ class independentreserve (Exchange):
             for i in range(0, len(keys)):
                 key = keys[i]
                 auth.append(key + '=' + params[key])
-            message = auth.join(',')
+            message = ','.join(auth)
             signature = self.hmac(self.encode(message), self.encode(self.secret))
             query = self.keysort(self.extend({
                 'apiKey': self.apiKey,
