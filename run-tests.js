@@ -5,7 +5,7 @@
     A tests launcher. Runs tests for all languages and all exchanges, in
     parallel, with a humanized error reporting.
 
-    Usage: node run-tests [--php] [--js] [--python] [--es6] [exchange] [symbol]
+    Usage: node run-tests [--php] [--js] [--python] [--python3] [--es6] [exchange] [symbol]
 
     --------------------------------------------------------------------------- */
 
@@ -113,10 +113,10 @@ const testExchange = async (exchange) => {
     const args = [exchange, ...symbol === 'all' ? [] : symbol]
         , allTests = [
 
-            { language: 'JavaScript', key: '--js',      exec: ['node',      'test.js',  ...args, ...keys['--es6'] ? ['--es6'] : []] },
-            { language: 'Python',     key: '--python',  exec: ['python',    'test.py',  ...args]                                    },
-            { language: 'Python 3',   key: '--python3', exec: ['python3',   'test.py',  ...args]                                    },
-            { language: 'PHP',        key: '--php',     exec: ['php', '-f', 'test.php', ...args]                                    }
+            { language: 'JavaScript', key: '--js',      exec: ['node',      'test.js',       ...args, ...keys['--es6'] ? ['--es6'] : []] },
+            { language: 'Python',     key: '--python',  exec: ['python',    'test.py',       ...args]                                    },
+            { language: 'Python 3',   key: '--python3', exec: ['python3',   'test_async.py', ...args]                                    },
+            { language: 'PHP',        key: '--php',     exec: ['php', '-f', 'test.php',      ...args]                                    }
         ]
         , selectedTests  = allTests.filter (t => keys[t.key])
         , scheduledTests = selectedTests.length ? selectedTests : allTests
