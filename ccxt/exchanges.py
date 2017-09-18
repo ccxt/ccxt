@@ -7020,7 +7020,6 @@ class cex (Exchange):
             }, query))
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len(body),
             }
         response = self.fetch(url, method, headers, body)
         if 'e' in response:
@@ -7790,7 +7789,6 @@ class coingi (Exchange):
             body = self.json(request)
             headers = {
                 'Content-Type': 'application/json',
-                'Content-Length': len(body),
             }
         response = self.fetch(url, method, headers, body)
         if 'errors' in response:
@@ -8514,7 +8512,6 @@ class coinspot (Exchange):
             body = self.json(self.extend({'nonce': nonce}, params))
             headers = {
                 'Content-Type': 'application/json',
-                'Content-Length': len(body),
                 'key': self.apiKey,
                 'sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
@@ -8784,7 +8781,6 @@ class cryptopia (Exchange):
             auth = 'amx ' + self.apiKey + ':' + self.binary_to_string(signature) + ':' + nonce
             headers = {
                 'Content-Type': 'application/json',
-                'Content-Length': len(body),
                 'Authorization': auth,
             }
         response = self.fetch(url, method, headers, body)
