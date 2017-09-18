@@ -990,10 +990,11 @@ class anxpro (Exchange):
             body = self.urlencode(self.extend({'nonce': nonce}, query))
             secret = base64.b64decode(self.secret)
             auth = request + "\0" + body
+            signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Rest-Key': self.apiKey,
-                'Rest-Sign': self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64'),
+                'Rest-Sign': self.decode(signature),
             }
         response = await self.fetch(url, method, headers, body)
         if 'result' in response:
@@ -5460,7 +5461,7 @@ class btcmarkets (Exchange):
                 auth += body
             secret = base64.b64decode(self.secret)
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
-            headers['signature'] = signature
+            headers['signature'] = self.decode(signature)
         response = await self.fetch(url, method, headers, body)
         if api == 'private':
             if 'success' in response:
@@ -8388,12 +8389,12 @@ class coinspot (Exchange):
             'info': ticker,
         }
 
-    async def fetch_trades(self, market, params={}):
+    def fetch_trades(self, market, params={}):
         return self.privatePostOrdersHistory(self.extend({
             'cointype': self.market_id(market),
         }, params))
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, market, type, side, amount, price=None, params={}):
         method = 'privatePostMy' + self.capitalize(side)
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
@@ -8404,7 +8405,7 @@ class coinspot (Exchange):
         }
         return getattr(self, method)(self.extend(order, params))
 
-    async def cancel_order(self, id, params={}):
+    def cancel_order(self, id, params={}):
         raise ExchangeError(self.id + ' cancelOrder() is not fully implemented yet')
         method = 'privatePostMyBuy'
         return getattr(self, method)({'id': id})

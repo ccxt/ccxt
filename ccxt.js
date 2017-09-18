@@ -1813,10 +1813,11 @@ var anxpro = {
             body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
             let secret = this.base64ToBinary (this.secret);
             let auth = request + "\0" + body;
+            let signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Rest-Key': this.apiKey,
-                'Rest-Sign': this.hmac (this.encode (auth), secret, 'sha512', 'base64'),
+                'Rest-Sign': this.decode (signature),
             };
         }
         let response = await this.fetch (url, method, headers, body);

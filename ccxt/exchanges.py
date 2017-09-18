@@ -1076,10 +1076,11 @@ class anxpro (Exchange):
             body = self.urlencode(self.extend({'nonce': nonce}, query))
             secret = base64.b64decode(self.secret)
             auth = request + "\0" + body
+            signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Rest-Key': self.apiKey,
-                'Rest-Sign': self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64'),
+                'Rest-Sign': self.decode(signature),
             }
         response = self.fetch(url, method, headers, body)
         if 'result' in response:
@@ -5546,7 +5547,7 @@ class btcmarkets (Exchange):
                 auth += body
             secret = base64.b64decode(self.secret)
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
-            headers['signature'] = signature
+            headers['signature'] = self.decode(signature)
         response = self.fetch(url, method, headers, body)
         if api == 'private':
             if 'success' in response:
