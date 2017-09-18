@@ -10903,7 +10903,7 @@ class hitbtc2 (hitbtc):
 
     def cancel_order(self, id, params={}):
         self.load_markets()
-        return self.privateDeleteOrder(self.extend({
+        return self.privateDeleteOrderClientOrderId(self.extend({
             'clientOrderId': id,
         }, params))
 

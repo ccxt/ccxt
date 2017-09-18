@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.41';
+$version = '1.7.42';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12500,7 +12500,7 @@ class hitbtc2 extends hitbtc {
 
     public function cancel_order ($id, $params = array ()) {
         $this->load_markets ();
-        return $this->privateDeleteOrder (array_merge (array (
+        return $this->privateDeleteOrderClientOrderId (array_merge (array (
             'clientOrderId' => $id,
         ), $params));
     }

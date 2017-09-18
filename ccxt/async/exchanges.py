@@ -10817,7 +10817,7 @@ class hitbtc2 (hitbtc):
 
     async def cancel_order(self, id, params={}):
         await self.load_markets()
-        return self.privateDeleteOrder(self.extend({
+        return self.privateDeleteOrderClientOrderId(self.extend({
             'clientOrderId': id,
         }, params))
 
