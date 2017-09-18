@@ -9616,7 +9616,6 @@ var coinspot = {
             body = this.json (this.extend ({ 'nonce': nonce }, params));
             headers = {
                 'Content-Type': 'application/json',
-                'Content-Length': body.length,
                 'key': this.apiKey,
                 'sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
