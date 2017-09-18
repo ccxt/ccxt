@@ -8068,7 +8068,6 @@ var cex = {
             }, query));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
             };
         }
         let response = await this.fetch (url, method, headers, body);
