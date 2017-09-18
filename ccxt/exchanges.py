@@ -1578,10 +1578,11 @@ class bit2c (Exchange):
             nonce = self.nonce()
             query = self.extend({'nonce': nonce}, params)
             body = self.urlencode(query)
+            signature = self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512, 'base64')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': self.apiKey,
-                'sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512, 'base64'),
+                'sign': self.decode(signature),
             }
         return self.fetch(url, method, headers, body)
 
@@ -5542,7 +5543,6 @@ class btcmarkets (Exchange):
             }
             if method == 'POST':
                 body = self.urlencode(query)
-                headers['Content-Length'] = len(body)
                 auth += body
             secret = base64.b64decode(self.secret)
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
@@ -11476,7 +11476,6 @@ class huobi (Exchange):
             body = self.urlencode(query)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len(body),
             }
         else:
             url += '/' + api + '/' + self.implode_params(path, params) + '_json.js'

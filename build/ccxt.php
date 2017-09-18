@@ -2547,10 +2547,11 @@ class bit2c extends Exchange {
             $nonce = $this->nonce ();
             $query = array_merge (array ( 'nonce' => $nonce ), $params);
             $body = $this->urlencode ($query);
+            $signature = $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512', 'base64');
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'key' => $this->apiKey,
-                'sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512', 'base64'),
+                'sign' => $this->decode ($signature),
             );
         }
         return $this->fetch ($url, $method, $headers, $body);
@@ -6790,7 +6791,6 @@ class btcmarkets extends Exchange {
             );
             if ($method == 'POST') {
                 $body = $this->urlencode ($query);
-                $headers['Content-Length'] = count ($body);
                 $auth .= $body;
             }
             $secret = base64_decode ($this->secret);
@@ -13114,7 +13114,6 @@ class huobi extends Exchange {
             $body = $this->urlencode ($query);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'Content-Length' => strlen ($body),
             );
         } else {
             $url .= '/' . $api . '/' . $this->implode_params ($path, $params) . '_json.js';

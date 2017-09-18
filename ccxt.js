@@ -2345,10 +2345,11 @@ var bit2c = {
             let nonce = this.nonce ();
             let query = this.extend ({ 'nonce': nonce }, params);
             body = this.urlencode (query);
+            let signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512', 'base64');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': this.apiKey,
-                'sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512', 'base64'),
+                'sign': this.decode (signature),
             };
         }
         return this.fetch (url, method, headers, body);
@@ -6520,7 +6521,6 @@ var btcmarkets = {
             };
             if (method == 'POST') {
                 body = this.urlencode (query);
-                headers['Content-Length'] = body.length;
                 auth += body;
             }
             let secret = this.base64ToBinary (this.secret);
@@ -12696,7 +12696,6 @@ var huobi = {
             body = this.urlencode (query);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
             };
         } else {
             url += '/' + api + '/' + this.implodeParams (path, params) + '_json.js';

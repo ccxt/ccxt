@@ -31,6 +31,7 @@ import asyncio
 import base64
 import calendar
 import collections
+import concurrent
 import datetime
 import hashlib
 import json
@@ -97,9 +98,12 @@ class Exchange (BaseExchange):
             print(url, method, url, "\nRequest:", headers, body)
         encoded_body = body.encode() if body else None
         session_method = getattr(self.aiohttp_session, method.lower())
-        async with session_method(url, data=encoded_body, headers=headers, timeout=(self.timeout / 1000)) as response:
-            text = await response.text()
-            self.handle_rest_errors(None, response.status, text, url, method)
+        try:
+            async with session_method(url, data=encoded_body, headers=headers, timeout=(self.timeout / 1000)) as response:
+                text = await response.text()
+                self.handle_rest_errors(None, response.status, text, url, method)
+        except concurrent.futures._base.TimeoutError as e:
+            raise RequestTimeout(' '.join([self.id, method, url, 'request timeout']))
         if self.verbose:
             print(method, url, "\nResponse:", headers, text)
         return self.handle_rest_response(text, url, method, headers, body)
