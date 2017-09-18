@@ -12737,7 +12737,7 @@ var independentreserve = {
             'private': 'https://api.independentreserve.com/Private',
         },
         'www': 'https://www.independentreserve.com',
-        'docs': 'https://www.independentreserve.com/API',
+        'doc': 'https://www.independentreserve.com/API',
     },
     'api': {
         'public': {
@@ -12938,7 +12938,7 @@ var independentreserve = {
                 let key = keys[i];
                 auth.push (key + '=' + params[key]);
             }
-            let message = ','.join (auth);
+            let message = auth.join (',');
             let signature = this.hmac (this.encode (message), this.encode (this.secret));
             let query = this.keysort (this.extend ({
                 'apiKey': this.apiKey,
