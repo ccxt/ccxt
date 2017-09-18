@@ -1258,7 +1258,7 @@ var cryptocapital = {
         };
     },
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (this.id == 'cryptocapital')
             throw new ExchangeError (this.id + ' is an abstract base API for _1btcxe');
         let url = this.urls['api'] + '/' + path;
@@ -17492,7 +17492,7 @@ var virwox = {
 
     async fetchBestPrices (symbol) {
         await this.loadMarkets ();
-        return this.publicPostGetBestPrices ({
+        return await this.publicPostGetBestPrices ({
             'symbols': [ symbol ],
         });
     },
@@ -17547,7 +17547,7 @@ var virwox = {
 
     async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
-        return this.publicGetRawTradeData(this.extend ({
+        return await this.publicGetRawTradeData(this.extend ({
             'instrument': market,
             'timespan': 3600,
         }, params));
@@ -17571,7 +17571,7 @@ var virwox = {
 
     async cancelOrder (id, params = {}) {
         await this.loadMarkets ();
-        return this.privatePostCancelOrder (this.extend ({
+        return await this.privatePostCancelOrder (this.extend ({
             'orderID': id,
         }, params));
     },
