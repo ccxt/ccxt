@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.7.41'
+const version = '1.7.43'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -3599,7 +3599,7 @@ var bitflyer = {
                 'Content-Type': 'application/json',
             };
         }
-        return this.fetch (url, method, headers, body);
+        return await this.fetch (url, method, headers, body);
     },
 }
 

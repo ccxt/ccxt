@@ -2682,7 +2682,7 @@ class bitflyer (Exchange):
                 'ACCESS-SIGN': self.hmac(self.encode(auth), self.secret),
                 'Content-Type': 'application/json',
             }
-        return self.fetch(url, method, headers, body)
+        return await self.fetch(url, method, headers, body)
 
 #------------------------------------------------------------------------------
 
@@ -10817,7 +10817,7 @@ class hitbtc2 (hitbtc):
 
     async def cancel_order(self, id, params={}):
         await self.load_markets()
-        return self.privateDeleteOrder(self.extend({
+        return self.privateDeleteOrderClientOrderId(self.extend({
             'clientOrderId': id,
         }, params))
 
