@@ -18,6 +18,7 @@ const util      = require ('util')
 const log       = require ('ololog')
 const ansi      = require ('ansicolor').nice;
 const fs        = require ('fs')
+const assert    = require ('assert')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -89,8 +90,7 @@ let testExchangeSymbolTicker = async (exchange, symbol) => {
         'ask: '     + human_value (ticker['ask']),
         'volume: '  + human_value (ticker['quoteVolume']))
 
-    if (ticker['bid'] > ticker['ask'])
-        log (this.id, symbol, 'ticker', 'bid is greater than ask!')
+    assert (ticker['bid'] <= ticker['ask'])
 
     return ticker;
 }
@@ -110,24 +110,18 @@ let testExchangeSymbolOrderbook = async (exchange, symbol) => {
     if (bids.length > 1) {
         let first = 0
         let last = bids.length - 1
-        if (bids[first][0] < bids[last][0])
-            log (exchange.id, symbol, 'bids reversed!'.red.bright, bids[first][0], bids[last][0])
-        else if (bids[first][0] > bids[last][0])
-            log (exchange.id.green, symbol.green, 'bids ok')
+        assert (bids[first][0] > bids[last][0])
     }
     let asks = orderbook.asks
     if (asks.length > 1) {
         let first = 0
         let last = asks.length - 1
-        if (asks[first][0] > asks[last][0])
-            log (exchange.id, symbol, 'asks reversed!'.red.bright, asks[first][0], asks[last][0])
-        else if (asks[first][0] < asks[last][0])
-            log (exchange.id.green, symbol.green, 'asks ok')
+        assert (asks[first][0] < asks[last][0])
     }
 
-    if (bids.length && asks.length)
-        if (bids[0][0] > asks[0][0])
-            log (this.id, symbol, 'order book', 'bid is greater than ask!'.red.bright)
+    if (bids.length && asks.length) {
+        assert (bids[0][0] < asks[0][0])
+    }
 
     return orderbook
 }
@@ -353,7 +347,7 @@ let testExchange = async exchange => {
 
     if (exchange.hasFetchOrders) {
 
-            await testExchangeFetchOrders (exchange);
+        await testExchangeFetchOrders (exchange);
 
     } else {
 
