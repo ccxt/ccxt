@@ -15308,7 +15308,7 @@ var nova = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        let response = this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
         if ('status' in response)
             if (response['status'] != 'success')
                 throw new ExchangeError (this.id + ' ' + this.json (response));
