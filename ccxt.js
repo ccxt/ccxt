@@ -11297,7 +11297,7 @@ var gdax = {
 
     async fetchTrades (market, params = {}) {
         await this.loadMarkets ();
-        return this.publicGetProductsIdTrades (this.extend ({
+        return await this.publicGetProductsIdTrades (this.extend ({
             'id': this.marketId (market), // fixes issue #2
         }, params));
     },
@@ -11350,7 +11350,7 @@ var gdax = {
 
     async cancelOrder (id) {
         await this.loadMarkets ();
-        return this.privateDeleteOrdersId ({ 'id': id });
+        return await this.privateDeleteOrdersId ({ 'id': id });
     },
 
     async getPaymentMethods () {
