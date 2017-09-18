@@ -16437,7 +16437,7 @@ var quadrigacx = {
             body = this.json (query);
             headers = {
                 'Content-Type': 'application/json',
-                'Content-Length': body.length,
+                // 'Content-Length': body.length,
             };
         }
         let response = await this.fetch (url, method, headers, body);
@@ -18507,7 +18507,6 @@ var zaif = {
             }, params));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
                 'Key': this.apiKey,
                 'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };

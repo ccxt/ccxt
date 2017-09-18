@@ -15038,7 +15038,7 @@ class quadrigacx (Exchange):
             body = self.json(query)
             headers = {
                 'Content-Type': 'application/json',
-                'Content-Length': len(body),
+                # 'Content-Length': len(body),
             }
         response = self.fetch(url, method, headers, body)
         if 'error' in response:
@@ -17028,7 +17028,6 @@ class zaif (Exchange):
             }, params))
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len(body),
                 'Key': self.apiKey,
                 'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
