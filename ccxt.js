@@ -3435,7 +3435,6 @@ var bitflyer = {
             let symbol = id;
             let numCurrencies = currencies.length;
             if (numCurrencies == 1) {
-                symbol = id;
                 base = symbol.slice (0, 3);
                 quote = symbol.slice (3, 6);
             } else if (numCurrencies == 2) {
@@ -3443,7 +3442,6 @@ var bitflyer = {
                 quote = currencies[1];
                 symbol = base + '/' + quote
             } else {
-                symbol = id;
                 base = currencies[1];
                 quote = currencies[2];
             }
@@ -3607,7 +3605,7 @@ var bitflyer = {
                 'Content-Type': 'application/json',
             };
         }
-        return this.fetch (url, method, headers, body);
+        return await this.fetch (url, method, headers, body);
     },
 }
 
