@@ -9426,7 +9426,7 @@ var coinsecure = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
+    fetchTrades (market, params = {}) {
         return this.publicGetExchangeTrades (params);
     },
 
@@ -9452,7 +9452,7 @@ var coinsecure = {
         };
     },
 
-    async cancelOrder (id) {
+    cancelOrder (id) {
         throw new ExchangeError (this.id + ' cancelOrder () is not fully implemented yet');
         let method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
         return this[method] ({ 'orderID': id });

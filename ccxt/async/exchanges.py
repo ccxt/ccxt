@@ -458,7 +458,7 @@ class cryptocapital (Exchange):
             'id': response['result']['uuid'],
         }
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if self.id == 'cryptocapital':
             raise ExchangeError(self.id + ' is an abstract base API for _1btcxe')
         url = self.urls['api'] + '/' + path
@@ -8847,7 +8847,7 @@ class dsx (Exchange):
 
     async def fetch_trades(self, symbol, params={}):
         await self.load_markets()
-        return self.mapiGetTradesId(self.extend({
+        return await self.mapiGetTradesId(self.extend({
             'id': self.market_id(symbol),
         }, params))
 
@@ -8869,7 +8869,7 @@ class dsx (Exchange):
 
     async def cancel_order(self, id):
         await self.load_markets()
-        return self.tapiPostCancelOrder({'orderId': id})
+        return await self.tapiPostCancelOrder({'orderId': id})
 
     async def request(self, path, api='mapi', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
@@ -15976,7 +15976,7 @@ class virwox (Exchange):
 
     async def fetchBestPrices(self, symbol):
         await self.load_markets()
-        return self.publicPostGetBestPrices({
+        return await self.publicPostGetBestPrices({
             'symbols': [symbol],
         })
 
@@ -16028,7 +16028,7 @@ class virwox (Exchange):
 
     async def fetch_trades(self, market, params={}):
         await self.load_markets()
-        return self.publicGetRawTradeData(self.extend({
+        return await self.publicGetRawTradeData(self.extend({
             'instrument': market,
             'timespan': 3600,
         }, params))
@@ -16050,7 +16050,7 @@ class virwox (Exchange):
 
     async def cancel_order(self, id, params={}):
         await self.load_markets()
-        return self.privatePostCancelOrder(self.extend({
+        return await self.privatePostCancelOrder(self.extend({
             'orderID': id,
         }, params))
 
