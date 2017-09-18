@@ -15038,7 +15038,6 @@ class quadrigacx (Exchange):
             body = self.json(query)
             headers = {
                 'Content-Type': 'application/json',
-                # 'Content-Length': len(body),
             }
         response = self.fetch(url, method, headers, body)
         if 'error' in response:

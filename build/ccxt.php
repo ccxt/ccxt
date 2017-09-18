@@ -3662,7 +3662,7 @@ class bitflyer extends Exchange {
             } else if ($numCurrencies == 2) {
                 $base = $currencies[0];
                 $quote = $currencies[1];
-                $symbol = $base . '/' . $quote
+                $symbol = $base . '/' . $quote;
             } else {
                 $base = $currencies[1];
                 $quote = $currencies[2];
@@ -16921,7 +16921,6 @@ class quadrigacx extends Exchange {
             $body = $this->json ($query);
             $headers = array (
                 'Content-Type' => 'application/json',
-                // 'Content-Length' => strlen ($body),
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
