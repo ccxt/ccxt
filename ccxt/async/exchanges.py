@@ -8249,7 +8249,7 @@ class coinsecure (Exchange):
             'info': ticker,
         }
 
-    async def fetch_trades(self, market, params={}):
+    def fetch_trades(self, market, params={}):
         return self.publicGetExchangeTrades(params)
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
@@ -8272,7 +8272,7 @@ class coinsecure (Exchange):
             'id': response['message']['orderID'],
         }
 
-    async def cancel_order(self, id):
+    def cancel_order(self, id):
         raise ExchangeError(self.id + ' cancelOrder() is not fully implemented yet')
         method = 'privateDeleteUserExchangeAskCancelOrderId' # TODO fixme, have to specify order side here
         return getattr(self, method)({'orderID': id})
