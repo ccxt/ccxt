@@ -2669,7 +2669,7 @@ class bitflyer (Exchange):
             'id': response['message_id'],
         }
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + self.version + '/'
         if api == 'private':
             request += 'me/'
@@ -2688,7 +2688,7 @@ class bitflyer (Exchange):
                 'ACCESS-SIGN': self.hmac(self.encode(auth), self.secret),
                 'Content-Type': 'application/json',
             }
-        return await self.fetch(url, method, headers, body)
+        return self.fetch(url, method, headers, body)
 
 #------------------------------------------------------------------------------
 
