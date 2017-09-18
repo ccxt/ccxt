@@ -1258,7 +1258,7 @@ var cryptocapital = {
         };
     },
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (this.id == 'cryptocapital')
             throw new ExchangeError (this.id + ' is an abstract base API for _1btcxe');
         let url = this.urls['api'] + '/' + path;
@@ -5945,7 +5945,7 @@ var bl3p = {
         return this.privatePostMarketMoneyOrderCancel ({ 'order_id': id });
     },
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = this.implodeParams (path, params);
         let url = this.urls['api'] + '/' + this.version + '/' + request;
         let query = this.omit (params, this.extractParams (path));
@@ -9607,7 +9607,7 @@ var coinspot = {
         return this[method] ({ 'id': id });
     },
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (!this.apiKey)
             throw new AuthenticationError (this.id + ' requires apiKey for all requests');
         let url = this.urls['api'][api] + '/' + path;
