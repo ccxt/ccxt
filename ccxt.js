@@ -3440,7 +3440,7 @@ var bitflyer = {
             } else if (numCurrencies == 2) {
                 base = currencies[0];
                 quote = currencies[1];
-                symbol = base + '/' + quote
+                symbol = base + '/' + quote;
             } else {
                 base = currencies[1];
                 quote = currencies[2];
@@ -16437,7 +16437,6 @@ var quadrigacx = {
             body = this.json (query);
             headers = {
                 'Content-Type': 'application/json',
-                // 'Content-Length': body.length,
             };
         }
         let response = await this.fetch (url, method, headers, body);
