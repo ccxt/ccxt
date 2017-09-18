@@ -458,7 +458,7 @@ class cryptocapital (Exchange):
             'id': response['result']['uuid'],
         }
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if self.id == 'cryptocapital':
             raise ExchangeError(self.id + ' is an abstract base API for _1btcxe')
         url = self.urls['api'] + '/' + path
