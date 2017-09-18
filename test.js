@@ -43,7 +43,7 @@ let proxies = [
 
 /*  ------------------------------------------------------------------------ */
 
-const exchange = new (ccxt)[exchangeId] ({ verbose: verbose })
+const exchange = new (ccxt)[exchangeId] ({ verbose: verbose, enableRateLimit: true })
 
 //-----------------------------------------------------------------------------
 
