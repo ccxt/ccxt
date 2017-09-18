@@ -2347,7 +2347,6 @@ var bit2c = {
             body = this.urlencode (query);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
                 'key': this.apiKey,
                 'sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512', 'base64'),
             };
@@ -2552,7 +2551,6 @@ var bitbay = {
             }, params));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
                 'API-Key': this.apiKey,
                 'API-Hash': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
@@ -2721,7 +2719,6 @@ var bitcoincoid = {
             }, params));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
                 'Key': this.apiKey,
                 'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
@@ -4963,7 +4960,6 @@ var bitstamp1 = {
             body = this.urlencode (query);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length.toString (),
             };
         }
         let response = await this.fetch (url, method, headers, body);
@@ -5208,7 +5204,6 @@ var bitstamp = {
             body = this.urlencode (query);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length.toString (),
             };
         }
         let response = await this.fetch (url, method, headers, body);
@@ -6722,7 +6717,6 @@ var btctrader = {
                 'X-Stamp': nonce.toString (),
                 'X-Signature': this.hmac (this.encode (auth), secret, 'sha256', 'base64'),
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
             };
         }
         return this.fetch (url, method, headers, body);
@@ -6953,7 +6947,6 @@ var btctradeua = {
                 'public-key': this.apiKey,
                 'api-sign': this.hash (this.encode (auth), 'sha256'),
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
             };
         }
         return this.fetch (url, method, headers, body);
@@ -7597,7 +7590,6 @@ var bxinth = {
             }, params));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
             };
         }
         let response = await this.fetch (url, method, headers, body);
