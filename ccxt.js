@@ -406,7 +406,7 @@ const Exchange = function (config) {
                 }
             })
         })
-    },
+    }
 
     // this.initializeStreamingAPI = function () {
     //     this.ws = new WebSocket (this.urls['websocket'])
@@ -425,24 +425,26 @@ const Exchange = function (config) {
     //     })
     // },
 
-    this.runRestPollerLoop = async function () {
+    const this_ = this; // workaround for a Babel plugin bug (not passing `this` to _recursive() call)
 
+    this.runRestPollerLoop = async function () {
+        
         if (this.restPollerLoopIsRunning)
             return false
 
         this.restPollerLoopIsRunning = true
         this.lastRestPollTimestamp = Math.max (this.lastRestPollTimestamp, this.lastRestRequestTimestamp)
 
-        while (this.restRequestQueue.length > 0) {
+        while (this_.restRequestQueue.length > 0) {
 
             // rate limiter
             while (true) {
 
-                let elapsed = this.milliseconds () - this.lastRestPollTimestamp
+                let elapsed = this_.milliseconds () - this_.lastRestPollTimestamp
 
-                if (elapsed < this.rateLimit) {
-                    let delay = Math.max (this.rateLimit - elapsed, 0)
-                    if (delay > 0)
+                if (elapsed < this_.rateLimit) {
+                    let delay = Math.max (this_.rateLimit - elapsed, 0)
+                    if (delay > 0) {
                         await sleep (delay)
                     else
                         break
@@ -451,9 +453,9 @@ const Exchange = function (config) {
                 }
             }
 
-            let { url, method, headers, body, resolve, reject } = this.restRequestQueue.shift ()
-            this.lastRestPollTimestamp = this.milliseconds ()
-            this.executeRestRequest (url, method, headers, body).then (resolve).catch (reject)
+            let { url, method, headers, body, resolve, reject } = this_.restRequestQueue.shift ()
+            this_.lastRestPollTimestamp = this_.milliseconds ()
+            this_.executeRestRequest (url, method, headers, body).then (resolve).catch (reject)
         }
 
         this.restPollerLoopIsRunning = false
