@@ -2535,7 +2535,6 @@ class bitflyer (Exchange):
             symbol = id
             numCurrencies = len(currencies)
             if numCurrencies == 1:
-                symbol = id
                 base = symbol[0:3]
                 quote = symbol[3:6]
             elif numCurrencies == 2:
@@ -2543,7 +2542,6 @@ class bitflyer (Exchange):
                 quote = currencies[1]
                 symbol = base + '/' + quote
             else:
-                symbol = id
                 base = currencies[1]
                 quote = currencies[2]
             result.append({
@@ -2690,7 +2688,7 @@ class bitflyer (Exchange):
                 'ACCESS-SIGN': self.hmac(self.encode(auth), self.secret),
                 'Content-Type': 'application/json',
             }
-        return self.fetch(url, method, headers, body)
+        return await self.fetch(url, method, headers, body)
 
 #------------------------------------------------------------------------------
 

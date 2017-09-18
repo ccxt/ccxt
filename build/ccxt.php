@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.43';
+$version = '1.7.44';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3653,7 +3653,6 @@ class bitflyer extends Exchange {
             $symbol = $id;
             $numCurrencies = count ($currencies);
             if ($numCurrencies == 1) {
-                $symbol = $id;
                 $base = mb_substr ($symbol, 0, 3);
                 $quote = mb_substr ($symbol, 3, 6);
             } else if ($numCurrencies == 2) {
@@ -3661,7 +3660,6 @@ class bitflyer extends Exchange {
                 $quote = $currencies[1];
                 $symbol = $base . '/' . $quote
             } else {
-                $symbol = $id;
                 $base = $currencies[1];
                 $quote = $currencies[2];
             }
