@@ -12209,11 +12209,13 @@ class kraken (Exchange):
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetOHLC(self.extend({
+        request = {
             'pair': market['id'],
             'interval': self.timeframes[timeframe],
-            'since': since,
-        }, params))
+        }
+        if since:
+            request['since'] = since
+        response = await self.publicGetOHLC(self.extend(request, params))
         ohlcvs = response['result'][market['id']]
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 

@@ -13985,11 +13985,13 @@ class kraken extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets ();
         $market = $this->market ($symbol);
-        $response = $this->publicGetOHLC (array_merge (array (
+        $request = array (
             'pair' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
-            'since' => $since,
-        ), $params));
+        );
+        if ($since)
+            $request['since'] = $since;
+        $response = $this->publicGetOHLC (array_merge ($request, $params));
         $ohlcvs = $response['result'][$market['id']];
         return $this->parse_ohlcvs ($ohlcvs, $market, $timeframe, $since, $limit);
     }
