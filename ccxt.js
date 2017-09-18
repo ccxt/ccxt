@@ -431,13 +431,14 @@ const Exchange = function (config) {
             return false
 
         this.restPollerLoopIsRunning = true
+        this.lastRestPollTimestamp = Math.max (this.lastRestPollTimestamp, this.lastRestRequestTimestamp)
 
         while (this.restRequestQueue.length > 0) {
 
             // rate limiter
             while (true) {
 
-                let elapsed = this.milliseconds () - this.lastRestRequestTimestamp
+                let elapsed = this.milliseconds () - this.lastRestPollTimestamp
 
                 if (elapsed < this.rateLimit) {
                     let delay = Math.max (this.rateLimit - elapsed, 0)
@@ -451,6 +452,7 @@ const Exchange = function (config) {
             }
 
             let { url, method, headers, body, resolve, reject } = this.restRequestQueue.shift ()
+            this.lastRestPollTimestamp = this.milliseconds ()
             this.executeRestRequest (url, method, headers, body).then (resolve).catch (reject)
         }
 
@@ -779,6 +781,7 @@ const Exchange = function (config) {
 
     // internal rate-limiting REST poller
     this.lastRestRequestTimestamp = 0
+    this.lastPollTimestamp = 0
     this.restRequestQueue = []
 
     this.YmdHMS = function (timestamp, infix = ' ') {
