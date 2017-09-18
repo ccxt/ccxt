@@ -120,11 +120,11 @@ async def test_exchange_symbol(exchange, symbol):
     if exchange.id == 'coinmarketcap':
         dump(green(await exchange.fetchGlobal()))
     else:
-        test_exchange_symbol_orderbook(exchange, symbol)
-        test_exchange_symbol_trades(exchange, symbol)
+        await test_exchange_symbol_orderbook(exchange, symbol)
+        await test_exchange_symbol_trades(exchange, symbol)
 
-    test_exchange_all_tickers(exchange)
-    test_exchange_symbol_ohlcv(exchange, symbol)
+    await test_exchange_all_tickers(exchange)
+    await test_exchange_symbol_ohlcv(exchange, symbol)
 
 # ------------------------------------------------------------------------------
 
