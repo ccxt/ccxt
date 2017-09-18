@@ -446,8 +446,9 @@ const Exchange = function (config) {
                     let delay = Math.max (this_.rateLimit - elapsed, 0)
                     if (delay > 0) {
                         await sleep (delay)
-                    else
+                    } else {
                         break
+                    }
                 } else {
                     break
                 }
