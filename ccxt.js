@@ -9573,13 +9573,13 @@ var coinspot = {
         };
     },
 
-    async fetchTrades (market, params = {}) {
+    fetchTrades (market, params = {}) {
         return this.privatePostOrdersHistory (this.extend ({
             'cointype': this.marketId (market),
         }, params));
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    createOrder (market, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePostMy' + this.capitalize (side);
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
@@ -9591,7 +9591,7 @@ var coinspot = {
         return this[method] (this.extend (order, params));
     },
 
-    async cancelOrder (id, params = {}) {
+    cancelOrder (id, params = {}) {
         throw new ExchangeError (this.id + ' cancelOrder () is not fully implemented yet');
         let method = 'privatePostMyBuy';
         return this[method] ({ 'id': id });
