@@ -13124,7 +13124,7 @@ var itbit = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    cancelOrder (id, params = {}) {
         let walletIdInParams = ('walletId' in params);
         if (!walletIdInParams)
             throw new ExchangeError (this.id + ' cancelOrder requires a walletId parameter');
@@ -13158,7 +13158,7 @@ var itbit = {
                 'X-Auth-Nonce': nonce,
             };
         }
-        let response = this.fetch (url, method, headers, body);
+        let response = await this.fetch (url, method, headers, body);
         if ('code' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
