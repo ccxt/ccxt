@@ -3752,7 +3752,7 @@ var bitlish = {
         let now = this.seconds ();
         let start = now - 86400 * 30; // last 30 days
         let interval = [ start.toString (), undefined ];
-        return this.publicPostOhlcv (this.extend ({
+        return await this.publicPostOhlcv (this.extend ({
             'time_range': interval,
         }, params));
     },
@@ -3846,7 +3846,7 @@ var bitlish = {
 
     async cancelOrder (id) {
         await this.loadMarkets ();
-        return this.privatePostCancelTrade ({ 'id': id });
+        return await this.privatePostCancelTrade ({ 'id': id });
     },
 
     async withdraw (currency, amount, address, params = {}) {

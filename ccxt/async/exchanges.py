@@ -2832,7 +2832,7 @@ class bitlish (Exchange):
         now = self.seconds()
         start = now - 86400 * 30 # last 30 days
         interval = [str(start), None]
-        return self.publicPostOhlcv(self.extend({
+        return await self.publicPostOhlcv(self.extend({
             'time_range': interval,
         }, params))
 
@@ -2916,7 +2916,7 @@ class bitlish (Exchange):
 
     async def cancel_order(self, id):
         await self.load_markets()
-        return self.privatePostCancelTrade({'id': id})
+        return await self.privatePostCancelTrade({'id': id})
 
     async def withdraw(self, currency, amount, address, params={}):
         await self.load_markets()
