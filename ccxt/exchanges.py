@@ -2621,7 +2621,6 @@ class bitflyer (Exchange):
             symbol = id
             numCurrencies = len(currencies)
             if numCurrencies == 1:
-                symbol = id
                 base = symbol[0:3]
                 quote = symbol[3:6]
             elif numCurrencies == 2:
@@ -2629,7 +2628,6 @@ class bitflyer (Exchange):
                 quote = currencies[1]
                 symbol = base + '/' + quote
             else:
-                symbol = id
                 base = currencies[1]
                 quote = currencies[2]
             result.append({
@@ -3429,7 +3427,6 @@ class bitmex (Exchange):
         result = []
         for p in range(0, len(markets)):
             market = markets[p]
-            print(market)
             id = market['symbol']
             base = market['underlying']
             quote = market['quoteCurrency']

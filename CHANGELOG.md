@@ -1,5 +1,7 @@
 # Сhangelog
 
+- Fixed bitFlyer futures, [#212](https://github.com/kroitor/ccxt/pull/212)
+- Fixed HitBTC v2 cancelOrder, [#211](https://github.com/kroitor/ccxt/issues/211)
 - Added experimental support for a new exchange: [Independent Reserve](https://www.independentreserve.com/) (Australia, New Zealand)
 - Added experimental support for a new exchange: [Nova Exchange](https://novaexchange.com) (Tanzania)
 - Fixed itBit createOrder/cancelOrder for walletId

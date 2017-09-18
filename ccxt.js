@@ -4288,7 +4288,6 @@ var bitmex = {
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
-            console.log (market);
             let id = market['symbol'];
             let base = market['underlying'];
             let quote = market['quoteCurrency'];
