@@ -118,8 +118,8 @@ class Exchange (BaseExchange):
     async def loadMarkets(self, reload=False):
         return await self.load_markets()
 
-    # async def fetch_markets(self):
-    #     return self.markets
+    async def fetch_markets(self):
+        return self.markets
 
     async def fetchMarkets(self):
         return await self.fetch_markets()
