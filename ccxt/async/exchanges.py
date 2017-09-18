@@ -443,7 +443,7 @@ class cryptocapital (Exchange):
             'id': result,
         }
 
-    async def cancel_order(self, id):
+    def cancel_order(self, id):
         return self.privatePostOrdersCancel({'id': id})
 
     async def withdraw(self, currency, amount, address, params={}):
@@ -458,7 +458,7 @@ class cryptocapital (Exchange):
             'id': response['result']['uuid'],
         }
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if self.id == 'cryptocapital':
             raise ExchangeError(self.id + ' is an abstract base API for _1btcxe')
         url = self.urls['api'] + '/' + path
@@ -482,7 +482,7 @@ class cryptocapital (Exchange):
                 errors.append(error['code'] + ': ' + error['message'])
             errors = ' '.join(errors)
             raise ExchangeError(self.id + ' ' + errors)
-        return self.fetch(url, method, headers, body)
+        return response
 
 #------------------------------------------------------------------------------
 

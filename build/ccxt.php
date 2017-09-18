@@ -1467,7 +1467,7 @@ class cryptocapital extends Exchange {
             $errors = implode (' ', $errors);
             throw new ExchangeError ($this->id . ' ' . $errors);
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        return $response;
     }
 }
 

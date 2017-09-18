@@ -568,7 +568,7 @@ class cryptocapital (Exchange):
                 errors.append(error['code'] + ': ' + error['message'])
             errors = ' '.join(errors)
             raise ExchangeError(self.id + ' ' + errors)
-        return self.fetch(url, method, headers, body)
+        return response
 
 #------------------------------------------------------------------------------
 

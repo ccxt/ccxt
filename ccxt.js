@@ -1241,7 +1241,7 @@ var cryptocapital = {
         };
     },
 
-    async cancelOrder (id) {
+    cancelOrder (id) {
         return this.privatePostOrdersCancel ({ 'id': id });
     },
 
@@ -1285,7 +1285,7 @@ var cryptocapital = {
             errors = errors.join (' ');
             throw new ExchangeError (this.id + ' ' + errors);
         }
-        return this.fetch (url, method, headers, body);
+        return response;
     },
 }
 
