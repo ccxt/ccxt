@@ -3059,7 +3059,7 @@ var bitflyer = {
                 'Content-Type': 'application/json',
             };
         }
-        return this.fetch (url, method, headers, body);
+        return await this.fetch (url, method, headers, body);
     },
 }
 
