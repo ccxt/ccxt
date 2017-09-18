@@ -8974,7 +8974,6 @@ class dsx (Exchange):
             }, query))
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len(body),
                 'Key': self.apiKey,
                 'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512, 'base64'),
             }
