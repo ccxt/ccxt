@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.53';
+$version = '1.7.54';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -8375,7 +8375,6 @@ class cex extends Exchange {
             ), $query));
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'Content-Length' => strlen ($body),
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
@@ -9195,7 +9194,6 @@ class coingi extends Exchange {
             $body = $this->json ($request);
             $headers = array (
                 'Content-Type' => 'application/json',
-                'Content-Length' => strlen ($body),
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
@@ -9961,7 +9959,6 @@ class coinspot extends Exchange {
             $body = $this->json (array_merge (array ( 'nonce' => $nonce ), $params));
             $headers = array (
                 'Content-Type' => 'application/json',
-                'Content-Length' => strlen ($body),
                 'key' => $this->apiKey,
                 'sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
@@ -10252,7 +10249,6 @@ class cryptopia extends Exchange {
             $auth = 'amx ' . $this->apiKey . ':' . $this->binary_to_string ($signature) . ':' . $nonce;
             $headers = array (
                 'Content-Type' => 'application/json',
-                'Content-Length' => strlen ($body),
                 'Authorization' => $auth,
             );
         }
