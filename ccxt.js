@@ -10056,7 +10056,7 @@ var dsx = {
 
     async fetchTrades (symbol, params = {}) {
         await this.loadMarkets ();
-        return this.mapiGetTradesId (this.extend ({
+        return await this.mapiGetTradesId (this.extend ({
             'id': this.marketId (symbol),
         }, params));
     },
@@ -10080,7 +10080,7 @@ var dsx = {
 
     async cancelOrder (id) {
         await this.loadMarkets ();
-        return this.tapiPostCancelOrder ({ 'orderId': id });
+        return await this.tapiPostCancelOrder ({ 'orderId': id });
     },
 
     async request (path, api = 'mapi', method = 'GET', params = {}, headers = undefined, body = undefined) {
