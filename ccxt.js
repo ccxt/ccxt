@@ -10524,7 +10524,6 @@ var flowbtc = {
             }, params));
             headers = {
                 'Content-Type': 'application/json',
-                'Content-Length': body.length,
             };
         }
         let response = await this.fetch (url, method, headers, body);
@@ -12436,7 +12435,6 @@ var huobi1 = {
                 body = this.json (query);
                 headers = {
                     'Content-Type': 'application/json',
-                    'Content-Length': body.length,
                 };
             }
         } else {
