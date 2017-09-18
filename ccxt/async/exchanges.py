@@ -458,7 +458,7 @@ class cryptocapital (Exchange):
             'id': response['result']['uuid'],
         }
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if self.id == 'cryptocapital':
             raise ExchangeError(self.id + ' is an abstract base API for _1btcxe')
         url = self.urls['api'] + '/' + path
@@ -4905,7 +4905,7 @@ class bl3p (Exchange):
     async def cancel_order(self, id):
         return self.privatePostMarketMoneyOrderCancel({'order_id': id})
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = self.implode_params(path, params)
         url = self.urls['api'] + '/' + self.version + '/' + request
         query = self.omit(params, self.extract_params(path))
@@ -8419,7 +8419,7 @@ class coinspot (Exchange):
         method = 'privatePostMyBuy'
         return getattr(self, method)({'id': id})
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if not self.apiKey:
             raise AuthenticationError(self.id + ' requires apiKey for all requests')
         url = self.urls['api'][api] + '/' + path
