@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.38';
+$version = '1.7.39';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -13155,7 +13155,7 @@ class independentreserve extends Exchange {
                     'private' => 'https://api.independentreserve.com/Private',
                 ),
                 'www' => 'https://www.independentreserve.com',
-                'docs' => 'https://www.independentreserve.com/API',
+                'doc' => 'https://www.independentreserve.com/API',
             ),
             'api' => array (
                 'public' => array (
@@ -13357,7 +13357,7 @@ class independentreserve extends Exchange {
                 $key = $keys[$i];
                 $auth[] = $key . '=' . $params[$key];
             }
-            $message = implode ($auth, ',');
+            $message = implode (',', $auth);
             $signature = $this->hmac ($this->encode ($message), $this->encode ($this->secret));
             $query = $this->keysort (array_merge (array (
                 'apiKey' => $this->apiKey,
