@@ -133,7 +133,19 @@ class ExchangeNotAvailable extends NetworkError {
 //-----------------------------------------------------------------------------
 // utility helpers
 
-const sleep = ms => new Promise (resolve => setTimeout (resolve, ms));
+const setTimeout_safe = (done, ms, targetTime = Date.now () + ms) => { // setTimeout can fire earlier than specified, so we need to ensure it does not happen...
+    
+    setTimeout (() => {
+        const rest = targetTime - Date.now ()
+        if (rest >= 0) {
+            setTimeout_safe (done, rest, targetTime) // try sleep more
+        } else {
+            done ()
+        }
+    }, ms)
+}
+
+const sleep = ms => new Promise (resolve => setTimeout_safe (resolve, ms))
 
 const decimal = float => parseFloat (float).toString ()
 

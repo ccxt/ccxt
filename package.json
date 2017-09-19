@@ -12,6 +12,7 @@
     "build": "npm run export-exchanges && npm run vss && npm run mdrst && npm run transpile && npm run update-badges && npm run babel && npm run browserify",
     "test": "npm run build && node run-tests",
     "fasttest": "node run-tests --js --es6",
+    "test-base": "mocha --reporter spec test_base.js",
     "export-exchanges": "node export-exchanges",
     "update-badges": "node update-badges",
     "mdrst": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=README.rst README.md",
@@ -36,6 +37,7 @@
     "browserify": "^14.4.0",
     "coveralls": "^2.13.1",
     "istanbul": "^0.4.5",
+    "mocha": "^3.5.3",
     "nyc": "^11.0.3",
     "ololog": "^1.0.16"
   },
