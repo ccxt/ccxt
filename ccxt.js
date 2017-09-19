@@ -3610,6 +3610,209 @@ var bitflyer = {
 
 //-----------------------------------------------------------------------------
 
+var bithumb = {
+
+    'id': 'bithumb',
+    'name': 'Bithumb',
+    'countries': 'KR', // South Korea
+    'rateLimit': 500,
+    'version': 'v1',
+    'hasFetchTickers': true,
+    'urls': {
+        'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
+        'api': {
+            'public': 'https://api.bithumb.com/public',
+            'private': 'https://api.bithumb.com',
+        },
+        'www': 'https://www.bithumb.com',
+        'doc': 'https://www.bithumb.com/u1/US127',
+    },
+    'api': {
+        'public': {
+            'get': [
+                'ticker/{currency}',
+                'ticker/all',
+                'orderbook/{currency}',
+                'orderbook/all',
+                'recent_transactions/{currency}',
+                'recent_transactions/all',
+            ],
+        },
+        'private': {
+            'post': [
+                'info/account',
+                'info/balance',
+                'info/wallet_address',
+                'info/ticker',
+                'info/orders',
+                'info/user_transactions',
+                'trade/place',
+                'info/order_detail',
+                'trade/cancel',
+                'trade/btc_withdrawal',
+                'trade/krw_deposit',
+                'trade/krw_withdrawal',
+                'trade/market_buy',
+                'trade/market_sell',
+            ],
+        },
+    },
+    'markets': {
+        'BTC/KRW': { 'id': 'BTC', 'symbol': 'BTC/KRW', 'base': 'BTC', 'quote': 'KRW' },
+        'ETH/KRW': { 'id': 'ETH', 'symbol': 'ETH/KRW', 'base': 'ETH', 'quote': 'KRW' },
+        'LTC/KRW': { 'id': 'LTC', 'symbol': 'LTC/KRW', 'base': 'LTC', 'quote': 'KRW' },
+        'XRP/KRW': { 'id': 'XRP', 'symbol': 'XRP/KRW', 'base': 'XRP', 'quote': 'KRW' },
+        'BCH/KRW': { 'id': 'BCH', 'symbol': 'BCH/KRW', 'base': 'BCH', 'quote': 'KRW' },
+        'XMR/KRW': { 'id': 'XMR', 'symbol': 'XMR/KRW', 'base': 'XMR', 'quote': 'KRW' },
+        'DASH/KRW': { 'id': 'DASH', 'symbol': 'DASH/KRW', 'base': 'DASH', 'quote': 'KRW' },
+    },
+
+    async fetchBalance (params = {}) {
+        throw new NotSupported (this.id + ' fetchBalance not implemented yet');
+        // await this.loadMarkets ();
+        // let response = await this.privatePostUserInfo ();
+        // let result = { 'info': response };
+        // for (let c = 0; c < this.currencies.length; c++) {
+        //     let currency = this.currencies[c];
+        //     let account = this.account ();
+        //     if (currency in response['balances'])
+        //         account['free'] = parseFloat (response['balances'][currency]);
+        //     if (currency in response['reserved'])
+        //         account['used'] = parseFloat (response['reserved'][currency]);
+        //     account['total'] = this.sum (account['free'], account['used']);
+        //     result[currency] = account;
+        // }
+        // return result;
+    },
+
+    async fetchOrderBook (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetOrderbookCurrency (this.extend ({
+            'currency': market['base'],
+        }, params));
+        let orderbook = response['data'];
+        let timestamp = orderbook['timestamp'];
+        return this.parseOrderBook (orderbook, timsetamp, 'bids', 'asks', 'price', 'quantity');
+    },
+
+    parseTicker (ticker, market) {
+        let timestamp = ticker['updated'] * 1000;
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': parseFloat (ticker['high']),
+            'low': parseFloat (ticker['low']),
+            'bid': parseFloat (ticker['buy_price']),
+            'ask': parseFloat (ticker['sell_price']),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'first': undefined,
+            'last': parseFloat (ticker['last_trade']),
+            'change': undefined,
+            'percentage': undefined,
+            'average': parseFloat (ticker['avg']),
+            'baseVolume': parseFloat (ticker['vol']),
+            'quoteVolume': parseFloat (ticker['vol_curr']),
+            'info': ticker,
+        };
+    },
+
+    async fetchTickers (currency = 'USD') {
+        let response = await this.publicGetTicker ();
+        let result = {};
+        let ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let market = this.markets_by_id[id];
+            let symbol = market['symbol'];
+            let ticker = response[id];
+            result[symbol] = this.parseTicker (ticker, market);
+        }
+        return result;
+    },
+
+    async fetchTicker (symbol) {
+        let response = await this.publicGetTicker ();
+        let market = this.market (symbol);
+        return this.parseTicker (response[market['id']], market);
+    },
+
+    parseTrade (trade, market) {
+        let timestamp = trade['date'] * 1000;
+        return {
+            'id': trade['trade_id'].toString (),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': undefined,
+            'type': undefined,
+            'side': trade['type'],
+            'price': parseFloat (trade['price']),
+            'amount': parseFloat (trade['amount']),
+        };
+    },
+
+    async fetchTrades (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetTrades (this.extend ({
+            'pair': market['id'],
+        }, params));
+        return this.parseTrades (response[market['id']], market);
+    },
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        throw new NotSupported (this.id + ' private API not implemented yet');
+        let prefix = '';
+        if (type == 'market')
+            prefix = 'market_';
+        let order = {
+            'pair': this.marketId (symbol),
+            'quantity': amount,
+            'price': price || 0,
+            'type': prefix + side,
+        };
+        let response = await this.privatePostOrderCreate (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['order_id'].toString (),
+        };
+    },
+
+    async cancelOrder (id) {
+        await this.loadMarkets ();
+        return await this.privatePostOrderCancel ({ 'order_id': id });
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (api == 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            throw new NotSupported (this.id + ' private API not implemented yet');
+            // let nonce = this.nonce ();
+            // body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
+            // headers = {
+            //     'Content-Type': 'application/x-www-form-urlencoded',
+            //     'Key': this.apiKey,
+            //     'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+            // };
+        }
+        let response = await this.fetch (url, method, headers, body);
+        if ('status' in response) {
+            if (response['status'] == '0000')
+                return response;
+            throw new ExchangeError (this.id + ' ' + this.json (response));
+        }
+        return response;
+    },
+}
+
+//-----------------------------------------------------------------------------
+
 var bitlish = {
 
     'id': 'bitlish',
@@ -18501,6 +18704,7 @@ var exchanges = {
     'bitfinex':           bitfinex,
     'bitfinex2':          bitfinex2,
     'bitflyer':           bitflyer,
+    'bithumb':            bithumb,
     'bitlish':            bitlish,
     'bitmarket':          bitmarket,
     'bitmex':             bitmex,
