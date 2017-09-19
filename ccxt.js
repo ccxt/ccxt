@@ -612,7 +612,7 @@ const Exchange = function (config) {
     }
 
     this.fetchTickers = function (symbols = undefined) {
-        throw new NotSupported (this.id + ' fetchTickers not supoprted yet')
+        throw new NotSupported (this.id + ' fetchTickers not supported yet')
     }
 
     this.fetchOrder = function (id, params = {}) {
@@ -18631,7 +18631,7 @@ const ccxt = Object.assign (defineAllExchanges (exchanges), {
 
     version,
 
-    // base exchange class
+    // Exchange constructor (do not use directly, will be replaced by a class soon)
 
     Exchange,
 
