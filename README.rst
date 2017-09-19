@@ -11,7 +11,7 @@ CCXT – CryptoCurrency eXchange Trading Library
     :target: https://www.npmjs.com/package/ccxt
 .. image:: https://badge.runkitcdn.com/ccxt.svg
     :target: https://npm.runkit.com/ccxt
-.. image:: https://img.shields.io/badge/exchanges-83-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-84-blue.svg
     :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
@@ -34,7 +34,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 83 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 84 cryptocurrency exchange markets and trading APIs:
 
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id                   | name                                                           | ver   | doc                                                                                              | countries                                  |
@@ -60,6 +60,8 @@ The ccxt library currently supports the following 83 cryptocurrency exchange mar
 | bitfinex2            | `Bitfinex v2 <https://www.bitfinex.com>`__                     | 2     | `API <https://bitfinex.readme.io/v2/docs>`__                                                     | US                                         |
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bitflyer             | `bitFlyer <https://bitflyer.jp>`__                             | 1     | `API <https://bitflyer.jp/API>`__                                                                | Japan                                      |
++----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| bithumb              | `Bithumb <https://www.bithumb.com>`__                          | 1     | `API <https://www.bithumb.com/u1/US127>`__                                                       | South Korea                                |
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bitlish              | `bitlish <https://bitlish.com>`__                              | 1     | `API <https://bitlish.com/api>`__                                                                | UK, EU, Russia                             |
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
