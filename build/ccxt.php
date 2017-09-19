@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.76';
+$version = '1.7.77';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -14883,7 +14883,7 @@ class liqui extends Exchange {
             'id' => 'liqui',
             'name' => 'Liqui',
             'countries' => 'UA',
-            'rateLimit' => 1000,
+            'rateLimit' => 2000,
             'version' => '3',
             'hasFetchTickers' => true,
             'urls' => array (
