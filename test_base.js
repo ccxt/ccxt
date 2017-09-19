@@ -1,6 +1,6 @@
 /*  ------------------------------------------------------------------------ */
 
-const ccxtFile = './ccxt.js' //process.argv.includes ('--es6') ? './ccxt.js' : './build/ccxt.es5.js'
+const ccxtFile = process.argv.includes ('--es6') ? './ccxt.js' : './build/ccxt.es5.js'
     , ccxt     = require (ccxtFile)
     , assert   = require ('assert')
     , log      = require ('ololog')
@@ -34,9 +34,9 @@ describe ('ccxt base code', () => {
             async executeRestRequest (...args) { calls.push ({ when: Date.now (), path: args[0], args }) }
         })
 
-        // await exchange.fetch ('foo')
-        // await exchange.fetch ('bar')
-        // await exchange.fetch ('baz')
+        await exchange.fetch ('foo')
+        await exchange.fetch ('bar')
+        await exchange.fetch ('baz')
 
         await Promise.all ([
             exchange.fetch ('qux'),
@@ -44,7 +44,7 @@ describe ('ccxt base code', () => {
             exchange.fetch ('lol')
         ])
         
-        //assert.deepEqual (calls.map (x => x.path), ['foo', 'bar', 'baz', 'qux', 'zap', 'lol'])
+        assert.deepEqual (calls.map (x => x.path), ['foo', 'bar', 'baz', 'qux', 'zap', 'lol'])
 
         calls.reduce ((prevTime, call) => {
             log ('delta T:', call.when - prevTime)
