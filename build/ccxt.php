@@ -11695,12 +11695,15 @@ class gdax extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets ();
         $market = $this->market ($symbol);
-        $response = $this->publicGetProductsIdCandles (array_merge (array (
+        $request = array (
             'id' => $market['id'],
             'granularity' => $this->timeframes[$timeframe],
-            'start' => $since,
-            'end' => $limit,
-        ), $params));
+        );
+        if ($since)
+            $request['start'] = $since;
+        if ($limit)
+            $request['end'] = $limit;
+        $response = $this->publicGetProductsIdCandles (array_merge ($request, $params));
         return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 

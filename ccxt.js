@@ -11306,12 +11306,15 @@ var gdax = {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetProductsIdCandles (this.extend ({
+        let request = {
             'id': market['id'],
             'granularity': this.timeframes[timeframe],
-            'start': since,
-            'end': limit,
-        }, params));
+        };
+        if (since)
+            request['start'] = since;
+        if (limit)
+            request['end'] = limit;
+        let response = await this.publicGetProductsIdCandles (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     },
 
