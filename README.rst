@@ -29,7 +29,7 @@ Current featurelist:
 -  an out-of-the box unified all-in-one API extremely easy to integrate
 -  works in Node 6+, Python 2 and 3, PHP 5.3+, web browsers
 
-`ccxt on GitHub <https://github.com/kroitor/ccxt>`__ | Install | Usage | `Manual <https://github.com/kroitor/ccxt/wiki>`__ | `Examples <https://github.com/kroitor/ccxt/tree/master/examples>`__ | `Changelog <https://github.com/kroitor/ccxt/blob/master/CHANGELOG.md>`__ | `Contributing <https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md>`__ | **Public Offer**
+`ccxt on GitHub <https://github.com/kroitor/ccxt>`__ | Install | Usage | `Manual <https://github.com/kroitor/ccxt/wiki>`__ | `Examples <https://github.com/kroitor/ccxt/tree/master/examples>`__ | `Changelog <https://github.com/kroitor/ccxt/blob/master/CHANGELOG.md>`__ | `Contributing <https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md>`__
 
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
@@ -472,40 +472,6 @@ Contributing
 ------------
 
 Please read the `CONTRIBUTING <https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md>`__ document before making changes that you would like adopted in the code.
-
-Public Offer
-------------
-
-Developer team is open to collaboration and available for hiring and outsourcing.
-
-We can:
-
--  implement a cryptocurrency trading strategy for you
--  integrate APIs for any exchange markets you want
--  create bots for algorithmic trading, arbitrage, scalping and HFT
--  perform backtesting and data crunching
--  implement any kind of protocol including REST, WebSockets, FIX, proprietary and legacy standards...
--  actually directly integrate btc/altcoin blockchain or transaction graph into your system
--  program a matching engine for your own bitcoin/altcoin exchange
--  create a trading terminal for desktops, phones and pads (for web and native OSes)
--  do all of the above in any of the following languages/environments: Javascript, Node.js, PHP, C, C++, C#, Python, Java, ObjectiveC, Linux, FreeBSD, MacOS, iOS, Windows
-
-We implement bots, algorithmic trading software and strategies by your design. Costs for implementing a basic trading strategy are low (starting from a few coins) and depend on your requirements.
-
-We are coders, not investors, so we ABSOLUTELY DO NOT do any kind of financial or trading advisory neither we invent profitable strategies to make you a fortune out of thin air. We guarantee the stability of the bot or trading software, but we cannot guarantee the profitability of your strategy nor can we protect you from natural financial risks and economic losses. Exact rules for the trading strategy is up to the trader/investor himself. We charge a fix flat price in cryptocurrency for our programming services and for implementing your requirements in software.
-
-Please, contact us on GitHub or by email if you're interested in integrating this software into an existing project or in developing new opensource and commercial projects. Questions are welcome. Also, if want to make your own algorithmic cryptocurrency trading bot or you want us to make a bot for you, here's our `checklist for success <https://github.com/kroitor/ccxt/wiki/Checklist>`__.
-
-Contact Us
-----------
-
-+--------------------------+------------------------------+
-| Email                    | URL                          |
-+==========================+==============================+
-| igor.kroitor@gmail.com   | https://github.com/kroitor   |
-+--------------------------+------------------------------+
-| rocket.mind@gmail.com    | https://github.com/xpl       |
-+--------------------------+------------------------------+
 
 Support CCXT Development
 ------------------------
