@@ -1686,10 +1686,7 @@ var acx = {
                 url += '?' + suffix;
             } else {
                 body = suffix;
-                headers = {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Content-Length': body.length,
-                };
+                headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
             }
         }
         let response = await this.fetch (url, method, headers, body);
@@ -6230,7 +6227,6 @@ var bl3p = {
             let signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
                 'Rest-Key': this.apiKey,
                 'Rest-Sign': signature,
             };
@@ -6588,7 +6584,6 @@ var btcchina = {
             let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha1');
             let auth = this.apiKey + ':' + signature;
             headers = {
-                'Content-Length': body.length,
                 'Authorization': 'Basic ' + this.stringToBase64 (auth),
                 'Json-Rpc-Tonce': nonce,
             };
@@ -7627,7 +7622,6 @@ var bter = {
                 'Key': this.apiKey,
                 'Sign': signature,
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length.toString (),
             };
         }
         let response = await this.fetch (url, method, headers, body);
@@ -8940,7 +8934,6 @@ var coinfloor = {
             let signature = this.stringToBase64 (auth);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
                 'Authorization': 'Basic ' + signature,
             };
         }
@@ -11862,7 +11855,6 @@ var gemini = {
             let signature = this.hmac (payload, this.encode (this.secret), 'sha384');
             headers = {
                 'Content-Type': 'text/plain',
-                'Content-Length': 0,
                 'X-GEMINI-APIKEY': this.apiKey,
                 'X-GEMINI-PAYLOAD': payload,
                 'X-GEMINI-SIGNATURE': signature,
@@ -14240,7 +14232,6 @@ var lakebtc = {
             headers = {
                 'Json-Rpc-Tonce': nonce,
                 'Authorization': "Basic " + this.apiKey + ':' + signature,
-                'Content-Length': body.length,
                 'Content-Type': 'application/json',
             };
         }
@@ -14780,7 +14771,6 @@ var liqui = {
             let signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length.toString (),
                 'Key': this.apiKey,
                 'Sign': signature,
             };
@@ -15361,7 +15351,6 @@ var mixcoins = {
             }, params));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': body.length,
                 'Key': this.apiKey,
                 'Sign': this.hmac (this.encode (body), this.secret, 'sha512'),
             };
