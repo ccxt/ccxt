@@ -14495,7 +14495,7 @@ var liqui = {
     'id': 'liqui',
     'name': 'Liqui',
     'countries': 'UA',
-    'rateLimit': 1000,
+    'rateLimit': 2000,
     'version': '3',
     'hasFetchTickers': true,
     'urls': {
