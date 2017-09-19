@@ -43,7 +43,7 @@ let proxies = [
 
 /*  ------------------------------------------------------------------------ */
 
-const exchange = new (ccxt)[exchangeId] ({ verbose: verbose, enableRateLimit: true })
+const exchange = new (ccxt)[exchangeId] ({ verbose: verbose })
 
 //-----------------------------------------------------------------------------
 
@@ -78,6 +78,7 @@ let human_value = function (price) {
 //-----------------------------------------------------------------------------
 
 let testExchangeSymbolTicker = async (exchange, symbol) => {
+    await sleep (exchange.rateLimit)
     log (exchange.id.green, symbol.green, 'fetching ticker...')
     let ticker = await exchange.fetchTicker (symbol)
     log (exchange.id.green, symbol.green, 'ticker',
@@ -95,6 +96,7 @@ let testExchangeSymbolTicker = async (exchange, symbol) => {
 }
 
 let testExchangeSymbolOrderbook = async (exchange, symbol) => {
+    await sleep (exchange.rateLimit)
     log (exchange.id.green, symbol.green, 'fetching order book...')
     let orderbook = await exchange.fetchOrderBook (symbol)
     log (exchange.id.green, symbol.green,
@@ -143,6 +145,7 @@ let testExchangeSymbolTrades = async (exchange, symbol) => {
 
 let testExchangeSymbol = async (exchange, symbol) => {
 
+    await sleep (exchange.rateLimit)
     await testExchangeSymbolTicker (exchange, symbol)
 
     if (exchange.hasFetchTickers) {
@@ -210,6 +213,8 @@ let testExchangeSymbol = async (exchange, symbol) => {
 
 let testExchangeFetchOrders = async (exchange) => {
 
+    await sleep (exchange.rateLimit)
+
     try {
 
         log (exchange.id.green, 'fetching orders...')
@@ -232,6 +237,7 @@ let testExchangeFetchOrders = async (exchange) => {
 
 let testExchangeBalance = async (exchange, symbol) => {
 
+    await sleep (exchange.rateLimit)
     log (exchange.id.green, 'fetching balance...')
     let balance = await exchange.fetchBalance ()
 
@@ -317,6 +323,7 @@ let testExchange = async exchange => {
 
     await loadExchange (exchange)
 
+    let delay = exchange.rateLimit
     let symbol = exchange.symbols[0]
     let symbols = [
         'BTC/USD',
@@ -353,6 +360,7 @@ let testExchange = async exchange => {
         log (exchange.id.green, 'fetching orders not supported')
     }
 
+    // sleep (delay)
     // try {
     //     let marketSellOrder =
     //         await exchange.createMarketSellOrder (exchange.symbols[0], 1)
@@ -361,6 +369,7 @@ let testExchange = async exchange => {
     //     console.log (exchange.id, 'error', 'market sell', e)
     // }
 
+    // sleep (delay)
     // try {
     //     let marketBuyOrder = await exchange.createMarketBuyOrder (exchange.symbols[0], 1)
     //     console.log (exchange.id, 'ok', marketBuyOrder)
@@ -368,6 +377,7 @@ let testExchange = async exchange => {
     //     console.log (exchange.id, 'error', 'market buy', e)
     // }
 
+    // sleep (delay)
     // try {
     //     let limitSellOrder = await exchange.createLimitSellOrder (exchange.symbols[0], 1, 3000)
     //     console.log (exchange.id, 'ok', limitSellOrder)
@@ -375,6 +385,7 @@ let testExchange = async exchange => {
     //     console.log (exchange.id, 'error', 'limit sell', e)
     // }
 
+    // sleep (delay)
     // try {
     //     let limitBuyOrder = await exchange.createLimitBuyOrder (exchange.symbols[0], 1, 3000)
     //     console.log (exchange.id, 'ok', limitBuyOrder)
@@ -468,5 +479,4 @@ let tryAllProxies = async function (exchange, proxies) {
     process.exit ()
 
 }) ()
-
 
