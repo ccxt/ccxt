@@ -18071,9 +18071,8 @@ var xbtce = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
-        await this.loadMarkets ();
-        return await this.privateDeleteTrade (this.extend ({
+    cancelOrder (id, params = {}) {
+        return this.privateDeleteTrade (this.extend ({
             'Type': 'Cancel',
             'Id': id,
         }, params));
