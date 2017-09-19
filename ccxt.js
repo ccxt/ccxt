@@ -17759,9 +17759,8 @@ var virwox = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
-        await this.loadMarkets ();
-        return await this.privatePostCancelOrder (this.extend ({
+    cancelOrder (id, params = {}) {
+        return this.privatePostCancelOrder (this.extend ({
             'orderID': id,
         }, params));
     },
