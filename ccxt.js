@@ -454,7 +454,7 @@ const Exchange = function (config) {
       , lastRestPollTimestamp = 0
       , restRequestQueue = []
       , restPollerLoopIsRunning = false
-      , runRestPollerLoop = async function () {
+      , runRestPollerLoop = async () => {
 
         if (!restPollerLoopIsRunning) {
 
