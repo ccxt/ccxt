@@ -13793,7 +13793,7 @@ var kraken = {
             'interval': this.timeframes[timeframe],
         };
         if (since)
-            request['since'] = since;
+            request['since'] = parseInt (since / 1000);
         let response = await this.publicGetOHLC (this.extend (request, params));
         let ohlcvs = response['result'][market['id']];
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
