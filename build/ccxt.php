@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.68';
+$version = '1.7.69';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3841,7 +3841,6 @@ class bithumb extends Exchange {
             'name' => 'Bithumb',
             'countries' => 'KR', // South Korea
             'rateLimit' => 500,
-            'version' => 'v1',
             'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
