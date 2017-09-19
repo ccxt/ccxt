@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
 
-import ccxt.async as ccxt
-import time
-import json
-
 import argparse
 import asyncio
+import ccxt.async as ccxt
+import json
+import sys
+import time
 
+# ------------------------------------------------------------------------------
+
+from os         import _exit
+from traceback  import format_tb
+
+# ------------------------------------------------------------------------------
 
 class Argv (object):
     pass
@@ -15,6 +21,7 @@ class Argv (object):
 argv = Argv()
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
@@ -37,6 +44,21 @@ def underline(s): return style(s, '\033[4m')
 # print a colored string
 def dump(*args):
     print(' '.join([str(arg) for arg in args]))
+
+# print a n error string
+def dump_error(*args):
+    string = ' '.join([str(arg) for arg in args])
+    print(string)
+    sys.stderr.write(string + "\n")
+
+# ------------------------------------------------------------------------------
+
+def handle_all_unhandled_exceptions(type, value, traceback):
+
+    dump_error(yellow(type, value, '\n\n' + '\n'.join(format_tb(traceback))))
+    _exit(1) # unrecoverable crash
+
+sys.excepthook = handle_all_unhandled_exceptions
 
 # ------------------------------------------------------------------------------
 
@@ -107,9 +129,9 @@ async def test_exchange_symbol_trades(exchange, symbol):
         trades = await exchange.fetch_trades(symbol)
         dump(green(exchange.id), green(symbol), 'fetched', green(len(list(trades))), 'trades')
     except ccxt.ExchangeError as e:
-        dump(yellow(type(e).__name__), e.args)
+        dump_error(yellow(type(e).__name__), e.args)
     except ccxt.NotSupported as e:
-        dump(yellow(type(e).__name__), e.args)
+        dump_error(yellow(type(e).__name__), e.args)
 
 # ------------------------------------------------------------------------------
 
@@ -176,7 +198,7 @@ async def test_exchange(exchange):
             orders = await exchange.fetch_orders()
             dump(green(exchange.id), 'fetched', green(str(len(orders))), 'orders')
         except (ccxt.ExchangeError, ccxt.NotSupported) as e:
-            dump(yellow(type(e).__name__), e.args)
+            dump_error(yellow(type(e).__name__), e.args)
         # except ccxt.NotSupported as e:
         #     dump(yellow(type(e).__name__), e.args)
 
@@ -217,17 +239,17 @@ async def try_all_proxies(exchange, proxies):
             await test_exchange(exchange)
             break
         except ccxt.RequestTimeout as e:
-            dump(yellow(type(e).__name__), str(e))
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e))
         except ccxt.NotSupported as e:
-            dump(yellow(type(e).__name__), e.args)
+            dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
         except ccxt.DDoSProtection as e:
-            dump(yellow(type(e).__name__), e.args)
+            dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
         except ccxt.ExchangeNotAvailable as e:
-            dump(yellow(type(e).__name__), e.args)
+            dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
         except ccxt.AuthenticationError as e:
-            dump(yellow(type(e).__name__), str(e))
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e))
         except ccxt.ExchangeError as e:
-            dump(yellow(type(e).__name__), e.args)
+            dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
 
 # ------------------------------------------------------------------------------
 
@@ -245,7 +267,7 @@ with open('./keys.json') as file:
 # instantiate all exchanges
 for id in ccxt.exchanges:
     exchange = getattr(ccxt, id)
-    exchanges[id] = exchange({'verbose': False})
+    exchanges[id] = exchange({'verbose': argv.verbose})
 
 # set up api keys appropriately
 tuples = list(ccxt.Exchange.keysort(config).items())
