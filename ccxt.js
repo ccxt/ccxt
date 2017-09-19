@@ -15800,7 +15800,7 @@ var okcoin = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    cancelOrder (id, params = {}) {
         return this.privatePostCancelOrder (this.extend ({
             'order_id': id,
         }, params));
@@ -15895,7 +15895,7 @@ var okex = extend (okcoin, {
         'BCH/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'type': 'spot', 'spot': true, 'future': false },
     },
 
-    async cancelOrder (id, params = {}) {
+    cancelOrder (id, params = {}) {
         return this.privatePostFutureCancel (this.extend ({
             'order_id': id,
         }, params));
