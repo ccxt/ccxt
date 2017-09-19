@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Added missing spot pairs BCC/BTC LTC/BTC ETH/BTC ETC/BTC to OKEX, improved futures support, [#216](https://github.com/kroitor/ccxt/issues/216)
 - Added support for a new exchange: [Bithumb](https://www.bithumb.com) (South Korea, private API in progress)
 - Removed excessive body.encode() from Python 3.5+ asyncio version, [#214](https://github.com/kroitor/ccxt/pull/214)
 - Fixed Bter orderbook in Python3 for empty bidasks in their response, [#213](https://github.com/kroitor/ccxt/issues/213)
