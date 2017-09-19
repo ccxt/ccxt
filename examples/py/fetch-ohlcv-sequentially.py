@@ -25,8 +25,8 @@ kraken = ccxt.kraken()
 
 # -----------------------------------------------------------------------------
 
-from_date = '2017-09-01 00:00:00'
-from_timestamp = kraken.parse8601(from_date)
+from_datetime = '2017-09-01 00:00:00'
+from_timestamp = kraken.parse8601(from_datetime)
 
 # -----------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ while from_timestamp < now:
     ohlcvs = kraken.fetch_ohlcv('BTC/USD', '1m', from_timestamp)
 
     # don't hit the rateLimit or you will be banned
-    time.sleep(kraken.rateLimit / 1000)
+    time.sleep(kraken.rateLimit / msec)
 
     # Kraken returns 720 candles for 1m timeframe at once
     from_timestamp += len(ohlcvs) * minute
