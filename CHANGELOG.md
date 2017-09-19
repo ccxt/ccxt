@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Added support for a new exchange: [Bithumb](https://www.bithumb.com) (South Korea, private API in progress)
 - Removed excessive body.encode() from Python 3.5+ asyncio version, [#214](https://github.com/kroitor/ccxt/pull/214)
 - Fixed Bter orderbook in Python3 for empty bidasks in their response, [#213](https://github.com/kroitor/ccxt/issues/213)
 - Added initial test_async.py for testing against Python 3.5+ asyncio
