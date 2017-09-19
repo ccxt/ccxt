@@ -137,7 +137,7 @@ const setTimeout_safe = (done, ms, targetTime = Date.now () + ms) => { // setTim
     
     setTimeout (() => {
         const rest = targetTime - Date.now ()
-        if (rest >= 0) {
+        if (rest > 0) {
             setTimeout_safe (done, rest, targetTime) // try sleep more
         } else {
             done ()
@@ -450,20 +450,11 @@ const Exchange = function (config) {
         while (this_.restRequestQueue.length > 0) {
 
             // rate limiter
-            while (true) {
 
-                let elapsed = this_.milliseconds () - this_.lastRestPollTimestamp
-
-                if (elapsed < this_.rateLimit) {
-                    let delay = Math.max (this_.rateLimit - elapsed, 0)
-                    if (delay > 0) {
-                        await sleep (delay)
-                    } else {
-                        break
-                    }
-                } else {
-                    break
-                }
+            let elapsed = this_.milliseconds () - this_.lastRestPollTimestamp
+            let delay = this_.rateLimit - elapsed
+            if (delay > 0) {
+                await sleep (delay)
             }
 
             let { args, resolve, reject } = this_.restRequestQueue.shift ()
@@ -18625,10 +18616,11 @@ var exchanges = {
 
 let defineAllExchanges = function (exchanges) {
     let result = {}
-    for (let id in exchanges)
+    for (let id in exchanges) {
         result[id] = function (params) {
             return new Exchange (extend (exchanges[id], params))
         }
+    }
     result.exchanges = Object.keys (exchanges)
     return result
 }
@@ -18638,6 +18630,10 @@ let defineAllExchanges = function (exchanges) {
 const ccxt = Object.assign (defineAllExchanges (exchanges), {
 
     version,
+
+    // base exchange class
+
+    Exchange,
 
     // exceptions
 
