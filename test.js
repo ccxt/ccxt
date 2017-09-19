@@ -3,12 +3,11 @@
 /*  ------------------------------------------------------------------------ */
 
 const [processPath, , exchangeId = null, exchangeSymbol = null] = process.argv.filter (x => !x.startsWith ('--'))
-const ccxtFile = process.argv.includes ('--es6') ? 'ccxt.js' : 'build/ccxt.es5.js'
 const verbose = process.argv.includes ('--verbose') || false
 
 /*  ------------------------------------------------------------------------ */
 
-const ccxt      = require ('./' + ccxtFile)
+const ccxt      = require ('./ccxt')
 const countries = require ('./countries')
 
 /*  ------------------------------------------------------------------------ */

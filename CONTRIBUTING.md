@@ -282,14 +282,14 @@ node run-tests
 You can restrict tests to a specific language, a particular exchange or symbol:
 
 ```
-node run-tests [--php] [--js] [--python] [--python3] [--es6] [exchange] [symbol]
+node run-tests [--php] [--js] [--python] [--python3] [exchange] [symbol]
 ```
 
-For example, the first of the following lines will only test the single master ES6-version of source (`ccxt.js`). It does not require an `npm run build` before running it (can be useful if you need to verify quickly whether your changes break the code or not):
+For example, the first of the following lines will only test the single master version of source (`ccxt.js`). It does not require an `npm run build` before running it (can be useful if you need to verify quickly whether your changes break the code or not):
 
 ```shell
 
-node run-tests --js --es6       # test ES6 master ccxt.js, all exchanges
+node run-tests --js             # test master ccxt.js, all exchanges
 
 # other examples require the 'npm run build' to run
 
