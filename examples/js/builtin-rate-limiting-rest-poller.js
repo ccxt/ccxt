@@ -1,6 +1,6 @@
 "use strict";
 
-const ccxt    = require ('../../ccxt.js')
+const ccxt    = require ('../../build/ccxt.es5.js')
 const log     = require ('ololog')
 const ansi    = require ('ansicolor').nice
 const asTable = require ('as-table')

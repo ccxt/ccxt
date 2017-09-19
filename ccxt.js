@@ -38,11 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-<<<<<<< HEAD
-const version = '1.7.71'
-=======
 const version = '1.7.72'
->>>>>>> 0df2e23cfc9f973b241189ba3c0c3096405b3769
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -491,33 +487,30 @@ const Exchange = function (config) {
 
     this.restPoll = async function () {
 
-        if (restRequestQueue.length) {
+        if (!restRequestQueue.length)
+            return false
 
-            this.lastRestPollTimestamp = Math.max (this.lastRestPollTimestamp, this.lastRestRequestTimestamp)
+        this.lastRestPollTimestamp = Math.max (this.lastRestPollTimestamp, this.lastRestRequestTimestamp)
 
-            let elapsed = this.milliseconds () - this.lastRestPollTimestamp
+        let elapsed = this.milliseconds () - this.lastRestPollTimestamp
 
-            if (elapsed < this.rateLimit) {
+        if (elapsed < this.rateLimit) {
 
-                let delay = Math.max (this.rateLimit - elapsed, 0)
-                if (delay > 0) {
-                    setTimeout (this.restPoll, delay)
-                }
-
-            } else {
-
-                let { url, method, headers, body, resolve, reject } = this.restRequestQueue.shift ()
-                this.lastRestPollTimestamp = this.milliseconds ()
-                this.executeRestRequest (url, method, headers, body).then (resolve).catch (reject)
-
-                if (restRequestQueue.length > 0)
-                    setTimeout (this.restPoll, this.rateLimit)
-                else
-                    this.restPollerLoopIsRunning = false;
+            let delay = Math.max (this.rateLimit - elapsed, 0)
+            if (delay > 0) {
+                setTimeout (this.restPoll, delay)
             }
 
         } else {
-            this.restPollerLoopIsRunning = false;
+
+            let { url, method, headers, body, resolve, reject } = this.restRequestQueue.shift ()
+            this.lastRestPollTimestamp = this.milliseconds ()
+            this.executeRestRequest (url, method, headers, body).then (resolve).catch (reject)
+
+            if (restRequestQueue.length > 0)
+                setTimeout (this.restPoll, this.rateLimit)
+            else
+                this.restPollerLoopIsRunning = false;
         }
     }
 
