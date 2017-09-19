@@ -474,7 +474,7 @@ const Exchange = function (config) {
                 let { args, resolve, reject } = restRequestQueue.shift ()
                 lastRestPollTimestamp = this.milliseconds ()
 
-                this_.executeRestRequest (...args)
+                this.executeRestRequest (...args)
                      .then (resolve)
                      .catch (reject)
             }
