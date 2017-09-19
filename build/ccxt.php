@@ -3973,7 +3973,11 @@ class bithumb extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        $timestamp = $this->parse8601 ($trade['transaction_date']);
+        // a workaround their bug in date format, hours are not 0-padded
+        list ($transaction_date, $transaction_time) = explode (' ', $trade['transaction_date']);
+        if strlen (($transaction_time) < 8)
+            $transaction_time = '0' . $transaction_time;
+        $timestamp = $this->parse8601 ($transaction_date . ' ' . $transaction_time);
         $side = ($trade['type'] == 'ask') ? 'sell' : 'buy';
         return array (
             'id' => null,

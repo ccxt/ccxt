@@ -2826,7 +2826,11 @@ class bithumb (Exchange):
         return self.parse_ticker(response['data'], market)
 
     def parse_trade(self, trade, market):
-        timestamp = self.parse8601(trade['transaction_date'])
+        # a workaround their bug in date format, hours are not 0-padded
+        transaction_date, transaction_time = trade['transaction_date'].split(' ')
+        if len(transaction_time) < 8:
+            transaction_time = '0' + transaction_time
+        timestamp = self.parse8601(transaction_date + ' ' + transaction_time)
         side = 'sell' if(trade['type'] == 'ask') else 'buy'
         return {
             'id': None,

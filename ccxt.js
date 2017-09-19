@@ -3757,7 +3757,11 @@ var bithumb = {
     },
 
     parseTrade (trade, market) {
-        let timestamp = this.parse8601 (trade['transaction_date']);
+        // a workaround their bug in date format, hours are not 0-padded
+        let [ transaction_date, transaction_time ] = trade['transaction_date'].split (' ');
+        if (transaction_time.length < 8)
+            transaction_time = '0' + transaction_time;
+        let timestamp = this.parse8601 (transaction_date + ' ' + transaction_time);
         let side = (trade['type'] == 'ask') ? 'sell' : 'buy';
         return {
             'id': undefined,
