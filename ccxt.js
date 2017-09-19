@@ -38,7 +38,11 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
+<<<<<<< HEAD
 const version = '1.7.71'
+=======
+const version = '1.7.72'
+>>>>>>> 0df2e23cfc9f973b241189ba3c0c3096405b3769
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -133,7 +137,19 @@ class ExchangeNotAvailable extends NetworkError {
 //-----------------------------------------------------------------------------
 // utility helpers
 
-const sleep = ms => new Promise (resolve => setTimeout (resolve, ms));
+const setTimeout_safe = (done, ms, targetTime = Date.now () + ms) => { // setTimeout can fire earlier than specified, so we need to ensure it does not happen...
+
+    setTimeout (() => {
+        const rest = targetTime - Date.now ()
+        if (rest > 0) {
+            setTimeout_safe (done, rest, targetTime) // try sleep more
+        } else {
+            done ()
+        }
+    }, ms)
+}
+
+const sleep = ms => new Promise (resolve => setTimeout_safe (resolve, ms))
 
 const decimal = float => parseFloat (float).toString ()
 
@@ -417,7 +433,7 @@ const Exchange = function (config) {
                 }
             })
         })
-    },
+    }
 
     // this.initializeStreamingAPI = function () {
     //     this.ws = new WebSocket (this.urls['websocket'])
@@ -436,26 +452,72 @@ const Exchange = function (config) {
     //     })
     // },
 
+    const this_ = this; // workaround for a Babel plugin bug (not passing `this` to _recursive() call)
+
+    // internal rate-limiting REST poller
+
+    let lastRestRequestTimestamp = 0
+      , lastRestPollTimestamp = 0
+      , restRequestQueue = []
+      , restPollerLoopIsRunning = false
+      , runRestPollerLoop = async function () {
+
+        if (!restPollerLoopIsRunning) {
+
+            restPollerLoopIsRunning = true
+            lastRestPollTimestamp = Math.max (lastRestPollTimestamp, lastRestRequestTimestamp)
+
+            while (restRequestQueue.length > 0) {
+
+                // rate limiter
+
+                let elapsed = this_.milliseconds () - lastRestPollTimestamp
+                let delay = this_.rateLimit - elapsed
+                if (delay > 0) {
+                    await sleep (delay)
+                }
+
+                let { args, resolve, reject } = restRequestQueue.shift ()
+                lastRestPollTimestamp = this_.milliseconds ()
+
+                this_.executeRestRequest (...args)
+                     .then (resolve)
+                     .catch (reject)
+            }
+
+            restPollerLoopIsRunning = false
+        }
+    }
+
     this.restPoll = async function () {
 
-        this.lastRestPollTimestamp = Math.max (this.lastRestPollTimestamp, this.lastRestRequestTimestamp)
+        if (restRequestQueue.length) {
 
-        let elapsed = this.milliseconds () - this.lastRestPollTimestamp
+            this.lastRestPollTimestamp = Math.max (this.lastRestPollTimestamp, this.lastRestRequestTimestamp)
 
-        if (elapsed < this.rateLimit) {
+            let elapsed = this.milliseconds () - this.lastRestPollTimestamp
 
-            let delay = Math.max (this.rateLimit - elapsed, 0)
-            if (delay > 0) {
-                setTimeout (this.restPoll, delay)
+            if (elapsed < this.rateLimit) {
+
+                let delay = Math.max (this.rateLimit - elapsed, 0)
+                if (delay > 0) {
+                    setTimeout (this.restPoll, delay)
+                }
+
+            } else {
+
+                let { url, method, headers, body, resolve, reject } = this.restRequestQueue.shift ()
+                this.lastRestPollTimestamp = this.milliseconds ()
+                this.executeRestRequest (url, method, headers, body).then (resolve).catch (reject)
+
+                if (restRequestQueue.length > 0)
+                    setTimeout (this.restPoll, this.rateLimit)
+                else
+                    this.restPollerLoopIsRunning = false;
             }
 
         } else {
-
-            let { url, method, headers, body, resolve, reject } = this_.restRequestQueue.shift ()
-            this_.lastRestPollTimestamp = this_.milliseconds ()
-            this_.executeRestRequest (url, method, headers, body).then (resolve).catch (reject)
-
-            this.restPollerLoopIsRunning = false
+            this.restPollerLoopIsRunning = false;
         }
     }
 
@@ -468,57 +530,22 @@ const Exchange = function (config) {
         this.restPoll ()
     }
 
-    this.runRestPollerLoop = async function () {
-
-        let this_ = this;
-
-        if (this.restPollerLoopIsRunning)
-            return false
-
-        this_.restPollerLoopIsRunning = true
-        this_.lastRestPollTimestamp = Math.max (this_.lastRestPollTimestamp, this_.lastRestRequestTimestamp)
-
-        while (this_.restRequestQueue.length > 0) {
-
-            // rate limiter
-            while (true) {
-
-                let elapsed = this_.milliseconds () - this_.lastRestPollTimestamp
-
-                if (elapsed < this_.rateLimit) {
-                    let delay = Math.max (this_.rateLimit - elapsed, 0)
-                    if (delay > 0)
-                        await sleep (delay)
-                    else
-                        break
-                } else {
-                    break
-                }
-            }
-
-            let { url, method, headers, body, resolve, reject } = this_.restRequestQueue.shift ()
-            this_.lastRestPollTimestamp = this_.milliseconds ()
-            this_.executeRestRequest (url, method, headers, body).then (resolve).catch (reject)
-        }
-
-        this_.restPollerLoopIsRunning = false
-    }
-
-    this.issueRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
+    const issueRestRequest = (...args) => {
 
         if (this.enableRateLimit) {
             return new Promise ((resolve, reject) => {
-                this.restRequestQueue.push ({ url, method, headers, body, resolve, reject })
-                this.runRestPollerLoop ()
+                restRequestQueue.push ({ args, resolve, reject })
+                runRestPollerLoop ()
             })
+        } else {
+            return this.executeRestRequest (...args)
         }
-
-        return this.executeRestRequest (url, method, headers, body)
     }
 
     this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
-        this.lastRestRequestTimestamp = this.milliseconds ()
+        lastRestRequestTimestamp = this.milliseconds ()
+
         let promise =
             fetch (url, { 'method': method, 'headers': headers, 'body': body })
                 .catch (e => {
@@ -526,7 +553,7 @@ const Exchange = function (config) {
                         throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
                     throw e // rethrow all unknown errors
                 })
-                .then (response => this.handleRestErrors (response, url, method, headers, body ))
+                .then (response => this.handleRestErrors (response, url, method, headers, body))
                 .then (response => this.handleRestResponse (response, url, method, headers, body))
 
         return timeout (this.timeout, promise)
@@ -548,7 +575,7 @@ const Exchange = function (config) {
         if (this.verbose)
             console.log (this.id, method, url, "\nRequest:\n", headers, body)
 
-        return this.issueRestRequest (url, method, headers, body)
+        return issueRestRequest (url, method, headers, body)
     }
 
     this.handleRestErrors = function (response, url, method = 'GET', headers = undefined, body = undefined) {
@@ -651,7 +678,7 @@ const Exchange = function (config) {
     }
 
     this.fetchTickers = function (symbols = undefined) {
-        throw new NotSupported (this.id + ' fetchTickers not supoprted yet')
+        throw new NotSupported (this.id + ' fetchTickers not supported yet')
     }
 
     this.fetchOrder = function (id, params = {}) {
@@ -823,11 +850,6 @@ const Exchange = function (config) {
     this.hasFetchClosedOrders = false
     this.hasDeposit           = false
     this.hasWithdraw          = false
-
-    // internal rate-limiting REST poller
-    this.lastRestRequestTimestamp = 0
-    this.lastPollTimestamp = 0
-    this.restRequestQueue = []
 
     this.YmdHMS = function (timestamp, infix = ' ') {
         let date = new Date (timestamp)
@@ -18833,10 +18855,11 @@ var exchanges = {
 
 let defineAllExchanges = function (exchanges) {
     let result = {}
-    for (let id in exchanges)
+    for (let id in exchanges) {
         result[id] = function (params) {
             return new Exchange (extend (exchanges[id], params))
         }
+    }
     result.exchanges = Object.keys (exchanges)
     return result
 }
@@ -18846,6 +18869,10 @@ let defineAllExchanges = function (exchanges) {
 const ccxt = Object.assign (defineAllExchanges (exchanges), {
 
     version,
+
+    // Exchange constructor (do not use directly, will be replaced by a class soon)
+
+    Exchange,
 
     // exceptions
 
