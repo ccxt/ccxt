@@ -448,8 +448,6 @@ const Exchange = function (config) {
     //     })
     // },
 
-    const this_ = this; // workaround for a Babel plugin bug (not passing `this` to _recursive() call)
-
     // internal rate-limiting REST poller
 
     let lastRestRequestTimestamp = 0
@@ -467,14 +465,14 @@ const Exchange = function (config) {
 
                 // rate limiter
 
-                let elapsed = this_.milliseconds () - lastRestPollTimestamp
-                let delay = this_.rateLimit - elapsed
+                let elapsed = this.milliseconds () - lastRestPollTimestamp
+                let delay = this.rateLimit - elapsed
                 if (delay > 0) {
                     await sleep (delay)
                 }
 
                 let { args, resolve, reject } = restRequestQueue.shift ()
-                lastRestPollTimestamp = this_.milliseconds ()
+                lastRestPollTimestamp = this.milliseconds ()
 
                 this_.executeRestRequest (...args)
                      .then (resolve)
