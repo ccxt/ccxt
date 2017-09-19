@@ -10060,14 +10060,17 @@ class gdax (Exchange):
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        granularity = self.timeframes[timeframe]
+        if not limit:
+            limit = 200 # max = 200
+        end = self.milliseconds()
+        start = end - limit * granularity * 1000
         request = {
             'id': market['id'],
-            'granularity': self.timeframes[timeframe],
+            'granularity': granularity,
+            'start': self.iso8601(start),
+            'end': self.iso8601(end),
         }
-        if since:
-            request['start'] = since
-        if limit:
-            request['end'] = limit
         response = await self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
