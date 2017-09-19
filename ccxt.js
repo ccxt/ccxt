@@ -13653,7 +13653,7 @@ var kraken = {
     'name': 'Kraken',
     'countries': 'US',
     'version': '0',
-    'rateLimit': 1500,
+    'rateLimit': 2000,
     'hasFetchTickers': true,
     'hasFetchOHLCV': true,
     'marketsByAltname': {},
