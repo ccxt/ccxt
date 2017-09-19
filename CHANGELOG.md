@@ -1,6 +1,6 @@
 # Сhangelog
 
-- Dropped the legacy ECMAScript 5 support for greater maintainability and performance gains
+- Dropped the legacy ECMAScript 5 support for the greater maintainability and performance gains
 - Added missing spot pairs BCC/BTC LTC/BTC ETH/BTC ETC/BTC to OKEX, improved futures support, [#216](https://github.com/kroitor/ccxt/issues/216)
 - Added support for a new exchange: [Bithumb](https://www.bithumb.com) (South Korea, private API in progress)
 - Removed excessive body.encode() from Python 3.5+ asyncio version, [#214](https://github.com/kroitor/ccxt/pull/214)
