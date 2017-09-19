@@ -13131,7 +13131,7 @@ class liqui (Exchange):
             'id': 'liqui',
             'name': 'Liqui',
             'countries': 'UA',
-            'rateLimit': 1000,
+            'rateLimit': 2000,
             'version': '3',
             'hasFetchTickers': True,
             'urls': {
