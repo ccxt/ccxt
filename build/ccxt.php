@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.64';
+$version = '1.7.65';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -11695,14 +11695,17 @@ class gdax extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets ();
         $market = $this->market ($symbol);
+        $granularity = $this->timeframes[$timeframe];
+        if (!$limit)
+            $limit = 200; // max = 200
+        $end = $this->milliseconds ();
+        $start = $end - $limit * $granularity * 1000;
         $request = array (
             'id' => $market['id'],
-            'granularity' => $this->timeframes[$timeframe],
+            'granularity' => $granularity,
+            'start' => $this->iso8601 ($start),
+            'end' => $this->iso8601 ($end),
         );
-        if ($since)
-            $request['start'] = $since;
-        if ($limit)
-            $request['end'] = $limit;
         $response = $this->publicGetProductsIdCandles (array_merge ($request, $params));
         return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
