@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.7.79'
+const version = '1.7.80'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -454,7 +454,7 @@ const Exchange = function (config) {
       , lastRestPollTimestamp = 0
       , restRequestQueue = []
       , restPollerLoopIsRunning = false
-      , runRestPollerLoop = async function () {
+      , runRestPollerLoop = async () => {
 
         if (!restPollerLoopIsRunning) {
 
@@ -474,7 +474,7 @@ const Exchange = function (config) {
                 let { args, resolve, reject } = restRequestQueue.shift ()
                 lastRestPollTimestamp = this.milliseconds ()
 
-                this_.executeRestRequest (...args)
+                this.executeRestRequest (...args)
                      .then (resolve)
                      .catch (reject)
             }
