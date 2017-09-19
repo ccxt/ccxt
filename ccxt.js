@@ -18590,8 +18590,7 @@ var zaif = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
-        await this.loadMarkets ();
+    cancelOrder (id, params = {}) {
         return this.privatePostCancelOrder (this.extend ({
             'order_id': id,
         }, params));
