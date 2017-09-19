@@ -14321,7 +14321,7 @@ class okcoin (Exchange):
             'id': str(response['order_id']),
         }
 
-    async def cancel_order(self, id, params={}):
+    def cancel_order(self, id, params={}):
         return self.privatePostCancelOrder(self.extend({
             'order_id': id,
         }, params))
@@ -14428,7 +14428,7 @@ class okex (okcoin):
         params.update(config)
         super(okex, self).__init__(params)
 
-    async def cancel_order(self, id, params={}):
+    def cancel_order(self, id, params={}):
         return self.privatePostFutureCancel(self.extend({
             'order_id': id,
         }, params))
@@ -16219,9 +16219,8 @@ class virwox (Exchange):
             'id': str(response['orderID']),
         }
 
-    async def cancel_order(self, id, params={}):
-        await self.load_markets()
-        return await self.privatePostCancelOrder(self.extend({
+    def cancel_order(self, id, params={}):
+        return self.privatePostCancelOrder(self.extend({
             'orderID': id,
         }, params))
 
@@ -16515,9 +16514,8 @@ class xbtce (Exchange):
             'id': str(response['Id']),
         }
 
-    async def cancel_order(self, id, params={}):
-        await self.load_markets()
-        return await self.privateDeleteTrade(self.extend({
+    def cancel_order(self, id, params={}):
+        return self.privateDeleteTrade(self.extend({
             'Type': 'Cancel',
             'Id': id,
         }, params))
@@ -16722,8 +16720,7 @@ class yobit (Exchange):
             'id': str(response['return']['order_id']),
         }
 
-    async def cancel_order(self, id, params={}):
-        await self.load_markets()
+    def cancel_order(self, id, params={}):
         return self.tapiPostCancelOrder(self.extend({
             'order_id': id,
         }, params))
@@ -17015,8 +17012,7 @@ class zaif (Exchange):
             'id': str(response['return']['order_id']),
         }
 
-    async def cancel_order(self, id, params={}):
-        await self.load_markets()
+    def cancel_order(self, id, params={}):
         return self.privatePostCancelOrder(self.extend({
             'order_id': id,
         }, params))

@@ -16307,7 +16307,6 @@ class virwox (Exchange):
         }
 
     def cancel_order(self, id, params={}):
-        self.load_markets()
         return self.privatePostCancelOrder(self.extend({
             'orderID': id,
         }, params))
@@ -16603,7 +16602,6 @@ class xbtce (Exchange):
         }
 
     def cancel_order(self, id, params={}):
-        self.load_markets()
         return self.privateDeleteTrade(self.extend({
             'Type': 'Cancel',
             'Id': id,
@@ -16810,7 +16808,6 @@ class yobit (Exchange):
         }
 
     def cancel_order(self, id, params={}):
-        self.load_markets()
         return self.tapiPostCancelOrder(self.extend({
             'order_id': id,
         }, params))
@@ -17103,7 +17100,6 @@ class zaif (Exchange):
         }
 
     def cancel_order(self, id, params={}):
-        self.load_markets()
         return self.privatePostCancelOrder(self.extend({
             'order_id': id,
         }, params))

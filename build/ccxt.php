@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.70';
+$version = '1.7.71';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -18272,7 +18272,6 @@ class virwox extends Exchange {
     }
 
     public function cancel_order ($id, $params = array ()) {
-        $this->load_markets ();
         return $this->privatePostCancelOrder (array_merge (array (
             'orderID' => $id,
         ), $params));
@@ -18588,7 +18587,6 @@ class xbtce extends Exchange {
     }
 
     public function cancel_order ($id, $params = array ()) {
-        $this->load_markets ();
         return $this->privateDeleteTrade (array_merge (array (
             'Type' => 'Cancel',
             'Id' => $id,
@@ -18810,7 +18808,6 @@ class yobit extends Exchange {
     }
 
     public function cancel_order ($id, $params = array ()) {
-        $this->load_markets ();
         return $this->tapiPostCancelOrder (array_merge (array (
             'order_id' => $id,
         ), $params));
@@ -19119,7 +19116,6 @@ class zaif extends Exchange {
     }
 
     public function cancel_order ($id, $params = array ()) {
-        $this->load_markets ();
         return $this->privatePostCancelOrder (array_merge (array (
             'order_id' => $id,
         ), $params));

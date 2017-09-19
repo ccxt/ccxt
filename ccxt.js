@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.7.70'
+const version = '1.7.71'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -436,23 +436,57 @@ const Exchange = function (config) {
     //     })
     // },
 
-    this.runRestPollerLoop = async function () {
+    this.restPoll = async function () {
+
+        this.lastRestPollTimestamp = Math.max (this.lastRestPollTimestamp, this.lastRestRequestTimestamp)
+
+        let elapsed = this.milliseconds () - this.lastRestPollTimestamp
+
+        if (elapsed < this.rateLimit) {
+
+            let delay = Math.max (this.rateLimit - elapsed, 0)
+            if (delay > 0) {
+                setTimeout (this.restPoll, delay)
+            }
+
+        } else {
+
+            let { url, method, headers, body, resolve, reject } = this_.restRequestQueue.shift ()
+            this_.lastRestPollTimestamp = this_.milliseconds ()
+            this_.executeRestRequest (url, method, headers, body).then (resolve).catch (reject)
+
+            this.restPollerLoopIsRunning = false
+        }
+    }
+
+    this.runRestPollerLoop2 = async function () {
 
         if (this.restPollerLoopIsRunning)
             return false
 
         this.restPollerLoopIsRunning = true
-        this.lastRestPollTimestamp = Math.max (this.lastRestPollTimestamp, this.lastRestRequestTimestamp)
+        this.restPoll ()
+    }
 
-        while (this.restRequestQueue.length > 0) {
+    this.runRestPollerLoop = async function () {
+
+        let this_ = this;
+
+        if (this.restPollerLoopIsRunning)
+            return false
+
+        this_.restPollerLoopIsRunning = true
+        this_.lastRestPollTimestamp = Math.max (this_.lastRestPollTimestamp, this_.lastRestRequestTimestamp)
+
+        while (this_.restRequestQueue.length > 0) {
 
             // rate limiter
             while (true) {
 
-                let elapsed = this.milliseconds () - this.lastRestPollTimestamp
+                let elapsed = this_.milliseconds () - this_.lastRestPollTimestamp
 
-                if (elapsed < this.rateLimit) {
-                    let delay = Math.max (this.rateLimit - elapsed, 0)
+                if (elapsed < this_.rateLimit) {
+                    let delay = Math.max (this_.rateLimit - elapsed, 0)
                     if (delay > 0)
                         await sleep (delay)
                     else
@@ -462,12 +496,12 @@ const Exchange = function (config) {
                 }
             }
 
-            let { url, method, headers, body, resolve, reject } = this.restRequestQueue.shift ()
-            this.lastRestPollTimestamp = this.milliseconds ()
-            this.executeRestRequest (url, method, headers, body).then (resolve).catch (reject)
+            let { url, method, headers, body, resolve, reject } = this_.restRequestQueue.shift ()
+            this_.lastRestPollTimestamp = this_.milliseconds ()
+            this_.executeRestRequest (url, method, headers, body).then (resolve).catch (reject)
         }
 
-        this.restPollerLoopIsRunning = false
+        this_.restPollerLoopIsRunning = false
     }
 
     this.issueRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {

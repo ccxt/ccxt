@@ -7,7 +7,7 @@ const asTable = require ('as-table')
 
 async function test () {
 
-    const exchange = new ccxt.kraken ({ enableRateLimit: true })
+    const exchange = new ccxt.gdax ({ enableRateLimit: true, verbose: true })
     const symbol   = 'BTC/USD'
     const repeat   = 100;
 
