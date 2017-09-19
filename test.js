@@ -29,7 +29,7 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit 
 
 /*  ------------------------------------------------------------------------ */
 
-log.bright ('\nTESTING', ccxtFile.magenta, { exchange: exchangeId, symbol: exchangeSymbol || 'all' }, '\n')
+log.bright ('\nTESTING', { exchange: exchangeId, symbol: exchangeSymbol || 'all' }, '\n')
 
 /*  ------------------------------------------------------------------------ */
 
