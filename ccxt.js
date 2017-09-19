@@ -439,38 +439,47 @@ const Exchange = function (config) {
 
     const this_ = this; // workaround for a Babel plugin bug (not passing `this` to _recursive() call)
 
-    this.runRestPollerLoop = async function () {
+    // internal rate-limiting REST poller
+
+    let lastRestRequestTimestamp = 0
+      , lastRestPollTimestamp = 0
+      , restRequestQueue = []
+      , restPollerLoopIsRunning = false
+      , runRestPollerLoop = async function () {
         
-        if (this.restPollerLoopIsRunning)
-            return false
+        if (!restPollerLoopIsRunning) {
 
-        this.restPollerLoopIsRunning = true
-        this.lastRestPollTimestamp = Math.max (this.lastRestPollTimestamp, this.lastRestRequestTimestamp)
+            restPollerLoopIsRunning = true
+            lastRestPollTimestamp = Math.max (lastRestPollTimestamp, lastRestRequestTimestamp)
 
-        while (this_.restRequestQueue.length > 0) {
+            while (restRequestQueue.length > 0) {
 
-            // rate limiter
+                // rate limiter
 
-            let elapsed = this_.milliseconds () - this_.lastRestPollTimestamp
-            let delay = this_.rateLimit - elapsed
-            if (delay > 0) {
-                await sleep (delay)
+                let elapsed = this_.milliseconds () - lastRestPollTimestamp
+                let delay = this_.rateLimit - elapsed
+                if (delay > 0) {
+                    await sleep (delay)
+                }
+
+                let { args, resolve, reject } = restRequestQueue.shift ()
+                lastRestPollTimestamp = this_.milliseconds ()
+
+                this_.executeRestRequest (...args)
+                     .then (resolve)
+                     .catch (reject)
             }
 
-            let { args, resolve, reject } = this_.restRequestQueue.shift ()
-            this_.lastRestPollTimestamp = this_.milliseconds ()
-            this_.executeRestRequest (...args).then (resolve).catch (reject)
+            restPollerLoopIsRunning = false
         }
-
-        this.restPollerLoopIsRunning = false
     }
 
-    this.issueRestRequest = function (...args) {
+    const issueRestRequest = (...args) => {
 
         if (this.enableRateLimit) {
             return new Promise ((resolve, reject) => {
-                this.restRequestQueue.push ({ args, resolve, reject })
-                this.runRestPollerLoop ()
+                restRequestQueue.push ({ args, resolve, reject })
+                runRestPollerLoop ()
             })
         } else {
             return this.executeRestRequest (...args)
@@ -479,7 +488,8 @@ const Exchange = function (config) {
 
     this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
-        this.lastRestRequestTimestamp = this.milliseconds ()
+        lastRestRequestTimestamp = this.milliseconds ()
+
         let promise =
             fetch (url, { 'method': method, 'headers': headers, 'body': body })
                 .catch (e => {
@@ -509,7 +519,7 @@ const Exchange = function (config) {
         if (this.verbose)
             console.log (this.id, method, url, "\nRequest:\n", headers, body)
 
-        return this.issueRestRequest (url, method, headers, body)
+        return issueRestRequest (url, method, headers, body)
     }
 
     this.handleRestErrors = function (response, url, method = 'GET', headers = undefined, body = undefined) {
@@ -784,11 +794,6 @@ const Exchange = function (config) {
     this.hasFetchClosedOrders = false
     this.hasDeposit           = false
     this.hasWithdraw          = false
-
-    // internal rate-limiting REST poller
-    this.lastRestRequestTimestamp = 0
-    this.lastPollTimestamp = 0
-    this.restRequestQueue = []
 
     this.YmdHMS = function (timestamp, infix = ' ') {
         let date = new Date (timestamp)
