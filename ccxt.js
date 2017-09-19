@@ -18289,8 +18289,7 @@ var yobit = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
-        await this.loadMarkets ();
+    cancelOrder (id, params = {}) {
         return this.tapiPostCancelOrder (this.extend ({
             'order_id': id,
         }, params));
