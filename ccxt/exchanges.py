@@ -14047,10 +14047,17 @@ class okcoin (Exchange):
         params.update(config)
         super(okcoin, self).__init__(params)
 
-    def fetch_order_book(self, market, params={}):
-        orderbook = self.publicGetDepth(self.extend({
-            'symbol': self.market_id(market),
-        }, params))
+    def fetch_order_book(self, symbol, params={}):
+        market = self.market(symbol)
+        method = 'publicGet'
+        request = {
+            'symbol': market['id'],
+        }
+        if market['future']:
+            method += 'Future'
+            request['contract_type'] = 'this_week' # next_week, quarter
+        method += 'Depth'
+        orderbook = getattr(self, method)(self.extend(request, params))
         timestamp = self.milliseconds()
         return {
             'bids': orderbook['bids'],
@@ -14083,9 +14090,15 @@ class okcoin (Exchange):
 
     def fetch_ticker(self, symbol):
         market = self.market(symbol)
-        response = self.publicGetTicker({
+        method = 'publicGet'
+        request = {
             'symbol': market['id'],
-        })
+        }
+        if market['future']:
+            method += 'Future'
+            request['contract_type'] = 'this_week' # next_week, quarter
+        method += 'Ticker'
+        response = getattr(self, method)(request)
         timestamp = int(response['date']) * 1000
         ticker = self.extend(response['ticker'], {'timestamp': timestamp})
         return self.parse_ticker(ticker, market)
@@ -14109,24 +14122,37 @@ class okcoin (Exchange):
 
     def fetch_trades(self, symbol, params={}):
         market = self.market(symbol)
-        response = self.publicGetTrades(self.extend({
+        method = 'publicGet'
+        request = {
+            'symbol': market['id'],
+        }
+        if market['future']:
+            method += 'Future'
+            request['contract_type'] = 'this_week' # next_week, quarter
+        method += 'Trades'
+        response = getattr(self, method)(self.extend({
             'symbol': market['id'],
         }, params))
         return self.parse_trades(response, market)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1440, params={}):
         market = self.market(symbol)
+        method = 'publicGet'
         request = {
             'symbol': market['id'],
             'type': self.timeframes[timeframe],
         }
+        if market['future']:
+            method += 'Future'
+            request['contract_type'] = 'this_week' # next_week, quarter
+        method += 'Kline'
         if limit:
             request['size'] = int(limit)
         if since:
             request['since'] = since
         else:
             request['since'] = self.milliseconds() - 86400000 # last 24 hours
-        response = self.publicGetKline(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_balance(self, params={}):
@@ -14137,29 +14163,40 @@ class okcoin (Exchange):
             currency = self.currencies[c]
             lowercase = currency.lower()
             account = self.account()
-            if lowercase in balances['free']:
-                account['free'] = float(balances['free'][lowercase])
-            if lowercase in balances['freezed']:
-                account['used'] = float(balances['freezed'][lowercase])
+            account['free'] = self.safe_float(balances['free'], lowercase, 0.0)
+            account['used'] = self.safe_float(balances['freezed'], lowercase, 0.0)
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
         return result
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
+        market = self.market(symbol)
+        method = 'privatePost'
         order = {
-            'symbol': self.market_id(market),
+            'symbol': market['id'],
             'type': side,
         }
-        if type == 'limit':
-            order['price'] = price
-            order['amount'] = amount
+        if market['future']:
+            method += 'Future'
+            order = self.extend(order, {
+                'contract_type': 'this_week', # next_week, quarter
+                'match_price': 0, # match best counter party price? 0 or 1, ignores price if 1
+                'lever_rate': 10, # leverage rate value: 10 or 20(10 by default)
+                'price': price,
+                'amount': amount,
+            })
         else:
-            if side == 'buy':
-                order['price'] = params
-            else:
+            if type == 'limit':
+                order['price'] = price
                 order['amount'] = amount
-            order['type'] += '_market'
-        response = self.privatePostTrade(self.extend(order, params))
+            else:
+                order['type'] += '_market'
+                if side == 'buy':
+                    order['price'] = params
+                else:
+                    order['amount'] = amount
+        method += 'Trade'
+        response = getattr(self, method)(self.extend(order, params))
         return {
             'info': response,
             'id': str(response['order_id']),
@@ -14207,11 +14244,11 @@ class okcoincny (okcoin):
                 'doc': 'https://www.okcoin.cn/rest_getStarted.html',
             },
             'markets': {
-                'BTC/CNY': {'id': 'btc_cny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY'},
-                'LTC/CNY': {'id': 'ltc_cny', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY'},
-                'ETH/CNY': {'id': 'eth_cny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY'},
-                'ETC/CNY': {'id': 'etc_cny', 'symbol': 'ETC/CNY', 'base': 'ETC', 'quote': 'CNY'},
-                'BCH/CNY': {'id': 'bcc_cny', 'symbol': 'BCH/CNY', 'base': 'BCH', 'quote': 'CNY'},
+                'BTC/CNY': {'id': 'btc_cny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', 'type': 'spot', 'spot': True, 'future': False},
+                'LTC/CNY': {'id': 'ltc_cny', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', 'type': 'spot', 'spot': True, 'future': False},
+                'ETH/CNY': {'id': 'eth_cny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY', 'type': 'spot', 'spot': True, 'future': False},
+                'ETC/CNY': {'id': 'etc_cny', 'symbol': 'ETC/CNY', 'base': 'ETC', 'quote': 'CNY', 'type': 'spot', 'spot': True, 'future': False},
+                'BCH/CNY': {'id': 'bcc_cny', 'symbol': 'BCH/CNY', 'base': 'BCH', 'quote': 'CNY', 'type': 'spot', 'spot': True, 'future': False},
             },
         }
         params.update(config)
@@ -14236,10 +14273,10 @@ class okcoinusd (okcoin):
                 ],
             },
             'markets': {
-                'BTC/USD': {'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD'},
-                'LTC/USD': {'id': 'ltc_usd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD'},
-                'ETH/USD': {'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD'},
-                'ETC/USD': {'id': 'etc_usd', 'symbol': 'ETC/USD', 'base': 'ETC', 'quote': 'USD'},
+                'BTC/USD': {'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
+                'LTC/USD': {'id': 'ltc_usd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
+                'ETH/USD': {'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
+                'ETC/USD': {'id': 'etc_usd', 'symbol': 'ETC/USD', 'base': 'ETC', 'quote': 'USD', 'type': 'spot', 'spot': True, 'future': False},
             },
         }
         params.update(config)
@@ -14261,81 +14298,16 @@ class okex (okcoin):
                 'doc': 'https://www.okex.com/rest_getStarted.html',
             },
             'markets': {
-                'BTC/USD': {'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD'},
-                'LTC/USD': {'id': 'ltc_usd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD'},
-                # 'LTC/BTC': {'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
-                # 'ETH/BTC': {'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC'},
-                # 'ETC/BTC': {'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC'},
-                # 'BCH/BTC': {'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC'},
+                'BTC/USD': {'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'future', 'spot': False, 'future': True},
+                'LTC/USD': {'id': 'ltc_usd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD', 'type': 'future', 'spot': False, 'future': True},
+                'LTC/BTC': {'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'type': 'spot', 'spot': True, 'future': False},
+                'ETH/BTC': {'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'type': 'spot', 'spot': True, 'future': False},
+                'ETC/BTC': {'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'type': 'spot', 'spot': True, 'future': False},
+                'BCH/BTC': {'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'type': 'spot', 'spot': True, 'future': False},
             },
         }
         params.update(config)
         super(okex, self).__init__(params)
-
-    def fetch_order_book(self, symbol, params={}):
-        orderbook = self.publicGetFutureDepth(self.extend({
-            'symbol': self.market_id(symbol),
-            'contract_type': 'this_week', # next_week, quarter
-        }, params))
-        timestamp = self.milliseconds()
-        return {
-            'bids': orderbook['bids'],
-            'asks': self.sort_by(orderbook['asks'], 0),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
-
-    def fetch_ticker(self, symbol, params={}):
-        market = self.market(symbol)
-        response = self.publicGetFutureTicker(self.extend({
-            'symbol': market['id'],
-            'contract_type': 'this_week', # next_week, quarter
-        }, params))
-        timestamp = int(response['date']) * 1000
-        ticker = self.extend(response['ticker'], {'timestamp': timestamp})
-        return self.parse_ticker(ticker, market)
-
-    def fetch_trades(self, symbol, params={}):
-        market = self.market(symbol)
-        response = self.publicGetFutureTrades(self.extend({
-            'symbol': market['id'],
-            'contract_type': 'this_week', # next_week, quarter
-        }, params))
-        return self.parse_trades(response, market)
-
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-            'contract_type': 'this_week', # next_week, quarter
-            'type': self.timeframes[timeframe],
-            'since': since,
-        }
-        if limit:
-            request['size'] = int(limit)
-        if since:
-            request['since'] = since
-        else:
-            request['since'] = self.milliseconds() - 86400000 # last 24 hours
-        response = self.publicGetFutureKline(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
-
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
-        orderType = '1' if(side == 'buy') else '2'
-        order = {
-            'symbol': self.market_id(symbol),
-            'type': orderType,
-            'contract_type': 'this_week', # next_week, quarter
-            'match_price': 0, # match best counter party price? 0 or 1, ignores price if 1
-            'lever_rate': 10, # leverage rate value: 10 or 20(10 by default)
-            'price': price,
-            'amount': amount,
-        }
-        response = self.privatePostFutureTrade(self.extend(order, params))
-        return {
-            'info': response,
-            'id': str(response['order_id']),
-        }
 
     def cancel_order(self, id, params={}):
         return self.privatePostFutureCancel(self.extend({

@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.65';
+$version = '1.7.66';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -15860,10 +15860,18 @@ class okcoin extends Exchange {
         ), $options));
     }
 
-    public function fetch_order_book ($market, $params = array ()) {
-        $orderbook = $this->publicGetDepth (array_merge (array (
-            'symbol' => $this->market_id ($market),
-        ), $params));
+    public function fetch_order_book ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $method = 'publicGet';
+        $request = array (
+            'symbol' => $market['id'],
+        );
+        if ($market['future']) {
+            $method .= 'Future';
+            $request['contract_type'] = 'this_week'; // next_week, quarter
+        }
+        $method .= 'Depth';
+        $orderbook = $this->$method (array_merge ($request, $params));
         $timestamp = $this->milliseconds ();
         return array (
             'bids' => $orderbook['bids'],
@@ -15898,9 +15906,16 @@ class okcoin extends Exchange {
 
     public function fetch_ticker ($symbol) {
         $market = $this->market ($symbol);
-        $response = $this->publicGetTicker (array (
+        $method = 'publicGet';
+        $request = array (
             'symbol' => $market['id'],
-        ));
+        );
+        if ($market['future']) {
+            $method .= 'Future';
+            $request['contract_type'] = 'this_week'; // next_week, quarter
+        }
+        $method .= 'Ticker';
+        $response = $this->$method ($request);
         $timestamp = intval ($response['date']) * 1000;
         $ticker = array_merge ($response['ticker'], array ( 'timestamp' => $timestamp ));
         return $this->parse_ticker ($ticker, $market);
@@ -15926,7 +15941,16 @@ class okcoin extends Exchange {
 
     public function fetch_trades ($symbol, $params = array ()) {
         $market = $this->market ($symbol);
-        $response = $this->publicGetTrades (array_merge (array (
+        $method = 'publicGet';
+        $request = array (
+            'symbol' => $market['id'],
+        );
+        if ($market['future']) {
+            $method .= 'Future';
+            $request['contract_type'] = 'this_week'; // next_week, quarter
+        }
+        $method .= 'Trades';
+        $response = $this->$method (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
         return $this->parse_trades ($response, $market);
@@ -15934,10 +15958,16 @@ class okcoin extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 1440, $params = array ()) {
         $market = $this->market ($symbol);
+        $method = 'publicGet';
         $request = array (
             'symbol' => $market['id'],
             'type' => $this->timeframes[$timeframe],
         );
+        if ($market['future']) {
+            $method .= 'Future';
+            $request['contract_type'] = 'this_week'; // next_week, quarter
+        }
+        $method .= 'Kline';
         if ($limit)
             $request['size'] = intval ($limit);
         if ($since) {
@@ -15945,7 +15975,7 @@ class okcoin extends Exchange {
         } else {
             $request['since'] = $this->milliseconds () - 86400000; // last 24 hours
         }
-        $response = $this->publicGetKline (array_merge ($request, $params));
+        $response = $this->$method (array_merge ($request, $params));
         return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
@@ -15957,33 +15987,45 @@ class okcoin extends Exchange {
             $currency = $this->currencies[$c];
             $lowercase = strtolower ($currency);
             $account = $this->account ();
-            if (array_key_exists ($lowercase, $balances['free']))
-                $account['free'] = floatval ($balances['free'][$lowercase]);
-            if (array_key_exists ($lowercase, $balances['freezed']))
-                $account['used'] = floatval ($balances['freezed'][$lowercase]);
+            $account['free'] = $this->safe_float ($balances['free'], $lowercase, 0.0);
+            $account['used'] = $this->safe_float ($balances['freezed'], $lowercase, 0.0);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
         return $result;
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $market = $this->market ($symbol);
+        $method = 'privatePost';
         $order = array (
-            'symbol' => $this->market_id ($market),
+            'symbol' => $market['id'],
             'type' => $side,
         );
-        if ($type == 'limit') {
-            $order['price'] = $price;
-            $order['amount'] = $amount;
+        if ($market['future']) {
+            $method .= 'Future';
+            $order = array_merge ($order, array (
+                'contract_type' => 'this_week', // next_week, quarter
+                'match_price' => 0, // match best counter party $price? 0 or 1, ignores $price if 1
+                'lever_rate' => 10, // leverage rate value => 10 or 20 (10 by default)
+                'price' => $price,
+                'amount' => $amount,
+            ));
         } else {
-            if ($side == 'buy') {
-                $order['price'] = $params;
-            } else {
+            if ($type == 'limit') {
+                $order['price'] = $price;
                 $order['amount'] = $amount;
+            } else {
+                $order['type'] .= '_market';
+                if ($side == 'buy') {
+                    $order['price'] = $params;
+                } else {
+                    $order['amount'] = $amount;
+                }
             }
-            $order['type'] .= '_market';
         }
-        $response = $this->privatePostTrade (array_merge ($order, $params));
+        $method .= 'Trade';
+        $response = $this->$method (array_merge ($order, $params));
         return array (
             'info' => $response,
             'id' => (string) $response['order_id'],
@@ -16036,11 +16078,11 @@ class okcoincny extends okcoin {
                 'doc' => 'https://www.okcoin.cn/rest_getStarted.html',
             ),
             'markets' => array (
-                'BTC/CNY' => array ( 'id' => 'btc_cny', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY' ),
-                'LTC/CNY' => array ( 'id' => 'ltc_cny', 'symbol' => 'LTC/CNY', 'base' => 'LTC', 'quote' => 'CNY' ),
-                'ETH/CNY' => array ( 'id' => 'eth_cny', 'symbol' => 'ETH/CNY', 'base' => 'ETH', 'quote' => 'CNY' ),
-                'ETC/CNY' => array ( 'id' => 'etc_cny', 'symbol' => 'ETC/CNY', 'base' => 'ETC', 'quote' => 'CNY' ),
-                'BCH/CNY' => array ( 'id' => 'bcc_cny', 'symbol' => 'BCH/CNY', 'base' => 'BCH', 'quote' => 'CNY' ),
+                'BTC/CNY' => array ( 'id' => 'btc_cny', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY', 'type' => 'spot', 'spot' => true, 'future' => false ),
+                'LTC/CNY' => array ( 'id' => 'ltc_cny', 'symbol' => 'LTC/CNY', 'base' => 'LTC', 'quote' => 'CNY', 'type' => 'spot', 'spot' => true, 'future' => false ),
+                'ETH/CNY' => array ( 'id' => 'eth_cny', 'symbol' => 'ETH/CNY', 'base' => 'ETH', 'quote' => 'CNY', 'type' => 'spot', 'spot' => true, 'future' => false ),
+                'ETC/CNY' => array ( 'id' => 'etc_cny', 'symbol' => 'ETC/CNY', 'base' => 'ETC', 'quote' => 'CNY', 'type' => 'spot', 'spot' => true, 'future' => false ),
+                'BCH/CNY' => array ( 'id' => 'bcc_cny', 'symbol' => 'BCH/CNY', 'base' => 'BCH', 'quote' => 'CNY', 'type' => 'spot', 'spot' => true, 'future' => false ),
             ),
         ), $options));
     }
@@ -16065,10 +16107,10 @@ class okcoinusd extends okcoin {
                 ),
             ),
             'markets' => array (
-                'BTC/USD' => array ( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
-                'LTC/USD' => array ( 'id' => 'ltc_usd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD' ),
-                'ETH/USD' => array ( 'id' => 'eth_usd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD' ),
-                'ETC/USD' => array ( 'id' => 'etc_usd', 'symbol' => 'ETC/USD', 'base' => 'ETC', 'quote' => 'USD' ),
+                'BTC/USD' => array ( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
+                'LTC/USD' => array ( 'id' => 'ltc_usd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
+                'ETH/USD' => array ( 'id' => 'eth_usd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
+                'ETC/USD' => array ( 'id' => 'etc_usd', 'symbol' => 'ETC/USD', 'base' => 'ETC', 'quote' => 'USD', 'type' => 'spot', 'spot' => true, 'future' => false ),
             ),
         ), $options));
     }
@@ -16090,85 +16132,14 @@ class okex extends okcoin {
                 'doc' => 'https://www.okex.com/rest_getStarted.html',
             ),
             'markets' => array (
-                'BTC/USD' => array ( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
-                'LTC/USD' => array ( 'id' => 'ltc_usd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD' ),
-                // 'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
-                // 'ETH/BTC' => array ( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC' ),
-                // 'ETC/BTC' => array ( 'id' => 'etc_btc', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC' ),
-                // 'BCH/BTC' => array ( 'id' => 'bcc_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC' ),
+                'BTC/USD' => array ( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'type' => 'future', 'spot' => false, 'future' => true ),
+                'LTC/USD' => array ( 'id' => 'ltc_usd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD', 'type' => 'future', 'spot' => false, 'future' => true ),
+                'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'type' => 'spot', 'spot' => true, 'future' => false ),
+                'ETH/BTC' => array ( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'type' => 'spot', 'spot' => true, 'future' => false ),
+                'ETC/BTC' => array ( 'id' => 'etc_btc', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC', 'type' => 'spot', 'spot' => true, 'future' => false ),
+                'BCH/BTC' => array ( 'id' => 'bcc_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'type' => 'spot', 'spot' => true, 'future' => false ),
             ),
         ), $options));
-    }
-
-    public function fetch_order_book ($symbol, $params = array ()) {
-        $orderbook = $this->publicGetFutureDepth (array_merge (array (
-            'symbol' => $this->market_id ($symbol),
-            'contract_type' => 'this_week', // next_week, quarter
-        ), $params));
-        $timestamp = $this->milliseconds ();
-        return array (
-            'bids' => $orderbook['bids'],
-            'asks' => $this->sort_by ($orderbook['asks'], 0),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
-    }
-
-    public function fetch_ticker ($symbol, $params = array ()) {
-        $market = $this->market ($symbol);
-        $response = $this->publicGetFutureTicker (array_merge (array (
-            'symbol' => $market['id'],
-            'contract_type' => 'this_week', // next_week, quarter
-        ), $params));
-        $timestamp = intval ($response['date']) * 1000;
-        $ticker = array_merge ($response['ticker'], array ( 'timestamp' => $timestamp ));
-        return $this->parse_ticker ($ticker, $market);
-    }
-
-    public function fetch_trades ($symbol, $params = array ()) {
-        $market = $this->market ($symbol);
-        $response = $this->publicGetFutureTrades (array_merge (array (
-            'symbol' => $market['id'],
-            'contract_type' => 'this_week', // next_week, quarter
-        ), $params));
-        return $this->parse_trades ($response, $market);
-    }
-
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $market = $this->market ($symbol);
-        $request = array (
-            'symbol' => $market['id'],
-            'contract_type' => 'this_week', // next_week, quarter
-            'type' => $this->timeframes[$timeframe],
-            'since' => $since,
-        );
-        if ($limit)
-            $request['size'] = intval ($limit);
-        if ($since) {
-            $request['since'] = $since;
-        } else {
-            $request['since'] = $this->milliseconds () - 86400000; // last 24 hours
-        }
-        $response = $this->publicGetFutureKline (array_merge ($request, $params));
-        return $this->parse_ohlcvs ($response, $market, $timeframe, $since, $limit);
-    }
-
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $orderType = ($side == 'buy') ? '1' : '2';
-        $order = array (
-            'symbol' => $this->market_id ($symbol),
-            'type' => $orderType,
-            'contract_type' => 'this_week', // next_week, quarter
-            'match_price' => 0, // match best counter party $price? 0 or 1, ignores $price if 1
-            'lever_rate' => 10, // leverage rate value => 10 or 20 (10 by default)
-            'price' => $price,
-            'amount' => $amount,
-        );
-        $response = $this->privatePostFutureTrade (array_merge ($order, $params));
-        return array (
-            'info' => $response,
-            'id' => (string) $response['order_id'],
-        );
     }
 
     public function cancel_order ($id, $params = array ()) {
