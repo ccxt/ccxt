@@ -3,7 +3,6 @@
 //-----------------------------------------------------------------------------
 
 const [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
-const ccxtFile = process.argv.includes ('--es6') ? 'ccxt.js' : 'build/ccxt.es5.js'
 const verbose = process.argv.includes ('--verbose')
 
 //-----------------------------------------------------------------------------
