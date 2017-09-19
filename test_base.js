@@ -1,6 +1,6 @@
 /*  ------------------------------------------------------------------------ */
 
-const ccxtFile = './ccxt.js' //process.argv.includes ('--es6') ? './ccxt.js' : './build/ccxt.es5.js'
+const ccxtFile = './build/ccxt.es5.js' //process.argv.includes ('--es6') ? './ccxt.js' : './build/ccxt.es5.js'
     , ccxt     = require (ccxtFile)
     , assert   = require ('assert')
     , log      = require ('ololog')
@@ -19,6 +19,37 @@ describe ('ccxt base code', () => {
             assert ((now - before) >= 10) // not too fast
             assert ((now - before) < 20)  // but not too slow...
         }
+    })
+
+    it ('rate limiting works', async () => {
+
+        const calls = []
+        const rateLimit = 100
+        const exchange = new ccxt.Exchange ({
+        
+            id: 'mock',
+            rateLimit,
+            enableRateLimit: true,
+    
+            async executeRestRequest (...args) { calls.push ({ when: Date.now (), path: args[0], args }) }
+        })
+
+        await exchange.fetch ('foo')
+        await exchange.fetch ('bar')
+        await exchange.fetch ('baz')
+
+        await Promise.all ([
+            exchange.fetch ('qux'),
+            exchange.fetch ('zap'),
+            exchange.fetch ('lol')
+        ])
+        
+        assert.deepEqual (calls.map (x => x.path), ['foo', 'bar', 'baz', 'qux', 'zap', 'lol'])
+
+        calls.reduce ((prevTime, call) => {
+            assert ((call.when - prevTime) >= rateLimit)
+            return call.when
+        }, 0)
     })
 })
 
