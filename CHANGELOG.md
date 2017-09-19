@@ -1,5 +1,9 @@
 # Сhangelog
 
+- Removed excessive body.encode() from Python 3.5+ asyncio version, [#214](https://github.com/kroitor/ccxt/pull/214)
+- Fixed Bter orderbook in Python3 for empty bidasks in their response, [#213](https://github.com/kroitor/ccxt/issues/213)
+- Added initial test_async.py for testing against Python 3.5+ asyncio
+- A major cleanup for the upcoming refactored ccxt 2.0, multiple bug fixes (mostly to Python3.5+ asyncio version)
 - Fixed bitFlyer futures, [#212](https://github.com/kroitor/ccxt/pull/212)
 - Fixed HitBTC v2 cancelOrder, [#211](https://github.com/kroitor/ccxt/issues/211)
 - Added experimental support for a new exchange: [Independent Reserve](https://www.independentreserve.com/) (Australia, New Zealand)
