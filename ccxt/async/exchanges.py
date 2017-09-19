@@ -12429,7 +12429,7 @@ class kraken (Exchange):
             'interval': self.timeframes[timeframe],
         }
         if since:
-            request['since'] = since
+            request['since'] = int(since / 1000)
         response = await self.publicGetOHLC(self.extend(request, params))
         ohlcvs = response['result'][market['id']]
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
