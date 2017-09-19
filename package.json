@@ -10,7 +10,7 @@
     "url": "https://github.com/kroitor/ccxt.git"
   },
   "scripts": {
-    "build": "npm run export-exchanges && npm run vss && npm run mdrst && npm run transpile && npm run update-badges && npm run babel && npm run browserify",
+    "build": "npm run export-exchanges && npm run vss && npm run mdrst && npm run transpile && npm run update-badges && npm run browserify",
     "test": "npm run build && node run-tests",
     "fasttest": "node run-tests --js --es6",
     "test-base": "mocha --reporter spec test_base.js",
@@ -19,7 +19,6 @@
     "mdrst": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=README.rst README.md",
     "transpile": "node transpile",
     "vss": "node vss",
-    "babel": "babel ccxt.js --compact=false --source-maps inline --out-file build/ccxt.es5.js",
     "browserify": "browserify --debug ./ccxt.browser.js > ./build/ccxt.browser.js"
   },
   "dependencies": {
@@ -31,10 +30,6 @@
     "ansicolor": "^1.1.68",
     "as-table": "^1.0.22",
     "asciichart": "^1.5.1",
-    "babel-cli": "^6.24.1",
-    "babel-plugin-async-to-promises": "^1.0.5",
-    "babel-plugin-transform-es2017-object-entries": "0.0.4",
-    "babel-preset-es2015": "^6.24.1",
     "browserify": "^14.4.0",
     "coveralls": "^2.13.1",
     "istanbul": "^0.4.5",
