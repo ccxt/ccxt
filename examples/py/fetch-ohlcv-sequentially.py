@@ -36,8 +36,12 @@ now = kraken.milliseconds()
 
 while from_timestamp < now:
 
-    print('Fetching candles starting from', kraken.iso8601 (from_timestamp))
-    ohlcvs = kraken.fetch_ohlcv('BTC/USD', '1m', from_timestamp)
-    time.sleep (kraken.rateLimit / 1000)
-    from_timestamp += len(ohlcvs) * minute # kraken returns 720 candles at once
+    print('Fetching candles starting from', kraken.iso8601(from_timestamp))
 
+    ohlcvs = kraken.fetch_ohlcv('BTC/USD', '1m', from_timestamp)
+
+    # don't hit the rateLimit or you will be banned
+    time.sleep(kraken.rateLimit / 1000)
+
+    # Kraken returns 720 candles for 1m timeframe at once
+    from_timestamp += len(ohlcvs) * minute
