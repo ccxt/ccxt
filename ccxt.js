@@ -15500,10 +15500,8 @@ var okcoin = {
             let currency = this.currencies[c];
             let lowercase = currency.toLowerCase ();
             let account = this.account ();
-            if (lowercase in balances['free'])
-                account['free'] = parseFloat (balances['free'][lowercase]);
-            if (lowercase in balances['freezed'])
-                account['used'] = parseFloat (balances['freezed'][lowercase]);
+            account['free'] = this.safeFloat (balances['free'], lowercase, 0.0);
+            account['used'] = this.safeFloat (balances['freezed'], lowercase, 0.0);
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
@@ -15622,10 +15620,10 @@ var okex = extend (okcoin, {
     'markets': {
         'BTC/USD': { 'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
         'LTC/USD': { 'id': 'ltc_usd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD' },
-        // 'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
-        // 'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
-        // 'ETC/BTC': { 'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC' },
-        // 'BCH/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
+        'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+        'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
+        'ETC/BTC': { 'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC' },
+        'BCH/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
     },
 
     async fetchOrderBook (symbol, params = {}) {
