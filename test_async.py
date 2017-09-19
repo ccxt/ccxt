@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 
-import ccxt.async as ccxt
-import time
-import json
-import sys
-
 import argparse
 import asyncio
+import ccxt.async as ccxt
+import json
+import sys
+import time
 
+# ------------------------------------------------------------------------------
+
+from os         import _exit
+from traceback  import format_tb
+
+# ------------------------------------------------------------------------------
 
 class Argv (object):
     pass
@@ -48,10 +53,10 @@ def dump_error(*args):
 
 # ------------------------------------------------------------------------------
 
-def handle_all_unhandled_exceptions (type, value, traceback):
+def handle_all_unhandled_exceptions(type, value, traceback):
 
-    error (yellow (type, value, '\n\n' + '\n'.join (format_tb (traceback))))
-    _exit (1) # unrecoverable crash
+    dump_error(yellow(type, value, '\n\n' + '\n'.join(format_tb(traceback))))
+    _exit(1) # unrecoverable crash
 
 sys.excepthook = handle_all_unhandled_exceptions
 
