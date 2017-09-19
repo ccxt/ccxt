@@ -82,7 +82,6 @@ The contents of the repository are structured as follows:
 /README.md           # master markdown for GitHub, npmjs.com, npms.io, yarn and others
 /README.rst          # slave reStructuredText for PyPI
 /build/              # a folder for the generated slave source files
-/build/ccxt.es5.js   # slave generated JavaScript ES5 version of the ccxt library
 /build/ccxt.php      # slave generated PHP version of the ccxt library
 /ccxt.js             # master JS ES6 version of the ccxt library
 /ccxt.php            # base code for the PHP version of the ccxt library
@@ -122,14 +121,13 @@ The ccxt library includes one single file per each language:
 /ccxt.browser.js       # base code for the browserified version of the library
 /ccxt.php              # base code for the slave PHP version of the ccxt library
 /ccxt/__init__.py      # slave Python-version of the ccxt library
-/build/ccxt.es5.js     # slave JavaScript ES5 version of the ccxt library
 /build/ccxt.browser.js # slave browser bundle of the ccxt library
 /build/ccxt.php        # slave PHP-version of the ccxt library
 ```
 
 The module entry points are:
 - `./ccxt/__init__.py` for the Python pip package
-- `./build/ccxt.es5.js` for the Node.js npm package
+- `./ccxt.js` for the Node.js npm package
 - `./build/ccxt.browser.js` for the browser bundle
 - `./build/ccxt.php` for PHP
 

@@ -2,7 +2,6 @@
 
 git config --global user.email "travis@travis-ci.org"
 git config --global user.name "Travis CI"
-git add --force build/ccxt.es5.js
 git add --force build/ccxt.browser.js
 git add --force build/ccxt.php
 git add --force ccxt/version.py

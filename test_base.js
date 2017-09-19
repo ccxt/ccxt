@@ -1,7 +1,6 @@
 /*  ------------------------------------------------------------------------ */
 
-const ccxtFile = process.argv.includes ('--es6') ? './ccxt.js' : './build/ccxt.es5.js'
-    , ccxt     = require (ccxtFile)
+const ccxt     = require ('./ccxt')
     , assert   = require ('assert')
     , log      = require ('ololog')
     , ansi     = require ('ansicolor').nice;

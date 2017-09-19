@@ -4,7 +4,7 @@
         browserify --debug ./ccxt.browser.js > ./build/ccxt.browser.js
  */
 
-window.ccxt = require ('./ccxt') //require ('./build/ccxt.es5')
+window.ccxt = require ('./ccxt')
 },{"./ccxt":2}],2:[function(require,module,exports){
 (function (process){
 "use strict";
