@@ -1157,8 +1157,8 @@ class binance (Exchange):
                 },
             },
             'fees': {
-                'taker': '0.1%',
-                'maker': '0.1%',
+                'taker': 0.001,
+                'maker': 0.001,
                 'withdraw': {
                     'BNB': 1.0,
                     'BTC': 0.0005,
@@ -4619,8 +4619,8 @@ class bittrex (Exchange):
                 },
             },
             'fees': {
-                'maker': '0.25%',
-                'taker': '0.25%',
+                'maker': 0.0025,
+                'taker': 0.0025,
             },
         }
         params.update(config)
@@ -13168,6 +13168,7 @@ class liqui (Exchange):
                 },
                 'www': 'https://liqui.io',
                 'doc': 'https://liqui.io/api',
+                'fees': 'https://liqui.io/fee',
             },
             'api': {
                 'public': {
@@ -13192,7 +13193,12 @@ class liqui (Exchange):
                         'CreateCoupon',
                         'RedeemCoupon',
                     ],
-                }
+                },
+            },
+            'fees': {
+                'maker': 0.001,
+                'taker': 0.0025,
+                'withdraw': 0.0,
             },
         }
         params.update(config)
@@ -13219,6 +13225,8 @@ class liqui (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'taker': market['fee'],
+                'maker': 0.001,
                 'info': market,
             })
         return result
@@ -14741,6 +14749,7 @@ class poloniex (Exchange):
                     'https://poloniex.com/support/api/',
                     'http://pastebin.com/dMX7mZE0',
                 ],
+                'fees': 'https://poloniex.com/fees',
             },
             'api': {
                 'public': {
@@ -14787,6 +14796,11 @@ class poloniex (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'maker': 0.0015,
+                'taker': 0.0025,
+                'withdraw': 0.0,
+            },
         }
         params.update(config)
         super(poloniex, self).__init__(params)
@@ -14827,6 +14841,16 @@ class poloniex (Exchange):
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
         return result
+
+    def fetchFees(self, params={}):
+        self.load_markets()
+        fees = self.privatePostReturnFeeInfo()
+        return {
+            'info': fees,
+            'maker': float(fees['makerFee']),
+            'taker': float(fees['takerFee']),
+            'withdraw': 0.0,
+        }
 
     def fetch_order_book(self, market, params={}):
         self.load_markets()
