@@ -7,8 +7,8 @@ const verbose = process.argv.includes ('--verbose') || false
 
 /*  ------------------------------------------------------------------------ */
 
-const ccxt      = require ('./ccxt')
-const countries = require ('./countries')
+const ccxt      = require ('../ccxt')
+const countries = require ('../countries')
 
 /*  ------------------------------------------------------------------------ */
 

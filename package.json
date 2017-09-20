@@ -15,7 +15,7 @@
     "build": "npm run export-exchanges && npm run vss && npm run mdrst && npm run transpile && npm run update-badges && npm run browserify",
     "test": "npm run build && node run-tests",
     "fasttest": "node run-tests --js --es6",
-    "test-base": "mocha --reporter spec test_base.js",
+    "test-base": "mocha --reporter spec test/test_base.js",
     "export-exchanges": "node export-exchanges",
     "update-badges": "node update-badges",
     "mdrst": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=README.rst README.md",
