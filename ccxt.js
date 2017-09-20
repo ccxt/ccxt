@@ -1877,6 +1877,7 @@ var binance = {
         'api': 'https://www.binance.com/api',
         'www': 'https://www.binance.com',
         'doc': 'https://www.binance.com/restapipub.html',
+        'fees': 'https://binance.zendesk.com/hc/en-us/articles/115000429332',
     },
     'api': {
         'public': {
@@ -1911,6 +1912,35 @@ var binance = {
             ],
         },
     },
+    'fees': {
+        'taker': '0.1%',
+        'maker': '0.1%'
+        'withdraw': {
+            'BNB': 1,
+            'BTC': 0.0005,
+            'ETH': 0.005,
+            'LTC': 0.001,
+            'NEO': 0.0,
+            'QTUM': 0.1,
+            'SNT': 1.0,
+            'EOS': 0.1,
+            'BCC': undefined
+            'GAS': 0.0,
+            'USDT': 5.0,
+            'HSR': 0.0001,
+            'OAX': 0.1,
+            'DNT': 1.0,
+            'MCO': 0.1,
+            'ICN': 0.1,
+            'WTC': 0.1,
+            'OMG': 0.1,
+            'ZRX': 1.0,
+            'STRAT': 0.1,
+            'SNGLS': 1.0,
+            'BQX': 1.0,
+        },
+    },
+
     'markets': {
         'BNB/BTC': { 'id': 'BNBBTC', 'symbol': 'BNB/BTC', 'base': 'BNB', 'quote': 'BTC' },
         'NEO/BTC': { 'id': 'NEOBTC', 'symbol': 'NEO/BTC', 'base': 'NEO', 'quote': 'BTC' },
