@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.93';
+$version = '1.7.94';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -433,26 +433,29 @@ class Exchange {
 
         global $version;
 
-        $this->curl       = curl_init ();
-        $this->id         = null;
-        $this->rateLimit  = 2000;
-        $this->timeout    = 10000; // in milliseconds
-        $this->proxy      = '';
-        $this->markets    = null;
-        $this->symbols    = null;
-        $this->ids        = null;
-        $this->currencies = null;
-        $this->orders     = array ();
-        $this->trades     = array ();
-        $this->verbose    = false;
-        $this->apiKey     = '';
-        $this->secret     = '';
-        $this->password   = '';
-        $this->uid        = '';
-        $this->twofa      = false;
+        $this->curl        = curl_init ();
+        $this->id          = null;
+        $this->rateLimit   = 2000;
+        $this->timeout     = 10000; // in milliseconds
+        $this->proxy       = '';
+        $this->markets     = null;
+        $this->symbols     = null;
+        $this->ids         = null;
+        $this->currencies  = null;
+        $this->balance     = array ();
+        $this->orderbooks  = array ();
+        $this->fees        = array ();
+        $this->orders      = array ();
+        $this->trades      = array ();
+        $this->verbose     = false;
+        $this->apiKey      = '';
+        $this->secret      = '';
+        $this->password    = '';
+        $this->uid         = '';
+        $this->twofa       = false;
         $this->marketsById = null;
         $this->markets_by_id = null;
-        $this->userAgent  = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
+        $this->userAgent   = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
         $this->timeframes = null;
         $this->hasPublicAPI         = true;
@@ -2055,6 +2058,7 @@ class binance extends Exchange {
                 'api' => 'https://www.binance.com/api',
                 'www' => 'https://www.binance.com',
                 'doc' => 'https://www.binance.com/restapipub.html',
+                'fees' => 'https://binance.zendesk.com/hc/en-us/articles/115000429332',
             ),
             'api' => array (
                 'public' => array (
@@ -2087,6 +2091,34 @@ class binance extends Exchange {
                         'order',
                         'userDataStream',
                     ),
+                ),
+            ),
+            'fees' => array (
+                'taker' => '0.1%',
+                'maker' => '0.1%',
+                'withdraw' => array (
+                    'BNB' => 1.0,
+                    'BTC' => 0.0005,
+                    'ETH' => 0.005,
+                    'LTC' => 0.001,
+                    'NEO' => 0.0,
+                    'QTUM' => 0.1,
+                    'SNT' => 1.0,
+                    'EOS' => 0.1,
+                    'BCC' => null,
+                    'GAS' => 0.0,
+                    'USDT' => 5.0,
+                    'HSR' => 0.0001,
+                    'OAX' => 0.1,
+                    'DNT' => 1.0,
+                    'MCO' => 0.1,
+                    'ICN' => 0.1,
+                    'WTC' => 0.1,
+                    'OMG' => 0.1,
+                    'ZRX' => 1.0,
+                    'STRAT' => 0.1,
+                    'SNGLS' => 1.0,
+                    'BQX' => 1.0,
                 ),
             ),
             'markets' => array (
@@ -5761,6 +5793,10 @@ class bittrex extends Exchange {
                         'sellmarket',
                     ),
                 ),
+            ),
+            'fees' => array (
+                'maker' => '0.25%',
+                'taker' => '0.25%',
             ),
         ), $options));
     }
