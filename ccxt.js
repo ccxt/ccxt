@@ -1919,8 +1919,8 @@ var binance = {
         },
     },
     'fees': {
-        'taker': '0.1%',
-        'maker': '0.1%',
+        'taker': 0.001,
+        'maker': 0.001,
         'withdraw': {
             'BNB': 1.0,
             'BTC': 0.0005,
@@ -5564,8 +5564,8 @@ var bittrex = {
         },
     },
     'fees': {
-        'maker': '0.25%',
-        'taker': '0.25%',
+        'maker': 0.0025,
+        'taker': 0.0025,
     },
 
     async fetchMarkets () {
@@ -14498,6 +14498,7 @@ var liqui = {
         },
         'www': 'https://liqui.io',
         'doc': 'https://liqui.io/api',
+        'fees': 'https://liqui.io/fee',
     },
     'api': {
         'public': {
@@ -14522,7 +14523,12 @@ var liqui = {
                 'CreateCoupon',
                 'RedeemCoupon',
             ],
-        }
+        },
+    },
+    'fees': {
+        'maker': 0.001,
+        'taker': 0.0025,
+        'withdraw': 0.0,
     },
 
     async fetchMarkets () {
@@ -14547,6 +14553,7 @@ var liqui = {
                 'base': base,
                 'quote': quote,
                 'info': market,
+                'taker':
             });
         }
         return result;
