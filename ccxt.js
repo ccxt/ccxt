@@ -483,44 +483,6 @@ const Exchange = function (config) {
         }
     }
 
-    this.restPoll = async function () {
-
-        if (!restRequestQueue.length)
-            return false
-
-        this.lastRestPollTimestamp = Math.max (this.lastRestPollTimestamp, this.lastRestRequestTimestamp)
-
-        let elapsed = this.milliseconds () - this.lastRestPollTimestamp
-
-        if (elapsed < this.rateLimit) {
-
-            let delay = Math.max (this.rateLimit - elapsed, 0)
-            if (delay > 0) {
-                setTimeout (this.restPoll, delay)
-            }
-
-        } else {
-
-            let { url, method, headers, body, resolve, reject } = this.restRequestQueue.shift ()
-            this.lastRestPollTimestamp = this.milliseconds ()
-            this.executeRestRequest (url, method, headers, body).then (resolve).catch (reject)
-
-            if (restRequestQueue.length > 0)
-                setTimeout (this.restPoll, this.rateLimit)
-            else
-                this.restPollerLoopIsRunning = false;
-        }
-    }
-
-    this.runRestPollerLoop2 = async function () {
-
-        if (this.restPollerLoopIsRunning)
-            return false
-
-        this.restPollerLoopIsRunning = true
-        this.restPoll ()
-    }
-
     const issueRestRequest = (...args) => {
 
         if (this.enableRateLimit) {
