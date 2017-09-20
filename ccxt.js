@@ -2527,11 +2527,12 @@ var bitbay = {
     },
 
     isFiat (currency) {
-        if (currency == 'USD')
-            return true;
-        if (currency == 'EUR')
-            return true;
-        if (currency == 'PLN')
+        let fiatCurrencies = {
+            'USD': true,
+            'EUR': true,
+            'PLN': true,
+        };
+        if (currency in fiatCurrencies)
             return true;
         return false;
     },
