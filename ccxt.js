@@ -1924,7 +1924,7 @@ var binance = {
             'QTUM': 0.1,
             'SNT': 1.0,
             'EOS': 0.1,
-            'BCC': undefined
+            'BCC': undefined,
             'GAS': 0.0,
             'USDT': 5.0,
             'HSR': 0.0001,
