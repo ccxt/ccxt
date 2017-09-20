@@ -10349,16 +10349,15 @@ class gdax (Exchange):
         self.load_markets()
         market = self.market(symbol)
         granularity = self.timeframes[timeframe]
-        if not limit:
-            limit = 200 # max = 200
-        end = self.milliseconds()
-        start = end - limit * granularity * 1000
         request = {
             'id': market['id'],
             'granularity': granularity,
-            'start': self.iso8601(start),
-            'end': self.iso8601(end),
         }
+        if since:
+            request['start'] = self.iso8601(since)
+            if not limit:
+                limit = 200 # max = 200
+            request['end'] = self.iso8601(limit * granularity * 1000 + since)
         response = self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 

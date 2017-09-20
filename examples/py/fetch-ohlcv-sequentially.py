@@ -22,16 +22,20 @@ hold = 30
 
 # -----------------------------------------------------------------------------
 
-kraken = ccxt.kraken({'rateLimit': 3000, 'enableRateLimit': True})
+exchange = ccxt.gdax({
+    'rateLimit': 3000,
+    'enableRateLimit': True,
+    # 'verbose': True,
+})
 
 # -----------------------------------------------------------------------------
 
 from_datetime = '2017-09-01 00:00:00'
-from_timestamp = kraken.parse8601(from_datetime)
+from_timestamp = exchange.parse8601(from_datetime)
 
 # -----------------------------------------------------------------------------
 
-now = kraken.milliseconds()
+now = exchange.milliseconds()
 
 # -----------------------------------------------------------------------------
 
@@ -41,15 +45,10 @@ while from_timestamp < now:
 
     try:
 
-        print(kraken.milliseconds(), 'Fetching candles starting from', kraken.iso8601(from_timestamp))
-
-        ohlcvs = kraken.fetch_ohlcv('BTC/USD', '1m', from_timestamp)
-
-        print(kraken.milliseconds(), 'Fetched', len(ohlcvs), 'candles')
-
-        # Kraken returns 720 candles for 1m timeframe at once
+        print(exchange.milliseconds(), 'Fetching candles starting from', exchange.iso8601(from_timestamp))
+        ohlcvs = exchange.fetch_ohlcv('BTC/USD', '1m', from_timestamp)
+        print(exchange.milliseconds(), 'Fetched', len(ohlcvs), 'candles')
         from_timestamp += len(ohlcvs) * minute
-
         data += ohlcvs
 
     except (ccxt.ExchangeError, ccxt.AuthenticationError, ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:

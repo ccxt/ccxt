@@ -11536,16 +11536,16 @@ var gdax = {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let granularity = this.timeframes[timeframe];
-        if (!limit)
-            limit = 200; // max = 200
-        let end = this.milliseconds ();
-        let start = end - limit * granularity * 1000;
         let request = {
             'id': market['id'],
             'granularity': granularity,
-            'start': this.iso8601 (start),
-            'end': this.iso8601 (end),
         };
+        if (since) {
+            request['start'] = this.iso8601 (since);
+            if (!limit)
+                limit = 200; // max = 200
+            request['end'] = this.iso8601 (limit * granularity * 1000 + since);
+        }
         let response = await this.publicGetProductsIdCandles (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     },
