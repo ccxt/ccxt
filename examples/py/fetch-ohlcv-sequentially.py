@@ -53,7 +53,7 @@ while from_timestamp < now:
 
         data += ohlcvs
 
-    except (ccxt.ExchangeError, ccxt.AuthenticationError, ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as e:
+    except (ccxt.ExchangeError, ccxt.AuthenticationError, ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
 
-        print('Got an error', e.msg, ', sleeping for', hold, 'seconds...')
+        print('Got an error', type(error).__name__, error.args, ', sleeping for', hold, 'seconds...')
         time.sleep(hold)
