@@ -16149,6 +16149,7 @@ var poloniex = {
             'https://poloniex.com/support/api/',
             'http://pastebin.com/dMX7mZE0',
         ],
+        'fees': 'https://poloniex.com/fees',
     },
     'api': {
         'public': {
@@ -16195,6 +16196,11 @@ var poloniex = {
             ],
         },
     },
+    'fees': {
+        'maker': 0.0015,
+        'taker': 0.0025,
+        'withdraw': 0.0,
+    },
 
     async fetchMarkets () {
         let markets = await this.publicGetReturnTicker ();
@@ -16235,6 +16241,17 @@ var poloniex = {
             result[currency] = account;
         }
         return result;
+    },
+
+    async fetchFees (params = {}) {
+        await this.loadMarkets ();
+        let fees = await this.privatePostReturnFeeInfo ();
+        return {
+            'info': fees,
+            'maker': parseFloat (fees['makerFee']),
+            'taker': parseFloat (fees['takerFee']),
+            'withdraw': 0.0,
+        };
     },
 
     async fetchOrderBook (market, params = {}) {
