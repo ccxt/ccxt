@@ -14552,8 +14552,9 @@ var liqui = {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'taker': market['fee'],
+                'maker': 0.001,
                 'info': market,
-                'taker':
             });
         }
         return result;
