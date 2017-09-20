@@ -1647,11 +1647,12 @@ class bitbay (Exchange):
         return self.privatePostCancel({'id': id})
 
     def isFiat(self, currency):
-        if currency == 'USD':
-            return True
-        if currency == 'EUR':
-            return True
-        if currency == 'PLN':
+        fiatCurrencies = {
+            'USD': True,
+            'EUR': True,
+            'PLN': True,
+        }
+        if currency in fiatCurrencies:
             return True
         return False
 

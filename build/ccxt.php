@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.83';
+$version = '1.7.84';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2714,11 +2714,12 @@ class bitbay extends Exchange {
     }
 
     public function isFiat ($currency) {
-        if ($currency == 'USD')
-            return true;
-        if ($currency == 'EUR')
-            return true;
-        if ($currency == 'PLN')
+        $fiatCurrencies = array (
+            'USD' => true,
+            'EUR' => true,
+            'PLN' => true,
+        );
+        if (array_key_exists ($currency, $fiatCurrencies))
             return true;
         return false;
     }
