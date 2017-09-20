@@ -138,9 +138,9 @@ async def test_exchange_symbol_trades(exchange, symbol):
         trades = await exchange.fetch_trades(symbol)
         dump(green(exchange.id), green(symbol), 'fetched', green(len(list(trades))), 'trades')
     except ccxt.ExchangeError as e:
-        dump_error(yellow(type(e).__name__), e.args)
+        dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
     except ccxt.NotSupported as e:
-        dump_error(yellow(type(e).__name__), e.args)
+        dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
 
 # ------------------------------------------------------------------------------
 
@@ -207,7 +207,7 @@ async def test_exchange(exchange):
             orders = await exchange.fetch_orders()
             dump(green(exchange.id), 'fetched', green(str(len(orders))), 'orders')
         except (ccxt.ExchangeError, ccxt.NotSupported) as e:
-            dump_error(yellow(type(e).__name__), e.args)
+            dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
         # except ccxt.NotSupported as e:
         #     dump(yellow(type(e).__name__), e.args)
 

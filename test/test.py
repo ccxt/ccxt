@@ -116,9 +116,9 @@ def test_exchange_symbol_trades(exchange, symbol):
         trades = exchange.fetch_trades(symbol)
         dump(green(exchange.id), green(symbol), 'fetched', green(len(list(trades))), 'trades')
     except ccxt.ExchangeError as e:
-        dump(yellow(type(e).__name__), e.args)
+        dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
     except ccxt.NotSupported as e:
-        dump(yellow(type(e).__name__), e.args)
+        dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
 
 # ------------------------------------------------------------------------------
 
@@ -185,7 +185,7 @@ def test_exchange(exchange):
             orders = exchange.fetch_orders()
             dump(green(exchange.id), 'fetched', green(str(len(orders))), 'orders')
         except (ccxt.ExchangeError, ccxt.NotSupported) as e:
-            dump(yellow(type(e).__name__), e.args)
+            dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
         # except ccxt.NotSupported as e:
         #     dump(yellow(type(e).__name__), e.args)
 
@@ -226,17 +226,17 @@ def try_all_proxies(exchange, proxies):
             test_exchange(exchange)
             break
         except ccxt.RequestTimeout as e:
-            dump(yellow(type(e).__name__), str(e))
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e))
         except ccxt.NotSupported as e:
-            dump(yellow(type(e).__name__), e.args)
+            dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
         except ccxt.DDoSProtection as e:
-            dump(yellow(type(e).__name__), e.args)
+            dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
         except ccxt.ExchangeNotAvailable as e:
-            dump(yellow(type(e).__name__), e.args)
+            dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
         except ccxt.AuthenticationError as e:
-            dump(yellow(type(e).__name__), str(e))
+            dump_error(yellow('[' + type(e).__name__ + ']'), str(e))
         except ccxt.ExchangeError as e:
-            dump(yellow(type(e).__name__), e.args)
+            dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
 
 # ------------------------------------------------------------------------------
 
