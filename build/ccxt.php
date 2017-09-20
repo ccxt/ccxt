@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.85';
+$version = '1.7.86';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -14022,7 +14022,7 @@ class kraken extends Exchange {
             'name' => 'Kraken',
             'countries' => 'US',
             'version' => '0',
-            'rateLimit' => 2000,
+            'rateLimit' => 1500,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
             'marketsByAltname' => array (),
