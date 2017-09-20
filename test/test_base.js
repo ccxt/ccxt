@@ -1,6 +1,6 @@
 /*  ------------------------------------------------------------------------ */
 
-const ccxt     = require ('./ccxt')
+const ccxt     = require ('../ccxt')
     , assert   = require ('assert')
     , log      = require ('ololog')
     , ansi     = require ('ansicolor').nice;
