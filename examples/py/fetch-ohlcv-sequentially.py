@@ -22,7 +22,7 @@ hold = 30
 
 # -----------------------------------------------------------------------------
 
-kraken = ccxt.kraken()
+kraken = ccxt.kraken({'rateLimit': 3000, 'enableRateLimit': True})
 
 # -----------------------------------------------------------------------------
 
@@ -39,14 +39,13 @@ data = []
 
 while from_timestamp < now:
 
-    print('Fetching candles starting from', kraken.iso8601(from_timestamp))
-
     try:
+
+        print(kraken.milliseconds(), 'Fetching candles starting from', kraken.iso8601(from_timestamp))
 
         ohlcvs = kraken.fetch_ohlcv('BTC/USD', '1m', from_timestamp)
 
-        # don't hit the rateLimit or you will be banned
-        time.sleep(kraken.rateLimit / msec)
+        print(kraken.milliseconds(), 'Fetched', len(ohlcvs), 'candles')
 
         # Kraken returns 720 candles for 1m timeframe at once
         from_timestamp += len(ohlcvs) * minute
@@ -55,5 +54,5 @@ while from_timestamp < now:
 
     except (ccxt.ExchangeError, ccxt.AuthenticationError, ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
 
-        print('Got an error', type(error).__name__, error.args, ', sleeping for', hold, 'seconds...')
+        print('Got an error', type(error).__name__, error.args, ', retrying in', hold, 'seconds...')
         time.sleep(hold)

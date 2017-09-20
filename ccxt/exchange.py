@@ -126,6 +126,8 @@ class Exchange(object):
     hasFetchOpenOrders = False
     hasFetchClosedOrders = False
     substituteCommonCurrencyCodes = True
+    lastRestRequestTimestamp = 0
+    lastRestPollTimestamp = 0
 
     def __init__(self, config={}):
 
@@ -198,6 +200,12 @@ class Exchange(object):
             raise exception_type(' '.join([self.id, method, url, details]))
 
     def fetch(self, url, method='GET', headers=None, body=None):
+        now = self.milliseconds ()
+        elapsed = now - self.lastRestRequestTimestamp
+        if self.enableRateLimit and (elapsed < self.rateLimit):
+            delay = self.rateLimit - elapsed
+            time.sleep(delay / 1000.0)
+        self.lastRestRequestTimestamp = self.milliseconds()
         """Perform a HTTP request and return decoded JSON data"""
         headers = headers or {}
         if self.userAgent:
