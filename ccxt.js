@@ -804,6 +804,12 @@ const Exchange = function (config) {
     this.hasDeposit           = false
     this.hasWithdraw          = false
 
+    this.balance    = {}
+    this.orderbooks = {}
+    this.fees       = {}
+    this.orders     = {}
+    this.trades     = {}
+
     this.YmdHMS = function (timestamp, infix = ' ') {
         let date = new Date (timestamp)
         let Y = date.getUTCFullYear ()
@@ -1916,7 +1922,7 @@ var binance = {
         'taker': '0.1%',
         'maker': '0.1%',
         'withdraw': {
-            'BNB': 1,
+            'BNB': 1.0,
             'BTC': 0.0005,
             'ETH': 0.005,
             'LTC': 0.001,
@@ -1940,7 +1946,6 @@ var binance = {
             'BQX': 1.0,
         },
     },
-
     'markets': {
         'BNB/BTC': { 'id': 'BNBBTC', 'symbol': 'BNB/BTC', 'base': 'BNB', 'quote': 'BTC' },
         'NEO/BTC': { 'id': 'NEOBTC', 'symbol': 'NEO/BTC', 'base': 'NEO', 'quote': 'BTC' },
@@ -5561,9 +5566,6 @@ var bittrex = {
     'fees': {
         'maker': '0.25%',
         'taker': '0.25%',
-        'withdraw': {
-            // unknown
-        },
     },
 
     async fetchMarkets () {

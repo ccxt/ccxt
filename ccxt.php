@@ -433,26 +433,29 @@ class Exchange {
 
         global $version;
 
-        $this->curl       = curl_init ();
-        $this->id         = null;
-        $this->rateLimit  = 2000;
-        $this->timeout    = 10000; // in milliseconds
-        $this->proxy      = '';
-        $this->markets    = null;
-        $this->symbols    = null;
-        $this->ids        = null;
-        $this->currencies = null;
-        $this->orders     = array ();
-        $this->trades     = array ();
-        $this->verbose    = false;
-        $this->apiKey     = '';
-        $this->secret     = '';
-        $this->password   = '';
-        $this->uid        = '';
-        $this->twofa      = false;
+        $this->curl        = curl_init ();
+        $this->id          = null;
+        $this->rateLimit   = 2000;
+        $this->timeout     = 10000; // in milliseconds
+        $this->proxy       = '';
+        $this->markets     = null;
+        $this->symbols     = null;
+        $this->ids         = null;
+        $this->currencies  = null;
+        $this->balance     = array ();
+        $this->orderbooks  = array ();
+        $this->fees        = array ();
+        $this->orders      = array ();
+        $this->trades      = array ();
+        $this->verbose     = false;
+        $this->apiKey      = '';
+        $this->secret      = '';
+        $this->password    = '';
+        $this->uid         = '';
+        $this->twofa       = false;
         $this->marketsById = null;
         $this->markets_by_id = null;
-        $this->userAgent  = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
+        $this->userAgent   = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
         $this->timeframes = null;
         $this->hasPublicAPI         = true;

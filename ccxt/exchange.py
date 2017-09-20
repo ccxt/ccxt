@@ -105,6 +105,9 @@ class Exchange(object):
     currencies = None
     tickers = None
     api = None
+    balance = {}
+    orderbooks = {}
+    fees = {}
     orders = {}
     trades = {}
     proxy = ''
