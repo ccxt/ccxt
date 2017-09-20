@@ -37,7 +37,7 @@
     "istanbul": "^0.4.5",
     "mocha": "^3.5.3",
     "nyc": "^11.0.3",
-    "ololog": "^1.0.16"
+    "ololog": "^1.0.22"
   },
   "author": {
     "name": "Igor Kroitor",
