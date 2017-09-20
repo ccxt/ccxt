@@ -1,6 +1,6 @@
 # CCXT – CryptoCurrency eXchange Trading Library
 
-[![Build Status](https://travis-ci.org/kroitor/ccxt.svg?branch=master)](https://travis-ci.org/kroitor/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Try ccxt on RunKit](https://badge.runkitcdn.com/ccxt.svg)](https://npm.runkit.com/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-84-blue.svg)](https://github.com/ccxt-dev/ccxt/wiki/Exchange-Markets)
+[![Build Status](https://travis-ci.org/kroitor/ccxt.svg?branch=master)](https://travis-ci.org/kroitor/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Try ccxt on RunKit](https://badge.runkitcdn.com/ccxt.svg)](https://npm.runkit.com/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-85-blue.svg)](https://github.com/ccxt-dev/ccxt/wiki/Exchange-Markets)
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
@@ -21,7 +21,7 @@ Current featurelist:
 
 ## Supported Cryptocurrency Exchange Markets
 
-The ccxt library currently supports the following 84 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 85 cryptocurrency exchange markets and trading APIs:
 
 |                                                                                                                           | id                 | name                                                      | ver | doc                                                                                         | countries                               |
 |---------------------------------------------------------------------------------------------------------------------------|--------------------|-----------------------------------------------------------|:---:|:-------------------------------------------------------------------------------------------:|-----------------------------------------|
@@ -105,6 +105,7 @@ The ccxt library currently supports the following 84 cryptocurrency exchange mar
 |![vaultoro](https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg)           | vaultoro           | [Vaultoro](https://www.vaultoro.com)                      | 1   | [API](https://api.vaultoro.com)                                                             | Switzerland                             |
 |![vbtc](https://user-images.githubusercontent.com/1294454/27991481-1f53d1d8-6481-11e7-884e-21d17e7939db.jpg)               | vbtc               | [VBTC](https://vbtc.exchange)                             | 1   | [API](https://blinktrade.com/docs)                                                          | Vietnam                                 |
 |![virwox](https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg)             | virwox             | [VirWoX](https://www.virwox.com)                          | *   | [API](https://www.virwox.com/developers.php)                                                | Austria, EU                             |
+|![wex](https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg)                | wex                | [WEX](https://wex.nz)                                     | 3   | [API](https://wex.nz/api/3/docs)                                                            | New Zealand                             |
 |![xbtce](https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg)              | xbtce              | [xBTCe](https://www.xbtce.com)                            | 1   | [API](https://www.xbtce.com/tradeapi)                                                       | Russia                                  |
 |![yobit](https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg)              | yobit              | [YoBit](https://www.yobit.net)                            | 3   | [API](https://www.yobit.net/en/api/)                                                        | Russia                                  |
 |![yunbi](https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg)              | yunbi              | [YUNBI](https://yunbi.com)                                | 2   | [API](https://yunbi.com/documents/api/guide)                                                | China                                   |

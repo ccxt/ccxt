@@ -11,7 +11,7 @@ CCXT – CryptoCurrency eXchange Trading Library
     :target: https://www.npmjs.com/package/ccxt
 .. image:: https://badge.runkitcdn.com/ccxt.svg
     :target: https://npm.runkit.com/ccxt
-.. image:: https://img.shields.io/badge/exchanges-84-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-85-blue.svg
     :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
@@ -29,12 +29,12 @@ Current featurelist:
 -  an out-of-the box unified all-in-one API extremely easy to integrate
 -  works in Node 7.6+, Python 2 and 3, PHP 5.3+, web browsers
 
-`ccxt on GitHub <https://github.com/kroitor/ccxt>`__ | Install | Usage | `Manual <https://github.com/kroitor/ccxt/wiki>`__ | `Examples <https://github.com/kroitor/ccxt/tree/master/examples>`__ | `Changelog <https://github.com/kroitor/ccxt/blob/master/CHANGELOG.md>`__ | `Contributing <https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md>`__
+`ccxt on GitHub <https://github.com/ccxt-dev/ccxt>`__ | Install | Usage | `Manual <https://github.com/ccxt-dev/ccxt/wiki>`__ | `Examples <https://github.com/ccxt-dev/ccxt/tree/master/examples>`__ | `Changelog <https://github.com/ccxt-dev/ccxt/blob/master/CHANGELOG.md>`__ | `Contributing <https://github.com/ccxt-dev/ccxt/blob/master/CONTRIBUTING.md>`__
 
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 84 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 85 cryptocurrency exchange markets and trading APIs:
 
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id                   | name                                                           | ver   | doc                                                                                              | countries                                  |
@@ -199,6 +199,8 @@ The ccxt library currently supports the following 84 cryptocurrency exchange mar
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | virwox               | `VirWoX <https://www.virwox.com>`__                            | \*    | `API <https://www.virwox.com/developers.php>`__                                                  | Austria, EU                                |
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| wex                  | `WEX <https://wex.nz>`__                                       | 3     | `API <https://wex.nz/api/3/docs>`__                                                              | New Zealand                                |
++----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | xbtce                | `xBTCe <https://www.xbtce.com>`__                              | 1     | `API <https://www.xbtce.com/tradeapi>`__                                                         | Russia                                     |
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | yobit                | `YoBit <https://www.yobit.net>`__                              | 3     | `API <https://www.yobit.net/en/api/>`__                                                          | Russia                                     |
@@ -208,9 +210,9 @@ The ccxt library currently supports the following 84 cryptocurrency exchange mar
 | zaif                 | `Zaif <https://zaif.jp>`__                                     | 1     | `API <http://techbureau-api-document.readthedocs.io/ja/latest/index.html>`__                     | Japan                                      |
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 
-The list above is updated frequently, new crypto markets, altcoin exchanges, bug fixes, API endpoints are introduced and added on regular basis. See the `Manual <https://github.com/kroitor/ccxt/wiki>`__ for details. If you don't find a cryptocurrency exchange market in the list above and/or want another exchange to be added, post or send us a link to it by opening an issue here on GitHub or via email.
+The list above is updated frequently, new crypto markets, altcoin exchanges, bug fixes, API endpoints are introduced and added on regular basis. See the `Manual <https://github.com/ccxt-dev/ccxt/wiki>`__ for details. If you don't find a cryptocurrency exchange market in the list above and/or want another exchange to be added, post or send us a link to it by opening an issue here on GitHub or via email.
 
-The library is under `MIT license <https://github.com/kroitor/ccxt/blob/master/LICENSE.txt>`__, that means it's absolutely free for any developer to build commercial and opensource software on top of it, but use it at your own risk with no warranties, as is.
+The library is under `MIT license <https://github.com/ccxt-dev/ccxt/blob/master/LICENSE.txt>`__, that means it's absolutely free for any developer to build commercial and opensource software on top of it, but use it at your own risk with no warranties, as is.
 
 Install
 -------
@@ -222,15 +224,15 @@ The easiest way to install the ccxt library is to use builtin package managers:
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
--  ```ccxt.js`` <https://github.com/kroitor/ccxt/blob/master/ccxt.js>`__ in JavaScript
--  ```ccxt/`` <https://github.com/kroitor/ccxt/blob/master/ccxt/>`__ in Python (generated from JS)
--  ```build/ccxt.php`` <https://github.com/kroitor/ccxt/blob/master/build/ccxt.php>`__ in PHP (generated from JS)
+-  ```ccxt.js`` <https://github.com/ccxt-dev/ccxt/blob/master/ccxt.js>`__ in JavaScript
+-  ```ccxt/`` <https://github.com/ccxt-dev/ccxt/blob/master/ccxt/>`__ in Python (generated from JS)
+-  ```build/ccxt.php`` <https://github.com/ccxt-dev/ccxt/blob/master/build/ccxt.php>`__ in PHP (generated from JS)
 
-You can also clone it into your project directory from `ccxt GitHub repository <https://github.com/kroitor/ccxt>`__:
+You can also clone it into your project directory from `ccxt GitHub repository <https://github.com/ccxt-dev/ccxt>`__:
 
 .. code:: shell
 
-    git clone https://github.com/kroitor/ccxt.git
+    git clone https://github.com/ccxt-dev/ccxt.git
 
 An alternative way of installing this library into your code is to copy a single file manually into your working directory with language extension appropriate for your environment.
 
@@ -289,7 +291,7 @@ The library supports concurrent asynchronous mode with asyncio and async/await i
 PHP
 ~~~
 
-The ccxt library in PHP: `**``ccxt.php``** <https://raw.githubusercontent.com/kroitor/ccxt/master/build/ccxt.php>`__
+The ccxt library in PHP: `**``ccxt.php``** <https://raw.githubusercontent.com/ccxt-dev/ccxt/master/build/ccxt.php>`__
 
 It requires common PHP modules:
 
@@ -306,7 +308,7 @@ It requires common PHP modules:
 Documentation
 -------------
 
-Read the `Manual <https://github.com/kroitor/ccxt/wiki>`__ for more details.
+Read the `Manual <https://github.com/ccxt-dev/ccxt/wiki>`__ for more details.
 
 Usage
 -----
@@ -350,7 +352,7 @@ The ccxt library supports both camelcase notation (preferred in JavaScript) and 
     exchange.methodName ()  // camelcase pseudocode
     exchange.method_name () // underscore pseudocode
 
-Read the `Manual <https://github.com/kroitor/ccxt/wiki>`__ for more details.
+Read the `Manual <https://github.com/ccxt-dev/ccxt/wiki>`__ for more details.
 
 JavaScript
 ~~~~~~~~~~
@@ -471,7 +473,7 @@ PHP
 Contributing
 ------------
 
-Please read the `CONTRIBUTING <https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md>`__ document before making changes that you would like adopted in the code. Also, read the `Manual <https://github.com/kroitor/ccxt/wiki>`__ for more details.
+Please read the `CONTRIBUTING <https://github.com/ccxt-dev/ccxt/blob/master/CONTRIBUTING.md>`__ document before making changes that you would like adopted in the code. Also, read the `Manual <https://github.com/ccxt-dev/ccxt/wiki>`__ for more details.
 
 Support CCXT Development
 ------------------------

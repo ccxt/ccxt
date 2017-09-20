@@ -18839,7 +18839,7 @@ var exchanges = {
     'vaultoro':           vaultoro,
     'vbtc':               vbtc,
     'virwox':             virwox,
-    'wex',                wex,
+    'wex':                wex,
     'xbtce':              xbtce,
     'yobit':              yobit,
     'yunbi':              yunbi,

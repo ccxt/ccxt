@@ -216,6 +216,7 @@ class Exchange {
         'vaultoro',
         'vbtc',
         'virwox',
+        'wex',
         'xbtce',
         'yobit',
         'yunbi',

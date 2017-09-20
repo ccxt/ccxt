@@ -107,6 +107,7 @@ exchanges = [
     'vaultoro',
     'vbtc',
     'virwox',
+    'wex',
     'xbtce',
     'yobit',
     'yunbi',
@@ -16327,6 +16328,58 @@ class virwox (Exchange):
             if response['error']:
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
+
+#------------------------------------------------------------------------------
+
+class wex (liqui):
+
+    def __init__(self, config={}):
+        params = {
+            'id': 'wex',
+            'name': 'WEX',
+            'countries': 'NZ', # New Zealand
+            'version': '3',
+            'hasFetchTickers': True,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg',
+                'api': {
+                    'public': 'https://wex.nz/api',
+                    'private': 'https://wex.nz/tapi',
+                },
+                'www': 'https://wex.nz',
+                'doc': [
+                    'https://wex.nz/api/3/docs',
+                    'https://wex.nz/tapi/docs',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'info',
+                        'ticker/{pair}',
+                        'depth/{pair}',
+                        'trades/{pair}',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'getInfo',
+                        'Trade',
+                        'ActiveOrders',
+                        'OrderInfo',
+                        'CancelOrder',
+                        'TradeHistory',
+                        'TransHistory',
+                        'CoinDepositAddress',
+                        'WithdrawCoin',
+                        'CreateCoupon',
+                        'RedeemCoupon',
+                    ],
+                }
+            },
+        }
+        params.update(config)
+        super(wex, self).__init__(params)
 
 #------------------------------------------------------------------------------
 

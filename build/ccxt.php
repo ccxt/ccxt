@@ -216,6 +216,7 @@ class Exchange {
         'vaultoro',
         'vbtc',
         'virwox',
+        'wex',
         'xbtce',
         'yobit',
         'yunbi',
@@ -18295,6 +18296,58 @@ class virwox extends Exchange {
             if ($response['error'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
+    }
+}
+
+//------------------------------------------------------------------------------
+
+class wex extends liqui {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge(array (
+            'id' => 'wex',
+            'name' => 'WEX',
+            'countries' => 'NZ', // New Zealand
+            'version' => '3',
+            'hasFetchTickers' => true,
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg',
+                'api' => array (
+                    'public' => 'https://wex.nz/api',
+                    'private' => 'https://wex.nz/tapi',
+                ),
+                'www' => 'https://wex.nz',
+                'doc' => array (
+                    'https://wex.nz/api/3/docs',
+                    'https://wex.nz/tapi/docs',
+                ),
+            ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'info',
+                        'ticker/{pair}',
+                        'depth/{pair}',
+                        'trades/{pair}',
+                    ),
+                ),
+                'private' => array (
+                    'post' => array (
+                        'getInfo',
+                        'Trade',
+                        'ActiveOrders',
+                        'OrderInfo',
+                        'CancelOrder',
+                        'TradeHistory',
+                        'TransHistory',
+                        'CoinDepositAddress',
+                        'WithdrawCoin',
+                        'CreateCoupon',
+                        'RedeemCoupon',
+                    ),
+                )
+            ),
+        ), $options));
     }
 }
 
