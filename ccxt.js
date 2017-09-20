@@ -1914,7 +1914,7 @@ var binance = {
     },
     'fees': {
         'taker': '0.1%',
-        'maker': '0.1%'
+        'maker': '0.1%',
         'withdraw': {
             'BNB': 1,
             'BTC': 0.0005,
@@ -5558,6 +5558,13 @@ var bittrex = {
             ],
         },
     },
+    'fees': {
+        'maker': '0.25%',
+        'taker': '0.25%',
+        'withdraw': {
+            // unknown
+        },
+    }
 
     async fetchMarkets () {
         let markets = await this.publicGetMarkets ();
