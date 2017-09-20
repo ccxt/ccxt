@@ -901,10 +901,7 @@ class acx (Exchange):
                 url += '?' + suffix
             else:
                 body = suffix
-                headers = {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Content-Length': len(body),
-                }
+                headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         response = self.fetch(url, method, headers, body)
         if 'error' in response:
             raise ExchangeError(self.id + ' ' + self.json(response))
@@ -2914,7 +2911,8 @@ class bithumb (Exchange):
     def parse_trade(self, trade, market):
         # a workaround their bug in date format, hours are not 0-padded
         transaction_date, transaction_time = trade['transaction_date'].split(' ')
-        if len(transaction_time) < 8:
+        transaction_time_short = len(transaction_time) < 8
+        if transaction_time_short:
             transaction_time = '0' + transaction_time
         timestamp = self.parse8601(transaction_date + ' ' + transaction_time)
         side = 'sell' if(trade['type'] == 'ask') else 'buy'
@@ -5210,7 +5208,6 @@ class bl3p (Exchange):
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len(body),
                 'Rest-Key': self.apiKey,
                 'Rest-Sign': signature,
             }
@@ -5553,7 +5550,6 @@ class btcchina (Exchange):
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha1)
             auth = self.apiKey + ':' + signature
             headers = {
-                'Content-Length': len(body),
                 'Authorization': 'Basic ' + base64.b64encode(auth),
                 'Json-Rpc-Tonce': nonce,
             }
@@ -6549,7 +6545,6 @@ class bter (Exchange):
                 'Key': self.apiKey,
                 'Sign': signature,
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': str(len(body)),
             }
         response = self.fetch(url, method, headers, body)
         if 'result' in response:
@@ -7808,7 +7803,6 @@ class coinfloor (Exchange):
             signature = base64.b64encode(auth)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len(body),
                 'Authorization': 'Basic ' + signature,
             }
         return self.fetch(url, method, headers, body)
@@ -10622,7 +10616,6 @@ class gemini (Exchange):
             signature = self.hmac(payload, self.encode(self.secret), hashlib.sha384)
             headers = {
                 'Content-Type': 'text/plain',
-                'Content-Length': 0,
                 'X-GEMINI-APIKEY': self.apiKey,
                 'X-GEMINI-PAYLOAD': payload,
                 'X-GEMINI-SIGNATURE': signature,
@@ -12889,7 +12882,6 @@ class lakebtc (Exchange):
             headers = {
                 'Json-Rpc-Tonce': nonce,
                 'Authorization': "Basic " + self.apiKey + ':' + signature,
-                'Content-Length': len(body),
                 'Content-Type': 'application/json',
             }
         response = self.fetch(url, method, headers, body)
@@ -13400,7 +13392,6 @@ class liqui (Exchange):
             signature = self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': str(len(body)),
                 'Key': self.apiKey,
                 'Sign': signature,
             }
@@ -13954,7 +13945,6 @@ class mixcoins (Exchange):
             }, params))
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len(body),
                 'Key': self.apiKey,
                 'Sign': self.hmac(self.encode(body), self.secret, hashlib.sha512),
             }

@@ -1819,10 +1819,7 @@ class acx extends Exchange {
                 $url .= '?' . $suffix;
             } else {
                 $body = $suffix;
-                $headers = array (
-                    'Content-Type' => 'application/x-www-form-urlencoded',
-                    'Content-Length' => strlen ($body),
-                );
+                $headers = array ( 'Content-Type' => 'application/x-www-form-urlencoded' );
             }
         }
         $response = $this->fetch ($url, $method, $headers, $body);
@@ -3974,7 +3971,8 @@ class bithumb extends Exchange {
     public function parse_trade ($trade, $market) {
         // a workaround their bug in date format, hours are not 0-padded
         list ($transaction_date, $transaction_time) = explode (' ', $trade['transaction_date']);
-        if strlen (($transaction_time) < 8)
+        $transaction_time_short = strlen ($transaction_time) < 8;
+        if ($transaction_time_short)
             $transaction_time = '0' . $transaction_time;
         $timestamp = $this->parse8601 ($transaction_date . ' ' . $transaction_time);
         $side = ($trade['type'] == 'ask') ? 'sell' : 'buy';
@@ -6435,7 +6433,6 @@ class bl3p extends Exchange {
             $signature = $this->hmac ($this->encode ($auth), $secret, 'sha512', 'base64');
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'Content-Length' => strlen ($body),
                 'Rest-Key' => $this->apiKey,
                 'Rest-Sign' => $signature,
             );
@@ -6801,7 +6798,6 @@ class btcchina extends Exchange {
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha1');
             $auth = $this->apiKey . ':' . $signature;
             $headers = array (
-                'Content-Length' => strlen ($body),
                 'Authorization' => 'Basic ' . base64_encode ($auth),
                 'Json-Rpc-Tonce' => $nonce,
             );
@@ -7869,7 +7865,6 @@ class bter extends Exchange {
                 'Key' => $this->apiKey,
                 'Sign' => $signature,
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'Content-Length' => (string) strlen ($body),
             );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
@@ -9212,7 +9207,6 @@ class coinfloor extends Exchange {
             $signature = base64_encode ($auth);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'Content-Length' => strlen ($body),
                 'Authorization' => 'Basic ' . $signature,
             );
         }
@@ -12203,7 +12197,6 @@ class gemini extends Exchange {
             $signature = $this->hmac ($payload, $this->encode ($this->secret), 'sha384');
             $headers = array (
                 'Content-Type' => 'text/plain',
-                'Content-Length' => 0,
                 'X-GEMINI-APIKEY' => $this->apiKey,
                 'X-GEMINI-PAYLOAD' => $payload,
                 'X-GEMINI-SIGNATURE' => $signature,
@@ -14623,7 +14616,6 @@ class lakebtc extends Exchange {
             $headers = array (
                 'Json-Rpc-Tonce' => $nonce,
                 'Authorization' => "Basic " . $this->apiKey . ':' . $signature,
-                'Content-Length' => strlen ($body),
                 'Content-Type' => 'application/json',
             );
         }
@@ -15172,7 +15164,6 @@ class liqui extends Exchange {
             $signature = $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512');
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'Content-Length' => (string) strlen ($body),
                 'Key' => $this->apiKey,
                 'Sign' => $signature,
             );
@@ -15765,7 +15756,6 @@ class mixcoins extends Exchange {
             ), $params));
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'Content-Length' => strlen ($body),
                 'Key' => $this->apiKey,
                 'Sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
             );
