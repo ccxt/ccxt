@@ -114,8 +114,6 @@ The list above is updated frequently, new crypto markets, altcoin exchanges, bug
 
 The library is under [MIT license](https://github.com/kroitor/ccxt/blob/master/LICENSE.txt), that means it's absolutely free for any developer to build commercial and opensource software on top of it, but use it at your own risk with no warranties, as is.
 
-Developer team is open to collaboration and available for hiring and outsourcing. If you're interested in integrating this software into an existing project or in developing new opensource and commercial projects we welcome you to read our [Public Offer](#public-offer).
-
 ## Install
 
 The easiest way to install the ccxt library is to use builtin package managers:
@@ -202,6 +200,10 @@ include "ccxt.php";
 var_dump (\cxxt\Exchange::$exchanges); // print a list of all available exchange classes
 ```
 
+## Documentation
+
+Read the [Manual](https://github.com/kroitor/ccxt/wiki) for more details.
+
 ## Usage
 
 ### Intro
@@ -241,8 +243,6 @@ The ccxt library supports both camelcase notation (preferred in JavaScript) and 
 exchange.methodName ()  // camelcase pseudocode
 exchange.method_name () // underscore pseudocode
 ```
-
-### Documentation
 
 Read the [Manual](https://github.com/kroitor/ccxt/wiki) for more details.
 
@@ -361,7 +361,7 @@ $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId
 
 ## Contributing
 
-Please read the [CONTRIBUTING](https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code.
+Please read the [CONTRIBUTING](https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code. Also, read the [Manual](https://github.com/kroitor/ccxt/wiki) for more details.
 
 ## Support CCXT Development
 
