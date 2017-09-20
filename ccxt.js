@@ -5564,7 +5564,7 @@ var bittrex = {
         'withdraw': {
             // unknown
         },
-    }
+    },
 
     async fetchMarkets () {
         let markets = await this.publicGetMarkets ();
