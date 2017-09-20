@@ -2,10 +2,19 @@
 
 import argparse
 import asyncio
-import ccxt.async as ccxt
-import json
+import os
 import sys
+import json
 import time
+
+# ------------------------------------------------------------------------------
+
+root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(root)
+
+# ------------------------------------------------------------------------------
+
+import ccxt.async as ccxt
 
 # ------------------------------------------------------------------------------
 

@@ -1,15 +1,24 @@
 # -*- coding: utf-8 -*-
 
-import ccxt
-import time
-import json
-
 import argparse
+import os
+import sys
+import json
+import time
 
+# ------------------------------------------------------------------------------
+
+root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(root)
+
+# ------------------------------------------------------------------------------
+
+import ccxt
+
+# ------------------------------------------------------------------------------
 
 class Argv (object):
     pass
-
 
 argv = Argv()
 
