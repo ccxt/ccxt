@@ -47,6 +47,12 @@ def underline(s): return style(s, '\033[4m')
 def dump(*args):
     print(' '.join([str(arg) for arg in args]))
 
+# print a n error string
+def dump_error(*args):
+    string = ' '.join([str(arg) for arg in args])
+    print(string)
+    sys.stderr.write(string + "\n")
+
 # ------------------------------------------------------------------------------
 
 def test_exchange_symbol_orderbook(exchange, symbol):
