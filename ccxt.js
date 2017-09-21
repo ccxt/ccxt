@@ -13671,6 +13671,7 @@ var kraken = {
             'https://www.kraken.com/en-us/help/api',
             'https://github.com/nothingisdead/npm-kraken-api',
         ],
+        'fees': 'https://www.kraken.com/en-us/help/fees',
     },
     'api': {
         'public': {
