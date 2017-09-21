@@ -246,9 +246,6 @@ class Exchange(object):
         except httplib.BadStatusLine as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
         encoding = response.info().get('Content-Encoding')
-        # print(response.info())
-        print(self.id, response.info().get('Access-Control-Allow-Origin'))
-        # print(dir(response.info ()))
         if encoding in ('gzip', 'x-gzip', 'deflate'):
             if encoding == 'deflate':
                 text = zlib.decompress(text, -zlib.MAX_WBITS)
