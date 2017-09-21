@@ -184,7 +184,7 @@ const testExchange = async (exchange) => {
 
     if (failed.length) {
 
-        await sleep (2000)
+        await sleep (2000) // to fight TravisCI log truncation issue, see https://github.com/travis-ci/travis-ci/issues/8189
         process.exit (1)
     }
 
