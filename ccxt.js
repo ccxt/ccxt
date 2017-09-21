@@ -163,14 +163,7 @@ const keysort = object => {
     return result
 }
 
-const extend = (...args) => {
-    const result = {}
-    for (let i = 0; i < args.length; i++)
-        if (typeof args[i] === 'object')
-            Object.keys (args[i]).forEach (key =>
-                (result[key] = args[i][key]))
-    return result
-}
+const extend = (...args) => Object.assign ({}, ...args)
 
 const omit = function (object) {
     const result = extend (object)

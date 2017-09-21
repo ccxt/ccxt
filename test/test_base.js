@@ -20,23 +20,6 @@ describe ('ccxt base code', () => {
         }
     })
 
-    it ('extend () works', () => {
-
-        const foobar = ccxt.extend (
-            { 'foo': 'bar' },
-            { 'bar': 'foo' },
-            { 'baz': 'qux' },
-            { 'qux': 'baz' })
-
-        // for (key of foobar)
-
-        assert ('foo' in foobar)
-        assert ('bar' in foobar)
-        assert ('baz' in foobar)
-        assert ('qux' in foobar)
-
-    })
-
     // it ('rate limiting works', async () => {
 
     //     const calls = []
