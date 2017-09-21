@@ -120,6 +120,7 @@ class Exchange(object):
     markets_by_id = None
     hasPublicAPI = True
     hasPrivateAPI = True
+    hasCORS = False
     hasFetchTickers = False
     hasFetchOHLCV = False
     hasDeposit = False
@@ -245,6 +246,9 @@ class Exchange(object):
         except httplib.BadStatusLine as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
         encoding = response.info().get('Content-Encoding')
+        # print(response.info())
+        print(self.id, response.info().get('Access-Control-Allow-Origin'))
+        # print(dir(response.info ()))
         if encoding in ('gzip', 'x-gzip', 'deflate'):
             if encoding == 'deflate':
                 text = zlib.decompress(text, -zlib.MAX_WBITS)
@@ -253,7 +257,7 @@ class Exchange(object):
                 text = data.read()
         decoded_text = text.decode('utf-8')
         if self.verbose:
-            print(method, url, "\nResponse:", headers, decoded_text)
+            print(method, url, "\nResponse:", response.info().headers, decoded_text)
         return self.handle_rest_response(decoded_text, url, method, headers, body)
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):

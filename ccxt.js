@@ -808,6 +808,7 @@ const Exchange = function (config) {
     this.timeframes      = undefined
     this.hasPublicAPI         = true
     this.hasPrivateAPI        = true
+    this.hasCORS              = false
     this.hasFetchTickers      = false
     this.hasFetchOHLCV        = false
     this.hasFetchOrder        = false
@@ -894,6 +895,7 @@ var _1broker = {
     'rateLimit': 1500,
     'version': 'v2',
     'hasPublicAPI': false,
+    'hasCORS': true,
     'hasFetchOHLCV': true,
     'timeframes': {
         '1m': '60',
@@ -1338,6 +1340,7 @@ var _1btcxe = extend (cryptocapital, {
     'name': '1BTCXE',
     'countries': 'PA', // Panama
     'comment': 'Crypto Capital API',
+    'hasCORS': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg',
         'api': 'https://1btcxe.com/api',
@@ -1386,6 +1389,7 @@ var acx = {
     'countries': 'AU',
     'rateLimit': 1000,
     'version': 'v2',
+    'hasCORS': true,
     'hasFetchTickers': true,
     'hasFetchOHLCV': true,
     'timeframes': {
@@ -1688,6 +1692,7 @@ var anxpro = {
     'countries': [ 'JP', 'SG', 'HK', 'NZ' ],
     'version': '2',
     'rateLimit': 1500,
+    'hasCORS': false,
     'hasWithdraw': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
@@ -1875,6 +1880,7 @@ var binance = {
     'countries': 'CN', // China
     'rateLimit': 1000,
     'version': 'v1',
+    'hasCORS': false,
     'hasFetchOHLCV': true,
     'timeframes': {
         '1m': '1m',
@@ -2268,6 +2274,7 @@ var bit2c = {
     'name': 'Bit2C',
     'countries': 'IL', // Israel
     'rateLimit': 3000,
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
         'api': 'https://www.bit2c.co.il',
@@ -2436,6 +2443,7 @@ var bitbay = {
     'name': 'BitBay',
     'countries': [ 'PL', 'EU' ], // Poland
     'rateLimit': 1000,
+    'hasCORS': true,
     'hasWithdraw': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
@@ -2640,6 +2648,7 @@ var bitcoincoid = {
     'id': 'bitcoincoid',
     'name': 'Bitcoin.co.id',
     'countries': 'ID', // Indonesia
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766138-043c7786-5ecf-11e7-882b-809c14f38b53.jpg',
         'api': {
@@ -2813,6 +2822,7 @@ var bitfinex = {
     'countries': 'US',
     'version': 'v1',
     'rateLimit': 1500,
+    'hasCORS': false,
     'hasFetchTickers': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
@@ -3157,6 +3167,7 @@ var bitfinex2 = extend (bitfinex, {
     'name': 'Bitfinex v2',
     'countries': 'US',
     'version': 'v2',
+    'hasCORS': true,
     'hasFetchTickers': false, // true but at least one pair is required
     'hasFetchOHLCV': true,
     'timeframes': {
@@ -3446,6 +3457,7 @@ var bitflyer = {
     'countries': 'JP',
     'version': 'v1',
     'rateLimit': 500,
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
         'api': 'https://api.bitflyer.jp',
@@ -3688,6 +3700,7 @@ var bithumb = {
     'name': 'Bithumb',
     'countries': 'KR', // South Korea
     'rateLimit': 500,
+    'hasCORS': true,
     'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
@@ -3905,6 +3918,7 @@ var bitlish = {
     'countries': [ 'GB', 'EU', 'RU' ],
     'rateLimit': 1500,
     'version': 'v1',
+    'hasCORS': false,
     'hasFetchTickers': true,
     'hasFetchOHLCV': true,
     'urls': {
@@ -4181,6 +4195,7 @@ var bitmarket = {
     'name': 'BitMarket',
     'countries': [ 'PL', 'EU' ],
     'rateLimit': 1500,
+    'hasCORS': false,
     'hasFetchOHLCV': true,
     'hasWithdraw': true,
     'timeframes': {
@@ -4467,6 +4482,7 @@ var bitmex = {
     'countries': 'SC', // Seychelles
     'version': 'v1',
     'rateLimit': 1500,
+    'hasCORS': false,
     'hasFetchOHLCV': true,
     'timeframes': {
         '1m': '1m',
@@ -4824,6 +4840,7 @@ var bitso = {
     'countries': 'MX', // Mexico
     'rateLimit': 2000, // 30 requests per minute
     'version': 'v3',
+    'hasCORS': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
         'api': 'https://api.bitso.com',
@@ -5038,6 +5055,7 @@ var bitstamp1 = {
     'countries': 'GB',
     'rateLimit': 1000,
     'version': 'v1',
+    'hasCORS': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
         'api': 'https://www.bitstamp.net/api',
@@ -5269,6 +5287,7 @@ var bitstamp = {
     'countries': 'GB',
     'rateLimit': 1000,
     'version': 'v2',
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
         'api': 'https://www.bitstamp.net/api',
@@ -5513,6 +5532,7 @@ var bittrex = {
     'countries': 'US',
     'version': 'v1.1',
     'rateLimit': 1500,
+    'hasCORS': false,
     'hasFetchTickers': true,
     'hasFetchOHLCV': true,
     'hasFetchOrders': true,
@@ -6083,6 +6103,7 @@ var bl3p = {
     'rateLimit': 1000,
     'version': '1',
     'comment': 'An exchange market by BitonicNL',
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
         'api': 'https://api.bl3p.eu',
@@ -6272,6 +6293,7 @@ var bleutrade = extend (bittrex, {
     'countries': 'BR', // Brazil
     'rateLimit': 1000,
     'version': 'v2',
+    'hasCORS': true,
     'hasFetchTickers': true,
     'hasFetchOHLCV': false,
     'urls': {
@@ -6306,6 +6328,7 @@ var btcchina = {
     'countries': 'CN',
     'rateLimit': 1500,
     'version': 'v1',
+    'hasCORS': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg',
         'api': {
@@ -6631,6 +6654,7 @@ var btcmarkets = {
     'name': 'BTC Markets',
     'countries': 'AU', // Australia
     'rateLimit': 1000, // market data cached for 1 second (trades cached for 2 seconds)
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
         'api': 'https://api.btcmarkets.net',
@@ -7028,6 +7052,7 @@ var btcexchange = extend (btctrader, {
     'name': 'BTCExchange',
     'countries': 'PH', // Philippines
     'rateLimit': 1500,
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27993052-4c92911a-64aa-11e7-96d8-ec6ac3435757.jpg',
         'api': 'https://www.btcexchange.ph/api',
@@ -7047,6 +7072,7 @@ var btctradeua = {
     'name': 'BTC Trade UA',
     'countries': 'UA', // Ukraine,
     'rateLimit': 3000,
+    'hasCORS': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
         'api': 'https://btc-trade.com.ua/api',
@@ -7258,6 +7284,7 @@ var btcturk = extend (btctrader, {
     'name': 'BTCTurk',
     'countries': 'TR', // Turkey
     'rateLimit': 1000,
+    'hasCORS': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg',
         'api': 'https://www.btcturk.com/api',
@@ -7278,6 +7305,7 @@ var btcx = {
     'countries': [ 'IS', 'US', 'EU' ],
     'rateLimit': 1500, // support in english is very poor, unable to tell rate limits
     'version': 'v1',
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg',
         'api': 'https://btc-x.is/api',
@@ -7433,6 +7461,7 @@ var bter = {
     'name': 'Bter',
     'countries': [ 'VG', 'CN' ], // British Virgin Islands, China
     'version': '2',
+    'hasCORS': false,
     'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
@@ -7668,6 +7697,7 @@ var bxinth = {
     'name': 'BX.in.th',
     'countries': 'TH', // Thailand
     'rateLimit': 1500,
+    'hasCORS': false,
     'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
@@ -7906,6 +7936,7 @@ var ccex = {
     'name': 'C-CEX',
     'countries': [ 'DE', 'EU' ],
     'rateLimit': 1500,
+    'hasCORS': false,
     'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
@@ -8138,6 +8169,7 @@ var cex = {
     'name': 'CEX.IO',
     'countries': [ 'GB', 'EU', 'CY', 'RU' ],
     'rateLimit': 1500,
+    'hasCORS': true,
     'hasFetchTickers': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -8377,6 +8409,7 @@ var chbtc = {
     'countries': 'CN',
     'rateLimit': 1000,
     'version': 'v1',
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg',
         'api': {
@@ -8583,6 +8616,7 @@ var chilebit = extend (blinktrade, {
     'id': 'chilebit',
     'name': 'ChileBit',
     'countries': 'CL',
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg',
         'api': {
@@ -8606,6 +8640,7 @@ var coincheck = {
     'name': 'coincheck',
     'countries': [ 'JP', 'ID' ],
     'rateLimit': 1500,
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
         'api': 'https://coincheck.com/api',
@@ -8815,6 +8850,7 @@ var coinfloor = {
     'name': 'coinfloor',
     'rateLimit': 1000,
     'countries': 'UK',
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',
         'api': 'https://webapi.coinfloor.co.uk:8090/bist',
@@ -8978,6 +9014,7 @@ var coingi = {
     'rateLimit': 1000,
     'countries': [ 'PA', 'BG', 'CN', 'US' ], // Panama, Bulgaria, China, US
     'hasFetchTickers': true,
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
         'api': 'https://api.coingi.com',
@@ -9170,6 +9207,7 @@ var coinmarketcap = {
     'rateLimit': 10000,
     'version': 'v1',
     'countries': 'US',
+    'hasCORS': true,
     'hasPrivateAPI': false,
     'hasFetchTickers': true,
     'urls': {
@@ -9328,6 +9366,7 @@ var coinmate = {
     'name': 'CoinMate',
     'countries': [ 'GB', 'CZ' ], // UK, Czech Republic
     'rateLimit': 1000,
+    'hasCORS': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
         'api': 'https://coinmate.io/api',
@@ -9514,6 +9553,7 @@ var coinsecure = {
     'countries': 'IN', // India
     'rateLimit': 1000,
     'version': 'v1',
+    'hasCORS': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg',
         'api': 'https://api.coinsecure.in',
@@ -9769,6 +9809,7 @@ var coinspot = {
     'name': 'CoinSpot',
     'countries': 'AU', // Australia
     'rateLimit': 1000,
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
         'api': {
@@ -9918,6 +9959,7 @@ var cryptopia = {
     'rateLimit': 1500,
     'countries': 'NZ', // New Zealand
     'hasFetchTickers': true,
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
         'api': 'https://www.cryptopia.co.nz/api',
@@ -10209,6 +10251,7 @@ var dsx = {
     'name': 'DSX',
     'countries': 'UK',
     'rateLimit': 1500,
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
         'api': {
@@ -10411,6 +10454,7 @@ var exmo = {
     'countries': [ 'ES', 'RU' ], // Spain, Russia
     'rateLimit': 1000, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
     'version': 'v1',
+    'hasCORS': false,
     'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
@@ -10624,6 +10668,7 @@ var flowbtc = {
     'countries': 'BR', // Brazil
     'version': 'v1',
     'rateLimit': 1000,
+    'hasCORS': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
         'api': 'https://api.flowbtc.com:8400/ajax',
@@ -10826,6 +10871,7 @@ var foxbit = extend (blinktrade, {
     'id': 'foxbit',
     'name': 'FoxBit',
     'countries': 'BR',
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27991413-11b40d42-647f-11e7-91ee-78ced874dd09.jpg',
         'api': {
@@ -10991,6 +11037,7 @@ var fybse = extend (fyb, {
     'id': 'fybse',
     'name': 'FYB-SE',
     'countries': 'SE', // Sweden
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg',
         'api': 'https://www.fybse.se/api/SEK',
@@ -11008,6 +11055,7 @@ var fybsg = extend (fyb, {
     'id': 'fybsg',
     'name': 'FYB-SG',
     'countries': 'SG', // Singapore
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766513-3364d56a-5edb-11e7-9e6b-d5898bb89c81.jpg',
         'api': 'https://www.fybsg.com/api/SGD',
@@ -11028,6 +11076,7 @@ var gatecoin = {
     'rateLimit': 2000,
     'countries': 'HK', // Hong Kong
     'comment': 'a regulated/licensed exchange',
+    'hasCORS': false,
     'hasFetchTickers': true,
     'hasFetchOHLCV': true,
     'timeframes': {
@@ -11411,6 +11460,7 @@ var gdax = {
     'name': 'GDAX',
     'countries': 'US',
     'rateLimit': 1000,
+    'hasCORS': true,
     'hasFetchOHLCV': true,
     'timeframes': {
         '1m': 60,
@@ -11708,6 +11758,7 @@ var gemini = {
     'countries': 'US',
     'rateLimit': 1500, // 200 for private API
     'version': 'v1',
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
         'api': 'https://api.gemini.com',
@@ -11908,6 +11959,7 @@ var hitbtc = {
     'countries': 'HK', // Hong Kong
     'rateLimit': 1500,
     'version': '1',
+    'hasCORS': false,
     'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
@@ -12189,6 +12241,7 @@ var hitbtc2 = extend (hitbtc, {
     'countries': 'HK', // Hong Kong
     'rateLimit': 1500,
     'version': '2',
+    'hasCORS': true,
     'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
@@ -12748,6 +12801,7 @@ var huobicny = extend (huobi1, {
     'id': 'huobicny',
     'name': 'Huobi CNY',
     'hostname': 'be.huobi.com',
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
         'api': 'https://be.huobi.com',
@@ -12768,6 +12822,7 @@ var huobipro = extend (huobi1, {
     'id': 'huobipro',
     'name': 'Huobi Pro',
     'hostname': 'api.huobi.pro',
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
         'api': 'https://api.huobi.pro',
@@ -12791,6 +12846,7 @@ var huobi = {
     'countries': 'CN',
     'rateLimit': 2000,
     'version': 'v3',
+    'hasCORS': false,
     'hasFetchOHLCV': true,
     'timeframes': {
         '1m': '001',
@@ -13025,6 +13081,7 @@ var independentreserve = {
     'name': 'Independent Reserve',
     'countries': [ 'AU', 'NZ' ], // Australia, New Zealand
     'rateLimit': 1000,
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg',
         'api': {
@@ -13258,6 +13315,7 @@ var itbit = {
     'countries': 'US',
     'rateLimit': 2000,
     'version': 'v1',
+    'hasCORS': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
         'api': 'https://api.itbit.com',
@@ -13462,6 +13520,7 @@ var jubi = {
     'countries': 'CN',
     'rateLimit': 1500,
     'version': 'v1',
+    'hasCORS': false,
     'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg',
@@ -13674,6 +13733,7 @@ var kraken = {
     'countries': 'US',
     'version': '0',
     'rateLimit': 1500,
+    'hasCORS': false,
     'hasFetchTickers': true,
     'hasFetchOHLCV': true,
     'marketsByAltname': {},
@@ -14083,6 +14143,7 @@ var lakebtc = {
     'name': 'LakeBTC',
     'countries': 'US',
     'version': 'api_v2',
+    'hasCORS': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
         'api': 'https://api.lakebtc.com',
@@ -14286,6 +14347,7 @@ var livecoin = {
     'name': 'LiveCoin',
     'countries': [ 'US', 'UK', 'RU' ],
     'rateLimit': 1000,
+    'hasCORS': false,
     'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
@@ -14522,6 +14584,7 @@ var liqui = {
     'countries': 'UA',
     'rateLimit': 2000,
     'version': '3',
+    'hasCORS': false,
     'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
@@ -14837,6 +14900,7 @@ var luno = {
     'countries': [ 'GB', 'SG', 'ZA' ],
     'rateLimit': 3000,
     'version': '1',
+    'hasCORS': false,
     'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
@@ -15075,6 +15139,7 @@ var mercado = {
     'countries': 'BR', // Brazil
     'rateLimit': 1000,
     'version': 'v3',
+    'hasCORS': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
         'api': {
@@ -15251,6 +15316,7 @@ var mixcoins = {
     'countries': [ 'GB', 'HK' ],
     'rateLimit': 1500,
     'version': 'v1',
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/30237212-ed29303c-9535-11e7-8af8-fcd381cfa20c.jpg',
         'api': 'https://mixcoins.com/api',
@@ -15417,6 +15483,7 @@ var nova = {
     'countries': 'TZ', // Tanzania
     'rateLimit': 2000,
     'version': 'v2',
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
         'api': 'https://novaexchange.com/remote',
@@ -15917,6 +15984,7 @@ var okcoincny = extend (okcoin, {
     'id': 'okcoincny',
     'name': 'OKCoin CNY',
     'countries': 'CN',
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766792-8be9157a-5ee5-11e7-926c-6d69b8d3378d.jpg',
         'api': 'https://www.okcoin.cn',
@@ -15938,6 +16006,7 @@ var okcoinusd = extend (okcoin, {
     'id': 'okcoinusd',
     'name': 'OKCoin USD',
     'countries': [ 'CN', 'US' ],
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
         'api': 'https://www.okcoin.com',
@@ -15961,6 +16030,7 @@ var okex = extend (okcoin, {
     'id': 'okex',
     'name': 'OKEX',
     'countries': [ 'CN', 'US' ],
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/29562593-9038a9bc-8742-11e7-91cc-8201f845bfc1.jpg',
         'api': 'https://www.okex.com',
@@ -15992,6 +16062,7 @@ var paymium = {
     'countries': [ 'FR', 'EU' ],
     'rateLimit': 2000,
     'version': 'v1',
+    'hasCORS': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
         'api': 'https://paymium.com/api',
@@ -16172,6 +16243,7 @@ var poloniex = {
     'name': 'Poloniex',
     'countries': 'US',
     'rateLimit': 500, // up 6 calls per second
+    'hasCORS': true,
     'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
@@ -16588,6 +16660,7 @@ var quadrigacx = {
     'countries': 'CA',
     'rateLimit': 1000,
     'version': 'v2',
+    'hasCORS': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg',
         'api': 'https://api.quadrigacx.com',
@@ -16757,6 +16830,7 @@ var quoine = {
     'version': '2',
     'rateLimit': 1000,
     'hasFetchTickers': true,
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766844-9615a4e8-5ee8-11e7-8814-fcd004db8cdd.jpg',
         'api': 'https://api.quoine.com',
@@ -16997,6 +17071,7 @@ var southxchange = {
     'countries': 'AR', // Argentina
     'rateLimit': 1000,
     'hasFetchTickers': true,
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
         'api': 'https://www.southxchange.com/api',
@@ -17201,6 +17276,7 @@ var surbitcoin = extend (blinktrade, {
     'id': 'surbitcoin',
     'name': 'SurBitcoin',
     'countries': 'VE',
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27991511-f0a50194-6481-11e7-99b5-8f02932424cc.jpg',
         'api': {
@@ -17225,6 +17301,7 @@ var therock = {
     'countries': 'MT',
     'rateLimit': 1000,
     'version': 'v1',
+    'hasCORS': false,
     'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
@@ -17451,6 +17528,7 @@ var urdubit = extend (blinktrade, {
     'id': 'urdubit',
     'name': 'UrduBit',
     'countries': 'PK',
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27991453-156bf3ae-6480-11e7-82eb-7295fe1b5bb4.jpg',
         'api': {
@@ -17475,6 +17553,7 @@ var vaultoro = {
     'countries': 'CH',
     'rateLimit': 1000,
     'version': '1',
+    'hasCORS': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg',
         'api': 'https://api.vaultoro.com',
@@ -17670,6 +17749,7 @@ var vbtc = extend (blinktrade, {
     'id': 'vbtc',
     'name': 'VBTC',
     'countries': 'VN',
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27991481-1f53d1d8-6481-11e7-884e-21d17e7939db.jpg',
         'api': {
@@ -17694,6 +17774,7 @@ var virwox = {
     'name': 'VirWoX',
     'countries': [ 'AT', 'EU' ],
     'rateLimit': 1000,
+    'hasCORS': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg',
         'api': {
@@ -17914,6 +17995,7 @@ var wex = extend (liqui, {
     'countries': 'NZ', // New Zealand
     'version': '3',
     'hasFetchTickers': true,
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg',
         'api': {
@@ -17963,6 +18045,7 @@ var xbtce = {
     'rateLimit': 2000, // responses are cached every 2 seconds
     'version': 'v1',
     'hasPublicAPI': false,
+    'hasCORS': false,
     'hasFetchTickers': true,
     'hasFetchOHLCV': false,
     'urls': {
@@ -18283,6 +18366,7 @@ var yobit = {
     'countries': 'RU',
     'rateLimit': 2000, // responses are cached every 2 seconds
     'version': '3',
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
         'api': 'https://yobit.net',
@@ -18497,6 +18581,7 @@ var yunbi = extend (acx, {
     'countries': 'CN',
     'rateLimit': 1000,
     'version': 'v2',
+    'hasCORS': false,
     'hasFetchTickers': true,
     'hasFetchOHLCV': true,
     'timeframes': {
@@ -18566,6 +18651,7 @@ var zaif = {
     'countries': 'JP',
     'rateLimit': 2000,
     'version': '1',
+    'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
         'api': 'https://api.zaif.jp',

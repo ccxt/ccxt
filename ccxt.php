@@ -460,6 +460,7 @@ class Exchange {
         $this->timeframes = null;
         $this->hasPublicAPI         = true;
         $this->hasPrivateAPI        = true;
+        $this->hasCORS              = false;
         $this->hasFetchTickers      = false;
         $this->hasFetchOHLCV        = false;
         $this->hasDeposit           = false;
