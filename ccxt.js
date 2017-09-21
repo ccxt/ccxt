@@ -240,6 +240,31 @@ const safeFloat = (object, key, defaultValue = undefined) => {
     return ((key in object) && (object[key])) ? parseFloat (object[key]) : defaultValue
 }
 
+const extendWithKeyValue = (objects, key, value) => {
+    if (Array.isArray (objects)) {
+        return objects.map (object => {
+            object[key] = value
+            return object
+        })
+    } else {
+        Object.keys (objects).forEach (index => {
+            objects[index][key] = value
+        })
+        return objects
+    }
+}
+
+const extendAll = (objects, params) => {
+    if (Array.isArray (objects)) {
+        return objects.map (object => this.extend (object, params))
+    } else {
+        Object.keys (objects).forEach (index => {
+            objects[index] = this.extend (objects[index], params)
+        })
+        return objects
+    }
+}
+
 const ordered = x => x // a stub to keep assoc keys in order, in JS it does nothing, it's mostly for Python
 
 //-----------------------------------------------------------------------------
@@ -602,6 +627,14 @@ const Exchange = function (config) {
                 console.log (this.id, method, url, 'error', e, "response body:\n'" + response + "'")
 
             throw e
+        }
+    }
+
+    this.setFees = function () {
+        if (this.fees) {
+            [ 'taker', 'maker' ].forEach (type => {
+                this.markets = extendAllWithKeyValue (this.markets, type, this.fees[type])
+            })
         }
     }
 
