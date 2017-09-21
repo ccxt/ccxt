@@ -781,7 +781,7 @@ const Exchange = function (config) {
     }
 
     this.calculateFee = function (symbol, type, side, amount, price, fee = 'taker', params = {}) {
-        const rate = this.calculateFeeRate (symbol, type, side, amount, price, fee = 'taker', params = {});
+        const rate = this.calculateFeeRate (symbol, type, side, amount, price, fee, params);
         return {
             'rate': rate,
             'cost': {

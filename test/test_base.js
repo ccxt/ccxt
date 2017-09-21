@@ -20,6 +20,40 @@ describe ('ccxt base code', () => {
         }
     })
 
+    it ('calculateFee() works', () => {
+
+        const price  = 100.00
+        const amount = 10.00
+        const taker  = 0.0025
+        const maker  = 0.0010
+        const fees   = { taker, maker }
+        const market = {
+            'id':     'foobar',
+            'symbol': 'FOO/BAR',
+            'base':   'FOO',
+            'quote':  'BAR',
+            'taker':   taker,
+            'maker':   maker,
+        }
+
+        const exchange = new ccxt.Exchange ({
+
+            'id': 'mock',
+
+            'markets': { 'FOO/BAR': market }
+        })
+
+        Object.keys (fees).forEach (fee => {
+
+            const result = exchange.calculateFee (market['symbol'], 'limit', 'sell', amount, price, fee, {})
+
+            assert.deepEqual (result, {
+                'rate': { 'base': 0.0, 'quote': fees[fee], },
+                'cost': { 'base': 0.0, 'quote': fees[fee] * amount * price, },
+            })
+        })
+    })
+
     // it ('rate limiting works', async () => {
 
     //     const calls = []

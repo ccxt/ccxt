@@ -4489,7 +4489,10 @@ class bittrex (Exchange):
                     'https://bittrex.com/Home/Api',
                     'https://www.npmjs.org/package/node.bittrex.api',
                 ],
-                'fees': 'https://bittrex.com/Fees',
+                'fees': [
+                    'https://bittrex.com/Fees',
+                    'https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-',
+                ],
             },
             'api': {
                 'v2': {
