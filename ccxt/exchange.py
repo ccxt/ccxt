@@ -744,6 +744,28 @@ class Exchange(object):
     def fetchTrades(self, symbol):
         return self.fetch_trades(symbol)
 
+    def calculate_fee_rate(self, symbol, type, side, amount, price, fee='taker', params={}):
+        return {
+            'base': 0.0,
+            'quote': self.markets[symbol][fee],
+        }
+
+    def calculate_fee(self, symbol, type, side, amount, price, fee='taker', params={}):
+        rate = self.calculateFeeRate(symbol, type, side, amount, price, fee, params)
+        return {
+            'rate': rate,
+            'cost': {
+                'base': amount * rate['base'],
+                'quote': amount * price * rate['quote'],
+            },
+        }
+
+    def calculateFeeRate(self, symbol, type, side, amount, price, fee='taker', params={}):
+        return self.calculate_fee_rate(symbol, type, side, amount, price, fee, params)
+
+    def calculateFee(self, symbol, type, side, amount, price, fee='taker', params={}):
+        return self.calculate_fee(symbol, type, side, amount, price, fee, params)
+
     def create_limit_buy_order(self, symbol, amount, price, params={}):
         return self.create_order(symbol, 'limit', 'buy', amount, price, params)
 

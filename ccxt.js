@@ -773,6 +773,24 @@ const Exchange = function (config) {
         return this.createOrder (market, 'market', 'sell', amount, undefined, params)
     }
 
+    this.calculateFeeRate = function (symbol, type, side, amount, price, fee = 'taker', params = {}) {
+        return {
+            'base': 0.0,
+            'quote': this.markets[symbol][fee],
+        };
+    }
+
+    this.calculateFee = function (symbol, type, side, amount, price, fee = 'taker', params = {}) {
+        const rate = this.calculateFeeRate (symbol, type, side, amount, price, fee = 'taker', params = {});
+        return {
+            'rate': rate,
+            'cost': {
+                'base': amount * rate['base'],
+                'quote': amount * price * rate['quote'],
+            },
+        };
+    },
+
     this.iso8601         = timestamp => new Date (timestamp).toISOString ()
     this.parse8601       = Date.parse
     this.seconds         = () => Math.floor (this.milliseconds () / 1000)
@@ -860,6 +878,8 @@ const Exchange = function (config) {
     this.create_market_buy_order  = this.createLimitBuyOrder
     this.create_market_sell_order = this.createLimitBuyOrder
     this.create_order             = this.createOrder
+    this.calculate_fee            = this.calculateFee
+    this.calculate_fee_rate       = this.calculateFeeRate
 
     this.init ()
 }
@@ -5517,7 +5537,10 @@ var bittrex = {
             'https://bittrex.com/Home/Api',
             'https://www.npmjs.org/package/node.bittrex.api',
         ],
-        'fees': 'https://bittrex.com/Fees',
+        'fees': [
+            'https://bittrex.com/Fees',
+            'https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-',
+        ],
     },
     'api': {
         'v2': {
