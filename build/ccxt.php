@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.94';
+$version = '1.7.95';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2094,8 +2094,8 @@ class binance extends Exchange {
                 ),
             ),
             'fees' => array (
-                'taker' => '0.1%',
-                'maker' => '0.1%',
+                'taker' => 0.001,
+                'maker' => 0.001,
                 'withdraw' => array (
                     'BNB' => 1.0,
                     'BTC' => 0.0005,
@@ -5795,8 +5795,8 @@ class bittrex extends Exchange {
                 ),
             ),
             'fees' => array (
-                'maker' => '0.25%',
-                'taker' => '0.25%',
+                'maker' => 0.0025,
+                'taker' => 0.0025,
             ),
         ), $options));
     }
@@ -14924,6 +14924,7 @@ class liqui extends Exchange {
                 ),
                 'www' => 'https://liqui.io',
                 'doc' => 'https://liqui.io/api',
+                'fees' => 'https://liqui.io/fee',
             ),
             'api' => array (
                 'public' => array (
@@ -14948,7 +14949,12 @@ class liqui extends Exchange {
                         'CreateCoupon',
                         'RedeemCoupon',
                     ),
-                )
+                ),
+            ),
+            'fees' => array (
+                'maker' => 0.001,
+                'taker' => 0.0025,
+                'withdraw' => 0.0,
             ),
         ), $options));
     }
@@ -14974,6 +14980,8 @@ class liqui extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'taker' => $market['fee'],
+                'maker' => 0.001,
                 'info' => $market,
             );
         }
@@ -16603,6 +16611,7 @@ class poloniex extends Exchange {
                     'https://poloniex.com/support/api/',
                     'http://pastebin.com/dMX7mZE0',
                 ),
+                'fees' => 'https://poloniex.com/fees',
             ),
             'api' => array (
                 'public' => array (
@@ -16649,6 +16658,11 @@ class poloniex extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'maker' => 0.0015,
+                'taker' => 0.0025,
+                'withdraw' => 0.0,
+            ),
         ), $options));
     }
 
@@ -16691,6 +16705,17 @@ class poloniex extends Exchange {
             $result[$currency] = $account;
         }
         return $result;
+    }
+
+    public function fetchFees ($params = array ()) {
+        $this->load_markets ();
+        $fees = $this->privatePostReturnFeeInfo ();
+        return array (
+            'info' => $fees,
+            'maker' => floatval ($fees['makerFee']),
+            'taker' => floatval ($fees['takerFee']),
+            'withdraw' => 0.0,
+        );
     }
 
     public function fetch_order_book ($market, $params = array ()) {
