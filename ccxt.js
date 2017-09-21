@@ -16239,6 +16239,16 @@ var poloniex = {
         'funding': 0.0,
     },
 
+    calculateFeeRate (symbol, type, side, amount, price, fee = 'taker', params = {}) {
+        let result = {
+            'base': 0.0,
+            'quote': 0.0,
+        };
+        let key = (side == 'sell') ? 'quote' : 'base';
+        result[key] = this.markets[symbol][fee];
+        return result;
+    },
+
     async fetchMarkets () {
         let markets = await this.publicGetReturnTicker ();
         let keys = Object.keys (markets);
