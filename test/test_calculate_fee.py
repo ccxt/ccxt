@@ -38,10 +38,10 @@ exchange = ccxt.Exchange({
     'markets': {'FOO/BAR': market},
 })
 
-exchange.calculate_fee (market['symbol'], 'limit', 'sell', amount, price, 'taker', {})
+exchange.calculate_fee(market['symbol'], 'limit', 'sell', amount, price, 'taker', {})
 
 # {'rate': {'quote': 0.0025, 'base': 0.0}, 'cost': {'quote': 2.5, 'base': 0.0}}
 
-exchange.calculate_fee (market['symbol'], 'limit', 'sell', amount, price, 'maker', {})
+exchange.calculate_fee(market['symbol'], 'limit', 'sell', amount, price, 'maker', {})
 
 # {'rate': {'quote': 0.001, 'base': 0.0}, 'cost': {'quote': 1.0, 'base': 0.0}}
