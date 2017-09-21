@@ -4577,6 +4577,7 @@ class bittrex (Exchange):
                     'https://bittrex.com/Home/Api',
                     'https://www.npmjs.org/package/node.bittrex.api',
                 ],
+                'fees': 'https://bittrex.com/Fees',
             },
             'api': {
                 'v2': {
@@ -12391,6 +12392,7 @@ class kraken (Exchange):
                     'https://www.kraken.com/en-us/help/api',
                     'https://github.com/nothingisdead/npm-kraken-api',
                 ],
+                'fees': 'https://www.kraken.com/en-us/help/fees',
             },
             'api': {
                 'public': {
@@ -12451,6 +12453,9 @@ class kraken (Exchange):
             quote = self.commonCurrencyCode(quote)
             darkpool = id.find('.d') >= 0
             symbol = market['altname'] if darkpool else(base + '/' + quote)
+            maker = None
+            if 'fees_maker' in market:
+                maker = market['fees_maker'][0][1]
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -12459,6 +12464,8 @@ class kraken (Exchange):
                 'darkpool': darkpool,
                 'info': market,
                 'altname': market['altname'],
+                'maker': maker,
+                'taker': market['fees'][0][1],
             })
         self.marketsByAltname = self.index_by(result, 'altname')
         return result

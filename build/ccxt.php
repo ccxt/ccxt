@@ -5753,6 +5753,7 @@ class bittrex extends Exchange {
                     'https://bittrex.com/Home/Api',
                     'https://www.npmjs.org/package/node.bittrex.api',
                 ),
+                'fees' => 'https://bittrex.com/Fees',
             ),
             'api' => array (
                 'v2' => array (
@@ -14090,6 +14091,7 @@ class kraken extends Exchange {
                     'https://www.kraken.com/en-us/help/api',
                     'https://github.com/nothingisdead/npm-kraken-api',
                 ),
+                'fees' => 'https://www.kraken.com/en-us/help/fees',
             ),
             'api' => array (
                 'public' => array (
@@ -14149,6 +14151,9 @@ class kraken extends Exchange {
             $quote = $this->commonCurrencyCode ($quote);
             $darkpool = mb_strpos ($id, '.d') !== false;
             $symbol = $darkpool ? $market['altname'] : ($base . '/' . $quote);
+            $maker = null;
+            if (array_key_exists ('fees_maker', $market))
+                $maker = $market['fees_maker'][0][1];
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -14157,6 +14162,8 @@ class kraken extends Exchange {
                 'darkpool' => $darkpool,
                 'info' => $market,
                 'altname' => $market['altname'],
+                'maker' => $maker,
+                'taker' => $market['fees'][0][1],
             );
         }
         $this->marketsByAltname = $this->index_by ($result, 'altname');
