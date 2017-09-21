@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.7.99",
+  "version": "1.7.100",
   "description": "A library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs",
   "main": "./ccxt.js",
   "unpkg": "build/ccxt.browser.js",
