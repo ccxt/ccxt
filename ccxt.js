@@ -165,18 +165,16 @@ const keysort = object => {
 
 const extend = (...args) => Object.assign ({}, ...args)
 
-const omit = require ('lodash.omit')
-
-// const omit = function (object) {
-//     const result = extend (object)
-//     for (let i = 1; i < arguments.length; i++)
-//         if (typeof arguments[i] === 'string')
-//             delete result[arguments[i]]
-//         else if (Array.isArray (arguments[i]))
-//             for (var k = 0; k < arguments[i].length; k++)
-//                 delete result[arguments[i][k]]
-//     return result
-// }
+const omit = (object, ...args) => {
+    const result = extend (object)
+    for (x of args) {
+        if (typeof x === 'string')
+            delete result[x]
+        else if (Array.isArray (x))
+            for (k of x)
+                delete result[k]
+    return result
+}
 
 const indexBy = (array, key) => {
     const result = {}
