@@ -17,9 +17,10 @@ before_install:
 - sudo wget --quiet https://github.com/jgm/pandoc/releases/download/1.19.2.1/pandoc-1.19.2.1-1-amd64.deb
 - sudo dpkg -i pandoc-1.19.2.1-1-amd64.deb
 - sudo apt-get install python3-pip
+- sudo -H pip install --upgrade aiohttp
 - python3 --version
 - pip3 --version
-- sudo -H pip3 install --upgrade setuptools pip wheel aiohttp
+- sudo -H pip3 install --upgrade setuptools pip wheel
 - sudo -H pip3 install --upgrade tox twine
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
