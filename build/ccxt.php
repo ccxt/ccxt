@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.97';
+$version = '1.7.98';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10275,12 +10275,12 @@ class cryptopia extends Exchange {
     }
 
     public function fetch_markets () {
-        $response = $this->publicGetMarkets ();
+        $response = $this->publicGetTradePairs ();
         $result = array ();
         $markets = $response['Data'];
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
-            $id = $market['TradePairId'];
+            $id = $market['Id'];
             $symbol = $market['Label'];
             list ($base, $quote) = explode ('/', $symbol);
             $result[] = array (
@@ -10289,6 +10289,8 @@ class cryptopia extends Exchange {
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
+                'maker' => $market['TradeFee'] / 100,
+                'taker' => $market['TradeFee'] / 100,
             );
         }
         return $result;

@@ -8722,12 +8722,12 @@ class cryptopia (Exchange):
         super(cryptopia, self).__init__(params)
 
     async def fetch_markets(self):
-        response = await self.publicGetMarkets()
+        response = await self.publicGetTradePairs()
         result = []
         markets = response['Data']
         for i in range(0, len(markets)):
             market = markets[i]
-            id = market['TradePairId']
+            id = market['Id']
             symbol = market['Label']
             base, quote = symbol.split('/')
             result.append({
@@ -8736,6 +8736,8 @@ class cryptopia (Exchange):
                 'base': base,
                 'quote': quote,
                 'info': market,
+                'maker': market['TradeFee'] / 100,
+                'taker': market['TradeFee'] / 100,
             })
         return result
 
