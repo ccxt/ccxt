@@ -5515,6 +5515,7 @@ var bittrex = {
             'https://bittrex.com/Home/Api',
             'https://www.npmjs.org/package/node.bittrex.api',
         ],
+        'fees': 'https://bittrex.com/Fees',
     },
     'api': {
         'v2': {
@@ -13727,6 +13728,9 @@ var kraken = {
             quote = this.commonCurrencyCode (quote);
             let darkpool = id.indexOf ('.d') >= 0;
             let symbol = darkpool ? market['altname'] : (base + '/' + quote);
+            let maker = undefined;
+            if ('fees_maker' in market)
+                maker = market['fees_maker'][0][1];
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -13735,6 +13739,8 @@ var kraken = {
                 'darkpool': darkpool,
                 'info': market,
                 'altname': market['altname'],
+                'maker': maker,
+                'taker': market['fees'][0][1],
             });
         }
         this.marketsByAltname = this.indexBy (result, 'altname');
