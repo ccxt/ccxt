@@ -21,7 +21,7 @@ before_install:
 - pip3 --version
 - sudo -H pip3 install --upgrade setuptools pip wheel
 - sudo -H pip3 install --upgrade tox twine
-- sudo -H pip3 install aiohttp
+- sudo -H pip install aiohttp
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
 - npm run build
