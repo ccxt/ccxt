@@ -9936,20 +9936,23 @@ var cryptopia = {
     },
 
     async fetchMarkets () {
-        let response = await this.publicGetMarkets ();
+        let response = await this.publicGetTradePairs ();
         let result = [];
         let markets = response['Data'];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
-            let id = market['TradePairId'];
+            let id = market['Id'];
             let symbol = market['Label'];
             let [ base, quote ] = symbol.split ('/');
+            console.log (market);
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
+                'maker': market['TradeFee'] / 100,
+                'taker': market['TradeFee'] / 100,
             });
         }
         return result;
