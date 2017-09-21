@@ -9944,7 +9944,6 @@ var cryptopia = {
             let id = market['Id'];
             let symbol = market['Label'];
             let [ base, quote ] = symbol.split ('/');
-            console.log (market);
             result.push ({
                 'id': id,
                 'symbol': symbol,
