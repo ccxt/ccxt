@@ -175,7 +175,7 @@ const testExchange = async (exchange) => {
 
     if (failed.length)   { log.noPretty.bright.red    ('FAIL'.bgBrightRed.white,    failed  .map (t => t.exchange)) }
     if (warnings.length) { log.noPretty.bright.yellow ('WARN'.inverse, warnings.map (t => t.exchange)) }
-    
+
     log.newline ()
 
     log.bright ('All done,', [failed.length    && (failed.length    + ' failed')   .red,
@@ -184,7 +184,7 @@ const testExchange = async (exchange) => {
 
     if (failed.length) {
 
-        await sleep (2000) // to fight TravisCI log truncation issue, see https://github.com/travis-ci/travis-ci/issues/8189
+        await sleep (10000) // to fight TravisCI log truncation issue, see https://github.com/travis-ci/travis-ci/issues/8189
         process.exit (1)
     }
 
