@@ -167,11 +167,11 @@ const extend = (...args) => Object.assign ({}, ...args)
 
 const omit = (object, ...args) => {
     const result = extend (object)
-    for (let x of args) {
+    for (const x of args) {
         if (typeof x === 'string') {
             delete result[x]
         } else if (Array.isArray (x)) {
-            for (let k of x)
+            for (const k of x)
                 delete result[k]
         }
     }
