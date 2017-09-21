@@ -16713,6 +16713,16 @@ class poloniex extends Exchange {
         ), $options));
     }
 
+    public function calculate_fee_rate ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
+        $result = array (
+            'base' => 0.0,
+            'quote' => 0.0,
+        );
+        $key = ($side == 'sell') ? 'quote' : 'base';
+        $result[$key] = $this->markets[$symbol][$fee];
+        return $result;
+    }
+
     public function fetch_markets () {
         $markets = $this->publicGetReturnTicker ();
         $keys = array_keys ($markets);
