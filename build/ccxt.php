@@ -2094,54 +2094,58 @@ class binance extends Exchange {
                 ),
             ),
             'fees' => array (
-                'taker' => 0.001,
-                'maker' => 0.001,
-                'withdraw' => array (
-                    'BNB' => 1.0,
-                    'BTC' => 0.0005,
-                    'ETH' => 0.005,
-                    'LTC' => 0.001,
-                    'NEO' => 0.0,
-                    'QTUM' => 0.1,
-                    'SNT' => 1.0,
-                    'EOS' => 0.1,
-                    'BCC' => null,
-                    'GAS' => 0.0,
-                    'USDT' => 5.0,
-                    'HSR' => 0.0001,
-                    'OAX' => 0.1,
-                    'DNT' => 1.0,
-                    'MCO' => 0.1,
-                    'ICN' => 0.1,
-                    'WTC' => 0.1,
-                    'OMG' => 0.1,
-                    'ZRX' => 1.0,
-                    'STRAT' => 0.1,
-                    'SNGLS' => 1.0,
-                    'BQX' => 1.0,
+                'trading' => array (
+                    'taker' => 0.001,
+                    'maker' => 0.001,
+                ),
+                'funding' => array (
+                    'withdraw' => array (
+                        'BNB' => 1.0,
+                        'BTC' => 0.0005,
+                        'ETH' => 0.005,
+                        'LTC' => 0.001,
+                        'NEO' => 0.0,
+                        'QTUM' => 0.1,
+                        'SNT' => 1.0,
+                        'EOS' => 0.1,
+                        'BCC' => null,
+                        'GAS' => 0.0,
+                        'USDT' => 5.0,
+                        'HSR' => 0.0001,
+                        'OAX' => 0.1,
+                        'DNT' => 1.0,
+                        'MCO' => 0.1,
+                        'ICN' => 0.1,
+                        'WTC' => 0.1,
+                        'OMG' => 0.1,
+                        'ZRX' => 1.0,
+                        'STRAT' => 0.1,
+                        'SNGLS' => 1.0,
+                        'BQX' => 1.0,
+                    ),
                 ),
             ),
             'markets' => array (
-                'BNB/BTC' => array ( 'id' => 'BNBBTC', 'symbol' => 'BNB/BTC', 'base' => 'BNB', 'quote' => 'BTC' ),
-                'NEO/BTC' => array ( 'id' => 'NEOBTC', 'symbol' => 'NEO/BTC', 'base' => 'NEO', 'quote' => 'BTC' ),
-                'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC' ),
-                'HSR/BTC' => array ( 'id' => 'HSRBTC', 'symbol' => 'HSR/BTC', 'base' => 'HSR', 'quote' => 'BTC' ),
-                'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
-                'GAS/BTC' => array ( 'id' => 'GASBTC', 'symbol' => 'GAS/BTC', 'base' => 'GAS', 'quote' => 'BTC' ),
-                'HCC/BTC' => array ( 'id' => 'HCCBTC', 'symbol' => 'HCC/BTC', 'base' => 'HCC', 'quote' => 'BTC' ),
-                'BCH/BTC' => array ( 'id' => 'BCCBTC', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC' ),
-                'BNB/ETH' => array ( 'id' => 'BNBETH', 'symbol' => 'BNB/ETH', 'base' => 'BNB', 'quote' => 'ETH' ),
-                'DNT/ETH' => array ( 'id' => 'DNTETH', 'symbol' => 'DNT/ETH', 'base' => 'DNT', 'quote' => 'ETH' ),
-                'OAX/ETH' => array ( 'id' => 'OAXETH', 'symbol' => 'OAX/ETH', 'base' => 'OAX', 'quote' => 'ETH' ),
-                'MCO/ETH' => array ( 'id' => 'MCOETH', 'symbol' => 'MCO/ETH', 'base' => 'MCO', 'quote' => 'ETH' ),
-                'BTM/ETH' => array ( 'id' => 'BTMETH', 'symbol' => 'BTM/ETH', 'base' => 'BTM', 'quote' => 'ETH' ),
-                'SNT/ETH' => array ( 'id' => 'SNTETH', 'symbol' => 'SNT/ETH', 'base' => 'SNT', 'quote' => 'ETH' ),
-                'EOS/ETH' => array ( 'id' => 'EOSETH', 'symbol' => 'EOS/ETH', 'base' => 'EOS', 'quote' => 'ETH' ),
-                'BNT/ETH' => array ( 'id' => 'BNTETH', 'symbol' => 'BNT/ETH', 'base' => 'BNT', 'quote' => 'ETH' ),
-                'ICN/ETH' => array ( 'id' => 'ICNETH', 'symbol' => 'ICN/ETH', 'base' => 'ICN', 'quote' => 'ETH' ),
-                'BTC/USDT' => array ( 'id' => 'BTCUSDT', 'symbol' => 'BTC/USDT', 'base' => 'BTC', 'quote' => 'USDT' ),
-                'ETH/USDT' => array ( 'id' => 'ETHUSDT', 'symbol' => 'ETH/USDT', 'base' => 'ETH', 'quote' => 'USDT' ),
-                'QTUM/ETH' => array ( 'id' => 'QTUMETH', 'symbol' => 'QTUM/ETH', 'base' => 'QTUM', 'quote' => 'ETH' ),
+                'BNB/BTC' => array ( 'id' => 'BNBBTC', 'symbol' => 'BNB/BTC', 'base' => 'BNB', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001 ),
+                'NEO/BTC' => array ( 'id' => 'NEOBTC', 'symbol' => 'NEO/BTC', 'base' => 'NEO', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001 ),
+                'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001 ),
+                'HSR/BTC' => array ( 'id' => 'HSRBTC', 'symbol' => 'HSR/BTC', 'base' => 'HSR', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001 ),
+                'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001 ),
+                'GAS/BTC' => array ( 'id' => 'GASBTC', 'symbol' => 'GAS/BTC', 'base' => 'GAS', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001 ),
+                'HCC/BTC' => array ( 'id' => 'HCCBTC', 'symbol' => 'HCC/BTC', 'base' => 'HCC', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001 ),
+                'BCH/BTC' => array ( 'id' => 'BCCBTC', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001 ),
+                'BNB/ETH' => array ( 'id' => 'BNBETH', 'symbol' => 'BNB/ETH', 'base' => 'BNB', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001 ),
+                'DNT/ETH' => array ( 'id' => 'DNTETH', 'symbol' => 'DNT/ETH', 'base' => 'DNT', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001 ),
+                'OAX/ETH' => array ( 'id' => 'OAXETH', 'symbol' => 'OAX/ETH', 'base' => 'OAX', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001 ),
+                'MCO/ETH' => array ( 'id' => 'MCOETH', 'symbol' => 'MCO/ETH', 'base' => 'MCO', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001 ),
+                'BTM/ETH' => array ( 'id' => 'BTMETH', 'symbol' => 'BTM/ETH', 'base' => 'BTM', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001 ),
+                'SNT/ETH' => array ( 'id' => 'SNTETH', 'symbol' => 'SNT/ETH', 'base' => 'SNT', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001 ),
+                'EOS/ETH' => array ( 'id' => 'EOSETH', 'symbol' => 'EOS/ETH', 'base' => 'EOS', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001 ),
+                'BNT/ETH' => array ( 'id' => 'BNTETH', 'symbol' => 'BNT/ETH', 'base' => 'BNT', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001 ),
+                'ICN/ETH' => array ( 'id' => 'ICNETH', 'symbol' => 'ICN/ETH', 'base' => 'ICN', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001 ),
+                'BTC/USDT' => array ( 'id' => 'BTCUSDT', 'symbol' => 'BTC/USDT', 'base' => 'BTC', 'quote' => 'USDT', 'taker' => 0.001, 'maker' => 0.001 ),
+                'ETH/USDT' => array ( 'id' => 'ETHUSDT', 'symbol' => 'ETH/USDT', 'base' => 'ETH', 'quote' => 'USDT', 'taker' => 0.001, 'maker' => 0.001 ),
+                'QTUM/ETH' => array ( 'id' => 'QTUMETH', 'symbol' => 'QTUM/ETH', 'base' => 'QTUM', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001 ),
             ),
         ), $options));
     }
@@ -5795,8 +5799,10 @@ class bittrex extends Exchange {
                 ),
             ),
             'fees' => array (
-                'maker' => 0.0025,
-                'taker' => 0.0025,
+                'trading' => array (
+                    'maker' => 0.0025,
+                    'taker' => 0.0025,
+                ),
             ),
         ), $options));
     }
@@ -5812,13 +5818,13 @@ class bittrex extends Exchange {
             $base = $this->commonCurrencyCode ($base);
             $quote = $this->commonCurrencyCode ($quote);
             $symbol = $base . '/' . $quote;
-            $result[] = array (
+            $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
-            );
+            ));
         }
         return $result;
     }
@@ -14952,9 +14958,11 @@ class liqui extends Exchange {
                 ),
             ),
             'fees' => array (
-                'maker' => 0.001,
-                'taker' => 0.0025,
-                'withdraw' => 0.0,
+                'trading' => array (
+                    'maker' => 0.001,
+                    'taker' => 0.0025,
+                ),
+                'funding' => 0.0,
             ),
         ), $options));
     }
@@ -14975,15 +14983,14 @@ class liqui extends Exchange {
             $base = $this->commonCurrencyCode ($base);
             $quote = $this->commonCurrencyCode ($quote);
             $symbol = $base . '/' . $quote;
-            $result[] = array (
+            $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'taker' => $market['fee'],
-                'maker' => 0.001,
                 'info' => $market,
-            );
+            ));
         }
         return $result;
     }
@@ -16659,9 +16666,11 @@ class poloniex extends Exchange {
                 ),
             ),
             'fees' => array (
-                'maker' => 0.0015,
-                'taker' => 0.0025,
-                'withdraw' => 0.0,
+                'trading' => array (
+                    'maker' => 0.0015,
+                    'taker' => 0.0025,
+                ),
+                'funding' => 0.0,
             ),
         ), $options));
     }
@@ -16675,13 +16684,13 @@ class poloniex extends Exchange {
             $market = $markets[$id];
             list ($quote, $base) = explode ('_', $id);
             $symbol = $base . '/' . $quote;
-            $result[] = array (
+            $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
-            );
+            ));
         }
         return $result;
     }

@@ -1069,54 +1069,58 @@ class binance (Exchange):
                 },
             },
             'fees': {
-                'taker': 0.001,
-                'maker': 0.001,
-                'withdraw': {
-                    'BNB': 1.0,
-                    'BTC': 0.0005,
-                    'ETH': 0.005,
-                    'LTC': 0.001,
-                    'NEO': 0.0,
-                    'QTUM': 0.1,
-                    'SNT': 1.0,
-                    'EOS': 0.1,
-                    'BCC': None,
-                    'GAS': 0.0,
-                    'USDT': 5.0,
-                    'HSR': 0.0001,
-                    'OAX': 0.1,
-                    'DNT': 1.0,
-                    'MCO': 0.1,
-                    'ICN': 0.1,
-                    'WTC': 0.1,
-                    'OMG': 0.1,
-                    'ZRX': 1.0,
-                    'STRAT': 0.1,
-                    'SNGLS': 1.0,
-                    'BQX': 1.0,
+                'trading': {
+                    'taker': 0.001,
+                    'maker': 0.001,
+                },
+                'funding': {
+                    'withdraw': {
+                        'BNB': 1.0,
+                        'BTC': 0.0005,
+                        'ETH': 0.005,
+                        'LTC': 0.001,
+                        'NEO': 0.0,
+                        'QTUM': 0.1,
+                        'SNT': 1.0,
+                        'EOS': 0.1,
+                        'BCC': None,
+                        'GAS': 0.0,
+                        'USDT': 5.0,
+                        'HSR': 0.0001,
+                        'OAX': 0.1,
+                        'DNT': 1.0,
+                        'MCO': 0.1,
+                        'ICN': 0.1,
+                        'WTC': 0.1,
+                        'OMG': 0.1,
+                        'ZRX': 1.0,
+                        'STRAT': 0.1,
+                        'SNGLS': 1.0,
+                        'BQX': 1.0,
+                    },
                 },
             },
             'markets': {
-                'BNB/BTC': {'id': 'BNBBTC', 'symbol': 'BNB/BTC', 'base': 'BNB', 'quote': 'BTC'},
-                'NEO/BTC': {'id': 'NEOBTC', 'symbol': 'NEO/BTC', 'base': 'NEO', 'quote': 'BTC'},
-                'ETH/BTC': {'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC'},
-                'HSR/BTC': {'id': 'HSRBTC', 'symbol': 'HSR/BTC', 'base': 'HSR', 'quote': 'BTC'},
-                'LTC/BTC': {'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
-                'GAS/BTC': {'id': 'GASBTC', 'symbol': 'GAS/BTC', 'base': 'GAS', 'quote': 'BTC'},
-                'HCC/BTC': {'id': 'HCCBTC', 'symbol': 'HCC/BTC', 'base': 'HCC', 'quote': 'BTC'},
-                'BCH/BTC': {'id': 'BCCBTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC'},
-                'BNB/ETH': {'id': 'BNBETH', 'symbol': 'BNB/ETH', 'base': 'BNB', 'quote': 'ETH'},
-                'DNT/ETH': {'id': 'DNTETH', 'symbol': 'DNT/ETH', 'base': 'DNT', 'quote': 'ETH'},
-                'OAX/ETH': {'id': 'OAXETH', 'symbol': 'OAX/ETH', 'base': 'OAX', 'quote': 'ETH'},
-                'MCO/ETH': {'id': 'MCOETH', 'symbol': 'MCO/ETH', 'base': 'MCO', 'quote': 'ETH'},
-                'BTM/ETH': {'id': 'BTMETH', 'symbol': 'BTM/ETH', 'base': 'BTM', 'quote': 'ETH'},
-                'SNT/ETH': {'id': 'SNTETH', 'symbol': 'SNT/ETH', 'base': 'SNT', 'quote': 'ETH'},
-                'EOS/ETH': {'id': 'EOSETH', 'symbol': 'EOS/ETH', 'base': 'EOS', 'quote': 'ETH'},
-                'BNT/ETH': {'id': 'BNTETH', 'symbol': 'BNT/ETH', 'base': 'BNT', 'quote': 'ETH'},
-                'ICN/ETH': {'id': 'ICNETH', 'symbol': 'ICN/ETH', 'base': 'ICN', 'quote': 'ETH'},
-                'BTC/USDT': {'id': 'BTCUSDT', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT'},
-                'ETH/USDT': {'id': 'ETHUSDT', 'symbol': 'ETH/USDT', 'base': 'ETH', 'quote': 'USDT'},
-                'QTUM/ETH': {'id': 'QTUMETH', 'symbol': 'QTUM/ETH', 'base': 'QTUM', 'quote': 'ETH'},
+                'BNB/BTC': {'id': 'BNBBTC', 'symbol': 'BNB/BTC', 'base': 'BNB', 'quote': 'BTC', 'taker': 0.001, 'maker': 0.001},
+                'NEO/BTC': {'id': 'NEOBTC', 'symbol': 'NEO/BTC', 'base': 'NEO', 'quote': 'BTC', 'taker': 0.001, 'maker': 0.001},
+                'ETH/BTC': {'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'taker': 0.001, 'maker': 0.001},
+                'HSR/BTC': {'id': 'HSRBTC', 'symbol': 'HSR/BTC', 'base': 'HSR', 'quote': 'BTC', 'taker': 0.001, 'maker': 0.001},
+                'LTC/BTC': {'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'taker': 0.001, 'maker': 0.001},
+                'GAS/BTC': {'id': 'GASBTC', 'symbol': 'GAS/BTC', 'base': 'GAS', 'quote': 'BTC', 'taker': 0.001, 'maker': 0.001},
+                'HCC/BTC': {'id': 'HCCBTC', 'symbol': 'HCC/BTC', 'base': 'HCC', 'quote': 'BTC', 'taker': 0.001, 'maker': 0.001},
+                'BCH/BTC': {'id': 'BCCBTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'taker': 0.001, 'maker': 0.001},
+                'BNB/ETH': {'id': 'BNBETH', 'symbol': 'BNB/ETH', 'base': 'BNB', 'quote': 'ETH', 'taker': 0.001, 'maker': 0.001},
+                'DNT/ETH': {'id': 'DNTETH', 'symbol': 'DNT/ETH', 'base': 'DNT', 'quote': 'ETH', 'taker': 0.001, 'maker': 0.001},
+                'OAX/ETH': {'id': 'OAXETH', 'symbol': 'OAX/ETH', 'base': 'OAX', 'quote': 'ETH', 'taker': 0.001, 'maker': 0.001},
+                'MCO/ETH': {'id': 'MCOETH', 'symbol': 'MCO/ETH', 'base': 'MCO', 'quote': 'ETH', 'taker': 0.001, 'maker': 0.001},
+                'BTM/ETH': {'id': 'BTMETH', 'symbol': 'BTM/ETH', 'base': 'BTM', 'quote': 'ETH', 'taker': 0.001, 'maker': 0.001},
+                'SNT/ETH': {'id': 'SNTETH', 'symbol': 'SNT/ETH', 'base': 'SNT', 'quote': 'ETH', 'taker': 0.001, 'maker': 0.001},
+                'EOS/ETH': {'id': 'EOSETH', 'symbol': 'EOS/ETH', 'base': 'EOS', 'quote': 'ETH', 'taker': 0.001, 'maker': 0.001},
+                'BNT/ETH': {'id': 'BNTETH', 'symbol': 'BNT/ETH', 'base': 'BNT', 'quote': 'ETH', 'taker': 0.001, 'maker': 0.001},
+                'ICN/ETH': {'id': 'ICNETH', 'symbol': 'ICN/ETH', 'base': 'ICN', 'quote': 'ETH', 'taker': 0.001, 'maker': 0.001},
+                'BTC/USDT': {'id': 'BTCUSDT', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT', 'taker': 0.001, 'maker': 0.001},
+                'ETH/USDT': {'id': 'ETHUSDT', 'symbol': 'ETH/USDT', 'base': 'ETH', 'quote': 'USDT', 'taker': 0.001, 'maker': 0.001},
+                'QTUM/ETH': {'id': 'QTUMETH', 'symbol': 'QTUM/ETH', 'base': 'QTUM', 'quote': 'ETH', 'taker': 0.001, 'maker': 0.001},
             },
         }
         params.update(config)
@@ -4531,8 +4535,10 @@ class bittrex (Exchange):
                 },
             },
             'fees': {
-                'maker': 0.0025,
-                'taker': 0.0025,
+                'trading': {
+                    'maker': 0.0025,
+                    'taker': 0.0025,
+                },
             },
         }
         params.update(config)
@@ -4549,13 +4555,13 @@ class bittrex (Exchange):
             base = self.commonCurrencyCode(base)
             quote = self.commonCurrencyCode(quote)
             symbol = base + '/' + quote
-            result.append({
+            result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-            })
+            }))
         return result
 
     async def fetch_balance(self, params={}):
@@ -13108,9 +13114,11 @@ class liqui (Exchange):
                 },
             },
             'fees': {
-                'maker': 0.001,
-                'taker': 0.0025,
-                'withdraw': 0.0,
+                'trading': {
+                    'maker': 0.001,
+                    'taker': 0.0025,
+                },
+                'funding': 0.0,
             },
         }
         params.update(config)
@@ -13132,15 +13140,14 @@ class liqui (Exchange):
             base = self.commonCurrencyCode(base)
             quote = self.commonCurrencyCode(quote)
             symbol = base + '/' + quote
-            result.append({
+            result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'taker': market['fee'],
-                'maker': 0.001,
                 'info': market,
-            })
+            }))
         return result
 
     async def fetch_balance(self, params={}):
@@ -14709,9 +14716,11 @@ class poloniex (Exchange):
                 },
             },
             'fees': {
-                'maker': 0.0015,
-                'taker': 0.0025,
-                'withdraw': 0.0,
+                'trading': {
+                    'maker': 0.0015,
+                    'taker': 0.0025,
+                },
+                'funding': 0.0,
             },
         }
         params.update(config)
@@ -14726,13 +14735,13 @@ class poloniex (Exchange):
             market = markets[id]
             quote, base = id.split('_')
             symbol = base + '/' + quote
-            result.append({
+            result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-            })
+            }))
         return result
 
     async def fetch_balance(self, params={}):

@@ -5584,7 +5584,7 @@ var bittrex = {
                 'base': base,
                 'quote': quote,
                 'info': market,
-            });
+            }));
         }
         return result;
     },
