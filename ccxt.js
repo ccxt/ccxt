@@ -3888,21 +3888,29 @@ var bithumb = {
         // return await this.privatePostOrderCancel ({ 'order_id': id });
     },
 
+    nonce () {
+        return this.milliseconds ();
+    },
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+        let endpoint = '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][api] + endpoint;
         let query = this.omit (params, this.extractParams (path));
         if (api == 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
-            throw new NotSupported (this.id + ' private API not implemented yet');
-            // let nonce = this.nonce ();
-            // body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
-            // headers = {
-            //     'Content-Type': 'application/x-www-form-urlencoded',
-            //     'Key': this.apiKey,
-            //     'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
-            // };
+            body = this.urlencode (this.extend ({
+                'endPoint': endpoint,
+            }, query));
+            let nonce = this.nonce ().toString ();
+            let auth = endpoint + "\0" + body + "\0" + nonce;
+            let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512', 'base64');
+            headers = {
+                'Api-Key': this.apiKey,
+                'Api-Sign': signature,
+                'Api-Nonce': nonce,
+            };
         }
         let response = await this.fetch (url, method, headers, body);
         if ('status' in response) {
