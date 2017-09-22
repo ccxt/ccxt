@@ -1,5 +1,9 @@
 # Сhangelog
 
+- Restored Bistamp v2 fetchOrderStatus, [#226](https://github.com/kroitor/ccxt/issues/226)
+- Added `hasCORS` property to base exchange class, [#225](https://github.com/kroitor/ccxt/issues/225)
+- Minor fix to GDAX OHLCV, [#221](https://github.com/kroitor/ccxt/issues/221)
+- Fixed the `since` param in GDAX fetchOHLCV, [#221](https://github.com/kroitor/ccxt/issues/221)
 - Added support for a new exchange: [WEX](https://wex.nz) (New Zealand)
 - Dropped the legacy ECMAScript 5 support for the greater maintainability and performance gains
 - Added missing spot pairs BCC/BTC LTC/BTC ETH/BTC ETC/BTC to OKEX, improved futures support, [#216](https://github.com/kroitor/ccxt/issues/216)
@@ -16,8 +20,8 @@
 - Fixed Jubi cancelOrder
 - Switched HitBTC v2 fetchBalance to trading account by default, [#210](https://github.com/kroitor/ccxt/pull/210)
 - Added an internal rate-limiting REST poller to JS (experimental)
-- Fixed Cryptopia fetchTicker volume [#206](https://github.com/kroitor/ccxt/issues/206)
-- Fixed Bittrex await cancelOrder [#205](https://github.com/kroitor/ccxt/issues/205)
+- Fixed Cryptopia fetchTicker volume, [#206](https://github.com/kroitor/ccxt/issues/206)
+- Fixed Bittrex await cancelOrder, [#205](https://github.com/kroitor/ccxt/issues/205)
 - Fixed empty CEX DASH/USD fetchTicker
 - Added Bittrex v2 fetchOHLCV (alpha-stage of their new API)
 
