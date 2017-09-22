@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Added missing new markets to Bitcoin.co.id, [#228](https://github.com/kroitor/ccxt/issues/228)
 - Restored Bistamp v2 fetchOrderStatus, [#226](https://github.com/kroitor/ccxt/issues/226)
 - Added `hasCORS` property to base exchange class, [#225](https://github.com/kroitor/ccxt/issues/225)
 - Minor fix to GDAX OHLCV, [#221](https://github.com/kroitor/ccxt/issues/221)
