@@ -3835,7 +3835,7 @@ var bithumb = {
     },
 
     parseTrade (trade, market) {
-        // a workaround their bug in date format, hours are not 0-padded
+        // a workaround for their bug in date format, hours are not 0-padded
         let [ transaction_date, transaction_time ] = trade['transaction_date'].split (' ');
         let transaction_time_short = transaction_time.length < 8;
         if (transaction_time_short)
@@ -3883,9 +3883,19 @@ var bithumb = {
         // };
     },
 
-    cancelOrder (id) {
-        throw new NotSupported (this.id + ' private API not implemented yet');
-        // return await this.privatePostOrderCancel ({ 'order_id': id });
+    cancelOrder (id, params = {}) {
+        let side = ('side' in params);
+        if (!side)
+            throw new ExchangeError (this.id + ' cancelOrder requires a side parameter (sell or buy)');
+        side = (side == 'buy') ? 'purchase' : 'sales';
+        let currency = ('currency' in params);
+        if (!currency)
+            throw new ExchangeError (this.id + ' cancelOrder requires a currency parameter');
+        return this.privatePostTradeCancel ({
+            'order_id': id,
+            'type': side,
+            'currency': currency,
+        });
     },
 
     nonce () {

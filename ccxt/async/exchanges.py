@@ -2873,7 +2873,7 @@ class bithumb (Exchange):
         return self.parse_ticker(response['data'], market)
 
     def parse_trade(self, trade, market):
-        # a workaround their bug in date format, hours are not 0-padded
+        # a workaround for their bug in date format, hours are not 0-padded
         transaction_date, transaction_time = trade['transaction_date'].split(' ')
         transaction_time_short = len(transaction_time) < 8
         if transaction_time_short:
@@ -2918,25 +2918,42 @@ class bithumb (Exchange):
         #     'id': str(response['order_id']),
         #}
 
-    def cancel_order(self, id):
-        raise NotSupported(self.id + ' private API not implemented yet')
-        # return await self.privatePostOrderCancel({'order_id': id})
+    def cancel_order(self, id, params={}):
+        side = ('side' in list(params.keys()))
+        if not side:
+            raise ExchangeError(self.id + ' cancelOrder requires a side parameter(sell or buy)')
+        side = 'purchase' if(side == 'buy') else 'sales'
+        currency = ('currency' in list(params.keys()))
+        if not currency:
+            raise ExchangeError(self.id + ' cancelOrder requires a currency parameter')
+        return self.privatePostTradeCancel({
+            'order_id': id,
+            'type': side,
+            'currency': currency,
+        })
+
+    def nonce(self):
+        return self.milliseconds()
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api] + '/' + self.implode_params(path, params)
+        endpoint = '/' + self.implode_params(path, params)
+        url = self.urls['api'][api] + endpoint
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
                 url += '?' + self.urlencode(query)
         else:
-            raise NotSupported(self.id + ' private API not implemented yet')
-            # nonce = self.nonce()
-            # body = self.urlencode(self.extend({'nonce': nonce}, params))
-            # headers = {
-            #     'Content-Type': 'application/x-www-form-urlencoded',
-            #     'Key': self.apiKey,
-            #     'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
-            #}
+            body = self.urlencode(self.extend({
+                'endPoint': endpoint,
+            }, query))
+            nonce = str(self.nonce())
+            auth = endpoint + "\0" + body + "\0" + nonce
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512, 'base64')
+            headers = {
+                'Api-Key': self.apiKey,
+                'Api-Sign': signature,
+                'Api-Nonce': nonce,
+            }
         response = await self.fetch(url, method, headers, body)
         if 'status' in response:
             if response['status'] == '0000':

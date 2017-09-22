@@ -4051,7 +4051,7 @@ class bithumb extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        // a workaround their bug in date format, hours are not 0-padded
+        // a workaround for their bug in date format, hours are not 0-padded
         list ($transaction_date, $transaction_time) = explode (' ', $trade['transaction_date']);
         $transaction_time_short = strlen ($transaction_time) < 8;
         if ($transaction_time_short)
@@ -4099,26 +4099,44 @@ class bithumb extends Exchange {
         // );
     }
 
-    public function cancel_order ($id) {
-        throw new NotSupported ($this->id . ' private API not implemented yet');
-        // return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
+    public function cancel_order ($id, $params = array ()) {
+        $side = (array_key_exists ('side', $params));
+        if (!$side)
+            throw new ExchangeError ($this->id . ' cancelOrder requires a $side parameter (sell or buy)');
+        $side = ($side == 'buy') ? 'purchase' : 'sales';
+        $currency = (array_key_exists ('currency', $params));
+        if (!$currency)
+            throw new ExchangeError ($this->id . ' cancelOrder requires a $currency parameter');
+        return $this->privatePostTradeCancel (array (
+            'order_id' => $id,
+            'type' => $side,
+            'currency' => $currency,
+        ));
+    }
+
+    public function nonce () {
+        return $this->milliseconds ();
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$api] . '/' . $this->implode_params ($path, $params);
+        $endpoint = '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'][$api] . $endpoint;
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
-            throw new NotSupported ($this->id . ' private API not implemented yet');
-            // $nonce = $this->nonce ();
-            // $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $params));
-            // $headers = array (
-            //     'Content-Type' => 'application/x-www-form-urlencoded',
-            //     'Key' => $this->apiKey,
-            //     'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
-            // );
+            $body = $this->urlencode (array_merge (array (
+                'endPoint' => $endpoint,
+            ), $query));
+            $nonce = (string) $this->nonce ();
+            $auth = $endpoint . "\0" . $body . "\0" . $nonce;
+            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512', 'base64');
+            $headers = array (
+                'Api-Key' => $this->apiKey,
+                'Api-Sign' => $signature,
+                'Api-Nonce' => $nonce,
+            );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('status', $response)) {
