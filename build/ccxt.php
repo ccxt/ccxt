@@ -13017,9 +13017,12 @@ class huobi1 extends Exchange {
         $last = null;
         if (array_key_exists ('last', $ticker))
             $last = $ticker['last'];
+        $timestamp = $this->milliseconds ();
+        if (array_key_exists ('ts', $ticker))
+            $timestamp = $ticker['ts'];
         return array (
-            'timestamp' => $ticker['ts'],
-            'datetime' => $this->iso8601 ($ticker['ts']),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
             'high' => $ticker['high'],
             'low' => $ticker['low'],
             'bid' => $ticker['bid'][0],

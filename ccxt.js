@@ -12617,9 +12617,12 @@ var huobi1 = {
         let last = undefined;
         if ('last' in ticker)
             last = ticker['last'];
+        let timestamp = this.milliseconds ();
+        if ('ts' in ticker)
+            timestamp = ticker['ts'];
         return {
-            'timestamp': ticker['ts'],
-            'datetime': this.iso8601 (ticker['ts']),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'high': ticker['high'],
             'low': ticker['low'],
             'bid': ticker['bid'][0],

@@ -11277,9 +11277,12 @@ class huobi1 (Exchange):
         last = None
         if 'last' in ticker:
             last = ticker['last']
+        timestamp = self.milliseconds()
+        if 'ts' in ticker:
+            timestamp = ticker['ts']
         return {
-            'timestamp': ticker['ts'],
-            'datetime': self.iso8601(ticker['ts']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'high': ticker['high'],
             'low': ticker['low'],
             'bid': ticker['bid'][0],
