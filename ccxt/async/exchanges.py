@@ -4274,6 +4274,7 @@ class bitstamp (Exchange):
                         'user_transactions/{pair}/',
                         'open_orders/all/',
                         'open_orders/{pair}',
+                        'order_status',
                         'cancel_order/',
                         'buy/{pair}/',
                         'buy/market/{pair}/',
