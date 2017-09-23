@@ -13230,6 +13230,11 @@ class liqui (Exchange):
         params.update(config)
         super(liqui, self).__init__(params)
 
+    def calculate_fee_rate(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        key = 'quote' if(side == 'sell') else 'base'
+        market = self.markets[symbol]
+        return {'currency': market[key], 'rate': market[takerOrMaker]}
+
     async def fetch_markets(self):
         response = await self.publicGetInfo()
         markets = response['pairs']
