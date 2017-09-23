@@ -2801,22 +2801,20 @@ class bithumb (Exchange):
         params.update(config)
         super(bithumb, self).__init__(params)
 
-    def fetch_balance(self, params={}):
-        raise NotSupported(self.id + ' fetchBalance not implemented yet')
-        # await self.load_markets()
-        # response = await self.privatePostUserInfo()
-        # result = {'info': response}
-        # for c in range(0, len(self.currencies)):
-        #     currency = self.currencies[c]
-        #     account = self.account()
-        #     if currency in response['balances']:
-        #         account['free'] = float(response['balances'][currency])
-        #     if currency in response['reserved']:
-        #         account['used'] = float(response['reserved'][currency])
-        #     account['total'] = self.sum(account['free'], account['used'])
-        #     result[currency] = account
-        #}
-        # return result
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privatePostInfoBalance()
+        result = {'info': response}
+        balances = response['data']
+        for c in range(0, len(self.currencies)):
+            currency = self.currencies[c]
+            account = self.account()
+            lowercase = currency.lower()
+            account['total'] = self.safe_float(balances, 'total_' + lowercase)
+            account['used'] = self.safe_float(balances, 'in_use_' + lowercase)
+            account['free'] = self.safe_float(balances, 'available_' + lowercase)
+            result[currency] = account
+        return result
 
     async def fetch_order_book(self, symbol, params={}):
         market = self.market(symbol)
@@ -12030,6 +12028,9 @@ class itbit (Exchange):
         ticker = await self.publicGetMarketsSymbolTicker({
             'symbol': self.market_id(symbol),
         })
+        serverTimeUTC = ('serverTimeUTC' in list(ticker.keys()))
+        if not serverTimeUTC:
+            raise ExchangeError(self.id + ' fetchTicker returned a bad response: ' + self.json(ticker))
         timestamp = self.parse8601(ticker['serverTimeUTC'])
         return {
             'timestamp': timestamp,
