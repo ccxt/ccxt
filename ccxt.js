@@ -13398,6 +13398,9 @@ var itbit = {
         let ticker = await this.publicGetMarketsSymbolTicker ({
             'symbol': this.marketId (symbol),
         });
+        let serverTimeUTC = ('serverTimeUTC' in ticker);
+        if (!serverTimeUTC)
+            throw new ExchangeError (this.id + ' fetchTicker returned a bad response: ' + this.json (ticker));
         let timestamp = this.parse8601 (ticker['serverTimeUTC']);
         return {
             'timestamp': timestamp,
