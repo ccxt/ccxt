@@ -2281,18 +2281,22 @@ class binance extends Exchange {
         $idField = (array_key_exists ('a', $trade)) ? 'a' : 'id';
         $id = (string) $trade[$idField];
         $side = null;
+        $order = null;
+        if (array_key_exists ('orderId', $trade))
+            $order = (string) $trade['orderId'];
         if (array_key_exists ('m', $trade)) {
             $side = 'sell';
             if ($trade['m'])
                 $side = 'buy';
         } else {
-            $isBuyer = $trade['isBuyer'];
-            $isMaker = $trade['isMaker'];
-            if ($isBuyer) {
-                $side = $isMaker ? 'sell' : 'buy';
-            } else {
-                $side = $isMaker ? 'buy' : 'sell';
-            }
+            $side = ($trade['isBuyer']) ? 'buy' : 'sell';
+        }
+        $fee = null;
+        if (array_key_exists ('commission', $trade)) {
+            $fee = array (
+                'rate' => floatval ($trade['commission']),
+                'currency' => $trade['commissionAsset'],
+            );
         }
         return array (
             'info' => $trade,
@@ -2300,10 +2304,12 @@ class binance extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
             'id' => $id,
+            'order' => $order,
             'type' => null,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
+            'fee' => $fee,
         );
     }
 
@@ -2428,6 +2434,17 @@ class binance extends Exchange {
 
     public function nonce () {
         return $this->milliseconds ();
+    }
+
+    public function fetch_my_trades ($symbol = null, $params = array ()) {
+        $this->load_markets ();
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchMyTrades requires a symbol');
+        $market = $this->market ($symbol);
+        $response = $this->privateGetMyTrades (array_merge (array (
+            'symbol' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response, $market);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -5504,7 +5521,7 @@ class bitstamp1 extends Exchange {
         $pair = $market ? $market['id'] : 'all';
         $request = array_merge (array ( 'id' => $pair ), $params);
         $response = $this->privatePostOpenOrdersId ($request);
-        $result = $this->parse_trades ($response, $market);
+        return $this->parse_trades ($response, $market);
     }
 
     public function fetch_order ($id) {
@@ -5754,7 +5771,7 @@ class bitstamp extends Exchange {
         $pair = $market ? $market['id'] : 'all';
         $request = array_merge (array ( 'pair' => $pair ), $params);
         $response = $this->privatePostOpenOrdersPair ($request);
-        $result = $this->parse_trades ($response, $market);
+        return $this->parse_trades ($response, $market);
     }
 
     public function fetch_order ($id) {

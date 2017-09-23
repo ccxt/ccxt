@@ -2248,7 +2248,7 @@ var binance = {
         let market = this.market (symbol);
         let response = await this.privateGetMyTrades (this.extend ({
             'symbol': market['id'],
-         }, params));
+        }, params));
         return this.parseTrades (response, market);
     },
 

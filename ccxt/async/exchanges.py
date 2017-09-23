@@ -1222,27 +1222,33 @@ class binance (Exchange):
         idField = 'a' if('a' in list(trade.keys())) else 'id'
         id = str(trade[idField])
         side = None
+        order = None
+        if 'orderId' in trade:
+            order = str(trade['orderId'])
         if 'm' in trade:
             side = 'sell'
             if trade['m']:
                 side = 'buy'
         else:
-            isBuyer = trade['isBuyer']
-            isMaker = trade['isMaker']
-            if isBuyer:
-                side = 'sell' if isMaker else 'buy'
-            else:
-                side = 'buy' if isMaker else 'sell'
+            side = 'buy' if(trade['isBuyer']) else 'sell'
+        fee = None
+        if 'commission' in trade:
+            fee = {
+                'rate': float(trade['commission']),
+                'currency': trade['commissionAsset'],
+            }
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'id': id,
+            'order': order,
             'type': None,
             'side': side,
             'price': price,
             'amount': amount,
+            'fee': fee,
         }
 
     async def fetch_trades(self, symbol, params={}):
@@ -1355,6 +1361,16 @@ class binance (Exchange):
 
     def nonce(self):
         return self.milliseconds()
+
+    async def fetch_my_trades(self, symbol=None, params={}):
+        await self.load_markets()
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol')
+        market = self.market(symbol)
+        response = await self.privateGetMyTrades(self.extend({
+            'symbol': market['id'],
+        }, params))
+        return self.parse_trades(response, market)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path
@@ -4231,7 +4247,7 @@ class bitstamp1 (Exchange):
         pair = market['id'] if market else 'all'
         request = self.extend({'id': pair}, params)
         response = await self.privatePostOpenOrdersId(request)
-        result = self.parse_trades(response, market)
+        return self.parse_trades(response, market)
 
     async def fetch_order(self, id):
         raise NotSupported(self.id + ' fetchOrder is not implemented yet')
@@ -4465,7 +4481,7 @@ class bitstamp (Exchange):
         pair = market['id'] if market else 'all'
         request = self.extend({'pair': pair}, params)
         response = await self.privatePostOpenOrdersPair(request)
-        result = self.parse_trades(response, market)
+        return self.parse_trades(response, market)
 
     async def fetch_order(self, id):
         raise NotSupported(self.id + ' fetchOrder is not implemented yet')
