@@ -1987,6 +1987,12 @@ var binance = {
         'QTUM/ETH': { 'id': 'QTUMETH', 'symbol': 'QTUM/ETH', 'base': 'QTUM', 'quote': 'ETH', 'taker': 0.001, 'maker': 0.001 },
     },
 
+    calculateFeeRate (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        let key = (side == 'sell') ? 'base' : 'quote';
+        let market = this.markets[symbol];
+        return { 'currency': market[key], 'rate': market[takerOrMaker] };
+    },
+
     async fetchBalance (params = {}) {
         let response = await this.privateGetAccount ();
         let result = { 'info': response };
