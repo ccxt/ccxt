@@ -14657,6 +14657,12 @@ var liqui = {
         'funding': 0.0,
     },
 
+    calculateFeeRate (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        let key = (side == 'sell') ? 'quote' : 'base';
+        let market = this.markets[symbol];
+        return { 'currency': market[key], 'rate': market[takerOrMaker] };
+    },
+
     async fetchMarkets () {
         let response = await this.publicGetInfo ();
         let markets = response['pairs'];
