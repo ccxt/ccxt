@@ -3893,8 +3893,8 @@ var bithumb = {
             throw new ExchangeError (this.id + ' cancelOrder requires a currency parameter');
         return this.privatePostTradeCancel ({
             'order_id': id,
-            'type': side,
-            'currency': currency,
+            'type': params['side'],
+            'currency': params['currency'],
         });
     },
 
