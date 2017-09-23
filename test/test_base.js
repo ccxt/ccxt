@@ -55,37 +55,37 @@ describe ('ccxt base code', () => {
         })
     })
 
-    // it ('rate limiting works', async () => {
+    it.skip ('rate limiting works', async () => {
 
-    //     const calls = []
-    //     const rateLimit = 100
-    //     const exchange = new ccxt.Exchange ({
+        const calls = []
+        const rateLimit = 100
+        const exchange = new ccxt.Exchange ({
 
-    //         id: 'mock',
-    //         rateLimit,
-    //         enableRateLimit: true,
+            id: 'mock',
+            rateLimit,
+            enableRateLimit: true,
 
-    //         async executeRestRequest (...args) { calls.push ({ when: Date.now (), path: args[0], args }) }
-    //     })
+            async executeRestRequest (...args) { calls.push ({ when: Date.now (), path: args[0], args }) }
+        })
 
-    //     await exchange.fetch ('foo')
-    //     await exchange.fetch ('bar')
-    //     await exchange.fetch ('baz')
+        await exchange.fetch ('foo')
+        await exchange.fetch ('bar')
+        await exchange.fetch ('baz')
 
-    //     await Promise.all ([
-    //         exchange.fetch ('qux'),
-    //         exchange.fetch ('zap'),
-    //         exchange.fetch ('lol')
-    //     ])
+        await Promise.all ([
+            exchange.fetch ('qux'),
+            exchange.fetch ('zap'),
+            exchange.fetch ('lol')
+        ])
 
-    //     assert.deepEqual (calls.map (x => x.path), ['foo', 'bar', 'baz', 'qux', 'zap', 'lol'])
+        assert.deepEqual (calls.map (x => x.path), ['foo', 'bar', 'baz', 'qux', 'zap', 'lol'])
 
-    //     calls.reduce ((prevTime, call) => {
-    //         log ('delta T:', call.when - prevTime)
-    //         assert ((call.when - prevTime) >= rateLimit)
-    //         return call.when
-    //     }, 0)
-    // })
+        calls.reduce ((prevTime, call) => {
+            log ('delta T:', call.when - prevTime)
+            assert ((call.when - prevTime) >= rateLimit)
+            return call.when
+        }, 0)
+    })
 })
 
 /*  ------------------------------------------------------------------------ */
