@@ -43,13 +43,14 @@ describe ('ccxt base code', () => {
             'markets': { 'FOO/BAR': market }
         })
 
-        Object.keys (fees).forEach (fee => {
+        Object.keys (fees).forEach (takerOrMaker => {
 
-            const result = exchange.calculateFee (market['symbol'], 'limit', 'sell', amount, price, fee, {})
+            const result = exchange.calculateFee (market['symbol'], 'limit', 'sell', amount, price, takerOrMaker, {})
 
             assert.deepEqual (result, {
-                'rate': { 'base': 0.0, 'quote': fees[fee], },
-                'cost': { 'base': 0.0, 'quote': fees[fee] * amount * price, },
+                'currency': 'BAR',
+                'rate': fees[takerOrMaker],
+                'cost': fees[takerOrMaker] * amount * price,
             })
         })
     })

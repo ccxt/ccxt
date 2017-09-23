@@ -773,23 +773,16 @@ const Exchange = function (config) {
         return this.createOrder (market, 'market', 'sell', amount, undefined, params)
     }
 
-    this.calculateFeeRate = function (symbol, type, side, amount, price, fee = 'taker', params = {}) {
-        return {
-            'base': 0.0,
-            'quote': this.markets[symbol][fee],
-        };
+    this.calculateFeeRate = function (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        const market = this.markets[symbol]
+        return { 'currency': market['quote'], 'rate': market[takerOrMaker] }
     }
 
-    this.calculateFee = function (symbol, type, side, amount, price, fee = 'taker', params = {}) {
-        const rate = this.calculateFeeRate (symbol, type, side, amount, price, fee, params);
-        return {
-            'rate': rate,
-            'cost': {
-                'base': amount * rate['base'],
-                'quote': amount * price * rate['quote'],
-            },
-        };
-    },
+    this.calculateFee = function (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        let fee = this.calculateFeeRate (symbol, type, side, amount, price, takerOrMaker, params)
+        fee['cost'] = amount * price * fee['rate']
+        return fee
+    }
 
     this.iso8601         = timestamp => new Date (timestamp).toISOString ()
     this.parse8601       = Date.parse
@@ -16340,14 +16333,10 @@ var poloniex = {
         'funding': 0.0,
     },
 
-    calculateFeeRate (symbol, type, side, amount, price, fee = 'taker', params = {}) {
-        let result = {
-            'base': 0.0,
-            'quote': 0.0,
-        };
+    calculateFeeRate (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let key = (side == 'sell') ? 'quote' : 'base';
-        result[key] = this.markets[symbol][fee];
-        return result;
+        let market = this.markets[symbol];
+        return { 'currency': market[key], 'rate': market[takerOrMaker] };
     },
 
     async fetchMarkets () {
