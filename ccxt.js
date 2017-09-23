@@ -2086,18 +2086,22 @@ var binance = {
         let idField = ('a' in trade) ? 'a' : 'id';
         let id = trade[idField].toString ();
         let side = undefined;
+        let order = undefined;
+        if ('orderId' in trade)
+            order = trade['orderId'].toString ();
         if ('m' in trade) {
             side = 'sell';
             if (trade['m'])
                 side = 'buy';
         } else {
-            let isBuyer = trade['isBuyer'];
-            let isMaker = trade['isMaker'];
-            if (isBuyer) {
-                side = isMaker ? 'sell' : 'buy';
-            } else {
-                side = isMaker ? 'buy' : 'sell';
-            }
+            side = (trade['isBuyer']) ? 'buy' : 'sell';
+        }
+        let fee = undefined;
+        if ('commission' in trade) {
+            fee = {
+                'rate': parseFloat (trade['commission']),
+                'currency': trade['commissionAsset'],
+            };
         }
         return {
             'info': trade,
@@ -2105,10 +2109,12 @@ var binance = {
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'id': id,
+            'order': order,
             'type': undefined,
             'side': side,
             'price': price,
             'amount': amount,
+            'fee': fee,
         };
     },
 
@@ -2233,6 +2239,17 @@ var binance = {
 
     nonce () {
         return this.milliseconds ();
+    },
+
+    async fetchMyTrades (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol');
+        let market = this.market (symbol);
+        let response = await this.privateGetMyTrades (this.extend ({
+            'symbol': market['id'],
+         }, params));
+        return this.parseTrades (response, market);
     },
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -5261,7 +5278,7 @@ var bitstamp1 = {
         let pair = market ? market['id'] : 'all';
         let request = this.extend ({ 'id': pair }, params);
         let response = await this.privatePostOpenOrdersId (request);
-        let result = this.parseTrades (response, market);
+        return this.parseTrades (response, market);
     },
 
     async fetchOrder (id) {
@@ -5507,7 +5524,7 @@ var bitstamp = {
         let pair = market ? market['id'] : 'all';
         let request = this.extend ({ 'pair': pair }, params);
         let response = await this.privatePostOpenOrdersPair (request);
-        let result = this.parseTrades (response, market);
+        return this.parseTrades (response, market);
     },
 
     async fetchOrder (id) {
