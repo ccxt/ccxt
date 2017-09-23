@@ -239,7 +239,7 @@ An alternative way of installing this library into your code is to copy a single
 JavaScript (NPM)
 ~~~~~~~~~~~~~~~~
 
-JavaScript version of ccxt works both in Node and web browsers.
+JavaScript version of CCXT works both in Node and web browsers. Requires ES6 and ``async/await`` syntax support (Node 7.6.0+). When compiling with Webpack and Babel, make sure it is not excluded in your ``babel-loader`` config.
 
 `ccxt crypto trading library in npm <http://npmjs.com/package/ccxt>`__
 
