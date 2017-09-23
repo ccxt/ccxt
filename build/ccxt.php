@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.122';
+$version = '1.7.123';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -5577,7 +5577,7 @@ class bitstamp extends Exchange {
                         'user_transactions/{pair}/',
                         'open_orders/all/',
                         'open_orders/{pair}',
-                        'order_status',
+                        'order_status/',
                         'cancel_order/',
                         'buy/{pair}/',
                         'buy/market/{pair}/',
