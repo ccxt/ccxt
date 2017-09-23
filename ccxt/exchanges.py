@@ -3016,8 +3016,8 @@ class bithumb (Exchange):
             raise ExchangeError(self.id + ' cancelOrder requires a currency parameter')
         return self.privatePostTradeCancel({
             'order_id': id,
-            'type': side,
-            'currency': currency,
+            'type': params['side'],
+            'currency': params['currency'],
         })
 
     def nonce(self):

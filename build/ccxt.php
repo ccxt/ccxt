@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.115';
+$version = '1.7.116';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -4109,8 +4109,8 @@ class bithumb extends Exchange {
             throw new ExchangeError ($this->id . ' cancelOrder requires a $currency parameter');
         return $this->privatePostTradeCancel (array (
             'order_id' => $id,
-            'type' => $side,
-            'currency' => $currency,
+            'type' => $params['side'],
+            'currency' => $params['currency'],
         ));
     }
 
