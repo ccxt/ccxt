@@ -469,6 +469,7 @@ class Exchange {
         $this->hasFetchOrders       = false;
         $this->hasFetchOpenOrders   = false;
         $this->hasFetchClosedOrders = false;
+        $this->hasFetchMyTrades     = false;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -2068,6 +2069,10 @@ class binance extends Exchange {
             'version' => 'v1',
             'hasCORS' => false,
             'hasFetchOHLCV' => true,
+            'hasFetchMyTrades' => true,
+            'hasFetchOrder' => true,
+            'hasFetchOrders' => true,
+            'hasFetchOpenOrders' => true,
             'timeframes' => array (
                 '1m' => '1m',
                 '3m' => '3m',
@@ -2294,7 +2299,7 @@ class binance extends Exchange {
         $fee = null;
         if (array_key_exists ('commission', $trade)) {
             $fee = array (
-                'rate' => floatval ($trade['commission']),
+                'cost' => floatval ($trade['commission']),
                 'currency' => $trade['commissionAsset'],
             );
         }
@@ -2329,7 +2334,7 @@ class binance extends Exchange {
         if ($status == 'NEW')
             return 'open';
         if ($status == 'PARTIALLY_FILLED')
-            return 'open';
+            return 'partial';
         if ($status == 'FILLED')
             return 'closed';
         if ($status == 'CANCELED')
@@ -5825,6 +5830,7 @@ class bittrex extends Exchange {
             'hasFetchOHLCV' => true,
             'hasFetchOrders' => true,
             'hasFetchOpenOrders' => true,
+            'hasFetchMyTrades' => false,
             'timeframes' => array (
                 '1m' => 'oneMin',
                 '5m' => 'fiveMin',
@@ -6131,6 +6137,13 @@ class bittrex extends Exchange {
             $timestamp = $this->parse8601 ($order['Opened']);
         if (array_key_exists ('TimeStamp', $order))
             $timestamp = $this->parse8601 ($order['TimeStamp']);
+        $fee = null;
+        if (array_key_exists ('Commission', $order)) {
+            $fee = array (
+                'cost' => floatval ($order['Commission']),
+                'currency' => $market['quote'],
+            );
+        }
         $amount = $order['Quantity'];
         $remaining = $order['QuantityRemaining'];
         $filled = $amount - $remaining;
@@ -6147,6 +6160,7 @@ class bittrex extends Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
+            'fee' => $fee,
         );
         return $result;
     }

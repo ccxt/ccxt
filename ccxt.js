@@ -808,6 +808,7 @@ const Exchange = function (config) {
     this.hasFetchOrders       = false
     this.hasFetchOpenOrders   = false
     this.hasFetchClosedOrders = false
+    this.hasFetchMyTrades     = false
     this.hasDeposit           = false
     this.hasWithdraw          = false
 
@@ -1875,6 +1876,10 @@ var binance = {
     'version': 'v1',
     'hasCORS': false,
     'hasFetchOHLCV': true,
+    'hasFetchMyTrades': true,
+    'hasFetchOrder': true,
+    'hasFetchOrders': true,
+    'hasFetchOpenOrders': true,
     'timeframes': {
         '1m': '1m',
         '3m': '3m',
@@ -2099,7 +2104,7 @@ var binance = {
         let fee = undefined;
         if ('commission' in trade) {
             fee = {
-                'rate': parseFloat (trade['commission']),
+                'cost': parseFloat (trade['commission']),
                 'currency': trade['commissionAsset'],
             };
         }
@@ -2134,7 +2139,7 @@ var binance = {
         if (status == 'NEW')
             return 'open';
         if (status == 'PARTIALLY_FILLED')
-            return 'open';
+            return 'partial';
         if (status == 'FILLED')
             return 'closed';
         if (status == 'CANCELED')
@@ -5576,6 +5581,7 @@ var bittrex = {
     'hasFetchOHLCV': true,
     'hasFetchOrders': true,
     'hasFetchOpenOrders': true,
+    'hasFetchMyTrades': false,
     'timeframes': {
         '1m': 'oneMin',
         '5m': 'fiveMin',
@@ -5880,6 +5886,13 @@ var bittrex = {
             timestamp = this.parse8601 (order['Opened']);
         if ('TimeStamp' in order)
             timestamp = this.parse8601 (order['TimeStamp']);
+        let fee = undefined;
+        if ('Commission' in order) {
+            fee = {
+                'cost': parseFloat (order['Commission']),
+                'currency': market['quote'],
+            };
+        }
         let amount = order['Quantity'];
         let remaining = order['QuantityRemaining'];
         let filled = amount - remaining;
@@ -5896,6 +5909,7 @@ var bittrex = {
             'filled': filled,
             'remaining': remaining,
             'status': status,
+            'fee': fee,
         };
         return result;
     },

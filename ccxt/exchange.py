@@ -129,6 +129,7 @@ class Exchange(object):
     hasFetchOrders = False
     hasFetchOpenOrders = False
     hasFetchClosedOrders = False
+    hasFetchMyTrades = False
     substituteCommonCurrencyCodes = True
     lastRestRequestTimestamp = 0
     lastRestPollTimestamp = 0

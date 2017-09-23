@@ -469,6 +469,7 @@ class Exchange {
         $this->hasFetchOrders       = false;
         $this->hasFetchOpenOrders   = false;
         $this->hasFetchClosedOrders = false;
+        $this->hasFetchMyTrades     = false;
 
         if ($options)
             foreach ($options as $key => $value)

@@ -1104,6 +1104,10 @@ class binance (Exchange):
             'version': 'v1',
             'hasCORS': False,
             'hasFetchOHLCV': True,
+            'hasFetchMyTrades': True,
+            'hasFetchOrder': True,
+            'hasFetchOrders': True,
+            'hasFetchOpenOrders': True,
             'timeframes': {
                 '1m': '1m',
                 '3m': '3m',
@@ -1322,7 +1326,7 @@ class binance (Exchange):
         fee = None
         if 'commission' in trade:
             fee = {
-                'rate': float(trade['commission']),
+                'cost': float(trade['commission']),
                 'currency': trade['commissionAsset'],
             }
         return {
@@ -1354,7 +1358,7 @@ class binance (Exchange):
         if status == 'NEW':
             return 'open'
         if status == 'PARTIALLY_FILLED':
-            return 'open'
+            return 'partial'
         if status == 'FILLED':
             return 'closed'
         if status == 'CANCELED':
@@ -4618,6 +4622,7 @@ class bittrex (Exchange):
             'hasFetchOHLCV': True,
             'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
+            'hasFetchMyTrades': False,
             'timeframes': {
                 '1m': 'oneMin',
                 '5m': 'fiveMin',
@@ -4902,6 +4907,12 @@ class bittrex (Exchange):
             timestamp = self.parse8601(order['Opened'])
         if 'TimeStamp' in order:
             timestamp = self.parse8601(order['TimeStamp'])
+        fee = None
+        if 'Commission' in order:
+            fee = {
+                'cost': float(order['Commission']),
+                'currency': market['quote'],
+            }
         amount = order['Quantity']
         remaining = order['QuantityRemaining']
         filled = amount - remaining
@@ -4918,6 +4929,7 @@ class bittrex (Exchange):
             'filled': filled,
             'remaining': remaining,
             'status': status,
+            'fee': fee,
         }
         return result
 
