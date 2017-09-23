@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.117';
+$version = '1.7.118';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -16814,14 +16814,10 @@ class poloniex extends Exchange {
         ), $options));
     }
 
-    public function calculate_fee_rate ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
-        $result = array (
-            'base' => 0.0,
-            'quote' => 0.0,
-        );
+    public function calculate_fee_rate ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $key = ($side == 'sell') ? 'quote' : 'base';
-        $result[$key] = $this->markets[$symbol][$fee];
-        return $result;
+        $market = $this->markets[$symbol];
+        return array ( 'currency' => $market[$key], 'rate' => $market[$takerOrMaker] );
     }
 
     public function fetch_markets () {
