@@ -3757,22 +3757,21 @@ var bithumb = {
         'DASH/KRW': { 'id': 'DASH', 'symbol': 'DASH/KRW', 'base': 'DASH', 'quote': 'KRW' },
     },
 
-    fetchBalance (params = {}) {
-        throw new NotSupported (this.id + ' fetchBalance not implemented yet');
-        // await this.loadMarkets ();
-        // let response = await this.privatePostUserInfo ();
-        // let result = { 'info': response };
-        // for (let c = 0; c < this.currencies.length; c++) {
-        //     let currency = this.currencies[c];
-        //     let account = this.account ();
-        //     if (currency in response['balances'])
-        //         account['free'] = parseFloat (response['balances'][currency]);
-        //     if (currency in response['reserved'])
-        //         account['used'] = parseFloat (response['reserved'][currency]);
-        //     account['total'] = this.sum (account['free'], account['used']);
-        //     result[currency] = account;
-        // }
-        // return result;
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostInfoBalance ();
+        let result = { 'info': response };
+        let balances = response['data'];
+        for (let c = 0; c < this.currencies.length; c++) {
+            let currency = this.currencies[c];
+            let account = this.account ();
+            let lowercase = currency.toLowerCase ();
+            account['total'] = this.safeFloat (balances, 'total_' + lowercase);
+            account['used'] = this.safeFloat (balances, 'in_use_' + lowercase);
+            account['free'] = this.safeFloat (balances, 'available_' + lowercase);
+            result[currency] = account;
+        }
+        return result;
     },
 
     async fetchOrderBook (symbol, params = {}) {
