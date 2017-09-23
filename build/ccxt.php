@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.119';
+$version = '1.7.120';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2180,6 +2180,12 @@ class binance extends Exchange {
                 'QTUM/ETH' => array ( 'id' => 'QTUMETH', 'symbol' => 'QTUM/ETH', 'base' => 'QTUM', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001 ),
             ),
         ), $options));
+    }
+
+    public function calculate_fee_rate ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $key = ($side == 'sell') ? 'base' : 'quote';
+        $market = $this->markets[$symbol];
+        return array ( 'currency' => $market[$key], 'rate' => $market[$takerOrMaker] );
     }
 
     public function fetch_balance ($params = array ()) {
