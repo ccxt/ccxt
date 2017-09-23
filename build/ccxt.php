@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.116';
+$version = '1.7.117';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -3974,21 +3974,20 @@ class bithumb extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
-        throw new NotSupported ($this->id . ' fetchBalance not implemented yet');
-        // $this->load_markets ();
-        // $response = $this->privatePostUserInfo ();
-        // $result = array ( 'info' => $response );
-        // for ($c = 0; $c < count ($this->currencies); $c++) {
-        //     $currency = $this->currencies[$c];
-        //     $account = $this->account ();
-        //     if (array_key_exists ($currency, $response['balances']))
-        //         $account['free'] = floatval ($response['balances'][$currency]);
-        //     if (array_key_exists ($currency, $response['reserved']))
-        //         $account['used'] = floatval ($response['reserved'][$currency]);
-        //     $account['total'] = $this->sum ($account['free'], $account['used']);
-        //     $result[$currency] = $account;
-        // }
-        // return $result;
+        $this->load_markets ();
+        $response = $this->privatePostInfoBalance ();
+        $result = array ( 'info' => $response );
+        $balances = $response['data'];
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $account = $this->account ();
+            $lowercase = strtolower ($currency);
+            $account['total'] = $this->safe_float ($balances, 'total_' . $lowercase);
+            $account['used'] = $this->safe_float ($balances, 'in_use_' . $lowercase);
+            $account['free'] = $this->safe_float ($balances, 'available_' . $lowercase);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -13818,6 +13817,9 @@ class itbit extends Exchange {
         $ticker = $this->publicGetMarketsSymbolTicker (array (
             'symbol' => $this->market_id ($symbol),
         ));
+        $serverTimeUTC = (array_key_exists ('serverTimeUTC', $ticker));
+        if (!$serverTimeUTC)
+            throw new ExchangeError ($this->id . ' fetchTicker returned a bad response => ' . $this->json ($ticker));
         $timestamp = $this->parse8601 ($ticker['serverTimeUTC']);
         return array (
             'timestamp' => $timestamp,
