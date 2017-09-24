@@ -157,13 +157,67 @@ const testExchange = async (exchange) => {
 
 /*  ------------------------------------------------------------------------ */
 
+function TaskPool ({ maxTime, maxConcurrency }) {
+    
+    const pending = []
+        , queue   = []
+
+    let numActive = 0
+        
+    return {
+
+        all: () => Promise.all (pending),
+        
+        run (task) {
+            
+            if (numActive >= maxConcurrency) { // queue task
+
+                return new Promise (resolve => queue.push (() => this.run (task).then (resolve)))
+
+            } else { // execute task
+
+                let p = timeout (maxTime, task ()).then (x => {
+                    numActive--
+                    console.log (numActive)
+                    return (queue.length && (numActive < maxConcurrency))
+                                ? queue.shift () ().then (() => x)
+                                : x
+                })
+                numActive++
+                console.log (numActive)             
+                pending.push (p)
+                return p
+            }
+        }
+    }
+}
+
+/*  ------------------------------------------------------------------------ */
+
+async function testAllExchanges () {
+
+    // NOTE: naive impl crashes with out-of-memory-error eventually (in Travis), so need some pooling...
+    //
+    // return Promise.all (exchanges.map (testExchange))
+
+    const taskPool = TaskPool ({ maxTime: 120*1000, maxConcurrency: 50 })
+
+    for (const ex of exchanges) {
+        taskPool.run (() => testExchange (ex))
+    }
+
+    return taskPool.all ()
+}
+
+/*  ------------------------------------------------------------------------ */
+
 (async function () {
 
     log.bright.magenta.noPretty ('Testing'.white, { exchanges, symbol, keys })
 
-    const tested   = await Promise.all (exchanges.map (testExchange))
-        , warnings = tested.filter  (t => !t.failed && t.hasWarnings)
-        , failed   = tested.filter  (t =>  t.failed)
+    const tested    = await testAllExchanges ()
+        , warnings  = tested.filter (t => !t.failed && t.hasWarnings)
+        , failed    = tested.filter (t =>  t.failed)
         , succeeded = tested.filter (t => !t.failed && !t.hasWarnings)
 
     log.newline ()
