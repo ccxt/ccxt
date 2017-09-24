@@ -102,6 +102,7 @@ exchanges = [
     'quoine',
     'southxchange',
     'surbitcoin',
+    'tidex',
     'therock',
     'urdubit',
     'vaultoro',
@@ -6455,7 +6456,7 @@ class btcx (Exchange):
             }
         response = self.fetch(url, method, headers, body)
         if 'error' in response:
-            raise ExchangeError(self.id + ' ' + self.json(response['error']))
+            raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
 #------------------------------------------------------------------------------
@@ -15880,6 +15881,33 @@ class surbitcoin (blinktrade):
         }
         params.update(config)
         super(surbitcoin, self).__init__(params)
+
+#------------------------------------------------------------------------------
+
+class tidex (liqui):
+
+    def __init__(self, config={}):
+        params = {
+            'id': 'tidex',
+            'name': 'Tidex',
+            'countries': 'UK',
+            'rateLimit': 1000,
+            'version': '3',
+            # 'hasCORS': False,
+            # 'hasFetchTickers': True,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg',
+                'api': {
+                    'public': 'https://api.tidex.com/api',
+                    'private': 'https://api.tidex.com/tapi',
+                },
+                'www': 'https://tidex.com',
+                'doc': 'https://tidex.com/public-api',
+                'fees': 'https://tidex.com/pairs-spec'
+            },
+        }
+        params.update(config)
+        super(tidex, self).__init__(params)
 
 #------------------------------------------------------------------------------
 

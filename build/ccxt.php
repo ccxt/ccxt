@@ -211,6 +211,7 @@ class Exchange {
         'quoine',
         'southxchange',
         'surbitcoin',
+        'tidex',
         'therock',
         'urdubit',
         'vaultoro',
@@ -7793,7 +7794,7 @@ class btcx extends Exchange {
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('error', $response))
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response['error']));
+            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }
@@ -17846,6 +17847,33 @@ class surbitcoin extends blinktrade {
             'comment' => 'Blinktrade API',
             'markets' => array (
                 'BTC/VEF' => array ( 'id' => 'BTCVEF', 'symbol' => 'BTC/VEF', 'base' => 'BTC', 'quote' => 'VEF', 'brokerId' => 1, 'broker' => 'SurBitcoin' ),
+            ),
+        ), $options));
+    }
+}
+
+//------------------------------------------------------------------------------
+
+class tidex extends liqui {
+
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge(array (
+            'id' => 'tidex',
+            'name' => 'Tidex',
+            'countries' => 'UK',
+            'rateLimit' => 1000,
+            'version' => '3',
+            // 'hasCORS' => false,
+            // 'hasFetchTickers' => true,
+            'urls' => array (
+                'logo' => 'https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg',
+                'api' => array (
+                    'public' => 'https://api.tidex.com/api',
+                    'private' => 'https://api.tidex.com/tapi',
+                ),
+                'www' => 'https://tidex.com',
+                'doc' => 'https://tidex.com/public-api',
+                'fees' => 'https://tidex.com/pairs-spec'
             ),
         ), $options));
     }

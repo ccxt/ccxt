@@ -11,7 +11,7 @@ CCXT – CryptoCurrency eXchange Trading Library
     :target: https://www.npmjs.com/package/ccxt
 .. image:: https://badge.runkitcdn.com/ccxt.svg
     :target: https://npm.runkit.com/ccxt
-.. image:: https://img.shields.io/badge/exchanges-85-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-86-blue.svg
     :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
@@ -34,7 +34,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 85 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 86 cryptocurrency exchange markets and trading APIs:
 
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id                   | name                                                           | ver   | doc                                                                                              | countries                                  |
@@ -188,6 +188,8 @@ The ccxt library currently supports the following 85 cryptocurrency exchange mar
 | southxchange         | `SouthXchange <https://www.southxchange.com>`__                | \*    | `API <https://www.southxchange.com/Home/Api>`__                                                  | Argentina                                  |
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | surbitcoin           | `SurBitcoin <https://surbitcoin.com>`__                        | 1     | `API <https://blinktrade.com/docs>`__                                                            | Venezuela                                  |
++----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| tidex                | `Tidex <https://tidex.com>`__                                  | 3     | `API <https://tidex.com/public-api>`__                                                           | UK                                         |
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | therock              | `TheRockTrading <https://therocktrading.com>`__                | 1     | `API <https://api.therocktrading.com/doc/v1/index.html>`__                                       | Malta                                      |
 +----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
