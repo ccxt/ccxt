@@ -32,11 +32,13 @@ const keys = {
 
 let exchanges = []
 let symbol = 'all'
+let maxConcurrency = 80
 
 for (const arg of args) {
-    if (arg.startsWith ('--'))   { keys[arg] = true }
-    else if (arg.includes ('/')) { symbol = arg }
-    else                         { exchanges.push (arg) }
+    if (arg.startsWith ('--'))               { keys[arg] = true }
+    else if (arg.includes ('/'))             { symbol = arg }
+    else if (Number.isFinite (Number (arg))) { maxConcurrency = Number (arg) }
+    else                                     { exchanges.push (arg) }
 }
 
 /*  --------------------------------------------------------------------------- */
@@ -166,7 +168,7 @@ function TaskPool ({ maxTime, maxConcurrency }) {
         
     return {
 
-        all: () => Promise.all (pending),
+        pending,
         
         run (task) {
             
@@ -198,20 +200,25 @@ async function testAllExchanges () {
     //
     // return Promise.all (exchanges.map (testExchange))
 
-    const taskPool = TaskPool ({ maxTime: 120*1000, maxConcurrency: 50 })
-
+    const taskPool = TaskPool ({ maxTime: 120*1000, maxConcurrency })
+    const results = []
+    
     for (const ex of exchanges) {
-        taskPool.run (() => testExchange (ex))
+        taskPool.run (() => testExchange (ex)
+                                .catch (e => ({ failed: true, explain () { log.bright.red.error (exchange, e) } }))
+                                .then (x => results.push (x)))
     }
 
-    return taskPool.all ()
+    await Promise.all (taskPool.pending)
+
+    return results
 }
 
 /*  ------------------------------------------------------------------------ */
 
 (async function () {
 
-    log.bright.magenta.noPretty ('Testing'.white, { exchanges, symbol, keys })
+    log.bright.magenta.noPretty ('Testing'.white, { exchanges, symbol, keys, maxConcurrency })
 
     const tested    = await testAllExchanges ()
         , warnings  = tested.filter (t => !t.failed && t.hasWarnings)
@@ -225,8 +232,8 @@ async function testAllExchanges () {
 
     log.newline ()
 
-    if (failed.length)   { log.noPretty.bright.red    ('FAIL'.bgBrightRed.white,    failed  .map (t => t.exchange)) }
-    if (warnings.length) { log.noPretty.bright.yellow ('WARN'.inverse, warnings.map (t => t.exchange)) }
+    if (failed.length)   { log.noPretty.bright.red    ('FAIL'.bgBrightRed.white, failed.map (t => t.exchange)) }
+    if (warnings.length) { log.noPretty.bright.yellow ('WARN'.inverse,           warnings.map (t => t.exchange)) }
 
     log.newline ()
 
@@ -236,7 +243,7 @@ async function testAllExchanges () {
 
     if (failed.length) {
 
-        await sleep (10000) // to fight TravisCI log truncation issue, see https://github.com/travis-ci/travis-ci/issues/8189
+        await sleep (2000) // to fight TravisCI log truncation issue, see https://github.com/travis-ci/travis-ci/issues/8189
         process.exit (1)
     }
 
