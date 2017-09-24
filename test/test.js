@@ -81,8 +81,8 @@ let testTicker = async (exchange, symbol) => {
         ... (keys.map (key =>
             key + ': ' + human_value (ticker[key]))))
 
-    // if (ticker['bid'] && ticker['ask'])
-    assert (ticker['bid'] <= ticker['ask'])
+    if (exchange.id != 'coinmarketcap')
+        assert (ticker['bid'] <= ticker['ask'])
 
     return ticker;
 }
@@ -105,6 +105,7 @@ let testOrderBook = async (exchange, symbol) => {
 
     if (asks.length > 1)
         assert (asks[0][0] <= asks[asks.length - 1][0])
+
 
     if (bids.length && asks.length)
         assert (bids[0][0] <= asks[0][0])
