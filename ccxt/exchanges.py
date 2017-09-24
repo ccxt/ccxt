@@ -924,6 +924,7 @@ class anxpro (Exchange):
             'version': '2',
             'rateLimit': 1500,
             'hasCORS': False,
+            'hasFetchTrades': False,
             'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
@@ -1030,8 +1031,7 @@ class anxpro (Exchange):
         }
 
     def fetch_trades(self, market, params={}):
-        error = self.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled'
-        raise ExchangeError(error)
+        raise ExchangeError(self.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled')
         return self.publicGetCurrencyPairMoneyTradeFetch(self.extend({
             'currency_pair': self.market_id(market),
         }, params))

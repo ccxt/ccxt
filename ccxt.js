@@ -2336,7 +2336,7 @@ var bit2c = {
     },
     'markets': {
         'BTC/NIS': { 'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS' },
-        'LTC/BTC': { 'id': 'LtcBtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+        'BCH/NIS': { 'id': 'BchNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS' },
         'LTC/NIS': { 'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS' },
     },
 
@@ -2372,10 +2372,10 @@ var bit2c = {
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['h']),
-            'low': parseFloat (ticker['l']),
-            'bid': undefined,
-            'ask': undefined,
+            'high': undefined,
+            'low': undefined,
+            'bid': parseFloat (ticker['h']),
+            'ask': parseFloat (ticker['l']),
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
@@ -17957,11 +17957,16 @@ var virwox = {
         return result;
     },
 
-    async fetchBestPrices (symbol) {
+    async fetchMarketPrice (symbol) {
         await this.loadMarkets ();
-        return await this.publicPostGetBestPrices ({
+        let response = await this.publicPostGetBestPrices ({
             'symbols': [ symbol ],
         });
+        let result = response['result'];
+        return {
+            'bid': this.safeFloat (result[0], 'bestBuyPrice'),
+            'ask': this.safeFloat (result[0], 'bestSellPrice'),
+        };
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -17985,6 +17990,7 @@ var virwox = {
             'startDate': this.YmdHMS (start),
             'HLOC': 1,
         });
+        let marketPrice = await this.fetchMarketPrice (symbol);
         let tickers = response['result']['priceVolumeList'];
         let keys = Object.keys (tickers);
         let length = keys.length;
@@ -17996,8 +18002,8 @@ var virwox = {
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
-            'bid': undefined,
-            'ask': undefined,
+            'bid': marketPrice['bid'],
+            'ask': marketPrice['ask'],
             'vwap': undefined,
             'open': parseFloat (ticker['open']),
             'close': parseFloat (ticker['close']),

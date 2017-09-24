@@ -462,6 +462,9 @@ class Exchange {
         $this->hasPublicAPI         = true;
         $this->hasPrivateAPI        = true;
         $this->hasCORS              = false;
+        $this->hasFetchTicker       = true;
+        $this->hasFetchOrderBook    = true;
+        $this->hasFetchTrades       = true;
         $this->hasFetchTickers      = false;
         $this->hasFetchOHLCV        = false;
         $this->hasDeposit           = false;
@@ -1877,6 +1880,7 @@ class anxpro extends Exchange {
             'version' => '2',
             'rateLimit' => 1500,
             'hasCORS' => false,
+            'hasFetchTrades' => false,
             'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
@@ -1987,8 +1991,7 @@ class anxpro extends Exchange {
     }
 
     public function fetch_trades ($market, $params = array ()) {
-        $error = $this->id . ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/$market-data/currencypairmoneytradefetch-disabled';
-        throw new ExchangeError ($error);
+        throw new ExchangeError ($this->id . ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/$market-data/currencypairmoneytradefetch-disabled');
         return $this->publicGetCurrencyPairMoneyTradeFetch (array_merge (array (
             'currency_pair' => $this->market_id ($market),
         ), $params));
