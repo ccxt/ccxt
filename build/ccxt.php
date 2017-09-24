@@ -2534,7 +2534,7 @@ class bit2c extends Exchange {
             ),
             'markets' => array (
                 'BTC/NIS' => array ( 'id' => 'BtcNis', 'symbol' => 'BTC/NIS', 'base' => 'BTC', 'quote' => 'NIS' ),
-                'LTC/BTC' => array ( 'id' => 'LtcBtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                'BCH/NIS' => array ( 'id' => 'BchNis', 'symbol' => 'BCH/NIS', 'base' => 'BCH', 'quote' => 'NIS' ),
                 'LTC/NIS' => array ( 'id' => 'LtcNis', 'symbol' => 'LTC/NIS', 'base' => 'LTC', 'quote' => 'NIS' ),
             ),
         ), $options));
@@ -2572,10 +2572,10 @@ class bit2c extends Exchange {
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['h']),
-            'low' => floatval ($ticker['l']),
-            'bid' => null,
-            'ask' => null,
+            'high' => null,
+            'low' => null,
+            'bid' => floatval ($ticker['h']),
+            'ask' => floatval ($ticker['l']),
             'vwap' => null,
             'open' => null,
             'close' => null,
@@ -4282,8 +4282,8 @@ class bitlish extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['max']),
             'low' => floatval ($ticker['min']),
-            'bid' => null,
-            'ask' => null,
+            'bid' => floatval ($ticker['min']),
+            'ask' => floatval ($ticker['max']),
             'vwap' => null,
             'open' => null,
             'close' => null,
@@ -7508,6 +7508,15 @@ class btctradeua extends Exchange {
         $response = $this->publicGetJapanStatHighSymbol (array (
             'symbol' => $this->market_id ($symbol),
         ));
+        $orderbook = $this->fetchGetOrderBook ();
+        $bid = null;
+        $numBids = count ($orderbook['bids']);
+        if ($numBids > 0)
+            $bid = $orderbook['bids'][0][0];
+        $ask = null;
+        $numAsks = count ($orderbook['asks']);
+        if ($numAsks > 0)
+            $ask = $orderbook['asks'][0][0];
         $ticker = $response['trades'];
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -18482,11 +18491,16 @@ class virwox extends Exchange {
         return $result;
     }
 
-    public function fetchBestPrices ($symbol) {
+    public function fetchMarketPrice ($symbol) {
         $this->load_markets ();
-        return $this->publicPostGetBestPrices (array (
+        $response = $this->publicPostGetBestPrices (array (
             'symbols' => array ($symbol),
         ));
+        $result = $response['result'];
+        return array (
+            'bid' => $this->safe_float ($result[0], 'bestBuyPrice'),
+            'ask' => $this->safe_float ($result[0], 'bestSellPrice'),
+        );
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -18510,6 +18524,7 @@ class virwox extends Exchange {
             'startDate' => $this->YmdHMS ($start),
             'HLOC' => 1,
         ));
+        $marketPrice = $this->fetchMarketPrice ($symbol);
         $tickers = $response['result']['priceVolumeList'];
         $keys = array_keys ($tickers);
         $length = count ($keys);
@@ -18521,8 +18536,8 @@ class virwox extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
-            'bid' => null,
-            'ask' => null,
+            'bid' => $marketPrice['bid'],
+            'ask' => $marketPrice['ask'],
             'vwap' => null,
             'open' => floatval ($ticker['open']),
             'close' => floatval ($ticker['close']),

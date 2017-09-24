@@ -1449,7 +1449,7 @@ class bit2c (Exchange):
             },
             'markets': {
                 'BTC/NIS': {'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS'},
-                'LTC/BTC': {'id': 'LtcBtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
+                'BCH/NIS': {'id': 'BchNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS'},
                 'LTC/NIS': {'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS'},
             },
         }
@@ -1484,10 +1484,10 @@ class bit2c (Exchange):
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['h']),
-            'low': float(ticker['l']),
-            'bid': None,
-            'ask': None,
+            'high': None,
+            'low': None,
+            'bid': float(ticker['h']),
+            'ask': float(ticker['l']),
             'vwap': None,
             'open': None,
             'close': None,
@@ -3086,8 +3086,8 @@ class bitlish (Exchange):
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['max']),
             'low': float(ticker['min']),
-            'bid': None,
-            'ask': None,
+            'bid': float(ticker['min']),
+            'ask': float(ticker['max']),
             'vwap': None,
             'open': None,
             'close': None,
@@ -6096,6 +6096,15 @@ class btctradeua (Exchange):
         response = await self.publicGetJapanStatHighSymbol({
             'symbol': self.market_id(symbol),
         })
+        orderbook = await self.fetchGetOrderBook()
+        bid = None
+        numBids = len(orderbook['bids'])
+        if numBids > 0:
+            bid = orderbook['bids'][0][0]
+        ask = None
+        numAsks = len(orderbook['asks'])
+        if numAsks > 0:
+            ask = orderbook['asks'][0][0]
         ticker = response['trades']
         timestamp = self.milliseconds()
         result = {
@@ -16390,11 +16399,16 @@ class virwox (Exchange):
             result[currency] = account
         return result
 
-    async def fetchBestPrices(self, symbol):
+    async def fetchMarketPrice(self, symbol):
         await self.load_markets()
-        return await self.publicPostGetBestPrices({
+        response = await self.publicPostGetBestPrices({
             'symbols': [symbol],
         })
+        result = response['result']
+        return {
+            'bid': self.safe_float(result[0], 'bestBuyPrice'),
+            'ask': self.safe_float(result[0], 'bestSellPrice'),
+        }
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -16416,6 +16430,7 @@ class virwox (Exchange):
             'startDate': self.YmdHMS(start),
             'HLOC': 1,
         })
+        marketPrice = await self.fetchMarketPrice(symbol)
         tickers = response['result']['priceVolumeList']
         keys = list(tickers.keys())
         length = len(keys)
@@ -16427,8 +16442,8 @@ class virwox (Exchange):
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
             'low': float(ticker['low']),
-            'bid': None,
-            'ask': None,
+            'bid': marketPrice['bid'],
+            'ask': marketPrice['ask'],
             'vwap': None,
             'open': float(ticker['open']),
             'close': float(ticker['close']),

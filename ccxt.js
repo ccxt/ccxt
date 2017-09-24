@@ -4054,8 +4054,8 @@ var bitlish = {
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['max']),
             'low': parseFloat (ticker['min']),
-            'bid': undefined,
-            'ask': undefined,
+            'bid': parseFloat (ticker['min']),
+            'ask': parseFloat (ticker['max']),
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
@@ -7224,6 +7224,15 @@ var btctradeua = {
         let response = await this.publicGetJapanStatHighSymbol ({
             'symbol': this.marketId (symbol),
         });
+        let orderbook = await this.fetchOrderBook (symbol);
+        let bid = undefined;
+        let numBids = orderbook['bids'].length;
+        if (numBids > 0)
+            bid = orderbook['bids'][0][0];
+        let ask = undefined;
+        let numAsks = orderbook['asks'].length;
+        if (numAsks > 0)
+        ask = orderbook['asks'][0][0];
         let ticker = response['trades'];
         let timestamp = this.milliseconds ();
         let result = {
@@ -7231,8 +7240,8 @@ var btctradeua = {
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': undefined,
-            'ask': undefined,
+            'bid': bid,
+            'ask': ask,
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
