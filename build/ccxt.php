@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.5';
+$version = '1.8.6';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -1067,6 +1067,7 @@ class _1broker extends Exchange {
             'version' => 'v2',
             'hasPublicAPI' => false,
             'hasCORS' => true,
+            'hasFetchTrades' => false,
             'hasFetchOHLCV' => true,
             'timeframes' => array (
                 '1m' => '60',
@@ -16034,7 +16035,7 @@ class nova extends Exchange {
                 'public' => array (
                     'get' => array (
                         'markets/',
-                        'markets/{basecurrency}',
+                        'markets/{basecurrency}/',
                         'market/info/{pair}/',
                         'market/orderhistory/{pair}/',
                         'market/openorders/{pair}/buy/',

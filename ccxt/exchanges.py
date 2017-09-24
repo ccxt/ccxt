@@ -163,6 +163,7 @@ class _1broker (Exchange):
             'version': 'v2',
             'hasPublicAPI': False,
             'hasCORS': True,
+            'hasFetchTrades': False,
             'hasFetchOHLCV': True,
             'timeframes': {
                 '1m': '60',
@@ -14179,7 +14180,7 @@ class nova (Exchange):
                 'public': {
                     'get': [
                         'markets/',
-                        'markets/{basecurrency}',
+                        'markets/{basecurrency}/',
                         'market/info/{pair}/',
                         'market/orderhistory/{pair}/',
                         'market/openorders/{pair}/buy/',
