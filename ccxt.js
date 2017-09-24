@@ -893,6 +893,7 @@ var _1broker = {
     'version': 'v2',
     'hasPublicAPI': false,
     'hasCORS': true,
+    'hasFetchTrades': false,
     'hasFetchOHLCV': true,
     'timeframes': {
         '1m': '60',
