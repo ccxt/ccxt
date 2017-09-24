@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.133';
+$version = '1.8.0';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7508,7 +7508,7 @@ class btctradeua extends Exchange {
         $response = $this->publicGetJapanStatHighSymbol (array (
             'symbol' => $this->market_id ($symbol),
         ));
-        $orderbook = $this->fetchGetOrderBook ();
+        $orderbook = $this->fetchOrderBook ($symbol);
         $bid = null;
         $numBids = count ($orderbook['bids']);
         if ($numBids > 0)
@@ -7516,7 +7516,7 @@ class btctradeua extends Exchange {
         $ask = null;
         $numAsks = count ($orderbook['asks']);
         if ($numAsks > 0)
-            $ask = $orderbook['asks'][0][0];
+        $ask = $orderbook['asks'][0][0];
         $ticker = $response['trades'];
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -7524,8 +7524,8 @@ class btctradeua extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => null,
-            'ask' => null,
+            'bid' => $bid,
+            'ask' => $ask,
             'vwap' => null,
             'open' => null,
             'close' => null,

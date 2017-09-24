@@ -6185,7 +6185,7 @@ class btctradeua (Exchange):
         response = self.publicGetJapanStatHighSymbol({
             'symbol': self.market_id(symbol),
         })
-        orderbook = self.fetchGetOrderBook()
+        orderbook = self.fetchOrderBook(symbol)
         bid = None
         numBids = len(orderbook['bids'])
         if numBids > 0:
@@ -6193,7 +6193,7 @@ class btctradeua (Exchange):
         ask = None
         numAsks = len(orderbook['asks'])
         if numAsks > 0:
-            ask = orderbook['asks'][0][0]
+        ask = orderbook['asks'][0][0]
         ticker = response['trades']
         timestamp = self.milliseconds()
         result = {
@@ -6201,8 +6201,8 @@ class btctradeua (Exchange):
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': None,
-            'ask': None,
+            'bid': bid,
+            'ask': ask,
             'vwap': None,
             'open': None,
             'close': None,

@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.7.133'
+const version = '1.8.0'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -7232,7 +7232,7 @@ var btctradeua = {
         let ask = undefined;
         let numAsks = orderbook['asks'].length;
         if (numAsks > 0)
-        ask = orderbook['asks'][0][0];
+            ask = orderbook['asks'][0][0];
         let ticker = response['trades'];
         let timestamp = this.milliseconds ();
         let result = {
