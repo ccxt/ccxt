@@ -6367,7 +6367,7 @@ class btcx (Exchange):
             }
         response = await self.fetch(url, method, headers, body)
         if 'error' in response:
-            raise ExchangeError(self.id + ' ' + self.json(response['error']))
+            raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
 #------------------------------------------------------------------------------
