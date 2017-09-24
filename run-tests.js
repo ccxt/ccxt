@@ -178,13 +178,11 @@ function TaskPool ({ maxTime, maxConcurrency }) {
 
                 let p = timeout (maxTime, task ()).then (x => {
                     numActive--
-                    console.log (numActive)
                     return (queue.length && (numActive < maxConcurrency))
                                 ? queue.shift () ().then (() => x)
                                 : x
                 })
                 numActive++
-                console.log (numActive)             
                 pending.push (p)
                 return p
             }
