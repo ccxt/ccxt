@@ -199,7 +199,7 @@ It requires common PHP modules:
 
 ```PHP
 include "ccxt.php";
-var_dump (\cxxt\Exchange::$exchanges); // print a list of all available exchange classes
+var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
 ```
 
 ## Documentation
