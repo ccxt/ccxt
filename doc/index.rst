@@ -1,7 +1,7 @@
 CCXT – CryptoCurrency eXchange Trading Library
 ==============================================
 
-|Build Status| |npm| |PyPI| |NPM Downloads| |Scrutinizer Code Quality| |Try ccxt on RunKit| |Supported Exchanges|
+|Build Status| |npm| |PyPI| |NPM Downloads| |Try ccxt on RunKit| |Supported Exchanges|
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
