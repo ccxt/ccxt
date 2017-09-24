@@ -288,11 +288,14 @@ if argv.exchange:
     exchange = exchanges[argv.exchange]
     symbol = argv.symbol
 
-    if symbol:
-        load_exchange(exchange)
-        test_symbol(exchange, symbol)
+    if hasattr(exchange, 'skip') and exchange.skip:
+        dump(green(exchange.id), 'skipped')
     else:
-        try_all_proxies(exchange, proxies)
+        if symbol:
+            load_exchange(exchange)
+            test_symbol(exchange, symbol)
+        else:
+            try_all_proxies(exchange, proxies)
 
 else:
 
@@ -300,4 +303,7 @@ else:
     for (id, params) in tuples:
         if id in exchanges:
             exchange = exchanges[id]
-            try_all_proxies(exchange, proxies)
+            if hasattr(exchange, 'skip') and exchange.skip:
+                dump(green(exchange.id), 'skipped')
+            else:
+                try_all_proxies(exchange, proxies)
