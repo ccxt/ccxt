@@ -1882,7 +1882,7 @@ var binance = {
     'hasFetchOHLCV': true,
     'hasFetchMyTrades': true,
     'hasFetchOrder': true,
-    'hasFetchOrders': true,
+    'hasFetchOrders': false,
     'hasFetchOpenOrders': true,
     'timeframes': {
         '1m': '1m',
