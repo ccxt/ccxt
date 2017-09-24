@@ -8147,6 +8147,8 @@ class coinmarketcap (Exchange):
             'countries': 'US',
             'hasCORS': True,
             'hasPrivateAPI': False,
+            'hasFetchOrderBook': False,
+            'hasFetchTrades': False,
             'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
@@ -14528,9 +14530,7 @@ class okcoin (Exchange):
             method += 'Future'
             request['contract_type'] = 'this_week' # next_week, quarter
         method += 'Trades'
-        response = getattr(self, method)(self.extend({
-            'symbol': market['id'],
-        }, params))
+        response = getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response, market)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1440, params={}):

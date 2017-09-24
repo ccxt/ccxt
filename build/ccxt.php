@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.4';
+$version = '1.8.5';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9607,6 +9607,8 @@ class coinmarketcap extends Exchange {
             'countries' => 'US',
             'hasCORS' => true,
             'hasPrivateAPI' => false,
+            'hasFetchOrderBook' => false,
+            'hasFetchTrades' => false,
             'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
@@ -16402,9 +16404,7 @@ class okcoin extends Exchange {
             $request['contract_type'] = 'this_week'; // next_week, quarter
         }
         $method .= 'Trades';
-        $response = $this->$method (array_merge (array (
-            'symbol' => $market['id'],
-        ), $params));
+        $response = $this->$method (array_merge ($request, $params));
         return $this->parse_trades ($response, $market);
     }
 
