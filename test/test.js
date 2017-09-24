@@ -7,16 +7,14 @@ const verbose = process.argv.includes ('--verbose') || false
 
 /*  ------------------------------------------------------------------------ */
 
-const ccxt      = require ('../ccxt')
-const countries = require ('../countries')
-
-/*  ------------------------------------------------------------------------ */
-
 const asTable   = require ('as-table')
-const util      = require ('util')
-const log       = require ('ololog')
-const ansi      = require ('ansicolor').nice;
-const fs        = require ('fs')
+    , util      = require ('util')
+    , log       = require ('ololog')
+    , ansi      = require ('ansicolor').nice
+    , fs        = require ('fs')
+    , assert    = require ('assert')
+    , ccxt      = require ('../ccxt')
+    , countries = require ('../countries')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -73,6 +71,7 @@ let human_value = function (price) {
 //-----------------------------------------------------------------------------
 
 let testExchangeSymbolTicker = async (exchange, symbol) => {
+
     log (exchange.id.green, symbol.green, 'fetching ticker...')
     let ticker = await exchange.fetchTicker (symbol)
     log (exchange.id.green, symbol.green, 'ticker',
@@ -83,8 +82,8 @@ let testExchangeSymbolTicker = async (exchange, symbol) => {
         'ask: '     + human_value (ticker['ask']),
         'volume: '  + human_value (ticker['quoteVolume']))
 
-    if (ticker['bid'] > ticker['ask'])
-        log (this.id, symbol, 'ticker', 'bid is greater than ask!')
+    if (('bid' in ticker && 'ask' in ticker) && (ticker['bid'] && ticker['ask']))
+        assert (ticker['bid'] <= ticker['ask'])
 
     return ticker;
 }
