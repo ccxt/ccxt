@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.0';
+$version = '1.8.1';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -7516,7 +7516,7 @@ class btctradeua extends Exchange {
         $ask = null;
         $numAsks = count ($orderbook['asks']);
         if ($numAsks > 0)
-        $ask = $orderbook['asks'][0][0];
+            $ask = $orderbook['asks'][0][0];
         $ticker = $response['trades'];
         $timestamp = $this->milliseconds ();
         $result = array (
