@@ -32,7 +32,7 @@ const keys = {
 
 let exchanges = []
 let symbol = 'all'
-let maxConcurrency = 30
+let maxConcurrency = 20
 
 for (const arg of args) {
     if (arg.startsWith ('--'))               { keys[arg] = true }
