@@ -120,6 +120,7 @@ class Exchange(object):
     markets_by_id = None
     hasPublicAPI = True
     hasPrivateAPI = True
+    hasCORS = False
     hasFetchTickers = False
     hasFetchOHLCV = False
     hasDeposit = False
@@ -128,6 +129,7 @@ class Exchange(object):
     hasFetchOrders = False
     hasFetchOpenOrders = False
     hasFetchClosedOrders = False
+    hasFetchMyTrades = False
     substituteCommonCurrencyCodes = True
     lastRestRequestTimestamp = 0
     lastRestPollTimestamp = 0
@@ -253,7 +255,7 @@ class Exchange(object):
                 text = data.read()
         decoded_text = text.decode('utf-8')
         if self.verbose:
-            print(method, url, "\nResponse:", headers, decoded_text)
+            print(method, url, "\nResponse:", response.info().headers, decoded_text)
         return self.handle_rest_response(decoded_text, url, method, headers, body)
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
@@ -743,6 +745,28 @@ class Exchange(object):
 
     def fetchTrades(self, symbol):
         return self.fetch_trades(symbol)
+
+    def calculate_fee_rate(self, symbol, type, side, amount, price, fee='taker', params={}):
+        return {
+            'base': 0.0,
+            'quote': self.markets[symbol][fee],
+        }
+
+    def calculate_fee(self, symbol, type, side, amount, price, fee='taker', params={}):
+        rate = self.calculateFeeRate(symbol, type, side, amount, price, fee, params)
+        return {
+            'rate': rate,
+            'cost': {
+                'base': amount * rate['base'],
+                'quote': amount * price * rate['quote'],
+            },
+        }
+
+    def calculateFeeRate(self, symbol, type, side, amount, price, fee='taker', params={}):
+        return self.calculate_fee_rate(symbol, type, side, amount, price, fee, params)
+
+    def calculateFee(self, symbol, type, side, amount, price, fee='taker', params={}):
+        return self.calculate_fee(symbol, type, side, amount, price, fee, params)
 
     def create_limit_buy_order(self, symbol, amount, price, params={}):
         return self.create_order(symbol, 'limit', 'buy', amount, price, params)

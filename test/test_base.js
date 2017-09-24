@@ -20,37 +20,72 @@ describe ('ccxt base code', () => {
         }
     })
 
-    // it ('rate limiting works', async () => {
+    it ('calculateFee() works', () => {
 
-    //     const calls = []
-    //     const rateLimit = 100
-    //     const exchange = new ccxt.Exchange ({
+        const price  = 100.00
+        const amount = 10.00
+        const taker  = 0.0025
+        const maker  = 0.0010
+        const fees   = { taker, maker }
+        const market = {
+            'id':     'foobar',
+            'symbol': 'FOO/BAR',
+            'base':   'FOO',
+            'quote':  'BAR',
+            'taker':   taker,
+            'maker':   maker,
+        }
 
-    //         id: 'mock',
-    //         rateLimit,
-    //         enableRateLimit: true,
+        const exchange = new ccxt.Exchange ({
 
-    //         async executeRestRequest (...args) { calls.push ({ when: Date.now (), path: args[0], args }) }
-    //     })
+            'id': 'mock',
 
-    //     await exchange.fetch ('foo')
-    //     await exchange.fetch ('bar')
-    //     await exchange.fetch ('baz')
+            'markets': { 'FOO/BAR': market }
+        })
 
-    //     await Promise.all ([
-    //         exchange.fetch ('qux'),
-    //         exchange.fetch ('zap'),
-    //         exchange.fetch ('lol')
-    //     ])
+        Object.keys (fees).forEach (takerOrMaker => {
 
-    //     assert.deepEqual (calls.map (x => x.path), ['foo', 'bar', 'baz', 'qux', 'zap', 'lol'])
+            const result = exchange.calculateFee (market['symbol'], 'limit', 'sell', amount, price, takerOrMaker, {})
 
-    //     calls.reduce ((prevTime, call) => {
-    //         log ('delta T:', call.when - prevTime)
-    //         assert ((call.when - prevTime) >= rateLimit)
-    //         return call.when
-    //     }, 0)
-    // })
+            assert.deepEqual (result, {
+                'currency': 'BAR',
+                'rate': fees[takerOrMaker],
+                'cost': fees[takerOrMaker] * amount * price,
+            })
+        })
+    })
+
+    it.skip ('rate limiting works', async () => {
+
+        const calls = []
+        const rateLimit = 100
+        const exchange = new ccxt.Exchange ({
+
+            id: 'mock',
+            rateLimit,
+            enableRateLimit: true,
+
+            async executeRestRequest (...args) { calls.push ({ when: Date.now (), path: args[0], args }) }
+        })
+
+        await exchange.fetch ('foo')
+        await exchange.fetch ('bar')
+        await exchange.fetch ('baz')
+
+        await Promise.all ([
+            exchange.fetch ('qux'),
+            exchange.fetch ('zap'),
+            exchange.fetch ('lol')
+        ])
+
+        assert.deepEqual (calls.map (x => x.path), ['foo', 'bar', 'baz', 'qux', 'zap', 'lol'])
+
+        calls.reduce ((prevTime, call) => {
+            log ('delta T:', call.when - prevTime)
+            assert ((call.when - prevTime) >= rateLimit)
+            return call.when
+        }, 0)
+    })
 })
 
 /*  ------------------------------------------------------------------------ */

@@ -127,6 +127,8 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('fetchAllMyTrades',  'fetch_all_my_trades')
                         .replace ('createOrder',       'create_order')
                         .replace ('cancelOrder',       'cancel_order')
+                        .replace ('calculateFeeRate',  'calculate_fee_rate')
+                        .replace ('calculateFee',      'calculate_fee')
                         .replace ('signIn',            'sign_in')
 
         args = args.length ? args.split (',').map (x => x.trim ()) : []
@@ -182,6 +184,8 @@ while (exchanges = regex.exec (contents)) {
             [ /\.fetchOpenOrders\s/g, '.fetch_open_orders'],
             [ /\.fetchOrders\s/g, '.fetch_orders'],
             [ /\.loadMarkets\s/g, '.load_markets'],
+            [ /\.calculateFeeRate\s/g, '.calculate_fee_rate'],
+            [ /\.calculateFee\s/g, '.calculate_fee'],
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
             [ /this\./g, 'self.' ],
@@ -275,6 +279,8 @@ while (exchanges = regex.exec (contents)) {
             [ /\.parseOrders/g, '.parse_orders'],
             [ /\.parseOrder/g, '.parse_order'],
             [ /\.loadMarkets/g, '.load_markets'],
+            [ /\.calculateFeeRate/g, '.calculate_fee_rate'],
+            [ /\.calculateFee/g, '.calculate_fee'],
             [ /\.encodeURIComponent/g, '.encode_uri_component'],
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],

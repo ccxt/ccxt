@@ -161,6 +161,7 @@ class _1broker (Exchange):
             'rateLimit': 1500,
             'version': 'v2',
             'hasPublicAPI': False,
+            'hasCORS': True,
             'hasFetchOHLCV': True,
             'timeframes': {
                 '1m': '60',
@@ -582,6 +583,7 @@ class _1btcxe (cryptocapital):
             'name': '1BTCXE',
             'countries': 'PA', # Panama
             'comment': 'Crypto Capital API',
+            'hasCORS': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg',
                 'api': 'https://1btcxe.com/api',
@@ -634,6 +636,7 @@ class acx (Exchange):
             'countries': 'AU',
             'rateLimit': 1000,
             'version': 'v2',
+            'hasCORS': True,
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
             'timeframes': {
@@ -919,6 +922,7 @@ class anxpro (Exchange):
             'countries': ['JP', 'SG', 'HK', 'NZ'],
             'version': '2',
             'rateLimit': 1500,
+            'hasCORS': False,
             'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
@@ -1098,7 +1102,12 @@ class binance (Exchange):
             'countries': 'CN', # China
             'rateLimit': 1000,
             'version': 'v1',
+            'hasCORS': False,
             'hasFetchOHLCV': True,
+            'hasFetchMyTrades': True,
+            'hasFetchOrder': True,
+            'hasFetchOrders': True,
+            'hasFetchOpenOrders': True,
             'timeframes': {
                 '1m': '1m',
                 '3m': '3m',
@@ -1214,6 +1223,11 @@ class binance (Exchange):
         params.update(config)
         super(binance, self).__init__(params)
 
+    def calculate_fee_rate(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        key = 'base' if(side == 'sell') else 'quote'
+        market = self.markets[symbol]
+        return {'currency': market[key], 'rate': market[takerOrMaker]}
+
     def fetch_balance(self, params={}):
         response = self.privateGetAccount()
         result = {'info': response}
@@ -1300,27 +1314,33 @@ class binance (Exchange):
         idField = 'a' if('a' in list(trade.keys())) else 'id'
         id = str(trade[idField])
         side = None
+        order = None
+        if 'orderId' in trade:
+            order = str(trade['orderId'])
         if 'm' in trade:
             side = 'sell'
             if trade['m']:
                 side = 'buy'
         else:
-            isBuyer = trade['isBuyer']
-            isMaker = trade['isMaker']
-            if isBuyer:
-                side = 'sell' if isMaker else 'buy'
-            else:
-                side = 'buy' if isMaker else 'sell'
+            side = 'buy' if(trade['isBuyer']) else 'sell'
+        fee = None
+        if 'commission' in trade:
+            fee = {
+                'cost': float(trade['commission']),
+                'currency': trade['commissionAsset'],
+            }
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'id': id,
+            'order': order,
             'type': None,
             'side': side,
             'price': price,
             'amount': amount,
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, params={}):
@@ -1338,7 +1358,7 @@ class binance (Exchange):
         if status == 'NEW':
             return 'open'
         if status == 'PARTIALLY_FILLED':
-            return 'open'
+            return 'partial'
         if status == 'FILLED':
             return 'closed'
         if status == 'CANCELED':
@@ -1434,6 +1454,16 @@ class binance (Exchange):
     def nonce(self):
         return self.milliseconds()
 
+    def fetch_my_trades(self, symbol=None, params={}):
+        self.load_markets()
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol')
+        market = self.market(symbol)
+        response = self.privateGetMyTrades(self.extend({
+            'symbol': market['id'],
+        }, params))
+        return self.parse_trades(response, market)
+
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
@@ -1469,6 +1499,7 @@ class bit2c (Exchange):
             'name': 'Bit2C',
             'countries': 'IL', # Israel
             'rateLimit': 3000,
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
                 'api': 'https://www.bit2c.co.il',
@@ -1629,6 +1660,7 @@ class bitbay (Exchange):
             'name': 'BitBay',
             'countries': ['PL', 'EU'], # Poland
             'rateLimit': 1000,
+            'hasCORS': True,
             'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
@@ -1823,6 +1855,7 @@ class bitcoincoid (Exchange):
             'id': 'bitcoincoid',
             'name': 'Bitcoin.co.id',
             'countries': 'ID', # Indonesia
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766138-043c7786-5ecf-11e7-882b-809c14f38b53.jpg',
                 'api': {
@@ -1856,14 +1889,19 @@ class bitcoincoid (Exchange):
             },
             'markets': {
                 'BTC/IDR':  {'id': 'btc_idr', 'symbol': 'BTC/IDR', 'base': 'BTC', 'quote': 'IDR', 'baseId': 'btc', 'quoteId': 'idr'},
+                'BCH/IDR':  {'id': 'bch_idr', 'symbol': 'BCH/IDR', 'base': 'BCH', 'quote': 'IDR', 'baseId': 'bch', 'quoteId': 'idr'},
+                'ETH/IDR':  {'id': 'eth_idr', 'symbol': 'ETH/IDR', 'base': 'ETH', 'quote': 'IDR', 'baseId': 'eth', 'quoteId': 'idr'},
+                'ETC/IDR':  {'id': 'etc_idr', 'symbol': 'ETC/IDR', 'base': 'ETC', 'quote': 'IDR', 'baseId': 'etc', 'quoteId': 'idr'},
+                'XRP/IDR':  {'id': 'xrp_idr', 'symbol': 'XRP/IDR', 'base': 'XRP', 'quote': 'IDR', 'baseId': 'xrp', 'quoteId': 'idr'},
+                'XZC/IDR':  {'id': 'xzc_idr', 'symbol': 'XZC/IDR', 'base': 'XZC', 'quote': 'IDR', 'baseId': 'xzc', 'quoteId': 'idr'},
                 'BTS/BTC':  {'id': 'bts_btc', 'symbol': 'BTS/BTC', 'base': 'BTS', 'quote': 'BTC', 'baseId': 'bts', 'quoteId': 'btc'},
                 'DASH/BTC': {'id': 'drk_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'drk', 'quoteId': 'btc'},
                 'DOGE/BTC': {'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'baseId': 'doge', 'quoteId': 'btc'},
                 'ETH/BTC':  {'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc'},
                 'LTC/BTC':  {'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc'},
                 'NXT/BTC':  {'id': 'nxt_btc', 'symbol': 'NXT/BTC', 'base': 'NXT', 'quote': 'BTC', 'baseId': 'nxt', 'quoteId': 'btc'},
-                'STR/BTC':  {'id': 'str_btc', 'symbol': 'STR/BTC', 'base': 'STR', 'quote': 'BTC', 'baseId': 'str', 'quoteId': 'btc'},
-                'NEM/BTC':  {'id': 'nem_btc', 'symbol': 'NEM/BTC', 'base': 'NEM', 'quote': 'BTC', 'baseId': 'nem', 'quoteId': 'btc'},
+                'XLM/BTC':  {'id': 'str_btc', 'symbol': 'XLM/BTC', 'base': 'XLM', 'quote': 'BTC', 'baseId': 'str', 'quoteId': 'btc'},
+                'XEM/BTC':  {'id': 'nem_btc', 'symbol': 'XEM/BTC', 'base': 'XEM', 'quote': 'BTC', 'baseId': 'nem', 'quoteId': 'btc'},
                 'XRP/BTC':  {'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc'},
             },
         }
@@ -1990,6 +2028,7 @@ class bitfinex (Exchange):
             'countries': 'US',
             'version': 'v1',
             'rateLimit': 1500,
+            'hasCORS': False,
             'hasFetchTickers': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
@@ -2313,6 +2352,7 @@ class bitfinex2 (bitfinex):
             'name': 'Bitfinex v2',
             'countries': 'US',
             'version': 'v2',
+            'hasCORS': True,
             'hasFetchTickers': False, # True but at least one pair is required
             'hasFetchOHLCV': True,
             'timeframes': {
@@ -2590,6 +2630,7 @@ class bitflyer (Exchange):
             'countries': 'JP',
             'version': 'v1',
             'rateLimit': 500,
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
                 'api': 'https://api.bitflyer.jp',
@@ -2818,6 +2859,7 @@ class bithumb (Exchange):
             'name': 'Bithumb',
             'countries': 'KR', # South Korea
             'rateLimit': 500,
+            'hasCORS': True,
             'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
@@ -2873,21 +2915,19 @@ class bithumb (Exchange):
         super(bithumb, self).__init__(params)
 
     def fetch_balance(self, params={}):
-        raise NotSupported(self.id + ' fetchBalance not implemented yet')
-        # self.load_markets()
-        # response = self.privatePostUserInfo()
-        # result = {'info': response}
-        # for c in range(0, len(self.currencies)):
-        #     currency = self.currencies[c]
-        #     account = self.account()
-        #     if currency in response['balances']:
-        #         account['free'] = float(response['balances'][currency])
-        #     if currency in response['reserved']:
-        #         account['used'] = float(response['reserved'][currency])
-        #     account['total'] = self.sum(account['free'], account['used'])
-        #     result[currency] = account
-        #}
-        # return result
+        self.load_markets()
+        response = self.privatePostInfoBalance()
+        result = {'info': response}
+        balances = response['data']
+        for c in range(0, len(self.currencies)):
+            currency = self.currencies[c]
+            account = self.account()
+            lowercase = currency.lower()
+            account['total'] = self.safe_float(balances, 'total_' + lowercase)
+            account['used'] = self.safe_float(balances, 'in_use_' + lowercase)
+            account['free'] = self.safe_float(balances, 'available_' + lowercase)
+            result[currency] = account
+        return result
 
     def fetch_order_book(self, symbol, params={}):
         market = self.market(symbol)
@@ -2944,7 +2984,7 @@ class bithumb (Exchange):
         return self.parse_ticker(response['data'], market)
 
     def parse_trade(self, trade, market):
-        # a workaround their bug in date format, hours are not 0-padded
+        # a workaround for their bug in date format, hours are not 0-padded
         transaction_date, transaction_time = trade['transaction_date'].split(' ')
         transaction_time_short = len(transaction_time) < 8
         if transaction_time_short:
@@ -2989,25 +3029,42 @@ class bithumb (Exchange):
         #     'id': str(response['order_id']),
         #}
 
-    def cancel_order(self, id):
-        raise NotSupported(self.id + ' private API not implemented yet')
-        # return self.privatePostOrderCancel({'order_id': id})
+    def cancel_order(self, id, params={}):
+        side = ('side' in list(params.keys()))
+        if not side:
+            raise ExchangeError(self.id + ' cancelOrder requires a side parameter(sell or buy)')
+        side = 'purchase' if(side == 'buy') else 'sales'
+        currency = ('currency' in list(params.keys()))
+        if not currency:
+            raise ExchangeError(self.id + ' cancelOrder requires a currency parameter')
+        return self.privatePostTradeCancel({
+            'order_id': id,
+            'type': params['side'],
+            'currency': params['currency'],
+        })
+
+    def nonce(self):
+        return self.milliseconds()
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api] + '/' + self.implode_params(path, params)
+        endpoint = '/' + self.implode_params(path, params)
+        url = self.urls['api'][api] + endpoint
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
                 url += '?' + self.urlencode(query)
         else:
-            raise NotSupported(self.id + ' private API not implemented yet')
-            # nonce = self.nonce()
-            # body = self.urlencode(self.extend({'nonce': nonce}, params))
-            # headers = {
-            #     'Content-Type': 'application/x-www-form-urlencoded',
-            #     'Key': self.apiKey,
-            #     'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
-            #}
+            body = self.urlencode(self.extend({
+                'endPoint': endpoint,
+            }, query))
+            nonce = str(self.nonce())
+            auth = endpoint + "\0" + body + "\0" + nonce
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512, 'base64')
+            headers = {
+                'Api-Key': self.apiKey,
+                'Api-Sign': signature,
+                'Api-Nonce': nonce,
+            }
         response = self.fetch(url, method, headers, body)
         if 'status' in response:
             if response['status'] == '0000':
@@ -3026,6 +3083,7 @@ class bitlish (Exchange):
             'countries': ['GB', 'EU', 'RU'],
             'rateLimit': 1500,
             'version': 'v1',
+            'hasCORS': False,
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
             'urls': {
@@ -3283,6 +3341,7 @@ class bitmarket (Exchange):
             'name': 'BitMarket',
             'countries': ['PL', 'EU'],
             'rateLimit': 1500,
+            'hasCORS': False,
             'hasFetchOHLCV': True,
             'hasWithdraw': True,
             'timeframes': {
@@ -3555,6 +3614,7 @@ class bitmex (Exchange):
             'countries': 'SC', # Seychelles
             'version': 'v1',
             'rateLimit': 1500,
+            'hasCORS': False,
             'hasFetchOHLCV': True,
             'timeframes': {
                 '1m': '1m',
@@ -3897,6 +3957,7 @@ class bitso (Exchange):
             'countries': 'MX', # Mexico
             'rateLimit': 2000, # 30 requests per minute
             'version': 'v3',
+            'hasCORS': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
                 'api': 'https://api.bitso.com',
@@ -4102,6 +4163,7 @@ class bitstamp1 (Exchange):
             'countries': 'GB',
             'rateLimit': 1000,
             'version': 'v1',
+            'hasCORS': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
                 'api': 'https://www.bitstamp.net/api',
@@ -4277,7 +4339,7 @@ class bitstamp1 (Exchange):
         pair = market['id'] if market else 'all'
         request = self.extend({'id': pair}, params)
         response = self.privatePostOpenOrdersId(request)
-        result = self.parse_trades(response, market)
+        return self.parse_trades(response, market)
 
     def fetch_order(self, id):
         raise NotSupported(self.id + ' fetchOrder is not implemented yet')
@@ -4321,6 +4383,7 @@ class bitstamp (Exchange):
             'countries': 'GB',
             'rateLimit': 1000,
             'version': 'v2',
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
                 'api': 'https://www.bitstamp.net/api',
@@ -4344,6 +4407,7 @@ class bitstamp (Exchange):
                         'user_transactions/{pair}/',
                         'open_orders/all/',
                         'open_orders/{pair}',
+                        'order_status/',
                         'cancel_order/',
                         'buy/{pair}/',
                         'buy/market/{pair}/',
@@ -4509,7 +4573,7 @@ class bitstamp (Exchange):
         pair = market['id'] if market else 'all'
         request = self.extend({'pair': pair}, params)
         response = self.privatePostOpenOrdersPair(request)
-        result = self.parse_trades(response, market)
+        return self.parse_trades(response, market)
 
     def fetch_order(self, id):
         raise NotSupported(self.id + ' fetchOrder is not implemented yet')
@@ -4553,10 +4617,12 @@ class bittrex (Exchange):
             'countries': 'US',
             'version': 'v1.1',
             'rateLimit': 1500,
+            'hasCORS': False,
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
             'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
+            'hasFetchMyTrades': False,
             'timeframes': {
                 '1m': 'oneMin',
                 '5m': 'fiveMin',
@@ -4577,7 +4643,10 @@ class bittrex (Exchange):
                     'https://bittrex.com/Home/Api',
                     'https://www.npmjs.org/package/node.bittrex.api',
                 ],
-                'fees': 'https://bittrex.com/Fees',
+                'fees': [
+                    'https://bittrex.com/Fees',
+                    'https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-',
+                ],
             },
             'api': {
                 'v2': {
@@ -4838,6 +4907,12 @@ class bittrex (Exchange):
             timestamp = self.parse8601(order['Opened'])
         if 'TimeStamp' in order:
             timestamp = self.parse8601(order['TimeStamp'])
+        fee = None
+        if 'Commission' in order:
+            fee = {
+                'cost': float(order['Commission']),
+                'currency': market['quote'],
+            }
         amount = order['Quantity']
         remaining = order['QuantityRemaining']
         filled = amount - remaining
@@ -4854,6 +4929,7 @@ class bittrex (Exchange):
             'filled': filled,
             'remaining': remaining,
             'status': status,
+            'fee': fee,
         }
         return result
 
@@ -5090,6 +5166,7 @@ class bl3p (Exchange):
             'rateLimit': 1000,
             'version': '1',
             'comment': 'An exchange market by BitonicNL',
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
                 'api': 'https://api.bl3p.eu',
@@ -5266,6 +5343,7 @@ class bleutrade (bittrex):
             'countries': 'BR', # Brazil
             'rateLimit': 1000,
             'version': 'v2',
+            'hasCORS': True,
             'hasFetchTickers': True,
             'hasFetchOHLCV': False,
             'urls': {
@@ -5303,6 +5381,7 @@ class btcchina (Exchange):
             'countries': 'CN',
             'rateLimit': 1500,
             'version': 'v1',
+            'hasCORS': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg',
                 'api': {
@@ -5610,6 +5689,7 @@ class btcmarkets (Exchange):
             'name': 'BTC Markets',
             'countries': 'AU', # Australia
             'rateLimit': 1000, # market data cached for 1 second (trades cached for 2 seconds)
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
                 'api': 'https://api.btcmarkets.net',
@@ -5988,6 +6068,7 @@ class btcexchange (btctrader):
             'name': 'BTCExchange',
             'countries': 'PH', # Philippines
             'rateLimit': 1500,
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27993052-4c92911a-64aa-11e7-96d8-ec6ac3435757.jpg',
                 'api': 'https://www.btcexchange.ph/api',
@@ -6011,6 +6092,7 @@ class btctradeua (Exchange):
             'name': 'BTC Trade UA',
             'countries': 'UA', # Ukraine,
             'rateLimit': 3000,
+            'hasCORS': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
                 'api': 'https://btc-trade.com.ua/api',
@@ -6210,6 +6292,7 @@ class btcturk (btctrader):
             'name': 'BTCTurk',
             'countries': 'TR', # Turkey
             'rateLimit': 1000,
+            'hasCORS': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg',
                 'api': 'https://www.btcturk.com/api',
@@ -6234,6 +6317,7 @@ class btcx (Exchange):
             'countries': ['IS', 'US', 'EU'],
             'rateLimit': 1500, # support in english is very poor, unable to tell rate limits
             'version': 'v1',
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg',
                 'api': 'https://btc-x.is/api',
@@ -6384,6 +6468,7 @@ class bter (Exchange):
             'name': 'Bter',
             'countries': ['VG', 'CN'], # British Virgin Islands, China
             'version': '2',
+            'hasCORS': False,
             'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
@@ -6604,6 +6689,7 @@ class bxinth (Exchange):
             'name': 'BX.in.th',
             'countries': 'TH', # Thailand
             'rateLimit': 1500,
+            'hasCORS': False,
             'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
@@ -6830,6 +6916,7 @@ class ccex (Exchange):
             'name': 'C-CEX',
             'countries': ['DE', 'EU'],
             'rateLimit': 1500,
+            'hasCORS': False,
             'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
@@ -7050,6 +7137,7 @@ class cex (Exchange):
             'name': 'CEX.IO',
             'countries': ['GB', 'EU', 'CY', 'RU'],
             'rateLimit': 1500,
+            'hasCORS': True,
             'hasFetchTickers': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -7277,6 +7365,7 @@ class chbtc (Exchange):
             'countries': 'CN',
             'rateLimit': 1000,
             'version': 'v1',
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg',
                 'api': {
@@ -7476,6 +7565,7 @@ class chilebit (blinktrade):
             'id': 'chilebit',
             'name': 'ChileBit',
             'countries': 'CL',
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg',
                 'api': {
@@ -7503,6 +7593,7 @@ class coincheck (Exchange):
             'name': 'coincheck',
             'countries': ['JP', 'ID'],
             'rateLimit': 1500,
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
                 'api': 'https://coincheck.com/api',
@@ -7704,6 +7795,7 @@ class coinfloor (Exchange):
             'name': 'coinfloor',
             'rateLimit': 1000,
             'countries': 'UK',
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',
                 'api': 'https://webapi.coinfloor.co.uk:8090/bist',
@@ -7860,6 +7952,7 @@ class coingi (Exchange):
             'rateLimit': 1000,
             'countries': ['PA', 'BG', 'CN', 'US'], # Panama, Bulgaria, China, US
             'hasFetchTickers': True,
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
                 'api': 'https://api.coingi.com',
@@ -8042,6 +8135,7 @@ class coinmarketcap (Exchange):
             'rateLimit': 10000,
             'version': 'v1',
             'countries': 'US',
+            'hasCORS': True,
             'hasPrivateAPI': False,
             'hasFetchTickers': True,
             'urls': {
@@ -8194,6 +8288,7 @@ class coinmate (Exchange):
             'name': 'CoinMate',
             'countries': ['GB', 'CZ'], # UK, Czech Republic
             'rateLimit': 1000,
+            'hasCORS': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
                 'api': 'https://coinmate.io/api',
@@ -8372,6 +8467,7 @@ class coinsecure (Exchange):
             'countries': 'IN', # India
             'rateLimit': 1000,
             'version': 'v1',
+            'hasCORS': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg',
                 'api': 'https://api.coinsecure.in',
@@ -8621,6 +8717,7 @@ class coinspot (Exchange):
             'name': 'CoinSpot',
             'countries': 'AU', # Australia
             'rateLimit': 1000,
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
                 'api': {
@@ -8764,6 +8861,7 @@ class cryptopia (Exchange):
             'rateLimit': 1500,
             'countries': 'NZ', # New Zealand
             'hasFetchTickers': True,
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
                 'api': 'https://www.cryptopia.co.nz/api',
@@ -9038,6 +9136,7 @@ class dsx (Exchange):
             'name': 'DSX',
             'countries': 'UK',
             'rateLimit': 1500,
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
                 'api': {
@@ -9233,6 +9332,7 @@ class exmo (Exchange):
             'countries': ['ES', 'RU'], # Spain, Russia
             'rateLimit': 1000, # once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1',
+            'hasCORS': False,
             'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
@@ -9434,6 +9534,7 @@ class flowbtc (Exchange):
             'countries': 'BR', # Brazil
             'version': 'v1',
             'rateLimit': 1000,
+            'hasCORS': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
                 'api': 'https://api.flowbtc.com:8400/ajax',
@@ -9627,6 +9728,7 @@ class foxbit (blinktrade):
             'id': 'foxbit',
             'name': 'FoxBit',
             'countries': 'BR',
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27991413-11b40d42-647f-11e7-91ee-78ced874dd09.jpg',
                 'api': {
@@ -9792,6 +9894,7 @@ class fybse (fyb):
             'id': 'fybse',
             'name': 'FYB-SE',
             'countries': 'SE', # Sweden
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg',
                 'api': 'https://www.fybse.se/api/SEK',
@@ -9814,6 +9917,7 @@ class fybsg (fyb):
             'id': 'fybsg',
             'name': 'FYB-SG',
             'countries': 'SG', # Singapore
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766513-3364d56a-5edb-11e7-9e6b-d5898bb89c81.jpg',
                 'api': 'https://www.fybsg.com/api/SGD',
@@ -9838,6 +9942,7 @@ class gatecoin (Exchange):
             'rateLimit': 2000,
             'countries': 'HK', # Hong Kong
             'comment': 'a regulated/licensed exchange',
+            'hasCORS': False,
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
             'timeframes': {
@@ -10206,6 +10311,7 @@ class gdax (Exchange):
             'name': 'GDAX',
             'countries': 'US',
             'rateLimit': 1000,
+            'hasCORS': True,
             'hasFetchOHLCV': True,
             'timeframes': {
                 '1m': 60,
@@ -10489,6 +10595,7 @@ class gemini (Exchange):
             'countries': 'US',
             'rateLimit': 1500, # 200 for private API
             'version': 'v1',
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
                 'api': 'https://api.gemini.com',
@@ -10681,6 +10788,7 @@ class hitbtc (Exchange):
             'countries': 'HK', # Hong Kong
             'rateLimit': 1500,
             'version': '1',
+            'hasCORS': False,
             'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
@@ -10948,6 +11056,7 @@ class hitbtc2 (hitbtc):
             'countries': 'HK', # Hong Kong
             'rateLimit': 1500,
             'version': '2',
+            'hasCORS': True,
             'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
@@ -11287,9 +11396,12 @@ class huobi1 (Exchange):
         last = None
         if 'last' in ticker:
             last = ticker['last']
+        timestamp = self.milliseconds()
+        if 'ts' in ticker:
+            timestamp = ticker['ts']
         return {
-            'timestamp': ticker['ts'],
-            'datetime': self.iso8601(ticker['ts']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'high': ticker['high'],
             'low': ticker['low'],
             'bid': ticker['bid'][0],
@@ -11475,6 +11587,7 @@ class huobicny (huobi1):
             'id': 'huobicny',
             'name': 'Huobi CNY',
             'hostname': 'be.huobi.com',
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
                 'api': 'https://be.huobi.com',
@@ -11499,6 +11612,7 @@ class huobipro (huobi1):
             'id': 'huobipro',
             'name': 'Huobi Pro',
             'hostname': 'api.huobi.pro',
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
                 'api': 'https://api.huobi.pro',
@@ -11526,6 +11640,7 @@ class huobi (Exchange):
             'countries': 'CN',
             'rateLimit': 2000,
             'version': 'v3',
+            'hasCORS': False,
             'hasFetchOHLCV': True,
             'timeframes': {
                 '1m': '001',
@@ -11752,6 +11867,7 @@ class independentreserve (Exchange):
             'name': 'Independent Reserve',
             'countries': ['AU', 'NZ'], # Australia, New Zealand
             'rateLimit': 1000,
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg',
                 'api': {
@@ -11974,6 +12090,7 @@ class itbit (Exchange):
             'countries': 'US',
             'rateLimit': 2000,
             'version': 'v1',
+            'hasCORS': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
                 'api': 'https://api.itbit.com',
@@ -12032,6 +12149,9 @@ class itbit (Exchange):
         ticker = self.publicGetMarketsSymbolTicker({
             'symbol': self.market_id(symbol),
         })
+        serverTimeUTC = ('serverTimeUTC' in list(ticker.keys()))
+        if not serverTimeUTC:
+            raise ExchangeError(self.id + ' fetchTicker returned a bad response: ' + self.json(ticker))
         timestamp = self.parse8601(ticker['serverTimeUTC'])
         return {
             'timestamp': timestamp,
@@ -12170,6 +12290,7 @@ class jubi (Exchange):
             'countries': 'CN',
             'rateLimit': 1500,
             'version': 'v1',
+            'hasCORS': False,
             'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg',
@@ -12370,6 +12491,7 @@ class kraken (Exchange):
             'countries': 'US',
             'version': '0',
             'rateLimit': 1500,
+            'hasCORS': False,
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
             'marketsByAltname': {},
@@ -12753,6 +12875,7 @@ class lakebtc (Exchange):
             'name': 'LakeBTC',
             'countries': 'US',
             'version': 'api_v2',
+            'hasCORS': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
                 'api': 'https://api.lakebtc.com',
@@ -12948,6 +13071,7 @@ class livecoin (Exchange):
             'name': 'LiveCoin',
             'countries': ['US', 'UK', 'RU'],
             'rateLimit': 1000,
+            'hasCORS': False,
             'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
@@ -13174,6 +13298,7 @@ class liqui (Exchange):
             'countries': 'UA',
             'rateLimit': 2000,
             'version': '3',
+            'hasCORS': False,
             'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
@@ -13220,6 +13345,11 @@ class liqui (Exchange):
         }
         params.update(config)
         super(liqui, self).__init__(params)
+
+    def calculate_fee_rate(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        key = 'quote' if(side == 'sell') else 'base'
+        market = self.markets[symbol]
+        return {'currency': market[key], 'rate': market[takerOrMaker]}
 
     def fetch_markets(self):
         response = self.publicGetInfo()
@@ -13470,6 +13600,7 @@ class luno (Exchange):
             'countries': ['GB', 'SG', 'ZA'],
             'rateLimit': 3000,
             'version': '1',
+            'hasCORS': False,
             'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
@@ -13696,6 +13827,7 @@ class mercado (Exchange):
             'countries': 'BR', # Brazil
             'rateLimit': 1000,
             'version': 'v3',
+            'hasCORS': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
                 'api': {
@@ -13865,6 +13997,7 @@ class mixcoins (Exchange):
             'countries': ['GB', 'HK'],
             'rateLimit': 1500,
             'version': 'v1',
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30237212-ed29303c-9535-11e7-8af8-fcd381cfa20c.jpg',
                 'api': 'https://mixcoins.com/api',
@@ -14023,6 +14156,7 @@ class nova (Exchange):
             'countries': 'TZ', # Tanzania
             'rateLimit': 2000,
             'version': 'v2',
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
                 'api': 'https://novaexchange.com/remote',
@@ -14491,6 +14625,7 @@ class okcoincny (okcoin):
             'id': 'okcoincny',
             'name': 'OKCoin CNY',
             'countries': 'CN',
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766792-8be9157a-5ee5-11e7-926c-6d69b8d3378d.jpg',
                 'api': 'https://www.okcoin.cn',
@@ -14517,6 +14652,7 @@ class okcoinusd (okcoin):
             'id': 'okcoinusd',
             'name': 'OKCoin USD',
             'countries': ['CN', 'US'],
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api': 'https://www.okcoin.com',
@@ -14545,6 +14681,7 @@ class okex (okcoin):
             'id': 'okex',
             'name': 'OKEX',
             'countries': ['CN', 'US'],
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29562593-9038a9bc-8742-11e7-91cc-8201f845bfc1.jpg',
                 'api': 'https://www.okex.com',
@@ -14579,6 +14716,7 @@ class paymium (Exchange):
             'countries': ['FR', 'EU'],
             'rateLimit': 2000,
             'version': 'v1',
+            'hasCORS': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
                 'api': 'https://paymium.com/api',
@@ -14753,6 +14891,7 @@ class poloniex (Exchange):
             'name': 'Poloniex',
             'countries': 'US',
             'rateLimit': 500, # up 6 calls per second
+            'hasCORS': True,
             'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
@@ -14822,6 +14961,11 @@ class poloniex (Exchange):
         }
         params.update(config)
         super(poloniex, self).__init__(params)
+
+    def calculate_fee_rate(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        key = 'quote' if(side == 'sell') else 'base'
+        market = self.markets[symbol]
+        return {'currency': market[key], 'rate': market[takerOrMaker]}
 
     def fetch_markets(self):
         markets = self.publicGetReturnTicker()
@@ -15132,6 +15276,7 @@ class quadrigacx (Exchange):
             'countries': 'CA',
             'rateLimit': 1000,
             'version': 'v2',
+            'hasCORS': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg',
                 'api': 'https://api.quadrigacx.com',
@@ -15295,6 +15440,7 @@ class quoine (Exchange):
             'version': '2',
             'rateLimit': 1000,
             'hasFetchTickers': True,
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766844-9615a4e8-5ee8-11e7-8814-fcd004db8cdd.jpg',
                 'api': 'https://api.quoine.com',
@@ -15522,6 +15668,7 @@ class southxchange (Exchange):
             'countries': 'AR', # Argentina
             'rateLimit': 1000,
             'hasFetchTickers': True,
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
                 'api': 'https://www.southxchange.com/api',
@@ -15716,6 +15863,7 @@ class surbitcoin (blinktrade):
             'id': 'surbitcoin',
             'name': 'SurBitcoin',
             'countries': 'VE',
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27991511-f0a50194-6481-11e7-99b5-8f02932424cc.jpg',
                 'api': {
@@ -15744,6 +15892,7 @@ class therock (Exchange):
             'countries': 'MT',
             'rateLimit': 1000,
             'version': 'v1',
+            'hasCORS': False,
             'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
@@ -15959,6 +16108,7 @@ class urdubit (blinktrade):
             'id': 'urdubit',
             'name': 'UrduBit',
             'countries': 'PK',
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27991453-156bf3ae-6480-11e7-82eb-7295fe1b5bb4.jpg',
                 'api': {
@@ -15987,6 +16137,7 @@ class vaultoro (Exchange):
             'countries': 'CH',
             'rateLimit': 1000,
             'version': '1',
+            'hasCORS': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg',
                 'api': 'https://api.vaultoro.com',
@@ -16176,6 +16327,7 @@ class vbtc (blinktrade):
             'id': 'vbtc',
             'name': 'VBTC',
             'countries': 'VN',
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27991481-1f53d1d8-6481-11e7-884e-21d17e7939db.jpg',
                 'api': {
@@ -16203,6 +16355,7 @@ class virwox (Exchange):
             'name': 'VirWoX',
             'countries': ['AT', 'EU'],
             'rateLimit': 1000,
+            'hasCORS': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg',
                 'api': {
@@ -16414,6 +16567,7 @@ class wex (liqui):
             'countries': 'NZ', # New Zealand
             'version': '3',
             'hasFetchTickers': True,
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg',
                 'api': {
@@ -16467,6 +16621,7 @@ class xbtce (Exchange):
             'rateLimit': 2000, # responses are cached every 2 seconds
             'version': 'v1',
             'hasPublicAPI': False,
+            'hasCORS': False,
             'hasFetchTickers': True,
             'hasFetchOHLCV': False,
             'urls': {
@@ -16769,6 +16924,7 @@ class yobit (Exchange):
             'countries': 'RU',
             'rateLimit': 2000, # responses are cached every 2 seconds
             'version': '3',
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
                 'api': 'https://yobit.net',
@@ -16974,6 +17130,7 @@ class yunbi (acx):
             'countries': 'CN',
             'rateLimit': 1000,
             'version': 'v2',
+            'hasCORS': False,
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
             'timeframes': {
@@ -17047,6 +17204,7 @@ class zaif (Exchange):
             'countries': 'JP',
             'rateLimit': 2000,
             'version': '1',
+            'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
                 'api': 'https://api.zaif.jp',

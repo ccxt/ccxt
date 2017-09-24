@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.105';
+$version = '1.7.127';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -460,6 +460,7 @@ class Exchange {
         $this->timeframes = null;
         $this->hasPublicAPI         = true;
         $this->hasPrivateAPI        = true;
+        $this->hasCORS              = false;
         $this->hasFetchTickers      = false;
         $this->hasFetchOHLCV        = false;
         $this->hasDeposit           = false;
@@ -468,6 +469,7 @@ class Exchange {
         $this->hasFetchOrders       = false;
         $this->hasFetchOpenOrders   = false;
         $this->hasFetchClosedOrders = false;
+        $this->hasFetchMyTrades     = false;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -963,6 +965,32 @@ class Exchange {
 
     public function createMarketSellOrder ($market, $amount, $params = array ()) {
         return $this->create_market_sell_order ($market, $amount, $params);
+    }
+
+    public function calculate_fee_rate ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
+        return array (
+            'base' => 0.0,
+            'quote' => $this->markets[$symbol][$fee],
+        );
+    }
+
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
+        $rate = $this->calculate_fee_rate ($symbol, $type, $side, $amount, $price, $fee, $params);
+        return array (
+            'rate' => $rate,
+            'cost' => array (
+                'base' => $amount * $rate['base'],
+                'quote' => $amount * $price * $rate['quote'],
+            ),
+        );
+    }
+
+    public function createFeeRate ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
+        return $this->calculate_fee_rate ($symbol, $type, $side, $amount, $price, $fee, $params);
+    }
+
+    public function createFee ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
+        return $this->calculate_fee ($symbol, $type, $side, $amount, $price, $fee, $params);
     }
 
     public static function account () {

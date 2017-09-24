@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.105';
+$version = '1.7.127';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -460,6 +460,7 @@ class Exchange {
         $this->timeframes = null;
         $this->hasPublicAPI         = true;
         $this->hasPrivateAPI        = true;
+        $this->hasCORS              = false;
         $this->hasFetchTickers      = false;
         $this->hasFetchOHLCV        = false;
         $this->hasDeposit           = false;
@@ -468,6 +469,7 @@ class Exchange {
         $this->hasFetchOrders       = false;
         $this->hasFetchOpenOrders   = false;
         $this->hasFetchClosedOrders = false;
+        $this->hasFetchMyTrades     = false;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -965,6 +967,32 @@ class Exchange {
         return $this->create_market_sell_order ($market, $amount, $params);
     }
 
+    public function calculate_fee_rate ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
+        return array (
+            'base' => 0.0,
+            'quote' => $this->markets[$symbol][$fee],
+        );
+    }
+
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
+        $rate = $this->calculate_fee_rate ($symbol, $type, $side, $amount, $price, $fee, $params);
+        return array (
+            'rate' => $rate,
+            'cost' => array (
+                'base' => $amount * $rate['base'],
+                'quote' => $amount * $price * $rate['quote'],
+            ),
+        );
+    }
+
+    public function createFeeRate ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
+        return $this->calculate_fee_rate ($symbol, $type, $side, $amount, $price, $fee, $params);
+    }
+
+    public function createFee ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
+        return $this->calculate_fee ($symbol, $type, $side, $amount, $price, $fee, $params);
+    }
+
     public static function account () {
         return array (
             'free' => 0.0,
@@ -1034,6 +1062,7 @@ class _1broker extends Exchange {
             'rateLimit' => 1500,
             'version' => 'v2',
             'hasPublicAPI' => false,
+            'hasCORS' => true,
             'hasFetchOHLCV' => true,
             'timeframes' => array (
                 '1m' => '60',
@@ -1486,6 +1515,7 @@ class _1btcxe extends cryptocapital {
             'name' => '1BTCXE',
             'countries' => 'PA', // Panama
             'comment' => 'Crypto Capital API',
+            'hasCORS' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg',
                 'api' => 'https://1btcxe.com/api',
@@ -1538,6 +1568,7 @@ class acx extends Exchange {
             'countries' => 'AU',
             'rateLimit' => 1000,
             'version' => 'v2',
+            'hasCORS' => true,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
             'timeframes' => array (
@@ -1844,6 +1875,7 @@ class anxpro extends Exchange {
             'countries' => array ( 'JP', 'SG', 'HK', 'NZ' ),
             'version' => '2',
             'rateLimit' => 1500,
+            'hasCORS' => false,
             'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
@@ -2035,7 +2067,12 @@ class binance extends Exchange {
             'countries' => 'CN', // China
             'rateLimit' => 1000,
             'version' => 'v1',
+            'hasCORS' => false,
             'hasFetchOHLCV' => true,
+            'hasFetchMyTrades' => true,
+            'hasFetchOrder' => true,
+            'hasFetchOrders' => true,
+            'hasFetchOpenOrders' => true,
             'timeframes' => array (
                 '1m' => '1m',
                 '3m' => '3m',
@@ -2150,6 +2187,12 @@ class binance extends Exchange {
         ), $options));
     }
 
+    public function calculate_fee_rate ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $key = ($side == 'sell') ? 'base' : 'quote';
+        $market = $this->markets[$symbol];
+        return array ( 'currency' => $market[$key], 'rate' => $market[$takerOrMaker] );
+    }
+
     public function fetch_balance ($params = array ()) {
         $response = $this->privateGetAccount ();
         $result = array ( 'info' => $response );
@@ -2243,18 +2286,22 @@ class binance extends Exchange {
         $idField = (array_key_exists ('a', $trade)) ? 'a' : 'id';
         $id = (string) $trade[$idField];
         $side = null;
+        $order = null;
+        if (array_key_exists ('orderId', $trade))
+            $order = (string) $trade['orderId'];
         if (array_key_exists ('m', $trade)) {
             $side = 'sell';
             if ($trade['m'])
                 $side = 'buy';
         } else {
-            $isBuyer = $trade['isBuyer'];
-            $isMaker = $trade['isMaker'];
-            if ($isBuyer) {
-                $side = $isMaker ? 'sell' : 'buy';
-            } else {
-                $side = $isMaker ? 'buy' : 'sell';
-            }
+            $side = ($trade['isBuyer']) ? 'buy' : 'sell';
+        }
+        $fee = null;
+        if (array_key_exists ('commission', $trade)) {
+            $fee = array (
+                'cost' => floatval ($trade['commission']),
+                'currency' => $trade['commissionAsset'],
+            );
         }
         return array (
             'info' => $trade,
@@ -2262,10 +2309,12 @@ class binance extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
             'id' => $id,
+            'order' => $order,
             'type' => null,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
+            'fee' => $fee,
         );
     }
 
@@ -2285,7 +2334,7 @@ class binance extends Exchange {
         if ($status == 'NEW')
             return 'open';
         if ($status == 'PARTIALLY_FILLED')
-            return 'open';
+            return 'partial';
         if ($status == 'FILLED')
             return 'closed';
         if ($status == 'CANCELED')
@@ -2392,6 +2441,17 @@ class binance extends Exchange {
         return $this->milliseconds ();
     }
 
+    public function fetch_my_trades ($symbol = null, $params = array ()) {
+        $this->load_markets ();
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchMyTrades requires a symbol');
+        $market = $this->market ($symbol);
+        $response = $this->privateGetMyTrades (array_merge (array (
+            'symbol' => $market['id'],
+        ), $params));
+        return $this->parse_trades ($response, $market);
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api == 'public') {
@@ -2432,6 +2492,7 @@ class bit2c extends Exchange {
             'name' => 'Bit2C',
             'countries' => 'IL', // Israel
             'rateLimit' => 3000,
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
                 'api' => 'https://www.bit2c.co.il',
@@ -2604,6 +2665,7 @@ class bitbay extends Exchange {
             'name' => 'BitBay',
             'countries' => array ( 'PL', 'EU' ), // Poland
             'rateLimit' => 1000,
+            'hasCORS' => true,
             'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
@@ -2812,6 +2874,7 @@ class bitcoincoid extends Exchange {
             'id' => 'bitcoincoid',
             'name' => 'Bitcoin.co.id',
             'countries' => 'ID', // Indonesia
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766138-043c7786-5ecf-11e7-882b-809c14f38b53.jpg',
                 'api' => array (
@@ -2845,14 +2908,19 @@ class bitcoincoid extends Exchange {
             ),
             'markets' => array (
                 'BTC/IDR' =>  array ( 'id' => 'btc_idr', 'symbol' => 'BTC/IDR', 'base' => 'BTC', 'quote' => 'IDR', 'baseId' => 'btc', 'quoteId' => 'idr' ),
+                'BCH/IDR' =>  array ( 'id' => 'bch_idr', 'symbol' => 'BCH/IDR', 'base' => 'BCH', 'quote' => 'IDR', 'baseId' => 'bch', 'quoteId' => 'idr' ),
+                'ETH/IDR' =>  array ( 'id' => 'eth_idr', 'symbol' => 'ETH/IDR', 'base' => 'ETH', 'quote' => 'IDR', 'baseId' => 'eth', 'quoteId' => 'idr' ),
+                'ETC/IDR' =>  array ( 'id' => 'etc_idr', 'symbol' => 'ETC/IDR', 'base' => 'ETC', 'quote' => 'IDR', 'baseId' => 'etc', 'quoteId' => 'idr' ),
+                'XRP/IDR' =>  array ( 'id' => 'xrp_idr', 'symbol' => 'XRP/IDR', 'base' => 'XRP', 'quote' => 'IDR', 'baseId' => 'xrp', 'quoteId' => 'idr' ),
+                'XZC/IDR' =>  array ( 'id' => 'xzc_idr', 'symbol' => 'XZC/IDR', 'base' => 'XZC', 'quote' => 'IDR', 'baseId' => 'xzc', 'quoteId' => 'idr' ),
                 'BTS/BTC' =>  array ( 'id' => 'bts_btc', 'symbol' => 'BTS/BTC', 'base' => 'BTS', 'quote' => 'BTC', 'baseId' => 'bts', 'quoteId' => 'btc' ),
                 'DASH/BTC' => array ( 'id' => 'drk_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC', 'baseId' => 'drk', 'quoteId' => 'btc' ),
                 'DOGE/BTC' => array ( 'id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC', 'baseId' => 'doge', 'quoteId' => 'btc' ),
                 'ETH/BTC' =>  array ( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'baseId' => 'eth', 'quoteId' => 'btc' ),
                 'LTC/BTC' =>  array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'ltc', 'quoteId' => 'btc' ),
                 'NXT/BTC' =>  array ( 'id' => 'nxt_btc', 'symbol' => 'NXT/BTC', 'base' => 'NXT', 'quote' => 'BTC', 'baseId' => 'nxt', 'quoteId' => 'btc' ),
-                'STR/BTC' =>  array ( 'id' => 'str_btc', 'symbol' => 'STR/BTC', 'base' => 'STR', 'quote' => 'BTC', 'baseId' => 'str', 'quoteId' => 'btc' ),
-                'NEM/BTC' =>  array ( 'id' => 'nem_btc', 'symbol' => 'NEM/BTC', 'base' => 'NEM', 'quote' => 'BTC', 'baseId' => 'nem', 'quoteId' => 'btc' ),
+                'XLM/BTC' =>  array ( 'id' => 'str_btc', 'symbol' => 'XLM/BTC', 'base' => 'XLM', 'quote' => 'BTC', 'baseId' => 'str', 'quoteId' => 'btc' ),
+                'XEM/BTC' =>  array ( 'id' => 'nem_btc', 'symbol' => 'XEM/BTC', 'base' => 'XEM', 'quote' => 'BTC', 'baseId' => 'nem', 'quoteId' => 'btc' ),
                 'XRP/BTC' =>  array ( 'id' => 'xrp_btc', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'baseId' => 'xrp', 'quoteId' => 'btc' ),
             ),
         ), $options));
@@ -2989,6 +3057,7 @@ class bitfinex extends Exchange {
             'countries' => 'US',
             'version' => 'v1',
             'rateLimit' => 1500,
+            'hasCORS' => false,
             'hasFetchTickers' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
@@ -3337,6 +3406,7 @@ class bitfinex2 extends bitfinex {
             'name' => 'Bitfinex v2',
             'countries' => 'US',
             'version' => 'v2',
+            'hasCORS' => true,
             'hasFetchTickers' => false, // true but at least one pair is required
             'hasFetchOHLCV' => true,
             'timeframes' => array (
@@ -3630,6 +3700,7 @@ class bitflyer extends Exchange {
             'countries' => 'JP',
             'version' => 'v1',
             'rateLimit' => 500,
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
                 'api' => 'https://api.bitflyer.jp',
@@ -3876,6 +3947,7 @@ class bithumb extends Exchange {
             'name' => 'Bithumb',
             'countries' => 'KR', // South Korea
             'rateLimit' => 500,
+            'hasCORS' => true,
             'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
@@ -3930,21 +4002,20 @@ class bithumb extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
-        throw new NotSupported ($this->id . ' fetchBalance not implemented yet');
-        // $this->load_markets ();
-        // $response = $this->privatePostUserInfo ();
-        // $result = array ( 'info' => $response );
-        // for ($c = 0; $c < count ($this->currencies); $c++) {
-        //     $currency = $this->currencies[$c];
-        //     $account = $this->account ();
-        //     if (array_key_exists ($currency, $response['balances']))
-        //         $account['free'] = floatval ($response['balances'][$currency]);
-        //     if (array_key_exists ($currency, $response['reserved']))
-        //         $account['used'] = floatval ($response['reserved'][$currency]);
-        //     $account['total'] = $this->sum ($account['free'], $account['used']);
-        //     $result[$currency] = $account;
-        // }
-        // return $result;
+        $this->load_markets ();
+        $response = $this->privatePostInfoBalance ();
+        $result = array ( 'info' => $response );
+        $balances = $response['data'];
+        for ($c = 0; $c < count ($this->currencies); $c++) {
+            $currency = $this->currencies[$c];
+            $account = $this->account ();
+            $lowercase = strtolower ($currency);
+            $account['total'] = $this->safe_float ($balances, 'total_' . $lowercase);
+            $account['used'] = $this->safe_float ($balances, 'in_use_' . $lowercase);
+            $account['free'] = $this->safe_float ($balances, 'available_' . $lowercase);
+            $result[$currency] = $account;
+        }
+        return $result;
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -4007,7 +4078,7 @@ class bithumb extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        // a workaround their bug in date format, hours are not 0-padded
+        // a workaround for their bug in date format, hours are not 0-padded
         list ($transaction_date, $transaction_time) = explode (' ', $trade['transaction_date']);
         $transaction_time_short = strlen ($transaction_time) < 8;
         if ($transaction_time_short)
@@ -4055,26 +4126,44 @@ class bithumb extends Exchange {
         // );
     }
 
-    public function cancel_order ($id) {
-        throw new NotSupported ($this->id . ' private API not implemented yet');
-        // return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
+    public function cancel_order ($id, $params = array ()) {
+        $side = (array_key_exists ('side', $params));
+        if (!$side)
+            throw new ExchangeError ($this->id . ' cancelOrder requires a $side parameter (sell or buy)');
+        $side = ($side == 'buy') ? 'purchase' : 'sales';
+        $currency = (array_key_exists ('currency', $params));
+        if (!$currency)
+            throw new ExchangeError ($this->id . ' cancelOrder requires a $currency parameter');
+        return $this->privatePostTradeCancel (array (
+            'order_id' => $id,
+            'type' => $params['side'],
+            'currency' => $params['currency'],
+        ));
+    }
+
+    public function nonce () {
+        return $this->milliseconds ();
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$api] . '/' . $this->implode_params ($path, $params);
+        $endpoint = '/' . $this->implode_params ($path, $params);
+        $url = $this->urls['api'][$api] . $endpoint;
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
-            throw new NotSupported ($this->id . ' private API not implemented yet');
-            // $nonce = $this->nonce ();
-            // $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $params));
-            // $headers = array (
-            //     'Content-Type' => 'application/x-www-form-urlencoded',
-            //     'Key' => $this->apiKey,
-            //     'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
-            // );
+            $body = $this->urlencode (array_merge (array (
+                'endPoint' => $endpoint,
+            ), $query));
+            $nonce = (string) $this->nonce ();
+            $auth = $endpoint . "\0" . $body . "\0" . $nonce;
+            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512', 'base64');
+            $headers = array (
+                'Api-Key' => $this->apiKey,
+                'Api-Sign' => $signature,
+                'Api-Nonce' => $nonce,
+            );
         }
         $response = $this->fetch ($url, $method, $headers, $body);
         if (array_key_exists ('status', $response)) {
@@ -4097,6 +4186,7 @@ class bitlish extends Exchange {
             'countries' => array ( 'GB', 'EU', 'RU' ),
             'rateLimit' => 1500,
             'version' => 'v1',
+            'hasCORS' => false,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
             'urls' => array (
@@ -4377,6 +4467,7 @@ class bitmarket extends Exchange {
             'name' => 'BitMarket',
             'countries' => array ( 'PL', 'EU' ),
             'rateLimit' => 1500,
+            'hasCORS' => false,
             'hasFetchOHLCV' => true,
             'hasWithdraw' => true,
             'timeframes' => array (
@@ -4667,6 +4758,7 @@ class bitmex extends Exchange {
             'countries' => 'SC', // Seychelles
             'version' => 'v1',
             'rateLimit' => 1500,
+            'hasCORS' => false,
             'hasFetchOHLCV' => true,
             'timeframes' => array (
                 '1m' => '1m',
@@ -5028,6 +5120,7 @@ class bitso extends Exchange {
             'countries' => 'MX', // Mexico
             'rateLimit' => 2000, // 30 requests per minute
             'version' => 'v3',
+            'hasCORS' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
                 'api' => 'https://api.bitso.com',
@@ -5246,6 +5339,7 @@ class bitstamp1 extends Exchange {
             'countries' => 'GB',
             'rateLimit' => 1000,
             'version' => 'v1',
+            'hasCORS' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
                 'api' => 'https://www.bitstamp.net/api',
@@ -5432,7 +5526,7 @@ class bitstamp1 extends Exchange {
         $pair = $market ? $market['id'] : 'all';
         $request = array_merge (array ( 'id' => $pair ), $params);
         $response = $this->privatePostOpenOrdersId ($request);
-        $result = $this->parse_trades ($response, $market);
+        return $this->parse_trades ($response, $market);
     }
 
     public function fetch_order ($id) {
@@ -5481,6 +5575,7 @@ class bitstamp extends Exchange {
             'countries' => 'GB',
             'rateLimit' => 1000,
             'version' => 'v2',
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
                 'api' => 'https://www.bitstamp.net/api',
@@ -5504,6 +5599,7 @@ class bitstamp extends Exchange {
                         'user_transactions/{pair}/',
                         'open_orders/all/',
                         'open_orders/{pair}',
+                        'order_status/',
                         'cancel_order/',
                         'buy/{pair}/',
                         'buy/market/{pair}/',
@@ -5680,7 +5776,7 @@ class bitstamp extends Exchange {
         $pair = $market ? $market['id'] : 'all';
         $request = array_merge (array ( 'pair' => $pair ), $params);
         $response = $this->privatePostOpenOrdersPair ($request);
-        $result = $this->parse_trades ($response, $market);
+        return $this->parse_trades ($response, $market);
     }
 
     public function fetch_order ($id) {
@@ -5729,10 +5825,12 @@ class bittrex extends Exchange {
             'countries' => 'US',
             'version' => 'v1.1',
             'rateLimit' => 1500,
+            'hasCORS' => false,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
             'hasFetchOrders' => true,
             'hasFetchOpenOrders' => true,
+            'hasFetchMyTrades' => false,
             'timeframes' => array (
                 '1m' => 'oneMin',
                 '5m' => 'fiveMin',
@@ -5753,7 +5851,10 @@ class bittrex extends Exchange {
                     'https://bittrex.com/Home/Api',
                     'https://www.npmjs.org/package/node.bittrex.api',
                 ),
-                'fees' => 'https://bittrex.com/Fees',
+                'fees' => array (
+                    'https://bittrex.com/Fees',
+                    'https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-',
+                ),
             ),
             'api' => array (
                 'v2' => array (
@@ -6036,6 +6137,13 @@ class bittrex extends Exchange {
             $timestamp = $this->parse8601 ($order['Opened']);
         if (array_key_exists ('TimeStamp', $order))
             $timestamp = $this->parse8601 ($order['TimeStamp']);
+        $fee = null;
+        if (array_key_exists ('Commission', $order)) {
+            $fee = array (
+                'cost' => floatval ($order['Commission']),
+                'currency' => $market['quote'],
+            );
+        }
         $amount = $order['Quantity'];
         $remaining = $order['QuantityRemaining'];
         $filled = $amount - $remaining;
@@ -6052,6 +6160,7 @@ class bittrex extends Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
+            'fee' => $fee,
         );
         return $result;
     }
@@ -6304,6 +6413,7 @@ class bl3p extends Exchange {
             'rateLimit' => 1000,
             'version' => '1',
             'comment' => 'An exchange market by BitonicNL',
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
                 'api' => 'https://api.bl3p.eu',
@@ -6497,6 +6607,7 @@ class bleutrade extends bittrex {
             'countries' => 'BR', // Brazil
             'rateLimit' => 1000,
             'version' => 'v2',
+            'hasCORS' => true,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => false,
             'urls' => array (
@@ -6535,6 +6646,7 @@ class btcchina extends Exchange {
             'countries' => 'CN',
             'rateLimit' => 1500,
             'version' => 'v1',
+            'hasCORS' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg',
                 'api' => array (
@@ -6864,6 +6976,7 @@ class btcmarkets extends Exchange {
             'name' => 'BTC Markets',
             'countries' => 'AU', // Australia
             'rateLimit' => 1000, // market data cached for 1 second (trades cached for 2 seconds)
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
                 'api' => 'https://api.btcmarkets.net',
@@ -7269,6 +7382,7 @@ class btcexchange extends btctrader {
             'name' => 'BTCExchange',
             'countries' => 'PH', // Philippines
             'rateLimit' => 1500,
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27993052-4c92911a-64aa-11e7-96d8-ec6ac3435757.jpg',
                 'api' => 'https://www.btcexchange.ph/api',
@@ -7292,6 +7406,7 @@ class btctradeua extends Exchange {
             'name' => 'BTC Trade UA',
             'countries' => 'UA', // Ukraine,
             'rateLimit' => 3000,
+            'hasCORS' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
                 'api' => 'https://btc-trade.com.ua/api',
@@ -7507,6 +7622,7 @@ class btcturk extends btctrader {
             'name' => 'BTCTurk',
             'countries' => 'TR', // Turkey
             'rateLimit' => 1000,
+            'hasCORS' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg',
                 'api' => 'https://www.btcturk.com/api',
@@ -7531,6 +7647,7 @@ class btcx extends Exchange {
             'countries' => array ( 'IS', 'US', 'EU' ),
             'rateLimit' => 1500, // support in english is very poor, unable to tell rate limits
             'version' => 'v1',
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg',
                 'api' => 'https://btc-x.is/api',
@@ -7691,6 +7808,7 @@ class bter extends Exchange {
             'name' => 'Bter',
             'countries' => array ( 'VG', 'CN' ), // British Virgin Islands, China
             'version' => '2',
+            'hasCORS' => false,
             'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg',
@@ -7930,6 +8048,7 @@ class bxinth extends Exchange {
             'name' => 'BX.in.th',
             'countries' => 'TH', // Thailand
             'rateLimit' => 1500,
+            'hasCORS' => false,
             'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
@@ -8172,6 +8291,7 @@ class ccex extends Exchange {
             'name' => 'C-CEX',
             'countries' => array ( 'DE', 'EU' ),
             'rateLimit' => 1500,
+            'hasCORS' => false,
             'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
@@ -8408,6 +8528,7 @@ class cex extends Exchange {
             'name' => 'CEX.IO',
             'countries' => array ( 'GB', 'EU', 'CY', 'RU' ),
             'rateLimit' => 1500,
+            'hasCORS' => true,
             'hasFetchTickers' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -8652,6 +8773,7 @@ class chbtc extends Exchange {
             'countries' => 'CN',
             'rateLimit' => 1000,
             'version' => 'v1',
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg',
                 'api' => array (
@@ -8863,6 +8985,7 @@ class chilebit extends blinktrade {
             'id' => 'chilebit',
             'name' => 'ChileBit',
             'countries' => 'CL',
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg',
                 'api' => array (
@@ -8890,6 +9013,7 @@ class coincheck extends Exchange {
             'name' => 'coincheck',
             'countries' => array ( 'JP', 'ID' ),
             'rateLimit' => 1500,
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
                 'api' => 'https://coincheck.com/api',
@@ -9103,6 +9227,7 @@ class coinfloor extends Exchange {
             'name' => 'coinfloor',
             'rateLimit' => 1000,
             'countries' => 'UK',
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',
                 'api' => 'https://webapi.coinfloor.co.uk:8090/bist',
@@ -9270,6 +9395,7 @@ class coingi extends Exchange {
             'rateLimit' => 1000,
             'countries' => array ( 'PA', 'BG', 'CN', 'US' ), // Panama, Bulgaria, China, US
             'hasFetchTickers' => true,
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
                 'api' => 'https://api.coingi.com',
@@ -9466,6 +9592,7 @@ class coinmarketcap extends Exchange {
             'rateLimit' => 10000,
             'version' => 'v1',
             'countries' => 'US',
+            'hasCORS' => true,
             'hasPrivateAPI' => false,
             'hasFetchTickers' => true,
             'urls' => array (
@@ -9628,6 +9755,7 @@ class coinmate extends Exchange {
             'name' => 'CoinMate',
             'countries' => array ( 'GB', 'CZ' ), // UK, Czech Republic
             'rateLimit' => 1000,
+            'hasCORS' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
                 'api' => 'https://coinmate.io/api',
@@ -9818,6 +9946,7 @@ class coinsecure extends Exchange {
             'countries' => 'IN', // India
             'rateLimit' => 1000,
             'version' => 'v1',
+            'hasCORS' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg',
                 'api' => 'https://api.coinsecure.in',
@@ -10077,6 +10206,7 @@ class coinspot extends Exchange {
             'name' => 'CoinSpot',
             'countries' => 'AU', // Australia
             'rateLimit' => 1000,
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
                 'api' => array (
@@ -10230,6 +10360,7 @@ class cryptopia extends Exchange {
             'rateLimit' => 1500,
             'countries' => 'NZ', // New Zealand
             'hasFetchTickers' => true,
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
                 'api' => 'https://www.cryptopia.co.nz/api',
@@ -10525,6 +10656,7 @@ class dsx extends Exchange {
             'name' => 'DSX',
             'countries' => 'UK',
             'rateLimit' => 1500,
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
                 'api' => array (
@@ -10731,6 +10863,7 @@ class exmo extends Exchange {
             'countries' => array ( 'ES', 'RU' ), // Spain, Russia
             'rateLimit' => 1000, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version' => 'v1',
+            'hasCORS' => false,
             'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
@@ -10948,6 +11081,7 @@ class flowbtc extends Exchange {
             'countries' => 'BR', // Brazil
             'version' => 'v1',
             'rateLimit' => 1000,
+            'hasCORS' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
                 'api' => 'https://api.flowbtc.com:8400/ajax',
@@ -11155,6 +11289,7 @@ class foxbit extends blinktrade {
             'id' => 'foxbit',
             'name' => 'FoxBit',
             'countries' => 'BR',
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27991413-11b40d42-647f-11e7-91ee-78ced874dd09.jpg',
                 'api' => array (
@@ -11329,6 +11464,7 @@ class fybse extends fyb {
             'id' => 'fybse',
             'name' => 'FYB-SE',
             'countries' => 'SE', // Sweden
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg',
                 'api' => 'https://www.fybse.se/api/SEK',
@@ -11351,6 +11487,7 @@ class fybsg extends fyb {
             'id' => 'fybsg',
             'name' => 'FYB-SG',
             'countries' => 'SG', // Singapore
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766513-3364d56a-5edb-11e7-9e6b-d5898bb89c81.jpg',
                 'api' => 'https://www.fybsg.com/api/SGD',
@@ -11375,6 +11512,7 @@ class gatecoin extends Exchange {
             'rateLimit' => 2000,
             'countries' => 'HK', // Hong Kong
             'comment' => 'a regulated/licensed exchange',
+            'hasCORS' => false,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
             'timeframes' => array (
@@ -11763,6 +11901,7 @@ class gdax extends Exchange {
             'name' => 'GDAX',
             'countries' => 'US',
             'rateLimit' => 1000,
+            'hasCORS' => true,
             'hasFetchOHLCV' => true,
             'timeframes' => array (
                 '1m' => 60,
@@ -12065,6 +12204,7 @@ class gemini extends Exchange {
             'countries' => 'US',
             'rateLimit' => 1500, // 200 for private API
             'version' => 'v1',
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
                 'api' => 'https://api.gemini.com',
@@ -12269,6 +12409,7 @@ class hitbtc extends Exchange {
             'countries' => 'HK', // Hong Kong
             'rateLimit' => 1500,
             'version' => '1',
+            'hasCORS' => false,
             'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
@@ -12554,6 +12695,7 @@ class hitbtc2 extends hitbtc {
             'countries' => 'HK', // Hong Kong
             'rateLimit' => 1500,
             'version' => '2',
+            'hasCORS' => true,
             'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
@@ -12911,9 +13053,12 @@ class huobi1 extends Exchange {
         $last = null;
         if (array_key_exists ('last', $ticker))
             $last = $ticker['last'];
+        $timestamp = $this->milliseconds ();
+        if (array_key_exists ('ts', $ticker))
+            $timestamp = $ticker['ts'];
         return array (
-            'timestamp' => $ticker['ts'],
-            'datetime' => $this->iso8601 ($ticker['ts']),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
             'high' => $ticker['high'],
             'low' => $ticker['low'],
             'bid' => $ticker['bid'][0],
@@ -13121,6 +13266,7 @@ class huobicny extends huobi1 {
             'id' => 'huobicny',
             'name' => 'Huobi CNY',
             'hostname' => 'be.huobi.com',
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
                 'api' => 'https://be.huobi.com',
@@ -13145,6 +13291,7 @@ class huobipro extends huobi1 {
             'id' => 'huobipro',
             'name' => 'Huobi Pro',
             'hostname' => 'api.huobi.pro',
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
                 'api' => 'https://api.huobi.pro',
@@ -13172,6 +13319,7 @@ class huobi extends Exchange {
             'countries' => 'CN',
             'rateLimit' => 2000,
             'version' => 'v3',
+            'hasCORS' => false,
             'hasFetchOHLCV' => true,
             'timeframes' => array (
                 '1m' => '001',
@@ -13410,6 +13558,7 @@ class independentreserve extends Exchange {
             'name' => 'Independent Reserve',
             'countries' => array ( 'AU', 'NZ' ), // Australia, New Zealand
             'rateLimit' => 1000,
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg',
                 'api' => array (
@@ -13646,6 +13795,7 @@ class itbit extends Exchange {
             'countries' => 'US',
             'rateLimit' => 2000,
             'version' => 'v1',
+            'hasCORS' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
                 'api' => 'https://api.itbit.com',
@@ -13704,6 +13854,9 @@ class itbit extends Exchange {
         $ticker = $this->publicGetMarketsSymbolTicker (array (
             'symbol' => $this->market_id ($symbol),
         ));
+        $serverTimeUTC = (array_key_exists ('serverTimeUTC', $ticker));
+        if (!$serverTimeUTC)
+            throw new ExchangeError ($this->id . ' fetchTicker returned a bad response => ' . $this->json ($ticker));
         $timestamp = $this->parse8601 ($ticker['serverTimeUTC']);
         return array (
             'timestamp' => $timestamp,
@@ -13854,6 +14007,7 @@ class jubi extends Exchange {
             'countries' => 'CN',
             'rateLimit' => 1500,
             'version' => 'v1',
+            'hasCORS' => false,
             'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg',
@@ -14069,6 +14223,7 @@ class kraken extends Exchange {
             'countries' => 'US',
             'version' => '0',
             'rateLimit' => 1500,
+            'hasCORS' => false,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
             'marketsByAltname' => array (),
@@ -14482,6 +14637,7 @@ class lakebtc extends Exchange {
             'name' => 'LakeBTC',
             'countries' => 'US',
             'version' => 'api_v2',
+            'hasCORS' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
                 'api' => 'https://api.lakebtc.com',
@@ -14689,6 +14845,7 @@ class livecoin extends Exchange {
             'name' => 'LiveCoin',
             'countries' => array ( 'US', 'UK', 'RU' ),
             'rateLimit' => 1000,
+            'hasCORS' => false,
             'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
@@ -14930,6 +15087,7 @@ class liqui extends Exchange {
             'countries' => 'UA',
             'rateLimit' => 2000,
             'version' => '3',
+            'hasCORS' => false,
             'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
@@ -14974,6 +15132,12 @@ class liqui extends Exchange {
                 'funding' => 0.0,
             ),
         ), $options));
+    }
+
+    public function calculate_fee_rate ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $key = ($side == 'sell') ? 'quote' : 'base';
+        $market = $this->markets[$symbol];
+        return array ( 'currency' => $market[$key], 'rate' => $market[$takerOrMaker] );
     }
 
     public function fetch_markets () {
@@ -15249,6 +15413,7 @@ class luno extends Exchange {
             'countries' => array ( 'GB', 'SG', 'ZA' ),
             'rateLimit' => 3000,
             'version' => '1',
+            'hasCORS' => false,
             'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
@@ -15491,6 +15656,7 @@ class mercado extends Exchange {
             'countries' => 'BR', // Brazil
             'rateLimit' => 1000,
             'version' => 'v3',
+            'hasCORS' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
                 'api' => array (
@@ -15671,6 +15837,7 @@ class mixcoins extends Exchange {
             'countries' => array ( 'GB', 'HK' ),
             'rateLimit' => 1500,
             'version' => 'v1',
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30237212-ed29303c-9535-11e7-8af8-fcd381cfa20c.jpg',
                 'api' => 'https://mixcoins.com/api',
@@ -15841,6 +16008,7 @@ class nova extends Exchange {
             'countries' => 'TZ', // Tanzania
             'rateLimit' => 2000,
             'version' => 'v2',
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
                 'api' => 'https://novaexchange.com/remote',
@@ -16342,6 +16510,7 @@ class okcoincny extends okcoin {
             'id' => 'okcoincny',
             'name' => 'OKCoin CNY',
             'countries' => 'CN',
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766792-8be9157a-5ee5-11e7-926c-6d69b8d3378d.jpg',
                 'api' => 'https://www.okcoin.cn',
@@ -16368,6 +16537,7 @@ class okcoinusd extends okcoin {
             'id' => 'okcoinusd',
             'name' => 'OKCoin USD',
             'countries' => array ( 'CN', 'US' ),
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api' => 'https://www.okcoin.com',
@@ -16396,6 +16566,7 @@ class okex extends okcoin {
             'id' => 'okex',
             'name' => 'OKEX',
             'countries' => array ( 'CN', 'US' ),
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29562593-9038a9bc-8742-11e7-91cc-8201f845bfc1.jpg',
                 'api' => 'https://www.okex.com',
@@ -16431,6 +16602,7 @@ class paymium extends Exchange {
             'countries' => array ( 'FR', 'EU' ),
             'rateLimit' => 2000,
             'version' => 'v1',
+            'hasCORS' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
                 'api' => 'https://paymium.com/api',
@@ -16615,6 +16787,7 @@ class poloniex extends Exchange {
             'name' => 'Poloniex',
             'countries' => 'US',
             'rateLimit' => 500, // up 6 calls per second
+            'hasCORS' => true,
             'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
@@ -16682,6 +16855,12 @@ class poloniex extends Exchange {
                 'funding' => 0.0,
             ),
         ), $options));
+    }
+
+    public function calculate_fee_rate ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $key = ($side == 'sell') ? 'quote' : 'base';
+        $market = $this->markets[$symbol];
+        return array ( 'currency' => $market[$key], 'rate' => $market[$takerOrMaker] );
     }
 
     public function fetch_markets () {
@@ -17025,6 +17204,7 @@ class quadrigacx extends Exchange {
             'countries' => 'CA',
             'rateLimit' => 1000,
             'version' => 'v2',
+            'hasCORS' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg',
                 'api' => 'https://api.quadrigacx.com',
@@ -17198,6 +17378,7 @@ class quoine extends Exchange {
             'version' => '2',
             'rateLimit' => 1000,
             'hasFetchTickers' => true,
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766844-9615a4e8-5ee8-11e7-8814-fcd004db8cdd.jpg',
                 'api' => 'https://api.quoine.com',
@@ -17442,6 +17623,7 @@ class southxchange extends Exchange {
             'countries' => 'AR', // Argentina
             'rateLimit' => 1000,
             'hasFetchTickers' => true,
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
                 'api' => 'https://www.southxchange.com/api',
@@ -17651,6 +17833,7 @@ class surbitcoin extends blinktrade {
             'id' => 'surbitcoin',
             'name' => 'SurBitcoin',
             'countries' => 'VE',
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27991511-f0a50194-6481-11e7-99b5-8f02932424cc.jpg',
                 'api' => array (
@@ -17679,6 +17862,7 @@ class therock extends Exchange {
             'countries' => 'MT',
             'rateLimit' => 1000,
             'version' => 'v1',
+            'hasCORS' => false,
             'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
@@ -17910,6 +18094,7 @@ class urdubit extends blinktrade {
             'id' => 'urdubit',
             'name' => 'UrduBit',
             'countries' => 'PK',
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27991453-156bf3ae-6480-11e7-82eb-7295fe1b5bb4.jpg',
                 'api' => array (
@@ -17938,6 +18123,7 @@ class vaultoro extends Exchange {
             'countries' => 'CH',
             'rateLimit' => 1000,
             'version' => '1',
+            'hasCORS' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg',
                 'api' => 'https://api.vaultoro.com',
@@ -18138,6 +18324,7 @@ class vbtc extends blinktrade {
             'id' => 'vbtc',
             'name' => 'VBTC',
             'countries' => 'VN',
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27991481-1f53d1d8-6481-11e7-884e-21d17e7939db.jpg',
                 'api' => array (
@@ -18165,6 +18352,7 @@ class virwox extends Exchange {
             'name' => 'VirWoX',
             'countries' => array ( 'AT', 'EU' ),
             'rateLimit' => 1000,
+            'hasCORS' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg',
                 'api' => array (
@@ -18389,6 +18577,7 @@ class wex extends liqui {
             'countries' => 'NZ', // New Zealand
             'version' => '3',
             'hasFetchTickers' => true,
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg',
                 'api' => array (
@@ -18442,6 +18631,7 @@ class xbtce extends Exchange {
             'rateLimit' => 2000, // responses are cached every 2 seconds
             'version' => 'v1',
             'hasPublicAPI' => false,
+            'hasCORS' => false,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => false,
             'urls' => array (
@@ -18766,6 +18956,7 @@ class yobit extends Exchange {
             'countries' => 'RU',
             'rateLimit' => 2000, // responses are cached every 2 seconds
             'version' => '3',
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
                 'api' => 'https://yobit.net',
@@ -18984,6 +19175,7 @@ class yunbi extends acx {
             'countries' => 'CN',
             'rateLimit' => 1000,
             'version' => 'v2',
+            'hasCORS' => false,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
             'timeframes' => array (
@@ -19057,6 +19249,7 @@ class zaif extends Exchange {
             'countries' => 'JP',
             'rateLimit' => 2000,
             'version' => '1',
+            'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
                 'api' => 'https://api.zaif.jp',
