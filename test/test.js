@@ -69,11 +69,7 @@ let human_value = function (price) {
 
 let testTicker = async (exchange, symbol) => {
 
-    if (!this.hasFetchTicker) {
-
-        log (symbol.green, 'fetchTicker () not supported')
-
-    } else {
+    if (exchange.hasFetchTicker) {
 
         log (symbol.green, 'fetching ticker...')
 
@@ -89,6 +85,12 @@ let testTicker = async (exchange, symbol) => {
 
         if (exchange.id != 'coinmarketcap')
             assert (ticker['bid'] <= ticker['ask'])
+
+
+
+    } else {
+
+        log (symbol.green, 'fetchTicker () not supported')
     }
 }
 
@@ -124,15 +126,16 @@ let testOrderBook = async (exchange, symbol) => {
 
 let testTrades = async (exchange, symbol) => {
 
-    if (!exchange.hasFetchTrades) {
-
-        log (symbol.green, 'fetchTrades () not supported'.yellow);
-
-    } else {
+    if (exchange.hasFetchTrades) {
 
         log (symbol.green, 'fetching trades...')
         let trades = await exchange.fetchTrades (symbol)
         log (symbol.green, 'fetched', Object.values (trades).length.toString ().green, 'trades')
+
+
+    } else {
+
+        log (symbol.green, 'fetchTrades () not supported'.yellow);
     }
 }
 
