@@ -6104,7 +6104,7 @@ class btctradeua (Exchange):
         ask = None
         numAsks = len(orderbook['asks'])
         if numAsks > 0:
-        ask = orderbook['asks'][0][0]
+            ask = orderbook['asks'][0][0]
         ticker = response['trades']
         timestamp = self.milliseconds()
         result = {
