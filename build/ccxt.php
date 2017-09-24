@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.6';
+$version = '1.8.7';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2076,7 +2076,7 @@ class binance extends Exchange {
             'hasFetchOHLCV' => true,
             'hasFetchMyTrades' => true,
             'hasFetchOrder' => true,
-            'hasFetchOrders' => true,
+            'hasFetchOrders' => false,
             'hasFetchOpenOrders' => true,
             'timeframes' => array (
                 '1m' => '1m',
