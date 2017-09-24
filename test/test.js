@@ -70,7 +70,7 @@ let human_value = function (price) {
 
 //-----------------------------------------------------------------------------
 
-let testExchangeSymbolTicker = async (exchange, symbol) => {
+let testTicker = async (exchange, symbol) => {
     log (symbol.green, 'fetching ticker...')
     let ticker = await exchange.fetchTicker (symbol)
     log (symbol.green, 'ticker',
@@ -87,7 +87,7 @@ let testExchangeSymbolTicker = async (exchange, symbol) => {
     return ticker;
 }
 
-let testExchangeSymbolOrderbook = async (exchange, symbol) => {
+let testOrderBook = async (exchange, symbol) => {
     log (symbol.green, 'fetching order book...')
     let orderbook = await exchange.fetchOrderBook (symbol)
     log (symbol.green,
@@ -125,7 +125,7 @@ let testExchangeSymbolOrderbook = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
-let testExchangeSymbolTrades = async (exchange, symbol) => {
+let testTrades = async (exchange, symbol) => {
     log (symbol.green, 'fetching trades...')
     let trades = await exchange.fetchTrades (symbol)
     log (symbol.green, 'fetched', Object.values (trades).length.toString ().green, 'trades')
@@ -134,9 +134,9 @@ let testExchangeSymbolTrades = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
-let testExchangeSymbol = async (exchange, symbol) => {
+let testSymbol = async (exchange, symbol) => {
 
-    await testExchangeSymbolTicker (exchange, symbol)
+    await testTicker (exchange, symbol)
 
     if (exchange.hasFetchTickers) {
 
@@ -180,11 +180,11 @@ let testExchangeSymbol = async (exchange, symbol) => {
 
     } else {
 
-        await testExchangeSymbolOrderbook (exchange, symbol)
+        await testOrderBook (exchange, symbol)
 
         try {
 
-            await testExchangeSymbolTrades (exchange, symbol)
+            await testTrades (exchange, symbol)
 
         } catch (e) {
 
@@ -201,7 +201,7 @@ let testExchangeSymbol = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
-let testExchangeFetchOrders = async (exchange) => {
+let testFetchOrders = async (exchange) => {
 
     try {
 
@@ -223,7 +223,7 @@ let testExchangeFetchOrders = async (exchange) => {
 
 //-----------------------------------------------------------------------------
 
-let testExchangeBalance = async (exchange, symbol) => {
+let testBalance = async (exchange, symbol) => {
 
     log ('fetching balance...')
     let balance = await exchange.fetchBalance ()
@@ -330,17 +330,17 @@ let testExchange = async exchange => {
 
     log.green ('SYMBOL:', symbol)
     if ((symbol.indexOf ('.d') < 0)) {
-        await testExchangeSymbol (exchange, symbol)
+        await testSymbol (exchange, symbol)
     }
 
     if (!exchange.apiKey || (exchange.apiKey.length < 1))
         return true
 
-    await testExchangeBalance (exchange)
+    await testBalance (exchange)
 
     if (exchange.hasFetchOrders) {
 
-            await testExchangeFetchOrders (exchange);
+            await testFetchOrders (exchange);
 
     } else {
 
@@ -451,8 +451,8 @@ let tryAllProxies = async function (exchange, proxies) {
 
         await loadExchange (exchange)
         await (exchangeSymbol == 'balance') ?
-            testExchangeBalance (exchange) :
-            testExchangeSymbol (exchange, exchangeSymbol)
+            testBalance (exchange) :
+            testSymbol (exchange, exchangeSymbol)
 
     } else {
 
