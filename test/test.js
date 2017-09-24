@@ -71,17 +71,20 @@ let human_value = function (price) {
 //-----------------------------------------------------------------------------
 
 let testTicker = async (exchange, symbol) => {
+
     log (symbol.green, 'fetching ticker...')
+
     let ticker = await exchange.fetchTicker (symbol)
+    const keys = [ 'datetime', 'timestamp', 'high', 'low', 'bid', 'ask', 'quoteVolume' ]
+
+    keys.forEach (key => assert (key in ticker))
+
     log (symbol.green, 'ticker',
         ticker['datetime'],
-        'high: '    + human_value (ticker['high']),
-        'low: '     + human_value (ticker['low']),
-        'bid: '     + human_value (ticker['bid']),
-        'ask: '     + human_value (ticker['ask']),
-        'volume: '  + human_value (ticker['quoteVolume']))
+        ... (keys.map (key =>
+            key + ': ' + human_value (ticker[key]))))
 
-    if (('bid' in ticker && 'ask' in ticker) && (ticker['bid'] && ticker['ask']))
+    if (ticker['bid'] && ticker['ask'])
         assert (ticker['bid'] <= ticker['ask'])
 
     return ticker;
