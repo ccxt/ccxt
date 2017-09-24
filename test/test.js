@@ -98,27 +98,16 @@ let testOrderBook = async (exchange, symbol) => {
         'askVolume: ' + ((orderbook.asks.length > 0) ? human_value (orderbook.asks[0][1]) : 'N/A'))
 
     let bids = orderbook.bids
-    if (bids.length > 1) {
-        let first = 0
-        let last = bids.length - 1
-        if (bids[first][0] < bids[last][0])
-            log (symbol, 'bids reversed!'.red.bright, bids[first][0], bids[last][0])
-        else if (bids[first][0] > bids[last][0])
-            log (symbol.green, 'bids ok')
-    }
     let asks = orderbook.asks
-    if (asks.length > 1) {
-        let first = 0
-        let last = asks.length - 1
-        if (asks[first][0] > asks[last][0])
-            log (symbol, 'asks reversed!'.red.bright, asks[first][0], asks[last][0])
-        else if (asks[first][0] < asks[last][0])
-            log (symbol.green, 'asks ok')
-    }
+
+    if (bids.length > 1)
+        assert (bids[0][0] >= bids[bids.length - 1][0])
+
+    if (asks.length > 1)
+        assert (asks[0][0] <= asks[asks.length - 1][0])
 
     if (bids.length && asks.length)
-        if (bids[0][0] > asks[0][0])
-            log (this.id, symbol, 'order book', 'bid is greater than ask!'.red.bright)
+        assert (bids[0][0] <= asks[0][0])
 
     return orderbook
 }
