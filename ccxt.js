@@ -15574,7 +15574,7 @@ var nova = {
         'public': {
             'get': [
                 'markets/',
-                'markets/{basecurrency}',
+                'markets/{basecurrency}/',
                 'market/info/{pair}/',
                 'market/orderhistory/{pair}/',
                 'market/openorders/{pair}/buy/',
