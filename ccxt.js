@@ -13934,8 +13934,8 @@ var kraken = {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['v'][1]),
+            'baseVolume': parseFloat (ticker['v'][1]),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     },
