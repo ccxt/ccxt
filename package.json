@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "npm run export-exchanges && npm run vss && npm run mdrst && npm run transpile && npm run update-badges && npm run browserify",
-    "test": "npm run build && node run-tests --js --python",
+    "test": "npm run build && node run-tests",
     "fasttest": "node run-tests --js",
     "test-base": "mocha --reporter spec test/test_base.js",
     "export-exchanges": "node export-exchanges",
