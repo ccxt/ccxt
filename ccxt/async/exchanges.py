@@ -1019,7 +1019,7 @@ class binance (Exchange):
             'hasFetchOHLCV': True,
             'hasFetchMyTrades': True,
             'hasFetchOrder': True,
-            'hasFetchOrders': True,
+            'hasFetchOrders': False,
             'hasFetchOpenOrders': True,
             'timeframes': {
                 '1m': '1m',

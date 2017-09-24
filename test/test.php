@@ -34,7 +34,11 @@ foreach (\ccxt\Exchange::$exchanges as $id) {
     $exchanges[$id] = new $exchange (array ('verbose' => false));
 }
 
-$config = json_decode (file_get_contents ('./keys.json'), true);
+$keys_global = './keys.json';
+$keys_local = './keys.local.json';
+$keys_file = file_exists ($keys_local) ? $keys_local : $keys_global;
+
+$config = json_decode (file_get_contents ($keys_file), true);
 
 foreach ($config as $id => $params)
     foreach ($params as $key => $value)

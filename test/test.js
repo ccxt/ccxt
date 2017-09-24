@@ -35,7 +35,6 @@ let proxies = [
     '',
     'https://cors-anywhere.herokuapp.com/',
     'https://crossorigin.me/',
-    // 'http://cors-proxy.htmldriven.com/?url=', // we don't want this for now
 ]
 
 /*  ------------------------------------------------------------------------ */
@@ -44,9 +43,12 @@ const exchange = new (ccxt)[exchangeId] ({ verbose: verbose, enabledRateLimit: t
 
 //-----------------------------------------------------------------------------
 
-let apiKeys = JSON.parse (fs.readFileSync ('./keys.json', 'utf8'))[exchangeId]
+const keysGlobal = './keys.json'
+const keysLocal = './keys.local.json'
+let keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
+let settings = JSON.parse (fs.readFileSync (keysFile, 'utf8'))[exchangeId]
 
-Object.assign (exchange, apiKeys)
+Object.assign (exchange, settings)
 
 const verboseList = [ ];
 if (verboseList.indexOf (exchange.id) >= 0) {
@@ -404,9 +406,8 @@ let tryAllProxies = async function (exchange, proxies) {
     let currentProxy = 0
     let maxRetries   = proxies.length
 
-    // a special case for ccex
-    if (exchange.id == 'ccex')
-        currentProxy = 1
+    if (settings && ('proxy' in settings))
+        currentProxy = proxies.indexOf (settings.proxy)
 
     for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
 

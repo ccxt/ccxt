@@ -55,91 +55,94 @@ def dump_error(*args):
 
 # ------------------------------------------------------------------------------
 
-def test_exchange_symbol_orderbook(exchange, symbol):
-    delay = int(exchange.rateLimit / 1000)
-    time.sleep(delay)
-    dump(green(exchange.id), green(symbol), 'fetching order book...')
-    orderbook = exchange.fetch_order_book(symbol)
-    dump(
-        green(exchange.id),
-        green(symbol),
-        'order book',
-        orderbook['datetime'],
-        'bid: ' +       str(orderbook['bids'][0][0] if len(orderbook['bids']) else 'N/A'),
-        'bidVolume: ' + str(orderbook['bids'][0][1] if len(orderbook['bids']) else 'N/A'),
-        'ask: ' +       str(orderbook['asks'][0][0] if len(orderbook['asks']) else 'N/A'),
-        'askVolume: ' + str(orderbook['asks'][0][1] if len(orderbook['asks']) else 'N/A'))
+def test_order_book(exchange, symbol):
+    if exchange.hasFetchOrderBook:
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+        dump(green(exchange.id), green(symbol), 'fetching order book...')
+        orderbook = exchange.fetch_order_book(symbol)
+        dump(
+            green(exchange.id),
+            green(symbol),
+            'order book',
+            orderbook['datetime'],
+            'bid: ' +       str(orderbook['bids'][0][0] if len(orderbook['bids']) else 'N/A'),
+            'bidVolume: ' + str(orderbook['bids'][0][1] if len(orderbook['bids']) else 'N/A'),
+            'ask: ' +       str(orderbook['asks'][0][0] if len(orderbook['asks']) else 'N/A'),
+            'askVolume: ' + str(orderbook['asks'][0][1] if len(orderbook['asks']) else 'N/A'))
+    else:
+        dump(yellow(exchange.id), 'fetch_order_book() supported')
 
 # ------------------------------------------------------------------------------
 
-def test_exchange_symbol_ohlcv(exchange, symbol):
-    delay = int(exchange.rateLimit / 1000)
-    time.sleep(delay)
+def test_ohlcv(exchange, symbol):
     if exchange.hasFetchOHLCV:
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
         ohlcvs = exchange.fetch_ohlcv(symbol)
         dump(green(exchange.id), 'fetched', green(len(ohlcvs)), 'OHLCVs')
     else:
-        dump(yellow(exchange.id), 'fetching OHLCV not supported')
+        dump(yellow(exchange.id), 'fetch_ohlcv() not supported')
 
 # ------------------------------------------------------------------------------
 
-def test_exchange_all_tickers(exchange):
-    delay = int(exchange.rateLimit / 1000)
-    time.sleep(delay)
-    dump(green(exchange.id), 'fetching all tickers at once...')
+def test_tickers(exchange):
     if exchange.hasFetchTickers:
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+        dump(green(exchange.id), 'fetching all tickers at once...')
         tickers = exchange.fetch_tickers()
         dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
     else:
-        dump(yellow(exchange.id), 'fetching all tickers at once not supported')
+        dump(yellow(exchange.id), 'fetch_tickers() not supported')
 
 # ------------------------------------------------------------------------------
 
-def test_exchange_symbol_ticker(exchange, symbol):
-    delay = int(exchange.rateLimit / 1000)
-    time.sleep(delay)
-    dump(green(exchange.id), green(symbol), 'fetching ticker...')
-    ticker = exchange.fetch_ticker(symbol)
-    dump(
-        green(exchange.id),
-        green(symbol),
-        'ticker',
-        ticker['datetime'],
-        'high: ' +   str(ticker['high']),
-        'low: ' +    str(ticker['low']),
-        'bid: ' +    str(ticker['bid']),
-        'ask: ' +    str(ticker['ask']),
-        'volume: ' + str(ticker['quoteVolume']))
+def test_ticker(exchange, symbol):
+    if exchange.hasFetchTicker:
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+        dump(green(exchange.id), green(symbol), 'fetching ticker...')
+        ticker = exchange.fetch_ticker(symbol)
+        dump(
+            green(exchange.id),
+            green(symbol),
+            'ticker',
+            ticker['datetime'],
+            'high: ' +   str(ticker['high']),
+            'low: ' +    str(ticker['low']),
+            'bid: ' +    str(ticker['bid']),
+            'ask: ' +    str(ticker['ask']),
+            'volume: ' + str(ticker['quoteVolume']))
+    else:
+        dump(green(exchange.id), green(symbol), 'fetch_ticker() not supported')
 
 # ------------------------------------------------------------------------------
 
-def test_exchange_symbol_trades(exchange, symbol):
-
-    delay = int(exchange.rateLimit / 1000)
-    time.sleep(delay)
-    dump(green(exchange.id), green(symbol), 'fetching trades...')
-    try:
+def test_trades(exchange, symbol):
+    if exchange.hasFetchTrades:
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+        dump(green(exchange.id), green(symbol), 'fetching trades...')
         trades = exchange.fetch_trades(symbol)
         dump(green(exchange.id), green(symbol), 'fetched', green(len(list(trades))), 'trades')
-    except ccxt.ExchangeError as e:
-        dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
-    except ccxt.NotSupported as e:
-        dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
+    else:
+        dump(green(exchange.id), green(symbol), 'fetch_trades() not supported')
 
 # ------------------------------------------------------------------------------
 
-def test_exchange_symbol(exchange, symbol):
+def test_symbol(exchange, symbol):
     dump(green('SYMBOL: ' + symbol))
-    test_exchange_symbol_ticker(exchange, symbol)
+    test_ticker(exchange, symbol)
 
     if exchange.id == 'coinmarketcap':
         dump(green(exchange.fetchGlobal()))
     else:
-        test_exchange_symbol_orderbook(exchange, symbol)
-        test_exchange_symbol_trades(exchange, symbol)
+        test_order_book(exchange, symbol)
+        test_trades(exchange, symbol)
 
-    test_exchange_all_tickers(exchange)
-    test_exchange_symbol_ohlcv(exchange, symbol)
+    test_tickers(exchange)
+    test_ohlcv(exchange, symbol)
 
 # ------------------------------------------------------------------------------
 
@@ -173,7 +176,7 @@ def test_exchange(exchange):
             break
 
     if symbol.find('.d') < 0:
-        test_exchange_symbol(exchange, symbol)
+        test_symbol(exchange, symbol)
 
     # ..........................................................................
     # private API
@@ -221,12 +224,12 @@ def test_exchange(exchange):
 def try_all_proxies(exchange, proxies):
     current_proxy = 0
     max_retries = len(proxies)
-    # a special case for ccex
-    if exchange.id == 'ccex':
-        current_proxy = 1
+    if exchange.proxy:
+        current_proxy = proxies.index(exchange.proxy)
     for num_retries in range(0, max_retries):
         try:
             exchange.proxy = proxies[current_proxy]
+            dump(green(exchange.id), 'using proxy', '`' + exchange.proxy + '`')
             current_proxy = (current_proxy + 1) % len(proxies)
             load_exchange(exchange)
             test_exchange(exchange)
@@ -253,8 +256,13 @@ proxies = [
     # 'http://cors-proxy.htmldriven.com/?url=', # we don't want this for now
 ]
 
+# prefer local testing keys to global keys
+keys_global = './keys.json'
+keys_local = './keys.local.json'
+keys_file = keys_local if os.path.exists(keys_local) else keys_global
+
 # load the api keys from config
-with open('./keys.json') as file:
+with open(keys_file) as file:
     config = json.load(file)
 
 # instantiate all exchanges
@@ -282,7 +290,7 @@ if argv.exchange:
 
     if symbol:
         load_exchange(exchange)
-        test_exchange_symbol(exchange, symbol)
+        test_symbol(exchange, symbol)
     else:
         try_all_proxies(exchange, proxies)
 

@@ -2076,7 +2076,7 @@ class binance extends Exchange {
             'hasFetchOHLCV' => true,
             'hasFetchMyTrades' => true,
             'hasFetchOrder' => true,
-            'hasFetchOrders' => true,
+            'hasFetchOrders' => false,
             'hasFetchOpenOrders' => true,
             'timeframes' => array (
                 '1m' => '1m',

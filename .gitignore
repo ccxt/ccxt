@@ -27,3 +27,4 @@ exchanges.json
 ccxt.sublime-workspace
 .idea
 yarn.lock
+keys.local.json
