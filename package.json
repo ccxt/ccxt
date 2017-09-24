@@ -1,11 +1,7 @@
 {
   "name": "ccxt",
   "version": "1.7.130",
-<<<<<<< HEAD
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for more than 85 bitcoin/altcoin exchanges",
-=======
-  "description": "A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for more than 85 bitcoin/ether/altcoin exchange markets and merchant APIs",
->>>>>>> f8c27030a57ddf5004a1b520fdcc943b2cd733ac
   "main": "./ccxt.js",
   "unpkg": "build/ccxt.browser.js",
   "engines": {
@@ -17,7 +13,7 @@
   },
   "scripts": {
     "build": "npm run export-exchanges && npm run vss && npm run mdrst && npm run transpile && npm run update-badges && npm run browserify",
-    "test": "npm run build && node run-tests",
+    "test": "npm run build && node run-tests --js --python",
     "fasttest": "node run-tests --js",
     "test-base": "mocha --reporter spec test/test_base.js",
     "export-exchanges": "node export-exchanges",
