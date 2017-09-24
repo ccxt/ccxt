@@ -159,7 +159,7 @@ const testExchange = async (exchange) => {
 
 /*  ------------------------------------------------------------------------ */
 
-function TaskPool ({ maxTime, maxConcurrency }) {
+function TaskPool (maxConcurrency) {
     
     const pending = []
         , queue   = []
@@ -178,7 +178,7 @@ function TaskPool ({ maxTime, maxConcurrency }) {
 
             } else { // execute task
 
-                let p = timeout (maxTime, task ()).then (x => {
+                let p = task ().then (x => {
                     numActive--
                     return (queue.length && (numActive < maxConcurrency))
                                 ? queue.shift () ().then (() => x)
@@ -200,12 +200,12 @@ async function testAllExchanges () {
     //
     // return Promise.all (exchanges.map (testExchange))
 
-    const taskPool = TaskPool ({ maxTime: 120*1000, maxConcurrency })
+    const taskPool = TaskPool (maxConcurrency)
     const results = []
     
-    for (const ex of exchanges) {
-        taskPool.run (() => testExchange (ex)
-                                .catch (e => ({ failed: true, explain () { log.bright.red.error (exchange, e) } }))
+    for (const exchange of exchanges) {
+        taskPool.run (() => timeout (200*1000, testExchange (exchange))
+                                .catch (e => ({ exchange, failed: true, explain () { log.bright.red.error (exchange, e) } }))
                                 .then (x => results.push (x)))
     }
 
