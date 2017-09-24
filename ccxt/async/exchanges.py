@@ -12542,8 +12542,8 @@ class kraken (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['v'][1]),
+            'baseVolume': float(ticker['v'][1]),
+            'quoteVolume': None,
             'info': ticker,
         }
 
