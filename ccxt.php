@@ -462,6 +462,9 @@ class Exchange {
         $this->hasPublicAPI         = true;
         $this->hasPrivateAPI        = true;
         $this->hasCORS              = false;
+        $this->hasFetchTicker       = true;
+        $this->hasFetchOrderBook    = true;
+        $this->hasFetchTrades       = true;
         $this->hasFetchTickers      = false;
         $this->hasFetchOHLCV        = false;
         $this->hasDeposit           = false;

@@ -121,6 +121,9 @@ class Exchange(object):
     hasPublicAPI = True
     hasPrivateAPI = True
     hasCORS = False
+    hasFetchTicker = True
+    hasFetchOrderBook = True
+    hasFetchTrades = True
     hasFetchTickers = False
     hasFetchOHLCV = False
     hasDeposit = False

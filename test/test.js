@@ -48,9 +48,6 @@ let apiKeys = JSON.parse (fs.readFileSync ('./keys.json', 'utf8'))[exchangeId]
 
 Object.assign (exchange, apiKeys)
 
-if (exchange.urls['test'])
-    exchange.urls['api'] = exchange.urls['test']; // move to testnet/sandbox if possible
-
 const verboseList = [ ];
 if (verboseList.indexOf (exchange.id) >= 0) {
     exchange.verbose = true
@@ -84,8 +81,8 @@ let testTicker = async (exchange, symbol) => {
         ... (keys.map (key =>
             key + ': ' + human_value (ticker[key]))))
 
-    if (ticker['bid'] && ticker['ask'])
-        assert (ticker['bid'] <= ticker['ask'])
+    // if (ticker['bid'] && ticker['ask'])
+    assert (ticker['bid'] <= ticker['ask'])
 
     return ticker;
 }
@@ -118,10 +115,13 @@ let testOrderBook = async (exchange, symbol) => {
 //-----------------------------------------------------------------------------
 
 let testTrades = async (exchange, symbol) => {
-    log (symbol.green, 'fetching trades...')
-    let trades = await exchange.fetchTrades (symbol)
-    log (symbol.green, 'fetched', Object.values (trades).length.toString ().green, 'trades')
-    return trades
+
+    if (!exchange.hasFetchTrades)
+        log (symbol.green, 'fetchTrades () not supported'.yellow);
+    else {
+        let trades = await exchange.fetchTrades (symbol)
+        log (symbol.green, 'fetchTrades', Object.values (trades).length.toString ().green, 'trades')
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -327,6 +327,10 @@ let testExchange = async exchange => {
 
     if (!exchange.apiKey || (exchange.apiKey.length < 1))
         return true
+
+    // move to testnet/sandbox if possible before accessing the balance if possible
+    if (exchange.urls['test'])
+        exchange.urls['api'] = exchange.urls['test'];
 
     await testBalance (exchange)
 

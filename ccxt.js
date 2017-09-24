@@ -802,6 +802,9 @@ const Exchange = function (config) {
     this.hasPublicAPI         = true
     this.hasPrivateAPI        = true
     this.hasCORS              = false
+    this.hasFetchTicker       = true
+    this.hasFetchOrderBook    = true
+    this.hasFetchTrades       = true
     this.hasFetchTickers      = false
     this.hasFetchOHLCV        = false
     this.hasFetchOrder        = false
@@ -1687,6 +1690,7 @@ var anxpro = {
     'version': '2',
     'rateLimit': 1500,
     'hasCORS': false,
+    'hasFetchTrades': false,
     'hasWithdraw': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
@@ -1795,8 +1799,7 @@ var anxpro = {
     },
 
     async fetchTrades (market, params = {}) {
-        let error = this.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled';
-        throw new ExchangeError (error);
+        throw new ExchangeError (this.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled');
         return this.publicGetCurrencyPairMoneyTradeFetch (this.extend ({
             'currency_pair': this.marketId (market),
         }, params));
