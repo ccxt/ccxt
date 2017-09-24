@@ -12,12 +12,12 @@ const asTable   = require ('as-table')
     , log       = require ('ololog')
     , ansi      = require ('ansicolor').nice
     , fs        = require ('fs')
-    // , assert    = require ('assert')
+    , assert    = require ('assert')
     , ccxt      = require ('../ccxt')
     , countries = require ('../countries')
-    , chai      = require ('chai')
-    , expect    = chai.expect
-    , assert    = chai.assert
+    // , chai      = require ('chai')
+    // , expect    = chai.expect
+    // , assert    = chai.assert
 
 /*  ------------------------------------------------------------------------ */
 
