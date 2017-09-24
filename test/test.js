@@ -69,23 +69,30 @@ let human_value = function (price) {
 
 let testTicker = async (exchange, symbol) => {
 
-    log (symbol.green, 'fetching ticker...')
+    if (!this.hasFetchTicker) {
 
-    let ticker = await exchange.fetchTicker (symbol)
-    const keys = [ 'datetime', 'timestamp', 'high', 'low', 'bid', 'ask', 'quoteVolume' ]
+        log (symbol.green, 'fetchTicker () not supported')
 
-    keys.forEach (key => assert (key in ticker))
+    } else {
 
-    log (symbol.green, 'ticker',
-        ticker['datetime'],
-        ... (keys.map (key =>
-            key + ': ' + human_value (ticker[key]))))
+        log (symbol.green, 'fetching ticker...')
 
-    if (exchange.id != 'coinmarketcap')
-        assert (ticker['bid'] <= ticker['ask'])
+        let ticker = await exchange.fetchTicker (symbol)
+        const keys = [ 'datetime', 'timestamp', 'high', 'low', 'bid', 'ask', 'quoteVolume' ]
 
-    return ticker;
+        keys.forEach (key => assert (key in ticker))
+
+        log (symbol.green, 'ticker',
+            ticker['datetime'],
+            ... (keys.map (key =>
+                key + ': ' + human_value (ticker[key]))))
+
+        if (exchange.id != 'coinmarketcap')
+            assert (ticker['bid'] <= ticker['ask'])
+    }
 }
+
+//-----------------------------------------------------------------------------
 
 let testOrderBook = async (exchange, symbol) => {
     log (symbol.green, 'fetching order book...')
@@ -117,19 +124,21 @@ let testOrderBook = async (exchange, symbol) => {
 
 let testTrades = async (exchange, symbol) => {
 
-    if (!exchange.hasFetchTrades)
+    if (!exchange.hasFetchTrades) {
+
         log (symbol.green, 'fetchTrades () not supported'.yellow);
-    else {
+
+    } else {
+
+        log (symbol.green, 'fetching trades...')
         let trades = await exchange.fetchTrades (symbol)
-        log (symbol.green, 'fetchTrades', Object.values (trades).length.toString ().green, 'trades')
+        log (symbol.green, 'fetched', Object.values (trades).length.toString ().green, 'trades')
     }
 }
 
 //-----------------------------------------------------------------------------
 
-let testSymbol = async (exchange, symbol) => {
-
-    await testTicker (exchange, symbol)
+let testTickers = async (exchange) => {
 
     if (exchange.hasFetchTickers) {
 
@@ -141,54 +150,42 @@ let testSymbol = async (exchange, symbol) => {
 
         log ('fetching all tickers at once not supported')
     }
+}
+
+//-----------------------------------------------------------------------------
+
+let testOHLCV = async (exchange, symbol) => {
 
     if (exchange.hasFetchOHLCV) {
 
-        try {
-
-            log (symbol.green, 'fetching OHLCV...')
-            let ohlcv = await exchange.fetchOHLCV (symbol)
-            log (symbol.green, 'fetched', Object.keys (ohlcv).length.toString ().green, 'OHLCVs')
-
-        } catch (e) {
-
-            if (e instanceof ccxt.ExchangeError) {
-                warn ('[Exchange Error] ' + e.message)
-            } else if (e instanceof ccxt.NotSupported) {
-                warn ('[Not Supported] ' + e.message)
-            } else {
-                throw e;
-            }
-        }
+        log (symbol.green, 'fetching OHLCV...')
+        let ohlcv = await exchange.fetchOHLCV (symbol)
+        log (symbol.green, 'fetched', Object.keys (ohlcv).length.toString ().green, 'OHLCVs')
 
     } else {
 
         log ('fetching OHLCV not supported')
     }
+}
+
+//-----------------------------------------------------------------------------
+
+let testSymbol = async (exchange, symbol) => {
+
+    await testTicker (exchange, symbol)
+    await testTickers (exchange)
+    await testOHLCV (exchange, symbol)
+    await testTrades (exchange, symbol)
 
     if (exchange.id == 'coinmarketcap') {
 
-        log (await exchange.fetchTickers ());
-        log (await exchange.fetchGlobal ());
+        log (await exchange.fetchTickers ())
+        log (await exchange.fetchGlobal ())
 
     } else {
 
         await testOrderBook (exchange, symbol)
 
-        try {
-
-            await testTrades (exchange, symbol)
-
-        } catch (e) {
-
-            if (e instanceof ccxt.ExchangeError) {
-                warn ('[Exchange Error] ' + e.message)
-            } else if (e instanceof ccxt.NotSupported) {
-                warn ('[Not Supported] ' + e.message)
-            } else {
-                throw e;
-            }
-        }
     }
 }
 

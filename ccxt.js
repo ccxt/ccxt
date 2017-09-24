@@ -9274,6 +9274,8 @@ var coinmarketcap = {
     'countries': 'US',
     'hasCORS': true,
     'hasPrivateAPI': false,
+    'hasFetchOrderBook': false,
+    'hasFetchTrades': false,
     'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
@@ -15943,9 +15945,7 @@ var okcoin = {
             request['contract_type'] = 'this_week'; // next_week, quarter
         }
         method += 'Trades';
-        let response = await this[method] (this.extend ({
-            'symbol': market['id'],
-        }, params));
+        let response = await this[method] (this.extend (request, params));
         return this.parseTrades (response, market);
     },
 
