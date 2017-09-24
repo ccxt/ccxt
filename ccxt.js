@@ -7502,7 +7502,7 @@ var btcx = {
         }
         let response = await this.fetch (url, method, headers, body);
         if ('error' in response)
-            throw new ExchangeError (this.id + ' ' + this.json (response['error']));
+            throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     },
 }
