@@ -13382,7 +13382,7 @@ class liqui (Exchange):
         side = trade['type']
         if side == 'ask':
             side = 'sell'
-        if side  == 'bid':
+        if side == 'bid':
             side = 'buy'
         price = None
         if 'price' in trade:

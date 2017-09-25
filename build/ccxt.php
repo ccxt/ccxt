@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.14';
+$version = '1.8.18';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -15272,7 +15272,7 @@ class liqui extends Exchange {
         $side = $trade['type'];
         if ($side == 'ask')
             $side = 'sell';
-        if ($side  == 'bid')
+        if ($side == 'bid')
             $side = 'buy';
         $price = null;
         if (array_key_exists ('price', $trade))

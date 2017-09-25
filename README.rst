@@ -241,9 +241,9 @@ An alternative way of installing this library into your code is to copy a single
 JavaScript (NPM)
 ~~~~~~~~~~~~~~~~
 
-JavaScript version of CCXT works both in Node and web browsers. Requires ES6 and ``async/await`` syntax support (Node 7.6.0+). When compiling with Webpack and Babel, make sure it is `not excluded <https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331582275>`__ in your ``babel-loader`` config.
+JavaScript version of CCXT works both in Node and web browsers. Requires ES6 and ``async/await`` syntax support (Node 7.6.0+). When compiling with Webpack and Babel, make sure it is `not excluded <https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331905178>`__ in your ``babel-loader`` config.
 
-`ccxt crypto trading library in npm <http://npmjs.com/package/ccxt>`__
+`ccxt in **NPM** <http://npmjs.com/package/ccxt>`__
 
 .. code:: shell
 
@@ -273,7 +273,7 @@ Creates a global ``ccxt`` object:
 Python
 ~~~~~~
 
-`ccxt algotrading library in PyPI <https://pypi.python.org/pypi/ccxt>`__
+`ccxt in **PyPI** <https://pypi.python.org/pypi/ccxt>`__
 
 .. code:: shell
 
