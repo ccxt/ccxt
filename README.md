@@ -21,7 +21,7 @@ Current featurelist:
 
 ## Supported Cryptocurrency Exchange Markets
 
-The ccxt library currently supports the following 86 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 86 cryptocurrency exchange markets and trading APIs:
 
 |                                                                                                                           | id                 | name                                                      | ver | doc                                                                                         | countries                               |
 |---------------------------------------------------------------------------------------------------------------------------|--------------------|-----------------------------------------------------------|:---:|:-------------------------------------------------------------------------------------------:|-----------------------------------------|
@@ -141,7 +141,7 @@ An alternative way of installing this library into your code is to copy a single
 
 JavaScript version of CCXT works both in Node and web browsers. Requires ES6 and `async/await` syntax support (Node 7.6.0+). When compiling with Webpack and Babel, make sure it is [not excluded](https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331905178) in your `babel-loader` config.
 
-[ccxt crypto trading library in npm](http://npmjs.com/package/ccxt)
+[ccxt in **NPM**](http://npmjs.com/package/ccxt)
 
 ```shell
 npm install ccxt
@@ -169,7 +169,7 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 ### Python
 
-[ccxt algotrading library in PyPI](https://pypi.python.org/pypi/ccxt)
+[ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt)
 
 ```shell
 pip install ccxt
