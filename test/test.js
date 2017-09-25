@@ -107,17 +107,10 @@ let testTicker = async (exchange, symbol) => {
 //-----------------------------------------------------------------------------
 
 let testOrderBook = async (exchange, symbol) => {
-    log (symbol.green, 'fetching order book...')
-    let orderbook = await exchange.fetchOrderBook (symbol)
-    log (symbol.green,
-        orderbook['datetime'],
-        'bid: '       + ((orderbook.bids.length > 0) ? human_value (orderbook.bids[0][0]) : 'N/A'),
-        'bidVolume: ' + ((orderbook.bids.length > 0) ? human_value (orderbook.bids[0][1]) : 'N/A'),
-        'ask: '       + ((orderbook.asks.length > 0) ? human_value (orderbook.asks[0][0]) : 'N/A'),
-        'askVolume: ' + ((orderbook.asks.length > 0) ? human_value (orderbook.asks[0][1]) : 'N/A'))
 
-    let bids = orderbook.bids
-    let asks = orderbook.asks
+    log (symbol.green, 'fetching order book...')
+
+    let orderbook = await exchange.fetchOrderBook (symbol)
 
     const format = {
         'bids': [],
@@ -128,12 +121,21 @@ let testOrderBook = async (exchange, symbol) => {
 
     expect (orderbook).to.have.all.keys (format)
 
+    log (symbol.green,
+        orderbook['datetime'],
+        'bid: '       + ((orderbook.bids.length > 0) ? human_value (orderbook.bids[0][0]) : 'N/A'),
+        'bidVolume: ' + ((orderbook.bids.length > 0) ? human_value (orderbook.bids[0][1]) : 'N/A'),
+        'ask: '       + ((orderbook.asks.length > 0) ? human_value (orderbook.asks[0][0]) : 'N/A'),
+        'askVolume: ' + ((orderbook.asks.length > 0) ? human_value (orderbook.asks[0][1]) : 'N/A'))
+
+    const bids = orderbook.bids
+    const asks = orderbook.asks
+
     if (bids.length > 1)
         assert (bids[0][0] >= bids[bids.length - 1][0])
 
     if (asks.length > 1)
         assert (asks[0][0] <= asks[asks.length - 1][0])
-
 
     if (bids.length && asks.length)
         assert (bids[0][0] <= asks[0][0])
@@ -148,9 +150,10 @@ let testTrades = async (exchange, symbol) => {
     if (exchange.hasFetchTrades) {
 
         log (symbol.green, 'fetching trades...')
-        let trades = await exchange.fetchTrades (symbol)
-        log (symbol.green, 'fetched', Object.values (trades).length.toString ().green, 'trades')
 
+        let trades = await exchange.fetchTrades (symbol)
+
+        log (symbol.green, 'fetched', Object.values (trades).length.toString ().green, 'trades')
 
     } else {
 
