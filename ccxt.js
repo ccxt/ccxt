@@ -14825,7 +14825,7 @@ var liqui = {
         let side = trade['type'];
         if (side == 'ask')
             side = 'sell';
-        if (side  == 'bid')
+        if (side == 'bid')
             side = 'buy';
         let price = undefined;
         if ('price' in trade)
