@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.131';
+$version = '1.8.13';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -462,6 +462,9 @@ class Exchange {
         $this->hasPublicAPI         = true;
         $this->hasPrivateAPI        = true;
         $this->hasCORS              = false;
+        $this->hasFetchTicker       = true;
+        $this->hasFetchOrderBook    = true;
+        $this->hasFetchTrades       = true;
         $this->hasFetchTickers      = false;
         $this->hasFetchOHLCV        = false;
         $this->hasDeposit           = false;
@@ -1064,6 +1067,7 @@ class _1broker extends Exchange {
             'version' => 'v2',
             'hasPublicAPI' => false,
             'hasCORS' => true,
+            'hasFetchTrades' => false,
             'hasFetchOHLCV' => true,
             'timeframes' => array (
                 '1m' => '60',
@@ -1877,6 +1881,7 @@ class anxpro extends Exchange {
             'version' => '2',
             'rateLimit' => 1500,
             'hasCORS' => false,
+            'hasFetchTrades' => false,
             'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
@@ -1987,8 +1992,7 @@ class anxpro extends Exchange {
     }
 
     public function fetch_trades ($market, $params = array ()) {
-        $error = $this->id . ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/$market-data/currencypairmoneytradefetch-disabled';
-        throw new ExchangeError ($error);
+        throw new ExchangeError ($this->id . ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/$market-data/currencypairmoneytradefetch-disabled');
         return $this->publicGetCurrencyPairMoneyTradeFetch (array_merge (array (
             'currency_pair' => $this->market_id ($market),
         ), $params));
@@ -2072,7 +2076,7 @@ class binance extends Exchange {
             'hasFetchOHLCV' => true,
             'hasFetchMyTrades' => true,
             'hasFetchOrder' => true,
-            'hasFetchOrders' => true,
+            'hasFetchOrders' => false,
             'hasFetchOpenOrders' => true,
             'timeframes' => array (
                 '1m' => '1m',
@@ -2531,7 +2535,7 @@ class bit2c extends Exchange {
             ),
             'markets' => array (
                 'BTC/NIS' => array ( 'id' => 'BtcNis', 'symbol' => 'BTC/NIS', 'base' => 'BTC', 'quote' => 'NIS' ),
-                'LTC/BTC' => array ( 'id' => 'LtcBtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                'BCH/NIS' => array ( 'id' => 'BchNis', 'symbol' => 'BCH/NIS', 'base' => 'BCH', 'quote' => 'NIS' ),
                 'LTC/NIS' => array ( 'id' => 'LtcNis', 'symbol' => 'LTC/NIS', 'base' => 'LTC', 'quote' => 'NIS' ),
             ),
         ), $options));
@@ -2569,10 +2573,10 @@ class bit2c extends Exchange {
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['h']),
-            'low' => floatval ($ticker['l']),
-            'bid' => null,
-            'ask' => null,
+            'high' => null,
+            'low' => null,
+            'bid' => floatval ($ticker['h']),
+            'ask' => floatval ($ticker['l']),
             'vwap' => null,
             'open' => null,
             'close' => null,
@@ -4279,8 +4283,8 @@ class bitlish extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['max']),
             'low' => floatval ($ticker['min']),
-            'bid' => null,
-            'ask' => null,
+            'bid' => floatval ($ticker['min']),
+            'ask' => floatval ($ticker['max']),
             'vwap' => null,
             'open' => null,
             'close' => null,
@@ -7505,6 +7509,15 @@ class btctradeua extends Exchange {
         $response = $this->publicGetJapanStatHighSymbol (array (
             'symbol' => $this->market_id ($symbol),
         ));
+        $orderbook = $this->fetchOrderBook ($symbol);
+        $bid = null;
+        $numBids = count ($orderbook['bids']);
+        if ($numBids > 0)
+            $bid = $orderbook['bids'][0][0];
+        $ask = null;
+        $numAsks = count ($orderbook['asks']);
+        if ($numAsks > 0)
+            $ask = $orderbook['asks'][0][0];
         $ticker = $response['trades'];
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -7512,8 +7525,8 @@ class btctradeua extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => null,
-            'ask' => null,
+            'bid' => $bid,
+            'ask' => $ask,
             'vwap' => null,
             'open' => null,
             'close' => null,
@@ -9595,6 +9608,8 @@ class coinmarketcap extends Exchange {
             'countries' => 'US',
             'hasCORS' => true,
             'hasPrivateAPI' => false,
+            'hasFetchOrderBook' => false,
+            'hasFetchTrades' => false,
             'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
@@ -14356,8 +14371,8 @@ class kraken extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['v'][1]),
+            'baseVolume' => floatval ($ticker['v'][1]),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
@@ -16020,7 +16035,7 @@ class nova extends Exchange {
                 'public' => array (
                     'get' => array (
                         'markets/',
-                        'markets/{basecurrency}',
+                        'markets/{basecurrency}/',
                         'market/info/{pair}/',
                         'market/orderhistory/{pair}/',
                         'market/openorders/{pair}/buy/',
@@ -16390,9 +16405,7 @@ class okcoin extends Exchange {
             $request['contract_type'] = 'this_week'; // next_week, quarter
         }
         $method .= 'Trades';
-        $response = $this->$method (array_merge (array (
-            'symbol' => $market['id'],
-        ), $params));
+        $response = $this->$method (array_merge ($request, $params));
         return $this->parse_trades ($response, $market);
     }
 
@@ -18479,11 +18492,16 @@ class virwox extends Exchange {
         return $result;
     }
 
-    public function fetchBestPrices ($symbol) {
+    public function fetchMarketPrice ($symbol) {
         $this->load_markets ();
-        return $this->publicPostGetBestPrices (array (
+        $response = $this->publicPostGetBestPrices (array (
             'symbols' => array ($symbol),
         ));
+        $result = $response['result'];
+        return array (
+            'bid' => $this->safe_float ($result[0], 'bestBuyPrice'),
+            'ask' => $this->safe_float ($result[0], 'bestSellPrice'),
+        );
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -18507,6 +18525,7 @@ class virwox extends Exchange {
             'startDate' => $this->YmdHMS ($start),
             'HLOC' => 1,
         ));
+        $marketPrice = $this->fetchMarketPrice ($symbol);
         $tickers = $response['result']['priceVolumeList'];
         $keys = array_keys ($tickers);
         $length = count ($keys);
@@ -18518,8 +18537,8 @@ class virwox extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
-            'bid' => null,
-            'ask' => null,
+            'bid' => $marketPrice['bid'],
+            'ask' => $marketPrice['ask'],
             'vwap' => null,
             'open' => floatval ($ticker['open']),
             'close' => floatval ($ticker['close']),

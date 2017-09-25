@@ -1,5 +1,15 @@
 # Сhangelog
 
+- Added `hasFetchTicker`, `hasFetchOrderBook`, `hasFetchTrades` properties
+- Fixed BTCTradeUA fetchTicker for empty bidasks
+- Fixed Kraken fetchTicker baseVolume
+- Fixed BCH support / updated markets for Bit2C
+- Renamed fetchBestPrices to fetchMarketPrice for Virwox
+- Fixed Virwox fetchTicker for empty bidasks
+- Added fetchOrder, fetchOrders, fetchOpenOrders, fetchMyTrades to Binance
+
+## Version 1.8.x 2017-09-24
+
 - Added support for a new exchange: [Tidex](https://tidex.com) (United Kingdom)
 - Added missing new markets to Bitcoin.co.id, [#228](https://github.com/kroitor/ccxt/issues/228)
 - Restored Bistamp v2 fetchOrderStatus, [#226](https://github.com/kroitor/ccxt/issues/226)

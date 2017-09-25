@@ -12,9 +12,12 @@ const asTable   = require ('as-table')
     , log       = require ('ololog')
     , ansi      = require ('ansicolor').nice
     , fs        = require ('fs')
-    , assert    = require ('assert')
+    // , assert    = require ('assert')
     , ccxt      = require ('../ccxt')
     , countries = require ('../countries')
+    , chai      = require ('chai')
+    , expect    = chai.expect
+    , assert    = chai.assert
 
 /*  ------------------------------------------------------------------------ */
 
@@ -35,7 +38,6 @@ let proxies = [
     '',
     'https://cors-anywhere.herokuapp.com/',
     'https://crossorigin.me/',
-    // 'http://cors-proxy.htmldriven.com/?url=', // we don't want this for now
 ]
 
 /*  ------------------------------------------------------------------------ */
@@ -44,12 +46,17 @@ const exchange = new (ccxt)[exchangeId] ({ verbose: verbose, enabledRateLimit: t
 
 //-----------------------------------------------------------------------------
 
-let apiKeys = JSON.parse (fs.readFileSync ('./keys.json', 'utf8'))[exchangeId]
+const keysGlobal = './keys.json'
+const keysLocal = './keys.local.json'
+let keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
+let settings = JSON.parse (fs.readFileSync (keysFile, 'utf8'))[exchangeId]
 
-Object.assign (exchange, apiKeys)
+Object.assign (exchange, settings)
 
-if (exchange.urls['test'])
-    exchange.urls['api'] = exchange.urls['test']; // move to testnet/sandbox if possible
+if (settings && settings.skip) {
+    log.bright ('[Skipped]', { exchange: exchangeId, symbol: exchangeSymbol || 'all' })
+    process.exit ()
+}
 
 const verboseList = [ ];
 if (verboseList.indexOf (exchange.id) >= 0) {
@@ -72,27 +79,48 @@ let human_value = function (price) {
 
 let testTicker = async (exchange, symbol) => {
 
-    log (symbol.green, 'fetching ticker...')
+    if (exchange.hasFetchTicker) {
 
-    let ticker = await exchange.fetchTicker (symbol)
-    const keys = [ 'datetime', 'timestamp', 'high', 'low', 'bid', 'ask', 'quoteVolume' ]
+        log (symbol.green, 'fetching ticker...')
 
-    keys.forEach (key => assert (key in ticker))
+        let ticker = await exchange.fetchTicker (symbol)
+        const keys = [ 'datetime', 'timestamp', 'high', 'low', 'bid', 'ask', 'quoteVolume' ]
 
-    log (symbol.green, 'ticker',
-        ticker['datetime'],
-        ... (keys.map (key =>
-            key + ': ' + human_value (ticker[key]))))
+        keys.forEach (key => assert (key in ticker))
 
-    if (ticker['bid'] && ticker['ask'])
-        assert (ticker['bid'] <= ticker['ask'])
+        log (symbol.green, 'ticker',
+            ticker['datetime'],
+            ... (keys.map (key =>
+                key + ': ' + human_value (ticker[key]))))
 
-    return ticker;
+        if (exchange.id != 'coinmarketcap')
+            assert (ticker['bid'] <= ticker['ask'])
+
+
+
+    } else {
+
+        log (symbol.green, 'fetchTicker () not supported')
+    }
 }
 
+//-----------------------------------------------------------------------------
+
 let testOrderBook = async (exchange, symbol) => {
+
     log (symbol.green, 'fetching order book...')
+
     let orderbook = await exchange.fetchOrderBook (symbol)
+
+    const format = {
+        'bids': [],
+        'asks': [],
+        'timestamp': 1234567890,
+        'datetime': '2017-09-01T00:00:00',
+    };
+
+    expect (orderbook).to.have.all.keys (format)
+
     log (symbol.green,
         orderbook['datetime'],
         'bid: '       + ((orderbook.bids.length > 0) ? human_value (orderbook.bids[0][0]) : 'N/A'),
@@ -100,8 +128,8 @@ let testOrderBook = async (exchange, symbol) => {
         'ask: '       + ((orderbook.asks.length > 0) ? human_value (orderbook.asks[0][0]) : 'N/A'),
         'askVolume: ' + ((orderbook.asks.length > 0) ? human_value (orderbook.asks[0][1]) : 'N/A'))
 
-    let bids = orderbook.bids
-    let asks = orderbook.asks
+    const bids = orderbook.bids
+    const asks = orderbook.asks
 
     if (bids.length > 1)
         assert (bids[0][0] >= bids[bids.length - 1][0])
@@ -118,17 +146,24 @@ let testOrderBook = async (exchange, symbol) => {
 //-----------------------------------------------------------------------------
 
 let testTrades = async (exchange, symbol) => {
-    log (symbol.green, 'fetching trades...')
-    let trades = await exchange.fetchTrades (symbol)
-    log (symbol.green, 'fetched', Object.values (trades).length.toString ().green, 'trades')
-    return trades
+
+    if (exchange.hasFetchTrades) {
+
+        log (symbol.green, 'fetching trades...')
+
+        let trades = await exchange.fetchTrades (symbol)
+
+        log (symbol.green, 'fetched', Object.values (trades).length.toString ().green, 'trades')
+
+    } else {
+
+        log (symbol.green, 'fetchTrades () not supported'.yellow);
+    }
 }
 
 //-----------------------------------------------------------------------------
 
-let testSymbol = async (exchange, symbol) => {
-
-    await testTicker (exchange, symbol)
+let testTickers = async (exchange) => {
 
     if (exchange.hasFetchTickers) {
 
@@ -140,54 +175,42 @@ let testSymbol = async (exchange, symbol) => {
 
         log ('fetching all tickers at once not supported')
     }
+}
+
+//-----------------------------------------------------------------------------
+
+let testOHLCV = async (exchange, symbol) => {
 
     if (exchange.hasFetchOHLCV) {
 
-        try {
-
-            log (symbol.green, 'fetching OHLCV...')
-            let ohlcv = await exchange.fetchOHLCV (symbol)
-            log (symbol.green, 'fetched', Object.keys (ohlcv).length.toString ().green, 'OHLCVs')
-
-        } catch (e) {
-
-            if (e instanceof ccxt.ExchangeError) {
-                warn ('[Exchange Error] ' + e.message)
-            } else if (e instanceof ccxt.NotSupported) {
-                warn ('[Not Supported] ' + e.message)
-            } else {
-                throw e;
-            }
-        }
+        log (symbol.green, 'fetching OHLCV...')
+        let ohlcv = await exchange.fetchOHLCV (symbol)
+        log (symbol.green, 'fetched', Object.keys (ohlcv).length.toString ().green, 'OHLCVs')
 
     } else {
 
         log ('fetching OHLCV not supported')
     }
+}
+
+//-----------------------------------------------------------------------------
+
+let testSymbol = async (exchange, symbol) => {
+
+    await testTicker (exchange, symbol)
+    await testTickers (exchange)
+    await testOHLCV (exchange, symbol)
+    await testTrades (exchange, symbol)
 
     if (exchange.id == 'coinmarketcap') {
 
-        log (await exchange.fetchTickers ());
-        log (await exchange.fetchGlobal ());
+        log (await exchange.fetchTickers ())
+        log (await exchange.fetchGlobal ())
 
     } else {
 
         await testOrderBook (exchange, symbol)
 
-        try {
-
-            await testTrades (exchange, symbol)
-
-        } catch (e) {
-
-            if (e instanceof ccxt.ExchangeError) {
-                warn ('[Exchange Error] ' + e.message)
-            } else if (e instanceof ccxt.NotSupported) {
-                warn ('[Not Supported] ' + e.message)
-            } else {
-                throw e;
-            }
-        }
     }
 }
 
@@ -328,6 +351,10 @@ let testExchange = async exchange => {
     if (!exchange.apiKey || (exchange.apiKey.length < 1))
         return true
 
+    // move to testnet/sandbox if possible before accessing the balance if possible
+    if (exchange.urls['test'])
+        exchange.urls['api'] = exchange.urls['test'];
+
     await testBalance (exchange)
 
     if (exchange.hasFetchOrders) {
@@ -399,9 +426,8 @@ let tryAllProxies = async function (exchange, proxies) {
     let currentProxy = 0
     let maxRetries   = proxies.length
 
-    // a special case for ccex
-    if (exchange.id == 'ccex')
-        currentProxy = 1
+    if (settings && ('proxy' in settings))
+        currentProxy = proxies.indexOf (settings.proxy)
 
     for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
 

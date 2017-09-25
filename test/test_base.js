@@ -37,10 +37,10 @@ describe ('ccxt base code', () => {
         }
 
         const exchange = new ccxt.Exchange ({
-
             'id': 'mock',
-
-            'markets': { 'FOO/BAR': market }
+            'markets': {
+                'FOO/BAR': market,
+            },
         })
 
         Object.keys (fees).forEach (takerOrMaker => {

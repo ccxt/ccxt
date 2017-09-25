@@ -18,3 +18,4 @@ ccxt.wiki/
 package-lock.json
 exchanges.json
 ccxt.sublime-workspace
+keys.local.json

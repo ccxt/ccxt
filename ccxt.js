@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.7.131'
+const version = '1.8.13'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -802,6 +802,9 @@ const Exchange = function (config) {
     this.hasPublicAPI         = true
     this.hasPrivateAPI        = true
     this.hasCORS              = false
+    this.hasFetchTicker       = true
+    this.hasFetchOrderBook    = true
+    this.hasFetchTrades       = true
     this.hasFetchTickers      = false
     this.hasFetchOHLCV        = false
     this.hasFetchOrder        = false
@@ -890,6 +893,7 @@ var _1broker = {
     'version': 'v2',
     'hasPublicAPI': false,
     'hasCORS': true,
+    'hasFetchTrades': false,
     'hasFetchOHLCV': true,
     'timeframes': {
         '1m': '60',
@@ -1687,6 +1691,7 @@ var anxpro = {
     'version': '2',
     'rateLimit': 1500,
     'hasCORS': false,
+    'hasFetchTrades': false,
     'hasWithdraw': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
@@ -1795,8 +1800,7 @@ var anxpro = {
     },
 
     async fetchTrades (market, params = {}) {
-        let error = this.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled';
-        throw new ExchangeError (error);
+        throw new ExchangeError (this.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled');
         return this.publicGetCurrencyPairMoneyTradeFetch (this.extend ({
             'currency_pair': this.marketId (market),
         }, params));
@@ -1878,7 +1882,7 @@ var binance = {
     'hasFetchOHLCV': true,
     'hasFetchMyTrades': true,
     'hasFetchOrder': true,
-    'hasFetchOrders': true,
+    'hasFetchOrders': false,
     'hasFetchOpenOrders': true,
     'timeframes': {
         '1m': '1m',
@@ -2333,7 +2337,7 @@ var bit2c = {
     },
     'markets': {
         'BTC/NIS': { 'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS' },
-        'LTC/BTC': { 'id': 'LtcBtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+        'BCH/NIS': { 'id': 'BchNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS' },
         'LTC/NIS': { 'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS' },
     },
 
@@ -2369,10 +2373,10 @@ var bit2c = {
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['h']),
-            'low': parseFloat (ticker['l']),
-            'bid': undefined,
-            'ask': undefined,
+            'high': undefined,
+            'low': undefined,
+            'bid': parseFloat (ticker['h']),
+            'ask': parseFloat (ticker['l']),
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
@@ -4051,8 +4055,8 @@ var bitlish = {
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['max']),
             'low': parseFloat (ticker['min']),
-            'bid': undefined,
-            'ask': undefined,
+            'bid': parseFloat (ticker['min']),
+            'ask': parseFloat (ticker['max']),
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
@@ -7221,6 +7225,15 @@ var btctradeua = {
         let response = await this.publicGetJapanStatHighSymbol ({
             'symbol': this.marketId (symbol),
         });
+        let orderbook = await this.fetchOrderBook (symbol);
+        let bid = undefined;
+        let numBids = orderbook['bids'].length;
+        if (numBids > 0)
+            bid = orderbook['bids'][0][0];
+        let ask = undefined;
+        let numAsks = orderbook['asks'].length;
+        if (numAsks > 0)
+            ask = orderbook['asks'][0][0];
         let ticker = response['trades'];
         let timestamp = this.milliseconds ();
         let result = {
@@ -7228,8 +7241,8 @@ var btctradeua = {
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': undefined,
-            'ask': undefined,
+            'bid': bid,
+            'ask': ask,
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
@@ -9262,6 +9275,8 @@ var coinmarketcap = {
     'countries': 'US',
     'hasCORS': true,
     'hasPrivateAPI': false,
+    'hasFetchOrderBook': false,
+    'hasFetchTrades': false,
     'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
@@ -13922,8 +13937,8 @@ var kraken = {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['v'][1]),
+            'baseVolume': parseFloat (ticker['v'][1]),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     },
@@ -15559,7 +15574,7 @@ var nova = {
         'public': {
             'get': [
                 'markets/',
-                'markets/{basecurrency}',
+                'markets/{basecurrency}/',
                 'market/info/{pair}/',
                 'market/orderhistory/{pair}/',
                 'market/openorders/{pair}/buy/',
@@ -15931,9 +15946,7 @@ var okcoin = {
             request['contract_type'] = 'this_week'; // next_week, quarter
         }
         method += 'Trades';
-        let response = await this[method] (this.extend ({
-            'symbol': market['id'],
-        }, params));
+        let response = await this[method] (this.extend (request, params));
         return this.parseTrades (response, market);
     },
 
@@ -17954,11 +17967,16 @@ var virwox = {
         return result;
     },
 
-    async fetchBestPrices (symbol) {
+    async fetchMarketPrice (symbol) {
         await this.loadMarkets ();
-        return await this.publicPostGetBestPrices ({
+        let response = await this.publicPostGetBestPrices ({
             'symbols': [ symbol ],
         });
+        let result = response['result'];
+        return {
+            'bid': this.safeFloat (result[0], 'bestBuyPrice'),
+            'ask': this.safeFloat (result[0], 'bestSellPrice'),
+        };
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -17982,6 +18000,7 @@ var virwox = {
             'startDate': this.YmdHMS (start),
             'HLOC': 1,
         });
+        let marketPrice = await this.fetchMarketPrice (symbol);
         let tickers = response['result']['priceVolumeList'];
         let keys = Object.keys (tickers);
         let length = keys.length;
@@ -17993,8 +18012,8 @@ var virwox = {
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
-            'bid': undefined,
-            'ask': undefined,
+            'bid': marketPrice['bid'],
+            'ask': marketPrice['ask'],
             'vwap': undefined,
             'open': parseFloat (ticker['open']),
             'close': parseFloat (ticker['close']),

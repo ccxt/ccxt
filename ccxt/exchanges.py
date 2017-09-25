@@ -163,6 +163,7 @@ class _1broker (Exchange):
             'version': 'v2',
             'hasPublicAPI': False,
             'hasCORS': True,
+            'hasFetchTrades': False,
             'hasFetchOHLCV': True,
             'timeframes': {
                 '1m': '60',
@@ -924,6 +925,7 @@ class anxpro (Exchange):
             'version': '2',
             'rateLimit': 1500,
             'hasCORS': False,
+            'hasFetchTrades': False,
             'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
@@ -1030,8 +1032,7 @@ class anxpro (Exchange):
         }
 
     def fetch_trades(self, market, params={}):
-        error = self.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled'
-        raise ExchangeError(error)
+        raise ExchangeError(self.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled')
         return self.publicGetCurrencyPairMoneyTradeFetch(self.extend({
             'currency_pair': self.market_id(market),
         }, params))
@@ -1107,7 +1108,7 @@ class binance (Exchange):
             'hasFetchOHLCV': True,
             'hasFetchMyTrades': True,
             'hasFetchOrder': True,
-            'hasFetchOrders': True,
+            'hasFetchOrders': False,
             'hasFetchOpenOrders': True,
             'timeframes': {
                 '1m': '1m',
@@ -1538,7 +1539,7 @@ class bit2c (Exchange):
             },
             'markets': {
                 'BTC/NIS': {'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS'},
-                'LTC/BTC': {'id': 'LtcBtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
+                'BCH/NIS': {'id': 'BchNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS'},
                 'LTC/NIS': {'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS'},
             },
         }
@@ -1573,10 +1574,10 @@ class bit2c (Exchange):
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['h']),
-            'low': float(ticker['l']),
-            'bid': None,
-            'ask': None,
+            'high': None,
+            'low': None,
+            'bid': float(ticker['h']),
+            'ask': float(ticker['l']),
             'vwap': None,
             'open': None,
             'close': None,
@@ -3175,8 +3176,8 @@ class bitlish (Exchange):
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['max']),
             'low': float(ticker['min']),
-            'bid': None,
-            'ask': None,
+            'bid': float(ticker['min']),
+            'ask': float(ticker['max']),
             'vwap': None,
             'open': None,
             'close': None,
@@ -6185,6 +6186,15 @@ class btctradeua (Exchange):
         response = self.publicGetJapanStatHighSymbol({
             'symbol': self.market_id(symbol),
         })
+        orderbook = self.fetchOrderBook(symbol)
+        bid = None
+        numBids = len(orderbook['bids'])
+        if numBids > 0:
+            bid = orderbook['bids'][0][0]
+        ask = None
+        numAsks = len(orderbook['asks'])
+        if numAsks > 0:
+            ask = orderbook['asks'][0][0]
         ticker = response['trades']
         timestamp = self.milliseconds()
         result = {
@@ -6192,8 +6202,8 @@ class btctradeua (Exchange):
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': None,
-            'ask': None,
+            'bid': bid,
+            'ask': ask,
             'vwap': None,
             'open': None,
             'close': None,
@@ -8138,6 +8148,8 @@ class coinmarketcap (Exchange):
             'countries': 'US',
             'hasCORS': True,
             'hasPrivateAPI': False,
+            'hasFetchOrderBook': False,
+            'hasFetchTrades': False,
             'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
@@ -12622,8 +12634,8 @@ class kraken (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['v'][1]),
+            'baseVolume': float(ticker['v'][1]),
+            'quoteVolume': None,
             'info': ticker,
         }
 
@@ -14168,7 +14180,7 @@ class nova (Exchange):
                 'public': {
                     'get': [
                         'markets/',
-                        'markets/{basecurrency}',
+                        'markets/{basecurrency}/',
                         'market/info/{pair}/',
                         'market/orderhistory/{pair}/',
                         'market/openorders/{pair}/buy/',
@@ -14519,9 +14531,7 @@ class okcoin (Exchange):
             method += 'Future'
             request['contract_type'] = 'this_week' # next_week, quarter
         method += 'Trades'
-        response = getattr(self, method)(self.extend({
-            'symbol': market['id'],
-        }, params))
+        response = getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response, market)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1440, params={}):
@@ -16479,11 +16489,16 @@ class virwox (Exchange):
             result[currency] = account
         return result
 
-    def fetchBestPrices(self, symbol):
+    def fetchMarketPrice(self, symbol):
         self.load_markets()
-        return self.publicPostGetBestPrices({
+        response = self.publicPostGetBestPrices({
             'symbols': [symbol],
         })
+        result = response['result']
+        return {
+            'bid': self.safe_float(result[0], 'bestBuyPrice'),
+            'ask': self.safe_float(result[0], 'bestSellPrice'),
+        }
 
     def fetch_order_book(self, symbol, params={}):
         self.load_markets()
@@ -16505,6 +16520,7 @@ class virwox (Exchange):
             'startDate': self.YmdHMS(start),
             'HLOC': 1,
         })
+        marketPrice = self.fetchMarketPrice(symbol)
         tickers = response['result']['priceVolumeList']
         keys = list(tickers.keys())
         length = len(keys)
@@ -16516,8 +16532,8 @@ class virwox (Exchange):
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
             'low': float(ticker['low']),
-            'bid': None,
-            'ask': None,
+            'bid': marketPrice['bid'],
+            'ask': marketPrice['ask'],
             'vwap': None,
             'open': float(ticker['open']),
             'close': float(ticker['close']),
