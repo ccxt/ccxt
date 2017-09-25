@@ -82,6 +82,7 @@ const exec = (bin, ...args) =>
             return_ ({
                 failed: code !== 0,
                 output,
+                hasOutput: output.trim ().length > 0,
                 hasWarnings,
                 warnings: ansi.strip (stderr).match (/^\[[^\]]+\]/g) || []
             })
