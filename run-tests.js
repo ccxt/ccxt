@@ -56,8 +56,8 @@ if (!exchanges.length) {
 
 /*  --------------------------------------------------------------------------- */
 
-const sleep = ms => new Promise (resolve => setTimeout (resolve, ms))
-const timeout = (ms, promise) => Promise.race ([ promise, sleep (ms).then (() => { throw new Error ('timed out') }) ])
+const sleep = s => new Promise (resolve => setTimeout (resolve, s*1000))
+const timeout = (s, promise) => Promise.race ([ promise, sleep (s).then (() => { throw new Error ('timed out') }) ])
 
 /*  --------------------------------------------------------------------------- */
 
@@ -67,7 +67,7 @@ const exec = (bin, ...args) =>
     stderr,  not separating them into distinct buffers — so that we can show
     the same output as if it were running in a terminal.                        */
 
-    new Promise (return_ => {
+    timeout (120, new Promise (return_ => {
 
         const ps = require ('child_process').spawn (bin, args)
 
@@ -87,7 +87,13 @@ const exec = (bin, ...args) =>
                 warnings: ansi.strip (stderr).match (/^\[[^\]]+\]/g) || []
             })
         })
-    })
+
+    })).catch (e => ({
+
+        failed: true,
+        output: e.message
+
+    })).then (x => Object.assign (x, { hasOutput: x.output.length > 0 }))
 
 /*  ------------------------------------------------------------------------ */
 
@@ -205,9 +211,7 @@ async function testAllExchanges () {
     const results = []
     
     for (const exchange of exchanges) {
-        taskPool.run (() => timeout (200*1000, testExchange (exchange))
-                                .catch (e => ({ exchange, failed: true, explain () { log.bright.red.error (exchange, e) } }))
-                                .then (x => results.push (x)))
+        taskPool.run (() => testExchange (exchange).then (x => results.push (x)))
     }
 
     await Promise.all (taskPool.pending)
@@ -244,8 +248,11 @@ async function testAllExchanges () {
 
     if (failed.length) {
 
-        await sleep (2000) // to fight TravisCI log truncation issue, see https://github.com/travis-ci/travis-ci/issues/8189
+        await sleep (10) // to fight TravisCI log truncation issue, see https://github.com/travis-ci/travis-ci/issues/8189
         process.exit (1)
+
+    } else {
+        process.exit (0)
     }
 
 }) ();
