@@ -12,12 +12,12 @@ const asTable   = require ('as-table')
     , log       = require ('ololog')
     , ansi      = require ('ansicolor').nice
     , fs        = require ('fs')
-    , assert    = require ('assert')
+    // , assert    = require ('assert')
     , ccxt      = require ('../ccxt')
     , countries = require ('../countries')
-    // , chai      = require ('chai')
-    // , expect    = chai.expect
-    // , assert    = chai.assert
+    , chai      = require ('chai')
+    , expect    = chai.expect
+    , assert    = chai.assert
 
 /*  ------------------------------------------------------------------------ */
 
@@ -118,6 +118,15 @@ let testOrderBook = async (exchange, symbol) => {
 
     let bids = orderbook.bids
     let asks = orderbook.asks
+
+    const format = {
+        'bids': [],
+        'asks': [],
+        'timestamp': 1234567890,
+        'datetime': '2017-09-01T00:00:00',
+    };
+
+    expect (orderbook).to.have.all.keys (format)
 
     if (bids.length > 1)
         assert (bids[0][0] >= bids[bids.length - 1][0])

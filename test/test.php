@@ -174,7 +174,6 @@ $proxies = array (
     '',
     'https://cors-anywhere.herokuapp.com/',
     'https://crossorigin.me/',
-    // 'http://cors-proxy.htmldriven.com/?url=', // we don't want this for now
 );
 
 if (count ($argv) > 1) {

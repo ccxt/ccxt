@@ -253,7 +253,6 @@ proxies = [
     '',
     'https://cors-anywhere.herokuapp.com/',
     'https://crossorigin.me/',
-    # 'http://cors-proxy.htmldriven.com/?url=', # we don't want this for now
 ]
 
 # prefer local testing keys to global keys
