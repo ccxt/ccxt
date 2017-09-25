@@ -829,6 +829,22 @@ class Exchange {
         return $this->parse_order_book ($orderbook, $timestamp, $bids_key, $asks_key, $price_key, $amount_key);
     }
 
+    public function parse_balance ($balance) {
+        $currencies = array_keys ($this->omit (balance, 'info'));
+        $accounts = array ('free', 'used', 'total');
+        foreach ($accounts as $account) {
+            $balance[$account] = array ();
+            foreach ($currencies as $currency) {
+                $balance[$account][$currency] = $balance[$currency][$account];
+            }
+        }
+        return balance;
+    }
+
+    public function parseBalance ($balance) {
+        return $this->parse_balance ($balance);
+    }
+
     public function parse_trades ($trades, $market = null) {
         $result = array ();
         $array = array_values ($trades);

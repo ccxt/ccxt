@@ -178,7 +178,7 @@ class _1broker (Exchange):
         total = float(response['balance'])
         result['BTC']['free'] = total
         result['BTC']['total'] = total
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -353,7 +353,7 @@ class cryptocapital (Exchange):
             account['used'] = self.safe_float(balance['on_hold'], currency, 0.0)
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, market, params={}):
         response = await self.publicGetOrderBook(self.extend({
@@ -645,7 +645,7 @@ class acx (Exchange):
             }
             account['total'] = self.sum(account['free'], account['used'])
             result[uppercase] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -903,7 +903,7 @@ class anxpro (Exchange):
                 account['total'] = float(wallet['Balance']['value'])
                 account['used'] = account['total'] - account['free']
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, market, params={}):
         response = await self.publicGetCurrencyPairMoneyDepthFull(self.extend({
@@ -1156,7 +1156,7 @@ class binance (Exchange):
             }
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         market = self.market(symbol)
@@ -1464,7 +1464,7 @@ class bit2c (Exchange):
                 account['total'] = balance[currency]
                 account['used'] = account['total'] - account['free']
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, market, params={}):
         orderbook = await self.publicGetExchangesPairOrderbook(self.extend({
@@ -1640,7 +1640,7 @@ class bitbay (Exchange):
                 account['used'] = float(balance[currency]['locked'])
                 account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, market, params={}):
         orderbook = await self.publicGetIdOrderbook(self.extend({
@@ -1828,7 +1828,7 @@ class bitcoincoid (Exchange):
             account['used'] = self.safe_float(balance['balance_hold'], lowercase, 0.0)
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         orderbook = await self.publicGetPairDepth(self.extend({
@@ -2047,7 +2047,7 @@ class bitfinex (Exchange):
                 account['total'] = float(balance['amount'])
                 account['used'] = account['total'] - account['free']
                 result[uppercase] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -2400,7 +2400,7 @@ class bitfinex2 (bitfinex):
             if account['free']:
                 account['used'] = account['total'] - account['free']
             result[uppercase] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         orderbook = await self.publicGetBookSymbolPrecision(self.extend({
@@ -2637,7 +2637,7 @@ class bitflyer (Exchange):
                 account['free'] = balances[currency]['available']
                 account['used'] = account['total'] - account['free']
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -2835,7 +2835,7 @@ class bithumb (Exchange):
             account['used'] = self.safe_float(balances, 'in_use_' + lowercase)
             account['free'] = self.safe_float(balances, 'available_' + lowercase)
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         market = self.market(symbol)
@@ -3182,7 +3182,7 @@ class bitlish (Exchange):
                 account['used'] = float(balance[currency]['holded'])
                 account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     def sign_in(self):
         return self.privatePostSignin({
@@ -3357,7 +3357,7 @@ class bitmarket (Exchange):
                 account['used'] = balance['blocked'][currency]
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         orderbook = await self.publicGetJsonMarketOrderbook(self.extend({
@@ -3668,7 +3668,7 @@ class bitmex (Exchange):
                 account['total'] = account['total'] * 0.00000001
             account['used'] = account['total'] - account['free']
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -3955,7 +3955,7 @@ class bitso (Exchange):
                 'total': float(balance['total']),
             }
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -4207,7 +4207,7 @@ class bitstamp1 (Exchange):
             account['used'] = self.safe_float(balance, used, 0.0)
             account['total'] = self.safe_float(balance, total, 0.0)
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
@@ -4439,7 +4439,7 @@ class bitstamp (Exchange):
             if total in balance:
                 account['total'] = float(balance[total])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         method = 'privatePost' + self.capitalize(side)
@@ -4645,7 +4645,7 @@ class bittrex (Exchange):
                 account['used'] = balance['Balance'] - balance['Available']
                 account['total'] = balance['Balance']
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, market, params={}):
         await self.load_markets()
@@ -4950,7 +4950,8 @@ class blinktrade (Exchange):
         params.update(config)
         super(blinktrade, self).__init__(params)
 
-    async def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}):
+        # todo parse balance
         return self.privatePostU2({
             'BalanceReqID': self.nonce(),
         })
@@ -5139,7 +5140,7 @@ class bl3p (Exchange):
                 if account['free']:
                     account['used'] = account['total'] - account['free']
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     def parse_bidask(self, bidask, priceKey=0, amountKey=0):
         return [
@@ -5400,7 +5401,7 @@ class btcchina (Exchange):
                 account['used'] = float(balances['frozen'][lowercase]['amount'])
             account['free'] = account['total'] - account['used']
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     def createMarketRequest(self, market):
         request = {}
@@ -5663,7 +5664,7 @@ class btcmarkets (Exchange):
                 'total': self.sum(free, used),
             }
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -5853,7 +5854,7 @@ class btctrader (Exchange):
         market = self.markets[symbol]
         result[market['base']] = base
         result[market['quote']] = quote
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         orderbook = await self.publicGetOrderbook(params)
@@ -6066,7 +6067,7 @@ class btctradeua (Exchange):
                     'used': 0.0,
                     'total': balance,
                 }
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         market = self.market(symbol)
@@ -6282,7 +6283,7 @@ class btcx (Exchange):
                 'total': balances[currency],
             }
             result[uppercase] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         orderbook = await self.publicGetDepthIdLimit(self.extend({
@@ -6468,7 +6469,7 @@ class bter (Exchange):
                     account['used'] = float(balance['locked'][currency])
             account['total'] = self.sum(account['free'], account['used'])
             result[code] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -6700,7 +6701,7 @@ class bxinth (Exchange):
             }
             account['used'] = account['total'] - account['free']
             result[code] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -6914,7 +6915,7 @@ class ccex (Exchange):
                 'total': balance['Balance'],
             }
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -7135,7 +7136,7 @@ class cex (Exchange):
             }
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -7349,7 +7350,7 @@ class chbtc (Exchange):
                 account['used'] = float(balances['frozen'][currency]['amount'])
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         market = self.market(symbol)
@@ -7604,7 +7605,7 @@ class coincheck (Exchange):
                 account['used'] = float(balances[reserved])
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         orderbook = await  self.publicGetOrderBooks(params)
@@ -7756,7 +7757,7 @@ class coinfloor (Exchange):
         params.update(config)
         super(coinfloor, self).__init__(params)
 
-    async def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}):
         symbol = None
         if 'symbol' in params:
             symbol = params['symbol']
@@ -7764,6 +7765,7 @@ class coinfloor (Exchange):
             symbol = params['id']
         if not symbol:
             raise ExchangeError(self.id + ' fetchBalance requires a symbol param')
+        # todo parse balance
         return self.privatePostIdBalance({
             'id': self.market_id(symbol),
         })
@@ -7928,7 +7930,7 @@ class coingi (Exchange):
             }
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         market = self.market(symbol)
@@ -7976,7 +7978,7 @@ class coingi (Exchange):
         return result
 
     async def fetch_ticker(self, symbol):
-        tickers = await self.fetchTickers(symbol)
+        tickers = await self.fetch_tickers(symbol)
         return tickers[symbol]
 
     def parse_trade(self, trade, market=None):
@@ -8264,7 +8266,7 @@ class coinmate (Exchange):
                 account['used'] = balances[currency]['reserved']
                 account['total'] = balances[currency]['balance']
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         response = await self.publicGetOrderBook(self.extend({
@@ -8549,7 +8551,7 @@ class coinsecure (Exchange):
             'BTC': coin,
             'INR': fiat,
         }
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, market, params={}):
         bids = await self.publicGetExchangeBidOrders(params)
@@ -8695,7 +8697,7 @@ class coinspot (Exchange):
                 if uppercase == 'DRK':
                     uppercase = 'DASH'
                 result[uppercase] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         market = self.market(symbol)
@@ -8938,7 +8940,7 @@ class cryptopia (Exchange):
             }
             account['used'] = account['total'] - account['free']
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -9147,7 +9149,7 @@ class dsx (Exchange):
             }
             account['used'] = account['total'] - account['free']
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -9326,7 +9328,7 @@ class exmo (Exchange):
                 account['used'] = float(response['reserved'][currency])
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -9527,7 +9529,7 @@ class flowbtc (Exchange):
             }
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -9716,7 +9718,7 @@ class fyb (Exchange):
             'total': fiat,
         }
         accounts['info'] = balance
-        return accounts
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         orderbook = await self.publicGetOrderbook(params)
@@ -10061,7 +10063,7 @@ class gatecoin (Exchange):
                 'total': balance['balance'],
             }
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -10335,7 +10337,7 @@ class gdax (Exchange):
                 'total': float(balance['balance']),
             }
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, market, params={}):
         await self.load_markets()
@@ -10644,7 +10646,7 @@ class gemini (Exchange):
             }
             account['used'] = account['total'] - account['free']
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -10805,7 +10807,7 @@ class hitbtc (Exchange):
             }
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -11076,7 +11078,7 @@ class hitbtc2 (hitbtc):
             }
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -11437,7 +11439,7 @@ class huobi1 (Exchange):
             account['free'] = float(balance['balance'])
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -11647,7 +11649,7 @@ class huobi (Exchange):
                 account['used'] = self.sum(account['used'], float(balances[loan]))
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         market = self.market(symbol)
@@ -11875,7 +11877,7 @@ class independentreserve (Exchange):
             account['total'] = balance['TotalBalance']
             account['used'] = account['total'] - account['free']
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -12129,7 +12131,7 @@ class itbit (Exchange):
             }
             account['used'] = account['total'] - account['free']
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     def fetchWallets(self):
         return self.privateGetWallets()
@@ -12279,7 +12281,7 @@ class jubi (Exchange):
                 account['used'] = float(balances[used])
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -12650,7 +12652,7 @@ class kraken (Exchange):
                 'total': balance,
             }
             result[code] = account
-        return result
+        return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -12865,7 +12867,7 @@ class lakebtc (Exchange):
                 'total': balance,
             }
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, market, params={}):
         await self.load_markets()
@@ -13081,7 +13083,7 @@ class livecoin (Exchange):
             if balance['type'] == 'trade':
                 account['used'] = float(balance['value'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -13316,7 +13318,7 @@ class liqui (Exchange):
                 'total': funds[currency],
             }
             result[uppercase] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -13374,7 +13376,7 @@ class liqui (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         id = market['id']
-        tickers = await self.fetchTickers([id])
+        tickers = await self.fetch_tickers([id])
         return tickers[symbol]
 
     def parse_trade(self, trade, market):
@@ -13655,7 +13657,7 @@ class luno (Exchange):
             }
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -13901,7 +13903,7 @@ class mercado (Exchange):
                 account['total'] = float(balances[lowercase]['total'])
                 account['used'] = account['total'] - account['free']
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
@@ -14007,7 +14009,7 @@ class mixcoins (Exchange):
                 account['used'] = float(balance[lowercase]['lock'])
                 account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         response = await self.publicGetDepth(self.extend({
@@ -14252,7 +14254,7 @@ class nova (Exchange):
                 'total': float(balance['amount_total']),
             }
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
@@ -14512,7 +14514,7 @@ class okcoin (Exchange):
             account['used'] = self.safe_float(balances['freezed'], lowercase, 0.0)
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         market = self.market(symbol)
@@ -14739,7 +14741,7 @@ class paymium (Exchange):
                 account['used'] = balances[locked]
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, market, params={}):
         orderbook = await self.publicGetDataIdDepth(self.extend({
@@ -14959,7 +14961,7 @@ class poloniex (Exchange):
             }
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetchFees(self, params={}):
         await self.load_markets()
@@ -15286,7 +15288,7 @@ class quadrigacx (Exchange):
                 'total': float(balances[lowercase + '_balance']),
             }
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         orderbook = await self.publicGetOrderBook(self.extend({
@@ -15483,7 +15485,7 @@ class quoine (Exchange):
                 'total': total,
             }
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -15693,7 +15695,7 @@ class southxchange (Exchange):
                 'total': total,
             }
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -15964,7 +15966,7 @@ class therock (Exchange):
                 'total': total,
             }
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -16200,7 +16202,7 @@ class vaultoro (Exchange):
                 'total': total,
             }
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -16433,7 +16435,7 @@ class virwox (Exchange):
                 'total': total,
             }
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetchMarketPrice(self, symbol):
         await self.load_markets()
@@ -16755,7 +16757,7 @@ class xbtce (Exchange):
                 'total': balance['Amount'],
             }
             result[uppercase] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -17007,7 +17009,7 @@ class yobit (Exchange):
             if account['total'] and account['free']:
                 account['used'] = account['total'] - account['free']
             result[currency] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
@@ -17307,7 +17309,7 @@ class zaif (Exchange):
                     account['total'] = balances['deposit'][currency]
                     account['used'] = account['total'] - account['free']
             result[uppercase] = account
-        return result
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, market, params={}):
         await self.load_markets()

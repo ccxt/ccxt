@@ -829,6 +829,22 @@ class Exchange {
         return $this->parse_order_book ($orderbook, $timestamp, $bids_key, $asks_key, $price_key, $amount_key);
     }
 
+    public function parse_balance ($balance) {
+        $currencies = array_keys ($this->omit (balance, 'info'));
+        $accounts = array ('free', 'used', 'total');
+        foreach ($accounts as $account) {
+            $balance[$account] = array ();
+            foreach ($currencies as $currency) {
+                $balance[$account][$currency] = $balance[$currency][$account];
+            }
+        }
+        return balance;
+    }
+
+    public function parseBalance ($balance) {
+        return $this->parse_balance ($balance);
+    }
+
     public function parse_trades ($trades, $market = null) {
         $result = array ();
         $array = array_values ($trades);
@@ -1177,7 +1193,7 @@ class _1broker extends Exchange {
         $total = floatval ($response['balance']);
         $result['BTC']['free'] = $total;
         $result['BTC']['total'] = $total;
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -1210,7 +1226,7 @@ class _1broker extends Exchange {
             'resolution' => 60,
             'limit' => 1,
         ));
-        $orderbook = $this->fetchOrderBook ($symbol);
+        $orderbook = $this->fetch_orderBook ($symbol);
         $ticker = $result['response'][0];
         $timestamp = $this->parse8601 ($ticker['date']);
         return array (
@@ -1362,7 +1378,7 @@ class cryptocapital extends Exchange {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($market, $params = array ()) {
@@ -1671,7 +1687,7 @@ class acx extends Exchange {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$uppercase] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -1949,7 +1965,7 @@ class anxpro extends Exchange {
             }
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($market, $params = array ()) {
@@ -2214,7 +2230,7 @@ class binance extends Exchange {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -2549,7 +2565,7 @@ class bit2c extends Exchange {
             }
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($market, $params = array ()) {
@@ -2737,7 +2753,7 @@ class bitbay extends Exchange {
             }
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($market, $params = array ()) {
@@ -2938,7 +2954,7 @@ class bitcoincoid extends Exchange {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -3170,7 +3186,7 @@ class bitfinex extends Exchange {
                 $result[$uppercase] = $account;
             }
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -3545,7 +3561,7 @@ class bitfinex2 extends bitfinex {
                 $account['used'] = $account['total'] - $account['free'];
             $result[$uppercase] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -3803,7 +3819,7 @@ class bitflyer extends Exchange {
             }
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -4014,7 +4030,7 @@ class bithumb extends Exchange {
             $account['free'] = $this->safe_float ($balances, 'available_' . $lowercase);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -4388,7 +4404,7 @@ class bitlish extends Exchange {
             }
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function sign_in () {
@@ -4574,7 +4590,7 @@ class bitmarket extends Exchange {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -4906,7 +4922,7 @@ class bitmex extends Exchange {
             $account['used'] = $account['total'] - $account['free'];
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -5211,7 +5227,7 @@ class bitso extends Exchange {
             );
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -5480,7 +5496,7 @@ class bitstamp1 extends Exchange {
             $account['total'] = $this->safe_float ($balance, $total, 0.0);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -5728,7 +5744,7 @@ class bitstamp extends Exchange {
                 $account['total'] = floatval ($balance[$total]);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -5947,7 +5963,7 @@ class bittrex extends Exchange {
             }
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($market, $params = array ()) {
@@ -6279,6 +6295,7 @@ class blinktrade extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
+        // todo parse balance
         return $this->privatePostU2 (array (
             'BalanceReqID' => $this->nonce (),
         ));
@@ -6483,7 +6500,7 @@ class bl3p extends Exchange {
             }
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function parse_bidask ($bidask, $priceKey = 0, $amountKey = 0) {
@@ -6758,7 +6775,7 @@ class btcchina extends Exchange {
             $account['free'] = $account['total'] - $account['used'];
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function createMarketRequest ($market) {
@@ -7041,7 +7058,7 @@ class btcmarkets extends Exchange {
             );
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -7245,7 +7262,7 @@ class btctrader extends Exchange {
         $market = $this->markets[$symbol];
         $result[$market['base']] = $base;
         $result[$market['quote']] = $quote;
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -7473,7 +7490,7 @@ class btctradeua extends Exchange {
                 );
             }
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -7503,7 +7520,7 @@ class btctradeua extends Exchange {
         $response = $this->publicGetJapanStatHighSymbol (array (
             'symbol' => $this->market_id ($symbol),
         ));
-        $orderbook = $this->fetchOrderBook ($symbol);
+        $orderbook = $this->fetch_orderBook ($symbol);
         $bid = null;
         $numBids = count ($orderbook['bids']);
         if ($numBids > 0)
@@ -7703,7 +7720,7 @@ class btcx extends Exchange {
             );
             $result[$uppercase] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -7905,7 +7922,7 @@ class bter extends Exchange {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$code] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -8153,7 +8170,7 @@ class bxinth extends Exchange {
             $account['used'] = $account['total'] - $account['free'];
             $result[$code] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -8382,7 +8399,7 @@ class ccex extends Exchange {
             );
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -8619,7 +8636,7 @@ class cex extends Exchange {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -8848,7 +8865,7 @@ class chbtc extends Exchange {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -9115,7 +9132,7 @@ class coincheck extends Exchange {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -9286,6 +9303,7 @@ class coinfloor extends Exchange {
             $symbol = $params['id'];
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchBalance requires a $symbol param');
+        // todo parse balance
         return $this->privatePostIdBalance (array (
             'id' => $this->market_id ($symbol),
         ));
@@ -9463,7 +9481,7 @@ class coingi extends Exchange {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -9516,7 +9534,7 @@ class coingi extends Exchange {
     }
 
     public function fetch_ticker ($symbol) {
-        $tickers = $this->fetchTickers ($symbol);
+        $tickers = $this->fetch_tickers ($symbol);
         return $tickers[$symbol];
     }
 
@@ -9823,7 +9841,7 @@ class coinmate extends Exchange {
             }
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -10118,7 +10136,7 @@ class coinsecure extends Exchange {
             'BTC' => $coin,
             'INR' => $fiat,
         );
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($market, $params = array ()) {
@@ -10276,7 +10294,7 @@ class coinspot extends Exchange {
                 $result[$uppercase] = $account;
             }
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -10537,7 +10555,7 @@ class cryptopia extends Exchange {
             $account['used'] = $account['total'] - $account['free'];
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
@@ -10760,7 +10778,7 @@ class dsx extends Exchange {
             $account['used'] = $account['total'] - $account['free'];
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -10950,7 +10968,7 @@ class exmo extends Exchange {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -11167,7 +11185,7 @@ class flowbtc extends Exchange {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -11367,7 +11385,7 @@ class fyb extends Exchange {
             'total' => $fiat,
         );
         $accounts['info'] = $balance;
-        return $accounts;
+        return $this->parse_balance (result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -11724,7 +11742,7 @@ class gatecoin extends Exchange {
             );
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -12018,7 +12036,7 @@ class gdax extends Exchange {
             );
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($market, $params = array ()) {
@@ -12350,7 +12368,7 @@ class gemini extends Exchange {
             $account['used'] = $account['total'] - $account['free'];
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -12519,7 +12537,7 @@ class hitbtc extends Exchange {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -12808,7 +12826,7 @@ class hitbtc2 extends hitbtc {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -13200,7 +13218,7 @@ class huobi1 extends Exchange {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -13417,7 +13435,7 @@ class huobi extends Exchange {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -13660,7 +13678,7 @@ class independentreserve extends Exchange {
             $account['used'] = $account['total'] - $account['free'];
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -13929,7 +13947,7 @@ class itbit extends Exchange {
             $account['used'] = $account['total'] - $account['free'];
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetchWallets () {
@@ -14089,7 +14107,7 @@ class jubi extends Exchange {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -14486,7 +14504,7 @@ class kraken extends Exchange {
             );
             $result[$code] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -14720,7 +14738,7 @@ class lakebtc extends Exchange {
             );
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($market, $params = array ()) {
@@ -14948,7 +14966,7 @@ class livecoin extends Exchange {
                 $account['used'] = floatval ($balance['value']);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -15199,7 +15217,7 @@ class liqui extends Exchange {
             );
             $result[$uppercase] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -15263,7 +15281,7 @@ class liqui extends Exchange {
         $this->load_markets ();
         $market = $this->market ($symbol);
         $id = $market['id'];
-        $tickers = $this->fetchTickers (array ($id));
+        $tickers = $this->fetch_tickers (array ($id));
         return $tickers[$symbol];
     }
 
@@ -15563,7 +15581,7 @@ class luno extends Exchange {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -15828,7 +15846,7 @@ class mercado extends Exchange {
             }
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -15941,7 +15959,7 @@ class mixcoins extends Exchange {
             }
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -16204,7 +16222,7 @@ class nova extends Exchange {
             );
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -16481,7 +16499,7 @@ class okcoin extends Exchange {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -16718,7 +16736,7 @@ class paymium extends Exchange {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($market, $params = array ()) {
@@ -16951,7 +16969,7 @@ class poloniex extends Exchange {
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetchFees ($params = array ()) {
@@ -17307,7 +17325,7 @@ class quadrigacx extends Exchange {
             );
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -17516,7 +17534,7 @@ class quoine extends Exchange {
             );
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -17743,7 +17761,7 @@ class southxchange extends Exchange {
             );
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -18029,7 +18047,7 @@ class therock extends Exchange {
             );
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -18280,7 +18298,7 @@ class vaultoro extends Exchange {
             );
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -18525,7 +18543,7 @@ class virwox extends Exchange {
             );
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetchMarketPrice ($symbol) {
@@ -18861,7 +18879,7 @@ class xbtce extends Exchange {
             );
             $result[$uppercase] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -19135,7 +19153,7 @@ class yobit extends Exchange {
                 $account['used'] = $account['total'] - $account['free'];
             $result[$currency] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
@@ -19450,7 +19468,7 @@ class zaif extends Exchange {
             }
             $result[$uppercase] = $account;
         }
-        return $result;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($market, $params = array ()) {

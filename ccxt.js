@@ -741,6 +741,17 @@ const Exchange = function (config) {
         };
     },
 
+    this.parseBalance = function (balance) {
+        const currencies = Object.keys (this.omit (balance, 'info'));
+        [ 'free', 'used', 'total' ].forEach (account => {
+            balance[account] = {}
+            currencies.forEach (currency => {
+                balance[account][currency] = balance[currency][account]
+            })
+        })
+        return balance;
+    },
+
     this.parseTrades = function (trades, market = undefined) {
         return Object.values (trades).map (trade => this.parseTrade (trade, market))
     }
@@ -864,6 +875,7 @@ const Exchange = function (config) {
     this.fetch_markets            = this.fetchMarkets
     this.load_markets             = this.loadMarkets
     this.set_markets              = this.setMarkets
+    this.parse_balance            = this.parseBalance
     this.parse_bidask             = this.parseBidAsk
     this.parse_bidasks            = this.parseBidAsks
     this.parse_order_book         = this.parseOrderBook
@@ -1001,7 +1013,7 @@ var _1broker = {
         let total = parseFloat (response['balance']);
         result['BTC']['free'] = total;
         result['BTC']['total'] = total;
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -1182,7 +1194,7 @@ var cryptocapital = {
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (market, params = {}) {
@@ -1483,7 +1495,7 @@ var acx = {
             account['total'] = this.sum (account['free'], account['used']);
             result[uppercase] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -1757,7 +1769,7 @@ var anxpro = {
             }
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (market, params = {}) {
@@ -2018,7 +2030,7 @@ var binance = {
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -2349,7 +2361,7 @@ var bit2c = {
             }
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (market, params = {}) {
@@ -2533,7 +2545,7 @@ var bitbay = {
             }
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (market, params = {}) {
@@ -2730,7 +2742,7 @@ var bitcoincoid = {
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -2958,7 +2970,7 @@ var bitfinex = {
                 result[uppercase] = account;
             }
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -3329,7 +3341,7 @@ var bitfinex2 = extend (bitfinex, {
                 account['used'] = account['total'] - account['free'];
             result[uppercase] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -3583,7 +3595,7 @@ var bitflyer = {
             }
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -3790,7 +3802,7 @@ var bithumb = {
             account['free'] = this.safeFloat (balances, 'available_' + lowercase);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -4160,7 +4172,7 @@ var bitlish = {
             }
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     signIn () {
@@ -4342,7 +4354,7 @@ var bitmarket = {
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -4670,7 +4682,7 @@ var bitmex = {
             account['used'] = account['total'] - account['free'];
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -4971,7 +4983,7 @@ var bitso = {
             };
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -5236,7 +5248,7 @@ var bitstamp1 = {
             account['total'] = this.safeFloat (balance, total, 0.0);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -5480,7 +5492,7 @@ var bitstamp = {
                 account['total'] = parseFloat (balance[total]);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -5695,7 +5707,7 @@ var bittrex = {
             }
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (market, params = {}) {
@@ -6022,7 +6034,8 @@ var blinktrade = {
         'BTC/CLP': { 'id': 'BTCCLP', 'symbol': 'BTC/CLP', 'base': 'BTC', 'quote': 'CLP', 'brokerId': 9, 'broker': 'ChileBit' },
     },
 
-    async fetchBalance (params = {}) {
+    fetchBalance (params = {}) {
+        // todo parse balance
         return this.privatePostU2 ({
             'BalanceReqID': this.nonce (),
         });
@@ -6223,7 +6236,7 @@ var bl3p = {
             }
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 0) {
@@ -6490,7 +6503,7 @@ var btcchina = {
             account['free'] = account['total'] - account['used'];
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     createMarketRequest (market) {
@@ -6769,7 +6782,7 @@ var btcmarkets = {
             };
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -6969,7 +6982,7 @@ var btctrader = {
         let market = this.markets[symbol];
         result[market['base']] = base;
         result[market['quote']] = quote;
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -7189,7 +7202,7 @@ var btctradeua = {
                 };
             }
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -7411,7 +7424,7 @@ var btcx = {
             };
             result[uppercase] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -7608,7 +7621,7 @@ var bter = {
             account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -7852,7 +7865,7 @@ var bxinth = {
             account['used'] = account['total'] - account['free'];
             result[code] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -8077,7 +8090,7 @@ var ccex = {
             };
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -8310,7 +8323,7 @@ var cex = {
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -8534,7 +8547,7 @@ var chbtc = {
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -8792,7 +8805,7 @@ var coincheck = {
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -8951,7 +8964,7 @@ var coinfloor = {
         'BCH/GBP': { 'id': 'BCH/GBP', 'symbol': 'BCH/GBP', 'base': 'BCH', 'quote': 'GBP' },
     },
 
-    async fetchBalance (params = {}) {
+    fetchBalance (params = {}) {
         let symbol = undefined;
         if ('symbol' in params)
             symbol = params['symbol'];
@@ -8959,6 +8972,7 @@ var coinfloor = {
             symbol = params['id'];
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchBalance requires a symbol param');
+        // todo parse balance
         return this.privatePostIdBalance ({
             'id': this.marketId (symbol),
         });
@@ -9132,7 +9146,7 @@ var coingi = {
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -9484,7 +9498,7 @@ var coinmate = {
             }
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -9775,7 +9789,7 @@ var coinsecure = {
             'BTC': coin,
             'INR': fiat,
         };
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (market, params = {}) {
@@ -9929,7 +9943,7 @@ var coinspot = {
                 result[uppercase] = account;
             }
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -10186,7 +10200,7 @@ var cryptopia = {
             account['used'] = account['total'] - account['free'];
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
@@ -10405,7 +10419,7 @@ var dsx = {
             account['used'] = account['total'] - account['free'];
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -10591,7 +10605,7 @@ var exmo = {
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -10804,7 +10818,7 @@ var flowbtc = {
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -10995,7 +11009,7 @@ var fyb = {
             'total': fiat,
         };
         accounts['info'] = balance;
-        return accounts;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -11338,7 +11352,7 @@ var gatecoin = {
             };
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -11627,7 +11641,7 @@ var gdax = {
             };
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (market, params = {}) {
@@ -11954,7 +11968,7 @@ var gemini = {
             account['used'] = account['total'] - account['free'];
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -12119,7 +12133,7 @@ var hitbtc = {
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -12404,7 +12418,7 @@ var hitbtc2 = extend (hitbtc, {
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -12792,7 +12806,7 @@ var huobi1 = {
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -12997,7 +13011,7 @@ var huobi = {
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -13236,7 +13250,7 @@ var independentreserve = {
             account['used'] = account['total'] - account['free'];
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -13502,7 +13516,7 @@ var itbit = {
             account['used'] = account['total'] - account['free'];
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     fetchWallets () {
@@ -13658,7 +13672,7 @@ var jubi = {
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -14052,7 +14066,7 @@ var kraken = {
             };
             result[code] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -14282,7 +14296,7 @@ var lakebtc = {
             };
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (market, params = {}) {
@@ -14506,7 +14520,7 @@ var livecoin = {
                 account['used'] = parseFloat (balance['value']);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -14752,7 +14766,7 @@ var liqui = {
             };
             result[uppercase] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -15112,7 +15126,7 @@ var luno = {
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -15373,7 +15387,7 @@ var mercado = {
             }
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -15482,7 +15496,7 @@ var mixcoins = {
             }
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -15741,7 +15755,7 @@ var nova = {
             };
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -16022,7 +16036,7 @@ var okcoin = {
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -16240,7 +16254,7 @@ var paymium = {
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (market, params = {}) {
@@ -16469,7 +16483,7 @@ var poloniex = {
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchFees (params = {}) {
@@ -16821,7 +16835,7 @@ var quadrigacx = {
             };
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -17026,7 +17040,7 @@ var quoine = {
             };
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -17249,7 +17263,7 @@ var southxchange = {
             };
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -17521,7 +17535,7 @@ var therock = {
             };
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -17763,7 +17777,7 @@ var vaultoro = {
             };
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -18000,7 +18014,7 @@ var virwox = {
             };
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchMarketPrice (symbol) {
@@ -18328,7 +18342,7 @@ var xbtce = {
             };
             result[uppercase] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -18598,7 +18612,7 @@ var yobit = {
                 account['used'] = account['total'] - account['free'];
             result[currency] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (symbol, params = {}) {
@@ -18905,7 +18919,7 @@ var zaif = {
             }
             result[uppercase] = account;
         }
-        return result;
+        return this.parseBalance (result);
     },
 
     async fetchOrderBook (market, params = {}) {

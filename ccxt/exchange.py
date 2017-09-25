@@ -696,6 +696,14 @@ class Exchange(object):
             'datetime': self.iso8601(timestamp),
         }
 
+    def parse_balance(self, balance):
+        currencies = self.omit(balance, 'info').keys ()
+        for account in [ 'free', 'used', 'total' ]:
+            balance[account] = {}
+            for currency in currencies:
+                balance[account][currency] = balance[currency][account]
+        return balance
+
     def parseOrderBook(self, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
         return self.parse_order_book(orderbook, timestamp, bids_key, asks_key, price_key, amount_key)
 
@@ -739,6 +747,9 @@ class Exchange(object):
 
     def fetchBalance(self, params={}):
         return self.fetch_balance(params)
+
+    def parseBalance(self, balance):
+        return self.parse_balance(balance)
 
     def fetchOrderBook(self, symbol):
         return self.fetch_order_book(symbol)

@@ -108,6 +108,7 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('parseOHLCV',        'parse_ohlcv')
                         .replace ('fetchTickers',      'fetch_tickers')
                         .replace ('fetchTicker',       'fetch_ticker')
+                        .replace ('parseBalance',      'parse_balance')
                         .replace ('parseTicker',       'parse_ticker')
                         .replace ('parseTradesData',   'parse_trades_data')
                         .replace ('parseTrades',       'parse_trades')
@@ -165,8 +166,9 @@ while (exchanges = regex.exec (contents)) {
             [ /\.binaryToString\s/g, '.binary_to_string' ],
             [ /\.implodeParams\s/g, '.implode_params'],
             [ /\.extractParams\s/g, '.extract_params'],
-            [ /\.parseOHLCVs/g, '.parse_ohlcvs'],
-            [ /\.parseOHLCV/g, '.parse_ohlcv'],
+            [ /\.parseBalance\s/g, '.parse_balance'],
+            [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
+            [ /\.parseOHLCV\s/g, '.parse_ohlcv'],
             [ /\.parseTicker\s/g, '.parse_ticker'],
             [ /\.parseTradesData\s/g, '.parse_trades_data'],
             [ /\.parseTrades\s/g, '.parse_trades'],
@@ -273,6 +275,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.binaryToString/g, '.binary_to_string' ],
             [ /\.implodeParams/g, '.implode_params'],
             [ /\.extractParams/g, '.extract_params'],
+            [ /\.parseBalance/g, '.parse_balance'],
             [ /\.indexBy/g, '.index_by'],
             [ /\.sortBy/g, '.sort_by'],
             [ /\.marketIds/g, '.market_ids'],
