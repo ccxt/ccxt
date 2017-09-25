@@ -830,7 +830,7 @@ class Exchange {
     }
 
     public function parse_balance ($balance) {
-        $currencies = array_keys ($this->omit (balance, 'info'));
+        $currencies = array_keys ($this->omit ($balance, 'info'));
         $accounts = array ('free', 'used', 'total');
         foreach ($accounts as $account) {
             $balance[$account] = array ();
@@ -838,7 +838,7 @@ class Exchange {
                 $balance[$account][$currency] = $balance[$currency][$account];
             }
         }
-        return balance;
+        return $balance;
     }
 
     public function parseBalance ($balance) {
