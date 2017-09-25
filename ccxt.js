@@ -11002,13 +11002,13 @@ var fyb = {
             'used': 0.0,
             'total': btc,
         };
-        let accounts = { 'BTC': crypto };
-        accounts[quote] = {
+        let result = { 'BTC': crypto };
+        result[quote] = {
             'free': fiat,
             'used': 0.0,
             'total': fiat,
         };
-        accounts['info'] = balance;
+        result['info'] = balance;
         return this.parseBalance (result);
     },
 

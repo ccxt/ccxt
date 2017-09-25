@@ -11378,14 +11378,14 @@ class fyb extends Exchange {
             'used' => 0.0,
             'total' => $btc,
         );
-        $accounts = array ( 'BTC' => $crypto );
-        $accounts[$quote] = array (
+        $result = array ( 'BTC' => $crypto );
+        $result[$quote] = array (
             'free' => $fiat,
             'used' => 0.0,
             'total' => $fiat,
         );
-        $accounts['info'] = $balance;
-        return $this->parse_balance (result);
+        $result['info'] = $balance;
+        return $this->parse_balance ($result);
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {

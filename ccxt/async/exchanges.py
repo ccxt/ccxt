@@ -9711,13 +9711,13 @@ class fyb (Exchange):
             'used': 0.0,
             'total': btc,
         }
-        accounts = {'BTC': crypto}
-        accounts[quote] = {
+        result = {'BTC': crypto}
+        result[quote] = {
             'free': fiat,
             'used': 0.0,
             'total': fiat,
         }
-        accounts['info'] = balance
+        result['info'] = balance
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
