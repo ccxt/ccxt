@@ -7976,7 +7976,7 @@ class coingi (Exchange):
         return result
 
     async def fetch_ticker(self, symbol):
-        tickers = await self.fetchTickers(symbol)
+        tickers = await self.fetch_tickers(symbol)
         return tickers[symbol]
 
     def parse_trade(self, trade, market=None):
@@ -13374,7 +13374,7 @@ class liqui (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         id = market['id']
-        tickers = await self.fetchTickers([id])
+        tickers = await self.fetch_tickers([id])
         return tickers[symbol]
 
     def parse_trade(self, trade, market):

@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.19';
+$version = '1.8.20';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -1210,7 +1210,7 @@ class _1broker extends Exchange {
             'resolution' => 60,
             'limit' => 1,
         ));
-        $orderbook = $this->fetchOrderBook ($symbol);
+        $orderbook = $this->fetch_orderBook ($symbol);
         $ticker = $result['response'][0];
         $timestamp = $this->parse8601 ($ticker['date']);
         return array (
@@ -7503,7 +7503,7 @@ class btctradeua extends Exchange {
         $response = $this->publicGetJapanStatHighSymbol (array (
             'symbol' => $this->market_id ($symbol),
         ));
-        $orderbook = $this->fetchOrderBook ($symbol);
+        $orderbook = $this->fetch_orderBook ($symbol);
         $bid = null;
         $numBids = count ($orderbook['bids']);
         if ($numBids > 0)
@@ -9516,7 +9516,7 @@ class coingi extends Exchange {
     }
 
     public function fetch_ticker ($symbol) {
-        $tickers = $this->fetchTickers ($symbol);
+        $tickers = $this->fetch_tickers ($symbol);
         return $tickers[$symbol];
     }
 
@@ -15263,7 +15263,7 @@ class liqui extends Exchange {
         $this->load_markets ();
         $market = $this->market ($symbol);
         $id = $market['id'];
-        $tickers = $this->fetchTickers (array ($id));
+        $tickers = $this->fetch_tickers (array ($id));
         return $tickers[$symbol];
     }
 

@@ -8065,7 +8065,7 @@ class coingi (Exchange):
         return result
 
     def fetch_ticker(self, symbol):
-        tickers = self.fetchTickers(symbol)
+        tickers = self.fetch_tickers(symbol)
         return tickers[symbol]
 
     def parse_trade(self, trade, market=None):
@@ -13463,7 +13463,7 @@ class liqui (Exchange):
         self.load_markets()
         market = self.market(symbol)
         id = market['id']
-        tickers = self.fetchTickers([id])
+        tickers = self.fetch_tickers([id])
         return tickers[symbol]
 
     def parse_trade(self, trade, market):
