@@ -2076,7 +2076,7 @@ class binance extends Exchange {
             'hasFetchOHLCV' => true,
             'hasFetchMyTrades' => true,
             'hasFetchOrder' => true,
-            'hasFetchOrders' => false,
+            'hasFetchOrders' => true,
             'hasFetchOpenOrders' => true,
             'timeframes' => array (
                 '1m' => '1m',
@@ -2398,31 +2398,25 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_order ($id, $params = array ()) {
-        $symbol = (array_key_exists ('symbol', $params));
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol param');
-        $symbol = $params['symbol'];
         $market = $this->market ($symbol);
-        $query = $this->omit ($params, 'symbol');
         $response = $this->privateGetOrder (array_merge (array (
             'symbol' => $market['id'],
             'orderId' => (string) $id,
-        ), $query));
+        ), $params));
         return $this->parse_order ($response, $market);
     }
 
-    public function fetch_orders ($params = array ()) {
-        if (array_key_exists ('symbol', $params)) {
-            $symbol = $params['symbol'];
-            $market = $this->market ($symbol);
-            $query = $this->omit ($params, 'symbol');
-            $response = $this->privateGetAllOrders (array_merge (array (
-                'symbol' => $market['id'],
-            ), $query));
-            return $this->parse_orders ($response, $market);
-        }
-        throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol param');
+    public function fetch_orders ($symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol param');
+        $market = $this->market ($symbol);
+        $response = $this->privateGetAllOrders (array_merge (array (
+            'symbol' => $market['id'],
+        ), $params));
+        return $this->parse_orders ($response, $market);
     }
 
     public function fetch_open_orders ($symbol = null, $params = array ()) {
@@ -15105,6 +15099,7 @@ class liqui extends Exchange {
             'version' => '3',
             'hasCORS' => false,
             'hasFetchTickers' => true,
+            'hasFetchMyTrades' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
                 'api' => array (
@@ -15274,16 +15269,34 @@ class liqui extends Exchange {
 
     public function parse_trade ($trade, $market) {
         $timestamp = $trade['timestamp'] * 1000;
-        $side = ($trade['type'] == 'ask') ? 'sell' : 'buy';
+        $side = $trade['type'];
+        if ($side == 'ask')
+            $side = 'sell';
+        if ($side  == 'bid')
+            $side = 'buy';
+        $price = null;
+        if (array_key_exists ('price', $trade))
+            $price = $this->safe_float ($trade, 'price');
+        if (array_key_exists ('rate', $trade))
+            $price = $this->safe_float ($trade, 'rate');
+        $id = null;
+        if (array_key_exists ('tid', $trade))
+            $id = (string) $trade['tid'];
+        if (array_key_exists ('trade_id', $trade))
+            $id = (string) $trade['trade_id'];
+        $order = null;
+        if (array_key_exists ('order_id', $trade))
+            $order = (string) $trade['order_id'];
         return array (
-            'id' => $trade['tid'],
+            'id' => $id,
+            'order' => $order,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
-            'type' => null,
+            'type' => 'limit',
             'side' => $side,
-            'price' => $trade['price'],
+            'price' => $price,
             'amount' => $trade['amount'],
         );
     }
@@ -15358,9 +15371,11 @@ class liqui extends Exchange {
         return $result;
     }
 
-    public function fetch_order ($id) {
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
-        $response = $this->privatePostOrderInfo (array ( 'order_id' => $id ));
+        $response = $this->privatePostOrderInfo (array_merge (array (
+            'order_id' => $id,
+        ), $params));
         $order = $response['return'][$id];
         return $this->parse_order (array_merge (array ( 'id' => $id ), $order));
     }
@@ -15375,6 +15390,27 @@ class liqui extends Exchange {
         );
         $response = $this->privatePostActiveOrders (array_merge ($request, $params));
         return $this->parse_orders ($response['return'], $market);
+    }
+
+    public function fetch_my_trades ($symbol = null, $params = array ()) {
+        $this->load_markets ();
+        $request = array_merge (array (
+            // 'from' => 123456789, // trade ID, from which the display starts numerical 0
+            'count' => 1000, // the number of trades for display numerical, default = 1000
+            // 'from_id' => trade ID, from which the display starts numerical 0
+            // 'end_id' => trade ID on which the display ends numerical ∞
+            // 'order' => 'ASC', // sorting, default = DESC
+            // 'since' => 1234567890, // UTC start time, default = 0
+            // 'end' => 1234567890, // UTC end time, default = ∞
+            // 'pair' => 'eth_btc', // default = all markets
+        ), $params);
+        $market = null;
+        if ($symbol) {
+            $market = $this->market ($symbol);
+            $request['pair'] = $market['id'];
+        }
+        $response = $this->privatePostTradeHistory ($request);
+        return $this->parse_trades ($response['return'], $market);
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {

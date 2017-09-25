@@ -1882,7 +1882,7 @@ var binance = {
     'hasFetchOHLCV': true,
     'hasFetchMyTrades': true,
     'hasFetchOrder': true,
-    'hasFetchOrders': false,
+    'hasFetchOrders': true,
     'hasFetchOpenOrders': true,
     'timeframes': {
         '1m': '1m',
@@ -2202,31 +2202,25 @@ var binance = {
         };
     },
 
-    async fetchOrder (id, params = {}) {
-        let symbol = ('symbol' in params);
+    async fetchOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol param');
-        symbol = params['symbol'];
         let market = this.market (symbol);
-        let query = this.omit (params, 'symbol');
         let response = await this.privateGetOrder (this.extend ({
             'symbol': market['id'],
             'orderId': id.toString (),
-        }, query));
+        }, params));
         return this.parseOrder (response, market);
     },
 
-    async fetchOrders (params = {}) {
-        if ('symbol' in params) {
-            let symbol = params['symbol'];
-            let market = this.market (symbol);
-            let query = this.omit (params, 'symbol');
-            let response = await this.privateGetAllOrders (this.extend ({
-                'symbol': market['id'],
-            }, query));
-            return this.parseOrders (response, market);
-        }
-        throw new ExchangeError (this.id + ' fetchOrders requires a symbol param');
+    async fetchOrders (symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOrders requires a symbol param');
+        let market = this.market (symbol);
+        let response = await this.privateGetAllOrders (this.extend ({
+            'symbol': market['id'],
+        }, params));
+        return this.parseOrders (response, market);
     },
 
     async fetchOpenOrders (symbol = undefined, params = {}) {
@@ -14660,6 +14654,7 @@ var liqui = {
     'version': '3',
     'hasCORS': false,
     'hasFetchTickers': true,
+    'hasFetchMyTrades': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
         'api': {
@@ -14827,16 +14822,34 @@ var liqui = {
 
     parseTrade (trade, market) {
         let timestamp = trade['timestamp'] * 1000;
-        let side = (trade['type'] == 'ask') ? 'sell' : 'buy';
+        let side = trade['type'];
+        if (side == 'ask')
+            side = 'sell';
+        if (side  == 'bid')
+            side = 'buy';
+        let price = undefined;
+        if ('price' in trade)
+            price = this.safeFloat (trade, 'price');
+        if ('rate' in trade)
+            price = this.safeFloat (trade, 'rate');
+        let id = undefined;
+        if ('tid' in trade)
+            id = trade['tid'].toString ();
+        if ('trade_id' in trade)
+            id = trade['trade_id'].toString ();
+        let order = undefined;
+        if ('order_id' in trade)
+            order = trade['order_id'].toString ();
         return {
-            'id': trade['tid'],
+            'id': id,
+            'order': order,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'type': undefined,
+            'type': 'limit',
             'side': side,
-            'price': trade['price'],
+            'price': price,
             'amount': trade['amount'],
         };
     },
@@ -14911,9 +14924,11 @@ var liqui = {
         return result;
     },
 
-    async fetchOrder (id) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostOrderInfo ({ 'order_id': id });
+        let response = await this.privatePostOrderInfo (this.extend ({
+            'order_id': id,
+        }, params));
         let order = response['return'][id];
         return this.parseOrder (this.extend ({ 'id': id }, order));
     },
@@ -14928,6 +14943,27 @@ var liqui = {
         };
         let response = await this.privatePostActiveOrders (this.extend (request, params));
         return this.parseOrders (response['return'], market);
+    },
+
+    async fetchMyTrades (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = this.extend ({
+            // 'from': 123456789, // trade ID, from which the display starts numerical 0
+            'count': 1000, // the number of trades for display numerical, default = 1000
+            // 'from_id': trade ID, from which the display starts numerical 0
+            // 'end_id': trade ID on which the display ends numerical ∞
+            // 'order': 'ASC', // sorting, default = DESC
+            // 'since': 1234567890, // UTC start time, default = 0
+            // 'end': 1234567890, // UTC end time, default = ∞
+            // 'pair': 'eth_btc', // default = all markets
+        }, params);
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+            request['pair'] = market['id'];
+        }
+        let response = await this.privatePostTradeHistory (request);
+        return this.parseTrades (response['return'], market);
     },
 
     async withdraw (currency, amount, address, params = {}) {

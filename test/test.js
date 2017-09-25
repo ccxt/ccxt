@@ -216,23 +216,35 @@ let testSymbol = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
-let testFetchOrders = async (exchange) => {
+let testOrders = async (exchange, symbol) => {
 
-    try {
+    if (exchange.hasFetchOrders) {
 
         log ('fetching orders...')
-        let orders = await exchange.fetchOrders ()
+        let orders = await exchange.fetchOrders (symbol)
         log ('fetched', orders.length.toString ().green, 'orders')
+        log (asTable (orders))
 
-    } catch (e) {
+    } else {
 
-        if (e instanceof ccxt.ExchangeError) {
-            warn ('[Exchange Error] ' + e.message)
-        } else if (e instanceof ccxt.NotSupported) {
-            warn ('[Not Supported] ' + e.message)
-        } else {
-            throw e;
-        }
+        log ('fetching orders not supported')
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+let testMyTrades = async (exchange, symbol) => {
+
+    if (exchange.hasFetchMyTrades) {
+
+        log ('fetching my trades...')
+        let trades = await exchange.fetchMyTrades (symbol)
+        log ('fetched', trades.length.toString ().green, 'trades')
+        log (asTable (trades))
+
+    } else {
+
+        log ('fetching trades not supported')
     }
 }
 
@@ -355,16 +367,10 @@ let testExchange = async exchange => {
     if (exchange.urls['test'])
         exchange.urls['api'] = exchange.urls['test'];
 
-    await testBalance (exchange)
+    await testBalance  (exchange)
+    await testOrders   (exchange, symbol)
+    await testMyTrades (exchange, symbol)
 
-    if (exchange.hasFetchOrders) {
-
-            await testFetchOrders (exchange);
-
-    } else {
-
-        log ('fetching orders not supported')
-    }
 
     // try {
     //     let marketSellOrder =

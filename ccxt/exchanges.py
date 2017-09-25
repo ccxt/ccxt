@@ -1108,7 +1108,7 @@ class binance (Exchange):
             'hasFetchOHLCV': True,
             'hasFetchMyTrades': True,
             'hasFetchOrder': True,
-            'hasFetchOrders': False,
+            'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
             'timeframes': {
                 '1m': '1m',
@@ -1414,29 +1414,24 @@ class binance (Exchange):
             'id': str(response['orderId']),
         }
 
-    def fetch_order(self, id, params={}):
-        symbol = ('symbol' in list(params.keys()))
+    def fetch_order(self, id, symbol=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOrder requires a symbol param')
-        symbol = params['symbol']
         market = self.market(symbol)
-        query = self.omit(params, 'symbol')
         response = self.privateGetOrder(self.extend({
             'symbol': market['id'],
             'orderId': str(id),
-        }, query))
+        }, params))
         return self.parse_order(response, market)
 
-    def fetch_orders(self, params={}):
-        if 'symbol' in params:
-            symbol = params['symbol']
-            market = self.market(symbol)
-            query = self.omit(params, 'symbol')
-            response = self.privateGetAllOrders(self.extend({
-                'symbol': market['id'],
-            }, query))
-            return self.parse_orders(response, market)
-        raise ExchangeError(self.id + ' fetchOrders requires a symbol param')
+    def fetch_orders(self, symbol=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchOrders requires a symbol param')
+        market = self.market(symbol)
+        response = self.privateGetAllOrders(self.extend({
+            'symbol': market['id'],
+        }, params))
+        return self.parse_orders(response, market)
 
     def fetch_open_orders(self, symbol=None, params={}):
         if not symbol:
@@ -13313,6 +13308,7 @@ class liqui (Exchange):
             'version': '3',
             'hasCORS': False,
             'hasFetchTickers': True,
+            'hasFetchMyTrades': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
                 'api': {
@@ -13472,16 +13468,34 @@ class liqui (Exchange):
 
     def parse_trade(self, trade, market):
         timestamp = trade['timestamp'] * 1000
-        side = 'sell' if(trade['type'] == 'ask') else 'buy'
+        side = trade['type']
+        if side == 'ask':
+            side = 'sell'
+        if side  == 'bid':
+            side = 'buy'
+        price = None
+        if 'price' in trade:
+            price = self.safe_float(trade, 'price')
+        if 'rate' in trade:
+            price = self.safe_float(trade, 'rate')
+        id = None
+        if 'tid' in trade:
+            id = str(trade['tid'])
+        if 'trade_id' in trade:
+            id = str(trade['trade_id'])
+        order = None
+        if 'order_id' in trade:
+            order = str(trade['order_id'])
         return {
-            'id': trade['tid'],
+            'id': id,
+            'order': order,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
-            'type': None,
+            'type': 'limit',
             'side': side,
-            'price': trade['price'],
+            'price': price,
             'amount': trade['amount'],
         }
 
@@ -13548,9 +13562,11 @@ class liqui (Exchange):
             result.append(self.parse_order(extended, market))
         return result
 
-    def fetch_order(self, id):
+    def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privatePostOrderInfo({'order_id': id})
+        response = self.privatePostOrderInfo(self.extend({
+            'order_id': id,
+        }, params))
         order = response['return'][id]
         return self.parse_order(self.extend({'id': id}, order))
 
@@ -13564,6 +13580,25 @@ class liqui (Exchange):
         }
         response = self.privatePostActiveOrders(self.extend(request, params))
         return self.parse_orders(response['return'], market)
+
+    def fetch_my_trades(self, symbol=None, params={}):
+        self.load_markets()
+        request = self.extend({
+            # 'from': 123456789, # trade ID, from which the display starts numerical 0
+            'count': 1000, # the number of trades for display numerical, default = 1000
+            # 'from_id': trade ID, from which the display starts numerical 0
+            # 'end_id': trade ID on which the display ends numerical ∞
+            # 'order': 'ASC', # sorting, default = DESC
+            # 'since': 1234567890, # UTC start time, default = 0
+            # 'end': 1234567890, # UTC end time, default = ∞
+            # 'pair': 'eth_btc', # default = all markets
+        }, params)
+        market = None
+        if symbol:
+            market = self.market(symbol)
+            request['pair'] = market['id']
+        response = self.privatePostTradeHistory(request)
+        return self.parse_trades(response['return'], market)
 
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()
