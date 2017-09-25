@@ -32,7 +32,7 @@ const keys = {
 
 let exchanges = []
 let symbol = 'all'
-let maxConcurrency = 10
+let maxConcurrency = Number.MAX_VALUE // no limit
 
 for (const arg of args) {
     if (arg.startsWith ('--'))               { keys[arg] = true }
@@ -97,6 +97,16 @@ const exec = (bin, ...args) =>
 
 /*  ------------------------------------------------------------------------ */
 
+// const execWithRetry = () => {
+
+//     // Sometimes execution (on a remote CI server) is just fails with no
+//     // apparent reason, leaving an empty stdout/stderr behind. I suspect
+//     // it's related to out-of-memory errors. So in that case we will re-try
+//     // until it eventually finalizes.
+// }
+
+/*  ------------------------------------------------------------------------ */
+
 let numExchangesTested = 0
 
 /*  Tests of different languages for the same exchange should be run
@@ -129,9 +139,9 @@ const testExchange = async (exchange) => {
         , selectedTests  = allTests.filter (t => keys[t.key])
         , scheduledTests = selectedTests.length ? selectedTests : allTests
         , completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await exec (...test.exec)))
-        , failed      = completeTests.find (test => test.failed)
-        , hasWarnings = completeTests.find (test => test.hasWarnings)
-        , warnings    = completeTests.reduce ((total, { warnings }) => total.concat (warnings), [])
+        , failed         = completeTests.find (test => test.failed)
+        , hasWarnings    = completeTests.find (test => test.hasWarnings)
+        , warnings       = completeTests.reduce ((total, { warnings }) => total.concat (warnings), [])
 
 /*  Print interactive log output    */
 
@@ -203,10 +213,6 @@ function TaskPool (maxConcurrency) {
 
 async function testAllExchanges () {
 
-    // NOTE: naive impl crashes with out-of-memory-error eventually (in Travis), so need some pooling...
-    //
-    // return Promise.all (exchanges.map (testExchange))
-
     const taskPool = TaskPool (maxConcurrency)
     const results = []
     
@@ -223,7 +229,9 @@ async function testAllExchanges () {
 
 (async function () {
 
-    log.bright.magenta.noPretty ('Testing'.white, { exchanges, symbol, keys, maxConcurrency })
+    log.bright.magenta.noPretty ('Testing'.white, Object.assign (
+                                                            { exchanges, symbol, keys },
+                                                            maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency }))
 
     const tested    = await testAllExchanges ()
         , warnings  = tested.filter (t => !t.failed && t.hasWarnings)
