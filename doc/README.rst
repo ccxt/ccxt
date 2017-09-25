@@ -466,35 +466,6 @@ Contributing
 
 Please read the `CONTRIBUTING <https://github.com/ccxt-dev/ccxt/blob/master/CONTRIBUTING.md>`__ document before making changes that you would like adopted in the code. Also, read the `Manual <https://github.com/ccxt-dev/ccxt/wiki>`__ for more details.
 
-Support CCXT Development
-------------------------
-
-BTC
-~~~
-
-::
-
-    1N1kptzFWbSLKLPJTNYDKq2FkTojb5s8qX
-
-.. figure:: https://user-images.githubusercontent.com/1294454/30524709-42654654-9c01-11e7-9145-92b9e8fa711c.jpg
-   :alt: Support CCXT Development BTC Wallet QR Code
-
-   Support CCXT Development BTC Wallet QR Code
-
---------------
-
-ETH
-~~~
-
-::
-
-    0x811DCfeb6dC0b9ed825808B6B060Ca469b83fB81
-
-.. figure:: https://user-images.githubusercontent.com/1294454/30524713-4c375f78-9c01-11e7-89de-eef9f941fa48.jpg
-   :alt: Support CCXT Development ETH Wallet QR Code
-
-   Support CCXT Development ETH Wallet QR Code
-
 .. |Build Status| image:: https://travis-ci.org/ccxt-dev/ccxt.svg?branch=master
    :target: https://travis-ci.org/ccxt-dev/ccxt
 .. |npm| image:: https://img.shields.io/npm/v/ccxt.svg
