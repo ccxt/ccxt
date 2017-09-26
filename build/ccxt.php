@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.26';
+$version = '1.8.27';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -14658,7 +14658,7 @@ class kraken extends Exchange {
             // 'userref' => 'optional', // restrict results to given user reference $id (optional)
         ), $params));
         $orders = $response['result'];
-        $order = $this->parse_order ($orders[$id]);
+        $order = $this->parse_order (array_merge (array ( 'id' => $id ), $orders[$id]));
         return array_merge (array ( 'info' => $response ), $order);
     }
 

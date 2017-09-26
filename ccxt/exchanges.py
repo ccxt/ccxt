@@ -12846,7 +12846,7 @@ class kraken (Exchange):
             # 'userref': 'optional', # restrict results to given user reference id(optional)
         }, params))
         orders = response['result']
-        order = self.parse_order(orders[id])
+        order = self.parse_order(self.extend({'id': id}, orders[id]))
         return self.extend({'info': response}, order)
 
     def fetch_my_trades(self, symbol=None, params={}):
