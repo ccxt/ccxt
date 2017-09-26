@@ -278,7 +278,7 @@ for (id, params) in tuples:
             setattr(exchanges[id], key, params[key])
 
 # move gdax to sandbox
-exchanges['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
+# exchanges['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
 
 # ------------------------------------------------------------------------------
 

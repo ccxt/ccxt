@@ -45,7 +45,7 @@ foreach ($config as $id => $params)
         if (array_key_exists ($id, $exchanges))
             $exchanges[$id]->$key = $value;
 
-$exchanges['gdax']->urls['api'] = 'https://api-public.sandbox.gdax.com';
+// $exchanges['gdax']->urls['api'] = 'https://api-public.sandbox.gdax.com';
 $exchanges['anxpro']->proxy = 'https://cors-anywhere.herokuapp.com/';
 
 function test_exchange_symbol_ticker ($exchange, $symbol) {
