@@ -707,7 +707,7 @@ class Exchange(object):
     def parseBalance(self, balance):
         return self.parse_balance(balance)
 
-    def fetch_partial_balance(part, params={})
+    def fetch_partial_balance(part, params={}):
         balance = self.fetch_balance(params)
         return balance[part]
 

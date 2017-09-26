@@ -14779,10 +14779,16 @@ var liqui = {
             // they misspell DASH as dsh :/
             if (uppercase == 'DSH')
                 uppercase = 'DASH';
+            let total = undefined;
+            let used = undefined;
+            if (balances['open_orders'] == 0) {
+                total = funds[currency];
+                used = 0.0;
+            }
             let account = {
                 'free': funds[currency],
-                'used': 0.0,
-                'total': funds[currency],
+                'used': used,
+                'total': total,
             };
             result[uppercase] = account;
         }
