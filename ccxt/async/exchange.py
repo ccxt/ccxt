@@ -125,4 +125,8 @@ class Exchange (BaseExchange):
         order = await self.fetch_order(id)
         return order['status']
 
+    async def fetch_partial_balance(part, params={}):
+        balance = await self.fetch_balance(params)
+        return balance[part]
+
 #==============================================================================

@@ -707,6 +707,19 @@ class Exchange(object):
     def parseBalance(self, balance):
         return self.parse_balance(balance)
 
+    def fetch_partial_balance(part, params={})
+        balance = self.fetch_balance(params)
+        return balance[part]
+
+    def fetch_free_balance(self, params={}):
+        return self.fetch_partial_balance('free', params)
+
+    def fetch_used_balance(self, params={}):
+        return self.fetch_partial_balance('used', params)
+
+    def fetch_total_balance(self, params={}):
+        return self.fetch_partial_balance('total', params)
+
     def parseOrderBook(self, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
         return self.parse_order_book(orderbook, timestamp, bids_key, asks_key, price_key, amount_key)
 
@@ -750,6 +763,15 @@ class Exchange(object):
 
     def fetchBalance(self, params={}):
         return self.fetch_balance(params)
+
+    def fetchFreeBalance(self, params={}):
+        return self.fetch_free_balance(params)
+
+    def fetchUsedBalance(self, params={}):
+        return self.fetch_used_balance(params)
+
+    def fetchTotalBalance(self, params={}):
+        return self.fetch_total_balance(params)
 
     def fetchOrderBook(self, symbol):
         return self.fetch_order_book(symbol)

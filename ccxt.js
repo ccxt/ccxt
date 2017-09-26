@@ -739,7 +739,7 @@ const Exchange = function (config) {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-    },
+    }
 
     this.parseBalance = function (balance) {
         const currencies = Object.keys (this.omit (balance, 'info'));
@@ -750,7 +750,24 @@ const Exchange = function (config) {
             })
         })
         return balance;
-    },
+    }
+
+    this.fetchPartialBalance = async function (part, params = {}) {
+        let balance = await this.fetchBalance (params)
+        return balance[part]
+    }
+
+    this.fetchFreeBalance = function (params = {}) {
+        return this.fetchPartialBalance ('free', params)
+    }
+
+    this.fetchUsedBalance = function (params = {}) {
+        return this.fetchPartialBalance ('used', params)
+    }
+
+    this.fetchTotalBalance = function (params = {}) {
+        return this.fetchPartialBalance ('total', params)
+    }
 
     this.parseTrades = function (trades, market = undefined) {
         return Object.values (trades).map (trade => this.parseTrade (trade, market))
@@ -863,6 +880,9 @@ const Exchange = function (config) {
 
     this.account                  = this.account
     this.fetch_balance            = this.fetchBalance
+    this.fetch_free_balance       = this.fetchFreeBalance
+    this.fetch_used_balance       = this.fetchUsedBalance
+    this.fetch_total_balance      = this.fetchTotalBalance
     this.fetch_order_book         = this.fetchOrderBook
     this.fetch_tickers            = this.fetchTickers
     this.fetch_ticker             = this.fetchTicker
