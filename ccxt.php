@@ -265,6 +265,18 @@ class Exchange {
         return $result;
     }
 
+    public static function group_by ($array, $key) {
+        $result = array ();
+        foreach ($array as $element) {
+            if (isset ($element[$key]) && !is_null ($element[$key])) {
+                if (!isset ($result[$element[$key]]))
+                    $result[$element[$key]] = array ();
+                $result[$element[$key]][] = $element;
+            }
+        }
+        return $result;
+    }
+
     public static function index_by ($array, $key) {
         $result = array ();
         foreach ($array as $element) {

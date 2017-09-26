@@ -178,25 +178,27 @@ const omit = (object, ...args) => {
     return result
 }
 
+const groupBy = (array, key) => {
+    const result = {}
+    Object
+        .values (array)
+        .filter (entry => entry[key] != 'undefined')
+        .forEach (entry => {
+            if (typeof result[entry[key]] == 'undefined')
+                result[entry[key]] = []
+            result[entry[key]].push (entry)
+        })
+    return result
+}
+
 const indexBy = (array, key) => {
     const result = {}
-    if (Array.isArray (array)) {
-        for (let i = 0; i < array.length; i++) {
-            let element = array[i]
-            if (typeof element[key] != 'undefined') {
-                result[element[key]] = element
-            }
-        }
-    } else {
-        let ids = Object.keys (array);
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let element = array[id];
-            if (typeof element[key] != 'undefined') {
-                result[element[key]] = element
-            }
-        }
-    }
+    Object
+        .values (array)
+        .filter (entry => entry[key] != 'undefined')
+        .forEach (entry => {
+            result[entry[key]] = entry
+        })
     return result
 }
 
@@ -357,6 +359,7 @@ const Exchange = function (config) {
     this.unique = unique
     this.extend = extend
     this.flatten = flatten
+    this.groupBy = groupBy
     this.indexBy = indexBy
     this.sortBy = sortBy
     this.keysort = keysort
@@ -19285,6 +19288,7 @@ const ccxt = Object.assign (defineAllExchanges (exchanges), {
     keysort,
     extend,
     omit,
+    groupBy,
     indexBy,
     sortBy,
     flatten,

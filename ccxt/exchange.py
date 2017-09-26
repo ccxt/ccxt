@@ -351,6 +351,22 @@ class Exchange(object):
         return {}
 
     @staticmethod
+    def group_by(array, key):
+        result = {}
+        if type(array) is dict:
+            array = list(Exchange.keysort(array).items())
+        array = [entry for entry in array if (key in entry) and (entry[key] is not None)]
+        for entry in array:
+            if entry[key] not in result:
+                result[entry[key]] = []
+            result[entry[key]].append(entry)
+        return result
+
+    @staticmethod
+    def groupBy(array, key):
+        return Exchange.group_by(array, key)
+
+    @staticmethod
     def index_by(array, key):
         result = {}
         if type(array) is dict:
@@ -597,8 +613,8 @@ class Exchange(object):
         values = markets
         if type(values) is dict:
             values = list(markets.values())
-        self.markets = self.indexBy(values, 'symbol')
-        self.markets_by_id = Exchange.indexBy(values, 'id')
+        self.markets = self.index_by(values, 'symbol')
+        self.markets_by_id = self.index_by(values, 'id')
         self.marketsById = self.markets_by_id
         self.symbols = sorted(list(self.markets.keys()))
         self.ids = sorted(list(self.markets_by_id.keys()))

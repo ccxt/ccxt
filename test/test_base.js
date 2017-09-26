@@ -86,6 +86,24 @@ describe ('ccxt base code', () => {
             return call.when
         }, 0)
     })
+
+    it ('groupBy() works', () => {
+
+        const array = [
+            { 'foo': 'a' },
+            { 'foo': 'b' },
+            { 'foo': 'c' },
+            { 'foo': 'b' },
+            { 'foo': 'c' },
+            { 'foo': 'c' },
+        ]
+
+        assert.deepEqual (ccxt.groupBy (array, 'foo'), {
+            'a': [ { 'foo': 'a' } ],
+            'b': [ { 'foo': 'b' }, { 'foo': 'b' } ],
+            'c': [ { 'foo': 'c' }, { 'foo': 'c' }, { 'foo': 'c' } ],
+        })
+    })
 })
 
 /*  ------------------------------------------------------------------------ */
