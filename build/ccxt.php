@@ -9177,11 +9177,15 @@ class coincheck extends Exchange {
     }
 
     public function fetch_order_book ($symbol, $params = array ()) {
+        if ($symbol != 'BTC/JPY')
+            throw new NotSupported ($this->id . ' fetchOrderBook () supports BTC/JPY only');
         $orderbook =  $this->publicGetOrderBooks ($params);
         return $this->parse_order_book ($orderbook);
     }
 
     public function fetch_ticker ($symbol) {
+        if ($symbol != 'BTC/JPY')
+            throw new NotSupported ($this->id . ' fetchTicker () supports BTC/JPY only');
         $ticker = $this->publicGetTicker ();
         $timestamp = $ticker['timestamp'] * 1000;
         return array (
@@ -9221,6 +9225,8 @@ class coincheck extends Exchange {
     }
 
     public function fetch_trades ($symbol, $params = array ()) {
+        if ($symbol != 'BTC/JPY')
+            throw new NotSupported ($this->id . ' fetchTrades () supports BTC/JPY only');
         $market = $this->market ($symbol);
         $response = $this->publicGetTrades ($params);
         return $this->parse_trades ($response, $market);
@@ -14295,6 +14301,8 @@ class kraken extends Exchange {
             'hasCORS' => false,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
+            'hasFetchOpenOrders' => true,
+            'hasFetchClosedOrders' => true,
             'marketsByAltname' => array (),
             'timeframes' => array (
                 '1m' => '1',
@@ -14494,19 +14502,43 @@ class kraken extends Exchange {
         return $this->parse_ohlcvs ($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_trade ($trade, $market) {
-        $timestamp = intval ($trade[2] * 1000);
-        $side = ($trade[3] == 's') ? 'sell' : 'buy';
-        $type = ($trade[4] == 'l') ? 'limit' : 'market';
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = null;
+        $side = null;
+        $type = null;
+        $price = null;
+        $amount = null;
+        $id = null;
+        $order = null;
+        if (array_key_exists ('ordertxid', $trade)) {
+            if (!$market)
+                $market = $this->findMarketByAltnameOrId ($trade['pair']);
+            $order = $trade['ordertxid'];
+            $id = $trade['id'];
+            $timestamp = intval ($trade['time'] * 1000);
+            $side = $trade['type'];
+            $type = $trade['ordertype'];
+            $price = floatval ($trade['price']);
+            $amount = floatval ($trade['vol']);
+        } else {
+            $timestamp = intval ($trade[2] * 1000);
+            $side = ($trade[3] == 's') ? 'sell' : 'buy';
+            $type = ($trade[4] == 'l') ? 'limit' : 'market';
+            $price = floatval ($trade[0]);
+            $amount = floatval ($trade[1]);
+        }
+        $symbol = ($market) ? $market['symbol'] : null;
         return array (
+            'id' => $id,
+            'order' => $order,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'price' => floatval ($trade[0]),
-            'amount' => floatval ($trade[1]),
+            'price' => $price,
+            'amount' => $amount,
         );
     }
 
@@ -14567,19 +14599,23 @@ class kraken extends Exchange {
         );
     }
 
+    public function findMarketByAltnameOrId ($id) {
+        if (array_key_exists ($id, $this->marketsByAltname)) {
+            return $this->marketsByAltname[$id];
+        } else if (array_key_exists ($id, $this->markets_by_id)) {
+            return $this->markets_by_id[$id];
+        } else {
+            return null;
+        }
+    }
+
     public function parse_order ($order, $market = null) {
         $description = $order['descr'];
         $side = $description['type'];
         $type = $description['ordertype'];
         $symbol = null;
-        if (!$market) {
-            $pair = $description['pair'];
-            if (array_key_exists ($pair, $this->marketsByAltname)) {
-                $market = $this->marketsByAltname[$pair];
-            } else if (array_key_exists ($pair, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$pair];
-            }
-        }
+        if (!$market)
+            $market = $this->findMarketByAltnameOrId ($description['pair']);
         if ($market)
             $symbol = $market['symbol'];
         $timestamp = intval ($order['opentm'] * 1000);
@@ -14624,6 +14660,23 @@ class kraken extends Exchange {
         $orders = $response['result'];
         $order = $this->parse_order ($orders[$id]);
         return array_merge (array ( 'info' => $response ), $order);
+    }
+
+    public function fetch_my_trades ($symbol = null, $params = array ()) {
+        $this->load_markets ();
+        $response = $this->privatePostTradesHistory (array_merge (array (
+            // 'type' => 'all', // any position, closed position, closing position, no position
+            // 'trades' => false, // whether or not to include $trades related to position in output
+            // 'start' => 1234567890, // starting unix timestamp or trade tx id of results (exclusive)
+            // 'end' => 1234567890, // ending unix timestamp or trade tx id of results (inclusive)
+            // 'ofs' = result offset
+        ), $params));
+        $trades = $response['result']['trades'];
+        $ids = array_keys ($trades);
+        for ($i = 0; $i < count ($ids); $i++) {
+            $trades[$ids[$i]]['id'] = $ids[$i];
+        }
+        return $this->parse_trades ($trades);
     }
 
     public function cancel_order ($id) {

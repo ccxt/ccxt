@@ -8832,11 +8832,15 @@ var coincheck = {
     },
 
     async fetchOrderBook (symbol, params = {}) {
+        if (symbol != 'BTC/JPY')
+            throw new NotSupported (this.id + ' fetchOrderBook () supports BTC/JPY only');
         let orderbook = await  this.publicGetOrderBooks (params);
         return this.parseOrderBook (orderbook);
     },
 
     async fetchTicker (symbol) {
+        if (symbol != 'BTC/JPY')
+            throw new NotSupported (this.id + ' fetchTicker () supports BTC/JPY only');
         let ticker = await this.publicGetTicker ();
         let timestamp = ticker['timestamp'] * 1000;
         return {
@@ -8876,6 +8880,8 @@ var coincheck = {
     },
 
     async fetchTrades (symbol, params = {}) {
+        if (symbol != 'BTC/JPY')
+            throw new NotSupported (this.id + ' fetchTrades () supports BTC/JPY only');
         let market = this.market (symbol);
         let response = await this.publicGetTrades (params);
         return this.parseTrades (response, market);
@@ -13841,6 +13847,8 @@ var kraken = {
     'hasCORS': false,
     'hasFetchTickers': true,
     'hasFetchOHLCV': true,
+    'hasFetchOpenOrders': true,
+    'hasFetchClosedOrders': true,
     'marketsByAltname': {},
     'timeframes': {
         '1m': '1',
@@ -14038,19 +14046,43 @@ var kraken = {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     },
 
-    parseTrade (trade, market) {
-        let timestamp = parseInt (trade[2] * 1000);
-        let side = (trade[3] == 's') ? 'sell' : 'buy';
-        let type = (trade[4] == 'l') ? 'limit' : 'market';
+    parseTrade (trade, market = undefined) {
+        let timestamp = undefined;
+        let side = undefined;
+        let type = undefined;
+        let price = undefined;
+        let amount = undefined;
+        let id = undefined;
+        let order = undefined;
+        if ('ordertxid' in trade) {
+            if (!market)
+                market = this.findMarketByAltnameOrId (trade['pair']);
+            order = trade['ordertxid'];
+            id = trade['id'];
+            timestamp = parseInt (trade['time'] * 1000);
+            side = trade['type'];
+            type = trade['ordertype'];
+            price = parseFloat (trade['price']);
+            amount = parseFloat (trade['vol']);
+        } else {
+            timestamp = parseInt (trade[2] * 1000);
+            side = (trade[3] == 's') ? 'sell' : 'buy';
+            type = (trade[4] == 'l') ? 'limit' : 'market';
+            price = parseFloat (trade[0]);
+            amount = parseFloat (trade[1]);
+        }
+        let symbol = (market) ? market['symbol'] : undefined;
         return {
+            'id': id,
+            'order': order,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': type,
             'side': side,
-            'price': parseFloat (trade[0]),
-            'amount': parseFloat (trade[1]),
+            'price': price,
+            'amount': amount,
         };
     },
 
@@ -14111,19 +14143,23 @@ var kraken = {
         };
     },
 
+    findMarketByAltnameOrId (id) {
+        if (id in this.marketsByAltname) {
+            return this.marketsByAltname[id];
+        } else if (id in this.markets_by_id) {
+            return this.markets_by_id[id];
+        } else {
+            return undefined;
+        }
+    },
+
     parseOrder (order, market = undefined) {
         let description = order['descr'];
         let side = description['type'];
         let type = description['ordertype'];
         let symbol = undefined;
-        if (!market) {
-            let pair = description['pair'];
-            if (pair in this.marketsByAltname) {
-                market = this.marketsByAltname[pair];
-            } else if (pair in this.markets_by_id) {
-                market = this.markets_by_id[pair];
-            }
-        }
+        if (!market)
+            market = this.findMarketByAltnameOrId (description['pair']);
         if (market)
             symbol = market['symbol'];
         let timestamp = parseInt (order['opentm'] * 1000);
@@ -14168,6 +14204,23 @@ var kraken = {
         let orders = response['result'];
         let order = this.parseOrder (orders[id]);
         return this.extend ({ 'info': response }, order);
+    },
+
+    async fetchMyTrades (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostTradesHistory (this.extend ({
+            // 'type': 'all', // any position, closed position, closing position, no position
+            // 'trades': false, // whether or not to include trades related to position in output
+            // 'start': 1234567890, // starting unix timestamp or trade tx id of results (exclusive)
+            // 'end': 1234567890, // ending unix timestamp or trade tx id of results (inclusive)
+            // 'ofs' = result offset
+        }, params));
+        let trades = response['result']['trades'];
+        let ids = Object.keys (trades);
+        for (let i = 0; i < ids.length; i++) {
+            trades[ids[i]]['id'] = ids[i];
+        }
+        return this.parseTrades (trades);
     },
 
     async cancelOrder (id) {

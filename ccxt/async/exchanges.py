@@ -7608,10 +7608,14 @@ class coincheck (Exchange):
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
+        if symbol != 'BTC/JPY':
+            raise NotSupported(self.id + ' fetchOrderBook() supports BTC/JPY only')
         orderbook = await  self.publicGetOrderBooks(params)
         return self.parse_order_book(orderbook)
 
     async def fetch_ticker(self, symbol):
+        if symbol != 'BTC/JPY':
+            raise NotSupported(self.id + ' fetchTicker() supports BTC/JPY only')
         ticker = await self.publicGetTicker()
         timestamp = ticker['timestamp'] * 1000
         return {
@@ -7649,6 +7653,8 @@ class coincheck (Exchange):
         }
 
     async def fetch_trades(self, symbol, params={}):
+        if symbol != 'BTC/JPY':
+            raise NotSupported(self.id + ' fetchTrades() supports BTC/JPY only')
         market = self.market(symbol)
         response = await self.publicGetTrades(params)
         return self.parse_trades(response, market)
@@ -12415,6 +12421,8 @@ class kraken (Exchange):
             'hasCORS': False,
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
+            'hasFetchOpenOrders': True,
+            'hasFetchClosedOrders': True,
             'marketsByAltname': {},
             'timeframes': {
                 '1m': '1',
@@ -12605,19 +12613,42 @@ class kraken (Exchange):
         ohlcvs = response['result'][market['id']]
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market):
-        timestamp = int(trade[2] * 1000)
-        side = 'sell' if(trade[3] == 's') else 'buy'
-        type = 'limit' if(trade[4] == 'l') else 'market'
+    def parse_trade(self, trade, market=None):
+        timestamp = None
+        side = None
+        type = None
+        price = None
+        amount = None
+        id = None
+        order = None
+        if 'ordertxid' in trade:
+            if not market:
+                market = self.findMarketByAltnameOrId(trade['pair'])
+            order = trade['ordertxid']
+            id = trade['id']
+            timestamp = int(trade['time'] * 1000)
+            side = trade['type']
+            type = trade['ordertype']
+            price = float(trade['price'])
+            amount = float(trade['vol'])
+        else:
+            timestamp = int(trade[2] * 1000)
+            side = 'sell' if(trade[3] == 's') else 'buy'
+            type = 'limit' if(trade[4] == 'l') else 'market'
+            price = float(trade[0])
+            amount = float(trade[1])
+        symbol = market['symbol'] if(market) else None
         return {
+            'id': id,
+            'order': order,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': type,
             'side': side,
-            'price': float(trade[0]),
-            'amount': float(trade[1]),
+            'price': price,
+            'amount': amount,
         }
 
     async def fetch_trades(self, symbol, params={}):
@@ -12672,17 +12703,22 @@ class kraken (Exchange):
             'id': id,
         }
 
+    def findMarketByAltnameOrId(self, id):
+        if id in self.marketsByAltname:
+            return self.marketsByAltname[id]
+        elif id in self.markets_by_id:
+            return self.markets_by_id[id]
+        else:
+            return None
+        }
+
     def parse_order(self, order, market=None):
         description = order['descr']
         side = description['type']
         type = description['ordertype']
         symbol = None
         if not market:
-            pair = description['pair']
-            if pair in self.marketsByAltname:
-                market = self.marketsByAltname[pair]
-            elif pair in self.markets_by_id:
-                market = self.markets_by_id[pair]
+            market = self.findMarketByAltnameOrId(description['pair'])
         if market:
             symbol = market['symbol']
         timestamp = int(order['opentm'] * 1000)
@@ -12724,6 +12760,21 @@ class kraken (Exchange):
         orders = response['result']
         order = self.parse_order(orders[id])
         return self.extend({'info': response}, order)
+
+    async def fetch_my_trades(self, symbol=None, params={}):
+        await self.load_markets()
+        response = await self.privatePostTradesHistory(self.extend({
+            # 'type': 'all', # any position, closed position, closing position, no position
+            # 'trades': False, # whether or not to include trades related to position in output
+            # 'start': 1234567890, # starting unix timestamp or trade tx id of results(exclusive)
+            # 'end': 1234567890, # ending unix timestamp or trade tx id of results(inclusive)
+            # 'ofs' = result offset
+        }, params))
+        trades = response['result']['trades']
+        ids = list(trades.keys())
+        for i in range(0, len(ids)):
+            trades[ids[i]]['id'] = ids[i]
+        return self.parse_trades(trades)
 
     async def cancel_order(self, id):
         await self.load_markets()
