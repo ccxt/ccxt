@@ -14600,13 +14600,13 @@ class kraken extends Exchange {
     }
 
     public function findMarketByAltnameOrId ($id) {
+        $result = null;
         if (array_key_exists ($id, $this->marketsByAltname)) {
-            return $this->marketsByAltname[$id];
+            $result = $this->marketsByAltname[$id];
         } else if (array_key_exists ($id, $this->markets_by_id)) {
-            return $this->markets_by_id[$id];
-        } else {
-            return null;
+            $result = $this->markets_by_id[$id];
         }
+        return $result;
     }
 
     public function parse_order ($order, $market = null) {

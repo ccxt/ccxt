@@ -12793,13 +12793,12 @@ class kraken (Exchange):
         }
 
     def findMarketByAltnameOrId(self, id):
+        result = None
         if id in self.marketsByAltname:
-            return self.marketsByAltname[id]
+            result = self.marketsByAltname[id]
         elif id in self.markets_by_id:
-            return self.markets_by_id[id]
-        else:
-            return None
-        }
+            result = self.markets_by_id[id]
+        return result
 
     def parse_order(self, order, market=None):
         description = order['descr']

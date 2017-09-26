@@ -14144,13 +14144,13 @@ var kraken = {
     },
 
     findMarketByAltnameOrId (id) {
+        let result = undefined;
         if (id in this.marketsByAltname) {
-            return this.marketsByAltname[id];
+            result = this.marketsByAltname[id];
         } else if (id in this.markets_by_id) {
-            return this.markets_by_id[id];
-        } else {
-            return undefined;
+            result = this.markets_by_id[id];
         }
+        return result;
     },
 
     parseOrder (order, market = undefined) {
