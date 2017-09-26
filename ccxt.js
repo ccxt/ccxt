@@ -14202,7 +14202,7 @@ var kraken = {
             // 'userref': 'optional', // restrict results to given user reference id (optional)
         }, params));
         let orders = response['result'];
-        let order = this.parseOrder (orders[id]);
+        let order = this.parseOrder (this.extend ({ 'id': id }, orders[id]));
         return this.extend ({ 'info': response }, order);
     },
 
