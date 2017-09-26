@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.23';
+$version = '1.8.24';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -262,6 +262,18 @@ class Exchange {
         foreach ($array as $element)
             if (isset ($key, $element))
                 $result[] = $element[$key];
+        return $result;
+    }
+
+    public static function group_by ($array, $key) {
+        $result = array ();
+        foreach ($array as $element) {
+            if (isset ($element[$key]) && !is_null ($element[$key])) {
+                if (!isset ($result[$element[$key]]))
+                    $result[$element[$key]] = array ();
+                $result[$element[$key]][] = $element;
+            }
+        }
         return $result;
     }
 
