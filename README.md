@@ -202,6 +202,10 @@ include "ccxt.php";
 var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
 ```
 
+## Documentation
+
+Read the [Manual](https://github.com/ccxt-dev/ccxt/wiki) for more details.
+
 ## Usage
 
 ### Intro
@@ -356,10 +360,6 @@ var_dump ($zaif->id, $zaif->create_limit_buy_order ('BTC/JPY', 1, 285000));
 // set a custom user-defined id to your order
 $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
 ```
-
-## Documentation
-
-Read the [Manual](https://github.com/ccxt-dev/ccxt/wiki) for more details.
 
 ## Contributing
 
