@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.21';
+$version = '1.8.23';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -843,6 +843,35 @@ class Exchange {
 
     public function parseBalance ($balance) {
         return $this->parse_balance ($balance);
+    }
+
+    public function fetch_partial_balance ($part, $params = array ()) {
+        $balance = $this->fetch_balance ($params);
+        return $balance[$part];
+    }
+
+    public function fetch_free_balance ($params = array ()) {
+        return $this->fetch_partial_balance ('free', $params);
+    }
+
+    public function fetch_used_balance ($params = array ()) {
+        return $this->fetch_partial_balance ('used', $params);
+    }
+
+    public function fetch_total_balance ($params = array ()) {
+        return $this->fetch_partial_balance ('total', $params);
+    }
+
+    public function fetchFreeBalance ($params = array ()) {
+        return $this->fetch_free_balance ($params);
+    }
+
+    public function fetchUsedBalance ($params = array ()) {
+        return $this->fetch_used_balance ($params);
+    }
+
+    public function fetchTotalBalance ($params = array ()) {
+        return $this->fetch_total_balance ($params);
     }
 
     public function parse_trades ($trades, $market = null) {
@@ -15210,10 +15239,16 @@ class liqui extends Exchange {
             // they misspell DASH as dsh :/
             if ($uppercase == 'DSH')
                 $uppercase = 'DASH';
+            $total = null;
+            $used = null;
+            if ($balances['open_orders'] == 0) {
+                $total = $funds[$currency];
+                $used = 0.0;
+            }
             $account = array (
                 'free' => $funds[$currency],
-                'used' => 0.0,
-                'total' => $funds[$currency],
+                'used' => $used,
+                'total' => $total,
             );
             $result[$uppercase] = $account;
         }

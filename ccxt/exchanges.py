@@ -13401,10 +13401,15 @@ class liqui (Exchange):
             # they misspell DASH as dsh :/
             if uppercase == 'DSH':
                 uppercase = 'DASH'
+            total = None
+            used = None
+            if balances['open_orders'] == 0:
+                total = funds[currency]
+                used = 0.0
             account = {
                 'free': funds[currency],
-                'used': 0.0,
-                'total': funds[currency],
+                'used': used,
+                'total': total,
             }
             result[uppercase] = account
         return self.parse_balance(result)

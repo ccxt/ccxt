@@ -364,3 +364,12 @@ $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId
 ## Contributing
 
 Please read the [CONTRIBUTING](https://github.com/ccxt-dev/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code. Also, read the [Manual](https://github.com/ccxt-dev/ccxt/wiki) for more details.
+
+## Contact Us
+
+<table>
+    <tr>
+        <td>E-mail</td>
+        <td><a href="mailto:info@ccxt.trade">info@ccxt.trade</a></td>
+    </tr>
+</table>
