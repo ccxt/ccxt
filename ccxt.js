@@ -653,7 +653,7 @@ const Exchange = function (config) {
     }
 
     this.fetchOrderStatus = async function (id, market = undefined) {
-        let order = await fetchOrder (id)
+        let order = await this.fetchOrder (id)
         return order['status']
     }
 
