@@ -23,9 +23,8 @@ from traceback  import format_tb
 
 # ------------------------------------------------------------------------------
 
-class Argv (object):
+class Argv(object):
     pass
-
 
 argv = Argv()
 
@@ -54,7 +53,7 @@ def underline(s): return style(s, '\033[4m')
 def dump(*args):
     print(' '.join([str(arg) for arg in args]))
 
-# print a n error string
+# print an error string
 def dump_error(*args):
     string = ' '.join([str(arg) for arg in args])
     print(string)
@@ -71,27 +70,30 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 # ------------------------------------------------------------------------------
 
-async def test_exchange_symbol_orderbook(exchange, symbol):
-    delay = int(exchange.rateLimit / 1000)
-    time.sleep(delay)
-    dump(green(exchange.id), green(symbol), 'fetching order book...')
-    orderbook = await exchange.fetch_order_book(symbol)
-    dump(
-        green(exchange.id),
-        green(symbol),
-        'order book',
-        orderbook['datetime'],
-        'bid: ' +       str(orderbook['bids'][0][0] if len(orderbook['bids']) else 'N/A'),
-        'bidVolume: ' + str(orderbook['bids'][0][1] if len(orderbook['bids']) else 'N/A'),
-        'ask: ' +       str(orderbook['asks'][0][0] if len(orderbook['asks']) else 'N/A'),
-        'askVolume: ' + str(orderbook['asks'][0][1] if len(orderbook['asks']) else 'N/A'))
+async def test_order_book(exchange, symbol):
+    if exchange.hasFetchOrderBook:
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+        dump(green(exchange.id), green(symbol), 'fetching order book...')
+        orderbook = await exchange.fetch_order_book(symbol)
+        dump(
+            green(exchange.id),
+            green(symbol),
+            'order book',
+            orderbook['datetime'],
+            'bid: ' +       str(orderbook['bids'][0][0] if len(orderbook['bids']) else 'N/A'),
+            'bidVolume: ' + str(orderbook['bids'][0][1] if len(orderbook['bids']) else 'N/A'),
+            'ask: ' +       str(orderbook['asks'][0][0] if len(orderbook['asks']) else 'N/A'),
+            'askVolume: ' + str(orderbook['asks'][0][1] if len(orderbook['asks']) else 'N/A'))
+    else:
+        dump(yellow(exchange.id), 'fetch_order_book() supported')
 
 # ------------------------------------------------------------------------------
 
-async def test_exchange_symbol_ohlcv(exchange, symbol):
-    delay = int(exchange.rateLimit / 1000)
-    time.sleep(delay)
+async def test_ohlcv(exchange, symbol):
     if exchange.hasFetchOHLCV:
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
         ohlcvs = await exchange.fetch_ohlcv(symbol)
         dump(green(exchange.id), 'fetched', green(len(ohlcvs)), 'OHLCVs')
     else:
@@ -99,11 +101,11 @@ async def test_exchange_symbol_ohlcv(exchange, symbol):
 
 # ------------------------------------------------------------------------------
 
-async def test_exchange_all_tickers(exchange):
-    delay = int(exchange.rateLimit / 1000)
-    time.sleep(delay)
-    dump(green(exchange.id), 'fetching all tickers at once...')
+async def test_tickers(exchange):
     if exchange.hasFetchTickers:
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+        dump(green(exchange.id), 'fetching all tickers at once...')
         tickers = await exchange.fetch_tickers()
         dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
     else:
@@ -111,51 +113,51 @@ async def test_exchange_all_tickers(exchange):
 
 # ------------------------------------------------------------------------------
 
-async def test_exchange_symbol_ticker(exchange, symbol):
-    delay = int(exchange.rateLimit / 1000)
-    time.sleep(delay)
-    dump(green(exchange.id), green(symbol), 'fetching ticker...')
-    ticker = await exchange.fetch_ticker(symbol)
-    dump(
-        green(exchange.id),
-        green(symbol),
-        'ticker',
-        ticker['datetime'],
-        'high: ' +   str(ticker['high']),
-        'low: ' +    str(ticker['low']),
-        'bid: ' +    str(ticker['bid']),
-        'ask: ' +    str(ticker['ask']),
-        'volume: ' + str(ticker['quoteVolume']))
+async def test_ticker(exchange, symbol):
+    if exchange.hasFetchTicker:
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+        dump(green(exchange.id), green(symbol), 'fetching ticker...')
+        ticker = await exchange.fetch_ticker(symbol)
+        dump(
+            green(exchange.id),
+            green(symbol),
+            'ticker',
+            ticker['datetime'],
+            'high: ' +   str(ticker['high']),
+            'low: ' +    str(ticker['low']),
+            'bid: ' +    str(ticker['bid']),
+            'ask: ' +    str(ticker['ask']),
+            'volume: ' + str(ticker['quoteVolume']))
+    else:
+        dump(green(exchange.id), green(symbol), 'fetch_ticker() not supported')
 
 # ------------------------------------------------------------------------------
 
-async def test_exchange_symbol_trades(exchange, symbol):
-
-    delay = int(exchange.rateLimit / 1000)
-    time.sleep(delay)
-    dump(green(exchange.id), green(symbol), 'fetching trades...')
-    try:
+async def test_trades(exchange, symbol):
+    if exchange.hasFetchTrades:
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+        dump(green(exchange.id), green(symbol), 'fetching trades...')
         trades = await exchange.fetch_trades(symbol)
         dump(green(exchange.id), green(symbol), 'fetched', green(len(list(trades))), 'trades')
-    except ccxt.ExchangeError as e:
-        dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
-    except ccxt.NotSupported as e:
-        dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
+    else:
+        dump(green(exchange.id), green(symbol), 'fetch_trades() not supported')
 
 # ------------------------------------------------------------------------------
 
-async def test_exchange_symbol(exchange, symbol):
+async def test_symbol(exchange, symbol):
     dump(green('SYMBOL: ' + symbol))
-    await test_exchange_symbol_ticker(exchange, symbol)
+    await test_ticker(exchange, symbol)
 
     if exchange.id == 'coinmarketcap':
         dump(green(await exchange.fetchGlobal()))
     else:
-        await test_exchange_symbol_orderbook(exchange, symbol)
-        await test_exchange_symbol_trades(exchange, symbol)
+        await test_order_book(exchange, symbol)
+        await test_trades(exchange, symbol)
 
-    await test_exchange_all_tickers(exchange)
-    await test_exchange_symbol_ohlcv(exchange, symbol)
+    await test_tickers(exchange)
+    await test_ohlcv(exchange, symbol)
 
 # ------------------------------------------------------------------------------
 
@@ -189,7 +191,7 @@ async def test_exchange(exchange):
             break
 
     if symbol.find('.d') < 0:
-        await test_exchange_symbol(exchange, symbol)
+        await test_symbol(exchange, symbol)
 
     # ..........................................................................
     # private API
@@ -266,11 +268,15 @@ proxies = [
     '',
     'https://cors-anywhere.herokuapp.com/',
     'https://crossorigin.me/',
-    # 'http://cors-proxy.htmldriven.com/?url=', # we don't want this for now
 ]
 
+# prefer local testing keys to global keys
+keys_global = './keys.json'
+keys_local = './keys.local.json'
+keys_file = keys_local if os.path.exists(keys_local) else keys_global
+
 # load the api keys from config
-with open('./keys.json') as file:
+with open(keys_file) as file:
     config = json.load(file)
 
 # instantiate all exchanges
@@ -286,9 +292,6 @@ for (id, params) in tuples:
         for key in params:
             setattr(exchanges[id], key, params[key])
 
-# move gdax to sandbox
-# exchanges['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
-
 # ------------------------------------------------------------------------------
 
 async def main():
@@ -298,11 +301,14 @@ async def main():
         exchange = exchanges[argv.exchange]
         symbol = argv.symbol
 
-        if symbol:
-            await load_exchange(exchange)
-            await test_exchange_symbol(exchange, symbol)
+        if hasattr(exchange, 'skip') and exchange.skip:
+            dump(green(exchange.id), 'skipped')
         else:
-            await try_all_proxies(exchange, proxies)
+            if symbol:
+                await load_exchange(exchange)
+                await test_symbol(exchange, symbol)
+            else:
+                await try_all_proxies(exchange, proxies)
 
     else:
 
@@ -310,7 +316,10 @@ async def main():
         for (id, params) in tuples:
             if id in exchanges:
                 exchange = exchanges[id]
-                await try_all_proxies(exchange, proxies)
+                if hasattr(exchange, 'skip') and exchange.skip:
+                    dump(green(exchange.id), 'skipped')
+                else:
+                    await try_all_proxies(exchange, proxies)
 
 # ------------------------------------------------------------------------------
 

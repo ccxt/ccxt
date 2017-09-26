@@ -17,7 +17,7 @@ import ccxt
 
 # ------------------------------------------------------------------------------
 
-class Argv (object):
+class Argv(object):
     pass
 
 argv = Argv()
@@ -52,6 +52,15 @@ def dump_error(*args):
     string = ' '.join([str(arg) for arg in args])
     print(string)
     sys.stderr.write(string + "\n")
+
+# ------------------------------------------------------------------------------
+
+def handle_all_unhandled_exceptions(type, value, traceback):
+
+    dump_error(yellow(type, value, '\n\n' + '\n'.join(format_tb(traceback))))
+    _exit(1) # unrecoverable crash
+
+sys.excepthook = handle_all_unhandled_exceptions
 
 # ------------------------------------------------------------------------------
 
@@ -277,32 +286,35 @@ for (id, params) in tuples:
         for key in params:
             setattr(exchanges[id], key, params[key])
 
-# move gdax to sandbox
-# exchanges['gdax'].urls['api'] = 'https://api-public.sandbox.gdax.com'
+# ------------------------------------------------------------------------------
+
+def main():
+
+    if argv.exchange:
+
+        exchange = exchanges[argv.exchange]
+        symbol = argv.symbol
+
+        if hasattr(exchange, 'skip') and exchange.skip:
+            dump(green(exchange.id), 'skipped')
+        else:
+            if symbol:
+                load_exchange(exchange)
+                test_symbol(exchange, symbol)
+            else:
+                try_all_proxies(exchange, proxies)
+
+    else:
+
+        tuples = list(ccxt.Exchange.keysort(exchanges).items())
+        for (id, params) in tuples:
+            if id in exchanges:
+                exchange = exchanges[id]
+                if hasattr(exchange, 'skip') and exchange.skip:
+                    dump(green(exchange.id), 'skipped')
+                else:
+                    try_all_proxies(exchange, proxies)
 
 # ------------------------------------------------------------------------------
 
-if argv.exchange:
-
-    exchange = exchanges[argv.exchange]
-    symbol = argv.symbol
-
-    if hasattr(exchange, 'skip') and exchange.skip:
-        dump(green(exchange.id), 'skipped')
-    else:
-        if symbol:
-            load_exchange(exchange)
-            test_symbol(exchange, symbol)
-        else:
-            try_all_proxies(exchange, proxies)
-
-else:
-
-    tuples = list(ccxt.Exchange.keysort(exchanges).items())
-    for (id, params) in tuples:
-        if id in exchanges:
-            exchange = exchanges[id]
-            if hasattr(exchange, 'skip') and exchange.skip:
-                dump(green(exchange.id), 'skipped')
-            else:
-                try_all_proxies(exchange, proxies)
+main()
