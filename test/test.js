@@ -12,7 +12,6 @@ const asTable   = require ('as-table')
     , log       = require ('ololog')
     , ansi      = require ('ansicolor').nice
     , fs        = require ('fs')
-    // , assert    = require ('assert')
     , ccxt      = require ('../ccxt')
     , countries = require ('../countries')
     , chai      = require ('chai')
@@ -370,7 +369,6 @@ let testExchange = async exchange => {
     await testBalance  (exchange)
     await testOrders   (exchange, symbol)
     await testMyTrades (exchange, symbol)
-
 
     // try {
     //     let marketSellOrder =
