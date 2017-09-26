@@ -477,21 +477,3 @@ Contributing
 
 Please read the `CONTRIBUTING <https://github.com/ccxt-dev/ccxt/blob/master/CONTRIBUTING.md>`__ document before making changes that you would like adopted in the code. Also, read the `Manual <https://github.com/ccxt-dev/ccxt/wiki>`__ for more details.
 
-Contact Us
-----------
-
-.. raw:: html
-
-   <table>
-
-::
-
-    <tr>
-        <td>E-mail</td>
-        <td><a href="mailto:info@ccxt.trade">info@ccxt.trade</a></td>
-    </tr>
-
-.. raw:: html
-
-   </table>
-
