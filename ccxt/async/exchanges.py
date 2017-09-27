@@ -9434,6 +9434,18 @@ class exmo (Exchange):
         await self.load_markets()
         return await self.privatePostOrderCancel({'order_id': id})
 
+    async def withdraw(self, currency, amount, address, params={}):
+        await self.load_markets()
+        result = await self.privatePostWithdrawCrypt(self.extend({
+            'amount': amount,
+            'currency': currency,
+            'address': address,
+        }, params))
+        return {
+            'info': result,
+            'id': result['task_id'],
+        }
+
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':

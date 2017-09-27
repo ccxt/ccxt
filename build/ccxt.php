@@ -11125,6 +11125,19 @@ class exmo extends Exchange {
         return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
     }
 
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $result = $this->privatePostWithdrawCrypt (array_merge (array (
+            'amount' => $amount,
+            'currency' => $currency,
+            'address' => $address,
+        ), $params));
+        return array (
+            'info' => $result,
+            'id' => $result['task_id'],
+        );
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api == 'public') {

@@ -10744,6 +10744,19 @@ var exmo = {
         return await this.privatePostOrderCancel ({ 'order_id': id });
     },
 
+    async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let result = await this.privatePostWithdrawCrypt (this.extend ({
+            'amount': amount,
+            'currency': currency,
+            'address': address,
+        }, params));
+        return {
+            'info': result,
+            'id': result['task_id'],
+        };
+    },
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (api == 'public') {

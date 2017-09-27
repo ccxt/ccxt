@@ -9523,6 +9523,18 @@ class exmo (Exchange):
         self.load_markets()
         return self.privatePostOrderCancel({'order_id': id})
 
+    def withdraw(self, currency, amount, address, params={}):
+        self.load_markets()
+        result = self.privatePostWithdrawCrypt(self.extend({
+            'amount': amount,
+            'currency': currency,
+            'address': address,
+        }, params))
+        return {
+            'info': result,
+            'id': result['task_id'],
+        }
+
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
