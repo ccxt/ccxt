@@ -18650,8 +18650,8 @@ var xbtce = {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': ticker['DailyTradedTotalVolume'],
+            'baseVolume': ticker['DailyTradedTotalVolume'],
+            'quoteVolume': undefined,
             'info': ticker,
         };
     },
