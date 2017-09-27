@@ -663,23 +663,23 @@ class Exchange(object):
     def fetchOrder(self, id, params={}):
         return self.fetch_order(id, params)
 
-    def fetch_orders(self, params={}):
+    def fetch_orders(self, symbol=None, params={}):
         raise NotSupported(self.id + ' fetch_orders() is not implemented yet')
 
-    def fetchOrders(self, params={}):
-        return self.fetch_orders(params)
+    def fetchOrders(self, symbol=None, params={}):
+        return self.fetch_orders(symbol, params)
 
-    def fetch_open_orders(self, market=None, params={}):
+    def fetch_open_orders(self, symbol=None, params={}):
         raise NotSupported(self.id + ' fetch_open_orders() not implemented yet')
 
-    def fetchOpenOrders(self, market=None, params={}):
-        return self.fetch_open_orders(market, params)
+    def fetchOpenOrders(self, symbol=None, params={}):
+        return self.fetch_open_orders(symbol, params)
 
-    def fetch_closed_orders(self, market=None, params={}):
+    def fetch_closed_orders(self, symbol=None, params={}):
         raise NotSupported(self.id + ' fetch_closed_orders() not implemented yet')
 
-    def fetchClosedOrders(self, market=None, params={}):
-        return self.fetch_closed_orders(market, params)
+    def fetchClosedOrders(self, symbol=None, params={}):
+        return self.fetch_closed_orders(symbol, params)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return ohlcv

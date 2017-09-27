@@ -636,7 +636,7 @@ const Exchange = function (config) {
         throw new NotSupported (this.id + ' fetchOrder not supported yet');
     }
 
-    this.fetchOrders = function (params = {}) {
+    this.fetchOrders = function (symbol = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOrders not supported yet');
     }
 
@@ -5958,7 +5958,7 @@ var bittrex = {
         return this.parseOrder (response['result']);
     },
 
-    async fetchOrders (params = {}) {
+    async fetchOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.accountGetOrderhistory (params);
         return this.parseOrders (response['result']);

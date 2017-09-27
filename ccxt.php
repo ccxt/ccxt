@@ -936,31 +936,31 @@ class Exchange {
         return $this->fetch_order ($id, $params);
     }
 
-    public function fetch_orders ($params = array ()) {
+    public function fetch_orders ($symbol = null, $params = array ()) {
         $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' fetch_orders() not implemented yet');
     }
 
-    public function fetchOrders ($params = array ()) {
-        return $this->fetch_orders ($params);
+    public function fetchOrders ($symbol = null, $params = array ()) {
+        return $this->fetch_orders ($symbol, $params);
     }
 
-    public function fetch_open_orders ($market = null, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
         $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' fetch_open_orders() not implemented yet');
     }
 
-    public function fetchOpenOrders ($market = null, $params = array ()) {
-        return $this->fetch_open_orders ($market, $params);
+    public function fetchOpenOrders ($symbol = null, $params = array ()) {
+        return $this->fetch_open_orders ($symbol, $params);
     }
 
-    public function fetch_closed_orders ($market = null, $params = array ()) {
+    public function fetch_closed_orders ($symbol = null, $params = array ()) {
         $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' fetch_closed_orders() not implemented yet');
     }
 
-    public function fetchClosedOrders ($market = null, $params = array ()) {
-        return $this->fetch_closed_orders ($market, $params);
+    public function fetchClosedOrders ($symbol = null, $params = array ()) {
+        return $this->fetch_closed_orders ($symbol, $params);
     }
 
     public function fetch_markets () { // stub
@@ -975,16 +975,16 @@ class Exchange {
         return $this->fetch_balance ();
     }
 
-    public function fetchOrderBook ($market) {
-        return $this->fetch_order_book ($market);
+    public function fetchOrderBook ($symbol) {
+        return $this->fetch_order_book ($symbol);
     }
 
-    public function fetchTicker ($market) {
-        return $this->fetch_ticker ($market);
+    public function fetchTicker ($symbol) {
+        return $this->fetch_ticker ($symbol);
     }
 
-    public function fetchTrades ($market) {
-        return $this->fetch_trades ($market);
+    public function fetchTrades ($symbol) {
+        return $this->fetch_trades ($symbol);
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -996,36 +996,36 @@ class Exchange {
         return $this->fetch_ohlcv ($symbol, $timeframe, $since, $limit, $params);
     }
 
-    public function create_limit_buy_order ($market, $amount, $price, $params = array ()) {
-        return $this->create_order ($market, 'limit', 'buy',  $amount, $price, $params);
+    public function create_limit_buy_order ($symbol, $amount, $price, $params = array ()) {
+        return $this->create_order ($symbol, 'limit', 'buy',  $amount, $price, $params);
     }
 
-    public function create_limit_sell_order ($market, $amount, $price, $params = array ()) {
-        return $this->create_order ($market, 'limit', 'sell', $amount, $price, $params);
+    public function create_limit_sell_order ($symbol, $amount, $price, $params = array ()) {
+        return $this->create_order ($symbol, 'limit', 'sell', $amount, $price, $params);
     }
 
-    public function create_market_buy_order ($market, $amount, $params = array ()) {
-        return $this->create_order ($market, 'market', 'buy', $amount, null, $params);
+    public function create_market_buy_order ($symbol, $amount, $params = array ()) {
+        return $this->create_order ($symbol, 'market', 'buy', $amount, null, $params);
     }
 
-    public function create_market_sell_order ($market, $amount, $params = array ()) {
-        return $this->create_order ($market, 'market', 'sell', $amount, null, $params);
+    public function create_market_sell_order ($symbol, $amount, $params = array ()) {
+        return $this->create_order ($symbol, 'market', 'sell', $amount, null, $params);
     }
 
-    public function createLimitBuyOrder ($market, $amount, $price, $params = array ()) {
-        return $this->create_limit_buy_order ($market, $amount, $price, $params);
+    public function createLimitBuyOrder ($symbol, $amount, $price, $params = array ()) {
+        return $this->create_limit_buy_order ($symbol, $amount, $price, $params);
     }
 
-    public function createLimitSellOrder ($market, $amount, $price, $params = array ()) {
-        return $this->create_limit_sell_order ($market, $amount, $price, $params);
+    public function createLimitSellOrder ($symbol, $amount, $price, $params = array ()) {
+        return $this->create_limit_sell_order ($symbol, $amount, $price, $params);
     }
 
-    public function createMarketBuyOrder ($market, $amount, $params = array ()) {
-        return $this->create_market_buy_order ($market, $amount, $params);
+    public function createMarketBuyOrder ($symbol, $amount, $params = array ()) {
+        return $this->create_market_buy_order ($symbol, $amount, $params);
     }
 
-    public function createMarketSellOrder ($market, $amount, $params = array ()) {
-        return $this->create_market_sell_order ($market, $amount, $params);
+    public function createMarketSellOrder ($symbol, $amount, $params = array ()) {
+        return $this->create_market_sell_order ($symbol, $amount, $params);
     }
 
     public function calculate_fee_rate ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
@@ -1074,11 +1074,11 @@ class Exchange {
         return $currency;
     }
 
-    public function market ($market) {
-        return ((gettype ($market) === 'string') &&
+    public function market ($symbol) {
+        return ((gettype ($symbol) === 'string') &&
                    isset ($this->markets)        &&
-                   isset ($this->markets[$market])) ?
-                        $this->markets[$market] : $market;
+                   isset ($this->markets[$symbol])) ?
+                        $this->markets[$symbol] : $symbol;
     }
 
     public function market_ids ($symbols) {
