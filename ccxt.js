@@ -5921,10 +5921,11 @@ var bittrex = {
             timestamp = this.parse8601 (order['TimeStamp']);
         let fee = undefined;
         let commission = undefined;
-        if ('Commission' in order)
+        if ('Commission' in order) {
             commission = 'Commission';
-        else if ('CommissionPaid' in order)
+        } else if ('CommissionPaid' in order) {
             commission = 'CommissionPaid';
+        }
         if (commission) {
             fee = {
                 'cost': parseFloat (order[commission]),

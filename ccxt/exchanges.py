@@ -4905,9 +4905,14 @@ class bittrex (Exchange):
         if 'TimeStamp' in order:
             timestamp = self.parse8601(order['TimeStamp'])
         fee = None
+        commission = None
         if 'Commission' in order:
+            commission = 'Commission'
+        elif 'CommissionPaid' in order:
+            commission = 'CommissionPaid'
+        if commission:
             fee = {
-                'cost': float(order['Commission']),
+                'cost': float(order[commission]),
                 'currency': market['quote'],
             }
         amount = order['Quantity']
@@ -4935,7 +4940,7 @@ class bittrex (Exchange):
         response = self.accountGetOrder({'uuid': id})
         return self.parse_order(response['result'])
 
-    def fetch_orders(self, params={}):
+    def fetch_orders(self, symbol=None, params={}):
         self.load_markets()
         response = self.accountGetOrderhistory(params)
         return self.parse_orders(response['result'])
