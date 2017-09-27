@@ -16982,7 +16982,7 @@ var poloniex = {
         throw new ExchangeError (this.id + ' order ' + id + ' not found');
     },
 
-    async fetchOrderTrades (id, params = {}) {
+    async fetchOrderTrades (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let trades = await this.privatePostReturnOrderTrades (this.extend ({
             'orderNumber': id,
