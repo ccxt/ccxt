@@ -15548,6 +15548,29 @@ var mercado = {
         }, params));
     },
 
+    async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            'coin': currency,
+            'quantity': amount.toFixed (10),
+            'address': address,
+        };
+        if (currency == 'BRL') {
+            let account_ref = ('account_ref' in params);
+            if (!account_ref)
+                throw new ExchangeError (this.id + ' requires account_ref parameter to withdraw ' + currency);
+        } else if (currency != 'LTC') {
+            let tx_fee = ('tx_fee' in params);
+            if (!tx_fee)
+                throw new ExchangeError (this.id + ' requires tx_fee parameter to withdraw ' + currency);
+        }
+        let response = await this.privatePostWithdrawCoin (this.extend (request, params));
+        return {
+            'info': response,
+            'id': response['response_data']['withdrawal']['id'],
+        };
+    },
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/';
         if (api == 'public') {
