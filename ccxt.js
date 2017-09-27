@@ -5920,9 +5920,14 @@ var bittrex = {
         if ('TimeStamp' in order)
             timestamp = this.parse8601 (order['TimeStamp']);
         let fee = undefined;
-        if ('Commission' in order) {
+        let commission = undefined;
+        if ('Commission' in order)
+            commission = 'Commission';
+        else if ('CommissionPaid' in order)
+            commission = 'CommissionPaid';
+        if (commission) {
             fee = {
-                'cost': parseFloat (order['Commission']),
+                'cost': parseFloat (order[commission]),
                 'currency': market['quote'],
             };
         }

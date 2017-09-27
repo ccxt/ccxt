@@ -18,7 +18,7 @@ async function test () {
 
     log (asTable (orders))
 
-    orders.forEach (order => log)
+    orders.forEach (log)
 
     const order = await exchange.fetchOrder (orders[0]['id'])
 
