@@ -98,39 +98,43 @@ while (exchanges = regex.exec (contents)) {
         let method = matches[2]
         let args = matches[3].trim ()
 
-        method = method.replace ('fetchBalance',       'fetch_balance')
-                        // .replace ('fetchCategories', 'fetch_categories')
-                        .replace ('loadMarkets',       'load_markets')
-                        .replace ('fetchMarkets',      'fetch_markets')
-                        .replace ('fetchOrderBook',    'fetch_order_book')
-                        .replace ('fetchOHLCV',        'fetch_ohlcv')
-                        .replace ('parseOHLCVs',       'parse_ohlcvs')
-                        .replace ('parseOHLCV',        'parse_ohlcv')
-                        .replace ('fetchTickers',      'fetch_tickers')
-                        .replace ('fetchTicker',       'fetch_ticker')
-                        .replace ('parseBalance',      'parse_balance')
-                        .replace ('parseTicker',       'parse_ticker')
-                        .replace ('parseTradesData',   'parse_trades_data')
-                        .replace ('parseTrades',       'parse_trades')
-                        .replace ('parseTrade',        'parse_trade')
-                        .replace ('parseOrderBook',    'parse_order_book')
-                        .replace ('parseBidAsks',      'parse_bidasks')
-                        .replace ('parseBidAsk',       'parse_bidask')
-                        .replace ('parseOrders',       'parse_orders')
-                        .replace ('parseOrder',        'parse_order')
-                        .replace ('fetchTrades',       'fetch_trades')
-                        .replace ('fetchOrderStatus',  'fetch_order_status')
-                        .replace ('fetchOrderTrades',  'fetch_order_trades')
-                        .replace ('fetchOrders',       'fetch_orders')
-                        .replace ('fetchOrder',        'fetch_order')
-                        .replace ('fetchOpenOrders',   'fetch_open_orders')
-                        .replace ('fetchMyTrades',     'fetch_my_trades')
-                        .replace ('fetchAllMyTrades',  'fetch_all_my_trades')
-                        .replace ('createOrder',       'create_order')
-                        .replace ('cancelOrder',       'cancel_order')
-                        .replace ('calculateFeeRate',  'calculate_fee_rate')
-                        .replace ('calculateFee',      'calculate_fee')
-                        .replace ('signIn',            'sign_in')
+        method = method.replace ('fetchBalance',          'fetch_balance')
+                        // .replace ('fetchCategories',   'fetch_categories')
+                        .replace ('loadMarkets',          'load_markets')
+                        .replace ('fetchMarkets',         'fetch_markets')
+                        .replace ('fetchOrderBook',       'fetch_order_book')
+                        .replace ('fetchOHLCV',           'fetch_ohlcv')
+                        .replace ('parseOHLCVs',          'parse_ohlcvs')
+                        .replace ('parseOHLCV',           'parse_ohlcv')
+                        .replace ('fetchTickers',         'fetch_tickers')
+                        .replace ('fetchTicker',          'fetch_ticker')
+                        .replace ('parseBalance',         'parse_balance')
+                        .replace ('parseTicker',          'parse_ticker')
+                        .replace ('parseTradesData',      'parse_trades_data')
+                        .replace ('parseTrades',          'parse_trades')
+                        .replace ('parseTrade',           'parse_trade')
+                        .replace ('parseOrderBook',       'parse_order_book')
+                        .replace ('parseBidAsks',         'parse_bidasks')
+                        .replace ('parseBidAsk',          'parse_bidask')
+                        .replace ('parseOrders',          'parse_orders')
+                        .replace ('parseOrder',           'parse_order')
+                        .replace ('fetchTrades',          'fetch_trades')
+                        .replace ('fetchOrderStatus',     'fetch_order_status')
+                        .replace ('fetchOrderTrades',     'fetch_order_trades')
+                        .replace ('fetchOrders',          'fetch_orders')
+                        .replace ('fetchOrder',           'fetch_order')
+                        .replace ('fetchOpenOrders',      'fetch_open_orders')
+                        .replace ('fetchMyTrades',        'fetch_my_trades')
+                        .replace ('fetchAllMyTrades',     'fetch_all_my_trades')
+                        .replace ('updateLimitBuyOrder',  'update_limit_buy_order'),
+                        .replace ('updateLimitSellOrder', 'update_limit_sell_order'),
+                        .replace ('updateLimitOrder',     'update_limit_order'),
+                        .replace ('updateOrder',          'update_order'),
+                        .replace ('createOrder',          'create_order')
+                        .replace ('cancelOrder',          'cancel_order')
+                        .replace ('calculateFeeRate',     'calculate_fee_rate')
+                        .replace ('calculateFee',         'calculate_fee')
+                        .replace ('signIn',               'sign_in')
 
         args = args.length ? args.split (',').map (x => x.trim ()) : []
 
@@ -192,6 +196,10 @@ while (exchanges = regex.exec (contents)) {
             [ /\.loadMarkets\s/g, '.load_markets'],
             [ /\.calculateFeeRate\s/g, '.calculate_fee_rate'],
             [ /\.calculateFee\s/g, '.calculate_fee'],
+            [ /\.updateLimitBuyOrder\s/g, '.update_limit_buy_order'],
+            [ /\.updateLimitSellOrder\s/g, '.update_limit_sell_order'],
+            [ /\.updateLimitOrder\s/g, '.update_limit_order'],
+            [ /\.updateOrder\s/g, '.update_order'],
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
             [ /this\./g, 'self.' ],
@@ -292,6 +300,10 @@ while (exchanges = regex.exec (contents)) {
             [ /\.loadMarkets/g, '.load_markets'],
             [ /\.calculateFeeRate/g, '.calculate_fee_rate'],
             [ /\.calculateFee/g, '.calculate_fee'],
+            [ /\.updateLimitBuyOrder/g, '.update_limit_buy_order'],
+            [ /\.updateLimitSellOrder/g, '.update_limit_sell_order'],
+            [ /\.updateLimitOrder/g, '.update_limit_order'],
+            [ /\.updateOrder/g, '.update_order'],
             [ /\.encodeURIComponent/g, '.encode_uri_component'],
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
