@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Added fetchOpenOrders and fetchClosedOrders to Bitfinex v1 (experimental)
 - Added fetchOrder and fetchOrders to OKCoin CNY, OKCoin USD and OKEX (experimental)
 - Added withdraw method to Exmo (experimental)
 - Added more robust private API error handling for CEX.io
