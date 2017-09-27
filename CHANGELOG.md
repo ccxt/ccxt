@@ -1,6 +1,6 @@
 # Сhangelog
 
-- Added fetchOrder and fetchOrders to OKCoin CNY / USD / OKEX (experimental)
+- Added fetchOrder and fetchOrders to OKCoin CNY, OKCoin USD and OKEX (experimental)
 - Added withdraw method to Exmo (experimental)
 - Added more robust private API error handling for CEX.io
 - Added withdraw method to Mercado Bitcoin (experimental)
@@ -8,7 +8,7 @@
 - Fixed Cryptopia fetchTicker misplaced volumes, [#239](https://github.com/kroitor/ccxt/issues/239)
 - Added HitBTC v1 fetchOrder (experimental)
 - Added more exceptions to coincheck for non-BTC/JPY-markets, [#236](https://github.com/kroitor/ccxt/issues/236)
-- Fixed liqui balance totals, [#235](https://github.com/kroitor/ccxt/issues/235)
+- Fixed Liqui balance totals, [#235](https://github.com/kroitor/ccxt/issues/235)
 - Fixed fetchTicker transpilation bug, [#234](https://github.com/kroitor/ccxt/issues/234)
 - Added fetchMyTrades to Kraken
 - Added fetchFreeBalance, fetchUsedBalance, fetchTotalBalance
