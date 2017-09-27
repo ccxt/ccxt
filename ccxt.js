@@ -16205,6 +16205,106 @@ var okcoin = {
         }, params));
     },
 
+    parseOrder (order, market = undefined) {
+        let side = undefined;
+        let type = undefined;
+        if ('type' in order) {
+            if ((order['type'] == 'buy') || (order['type'] == 'sell')) {
+                side = order['type'];
+                type = 'limit';
+            } else {
+                side = (order['type'] == 'buy_market') ? 'buy' : 'sell';
+                type = 'market';
+            }
+        }
+        let status = 'open';
+        if (order['status'] == -1) {
+            status = 'canceled';
+        } else if (order['status'] == 1) {
+            status = 'partial';
+        } else if (order['status'] == 2) {
+            status = 'closed';
+        } else if (order['status'] == 4) {
+            status = 'canceled';
+        }
+        let symbol = undefined;
+        if (!market) {
+            if ('symbol' in order)
+                if (order['symbol'] in this.markets_by_id)
+                    market = this.markets_by_id[order['symbol']];
+        }
+        if (market)
+            symbol = market['symbol'];
+        let timestamp = undefined;
+        if ('create_date' in order)
+            timestamp = order['create_date'];
+        let amount = order['amount'];
+        let filled = order['deal_amount'];
+        let remaining = amount - filled;
+        let result = {
+            'info': order,
+            'id': order['order_id'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': order['price'],
+            'average': order['avg_price'],
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
+        };
+        return result;
+    },
+
+    async fetchOrder (id, params = {}) {
+        let symbol = ('symbol' in params);
+        if (!symbol)
+            throw new ExchangeError (this.id + 'fetchOrders requires a symbol parameter');
+        else
+            symbol = params['symbol'];
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let method = 'privatePost';
+        let request = {
+            'symbol': market['id'],
+            // 'status': 0, // 0 for unfilled orders, 1 for filled orders
+            // 'current_page': 1, // current page number
+            // 'page_length': 200, // number of orders returned per page, maximum 200
+        };
+        if (market['future']) {
+            method += 'Future';
+            request['contract_type'] = 'this_week'; // next_week, quarter
+        }
+        method += 'OrderInfo';
+        let response = await this[method] (this.extend (request, params));
+        return this.parseOrder (response['orders'][0]);
+    },
+
+    async fetchOrders (symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + 'fetchOrders requires a symbol parameter');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let method = 'privatePost';
+        let request = {
+            'symbol': market['id'],
+            // 'status': 0, // 0 for unfilled orders, 1 for filled orders
+            // 'current_page': 1, // current page number
+            // 'page_length': 200, // number of orders returned per page, maximum 200
+        };
+        if (market['future']) {
+            method += 'Future';
+            request['contract_type'] = 'this_week'; // next_week, quarter
+        }
+        method += 'OrdersInfo';
+        let response = await this[method] (this.extend (request, params));
+        return this.parseOrders (response['orders']);
+    },
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + 'api' + '/' + this.version + '/' + path + '.do';
         if (api == 'public') {
