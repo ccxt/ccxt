@@ -12714,6 +12714,43 @@ class hitbtc extends Exchange {
         ), $params));
     }
 
+    public function parse_order ($order, $market = null) {
+        $symbol = null;
+        if (!$market)
+            $market = $this->markets_by_id ($order['symbol']);
+        $timestamp = intval ($order['lastTimestamp']);
+        $amount = floatval ($order['orderQuantity']);
+        $remaining = floatval ($order['quantityLeaves']);
+        if ($market) {
+            $symbol = $market['symbol'];
+            $amount *= $market['lot'];
+            $remaining *= $market['lot'];
+        }
+        $filled = $amount - $remaining;
+        return array (
+            'id' => $order['clientOrderId'],
+            'info' => $order,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'status' => $order['orderStatus'],
+            'symbol' => $symbol,
+            'type' => $order['type'],
+            'side' => $order['side'],
+            'price' => floatval ($order['avgPrice']),
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+        );
+    }
+
+    public function fetch_order ($id, $params = array ()) {
+        $this->load_markets ();
+        $response = $this->tradingGetOrder (array_merge (array (
+            'client_order_id' => $id,
+        ), $params));
+        return $this->parse_order ($response['orders'][0]);
+    }
+
     public function withdraw ($currency, $amount, $address, $params = array ()) {
         $this->load_markets ();
         $response = $this->paymentPostPayout (array_merge (array (
@@ -16954,7 +16991,7 @@ class poloniex extends Exchange {
             'id' => 'poloniex',
             'name' => 'Poloniex',
             'countries' => 'US',
-            'rateLimit' => 500, // up 6 calls per second
+            'rateLimit' => 500, // up to 6 calls per second
             'hasCORS' => true,
             'hasFetchTickers' => true,
             'urls' => array (
@@ -17261,9 +17298,9 @@ class poloniex extends Exchange {
         return $result;
     }
 
-    public function fetch_order_status ($id, $market = null) {
+    public function fetch_order_status ($id, $symbol = null) {
         $this->load_markets ();
-        $orders = $this->fetch_open_orders ($market);
+        $orders = $this->fetch_open_orders ($symbol);
         $indexed = $this->index_by ($orders, 'id');
         return (array_key_exists ($id, $indexed)) ? 'open' : 'closed';
     }

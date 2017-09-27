@@ -11022,6 +11022,40 @@ class hitbtc (Exchange):
             'clientOrderId': id,
         }, params))
 
+    def parse_order(self, order, market=None):
+        symbol = None
+        if not market:
+            market = self.markets_by_id(order['symbol'])
+        timestamp = int(order['lastTimestamp'])
+        amount = float(order['orderQuantity'])
+        remaining = float(order['quantityLeaves'])
+        if market:
+            symbol = market['symbol']
+            amount *= market['lot']
+            remaining *= market['lot']
+        filled = amount - remaining
+        return {
+            'id': order['clientOrderId'],
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'status': order['orderStatus'],
+            'symbol': symbol,
+            'type': order['type'],
+            'side': order['side'],
+            'price': float(order['avgPrice']),
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+        }
+
+    def fetch_order(self, id, params={}):
+        self.load_markets()
+        response = self.tradingGetOrder(self.extend({
+            'client_order_id': id,
+        }, params))
+        return self.parse_order(response['orders'][0])
+
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()
         response = self.paymentPostPayout(self.extend({
@@ -14993,7 +15027,7 @@ class poloniex (Exchange):
             'id': 'poloniex',
             'name': 'Poloniex',
             'countries': 'US',
-            'rateLimit': 500, # up 6 calls per second
+            'rateLimit': 500, # up to 6 calls per second
             'hasCORS': True,
             'hasFetchTickers': True,
             'urls': {
@@ -15279,9 +15313,9 @@ class poloniex (Exchange):
             self.parseOpenOrders(orders, market, result)
         return result
 
-    def fetch_order_status(self, id, market=None):
+    def fetch_order_status(self, id, symbol=None):
         self.load_markets()
-        orders = self.fetch_open_orders(market)
+        orders = self.fetch_open_orders(symbol)
         indexed = self.index_by(orders, 'id')
         return 'open' if(id in list(indexed.keys())) else 'closed'
 
