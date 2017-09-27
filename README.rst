@@ -11,6 +11,8 @@ CCXT – CryptoCurrency eXchange Trading Library
     :target: https://www.npmjs.com/package/ccxt
 .. image:: https://badge.runkitcdn.com/ccxt.svg
     :target: https://npm.runkit.com/ccxt
+.. image:: https://badges.gitter.im/ccxt-dev/ccxt.svg
+    :target: https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
 .. image:: https://img.shields.io/badge/exchanges-86-blue.svg
     :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets
 
