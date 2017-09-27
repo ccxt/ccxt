@@ -821,11 +821,38 @@ class Exchange(object):
     def calculateFee(self, symbol, type, side, amount, price, fee='taker', params={}):
         return self.calculate_fee(symbol, type, side, amount, price, fee, params)
 
-    def create_limit_buy_order(self, symbol, amount, price, params={}):
-        return self.create_order(symbol, 'limit', 'buy', amount, price, params)
+    def update_limit_buy_order(self, id, symbol, *args):
+        return self.update_limit_order(symbol, 'buy', *args)
 
-    def create_limit_sell_order(self, symbol, amount, price, params={}):
-        return self.create_order(symbol, 'limit', 'sell', amount, price, params)
+    def update_limit_sell_order(self, id, symbol, *args):
+        return self.update_limit_order(symbol, 'sell', *args)
+
+    def update_limit_order(self, id, symbol, *args):
+        return self.update_order(id, symbol, 'limit', *args)
+
+    def update_order(self, id, *args):
+        if not self.enableRateLimit:
+            raise ExchangeError(self.id + ' updateOrder() requires enableRateLimit = true')
+        self.cancelOrder(id)
+        return self.createOrder(*args)
+
+    def updateLimitSellOrder(self, *args):
+        return self.update_limit_sell_order(*args)
+
+    def updateLimitBuyOrder(self, *args):
+        return self.update_limit_buy_order(*args)
+
+    def updateLimitOrder(self, *args):
+        return self.update_limit_order(*args)
+
+    def updateOrder(self, *args):
+        return self.update_order(*args)
+
+    def create_limit_buy_order(self, symbol, *args):
+        return self.create_order(symbol, 'limit', 'buy', *args)
+
+    def create_limit_sell_order(self, symbol, *args):
+        return self.create_order(symbol, 'limit', 'sell', *args)
 
     def create_market_buy_order(self, symbol, amount, params={}):
         return self.create_order(symbol, 'market', 'buy', amount, None, params)
@@ -833,17 +860,17 @@ class Exchange(object):
     def create_market_sell_order(self, symbol, amount, params={}):
         return self.create_order(symbol, 'market', 'sell', amount, None, params)
 
-    def createLimitBuyOrder(self, symbol, amount, price, params={}):
-        return self.create_limit_buy_order(symbol, amount, price, params)
+    def createLimitBuyOrder(self, symbol, *args):
+        return self.create_limit_buy_order(symbol, *args)
 
-    def createLimitSellOrder(self, symbol, amount, price, params={}):
-        return self.create_limit_sell_order(symbol, amount, price, params)
+    def createLimitSellOrder(self, symbol, *args):
+        return self.create_limit_sell_order(symbol, *args)
 
-    def createMarketBuyOrder(self, symbol, amount, params={}):
-        return self.create_market_buy_order(symbol, amount, params)
+    def createMarketBuyOrder(self, symbol, *args):
+        return self.create_market_buy_order(symbol, *args)
 
-    def createMarketSellOrder(self, symbol, amount, params={}):
-        return self.create_market_sell_order(symbol, amount, params)
+    def createMarketSellOrder(self, symbol, *args):
+        return self.create_market_sell_order(symbol, *args)
 
 #==============================================================================
 

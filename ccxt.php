@@ -996,6 +996,43 @@ class Exchange {
         return $this->fetch_ohlcv ($symbol, $timeframe, $since, $limit, $params);
     }
 
+    public function update_limit_buy_order ($id, $symbol, $amount, $price, $params = array ()) {
+        return $this->update_limit_order ($symbol, 'buy', $amount, $price, $params);
+    }
+
+    public function update_limit_sell_order ($id, $symbol, $amount, $price, $params = array ()) {
+        return $this->update_limit_order ($symbol, 'sell', $amount, $price, $params);
+    }
+
+    public function update_limit_order ($id, $symbol, $side, $amount, $price, $params = array ()) {
+        return $this->update_order ($id, $symbol, 'limit', $side, $amount, $price, $params);
+    }
+
+    public function update_order ($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
+        if (!$this->enableRateLimit) {
+            $exception = '\\ccxt\\ExchangeError';
+            throw new $exception ($this->id . ' updateOrder() requires enableRateLimit = true');
+        }
+        $this->cancel_order ($id);
+        return $this->create_order ($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    public function updateLimitBuyOrder ($id, $symbol, $amount, $price, $params = array ()) {
+        return $this->update_limit_buy_order ($id, $symbol, $amount, $price, $params);
+    }
+
+    public function updateLimitSellOrder ($id, $symbol, $amount, $price, $params = array ()) {
+        return $this->update_limit_sell_order ($id, $symbol, $amount, $price, $params);
+    }
+
+    public function updateLimitOrder ($id, $symbol, $side, $amount, $price, $params = array ()) {
+        return $this->update_limit_order ($id, $symbol, $side, $amount, $price, $params);
+    }
+
+    public function updateOrder ($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
+        return $this->update_order ($id, $symbol, $type, $side, $amount, $price, $params);
+    }
+
     public function create_limit_buy_order ($symbol, $amount, $price, $params = array ()) {
         return $this->create_order ($symbol, 'limit', 'buy',  $amount, $price, $params);
     }

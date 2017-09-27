@@ -788,20 +788,39 @@ const Exchange = function (config) {
         return Object.values (ohlcvs).map (ohlcv => this.parseOHLCV (ohlcv, market, timeframe, since, limit))
     }
 
-    this.createLimitBuyOrder = function (market, amount, price, params = {}) {
-        return this.createOrder  (market, 'limit', 'buy', amount, price, params)
+    this.updateLimitBuyOrder = function (id, symbol, ...args) {
+        return this.updateLimitOrder (symbol, 'buy', ...args)
     }
 
-    this.createLimitSellOrder = function (market, amount, price, params = {}) {
-        return this.createOrder (market, 'limit', 'sell', amount, price, params)
+    this.updateLimitSellOrder = function (id, symbol, ...args) {
+        return this.updateLimitOrder (symbol, 'sell', ...args)
     }
 
-    this.createMarketBuyOrder = function (market, amount, params = {}) {
-        return this.createOrder (market, 'market', 'buy', amount, undefined, params)
+    this.updateLimitOrder = function (id, symbol, ...args) {
+        return this.updateOrder (id, symbol, 'limit', ...args)
     }
 
-    this.createMarketSellOrder = function (market, amount, params = {}) {
-        return this.createOrder (market, 'market', 'sell', amount, undefined, params)
+    this.updateOrder = async function (id, ...args) {
+        if (!this.enableRateLimit)
+            throw new ExchangeError (this.id + ' updateOrder() requires enableRateLimit = true')
+        await this.cancelOrder (id);
+        return this.createOrder (...args)
+    }
+
+    this.createLimitBuyOrder = function (symbol, ...args) {
+        return this.createOrder  (symbol, 'limit', 'buy', ...args)
+    }
+
+    this.createLimitSellOrder = function (symbol, ...args) {
+        return this.createOrder (symbol, 'limit', 'sell', ...args)
+    }
+
+    this.createMarketBuyOrder = function (symbol, amount, params = {}) {
+        return this.createOrder (symbol, 'market', 'buy', amount, undefined, params)
+    }
+
+    this.createMarketSellOrder = function (symbol, amount, params = {}) {
+        return this.createOrder (symbol, 'market', 'sell', amount, undefined, params)
     }
 
     this.calculateFeeRate = function (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -906,10 +925,14 @@ const Exchange = function (config) {
     this.parse_orders             = this.parseOrders
     this.parse_ohlcv              = this.parseOHLCV
     this.parse_ohlcvs             = this.parseOHLCVs
+    this.update_limit_buy_order   = this.updateLimitBuyOrder
+    this.update_limit_sell_order  = this.updateLimitSellOrder
+    this.update_limit_order       = this.updateLimitOrder
+    this.update_order             = this.updateOrder
     this.create_limit_buy_order   = this.createLimitBuyOrder
-    this.create_limit_sell_order  = this.createLimitBuyOrder
-    this.create_market_buy_order  = this.createLimitBuyOrder
-    this.create_market_sell_order = this.createLimitBuyOrder
+    this.create_limit_sell_order  = this.createLimitSellOrder
+    this.create_market_buy_order  = this.createMarketBuyOrder
+    this.create_market_sell_order = this.createMarketSellOrder
     this.create_order             = this.createOrder
     this.calculate_fee            = this.calculateFee
     this.calculate_fee_rate       = this.calculateFeeRate
