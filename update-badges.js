@@ -28,7 +28,7 @@ let newRstExchangeTable = rstExchangeTableLines.map (line => {
 
 //-----------------------------------------------------------------------------
 
-function updateExchangeCountInBadge (fileName) {
+function updateExchangeCount (fileName) {
 
     log.bright.cyan ('Updating exchange count →', fileName.yellow)
 
