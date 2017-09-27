@@ -927,13 +927,13 @@ class Exchange {
         return $this->fetch_order_status ($id);
     }
 
-    public function fetch_order ($id = null, $params = array ()) {
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
         $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' fetch_order() not implemented yet');
     }
 
-    public function fetchOrder ($id = null, $params = array ()) {
-        return $this->fetch_order ($id, $params);
+    public function fetchOrder ($id, $symbol = null, $params = array ()) {
+        return $this->fetch_order ($id, $symbol, $params);
     }
 
     public function fetch_orders ($symbol = null, $params = array ()) {
@@ -3364,7 +3364,7 @@ class bitfinex extends Exchange {
         return $result;
     }
 
-    public function fetch_order ($id, $params = array ()) {
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostOrderStatus (array_merge (array (
             'order_id' => intval ($id),
@@ -3704,7 +3704,7 @@ class bitfinex2 extends bitfinex {
         throw new NotSupported ($this->id . ' cancelOrder not implemented yet');
     }
 
-    public function fetch_order ($id, $params = array ()) {
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
         throw new NotSupported ($this->id . ' fetchOrder not implemented yet');
     }
 
@@ -5585,7 +5585,7 @@ class bitstamp1 extends Exchange {
         return $this->parse_trades ($response, $market);
     }
 
-    public function fetch_order ($id) {
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
         throw new NotSupported ($this->id . ' fetchOrder is not implemented yet');
         $this->load_markets ();
     }
@@ -5835,7 +5835,7 @@ class bitstamp extends Exchange {
         return $this->parse_trades ($response, $market);
     }
 
-    public function fetch_order ($id) {
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
         throw new NotSupported ($this->id . ' fetchOrder is not implemented yet');
         $this->load_markets ();
     }
@@ -6225,7 +6225,7 @@ class bittrex extends Exchange {
         return $result;
     }
 
-    public function fetch_order ($id) {
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         $response = $this->accountGetOrder (array ( 'uuid' => $id ));
         return $this->parse_order ($response['result']);
@@ -9015,7 +9015,7 @@ class chbtc extends Exchange {
         return $this->privatePostCancelOrder ($paramString);
     }
 
-    public function fetch_order ($id, $params = array ()) {
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
         $paramString = '&$id=' . (string) $id;
         if (array_key_exists ('currency', $params))
             $paramString .= '&currency=' . $params['currency'];
@@ -12765,7 +12765,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function fetch_order ($id, $params = array ()) {
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         $response = $this->tradingGetOrder (array_merge (array (
             'client_order_id' => $id,
@@ -14709,7 +14709,7 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_order ($id, $params = array ()) {
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostQueryOrders (array_merge (array (
             'trades' => true, // whether or not to include trades in output (optional, default false)
@@ -16782,12 +16782,9 @@ class okcoin extends Exchange {
         return $result;
     }
 
-    public function fetch_order ($id, $params = array ()) {
-        $symbol = (array_key_exists ('symbol', $params));
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . 'fetchOrders requires a $symbol parameter');
-        else
-            $symbol = $params['symbol'];
         $this->load_markets ();
         $market = $this->market ($symbol);
         $method = 'privatePost';
@@ -17475,7 +17472,7 @@ class poloniex extends Exchange {
         return array_merge (array ( 'info' => $response ), $order);
     }
 
-    public function fetch_order ($id) {
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         $orders = $this->fetch_open_orders ();
         $index = $this->index_by ($orders, 'id');

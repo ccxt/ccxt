@@ -632,7 +632,7 @@ const Exchange = function (config) {
         throw new NotSupported (this.id + ' fetchTickers not supported yet')
     }
 
-    this.fetchOrder = function (id, params = {}) {
+    this.fetchOrder = function (id, symbol = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOrder not supported yet');
     }
 
@@ -3130,7 +3130,7 @@ var bitfinex = {
         return result;
     },
 
-    async fetchOrder (id, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOrderStatus (this.extend ({
             'order_id': parseInt (id),
@@ -3466,7 +3466,7 @@ var bitfinex2 = extend (bitfinex, {
         throw new NotSupported (this.id + ' cancelOrder not implemented yet');
     },
 
-    async fetchOrder (id, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOrder not implemented yet');
     },
 
@@ -5319,7 +5319,7 @@ var bitstamp1 = {
         return this.parseTrades (response, market);
     },
 
-    async fetchOrder (id) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOrder is not implemented yet');
         await this.loadMarkets ();
     },
@@ -5565,7 +5565,7 @@ var bitstamp = {
         return this.parseTrades (response, market);
     },
 
-    async fetchOrder (id) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOrder is not implemented yet');
         await this.loadMarkets ();
     },
@@ -5951,7 +5951,7 @@ var bittrex = {
         return result;
     },
 
-    async fetchOrder (id) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.accountGetOrder ({ 'uuid': id });
         return this.parseOrder (response['result']);
@@ -8679,7 +8679,7 @@ var chbtc = {
         return this.privatePostCancelOrder (paramString);
     },
 
-    async fetchOrder (id, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         let paramString = '&id=' + id.toString ();
         if ('currency' in params)
             paramString += '&currency=' + params['currency'];
@@ -12343,7 +12343,7 @@ var hitbtc = {
         };
     },
 
-    async fetchOrder (id, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.tradingGetOrder (this.extend ({
             'client_order_id': id,
@@ -14253,7 +14253,7 @@ var kraken = {
         return result;
     },
 
-    async fetchOrder (id, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostQueryOrders (this.extend ({
             'trades': true, // whether or not to include trades in output (optional, default false)
@@ -16301,12 +16301,9 @@ var okcoin = {
         return result;
     },
 
-    async fetchOrder (id, params = {}) {
-        let symbol = ('symbol' in params);
+    async fetchOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + 'fetchOrders requires a symbol parameter');
-        else
-            symbol = params['symbol'];
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'privatePost';
@@ -16971,7 +16968,7 @@ var poloniex = {
         return this.extend ({ 'info': response }, order);
     },
 
-    async fetchOrder (id) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let orders = await this.fetchOpenOrders ();
         let index = this.indexBy (orders, 'id');

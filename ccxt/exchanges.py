@@ -2260,7 +2260,7 @@ class bitfinex (Exchange):
         }
         return result
 
-    def fetch_order(self, id, params={}):
+    def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
         response = self.privatePostOrderStatus(self.extend({
             'order_id': int(id),
@@ -2582,7 +2582,7 @@ class bitfinex2 (bitfinex):
     def cancel_order(self, id):
         raise NotSupported(self.id + ' cancelOrder not implemented yet')
 
-    def fetch_order(self, id, params={}):
+    def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' fetchOrder not implemented yet')
 
     def withdraw(self, currency, amount, address, params={}):
@@ -4338,7 +4338,7 @@ class bitstamp1 (Exchange):
         response = self.privatePostOpenOrdersId(request)
         return self.parse_trades(response, market)
 
-    def fetch_order(self, id):
+    def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' fetchOrder is not implemented yet')
         self.load_markets()
 
@@ -4572,7 +4572,7 @@ class bitstamp (Exchange):
         response = self.privatePostOpenOrdersPair(request)
         return self.parse_trades(response, market)
 
-    def fetch_order(self, id):
+    def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' fetchOrder is not implemented yet')
         self.load_markets()
 
@@ -4934,7 +4934,7 @@ class bittrex (Exchange):
         }
         return result
 
-    def fetch_order(self, id):
+    def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
         response = self.accountGetOrder({'uuid': id})
         return self.parse_order(response['result'])
@@ -7540,7 +7540,7 @@ class chbtc (Exchange):
             paramString += '&currency=' + params['currency']
         return self.privatePostCancelOrder(paramString)
 
-    def fetch_order(self, id, params={}):
+    def fetch_order(self, id, symbol=None, params={}):
         paramString = '&id=' + str(id)
         if 'currency' in params:
             paramString += '&currency=' + params['currency']
@@ -11069,7 +11069,7 @@ class hitbtc (Exchange):
             'remaining': remaining,
         }
 
-    def fetch_order(self, id, params={}):
+    def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
         response = self.tradingGetOrder(self.extend({
             'client_order_id': id,
@@ -12892,7 +12892,7 @@ class kraken (Exchange):
             result.append(self.parse_order(order, market))
         return result
 
-    def fetch_order(self, id, params={}):
+    def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
         response = self.privatePostQueryOrders(self.extend({
             'trades': True, # whether or not to include trades in output(optional, default False)
@@ -14823,12 +14823,9 @@ class okcoin (Exchange):
         }
         return result
 
-    def fetch_order(self, id, params={}):
-        symbol = ('symbol' in list(params.keys()))
+    def fetch_order(self, id, symbol=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + 'fetchOrders requires a symbol parameter')
-        else:
-            symbol = params['symbol']
         self.load_markets()
         market = self.market(symbol)
         method = 'privatePost'
@@ -15475,7 +15472,7 @@ class poloniex (Exchange):
         self.orders[id] = order
         return self.extend({'info': response}, order)
 
-    def fetch_order(self, id):
+    def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
         orders = self.fetch_open_orders()
         index = self.index_by(orders, 'id')

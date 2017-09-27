@@ -658,11 +658,11 @@ class Exchange(object):
         order = self.fetch_order(id)
         return order['status']
 
-    def fetch_order(self, id, params={}):
+    def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' fetch_order() is not implemented yet')
 
-    def fetchOrder(self, id, params={}):
-        return self.fetch_order(id, params)
+    def fetchOrder(self, id, symbol=None, params={}):
+        return self.fetch_order(id, symbol, params)
 
     def fetch_orders(self, symbol=None, params={}):
         raise NotSupported(self.id + ' fetch_orders() is not implemented yet')
