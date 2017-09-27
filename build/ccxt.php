@@ -6179,15 +6179,13 @@ class bittrex extends Exchange {
             $status = 'canceled';
         }
         $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
-        } else {
-            $exchange = $order['Exchange'];
-            if (array_key_exists ($exchange, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$exchange];
-                $symbol = $market['symbol'];
-            }
+        if (!$market) {
+            if (array_key_exists ('Exchange', $order))
+                if (array_key_exists ($order['Exchange'], $this->markets_by_id))
+                    $market = $this->markets_by_id[exchange];
         }
+        if ($market)
+            $symbol = $market['symbol'];
         $timestamp = null;
         if (array_key_exists ('Opened', $order))
             $timestamp = $this->parse8601 ($order['Opened']);
@@ -10536,8 +10534,8 @@ class cryptopia extends Exchange {
             'change' => floatval ($ticker['Change']),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['BaseVolume']),
-            'quoteVolume' => floatval ($ticker['Volume']),
+            'baseVolume' => floatval ($ticker['Volume']),
+            'quoteVolume' => floatval ($ticker['BaseVolume']),
         );
     }
 

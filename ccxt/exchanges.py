@@ -4892,13 +4892,12 @@ class bittrex (Exchange):
         elif order['CancelInitiated']:
             status = 'canceled'
         symbol = None
+        if not market:
+            if 'Exchange' in order:
+                if order['Exchange'] in self.markets_by_id:
+                    market = self.markets_by_id[exchange]
         if market:
             symbol = market['symbol']
-        else:
-            exchange = order['Exchange']
-            if exchange in self.markets_by_id:
-                market = self.markets_by_id[exchange]
-                symbol = market['symbol']
         timestamp = None
         if 'Opened' in order:
             timestamp = self.parse8601(order['Opened'])
@@ -8975,8 +8974,8 @@ class cryptopia (Exchange):
             'change': float(ticker['Change']),
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['BaseVolume']),
-            'quoteVolume': float(ticker['Volume']),
+            'baseVolume': float(ticker['Volume']),
+            'quoteVolume': float(ticker['BaseVolume']),
         }
 
     def fetch_ticker(self, symbol):

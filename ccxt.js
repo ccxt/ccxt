@@ -5908,7 +5908,7 @@ var bittrex = {
         if (!market) {
             if ('Exchange' in order)
                 if (order['Exchange'] in this.markets_by_id)
-                    market = this.markets_by_id[exchange];
+                    market = this.markets_by_id[order['Exchange']];
         }
         if (market)
             symbol = market['symbol'];
