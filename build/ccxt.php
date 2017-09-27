@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.36';
+$version = '1.8.37';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -19205,8 +19205,8 @@ class xbtce extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $ticker['DailyTradedTotalVolume'],
+            'baseVolume' => $ticker['DailyTradedTotalVolume'],
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
