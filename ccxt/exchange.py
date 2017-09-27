@@ -154,11 +154,12 @@ class Exchange(object):
             self.set_markets(self.markets)
 
     def define_rest_api(self, api, method_name, options={}):
+        delimiters = re.compile('[^a-zA-Z0-9]')
         for api_type, methods in api.items():
             for http_method, urls in methods.items():
                 for url in urls:
                     url = url.strip()
-                    split_path = re.compile('[^a-zA-Z0-9]').split(url)
+                    split_path = delimiters.split(url)
 
                     uppercase_method = http_method.upper()
                     lowercase_method = http_method.lower()
