@@ -16,9 +16,7 @@ async function test () {
 
     const orders = await exchange.fetchOrders ()
 
-    log (asTable (orders))
-
-    orders.forEach (log)
+    log (asTable (orders.map (order => ccxt.omit (order, [ 'timestamp', 'info' ]))))
 
     const order = await exchange.fetchOrder (orders[0]['id'])
 
