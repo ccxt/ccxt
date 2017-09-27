@@ -26,76 +26,24 @@ let newRstExchangeTable = rstExchangeTableLines.map (line => {
     return line.replace (/(\||\+)(.).+?(\s|\=|\-)(\||\+)/, '$1') // replace ascii table graphics
 }).join ("\n")
 
-let travisBadgeImage    = ".. image:: https://travis-ci.org/kroitor/ccxt.svg?branch=master\n"
-let travisBadgeTarget   = "   :target: https://travis-ci.org/kroitor/ccxt"
-let npmBadgeImage       = ".. image:: https://img.shields.io/npm/v/ccxt.svg\n"
-let npmBadgeTarget      = "   :target: https://npmjs.com/package/ccxt"
-let pypiBadgeImage      = ".. image:: https://img.shields.io/pypi/v/ccxt.svg\n"
-let pypiBadgeTarget     = "   :target: https://pypi.python.org/pypi/ccxt"
-let npmDownloadsImage   = ".. image:: https://img.shields.io/npm/dm/ccxt.svg\n"
-let npmDownloadsTarget  = "   :target: https://www.npmjs.com/package/ccxt"
-let pypiDownloadsImage  = ".. image:: https://img.shields.io/pypi/dm/ccxt.svg\n" // always shows 0
-let pypiDownloadsTarget = "   :target: https://pypi.org/project/ccxt"
-let scrutinizerImage    = ".. image:: https://img.shields.io/scrutinizer/g/kroitor/ccxt.svg\n"
-let scrutinizerTarget   = "   :target: https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master"
-let runkitImage         = ".. image:: https://badge.runkitcdn.com/ccxt.svg\n"
-let runkitTarget        = "   :target: https://npm.runkit.com/ccxt"
-let gitterImage         = ".. image:: https://badges.gitter.im/ccxt-dev/ccxt.svg\n"
-let gitterTarget        = "   :target: https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge"
-let exchangesImage      = ".. image:: https://img.shields.io/badge/exchanges-" + ccxt.exchanges.length + "-blue.svg\n"
-let exchangesTarget     = "   :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets"
-
-let travisBadgeRST   = travisBadgeImage   + ' ' + travisBadgeTarget
-let npmBadgeRST      = npmBadgeImage      + ' ' + npmBadgeTarget
-let pypiBadgeRST     = pypiBadgeImage     + ' ' + pypiBadgeTarget
-let npmDownloadsRST  = npmDownloadsImage  + ' ' + npmDownloadsTarget
-let pypiDownloadsRST = pypiDownloadsImage + ' ' + pypiDownloadsTarget // always shows 0
-let scrutinizerRST   = scrutinizerImage   + ' ' + scrutinizerTarget
-let runkitRST        = runkitImage        + ' ' + runkitTarget
-let gitterRST        = gitterImage        + ' ' + gitterTarget
-let exchangesRST     = exchangesImage     + ' ' + exchangesTarget
-
-let badges = [
-    travisBadgeRST,
-    npmBadgeRST,
-    pypiBadgeRST,
-    npmDownloadsRST,
-    // pypiDownloadsRST, // always shows 0
-    // scrutinizerRST,
-    runkitRST,
-    gitterRST,
-    exchangesRST,
-].join ("\n")
-
-let badgeTitles = [
-    '|Build Status|',
-    '|npm|',
-    '|PyPI|',
-    '|NPM Downloads|',
-    // '|Scrutinizer Code Quality|',
-    '|Try ccxt on RunKit|',
-    '|Gitter|',
-    '|Supported Exchanges|',
-].join (' ')
-
-rstNew = match[1] + "APIs:\n\n" + newRstExchangeTable + "\n\n" + match[3]
-// rstNew = rstNew.replace (/\.\.[^\n]+image\:\:[^\n]+[\n]/g, '')
-// rstNew = rstNew.replace (badgeTitles, badges)
-// rstNew = rstNew.replace (/   :target[^#]+$/g, '')
-fs.truncateSync (readmeRst)
-fs.writeFileSync (readmeRst, rstNew)
-
 //-----------------------------------------------------------------------------
 
-let readmeMd = 'README.md'
+function updateExchangeCountInBadge (fileName) {
 
-log.bright.cyan ('Updating badges →', readmeMd.yellow)
+    log.bright.cyan ('Updating exchange count →', fileName.yellow)
 
-let md = fs.readFileSync (readmeMd, 'utf8')
-let mdNew =
-    md.replace (/shields\.io\/badge\/exchanges\-[0-9]+\-blue/g, 'shields.io/badge/exchanges-' + ccxt.exchanges.length + '-blue')
+    let oldContent = fs.readFileSync (fileName, 'utf8')
+    let newContent =
+        oldContent.replace (/shields\.io\/badge\/exchanges\-[0-9]+\-blue/g, 'shields.io/badge/exchanges-' + ccxt.exchanges.length + '-blue')
 
-fs.truncateSync (readmeMd)
-fs.writeFileSync (readmeMd, mdNew)
+    fs.truncateSync (fileName)
+    fs.writeFileSync (fileName, newContent)
+
+}
+
+updateExchangeCount ('README.md')
+updateExchangeCount ('README.rst')
 
 log.bright.green ('Badges updated successfully.')
+
+//-----------------------------------------------------------------------------
