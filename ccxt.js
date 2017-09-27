@@ -15036,7 +15036,7 @@ var liqui = {
 
     async cancelOrder (id) {
         await this.loadMarkets ();
-        return this.privatePostCancelOrder ({ 'order_id': id });
+        return await this.privatePostCancelOrder ({ 'order_id': id });
     },
 
     parseOrder (order) {
