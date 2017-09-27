@@ -126,10 +126,10 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('fetchOpenOrders',      'fetch_open_orders')
                         .replace ('fetchMyTrades',        'fetch_my_trades')
                         .replace ('fetchAllMyTrades',     'fetch_all_my_trades')
-                        .replace ('updateLimitBuyOrder',  'update_limit_buy_order'),
-                        .replace ('updateLimitSellOrder', 'update_limit_sell_order'),
-                        .replace ('updateLimitOrder',     'update_limit_order'),
-                        .replace ('updateOrder',          'update_order'),
+                        .replace ('updateLimitBuyOrder',  'update_limit_buy_order')
+                        .replace ('updateLimitSellOrder', 'update_limit_sell_order')
+                        .replace ('updateLimitOrder',     'update_limit_order')
+                        .replace ('updateOrder',          'update_order')
                         .replace ('createOrder',          'create_order')
                         .replace ('cancelOrder',          'cancel_order')
                         .replace ('calculateFeeRate',     'calculate_fee_rate')

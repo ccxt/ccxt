@@ -9643,8 +9643,10 @@ class coingi extends Exchange {
     }
 
     public function fetch_ticker ($symbol) {
-        $tickers = $this->fetch_tickers ($symbol);
-        return $tickers[$symbol];
+        $tickers = $this->fetch_tickers ();
+        if (array_key_exists ($symbol, $tickers))
+            return $tickers[$symbol];
+        throw new ExchangeError ($this->id . ' return did not contain ' . $symbol);
     }
 
     public function parse_trade ($trade, $market = null) {

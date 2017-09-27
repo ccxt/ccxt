@@ -8006,8 +8006,10 @@ class coingi (Exchange):
         return result
 
     async def fetch_ticker(self, symbol):
-        tickers = await self.fetch_tickers(symbol)
-        return tickers[symbol]
+        tickers = await self.fetch_tickers()
+        if symbol in tickers:
+            return tickers[symbol]
+        raise ExchangeError(self.id + ' return did not contain ' + symbol)
 
     def parse_trade(self, trade, market=None):
         if not market:

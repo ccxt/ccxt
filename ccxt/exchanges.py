@@ -8095,8 +8095,10 @@ class coingi (Exchange):
         return result
 
     def fetch_ticker(self, symbol):
-        tickers = self.fetch_tickers(symbol)
-        return tickers[symbol]
+        tickers = self.fetch_tickers()
+        if symbol in tickers:
+            return tickers[symbol]
+        raise ExchangeError(self.id + ' return did not contain ' + symbol)
 
     def parse_trade(self, trade, market=None):
         if not market:

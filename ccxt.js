@@ -9276,8 +9276,10 @@ var coingi = {
     },
 
     async fetchTicker (symbol) {
-        let tickers = await this.fetchTickers (symbol);
-        return tickers[symbol];
+        let tickers = await this.fetchTickers ();
+        if (symbol in tickers)
+            return tickers[symbol];
+        throw new ExchangeError (this.id + ' return did not contain ' + symbol);
     },
 
     parseTrade (trade, market = undefined) {
