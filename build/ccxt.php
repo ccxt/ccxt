@@ -16686,6 +16686,106 @@ class okcoin extends Exchange {
         ), $params));
     }
 
+    public function parse_order ($order, $market = null) {
+        $side = null;
+        $type = null;
+        if (array_key_exists ('type', $order)) {
+            if (($order['type'] == 'buy') || ($order['type'] == 'sell')) {
+                $side = $order['type'];
+                $type = 'limit';
+            } else {
+                $side = ($order['type'] == 'buy_market') ? 'buy' : 'sell';
+                $type = 'market';
+            }
+        }
+        $status = 'open';
+        if ($order['status'] == -1) {
+            $status = 'canceled';
+        } else if ($order['status'] == 1) {
+            $status = 'partial';
+        } else if ($order['status'] == 2) {
+            $status = 'closed';
+        } else if ($order['status'] == 4) {
+            $status = 'canceled';
+        }
+        $symbol = null;
+        if (!$market) {
+            if (array_key_exists ('symbol', $order))
+                if (array_key_exists ($order['symbol'], $this->markets_by_id))
+                    $market = $this->markets_by_id[$order['symbol']];
+        }
+        if ($market)
+            $symbol = $market['symbol'];
+        $timestamp = null;
+        if (array_key_exists ('create_date', $order))
+            $timestamp = $order['create_date'];
+        $amount = $order['amount'];
+        $filled = $order['deal_amount'];
+        $remaining = $amount - $filled;
+        $result = array (
+            'info' => $order,
+            'id' => $order['order_id'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'type' => 'limit',
+            'side' => $side,
+            'price' => $order['price'],
+            'average' => $order['avg_price'],
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'status' => $status,
+            'fee' => null,
+        );
+        return $result;
+    }
+
+    public function fetch_order ($id, $params = array ()) {
+        $symbol = (array_key_exists ('symbol', $params));
+        if (!$symbol)
+            throw new ExchangeError ($this->id . 'fetchOrders requires a $symbol parameter');
+        else
+            $symbol = $params['symbol'];
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $method = 'privatePost';
+        $request = array (
+            'symbol' => $market['id'],
+            // 'status' => 0, // 0 for unfilled orders, 1 for filled orders
+            // 'current_page' => 1, // current page number
+            // 'page_length' => 200, // number of orders returned per page, maximum 200
+        );
+        if ($market['future']) {
+            $method .= 'Future';
+            $request['contract_type'] = 'this_week'; // next_week, quarter
+        }
+        $method .= 'OrderInfo';
+        $response = $this->$method (array_merge ($request, $params));
+        return $this->parse_order ($response['orders'][0]);
+    }
+
+    public function fetch_orders ($symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . 'fetchOrders requires a $symbol parameter');
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $method = 'privatePost';
+        $request = array (
+            'symbol' => $market['id'],
+            // 'status' => 0, // 0 for unfilled orders, 1 for filled orders
+            // 'current_page' => 1, // current page number
+            // 'page_length' => 200, // number of orders returned per page, maximum 200
+        );
+        if ($market['future']) {
+            $method .= 'Future';
+            $request['contract_type'] = 'this_week'; // next_week, quarter
+        }
+        $method .= 'OrdersInfo';
+        $response = $this->$method (array_merge ($request, $params));
+        return $this->parse_orders ($response['orders']);
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . 'api' . '/' . $this->version . '/' . $path . '.do';
         if ($api == 'public') {

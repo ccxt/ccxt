@@ -14647,6 +14647,97 @@ class okcoin (Exchange):
             'order_id': id,
         }, params))
 
+    def parse_order(self, order, market=None):
+        side = None
+        type = None
+        if 'type' in order:
+            if(order['type'] == 'buy') or(order['type'] == 'sell'):
+                side = order['type']
+                type = 'limit'
+            else:
+                side = 'buy' if(order['type'] == 'buy_market') else 'sell'
+                type = 'market'
+        status = 'open'
+        if order['status'] == -1:
+            status = 'canceled'
+        elif order['status'] == 1:
+            status = 'partial'
+        elif order['status'] == 2:
+            status = 'closed'
+        elif order['status'] == 4:
+            status = 'canceled'
+        symbol = None
+        if not market:
+            if 'symbol' in order:
+                if order['symbol'] in self.markets_by_id:
+                    market = self.markets_by_id[order['symbol']]
+        if market:
+            symbol = market['symbol']
+        timestamp = None
+        if 'create_date' in order:
+            timestamp = order['create_date']
+        amount = order['amount']
+        filled = order['deal_amount']
+        remaining = amount - filled
+        result = {
+            'info': order,
+            'id': order['order_id'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': order['price'],
+            'average': order['avg_price'],
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': None,
+        }
+        return result
+
+    async def fetch_order(self, id, params={}):
+        symbol = ('symbol' in list(params.keys()))
+        if not symbol:
+            raise ExchangeError(self.id + 'fetchOrders requires a symbol parameter')
+        else:
+            symbol = params['symbol']
+        await self.load_markets()
+        market = self.market(symbol)
+        method = 'privatePost'
+        request = {
+            'symbol': market['id'],
+            # 'status': 0, # 0 for unfilled orders, 1 for filled orders
+            # 'current_page': 1, # current page number
+            # 'page_length': 200, # number of orders returned per page, maximum 200
+        }
+        if market['future']:
+            method += 'Future'
+            request['contract_type'] = 'this_week' # next_week, quarter
+        method += 'OrderInfo'
+        response = await getattr(self, method)(self.extend(request, params))
+        return self.parse_order(response['orders'][0])
+
+    async def fetch_orders(self, symbol=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + 'fetchOrders requires a symbol parameter')
+        await self.load_markets()
+        market = self.market(symbol)
+        method = 'privatePost'
+        request = {
+            'symbol': market['id'],
+            # 'status': 0, # 0 for unfilled orders, 1 for filled orders
+            # 'current_page': 1, # current page number
+            # 'page_length': 200, # number of orders returned per page, maximum 200
+        }
+        if market['future']:
+            method += 'Future'
+            request['contract_type'] = 'this_week' # next_week, quarter
+        method += 'OrdersInfo'
+        response = await getattr(self, method)(self.extend(request, params))
+        return self.parse_orders(response['orders'])
+
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + 'api' + '/' + self.version + '/' + path + '.do'
         if api == 'public':
