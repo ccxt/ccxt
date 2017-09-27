@@ -33,7 +33,6 @@ Below is a list of functionality we would like to have implemented in the librar
 - Unified fetchOrders, fetchOpenOrders, fetchClosedOrders
 - Unified fetchMyTrades, fetchOrderTrades
 - Unified deposit method
-- Unified withdraw method
 - Unified fees
 - Improved proxy support
 - WebSocket interfaces:
@@ -137,8 +136,8 @@ The structure of the master/slave file can be outlined like this:
         +----------------------------+  ←  beginning of file
 h   ╭   |                            |
 e   │   |  globals                   |
-a   │   |                            |  
-d  ─┤   //---------------------------+  ←  thin horizontal ruler comment is used to separate code blocks 
+a   │   |                            |
+d  ─┤   //---------------------------+  ←  thin horizontal ruler comment is used to separate code blocks
 e   │   |                            |
 r   │   |  base exchange class       |     above this first bold line all code is language-specific
     ╰   |                            |                    ↑
@@ -158,9 +157,9 @@ y   │   |                            |
 f   ╭   |                            |                    ↓
 o   │   |  other code                |     below this second bold line all code is language-specific
 o   │   |                            |
-t  ─┤   //---------------------------+  ←  thin horizontal ruler comment is used to separate code blocks 
-e   │   |                            |   
-r   │   |  other code                |   
+t  ─┤   //---------------------------+  ←  thin horizontal ruler comment is used to separate code blocks
+e   │   |                            |
+r   │   |  other code                |
     ╰   |                            |
         //---------------------------+  ←  end of file
 ```
