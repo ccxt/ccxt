@@ -12292,6 +12292,43 @@ var hitbtc = {
         }, params));
     },
 
+    parseOrder (order, market = undefined) {
+        let symbol = undefined;
+        if (!market)
+            market = this.markets_by_id (order['symbol']);
+        let timestamp = parseInt (order['lastTimestamp']);
+        let amount = parseFloat (order['orderQuantity']);
+        let remaining = parseFloat (order['quantityLeaves']);
+        if (market) {
+            symbol = market['symbol'];
+            amount *= market['lot'];
+            remaining *= market['lot'];
+        }
+        let filled = amount - remaining;
+        return {
+            'id': order['clientOrderId'],
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'status': order['orderStatus'],
+            'symbol': symbol,
+            'type': order['type'],
+            'side': order['side'],
+            'price': parseFloat (order['avgPrice']),
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+        };
+    },
+
+    async fetchOrder (id, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.tradingGetOrder (this.extend ({
+            'client_order_id': id,
+        }, params));
+        return this.parseOrder (response['orders'][0]);
+    },
+
     async withdraw (currency, amount, address, params = {}) {
         await this.loadMarkets ();
         let response = await this.paymentPostPayout (this.extend ({
@@ -16452,7 +16489,7 @@ var poloniex = {
     'id': 'poloniex',
     'name': 'Poloniex',
     'countries': 'US',
-    'rateLimit': 500, // up 6 calls per second
+    'rateLimit': 500, // up to 6 calls per second
     'hasCORS': true,
     'hasFetchTickers': true,
     'urls': {
@@ -16757,9 +16794,9 @@ var poloniex = {
         return result;
     },
 
-    async fetchOrderStatus (id, market = undefined) {
+    async fetchOrderStatus (id, symbol = undefined) {
         await this.loadMarkets ();
-        let orders = await this.fetchOpenOrders (market);
+        let orders = await this.fetchOpenOrders (symbol);
         let indexed = this.indexBy (orders, 'id');
         return (id in indexed) ? 'open' : 'closed';
     },
