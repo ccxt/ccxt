@@ -13546,7 +13546,7 @@ class liqui (Exchange):
 
     async def cancel_order(self, id):
         await self.load_markets()
-        return self.privatePostCancelOrder({'order_id': id})
+        return await self.privatePostCancelOrder({'order_id': id})
 
     def parse_order(self, order):
         statusCode = order['status']
