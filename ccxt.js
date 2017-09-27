@@ -3099,15 +3099,14 @@ var bitfinex = {
             status = 'closed';
         }
         let symbol = undefined;
-        if (market) {
-            symbol = market['symbol'];
-        } else {
+        if (!market) {
             let exchange = order['symbol'].toUpperCase ();
             if (exchange in this.markets_by_id) {
                 market = this.markets_by_id[exchange];
-                symbol = market['symbol'];
             }
         }
+        if (market)
+            symbol = market['symbol'];
         let orderType = order['type'];
         let exchange = orderType.indexOf ('exchange ') >= 0;
         if (exchange) {
@@ -3116,18 +3115,35 @@ var bitfinex = {
         let timestamp = parseInt (parseFloat (order['timestamp']) * 1000);
         let result = {
             'info': order,
-            'id': order['id'],
+            'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': orderType,
             'side': side,
             'price': parseFloat (order['price']),
+            'average': parseFloat (order['avg_execution_price']);
             'amount': parseFloat (order['original_amount']),
             'remaining': parseFloat (order['remaining_amount']),
+            'filled': parseFloat (order['executed_amount']),
             'status': status,
+            'fee': undefined,
         };
         return result;
+    },
+
+    async fetchOpenOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostOrders (params);
+        return this.parseOrders (response);
+    },
+
+    async fetchClosedOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostOrdersHist (this.extend ({
+            'limit': 100, // default 100
+        }, params));
+        return this.parseOrders (response);
     },
 
     async fetchOrder (id, symbol = undefined, params = {}) {
