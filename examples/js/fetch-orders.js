@@ -18,6 +18,8 @@ async function test () {
 
     log (asTable (orders))
 
+    orders.forEach (order => log)
+
     const order = await exchange.fetchOrder (orders[0]['id'])
 
     log (order)
