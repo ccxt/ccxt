@@ -15484,7 +15484,7 @@ class poloniex (Exchange):
             return self.orders[id]
         raise ExchangeError(self.id + ' order ' + id + ' not found')
 
-    def fetch_order_trades(self, id, params={}):
+    def fetch_order_trades(self, id, symbol=None, params={}):
         self.load_markets()
         trades = self.privatePostReturnOrderTrades(self.extend({
             'orderNumber': id,
