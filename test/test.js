@@ -95,8 +95,6 @@ let testTicker = async (exchange, symbol) => {
         if ((exchange.id != 'coinmarketcap') && (exchange.id != 'xbtce'))
             assert (ticker['bid'] <= ticker['ask'])
 
-
-
     } else {
 
         log (symbol.green, 'fetchTicker () not supported')
