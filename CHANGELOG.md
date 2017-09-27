@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Added HitBTC v1 fetchOrder (experimental)
 - Added more exceptions to coincheck for non-BTC/JPY-markets, [#236](https://github.com/kroitor/ccxt/issues/236)
 - Fixed liqui balance totals, [#235](https://github.com/kroitor/ccxt/issues/235)
 - Fixed fetchTicker transpilation bug, [#234](https://github.com/kroitor/ccxt/issues/234)
