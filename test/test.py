@@ -55,14 +55,13 @@ def dump(*args):
 # print a n error string
 def dump_error(*args):
     string = ' '.join([str(arg) for arg in args])
-    print(string)
+    # print(string)
     sys.stderr.write(string + "\n")
 
 # ------------------------------------------------------------------------------
 
 def handle_all_unhandled_exceptions(type, value, traceback):
-
-    dump_error(yellow(type, value, '\n\n' + '\n'.join(format_tb(traceback))))
+    dump_error(yellow(str(type) + ' ' + value + '\n\n' + '\n'.join(format_tb(traceback))))
     _exit(1) # unrecoverable crash
 
 sys.excepthook = handle_all_unhandled_exceptions

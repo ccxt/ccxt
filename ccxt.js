@@ -8342,13 +8342,15 @@ var cex = {
         let result = { 'info': balances };
         for (let c = 0; c < this.currencies.length; c++) {
             let currency = this.currencies[c];
-            let account = {
-                'free': parseFloat (balances[currency]['available']),
-                'used': parseFloat (balances[currency]['orders']),
-                'total': 0.0,
-            };
-            account['total'] = this.sum (account['free'], account['used']);
-            result[currency] = account;
+            if (currency in balances) {
+                let account = {
+                    'free': parseFloat (balances[currency]['available']),
+                    'used': parseFloat (balances[currency]['orders']),
+                    'total': 0.0,
+                };
+                account['total'] = this.sum (account['free'], account['used']);
+                result[currency] = account;
+            }
         }
         return this.parseBalance (result);
     },
@@ -8496,6 +8498,9 @@ var cex = {
                 if (response['ok'] == 'ok')
                     return response;
             throw new ExchangeError (this.id + ' ' + this.json (response));
+        } else if ('error' in response) {
+            if (response['error'])
+                throw new ExchangeError (this.id + ' ' + this.json (response));
         }
         return response;
     },

@@ -8673,13 +8673,15 @@ class cex extends Exchange {
         $result = array ( 'info' => $balances );
         for ($c = 0; $c < count ($this->currencies); $c++) {
             $currency = $this->currencies[$c];
-            $account = array (
-                'free' => floatval ($balances[$currency]['available']),
-                'used' => floatval ($balances[$currency]['orders']),
-                'total' => 0.0,
-            );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$currency] = $account;
+            if (array_key_exists ($currency, $balances)) {
+                $account = array (
+                    'free' => floatval ($balances[$currency]['available']),
+                    'used' => floatval ($balances[$currency]['orders']),
+                    'total' => 0.0,
+                );
+                $account['total'] = $this->sum ($account['free'], $account['used']);
+                $result[$currency] = $account;
+            }
         }
         return $this->parse_balance ($result);
     }
@@ -8827,6 +8829,9 @@ class cex extends Exchange {
                 if ($response['ok'] == 'ok')
                     return $response;
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        } else if (array_key_exists ('error', $response)) {
+            if ($response['error'])
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }
         return $response;
     }
@@ -16023,6 +16028,29 @@ class mercado extends Exchange {
         return $this->privatePostCancelOrder (array_merge (array (
             'order_id' => $id,
         ), $params));
+    }
+
+    public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $request = array (
+            'coin' => $currency,
+            'quantity' => sprintf ('%10f', $amount),
+            'address' => $address,
+        );
+        if ($currency == 'BRL') {
+            $account_ref = (array_key_exists ('account_ref', $params));
+            if (!$account_ref)
+                throw new ExchangeError ($this->id . ' requires $account_ref parameter to withdraw ' . $currency);
+        } else if ($currency != 'LTC') {
+            $tx_fee = (array_key_exists ('tx_fee', $params));
+            if (!$tx_fee)
+                throw new ExchangeError ($this->id . ' requires $tx_fee parameter to withdraw ' . $currency);
+        }
+        $response = $this->privatePostWithdrawCoin (array_merge ($request, $params));
+        return array (
+            'info' => $response,
+            'id' => $response['response_data']['withdrawal']['id'],
+        );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

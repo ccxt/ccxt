@@ -7222,13 +7222,14 @@ class cex (Exchange):
         result = {'info': balances}
         for c in range(0, len(self.currencies)):
             currency = self.currencies[c]
-            account = {
-                'free': float(balances[currency]['available']),
-                'used': float(balances[currency]['orders']),
-                'total': 0.0,
-            }
-            account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            if currency in balances:
+                account = {
+                    'free': float(balances[currency]['available']),
+                    'used': float(balances[currency]['orders']),
+                    'total': 0.0,
+                }
+                account['total'] = self.sum(account['free'], account['used'])
+                result[currency] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, params={}):
@@ -7363,6 +7364,9 @@ class cex (Exchange):
                 if response['ok'] == 'ok':
                     return response
             raise ExchangeError(self.id + ' ' + self.json(response))
+        elif 'error' in response:
+            if response['error']:
+                raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
 #------------------------------------------------------------------------------
@@ -14118,6 +14122,27 @@ class mercado (Exchange):
         return self.privatePostCancelOrder(self.extend({
             'order_id': id,
         }, params))
+
+    def withdraw(self, currency, amount, address, params={}):
+        self.load_markets()
+        request = {
+            'coin': currency,
+            'quantity': '{:.10f}'.format(amount),
+            'address': address,
+        }
+        if currency == 'BRL':
+            account_ref = ('account_ref' in list(params.keys()))
+            if not account_ref:
+                raise ExchangeError(self.id + ' requires account_ref parameter to withdraw ' + currency)
+        elif currency != 'LTC':
+            tx_fee = ('tx_fee' in list(params.keys()))
+            if not tx_fee:
+                raise ExchangeError(self.id + ' requires tx_fee parameter to withdraw ' + currency)
+        response = self.privatePostWithdrawCoin(self.extend(request, params))
+        return {
+            'info': response,
+            'id': response['response_data']['withdrawal']['id'],
+        }
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/'
