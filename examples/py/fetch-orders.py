@@ -26,4 +26,4 @@ orders = exchange.fetch_orders()
 print(orders)
 
 order = exchange.fetch_order(orders[0]['id'])
-print (order)
+print(order)
