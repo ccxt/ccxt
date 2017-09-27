@@ -12,7 +12,7 @@ let readmeRst = 'README.rst'
 log.bright.cyan ('Updating badges →', readmeRst.yellow)
 
 let rst = fs.readFileSync (readmeRst, 'utf8')
-let rstNew = 
+let rstNew =
     rst.replace (/\`([^\`]+)\s\<\#[^\`]+\>\`\_\_/g, '$1') // PyPI doesn't like urls containing anchor hash symbol '#', strip it off to plain text
         .replace (/\\\|/g, '|') // PyPI doesn't like escaped vertical bars
         // .replace (/\|\\(\_[^\|]+)\|([\ ]+)\|/g, '|$1| $2|')
@@ -40,6 +40,8 @@ let scrutinizerImage    = ".. image:: https://img.shields.io/scrutinizer/g/kroit
 let scrutinizerTarget   = "   :target: https://scrutinizer-ci.com/g/kroitor/ccxt/?branch=master"
 let runkitImage         = ".. image:: https://badge.runkitcdn.com/ccxt.svg\n"
 let runkitTarget        = "   :target: https://npm.runkit.com/ccxt"
+let gitterImage         = ".. image:: https://badges.gitter.im/ccxt-dev/ccxt.svg\n"
+let gitterTarget        = "   :target: https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge"
 let exchangesImage      = ".. image:: https://img.shields.io/badge/exchanges-" + ccxt.exchanges.length + "-blue.svg\n"
 let exchangesTarget     = "   :target: https://github.com/kroitor/ccxt/wiki/Exchange-Markets"
 
@@ -50,16 +52,18 @@ let npmDownloadsRST  = npmDownloadsImage  + ' ' + npmDownloadsTarget
 let pypiDownloadsRST = pypiDownloadsImage + ' ' + pypiDownloadsTarget // always shows 0
 let scrutinizerRST   = scrutinizerImage   + ' ' + scrutinizerTarget
 let runkitRST        = runkitImage        + ' ' + runkitTarget
+let gitterRST        = gitterImage        + ' ' + gitterTarget
 let exchangesRST     = exchangesImage     + ' ' + exchangesTarget
 
-let badges = [ 
-    travisBadgeRST, 
-    npmBadgeRST, 
-    pypiBadgeRST, 
-    npmDownloadsRST, 
+let badges = [
+    travisBadgeRST,
+    npmBadgeRST,
+    pypiBadgeRST,
+    npmDownloadsRST,
     // pypiDownloadsRST, // always shows 0
-    // scrutinizerRST, 
+    // scrutinizerRST,
     runkitRST,
+    gitterRST,
     exchangesRST,
 ].join ("\n")
 
@@ -68,9 +72,10 @@ let badgeTitles = [
     '|Build Status|',
     '|npm|',
     '|PyPI|',
-    '|NPM Downloads|', 
+    '|NPM Downloads|',
     // '|Scrutinizer Code Quality|',
     '|Try ccxt on RunKit|',
+    '|Gitter|',
     '|Supported Exchanges|',
 ].join (' ')
 
@@ -88,7 +93,7 @@ let readmeMd = 'README.md'
 log.bright.cyan ('Updating badges →', readmeMd.yellow)
 
 let md = fs.readFileSync (readmeMd, 'utf8')
-let mdNew = 
+let mdNew =
     md.replace (/shields\.io\/badge\/exchanges\-[0-9]+\-blue/g, 'shields.io/badge/exchanges-' + ccxt.exchanges.length + '-blue')
 
 fs.truncateSync (readmeMd)
