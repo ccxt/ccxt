@@ -67,7 +67,6 @@ let badges = [
     exchangesRST,
 ].join ("\n")
 
-
 let badgeTitles = [
     '|Build Status|',
     '|npm|',
@@ -80,9 +79,9 @@ let badgeTitles = [
 ].join (' ')
 
 rstNew = match[1] + "APIs:\n\n" + newRstExchangeTable + "\n\n" + match[3]
-rstNew = rstNew.replace (/\.\.[^\n]+image\:\:[^\n]+[\n]/g, '')
-rstNew = rstNew.replace (badgeTitles, badges)
-rstNew = rstNew.replace (/   :target[^#]+$/g, '')
+// rstNew = rstNew.replace (/\.\.[^\n]+image\:\:[^\n]+[\n]/g, '')
+// rstNew = rstNew.replace (badgeTitles, badges)
+// rstNew = rstNew.replace (/   :target[^#]+$/g, '')
 fs.truncateSync (readmeRst)
 fs.writeFileSync (readmeRst, rstNew)
 
