@@ -2144,13 +2144,12 @@ class bitfinex (Exchange):
         else:
             status = 'closed'
         symbol = None
-        if market:
-            symbol = market['symbol']
-        else:
+        if not market:
             exchange = order['symbol'].upper()
             if exchange in self.markets_by_id:
                 market = self.markets_by_id[exchange]
-                symbol = market['symbol']
+        if market:
+            symbol = market['symbol']
         orderType = order['type']
         exchange = orderType.find('exchange ') >= 0
         if exchange:
@@ -2158,18 +2157,33 @@ class bitfinex (Exchange):
         timestamp = int(float(order['timestamp']) * 1000)
         result = {
             'info': order,
-            'id': order['id'],
+            'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': orderType,
             'side': side,
             'price': float(order['price']),
+            'average': float(order['avg_execution_price']),
             'amount': float(order['original_amount']),
             'remaining': float(order['remaining_amount']),
+            'filled': float(order['executed_amount']),
             'status': status,
+            'fee': None,
         }
         return result
+
+    async def fetch_open_orders(self, symbol=None, params={}):
+        await self.load_markets()
+        response = await self.privatePostOrders(params)
+        return self.parse_orders(response)
+
+    async def fetchClosedOrders(self, symbol=None, params={}):
+        await self.load_markets()
+        response = await self.privatePostOrdersHist(self.extend({
+            'limit': 100, # default 100
+        }, params))
+        return self.parse_orders(response)
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()

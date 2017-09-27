@@ -3333,15 +3333,14 @@ class bitfinex extends Exchange {
             $status = 'closed';
         }
         $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
-        } else {
+        if (!$market) {
             $exchange = strtoupper ($order['symbol']);
             if (array_key_exists ($exchange, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$exchange];
-                $symbol = $market['symbol'];
             }
         }
+        if ($market)
+            $symbol = $market['symbol'];
         $orderType = $order['type'];
         $exchange = mb_strpos ($orderType, 'exchange ') !== false;
         if ($exchange) {
@@ -3350,18 +3349,35 @@ class bitfinex extends Exchange {
         $timestamp = intval (floatval ($order['timestamp']) * 1000);
         $result = array (
             'info' => $order,
-            'id' => $order['id'],
+            'id' => (string) $order['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'type' => $orderType,
             'side' => $side,
             'price' => floatval ($order['price']),
+            'average' => floatval ($order['avg_execution_price']),
             'amount' => floatval ($order['original_amount']),
             'remaining' => floatval ($order['remaining_amount']),
+            'filled' => floatval ($order['executed_amount']),
             'status' => $status,
+            'fee' => null,
         );
         return $result;
+    }
+
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
+        $this->load_markets ();
+        $response = $this->privatePostOrders ($params);
+        return $this->parse_orders ($response);
+    }
+
+    public function fetchClosedOrders ($symbol = null, $params = array ()) {
+        $this->load_markets ();
+        $response = $this->privatePostOrdersHist (array_merge (array (
+            'limit' => 100, // default 100
+        ), $params));
+        return $this->parse_orders ($response);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
