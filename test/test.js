@@ -136,8 +136,9 @@ let testOrderBook = async (exchange, symbol) => {
     if (asks.length > 1)
         assert (asks[0][0] <= asks[asks.length - 1][0])
 
-    if (bids.length && asks.length)
-        assert (bids[0][0] <= asks[0][0])
+    if (exchange.id != 'xbtce')
+        if (bids.length && asks.length)
+            assert (bids[0][0] <= asks[0][0])
 
     return orderbook
 }
