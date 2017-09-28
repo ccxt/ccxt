@@ -9,7 +9,7 @@ const ansi = require ('ansicolor').nice
 
 let readmeRst = 'README.rst'
 
-log.bright.cyan ('Updating badges →', readmeRst.yellow)
+log.bright.cyan ('Preparing for PyPI →', readmeRst.yellow)
 
 let rst = fs.readFileSync (readmeRst, 'utf8')
 let rstNew =
@@ -26,6 +26,11 @@ let rstExchangeTableLines = match[2].split ("\n")
 let newRstExchangeTable = rstExchangeTableLines.map (line => {
     return line.replace (/(\||\+)(.).+?(\s|\=|\-)(\||\+)/, '$1') // replace ascii table graphics
 }).join ("\n")
+
+rstNew = match[1] + "APIs:\n\n" + newRstExchangeTable + "\n\n" + match[3]
+
+fs.truncateSync (readmeRst)
+fs.writeFileSync (readmeRst, rstNew)
 
 //-----------------------------------------------------------------------------
 
