@@ -50,6 +50,7 @@ while (exchanges = regex.exec (contents)) {
         .replace (/ false/g, ' False')
         .replace (/ undefined/g, ' None')
         .replace (/ \/\//g, ' #')
+        .replace (/([^\n\s]) \#/g, '$1  #') // PEP8 E261
         .replace (/\{ /g, '{')              // PEP8 E201
         .replace (/\[ /g, '[')              // PEP8 E201
         .replace (/([^\s]+) \]/g, '$1]')    // PEP8 E202
@@ -245,7 +246,8 @@ while (exchanges = regex.exec (contents)) {
             [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs($1)' ],
             [ /Math\.round\s*\(([^\)]+)\)/g, 'int(round($1))' ],
             [ /(\([^\)]+\)|[^\s]+)\s*\?\s*(\([^\)]+\)|[^\s]+)\s*\:\s*(\([^\)]+\)|[^\s]+)/g, '$2 if $1 else $3'],
-            [/ \/\//g, '  #' ],
+            [/ \/\//g, ' #' ],
+            [/([^\n\s]) \#/g, '$1  #' ],   // PEP8 E261
             [ /\.indexOf/g, '.find'],
             [ /\strue/g, ' True'],
             [ /\sfalse/g, ' False'],

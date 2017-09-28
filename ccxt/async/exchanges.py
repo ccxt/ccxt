@@ -132,7 +132,7 @@ class _1broker (Exchange):
         return result
 
     async def fetch_markets(self):
-        self_ = self # workaround for Babel bug(not passing `self` to _recursive() call)
+        self_ = self  # workaround for Babel bug(not passing `self` to _recursive() call)
         categories = await self.fetchCategories()
         result = []
         for c in range(0, len(categories)):
@@ -249,7 +249,7 @@ class _1broker (Exchange):
             'resolution': self.timeframes[timeframe],
         }
         if since:
-            request['date_start'] = self.iso8601(since) # they also support date_end
+            request['date_start'] = self.iso8601(since)  # they also support date_end
         if limit:
             request['limit'] = limit
         result = await self.privateGetMarketBars(self.extend(request, params))
@@ -303,7 +303,7 @@ class cryptocapital (Exchange):
             'id': 'cryptocapital',
             'name': 'Crypto Capital',
             'comment': 'Crypto Capital API',
-            'countries': 'PA', # Panama
+            'countries': 'PA',  # Panama
             'hasFetchOHLCV': True,
             'hasWithdraw': True,
             'timeframes': {
@@ -495,7 +495,7 @@ class _1btcxe (cryptocapital):
         params = {
             'id': '_1btcxe',
             'name': '1BTCXE',
-            'countries': 'PA', # Panama
+            'countries': 'PA',  # Panama
             'comment': 'Crypto Capital API',
             'hasCORS': True,
             'urls': {
@@ -576,35 +576,35 @@ class acx (Exchange):
             'api': {
                 'public': {
                     'get': [
-                        'markets', # Get all available markets
-                        'tickers', # Get ticker of all markets
-                        'tickers/{market}', # Get ticker of specific market
-                        'trades', # Get recent trades on market, each trade is included only once Trades are sorted in reverse creation order.
-                        'order_book', # Get the order book of specified market
-                        'depth', # Get depth or specified market Both asks and bids are sorted from highest price to lowest.
-                        'k', # Get OHLC(k line) of specific market
-                        'k_with_pending_trades', # Get K data with pending trades, which are the trades not included in K data yet, because there's delay between trade generated and processed by K data generator
-                        'timestamp', # Get server current time, in seconds since Unix epoch
+                        'markets',  # Get all available markets
+                        'tickers',  # Get ticker of all markets
+                        'tickers/{market}',  # Get ticker of specific market
+                        'trades',  # Get recent trades on market, each trade is included only once Trades are sorted in reverse creation order.
+                        'order_book',  # Get the order book of specified market
+                        'depth',  # Get depth or specified market Both asks and bids are sorted from highest price to lowest.
+                        'k',  # Get OHLC(k line) of specific market
+                        'k_with_pending_trades',  # Get K data with pending trades, which are the trades not included in K data yet, because there's delay between trade generated and processed by K data generator
+                        'timestamp',  # Get server current time, in seconds since Unix epoch
                     ],
                 },
                 'private': {
                     'get': [
-                        'members/me', # Get your profile and accounts info
-                        'deposits', # Get your deposits history
-                        'deposit', # Get details of specific deposit
-                        'deposit_address', # Where to deposit The address field could be empty when a new address is generating (e.g. for bitcoin), you should try again later in that case.
-                        'orders', # Get your orders, results is paginated
-                        'order', # Get information of specified order
-                        'trades/my', # Get your executed trades Trades are sorted in reverse creation order.
-                        'withdraws', # Get your cryptocurrency withdraws
-                        'withdraw', # Get your cryptocurrency withdraw
+                        'members/me',  # Get your profile and accounts info
+                        'deposits',  # Get your deposits history
+                        'deposit',  # Get details of specific deposit
+                        'deposit_address',  # Where to deposit The address field could be empty when a new address is generating (e.g. for bitcoin), you should try again later in that case.
+                        'orders',  # Get your orders, results is paginated
+                        'order',  # Get information of specified order
+                        'trades/my',  # Get your executed trades Trades are sorted in reverse creation order.
+                        'withdraws',  # Get your cryptocurrency withdraws
+                        'withdraw',  # Get your cryptocurrency withdraw
                     ],
                     'post': [
-                        'orders', # Create a Sell/Buy order
-                        'orders/multi', # Create multiple sell/buy orders
-                        'orders/clear', # Cancel all my orders
-                        'order/delete', # Cancel an order
-                        'withdraw', # Create a withdraw
+                        'orders',  # Create a Sell/Buy order
+                        'orders/multi',  # Create multiple sell/buy orders
+                        'orders/clear',  # Cancel all my orders
+                        'order/delete',  # Cancel an order
+                        'withdraw',  # Create a withdraw
                     ],
                 },
             },
@@ -757,7 +757,7 @@ class acx (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         if not limit:
-            limit = 500 # default is 30
+            limit = 500  # default is 30
         request = {
             'market': market['id'],
             'period': self.timeframes[timeframe],
@@ -855,7 +855,7 @@ class anxpro (Exchange):
                     'get': [
                         '{currency_pair}/money/ticker',
                         '{currency_pair}/money/depth/full',
-                        '{currency_pair}/money/trade/fetch', # disabled by ANXPro
+                        '{currency_pair}/money/trade/fetch',  # disabled by ANXPro
                     ],
                 },
                 'private': {
@@ -954,11 +954,11 @@ class anxpro (Exchange):
     async def create_order(self, market, type, side, amount, price=None, params={}):
         order = {
             'currency_pair': self.market_id(market),
-            'amount_int': int(amount * 100000000), # 10^8
+            'amount_int': int(amount * 100000000),  # 10^8
             'type': side,
         }
         if type == 'limit':
-            order['price_int'] = int(price * 100000) # 10^5
+            order['price_int'] = int(price * 100000)  # 10^5
         result = await self.privatePostCurrencyPairOrderAdd(self.extend(order, params))
         return {
             'info': result,
@@ -972,7 +972,7 @@ class anxpro (Exchange):
         await self.load_markets()
         response = await self.privatePostMoneyCurrencySendSimple(self.extend({
             'currency': currency,
-            'amount_int': int(amount * 100000000), # 10^8
+            'amount_int': int(amount * 100000000),  # 10^8
             'address': address,
         }, params))
         return {
@@ -1016,7 +1016,7 @@ class binance (Exchange):
         params = {
             'id': 'binance',
             'name': 'Binance',
-            'countries': 'CN', # China
+            'countries': 'CN',  # China
             'rateLimit': 1000,
             'version': 'v1',
             'hasCORS': False,
@@ -1166,7 +1166,7 @@ class binance (Exchange):
         market = self.market(symbol)
         orderbook = await self.publicGetDepth(self.extend({
             'symbol': market['id'],
-            'limit': 100, # default = maximum = 100
+            'limit': 100,  # default = maximum = 100
         }, params))
         return self.parse_order_book(orderbook)
 
@@ -1215,7 +1215,7 @@ class binance (Exchange):
             'symbol': market['id'],
             'interval': self.timeframes[timeframe],
         }
-        request['limit'] = limit if (limit) else 500 # default == max == 500
+        request['limit'] = limit if (limit) else 500  # default == max == 500
         if since:
             request['startTime'] = since
         response = await self.publicGetKlines(self.extend(request, params))
@@ -1265,7 +1265,7 @@ class binance (Exchange):
         response = await self.publicGetAggTrades(self.extend({
             'symbol': market['id'],
             # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
-            # 'startTime': 456, # Timestamp in ms to get aggregate trades from INCLUSIVE.
+            # 'startTime': 456,  # Timestamp in ms to get aggregate trades from INCLUSIVE.
             # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
             'limit': 500,        # default = maximum = 500
         }, params))
@@ -1320,8 +1320,8 @@ class binance (Exchange):
             'price': '{:.8f}'.format(price),
             'type': type.upper(),
             'side': side.upper(),
-            'timeInForce': 'GTC', # Good To Cancel(default)
-            # 'timeInForce': 'IOC', # Immediate Or Cancel
+            'timeInForce': 'GTC',  # Good To Cancel(default)
+            # 'timeInForce': 'IOC',  # Immediate Or Cancel
         }
         response = await self.privatePostOrder(self.extend(order, params))
         return {
@@ -1410,7 +1410,7 @@ class bit2c (Exchange):
         params = {
             'id': 'bit2c',
             'name': 'Bit2C',
-            'countries': 'IL', # Israel
+            'countries': 'IL',  # Israel
             'rateLimit': 3000,
             'hasCORS': False,
             'urls': {
@@ -1572,7 +1572,7 @@ class bitbay (Exchange):
         params = {
             'id': 'bitbay',
             'name': 'BitBay',
-            'countries': ['PL', 'EU'], # Poland
+            'countries': ['PL', 'EU'],  # Poland
             'rateLimit': 1000,
             'hasCORS': True,
             'hasWithdraw': True,
@@ -1732,8 +1732,8 @@ class bitbay (Exchange):
         }
         if self.isFiat(currency):
             method = 'privatePostWithdraw'
-            # request['account'] = params['account'] # they demand an account number
-            # request['express'] = params['express'] # whatever it means, they don't explain
+            # request['account'] = params['account']  # they demand an account number
+            # request['express'] = params['express']  # whatever it means, they don't explain
             # request['bic'] = ''
         else:
             method = 'privatePostTransfer'
@@ -1769,7 +1769,7 @@ class bitcoincoid (Exchange):
         params = {
             'id': 'bitcoincoid',
             'name': 'Bitcoin.co.id',
-            'countries': 'ID', # Indonesia
+            'countries': 'ID',  # Indonesia
             'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766138-043c7786-5ecf-11e7-882b-809c14f38b53.jpg',
@@ -2023,7 +2023,7 @@ class bitfinex (Exchange):
             quoteId = id[3:6]
             base = baseId
             quote = quoteId
-            # issue #4 Bitfinex names Dash as DSH, instead of DASH
+            # issue  #4 Bitfinex names Dash as DSH, instead of DASH
             if base == 'DSH':
                 base = 'DASH'
             symbol = base + '/' + quote
@@ -2047,7 +2047,7 @@ class bitfinex (Exchange):
             if balance['type'] == 'exchange':
                 currency = balance['currency']
                 uppercase = currency.upper()
-                # issue #4 Bitfinex names dash as dsh
+                # issue  #4 Bitfinex names dash as dsh
                 if uppercase == 'DSH':
                     uppercase = 'DASH'
                 account = self.account()
@@ -2189,7 +2189,7 @@ class bitfinex (Exchange):
     async def fetchClosedOrders(self, symbol=None, params={}):
         await self.load_markets()
         response = await self.privatePostOrdersHist(self.extend({
-            'limit': 100, # default 100
+            'limit': 100,  # default 100
         }, params))
         return self.parse_orders(response)
 
@@ -2210,7 +2210,7 @@ class bitfinex (Exchange):
         elif currency == 'ETC':
             return 'ethereumc'
         elif currency == 'OMNI':
-            return 'mastercoin' # ???
+            return 'mastercoin'  # ???
         elif currency == 'ZEC':
             return 'zcash'
         elif currency == 'XMR':
@@ -2284,7 +2284,7 @@ class bitfinex2 (bitfinex):
             'countries': 'US',
             'version': 'v2',
             'hasCORS': True,
-            'hasFetchTickers': False, # True but at least one pair is required
+            'hasFetchTickers': False,  # True but at least one pair is required
             'hasFetchOHLCV': True,
             'timeframes': {
                 '1m': '1m',
@@ -2314,7 +2314,7 @@ class bitfinex2 (bitfinex):
                 'public': {
                     'get': [
                         'platform/status',
-                        'tickers', # replies with an empty list :\
+                        'tickers',  # replies with an empty list :\
                         'ticker/{symbol}',
                         'trades/{symbol}/hist',
                         'book/{symbol}/{precision}',
@@ -2414,7 +2414,7 @@ class bitfinex2 (bitfinex):
             if currency[0] == 't':
                 currency = currency[1:]
             uppercase = currency.upper()
-            # issue #4 Bitfinex names Dash as DSH, instead of DASH
+            # issue  #4 Bitfinex names Dash as DSH, instead of DASH
             if uppercase == 'DSH':
                 uppercase = 'DASH'
             account = self.account()
@@ -2574,7 +2574,7 @@ class bitflyer (Exchange):
                         'getmarkets',    # or 'markets'
                         'getboard',      # or 'board'
                         'getticker',     # or 'ticker'
-                        'getexecutions', # or 'executions'
+                        'getexecutions',  # or 'executions'
                         'gethealth',
                         'getchats',
                     ],
@@ -2789,7 +2789,7 @@ class bithumb (Exchange):
         params = {
             'id': 'bithumb',
             'name': 'Bithumb',
-            'countries': 'KR', # South Korea
+            'countries': 'KR',  # South Korea
             'rateLimit': 500,
             'hasCORS': True,
             'hasFetchTickers': True,
@@ -2864,7 +2864,7 @@ class bithumb (Exchange):
     async def fetch_order_book(self, symbol, params={}):
         market = self.market(symbol)
         response = await self.publicGetOrderbookCurrency(self.extend({
-            'count': 50, # max = 50
+            'count': 50,  # max = 50
             'currency': market['base'],
         }, params))
         orderbook = response['data']
@@ -2940,7 +2940,7 @@ class bithumb (Exchange):
         market = self.market(symbol)
         response = await self.publicGetRecentTransactionsCurrency(self.extend({
             'currency': market['base'],
-            'count': 100, # max = 100
+            'count': 100,  # max = 100
         }, params))
         return self.parse_trades(response['data'], market)
 
@@ -3087,7 +3087,7 @@ class bitlish (Exchange):
             id = market['id']
             symbol = market['name']
             base, quote = symbol.split('/')
-            # issue #4 bitlish names Dash as DSH, instead of DASH
+            # issue  #4 bitlish names Dash as DSH, instead of DASH
             if base == 'DSH':
                 base = 'DASH'
             symbol = base + '/' + quote
@@ -3146,7 +3146,7 @@ class bitlish (Exchange):
         await self.load_markets()
         # market = self.market(symbol)
         now = self.seconds()
-        start = now - 86400 * 30 # last 30 days
+        start = now - 86400 * 30  # last 30 days
         interval = [str(start), None]
         return await self.publicPostOhlcv(self.extend({
             'time_range': interval,
@@ -3197,7 +3197,7 @@ class bitlish (Exchange):
             currency = currencies[c]
             account = response[currency]
             currency = currency.upper()
-            # issue #4 bitlish names Dash as DSH, instead of DASH
+            # issue  #4 bitlish names Dash as DSH, instead of DASH
             if currency == 'DSH':
                 currency = 'DASH'
             balance[currency] = account
@@ -3245,7 +3245,7 @@ class bitlish (Exchange):
             'currency': currency.lower(),
             'amount': float(amount),
             'account': address,
-            'payment_method': 'bitcoin', # they did not document other types...
+            'payment_method': 'bitcoin',  # they did not document other types...
         }, params))
         return {
             'info': response,
@@ -3294,7 +3294,7 @@ class bitmarket (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg',
                 'api': {
                     'public': 'https://www.bitmarket.net',
-                    'private': 'https://www.bitmarket.pl/api2/', # last slash is critical
+                    'private': 'https://www.bitmarket.pl/api2/',  # last slash is critical
                 },
                 'www': [
                     'https://www.bitmarket.pl',
@@ -3500,16 +3500,16 @@ class bitmarket (Exchange):
         if self.isFiat(currency):
             method = 'privatePostWithdrawFiat'
             if 'account' in params:
-                request['account'] = params['account'] # bank account code for withdrawal
+                request['account'] = params['account']  # bank account code for withdrawal
             else:
                 raise ExchangeError(self.id + ' requires account parameter to withdraw fiat currency')
             if 'account2' in params:
-                request['account2'] = params['account2'] # bank SWIFT code(EUR only)
+                request['account2'] = params['account2']  # bank SWIFT code(EUR only)
             else:
                 if currency == 'EUR':
                     raise ExchangeError(self.id + ' requires account2 parameter to withdraw EUR')
             if 'withdrawal_note' in params:
-                request['withdrawal_note'] = params['withdrawal_note'] # a 10-character user-specified withdrawal note(PLN only)
+                request['withdrawal_note'] = params['withdrawal_note']  # a 10-character user-specified withdrawal note(PLN only)
             else:
                 if currency == 'PLN':
                     raise ExchangeError(self.id + ' requires withdrawal_note parameter to withdraw PLN')
@@ -3548,7 +3548,7 @@ class bitmex (Exchange):
         params = {
             'id': 'bitmex',
             'name': 'BitMEX',
-            'countries': 'SC', # Seychelles
+            'countries': 'SC',  # Seychelles
             'version': 'v1',
             'rateLimit': 1500,
             'hasCORS': False,
@@ -3780,16 +3780,16 @@ class bitmex (Exchange):
             'symbol': market['id'],
             'binSize': self.timeframes[timeframe],
             'partial': True,     # True == include yet-incomplete current bins
-            # 'filter': filter, # filter by individual fields and do advanced queries
+            # 'filter': filter,  # filter by individual fields and do advanced queries
             # 'columns': [],    # will return all columns if omitted
             # 'start': 0,       # starting point for results(wtf?)
-            # 'reverse': False, # True == newest first
+            # 'reverse': False,  # True == newest first
             # 'endTime': '',    # ending date filter for results
         }
         if since:
-            request['startTime'] = since # starting date filter for results
+            request['startTime'] = since  # starting date filter for results
         if limit:
-            request['count'] = limit # default 100
+            request['count'] = limit  # default 100
         response = await self.publicGetTradeBucketed(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -3854,11 +3854,11 @@ class bitmex (Exchange):
         if currency != 'BTC':
             raise ExchangeError(self.id + ' supoprts BTC withdrawals only, other currencies coming soon...')
         request = {
-            'currency': 'XBt', # temporarily
+            'currency': 'XBt',  # temporarily
             'amount': amount,
             'address': address,
-            # 'otpToken': '123456', # requires if two-factor auth(OTP) is enabled
-            # 'fee': 0.001, # bitcoin network fee
+            # 'otpToken': '123456',  # requires if two-factor auth(OTP) is enabled
+            # 'fee': 0.001,  # bitcoin network fee
         }
         response = await self.privatePostUserRequestWithdrawal(self.extend(request, params))
         return {
@@ -3894,8 +3894,8 @@ class bitso (Exchange):
         params = {
             'id': 'bitso',
             'name': 'Bitso',
-            'countries': 'MX', # Mexico
-            'rateLimit': 2000, # 30 requests per minute
+            'countries': 'MX',  # Mexico
+            'rateLimit': 2000,  # 30 requests per minute
             'version': 'v3',
             'hasCORS': True,
             'urls': {
@@ -4960,7 +4960,7 @@ class blinktrade (Exchange):
                 'public': {
                     'get': [
                         '{currency}/ticker',    # ?crypto_currency=BTC
-                        '{currency}/orderbook', # ?crypto_currency=BTC
+                        '{currency}/orderbook',  # ?crypto_currency=BTC
                         '{currency}/trades',    # ?crypto_currency=BTC&since=<TIMESTAMP>&limit=<NUMBER>
                     ],
                 },
@@ -4971,12 +4971,12 @@ class blinktrade (Exchange):
                         'U2',  # balance
                         'U4',  # my orders
                         'U6',  # withdraw
-                        'U18', # deposit
-                        'U24', # confirm withdrawal
-                        'U26', # list withdrawals
-                        'U30', # list deposits
-                        'U34', # ledger
-                        'U70', # cancel withdrawal
+                        'U18',  # deposit
+                        'U24',  # confirm withdrawal
+                        'U26',  # list withdrawals
+                        'U30',  # list deposits
+                        'U34',  # ledger
+                        'U70',  # cancel withdrawal
                     ],
                 },
             },
@@ -5113,7 +5113,7 @@ class bl3p (Exchange):
         params = {
             'id': 'bl3p',
             'name': 'BL3P',
-            'countries': ['NL', 'EU'], # Netherlands, EU
+            'countries': ['NL', 'EU'],  # Netherlands, EU
             'rateLimit': 1000,
             'version': '1',
             'comment': 'An exchange market by BitonicNL',
@@ -5292,7 +5292,7 @@ class bleutrade (bittrex):
         params = {
             'id': 'bleutrade',
             'name': 'Bleutrade',
-            'countries': 'BR', # Brazil
+            'countries': 'BR',  # Brazil
             'rateLimit': 1000,
             'version': 'v2',
             'hasCORS': True,
@@ -5563,7 +5563,7 @@ class btcchina (Exchange):
             request['start_time'] = now - 86400 * 1000
             request['end_time'] = now
         else:
-            method += 's' # trades vs trade
+            method += 's'  # trades vs trade
         response = await getattr(self, method)(self.extend(request, params))
         if market['plus']:
             return self.parseTradesPlus(response['trades'], market)
@@ -5587,7 +5587,7 @@ class btcchina (Exchange):
 
     async def cancel_order(self, id, params={}):
         await self.load_markets()
-        market = params['market'] # TODO fixme
+        market = params['market']  # TODO fixme
         return self.privatePostCancelOrder(self.extend({
             'params': [id, market],
         }, params))
@@ -5641,8 +5641,8 @@ class btcmarkets (Exchange):
         params = {
             'id': 'btcmarkets',
             'name': 'BTC Markets',
-            'countries': 'AU', # Australia
-            'rateLimit': 1000, # market data cached for 1 second (trades cached for 2 seconds)
+            'countries': 'AU',  # Australia
+            'rateLimit': 1000,  # market data cached for 1 second (trades cached for 2 seconds)
             'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
@@ -5671,7 +5671,7 @@ class btcmarkets (Exchange):
                         'order/history',
                         'order/open',
                         'order/trade/history',
-                        'order/createBatch', # they promise it's coming soon...
+                        'order/createBatch',  # they promise it's coming soon...
                         'order/detail',
                     ],
                 },
@@ -5777,7 +5777,7 @@ class btcmarkets (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        multiplier = 100000000 # for price and volume
+        multiplier = 100000000  # for price and volume
         # does BTC Markets support market orders at all?
         orderSide = 'Bid' if (side == 'buy') else 'Ask'
         order = self.ordered({
@@ -5844,7 +5844,7 @@ class btctrader (Exchange):
         params = {
             'id': 'btctrader',
             'name': 'BTCTrader',
-            'countries': ['TR', 'GR', 'PH'], # Turkey, Greece, Philippines
+            'countries': ['TR', 'GR', 'PH'],  # Turkey, Greece, Philippines
             'rateLimit': 1000,
             'hasFetchOHLCV': True,
             'timeframes': {
@@ -5860,7 +5860,7 @@ class btctrader (Exchange):
             'api': {
                 'public': {
                     'get': [
-                        'ohlcdata', # ?last=COUNT
+                        'ohlcdata',  # ?last=COUNT
                         'orderbook',
                         'ticker',
                         'trades',   # ?last=COUNT (max 50)
@@ -5870,7 +5870,7 @@ class btctrader (Exchange):
                     'get': [
                         'balance',
                         'openOrders',
-                        'userTransactions', # ?offset=0&limit=25&sort=asc
+                        'userTransactions',  # ?offset=0&limit=25&sort=asc
                     ],
                     'post': [
                         'buy',
@@ -6022,7 +6022,7 @@ class btcexchange (btctrader):
         params = {
             'id': 'btcexchange',
             'name': 'BTCExchange',
-            'countries': 'PH', # Philippines
+            'countries': 'PH',  # Philippines
             'rateLimit': 1500,
             'hasCORS': False,
             'urls': {
@@ -6047,7 +6047,7 @@ class btctradeua (Exchange):
         params = {
             'id': 'btctradeua',
             'name': 'BTC Trade UA',
-            'countries': 'UA', # Ukraine,
+            'countries': 'UA',  # Ukraine,
             'rateLimit': 3000,
             'hasCORS': True,
             'urls': {
@@ -6192,7 +6192,7 @@ class btctradeua (Exchange):
         return result
 
     def parse_trade(self, trade, market):
-        timestamp = self.milliseconds() # until we have a better solution for python
+        timestamp = self.milliseconds()  # until we have a better solution for python
         return {
             'id': str(trade['id']),
             'info': trade,
@@ -6257,7 +6257,7 @@ class btcturk (btctrader):
         params = {
             'id': 'btcturk',
             'name': 'BTCTurk',
-            'countries': 'TR', # Turkey
+            'countries': 'TR',  # Turkey
             'rateLimit': 1000,
             'hasCORS': True,
             'urls': {
@@ -6283,7 +6283,7 @@ class btcx (Exchange):
             'id': 'btcx',
             'name': 'BTCX',
             'countries': ['IS', 'US', 'EU'],
-            'rateLimit': 1500, # support in english is very poor, unable to tell rate limits
+            'rateLimit': 1500,  # support in english is very poor, unable to tell rate limits
             'version': 'v1',
             'hasCORS': False,
             'urls': {
@@ -6435,7 +6435,7 @@ class bter (Exchange):
         params = {
             'id': 'bter',
             'name': 'Bter',
-            'countries': ['VG', 'CN'], # British Virgin Islands, China
+            'countries': ['VG', 'CN'],  # British Virgin Islands, China
             'version': '2',
             'hasCORS': False,
             'hasFetchTickers': True,
@@ -6657,7 +6657,7 @@ class bxinth (Exchange):
         params = {
             'id': 'bxinth',
             'name': 'BX.in.th',
-            'countries': 'TH', # Thailand
+            'countries': 'TH',  # Thailand
             'rateLimit': 1500,
             'hasCORS': False,
             'hasFetchTickers': True,
@@ -6670,7 +6670,7 @@ class bxinth (Exchange):
             'api': {
                 'public': {
                     'get': [
-                        '', # ticker
+                        '',  # ticker
                         'options',
                         'optionbook',
                         'orderbook',
@@ -6843,7 +6843,7 @@ class bxinth (Exchange):
 
     async def cancel_order(self, id):
         await self.load_markets()
-        pairing = None # TODO fixme
+        pairing = None  # TODO fixme
         return self.privatePostCancel({
             'order_id': id,
             'pairing': pairing,
@@ -7346,7 +7346,7 @@ class chbtc (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg',
                 'api': {
-                    'public': 'http://api.chbtc.com/data', # no https for public API
+                    'public': 'http://api.chbtc.com/data',  # no https for public API
                     'private': 'https://trade.chbtc.com/api',
                 },
                 'www': 'https://trade.chbtc.com/api',
@@ -7518,7 +7518,7 @@ class chbtc (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
-            paramsLength = len(params) # params should be a string here
+            paramsLength = len(params)  # params should be a string here
             nonce = self.nonce()
             auth = 'method=' + path
             auth += '&accesskey=' + self.apiKey
@@ -7623,7 +7623,7 @@ class coincheck (Exchange):
                 },
             },
             'markets': {
-                'BTC/JPY': {'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY'}, # the only real pair
+                'BTC/JPY': {'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY'},  # the only real pair
                 # 'ETH/JPY': {'id': 'eth_jpy', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY'},
                 # 'ETC/JPY': {'id': 'etc_jpy', 'symbol': 'ETC/JPY', 'base': 'ETC', 'quote': 'JPY'},
                 # 'DAO/JPY': {'id': 'dao_jpy', 'symbol': 'DAO/JPY', 'base': 'DAO', 'quote': 'JPY'},
@@ -7936,7 +7936,7 @@ class coingi (Exchange):
             'id': 'coingi',
             'name': 'Coingi',
             'rateLimit': 1000,
-            'countries': ['PA', 'BG', 'CN', 'US'], # Panama, Bulgaria, China, US
+            'countries': ['PA', 'BG', 'CN', 'US'],  # Panama, Bulgaria, China, US
             'hasFetchTickers': True,
             'hasCORS': False,
             'urls': {
@@ -8003,9 +8003,9 @@ class coingi (Exchange):
         market = self.market(symbol)
         orderbook = await self.currentGetOrderBookPairAskCountBidCountDepth(self.extend({
             'pair': market['id'],
-            'askCount': 512, # maximum returned number of asks 1-512
-            'bidCount': 512, # maximum returned number of bids 1-512
-            'depth': 32, # maximum number of depth range steps 1-32
+            'askCount': 512,  # maximum returned number of asks 1-512
+            'bidCount': 512,  # maximum returned number of bids 1-512
+            'depth': 32,  # maximum number of depth range steps 1-32
         }, params))
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'baseAmount')
 
@@ -8060,7 +8060,7 @@ class coingi (Exchange):
             'datetime': self.iso8601(trade['timestamp']),
             'symbol': market['symbol'],
             'type': None,
-            'side': None, # type
+            'side': None,  # type
             'price': trade['price'],
             'amount': trade['amount'],
         }
@@ -8278,7 +8278,7 @@ class coinmate (Exchange):
         params = {
             'id': 'coinmate',
             'name': 'CoinMate',
-            'countries': ['GB', 'CZ'], # UK, Czech Republic
+            'countries': ['GB', 'CZ'],  # UK, Czech Republic
             'rateLimit': 1000,
             'hasCORS': True,
             'urls': {
@@ -8404,12 +8404,12 @@ class coinmate (Exchange):
         }
         if type == 'market':
             if side == 'buy':
-                order['total'] = amount # amount in fiat
+                order['total'] = amount  # amount in fiat
             else:
-                order['amount'] = amount # amount in fiat
+                order['amount'] = amount  # amount in fiat
             method += 'Instant'
         else:
-            order['amount'] = amount # amount in crypto
+            order['amount'] = amount  # amount in crypto
             order['price'] = price
             method += self.capitalize(type)
         response = await getattr(self, method)(self.extend(order, params))
@@ -8456,7 +8456,7 @@ class coinsecure (Exchange):
         params = {
             'id': 'coinsecure',
             'name': 'Coinsecure',
-            'countries': 'IN', # India
+            'countries': 'IN',  # India
             'rateLimit': 1000,
             'version': 'v1',
             'hasCORS': True,
@@ -8682,7 +8682,7 @@ class coinsecure (Exchange):
 
     def cancel_order(self, id):
         raise ExchangeError(self.id + ' cancelOrder() is not fully implemented yet')
-        method = 'privateDeleteUserExchangeAskCancelOrderId' # TODO fixme, have to specify order side here
+        method = 'privateDeleteUserExchangeAskCancelOrderId'  # TODO fixme, have to specify order side here
         return getattr(self, method)({'orderID': id})
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -8708,7 +8708,7 @@ class coinspot (Exchange):
         params = {
             'id': 'coinspot',
             'name': 'CoinSpot',
-            'countries': 'AU', # Australia
+            'countries': 'AU',  # Australia
             'rateLimit': 1000,
             'hasCORS': False,
             'urls': {
@@ -8852,7 +8852,7 @@ class cryptopia (Exchange):
             'id': 'cryptopia',
             'name': 'Cryptopia',
             'rateLimit': 1500,
-            'countries': 'NZ', # New Zealand
+            'countries': 'NZ',  # New Zealand
             'hasFetchTickers': True,
             'hasCORS': False,
             'urls': {
@@ -8992,7 +8992,7 @@ class cryptopia (Exchange):
         market = self.market(symbol)
         response = await self.publicGetMarketHistoryIdHours(self.extend({
             'id': market['id'],
-            'hours': 24, # default
+            'hours': 24,  # default
         }, params))
         trades = response['Data']
         return self.parse_trades(trades, market)
@@ -9070,8 +9070,8 @@ class cryptopia (Exchange):
         market = self.market(symbol)
         response = await self.privatePostGetOpenOrders({
             # 'Market': market['id'],
-            'TradePairId': market['id'], # Cryptopia identifier(not required if 'Market' supplied)
-            # 'Count': 100, # default = 100
+            'TradePairId': market['id'],  # Cryptopia identifier(not required if 'Market' supplied)
+            # 'Count': 100,  # default = 100
         }, params)
         orders = response['Data']
         result = []
@@ -9085,7 +9085,7 @@ class cryptopia (Exchange):
         response = await self.privatePostSubmitWithdraw(self.extend({
             'Currency': currency,
             'Amount': amount,
-            'Address': address, # Address must exist in you AddressBook in security settings
+            'Address': address,  # Address must exist in you AddressBook in security settings
         }, params))
         return {
             'info': response,
@@ -9134,9 +9134,9 @@ class dsx (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
                 'api': {
-                    'mapi': 'https://dsx.uk/mapi', # market data
-                    'tapi': 'https://dsx.uk/tapi', # trading
-                    'dwapi': 'https://dsx.uk/dwapi', # deposit/withdraw
+                    'mapi': 'https://dsx.uk/mapi',  # market data
+                    'tapi': 'https://dsx.uk/tapi',  # trading
+                    'dwapi': 'https://dsx.uk/dwapi',  # deposit/withdraw
                 },
                 'www': 'https://dsx.uk',
                 'doc': [
@@ -9150,10 +9150,10 @@ class dsx (Exchange):
                 # market data (public)
                 'mapi': {
                     'get': [
-                        'barsFromMoment/{id}/{period}/{start}', # empty reply :\
+                        'barsFromMoment/{id}/{period}/{start}',  # empty reply :\
                         'depth/{id}',
                         'info',
-                        'lastBars/{id}/{period}/{amount}', # period is (m, h or d)
+                        'lastBars/{id}/{period}/{amount}',  # period is (m, h or d)
                         'periodBars/{id}/{period}/{start}/{end}',
                         'ticker/{id}',
                         'trades/{id}',
@@ -9324,8 +9324,8 @@ class exmo (Exchange):
         params = {
             'id': 'exmo',
             'name': 'EXMO',
-            'countries': ['ES', 'RU'], # Spain, Russia
-            'rateLimit': 1000, # once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
+            'countries': ['ES', 'RU'],  # Spain, Russia
+            'rateLimit': 1000,  # once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1',
             'hasCORS': False,
             'hasFetchTickers': True,
@@ -9539,7 +9539,7 @@ class flowbtc (Exchange):
         params = {
             'id': 'flowbtc',
             'name': 'flowBTC',
-            'countries': 'BR', # Brazil
+            'countries': 'BR',  # Brazil
             'version': 'v1',
             'rateLimit': 1000,
             'hasCORS': True,
@@ -9904,7 +9904,7 @@ class fybse (fyb):
         params = {
             'id': 'fybse',
             'name': 'FYB-SE',
-            'countries': 'SE', # Sweden
+            'countries': 'SE',  # Sweden
             'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg',
@@ -9928,7 +9928,7 @@ class fybsg (fyb):
         params = {
             'id': 'fybsg',
             'name': 'FYB-SG',
-            'countries': 'SG', # Singapore
+            'countries': 'SG',  # Singapore
             'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766513-3364d56a-5edb-11e7-9e6b-d5898bb89c81.jpg',
@@ -9953,7 +9953,7 @@ class gatecoin (Exchange):
             'id': 'gatecoin',
             'name': 'Gatecoin',
             'rateLimit': 2000,
-            'countries': 'HK', # Hong Kong
+            'countries': 'HK',  # Hong Kong
             'comment': 'a regulated/licensed exchange',
             'hasCORS': False,
             'hasFetchTickers': True,
@@ -9978,140 +9978,140 @@ class gatecoin (Exchange):
             'api': {
                 'public': {
                     'get': [
-                        'Public/ExchangeRate', # Get the exchange rates
-                        'Public/LiveTicker', # Get live ticker for all currency
-                        'Public/LiveTicker/{CurrencyPair}', # Get live ticker by currency
-                        'Public/LiveTickers', # Get live ticker for all currency
-                        'Public/MarketDepth/{CurrencyPair}', # Gets prices and market depth for the currency pair.
-                        'Public/NetworkStatistics/{DigiCurrency}', # Get the network status of a specific digital currency
-                        'Public/StatisticHistory/{DigiCurrency}/{Typeofdata}', # Get the historical data of a specific digital currency
-                        'Public/TickerHistory/{CurrencyPair}/{Timeframe}', # Get ticker history
-                        'Public/Transactions/{CurrencyPair}', # Gets recent transactions
-                        'Public/TransactionsHistory/{CurrencyPair}', # Gets all transactions
-                        'Reference/BusinessNatureList', # Get the business nature list.
-                        'Reference/Countries', # Get the country list.
-                        'Reference/Currencies', # Get the currency list.
-                        'Reference/CurrencyPairs', # Get the currency pair list.
-                        'Reference/CurrentStatusList', # Get the current status list.
-                        'Reference/IdentydocumentTypes', # Get the different types of identity documents possible.
-                        'Reference/IncomeRangeList', # Get the income range list.
-                        'Reference/IncomeSourceList', # Get the income source list.
-                        'Reference/VerificationLevelList', # Get the verif level list.
-                        'Stream/PublicChannel', # Get the public pubnub channel list
+                        'Public/ExchangeRate',  # Get the exchange rates
+                        'Public/LiveTicker',  # Get live ticker for all currency
+                        'Public/LiveTicker/{CurrencyPair}',  # Get live ticker by currency
+                        'Public/LiveTickers',  # Get live ticker for all currency
+                        'Public/MarketDepth/{CurrencyPair}',  # Gets prices and market depth for the currency pair.
+                        'Public/NetworkStatistics/{DigiCurrency}',  # Get the network status of a specific digital currency
+                        'Public/StatisticHistory/{DigiCurrency}/{Typeofdata}',  # Get the historical data of a specific digital currency
+                        'Public/TickerHistory/{CurrencyPair}/{Timeframe}',  # Get ticker history
+                        'Public/Transactions/{CurrencyPair}',  # Gets recent transactions
+                        'Public/TransactionsHistory/{CurrencyPair}',  # Gets all transactions
+                        'Reference/BusinessNatureList',  # Get the business nature list.
+                        'Reference/Countries',  # Get the country list.
+                        'Reference/Currencies',  # Get the currency list.
+                        'Reference/CurrencyPairs',  # Get the currency pair list.
+                        'Reference/CurrentStatusList',  # Get the current status list.
+                        'Reference/IdentydocumentTypes',  # Get the different types of identity documents possible.
+                        'Reference/IncomeRangeList',  # Get the income range list.
+                        'Reference/IncomeSourceList',  # Get the income source list.
+                        'Reference/VerificationLevelList',  # Get the verif level list.
+                        'Stream/PublicChannel',  # Get the public pubnub channel list
                     ],
                     'post': [
-                        'Export/Transactions', # Request a export of all trades from based on currencypair, start date and end date
-                        'Ping', # Post a string, then get it back.
-                        'Public/Unsubscribe/{EmailCode}', # Lets the user unsubscribe from emails
-                        'RegisterUser', # Initial trader registration.
+                        'Export/Transactions',  # Request a export of all trades from based on currencypair, start date and end date
+                        'Ping',  # Post a string, then get it back.
+                        'Public/Unsubscribe/{EmailCode}',  # Lets the user unsubscribe from emails
+                        'RegisterUser',  # Initial trader registration.
                     ],
                 },
                 'private': {
                     'get': [
-                        'Account/CorporateData', # Get corporate account data
-                        'Account/DocumentAddress', # Check if residence proof uploaded
-                        'Account/DocumentCorporation', # Check if registered document uploaded
-                        'Account/DocumentID', # Check if ID document copy uploaded
-                        'Account/DocumentInformation', # Get Step3 Data
-                        'Account/Email', # Get user email
-                        'Account/FeeRate', # Get fee rate of logged in user
-                        'Account/Level', # Get verif level of logged in user
-                        'Account/PersonalInformation', # Get Step1 Data
-                        'Account/Phone', # Get user phone number
-                        'Account/Profile', # Get trader profile
-                        'Account/Questionnaire', # Fill the questionnaire
-                        'Account/Referral', # Get referral information
-                        'Account/ReferralCode', # Get the referral code of the logged in user
-                        'Account/ReferralNames', # Get names of referred traders
-                        'Account/ReferralReward', # Get referral reward information
-                        'Account/ReferredCode', # Get referral code
-                        'Account/ResidentInformation', # Get Step2 Data
-                        'Account/SecuritySettings', # Get verif details of logged in user
-                        'Account/User', # Get all user info
-                        'APIKey/APIKey', # Get API Key for logged in user
-                        'Auth/ConnectionHistory', # Gets connection history of logged in user
-                        'Balance/Balances', # Gets the available balance for each currency for the logged in account.
-                        'Balance/Balances/{Currency}', # Gets the available balance for s currency for the logged in account.
-                        'Balance/Deposits', # Get all account deposits, including wire and digital currency, of the logged in user
-                        'Balance/Withdrawals', # Get all account withdrawals, including wire and digital currency, of the logged in user
-                        'Bank/Accounts/{Currency}/{Location}', # Get internal bank account for deposit
-                        'Bank/Transactions', # Get all account transactions of the logged in user
-                        'Bank/UserAccounts', # Gets all the bank accounts related to the logged in user.
-                        'Bank/UserAccounts/{Currency}', # Gets all the bank accounts related to the logged in user.
-                        'ElectronicWallet/DepositWallets', # Gets all crypto currency addresses related deposits to the logged in user.
-                        'ElectronicWallet/DepositWallets/{DigiCurrency}', # Gets all crypto currency addresses related deposits to the logged in user by currency.
-                        'ElectronicWallet/Transactions', # Get all digital currency transactions of the logged in user
-                        'ElectronicWallet/Transactions/{DigiCurrency}', # Get all digital currency transactions of the logged in user
-                        'ElectronicWallet/UserWallets', # Gets all external digital currency addresses related to the logged in user.
-                        'ElectronicWallet/UserWallets/{DigiCurrency}', # Gets all external digital currency addresses related to the logged in user by currency.
-                        'Info/ReferenceCurrency', # Get user's reference currency
-                        'Info/ReferenceLanguage', # Get user's reference language
-                        'Notification/Messages', # Get from oldest unread + 3 read message to newest messages
-                        'Trade/Orders', # Gets open orders for the logged in trader.
-                        'Trade/Orders/{OrderID}', # Gets an order for the logged in trader.
-                        'Trade/StopOrders', # Gets all stop orders for the logged in trader. Max 1000 record.
-                        'Trade/StopOrdersHistory', # Gets all stop orders for the logged in trader. Max 1000 record.
-                        'Trade/Trades', # Gets all transactions of logged in user
-                        'Trade/UserTrades', # Gets all transactions of logged in user
+                        'Account/CorporateData',  # Get corporate account data
+                        'Account/DocumentAddress',  # Check if residence proof uploaded
+                        'Account/DocumentCorporation',  # Check if registered document uploaded
+                        'Account/DocumentID',  # Check if ID document copy uploaded
+                        'Account/DocumentInformation',  # Get Step3 Data
+                        'Account/Email',  # Get user email
+                        'Account/FeeRate',  # Get fee rate of logged in user
+                        'Account/Level',  # Get verif level of logged in user
+                        'Account/PersonalInformation',  # Get Step1 Data
+                        'Account/Phone',  # Get user phone number
+                        'Account/Profile',  # Get trader profile
+                        'Account/Questionnaire',  # Fill the questionnaire
+                        'Account/Referral',  # Get referral information
+                        'Account/ReferralCode',  # Get the referral code of the logged in user
+                        'Account/ReferralNames',  # Get names of referred traders
+                        'Account/ReferralReward',  # Get referral reward information
+                        'Account/ReferredCode',  # Get referral code
+                        'Account/ResidentInformation',  # Get Step2 Data
+                        'Account/SecuritySettings',  # Get verif details of logged in user
+                        'Account/User',  # Get all user info
+                        'APIKey/APIKey',  # Get API Key for logged in user
+                        'Auth/ConnectionHistory',  # Gets connection history of logged in user
+                        'Balance/Balances',  # Gets the available balance for each currency for the logged in account.
+                        'Balance/Balances/{Currency}',  # Gets the available balance for s currency for the logged in account.
+                        'Balance/Deposits',  # Get all account deposits, including wire and digital currency, of the logged in user
+                        'Balance/Withdrawals',  # Get all account withdrawals, including wire and digital currency, of the logged in user
+                        'Bank/Accounts/{Currency}/{Location}',  # Get internal bank account for deposit
+                        'Bank/Transactions',  # Get all account transactions of the logged in user
+                        'Bank/UserAccounts',  # Gets all the bank accounts related to the logged in user.
+                        'Bank/UserAccounts/{Currency}',  # Gets all the bank accounts related to the logged in user.
+                        'ElectronicWallet/DepositWallets',  # Gets all crypto currency addresses related deposits to the logged in user.
+                        'ElectronicWallet/DepositWallets/{DigiCurrency}',  # Gets all crypto currency addresses related deposits to the logged in user by currency.
+                        'ElectronicWallet/Transactions',  # Get all digital currency transactions of the logged in user
+                        'ElectronicWallet/Transactions/{DigiCurrency}',  # Get all digital currency transactions of the logged in user
+                        'ElectronicWallet/UserWallets',  # Gets all external digital currency addresses related to the logged in user.
+                        'ElectronicWallet/UserWallets/{DigiCurrency}',  # Gets all external digital currency addresses related to the logged in user by currency.
+                        'Info/ReferenceCurrency',  # Get user's reference currency
+                        'Info/ReferenceLanguage',  # Get user's reference language
+                        'Notification/Messages',  # Get from oldest unread + 3 read message to newest messages
+                        'Trade/Orders',  # Gets open orders for the logged in trader.
+                        'Trade/Orders/{OrderID}',  # Gets an order for the logged in trader.
+                        'Trade/StopOrders',  # Gets all stop orders for the logged in trader. Max 1000 record.
+                        'Trade/StopOrdersHistory',  # Gets all stop orders for the logged in trader. Max 1000 record.
+                        'Trade/Trades',  # Gets all transactions of logged in user
+                        'Trade/UserTrades',  # Gets all transactions of logged in user
                     ],
                     'post': [
-                        'Account/DocumentAddress', # Upload address proof document
-                        'Account/DocumentCorporation', # Upload registered document document
-                        'Account/DocumentID', # Upload ID document copy
-                        'Account/Email/RequestVerify', # Request for verification email
-                        'Account/Email/Verify', # Verification email
-                        'Account/GoogleAuth', # Enable google auth
-                        'Account/Level', # Request verif level of logged in user
-                        'Account/Questionnaire', # Fill the questionnaire
-                        'Account/Referral', # Post a referral email
-                        'APIKey/APIKey', # Create a new API key for logged in user
-                        'Auth/ChangePassword', # Change password.
-                        'Auth/ForgotPassword', # Request reset password
-                        'Auth/ForgotUserID', # Request user id
-                        'Auth/Login', # Trader session log in.
-                        'Auth/Logout', # Logout from the current session.
-                        'Auth/LogoutOtherSessions', # Logout other sessions.
-                        'Auth/ResetPassword', # Reset password
-                        'Bank/Transactions', # Request a transfer from the traders account of the logged in user. This is only available for bank account
-                        'Bank/UserAccounts', # Add an account the logged in user
-                        'ElectronicWallet/DepositWallets/{DigiCurrency}', # Add an digital currency addresses to the logged in user.
-                        'ElectronicWallet/Transactions/Deposits/{DigiCurrency}', # Get all internal digital currency transactions of the logged in user
-                        'ElectronicWallet/Transactions/Withdrawals/{DigiCurrency}', # Get all external digital currency transactions of the logged in user
-                        'ElectronicWallet/UserWallets/{DigiCurrency}', # Add an external digital currency addresses to the logged in user.
-                        'ElectronicWallet/Withdrawals/{DigiCurrency}', # Request a transfer from the traders account to an external address. This is only available for crypto currencies.
-                        'Notification/Messages', # Mark all as read
-                        'Notification/Messages/{ID}', # Mark as read
-                        'Trade/Orders', # Place an order at the exchange.
-                        'Trade/StopOrders', # Place a stop order at the exchange.
+                        'Account/DocumentAddress',  # Upload address proof document
+                        'Account/DocumentCorporation',  # Upload registered document document
+                        'Account/DocumentID',  # Upload ID document copy
+                        'Account/Email/RequestVerify',  # Request for verification email
+                        'Account/Email/Verify',  # Verification email
+                        'Account/GoogleAuth',  # Enable google auth
+                        'Account/Level',  # Request verif level of logged in user
+                        'Account/Questionnaire',  # Fill the questionnaire
+                        'Account/Referral',  # Post a referral email
+                        'APIKey/APIKey',  # Create a new API key for logged in user
+                        'Auth/ChangePassword',  # Change password.
+                        'Auth/ForgotPassword',  # Request reset password
+                        'Auth/ForgotUserID',  # Request user id
+                        'Auth/Login',  # Trader session log in.
+                        'Auth/Logout',  # Logout from the current session.
+                        'Auth/LogoutOtherSessions',  # Logout other sessions.
+                        'Auth/ResetPassword',  # Reset password
+                        'Bank/Transactions',  # Request a transfer from the traders account of the logged in user. This is only available for bank account
+                        'Bank/UserAccounts',  # Add an account the logged in user
+                        'ElectronicWallet/DepositWallets/{DigiCurrency}',  # Add an digital currency addresses to the logged in user.
+                        'ElectronicWallet/Transactions/Deposits/{DigiCurrency}',  # Get all internal digital currency transactions of the logged in user
+                        'ElectronicWallet/Transactions/Withdrawals/{DigiCurrency}',  # Get all external digital currency transactions of the logged in user
+                        'ElectronicWallet/UserWallets/{DigiCurrency}',  # Add an external digital currency addresses to the logged in user.
+                        'ElectronicWallet/Withdrawals/{DigiCurrency}',  # Request a transfer from the traders account to an external address. This is only available for crypto currencies.
+                        'Notification/Messages',  # Mark all as read
+                        'Notification/Messages/{ID}',  # Mark as read
+                        'Trade/Orders',  # Place an order at the exchange.
+                        'Trade/StopOrders',  # Place a stop order at the exchange.
                     ],
                     'put': [
-                        'Account/CorporateData', # Update user company data for corporate account
-                        'Account/DocumentID', # Update ID document meta data
-                        'Account/DocumentInformation', # Update Step3 Data
-                        'Account/Email', # Update user email
-                        'Account/PersonalInformation', # Update Step1 Data
-                        'Account/Phone', # Update user phone number
-                        'Account/Questionnaire', # update the questionnaire
-                        'Account/ReferredCode', # Update referral code
-                        'Account/ResidentInformation', # Update Step2 Data
-                        'Account/SecuritySettings', # Update verif details of logged in user
-                        'Account/User', # Update all user info
-                        'Bank/UserAccounts', # Update the label of existing user bank accounnt
-                        'ElectronicWallet/DepositWallets/{DigiCurrency}/{AddressName}', # Update the name of an address
-                        'ElectronicWallet/UserWallets/{DigiCurrency}', # Update the name of an external address
-                        'Info/ReferenceCurrency', # User's reference currency
-                        'Info/ReferenceLanguage', # Update user's reference language
+                        'Account/CorporateData',  # Update user company data for corporate account
+                        'Account/DocumentID',  # Update ID document meta data
+                        'Account/DocumentInformation',  # Update Step3 Data
+                        'Account/Email',  # Update user email
+                        'Account/PersonalInformation',  # Update Step1 Data
+                        'Account/Phone',  # Update user phone number
+                        'Account/Questionnaire',  # update the questionnaire
+                        'Account/ReferredCode',  # Update referral code
+                        'Account/ResidentInformation',  # Update Step2 Data
+                        'Account/SecuritySettings',  # Update verif details of logged in user
+                        'Account/User',  # Update all user info
+                        'Bank/UserAccounts',  # Update the label of existing user bank accounnt
+                        'ElectronicWallet/DepositWallets/{DigiCurrency}/{AddressName}',  # Update the name of an address
+                        'ElectronicWallet/UserWallets/{DigiCurrency}',  # Update the name of an external address
+                        'Info/ReferenceCurrency',  # User's reference currency
+                        'Info/ReferenceLanguage',  # Update user's reference language
                     ],
                     'delete': [
-                        'APIKey/APIKey/{PublicKey}', # Remove an API key
-                        'Bank/Transactions/{RequestID}', # Delete pending account withdraw of the logged in user
-                        'Bank/UserAccounts/{Currency}/{Label}', # Delete an account of the logged in user
-                        'ElectronicWallet/DepositWallets/{DigiCurrency}/{AddressName}', # Delete an digital currency addresses related to the logged in user.
-                        'ElectronicWallet/UserWallets/{DigiCurrency}/{AddressName}', # Delete an external digital currency addresses related to the logged in user.
-                        'Trade/Orders', # Cancels all existing order
-                        'Trade/Orders/{OrderID}', # Cancels an existing order
-                        'Trade/StopOrders', # Cancels all existing stop orders
-                        'Trade/StopOrders/{ID}', # Cancels an existing stop order
+                        'APIKey/APIKey/{PublicKey}',  # Remove an API key
+                        'Bank/Transactions/{RequestID}',  # Delete pending account withdraw of the logged in user
+                        'Bank/UserAccounts/{Currency}/{Label}',  # Delete an account of the logged in user
+                        'ElectronicWallet/DepositWallets/{DigiCurrency}/{AddressName}',  # Delete an digital currency addresses related to the logged in user.
+                        'ElectronicWallet/UserWallets/{DigiCurrency}/{AddressName}',  # Delete an external digital currency addresses related to the logged in user.
+                        'Trade/Orders',  # Cancels all existing order
+                        'Trade/Orders/{OrderID}',  # Cancels an existing order
+                        'Trade/StopOrders',  # Cancels all existing stop orders
+                        'Trade/StopOrders/{ID}',  # Cancels an existing stop order
                     ],
                 },
             },
@@ -10436,7 +10436,7 @@ class gdax (Exchange):
         await self.load_markets()
         orderbook = await self.publicGetProductsIdBook(self.extend({
             'id': self.market_id(market),
-            'level': 2, # 1 best bidask, 2 aggregated, 3 full
+            'level': 2,  # 1 best bidask, 2 aggregated, 3 full
         }, params))
         return self.parse_order_book(orderbook)
 
@@ -10494,7 +10494,7 @@ class gdax (Exchange):
     async def fetch_trades(self, market, params={}):
         await self.load_markets()
         return await self.publicGetProductsIdTrades(self.extend({
-            'id': self.market_id(market), # fixes issue #2
+            'id': self.market_id(market),  # fixes issue  #2
         }, params))
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
@@ -10518,7 +10518,7 @@ class gdax (Exchange):
         if since:
             request['start'] = self.iso8601(since)
             if not limit:
-                limit = 200 # max = 200
+                limit = 200  # max = 200
             request['end'] = self.iso8601(limit * granularity * 1000 + since)
         response = await self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
@@ -10558,7 +10558,7 @@ class gdax (Exchange):
             response = await self.privatePostWithdraw(self.extend({
                 'currency': currency,
                 'amount': amount,
-                # 'address': address, # they don't allow withdrawals to direct addresses
+                # 'address': address,  # they don't allow withdrawals to direct addresses
             }, params))
             return {
                 'info': response,
@@ -10608,7 +10608,7 @@ class gemini (Exchange):
             'id': 'gemini',
             'name': 'Gemini',
             'countries': 'US',
-            'rateLimit': 1500, # 200 for private API
+            'rateLimit': 1500,  # 200 for private API
             'version': 'v1',
             'hasCORS': False,
             'urls': {
@@ -10752,7 +10752,7 @@ class gemini (Exchange):
             'amount': str(amount),
             'price': str(price),
             'side': side,
-            'type': 'exchange limit', # gemini allows limit orders only
+            'type': 'exchange limit',  # gemini allows limit orders only
         }
         response = await self.privatePostOrderNew(self.extend(order, params))
         return {
@@ -10801,7 +10801,7 @@ class hitbtc (Exchange):
         params = {
             'id': 'hitbtc',
             'name': 'HitBTC',
-            'countries': 'HK', # Hong Kong
+            'countries': 'HK',  # Hong Kong
             'rateLimit': 1500,
             'version': '1',
             'hasCORS': False,
@@ -10976,8 +10976,8 @@ class hitbtc (Exchange):
             'symbol': market['id'],
             # 'from': 0,
             # 'till': 100,
-            # 'by': 'ts', # or by trade_id
-            # 'sort': 'desc', # or asc
+            # 'by': 'ts',  # or by trade_id
+            # 'sort': 'desc',  # or asc
             # 'start_index': 0,
             # 'max_results': 1000,
             # 'format_item': 'object',
@@ -11005,7 +11005,7 @@ class hitbtc (Exchange):
             'clientOrderId': str(clientOrderId),
             'symbol': market['id'],
             'side': side,
-            'quantity': str(wholeLots), # quantity in integer lot units
+            'quantity': str(wholeLots),  # quantity in integer lot units
             'type': type,
         }
         if type == 'limit':
@@ -11104,7 +11104,7 @@ class hitbtc2 (hitbtc):
         params = {
             'id': 'hitbtc2',
             'name': 'HitBTC v2',
-            'countries': 'HK', # Hong Kong
+            'countries': 'HK',  # Hong Kong
             'rateLimit': 1500,
             'version': '2',
             'hasCORS': True,
@@ -11121,47 +11121,47 @@ class hitbtc2 (hitbtc):
             'api': {
                 'public': {
                     'get': [
-                        'symbol', # Available Currency Symbols
-                        'symbol/{symbol}', # Get symbol info
-                        'currency', # Available Currencies
-                        'currency/{currency}', # Get currency info
-                        'ticker', # Ticker list for all symbols
-                        'ticker/{symbol}', # Ticker for symbol
-                        'trades/{symbol}', # Trades
-                        'orderbook/{symbol}', # Orderbook
+                        'symbol',  # Available Currency Symbols
+                        'symbol/{symbol}',  # Get symbol info
+                        'currency',  # Available Currencies
+                        'currency/{currency}',  # Get currency info
+                        'ticker',  # Ticker list for all symbols
+                        'ticker/{symbol}',  # Ticker for symbol
+                        'trades/{symbol}',  # Trades
+                        'orderbook/{symbol}',  # Orderbook
                     ],
                 },
                 'private': {
                     'get': [
-                        'order', # List your current open orders
-                        'order/{clientOrderId}', # Get a single order by clientOrderId
-                        'trading/balance', # Get trading balance
-                        'trading/fee/{symbol}', # Get trading fee rate
-                        'history/trades', # Get historical trades
-                        'history/order', # Get historical orders
-                        'history/order/{id}/trades', # Get historical trades by specified order
-                        'account/balance', # Get main acccount balance
-                        'account/transactions', # Get account transactions
-                        'account/transactions/{id}', # Get account transaction by id
-                        'account/crypto/address/{currency}', # Get deposit crypro address
+                        'order',  # List your current open orders
+                        'order/{clientOrderId}',  # Get a single order by clientOrderId
+                        'trading/balance',  # Get trading balance
+                        'trading/fee/{symbol}',  # Get trading fee rate
+                        'history/trades',  # Get historical trades
+                        'history/order',  # Get historical orders
+                        'history/order/{id}/trades',  # Get historical trades by specified order
+                        'account/balance',  # Get main acccount balance
+                        'account/transactions',  # Get account transactions
+                        'account/transactions/{id}',  # Get account transaction by id
+                        'account/crypto/address/{currency}',  # Get deposit crypro address
                     ],
                     'post': [
-                        'order', # Create new order
-                        'account/crypto/withdraw', # Withdraw crypro
-                        'account/crypto/address/{currency}', # Create new deposit crypro address
-                        'account/transfer', # Transfer amount to trading
+                        'order',  # Create new order
+                        'account/crypto/withdraw',  # Withdraw crypro
+                        'account/crypto/address/{currency}',  # Create new deposit crypro address
+                        'account/transfer',  # Transfer amount to trading
                     ],
                     'put': [
-                        'order/{clientOrderId}', # Create new order
-                        'account/crypto/withdraw/{id}', # Commit withdraw crypro
+                        'order/{clientOrderId}',  # Create new order
+                        'account/crypto/withdraw/{id}',  # Commit withdraw crypro
                     ],
                     'delete': [
-                        'order', # Cancel all open orders
-                        'order/{clientOrderId}', # Cancel order
-                        'account/crypto/withdraw/{id}', # Rollback withdraw crypro
+                        'order',  # Cancel all open orders
+                        'order/{clientOrderId}',  # Cancel order
+                        'account/crypto/withdraw/{id}',  # Rollback withdraw crypro
                     ],
                     'patch': [
-                        'order/{clientOrderId}', # Cancel Replace order
+                        'order/{clientOrderId}',  # Cancel Replace order
                     ],
                 },
             },
@@ -11376,41 +11376,41 @@ class huobi1 (Exchange):
             'api': {
                 'market': {
                     'get': [
-                        'history/kline', # 获取K线数据
-                        'detail/merged', # 获取聚合行情(Ticker)
-                        'depth', # 获取 Market Depth 数据
-                        'trade', # 获取 Trade Detail 数据
-                        'history/trade', # 批量获取最近的交易记录
-                        'detail', # 获取 Market Detail 24小时成交量数据
+                        'history/kline',  # 获取K线数据
+                        'detail/merged',  # 获取聚合行情(Ticker)
+                        'depth',  # 获取 Market Depth 数据
+                        'trade',  # 获取 Trade Detail 数据
+                        'history/trade',  # 批量获取最近的交易记录
+                        'detail',  # 获取 Market Detail 24小时成交量数据
                     ],
                 },
                 'public': {
                     'get': [
-                        'common/symbols', # 查询系统支持的所有交易对
-                        'common/currencys', # 查询系统支持的所有币种
-                        'common/timestamp', # 查询系统当前时间
+                        'common/symbols',  # 查询系统支持的所有交易对
+                        'common/currencys',  # 查询系统支持的所有币种
+                        'common/timestamp',  # 查询系统当前时间
                     ],
                 },
                 'private': {
                     'get': [
-                        'account/accounts', # 查询当前用户的所有账户(即account-id)
-                        'account/accounts/{id}/balance', # 查询指定账户的余额
-                        'order/orders/{id}', # 查询某个订单详情
-                        'order/orders/{id}/matchresults', # 查询某个订单的成交明细
-                        'order/orders', # 查询当前委托、历史委托
-                        'order/matchresults', # 查询当前成交、历史成交
-                        'dw/withdraw-virtual/addresses', # 查询虚拟币提现地址
+                        'account/accounts',  # 查询当前用户的所有账户(即account-id)
+                        'account/accounts/{id}/balance',  # 查询指定账户的余额
+                        'order/orders/{id}',  # 查询某个订单详情
+                        'order/orders/{id}/matchresults',  # 查询某个订单的成交明细
+                        'order/orders',  # 查询当前委托、历史委托
+                        'order/matchresults',  # 查询当前成交、历史成交
+                        'dw/withdraw-virtual/addresses',  # 查询虚拟币提现地址
                     ],
                     'post': [
-                        'order/orders/place', # 创建并执行一个新订单 (一步下单， 推荐使用)
-                        'order/orders', # 创建一个新的订单请求 （仅创建订单，不执行下单）
-                        'order/orders/{id}/place', # 执行一个订单 （仅执行已创建的订单）
-                        'order/orders/{id}/submitcancel', # 申请撤销一个订单请求
-                        'order/orders/batchcancel', # 批量撤销订单
-                        'dw/balance/transfer', # 资产划转
-                        'dw/withdraw-virtual/create', # 申请提现虚拟币
-                        'dw/withdraw-virtual/{id}/place', # 确认申请虚拟币提现
-                        'dw/withdraw-virtual/{id}/cancel', # 申请取消提现虚拟币
+                        'order/orders/place',  # 创建并执行一个新订单 (一步下单， 推荐使用)
+                        'order/orders',  # 创建一个新的订单请求 （仅创建订单，不执行下单）
+                        'order/orders/{id}/place',  # 执行一个订单 （仅执行已创建的订单）
+                        'order/orders/{id}/submitcancel',  # 申请撤销一个订单请求
+                        'order/orders/batchcancel',  # 批量撤销订单
+                        'dw/balance/transfer',  # 资产划转
+                        'dw/withdraw-virtual/create',  # 申请提现虚拟币
+                        'dw/withdraw-virtual/{id}/place',  # 确认申请虚拟币提现
+                        'dw/withdraw-virtual/{id}/cancel',  # 申请取消提现虚拟币
                     ],
                 },
             },
@@ -11534,7 +11534,7 @@ class huobi1 (Exchange):
         response = await self.marketGetHistoryKline(self.extend({
             'symbol': market['id'],
             'period': self.timeframes[timeframe],
-            'size': 2000, # max = 2000
+            'size': 2000,  # max = 2000
         }, params))
         return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
 
@@ -11910,7 +11910,7 @@ class independentreserve (Exchange):
         params = {
             'id': 'independentreserve',
             'name': 'Independent Reserve',
-            'countries': ['AU', 'NZ'], # Australia, New Zealand
+            'countries': ['AU', 'NZ'],  # Australia, New Zealand
             'rateLimit': 1000,
             'hasCORS': False,
             'urls': {
@@ -12065,7 +12065,7 @@ class independentreserve (Exchange):
         response = await self.publicGetRecentTrades(self.extend({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
-            'numberOfRecentTradesToRetrieve': 50, # max = 50
+            'numberOfRecentTradesToRetrieve': 50,  # max = 50
         }, params))
         return self.parse_trades(response['Trades'], market)
 
@@ -12873,9 +12873,9 @@ class kraken (Exchange):
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
         response = await self.privatePostQueryOrders(self.extend({
-            'trades': True, # whether or not to include trades in output(optional, default False)
-            'txid': id, # comma delimited list of transaction ids to query info about(20 maximum)
-            # 'userref': 'optional', # restrict results to given user reference id(optional)
+            'trades': True,  # whether or not to include trades in output(optional, default False)
+            'txid': id,  # comma delimited list of transaction ids to query info about(20 maximum)
+            # 'userref': 'optional',  # restrict results to given user reference id(optional)
         }, params))
         orders = response['result']
         order = self.parse_order(self.extend({'id': id}, orders[id]))
@@ -12884,10 +12884,10 @@ class kraken (Exchange):
     async def fetch_my_trades(self, symbol=None, params={}):
         await self.load_markets()
         response = await self.privatePostTradesHistory(self.extend({
-            # 'type': 'all', # any position, closed position, closing position, no position
-            # 'trades': False, # whether or not to include trades related to position in output
-            # 'start': 1234567890, # starting unix timestamp or trade tx id of results(exclusive)
-            # 'end': 1234567890, # ending unix timestamp or trade tx id of results(inclusive)
+            # 'type': 'all',  # any position, closed position, closing position, no position
+            # 'trades': False,  # whether or not to include trades related to position in output
+            # 'start': 1234567890,  # starting unix timestamp or trade tx id of results(exclusive)
+            # 'end': 1234567890,  # ending unix timestamp or trade tx id of results(inclusive)
             # 'ofs' = result offset
         }, params))
         trades = response['result']['trades']
@@ -12906,7 +12906,7 @@ class kraken (Exchange):
             response = await self.privatePostWithdraw(self.extend({
                 'asset': currency,
                 'amount': amount,
-                # 'address': address, # they don't allow withdrawals to direct addresses
+                # 'address': address,  # they don't allow withdrawals to direct addresses
             }, params))
             return {
                 'info': response,
@@ -13181,7 +13181,7 @@ class livecoin (Exchange):
                         'exchange/maxbid_minask',
                         'exchange/order_book',
                         'exchange/restrictions',
-                        'exchange/ticker', # omit params to get all tickers at once
+                        'exchange/ticker',  # omit params to get all tickers at once
                         'info/coinInfo',
                     ],
                 },
@@ -13676,14 +13676,14 @@ class liqui (Exchange):
     async def fetch_my_trades(self, symbol=None, params={}):
         await self.load_markets()
         request = self.extend({
-            # 'from': 123456789, # trade ID, from which the display starts numerical 0
-            'count': 1000, # the number of trades for display numerical, default = 1000
+            # 'from': 123456789,  # trade ID, from which the display starts numerical 0
+            'count': 1000,  # the number of trades for display numerical, default = 1000
             # 'from_id': trade ID, from which the display starts numerical 0
             # 'end_id': trade ID on which the display ends numerical ∞
-            # 'order': 'ASC', # sorting, default = DESC
-            # 'since': 1234567890, # UTC start time, default = 0
-            # 'end': 1234567890, # UTC end time, default = ∞
-            # 'pair': 'eth_btc', # default = all markets
+            # 'order': 'ASC',  # sorting, default = DESC
+            # 'since': 1234567890,  # UTC start time, default = 0
+            # 'end': 1234567890,  # UTC end time, default = ∞
+            # 'pair': 'eth_btc',  # default = all markets
         }, params)
         market = None
         if symbol:
@@ -13966,7 +13966,7 @@ class mercado (Exchange):
         params = {
             'id': 'mercado',
             'name': 'Mercado Bitcoin',
-            'countries': 'BR', # Brazil
+            'countries': 'BR',  # Brazil
             'rateLimit': 1000,
             'version': 'v3',
             'hasCORS': True,
@@ -13984,7 +13984,7 @@ class mercado (Exchange):
             },
             'api': {
                 'public': {
-                    'get': [# last slash critical
+                    'get': [ # last slash critical
                         'orderbook/',
                         'orderbook_litecoin/',
                         'ticker/',
@@ -14317,7 +14317,7 @@ class nova (Exchange):
         params = {
             'id': 'nova',
             'name': 'Novaexchange',
-            'countries': 'TZ', # Tanzania
+            'countries': 'TZ',  # Tanzania
             'rateLimit': 2000,
             'version': 'v2',
             'hasCORS': False,
@@ -14518,7 +14518,7 @@ class okcoin (Exchange):
     def __init__(self, config={}):
         params = {
             'version': 'v1',
-            'rateLimit': 1000, # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            'rateLimit': 1000,  # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'hasFetchOHLCV': True,
             'timeframes': {
                 '1m': '1min',
@@ -14608,7 +14608,7 @@ class okcoin (Exchange):
         }
         if market['future']:
             method += 'Future'
-            request['contract_type'] = 'this_week' # next_week, quarter
+            request['contract_type'] = 'this_week'  # next_week, quarter
         method += 'Depth'
         orderbook = await getattr(self, method)(self.extend(request, params))
         timestamp = self.milliseconds()
@@ -14649,7 +14649,7 @@ class okcoin (Exchange):
         }
         if market['future']:
             method += 'Future'
-            request['contract_type'] = 'this_week' # next_week, quarter
+            request['contract_type'] = 'this_week'  # next_week, quarter
         method += 'Ticker'
         response = await getattr(self, method)(request)
         timestamp = int(response['date']) * 1000
@@ -14681,7 +14681,7 @@ class okcoin (Exchange):
         }
         if market['future']:
             method += 'Future'
-            request['contract_type'] = 'this_week' # next_week, quarter
+            request['contract_type'] = 'this_week'  # next_week, quarter
         method += 'Trades'
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response, market)
@@ -14695,14 +14695,14 @@ class okcoin (Exchange):
         }
         if market['future']:
             method += 'Future'
-            request['contract_type'] = 'this_week' # next_week, quarter
+            request['contract_type'] = 'this_week'  # next_week, quarter
         method += 'Kline'
         if limit:
             request['size'] = int(limit)
         if since:
             request['since'] = since
         else:
-            request['since'] = self.milliseconds() - 86400000 # last 24 hours
+            request['since'] = self.milliseconds() - 86400000  # last 24 hours
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -14730,9 +14730,9 @@ class okcoin (Exchange):
         if market['future']:
             method += 'Future'
             order = self.extend(order, {
-                'contract_type': 'this_week', # next_week, quarter
-                'match_price': 0, # match best counter party price? 0 or 1, ignores price if 1
-                'lever_rate': 10, # leverage rate value: 10 or 20(10 by default)
+                'contract_type': 'this_week',  # next_week, quarter
+                'match_price': 0,  # match best counter party price? 0 or 1, ignores price if 1
+                'lever_rate': 10,  # leverage rate value: 10 or 20(10 by default)
                 'price': price,
                 'amount': amount,
             })
@@ -14816,13 +14816,13 @@ class okcoin (Exchange):
         method = 'privatePost'
         request = {
             'symbol': market['id'],
-            # 'status': 0, # 0 for unfilled orders, 1 for filled orders
-            # 'current_page': 1, # current page number
-            # 'page_length': 200, # number of orders returned per page, maximum 200
+            # 'status': 0,  # 0 for unfilled orders, 1 for filled orders
+            # 'current_page': 1,  # current page number
+            # 'page_length': 200,  # number of orders returned per page, maximum 200
         }
         if market['future']:
             method += 'Future'
-            request['contract_type'] = 'this_week' # next_week, quarter
+            request['contract_type'] = 'this_week'  # next_week, quarter
         method += 'OrderInfo'
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_order(response['orders'][0])
@@ -14835,13 +14835,13 @@ class okcoin (Exchange):
         method = 'privatePost'
         request = {
             'symbol': market['id'],
-            # 'status': 0, # 0 for unfilled orders, 1 for filled orders
-            # 'current_page': 1, # current page number
-            # 'page_length': 200, # number of orders returned per page, maximum 200
+            # 'status': 0,  # 0 for unfilled orders, 1 for filled orders
+            # 'current_page': 1,  # current page number
+            # 'page_length': 200,  # number of orders returned per page, maximum 200
         }
         if market['future']:
             method += 'Future'
-            request['contract_type'] = 'this_week' # next_week, quarter
+            request['contract_type'] = 'this_week'  # next_week, quarter
         method += 'OrdersInfo'
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_orders(response['orders'])
@@ -15146,7 +15146,7 @@ class poloniex (Exchange):
             'id': 'poloniex',
             'name': 'Poloniex',
             'countries': 'US',
-            'rateLimit': 500, # up to 6 calls per second
+            'rateLimit': 500,  # up to 6 calls per second
             'hasCORS': True,
             'hasFetchTickers': True,
             'urls': {
@@ -15351,7 +15351,7 @@ class poloniex (Exchange):
         market = self.market(symbol)
         trades = await self.publicGetReturnTradeHistory(self.extend({
             'currencyPair': market['id'],
-            'end': self.seconds(), # last 50000 trades by default
+            'end': self.seconds(),  # last 50000 trades by default
         }, params))
         return self.parse_trades(trades, market)
 
@@ -15363,7 +15363,7 @@ class poloniex (Exchange):
         pair = market['id'] if market else 'all'
         request = self.extend({
             'currencyPair': pair,
-            'end': self.seconds(), # last 50000 trades by default
+            'end': self.seconds(),  # last 50000 trades by default
         }, params)
         response = await self.privatePostReturnTradeHistory(request)
         result = None
@@ -15905,7 +15905,7 @@ class qryptos (Exchange):
                 'path': url,
                 'nonce': nonce,
                 'token_id': self.apiKey,
-                'iat': int(math.floor(nonce / 1000)), # issued at
+                'iat': int(math.floor(nonce / 1000)),  # issued at
             }
             if query:
                 body = self.json(query)
@@ -15948,7 +15948,7 @@ class southxchange (Exchange):
         params = {
             'id': 'southxchange',
             'name': 'SouthXchange',
-            'countries': 'AR', # Argentina
+            'countries': 'AR',  # Argentina
             'rateLimit': 1000,
             'hasFetchTickers': True,
             'hasCORS': False,
@@ -16888,7 +16888,7 @@ class wex (liqui):
         params = {
             'id': 'wex',
             'name': 'WEX',
-            'countries': 'NZ', # New Zealand
+            'countries': 'NZ',  # New Zealand
             'version': '3',
             'hasFetchTickers': True,
             'hasCORS': False,
@@ -16965,7 +16965,7 @@ class xbtce (Exchange):
             'id': 'xbtce',
             'name': 'xBTCe',
             'countries': 'RU',
-            'rateLimit': 2000, # responses are cached every 2 seconds
+            'rateLimit': 2000,  # responses are cached every 2 seconds
             'version': 'v1',
             'hasPublicAPI': False,
             'hasCORS': False,
@@ -17189,14 +17189,14 @@ class xbtce (Exchange):
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetchOHLCV is disabled by the exchange')
-        minutes = int(timeframe / 60) # 1 minute by default
+        minutes = int(timeframe / 60)  # 1 minute by default
         periodicity = str(minutes)
         await self.load_markets()
         market = self.market(symbol)
         if not since:
-            since = self.seconds() - 86400 * 7 # last day by defulat
+            since = self.seconds() - 86400 * 7  # last day by defulat
         if not limit:
-            limit = 1000 # default
+            limit = 1000  # default
         response = await self.privateGetQuotehistorySymbolPeriodicityBarsBid(self.extend({
             'symbol': market['id'],
             'periodicity': periodicity,
@@ -17269,7 +17269,7 @@ class yobit (Exchange):
             'id': 'yobit',
             'name': 'YoBit',
             'countries': 'RU',
-            'rateLimit': 2000, # responses are cached every 2 seconds
+            'rateLimit': 2000,  # responses are cached every 2 seconds
             'version': '3',
             'hasCORS': False,
             'urls': {
@@ -17796,8 +17796,8 @@ class zaif (Exchange):
             'currency': currency,
             'amount': amount,
             'address': address,
-            # 'message': 'Hinot ', # XEM only
-            # 'opt_fee': 0.003, # BTC and MONA only
+            # 'message': 'Hinot ',  # XEM only
+            # 'opt_fee': 0.003,  # BTC and MONA only
         }, params))
         return {
             'info': result,
