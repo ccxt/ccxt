@@ -15,6 +15,7 @@ except ImportError: # Python 2
     from BaseHTTPServer import HTTPServer, test
     from SimpleHTTPServer import SimpleHTTPRequestHandler
 
+
 class TestRequestHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
         # self.send_error(100, 'Continue')

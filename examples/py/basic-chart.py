@@ -20,16 +20,11 @@ import ccxt # noqa: E402
 kraken = ccxt.kraken()
 yunbi = ccxt.yunbi()
 
-# -----------------------------------------------------------------------------
-
 symbol = 'BTC/USD'
-
-# -----------------------------------------------------------------------------
 
 # each ohlcv candle is a list of [ timestamp, open, high, low, close, volume ]
 index = 4 # use close price from each ohlcv candle
 
-# -----------------------------------------------------------------------------
 
 def print_chart(exchange, symbol, timeframe):
 
@@ -47,19 +42,11 @@ def print_chart(exchange, symbol, timeframe):
     last = ohlcv[len(ohlcv) - 1][index] # last closing price
     return last
 
-# -----------------------------------------------------------------------------
-
 
 print_chart(kraken, 'BTC/USD', '1m')
-
-# -----------------------------------------------------------------------------
 
 last = print_chart(kraken, 'BTC/USD', '5m')
 print("\n" + kraken.name + " ₿ = $" + str(last) + "\n") # print last closing price
 
-# -----------------------------------------------------------------------------
-
 last = print_chart(yunbi, 'BTC/CNY', '1h')
 print("\n" + yunbi.name + " ₿ = CN¥ " + str(last) + "\n") # print last closing price
-
-# -----------------------------------------------------------------------------

@@ -21,19 +21,16 @@ kraken = ccxt.kraken({
     # 'verbose': True, # switch it to False if you don't want the HTTP log
 })
 
-#------------------------------------------------------------------------------
 
 async def poll():
     while True:
         yield await kraken.fetch_ticker('BTC/USD')
         await asyncio.sleep(kraken.rateLimit / 1000)
 
-#------------------------------------------------------------------------------
 
 async def main():
     async for ticker in poll():
         print(ticker)
 
-#------------------------------------------------------------------------------
 
 asyncio.get_event_loop().run_until_complete(main())

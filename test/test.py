@@ -19,6 +19,7 @@ import ccxt # noqa: E402
 
 # ------------------------------------------------------------------------------
 
+
 class Argv(object):
     pass
 
@@ -37,33 +38,43 @@ exchanges = {}
 # ------------------------------------------------------------------------------
 # string coloring functions
 
+
 def style(s, style):
     return str(s) # style + str (s) + '\033[0m'
+
 
 def green(s):
     return style(s, '\033[92m')
 
+
 def blue(s):
     return style(s, '\033[94m')
+
 
 def yellow(s):
     return style(s, '\033[93m')
 
+
 def red(s):
     return style(s, '\033[91m')
+
 
 def pink(s):
     return style(s, '\033[95m')
 
+
 def bold(s):
     return style(s, '\033[1m')
+
 
 def underline(s):
     return style(s, '\033[4m')
 
+
 # print a colored string
 def dump(*args):
     print(' '.join([str(arg) for arg in args]))
+
 
 # print a n error string
 def dump_error(*args):
@@ -71,7 +82,9 @@ def dump_error(*args):
     # print(string)
     sys.stderr.write(string + "\n")
 
+
 # ------------------------------------------------------------------------------
+
 
 def handle_all_unhandled_exceptions(type, value, traceback):
     dump_error(yellow(str(type) + ' ' + value + '\n\n' + '\n'.join(format_tb(traceback))))
@@ -81,6 +94,7 @@ def handle_all_unhandled_exceptions(type, value, traceback):
 sys.excepthook = handle_all_unhandled_exceptions
 
 # ------------------------------------------------------------------------------
+
 
 def test_order_book(exchange, symbol):
     if exchange.hasFetchOrderBook:
@@ -102,6 +116,7 @@ def test_order_book(exchange, symbol):
 
 # ------------------------------------------------------------------------------
 
+
 def test_ohlcv(exchange, symbol):
     if exchange.hasFetchOHLCV:
         delay = int(exchange.rateLimit / 1000)
@@ -112,6 +127,7 @@ def test_ohlcv(exchange, symbol):
         dump(yellow(exchange.id), 'fetch_ohlcv() not supported')
 
 # ------------------------------------------------------------------------------
+
 
 def test_tickers(exchange):
     if exchange.hasFetchTickers:
@@ -124,6 +140,7 @@ def test_tickers(exchange):
         dump(yellow(exchange.id), 'fetch_tickers() not supported')
 
 # ------------------------------------------------------------------------------
+
 
 def test_ticker(exchange, symbol):
     if exchange.hasFetchTicker:
@@ -146,6 +163,7 @@ def test_ticker(exchange, symbol):
 
 # ------------------------------------------------------------------------------
 
+
 def test_trades(exchange, symbol):
     if exchange.hasFetchTrades:
         delay = int(exchange.rateLimit / 1000)
@@ -157,6 +175,7 @@ def test_trades(exchange, symbol):
         dump(green(exchange.id), green(symbol), 'fetch_trades() not supported')
 
 # ------------------------------------------------------------------------------
+
 
 def test_symbol(exchange, symbol):
     dump(green('SYMBOL: ' + symbol))
@@ -173,8 +192,10 @@ def test_symbol(exchange, symbol):
 
 # ------------------------------------------------------------------------------
 
+
 def load_exchange(exchange):
     exchange.load_markets()
+
 
 def test_exchange(exchange):
 
@@ -249,6 +270,7 @@ def test_exchange(exchange):
 
 # ------------------------------------------------------------------------------
 
+
 def try_all_proxies(exchange, proxies):
     current_proxy = 0
     max_retries = len(proxies)
@@ -308,6 +330,7 @@ for (id, params) in tuples:
 
 # ------------------------------------------------------------------------------
 
+
 def main():
 
     if argv.exchange:
@@ -337,5 +360,6 @@ def main():
 
 
 # ------------------------------------------------------------------------------
+
 
 main()

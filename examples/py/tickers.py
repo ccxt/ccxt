@@ -8,35 +8,46 @@ sys.path.append(root)
 
 import ccxt  # noqa: E402
 
+
 def style(s, style):
     return style + s + '\033[0m'
+
 
 def green(s):
     return style(s, '\033[92m')
 
+
 def blue(s):
     return style(s, '\033[94m')
+
 
 def yellow(s):
     return style(s, '\033[93m')
 
+
 def red(s):
     return style(s, '\033[91m')
+
 
 def pink(s):
     return style(s, '\033[95m')
 
+
 def bold(s):
     return style(s, '\033[1m')
+
 
 def underline(s):
     return style(s, '\033[4m')
 
+
 def dump(*args):
     print(' '.join([str(arg) for arg in args]))
 
+
 def print_exchanges():
     dump('Supported exchanges:', ', '.join(ccxt.exchanges))
+
 
 def print_usage():
     dump("Usage: python " + sys.argv[0], green('id'), yellow('[symbol]'))
@@ -44,6 +55,7 @@ def print_usage():
     dump("python " + sys.argv[0], green('kraken'))
     dump("python " + sys.argv[0], green('gdax'), yellow('BTC/USD'))
     print_exchanges()
+
 
 def print_ticker(exchange, symbol):
     ticker = exchange.fetch_ticker(symbol.upper())

@@ -9,6 +9,7 @@ from math import pi
 from math import floor
 from math import ceil
 
+
 def plot(series, cfg={}):
 
     minimum = min(series)

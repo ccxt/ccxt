@@ -15,6 +15,7 @@ import ccxt.async as ccxt  # noqa: E402
 
 #------------------------------------------------------------------------------
 
+
 async def test_gdax():
     gdax = ccxt.gdax()
     return await gdax.load_markets()

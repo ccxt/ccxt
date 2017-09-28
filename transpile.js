@@ -57,6 +57,7 @@ while (exchanges = regex.exec (contents)) {
 
     function pyAddClass (py) {
         py.push ('')
+        py.push ('')
         py.push ('class ' + id + ' (' + (parent ? parent : 'Exchange') + '):')
         py.push ('')
         py.push ('    def __init__(self, config={}):')

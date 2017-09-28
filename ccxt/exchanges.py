@@ -152,6 +152,7 @@ __all__ = exchanges + [
 
 #==============================================================================
 
+
 class _1broker (Exchange):
 
     def __init__(self, config={}):
@@ -383,6 +384,7 @@ class _1broker (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class cryptocapital (Exchange):
 
     def __init__(self, config={}):
@@ -575,6 +577,7 @@ class cryptocapital (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class _1btcxe (cryptocapital):
 
     def __init__(self, config={}):
@@ -626,6 +629,7 @@ class _1btcxe (cryptocapital):
         super(_1btcxe, self).__init__(params)
 
 #------------------------------------------------------------------------------
+
 
 class acx (Exchange):
 
@@ -913,6 +917,7 @@ class acx (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class anxpro (Exchange):
 
     def __init__(self, config={}):
@@ -1092,6 +1097,7 @@ class anxpro (Exchange):
         raise ExchangeError(self.id + ' ' + self.json(response))
 
 #------------------------------------------------------------------------------
+
 
 class binance (Exchange):
 
@@ -1486,6 +1492,7 @@ class binance (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class bit2c (Exchange):
 
     def __init__(self, config={}):
@@ -1646,6 +1653,7 @@ class bit2c (Exchange):
         return self.fetch(url, method, headers, body)
 
 #------------------------------------------------------------------------------
+
 
 class bitbay (Exchange):
 
@@ -1843,6 +1851,7 @@ class bitbay (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class bitcoincoid (Exchange):
 
     def __init__(self, config={}):
@@ -2013,6 +2022,7 @@ class bitcoincoid (Exchange):
         return response
 
 #------------------------------------------------------------------------------
+
 
 class bitfinex (Exchange):
 
@@ -2353,6 +2363,7 @@ class bitfinex (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class bitfinex2 (bitfinex):
 
     def __init__(self, config={}):
@@ -2629,6 +2640,7 @@ class bitfinex2 (bitfinex):
 
 #------------------------------------------------------------------------------
 
+
 class bitflyer (Exchange):
 
     def __init__(self, config={}):
@@ -2859,6 +2871,7 @@ class bitflyer (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class bithumb (Exchange):
 
     def __init__(self, config={}):
@@ -3081,6 +3094,7 @@ class bithumb (Exchange):
         return response
 
 #------------------------------------------------------------------------------
+
 
 class bitlish (Exchange):
 
@@ -3342,6 +3356,7 @@ class bitlish (Exchange):
         return self.fetch(url, method, headers, body)
 
 #------------------------------------------------------------------------------
+
 
 class bitmarket (Exchange):
 
@@ -3614,6 +3629,7 @@ class bitmarket (Exchange):
         return self.fetch(url, method, headers, body)
 
 #------------------------------------------------------------------------------
+
 
 class bitmex (Exchange):
 
@@ -3960,6 +3976,7 @@ class bitmex (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class bitso (Exchange):
 
     def __init__(self, config={}):
@@ -4167,6 +4184,7 @@ class bitso (Exchange):
         raise ExchangeError(self.id + ' ' + self.json(response))
 
 #------------------------------------------------------------------------------
+
 
 class bitstamp1 (Exchange):
 
@@ -4387,6 +4405,7 @@ class bitstamp1 (Exchange):
         return response
 
 #------------------------------------------------------------------------------
+
 
 class bitstamp (Exchange):
 
@@ -4621,6 +4640,7 @@ class bitstamp (Exchange):
         return response
 
 #------------------------------------------------------------------------------
+
 
 class bittrex (Exchange):
 
@@ -5006,6 +5026,7 @@ class bittrex (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class blinktrade (Exchange):
 
     def __init__(self, config={}):
@@ -5173,6 +5194,7 @@ class blinktrade (Exchange):
         return response
 
 #------------------------------------------------------------------------------
+
 
 class bl3p (Exchange):
 
@@ -5352,6 +5374,7 @@ class bl3p (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class bleutrade (bittrex):
 
     def __init__(self, config={}):
@@ -5389,6 +5412,7 @@ class bleutrade (bittrex):
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
 
 #------------------------------------------------------------------------------
+
 
 class btcchina (Exchange):
 
@@ -5699,6 +5723,7 @@ class btcchina (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class btcmarkets (Exchange):
 
     def __init__(self, config={}):
@@ -5901,6 +5926,7 @@ class btcmarkets (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class btctrader (Exchange):
 
     def __init__(self, config={}):
@@ -6078,6 +6104,7 @@ class btctrader (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class btcexchange (btctrader):
 
     def __init__(self, config={}):
@@ -6101,6 +6128,7 @@ class btcexchange (btctrader):
         super(btcexchange, self).__init__(params)
 
 #------------------------------------------------------------------------------
+
 
 class btctradeua (Exchange):
 
@@ -6311,6 +6339,7 @@ class btctradeua (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class btcturk (btctrader):
 
     def __init__(self, config={}):
@@ -6334,6 +6363,7 @@ class btcturk (btctrader):
         super(btcturk, self).__init__(params)
 
 #------------------------------------------------------------------------------
+
 
 class btcx (Exchange):
 
@@ -6486,6 +6516,7 @@ class btcx (Exchange):
         return response
 
 #------------------------------------------------------------------------------
+
 
 class bter (Exchange):
 
@@ -6707,6 +6738,7 @@ class bter (Exchange):
         return response
 
 #------------------------------------------------------------------------------
+
 
 class bxinth (Exchange):
 
@@ -6935,6 +6967,7 @@ class bxinth (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class ccex (Exchange):
 
     def __init__(self, config={}):
@@ -7155,6 +7188,7 @@ class ccex (Exchange):
         raise ExchangeError(self.id + ' ' + self.json(response))
 
 #------------------------------------------------------------------------------
+
 
 class cex (Exchange):
 
@@ -7387,6 +7421,7 @@ class cex (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class chbtc (Exchange):
 
     def __init__(self, config={}):
@@ -7589,6 +7624,7 @@ class chbtc (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class chilebit (blinktrade):
 
     def __init__(self, config={}):
@@ -7615,6 +7651,7 @@ class chilebit (blinktrade):
         super(chilebit, self).__init__(params)
 
 #------------------------------------------------------------------------------
+
 
 class coincheck (Exchange):
 
@@ -7822,6 +7859,7 @@ class coincheck (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class coinfloor (Exchange):
 
     def __init__(self, config={}):
@@ -7978,6 +8016,7 @@ class coinfloor (Exchange):
         return self.fetch(url, method, headers, body)
 
 #------------------------------------------------------------------------------
+
 
 class coingi (Exchange):
 
@@ -8164,6 +8203,7 @@ class coingi (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class coinmarketcap (Exchange):
 
     def __init__(self, config={}):
@@ -8319,6 +8359,7 @@ class coinmarketcap (Exchange):
         return self.fetch(url, method, headers, body)
 
 #------------------------------------------------------------------------------
+
 
 class coinmate (Exchange):
 
@@ -8496,6 +8537,7 @@ class coinmate (Exchange):
         return response
 
 #------------------------------------------------------------------------------
+
 
 class coinsecure (Exchange):
 
@@ -8748,6 +8790,7 @@ class coinsecure (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class coinspot (Exchange):
 
     def __init__(self, config={}):
@@ -8889,6 +8932,7 @@ class coinspot (Exchange):
         return self.fetch(url, method, headers, body)
 
 #------------------------------------------------------------------------------
+
 
 class cryptopia (Exchange):
 
@@ -9166,6 +9210,7 @@ class cryptopia (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class dsx (Exchange):
 
     def __init__(self, config={}):
@@ -9360,6 +9405,7 @@ class dsx (Exchange):
         raise ExchangeError(self.id + ' ' + self.json(response))
 
 #------------------------------------------------------------------------------
+
 
 class exmo (Exchange):
 
@@ -9575,6 +9621,7 @@ class exmo (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class flowbtc (Exchange):
 
     def __init__(self, config={}):
@@ -9771,6 +9818,7 @@ class flowbtc (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class foxbit (blinktrade):
 
     def __init__(self, config={}):
@@ -9797,6 +9845,7 @@ class foxbit (blinktrade):
         super(foxbit, self).__init__(params)
 
 #------------------------------------------------------------------------------
+
 
 class fyb (Exchange):
 
@@ -9937,6 +9986,7 @@ class fyb (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class fybse (fyb):
 
     def __init__(self, config={}):
@@ -9960,6 +10010,7 @@ class fybse (fyb):
 
 #------------------------------------------------------------------------------
 
+
 class fybsg (fyb):
 
     def __init__(self, config={}):
@@ -9982,6 +10033,7 @@ class fybsg (fyb):
         super(fybsg, self).__init__(params)
 
 #------------------------------------------------------------------------------
+
 
 class gatecoin (Exchange):
 
@@ -10353,6 +10405,7 @@ class gatecoin (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class gdax (Exchange):
 
     def __init__(self, config={}):
@@ -10636,6 +10689,7 @@ class gdax (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class gemini (Exchange):
 
     def __init__(self, config={}):
@@ -10828,6 +10882,7 @@ class gemini (Exchange):
         return response
 
 #------------------------------------------------------------------------------
+
 
 class hitbtc (Exchange):
 
@@ -11131,6 +11186,7 @@ class hitbtc (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class hitbtc2 (hitbtc):
 
     def __init__(self, config={}):
@@ -11381,6 +11437,7 @@ class hitbtc2 (hitbtc):
         return response
 
 #------------------------------------------------------------------------------
+
 
 class huobi1 (Exchange):
 
@@ -11664,6 +11721,7 @@ class huobi1 (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class huobicny (huobi1):
 
     def __init__(self, config={}):
@@ -11688,6 +11746,7 @@ class huobicny (huobi1):
         super(huobicny, self).__init__(params)
 
 #------------------------------------------------------------------------------
+
 
 class huobipro (huobi1):
 
@@ -11714,6 +11773,7 @@ class huobipro (huobi1):
         super(huobipro, self).__init__(params)
 
 #------------------------------------------------------------------------------
+
 
 class huobi (Exchange):
 
@@ -11943,6 +12003,7 @@ class huobi (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class independentreserve (Exchange):
 
     def __init__(self, config={}):
@@ -12165,6 +12226,7 @@ class independentreserve (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class itbit (Exchange):
 
     def __init__(self, config={}):
@@ -12364,6 +12426,7 @@ class itbit (Exchange):
         return response
 
 #------------------------------------------------------------------------------
+
 
 class jubi (Exchange):
 
@@ -12565,6 +12628,7 @@ class jubi (Exchange):
         return response
 
 #------------------------------------------------------------------------------
+
 
 class kraken (Exchange):
 
@@ -12995,6 +13059,7 @@ class kraken (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class lakebtc (Exchange):
 
     def __init__(self, config={}):
@@ -13190,6 +13255,7 @@ class lakebtc (Exchange):
         return response
 
 #------------------------------------------------------------------------------
+
 
 class livecoin (Exchange):
 
@@ -13416,6 +13482,7 @@ class livecoin (Exchange):
         return response
 
 #------------------------------------------------------------------------------
+
 
 class liqui (Exchange):
 
@@ -13764,6 +13831,7 @@ class liqui (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class luno (Exchange):
 
     def __init__(self, config={}):
@@ -13991,6 +14059,7 @@ class luno (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class mercado (Exchange):
 
     def __init__(self, config={}):
@@ -14182,6 +14251,7 @@ class mercado (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class mixcoins (Exchange):
 
     def __init__(self, config={}):
@@ -14339,6 +14409,7 @@ class mixcoins (Exchange):
         raise ExchangeError(self.id + ' ' + self.json(response))
 
 #------------------------------------------------------------------------------
+
 
 class nova (Exchange):
 
@@ -14540,6 +14611,7 @@ class nova (Exchange):
         return response
 
 #------------------------------------------------------------------------------
+
 
 class okcoin (Exchange):
 
@@ -14897,6 +14969,7 @@ class okcoin (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class okcoincny (okcoin):
 
     def __init__(self, config={}):
@@ -14923,6 +14996,7 @@ class okcoincny (okcoin):
         super(okcoincny, self).__init__(params)
 
 #------------------------------------------------------------------------------
+
 
 class okcoinusd (okcoin):
 
@@ -14952,6 +15026,7 @@ class okcoinusd (okcoin):
         super(okcoinusd, self).__init__(params)
 
 #------------------------------------------------------------------------------
+
 
 class okex (okcoin):
 
@@ -14985,6 +15060,7 @@ class okex (okcoin):
         }, params))
 
 #------------------------------------------------------------------------------
+
 
 class paymium (Exchange):
 
@@ -15161,6 +15237,7 @@ class paymium (Exchange):
         return response
 
 #------------------------------------------------------------------------------
+
 
 class poloniex (Exchange):
 
@@ -15546,6 +15623,7 @@ class poloniex (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class quadrigacx (Exchange):
 
     def __init__(self, config={}):
@@ -15708,6 +15786,7 @@ class quadrigacx (Exchange):
         return response
 
 #------------------------------------------------------------------------------
+
 
 class quoine (Exchange):
 
@@ -15938,6 +16017,7 @@ class quoine (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class southxchange (Exchange):
 
     def __init__(self, config={}):
@@ -16135,6 +16215,7 @@ class southxchange (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class surbitcoin (blinktrade):
 
     def __init__(self, config={}):
@@ -16162,6 +16243,7 @@ class surbitcoin (blinktrade):
 
 #------------------------------------------------------------------------------
 
+
 class tidex (liqui):
 
     def __init__(self, config={}):
@@ -16188,6 +16270,7 @@ class tidex (liqui):
         super(tidex, self).__init__(params)
 
 #------------------------------------------------------------------------------
+
 
 class therock (Exchange):
 
@@ -16407,6 +16490,7 @@ class therock (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class urdubit (blinktrade):
 
     def __init__(self, config={}):
@@ -16433,6 +16517,7 @@ class urdubit (blinktrade):
         super(urdubit, self).__init__(params)
 
 #------------------------------------------------------------------------------
+
 
 class vaultoro (Exchange):
 
@@ -16626,6 +16711,7 @@ class vaultoro (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class vbtc (blinktrade):
 
     def __init__(self, config={}):
@@ -16652,6 +16738,7 @@ class vbtc (blinktrade):
         super(vbtc, self).__init__(params)
 
 #------------------------------------------------------------------------------
+
 
 class virwox (Exchange):
 
@@ -16870,6 +16957,7 @@ class virwox (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class wex (liqui):
 
     def __init__(self, config={}):
@@ -16944,6 +17032,7 @@ class wex (liqui):
         }
 
 #------------------------------------------------------------------------------
+
 
 class xbtce (Exchange):
 
@@ -17248,6 +17337,7 @@ class xbtce (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class yobit (Exchange):
 
     def __init__(self, config={}):
@@ -17453,6 +17543,7 @@ class yobit (Exchange):
 
 #------------------------------------------------------------------------------
 
+
 class yunbi (acx):
 
     def __init__(self, config={}):
@@ -17526,6 +17617,7 @@ class yunbi (acx):
         super(yunbi, self).__init__(params)
 
 #------------------------------------------------------------------------------
+
 
 class zaif (Exchange):
 

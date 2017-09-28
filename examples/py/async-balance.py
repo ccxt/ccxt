@@ -15,6 +15,7 @@ import ccxt.async as ccxt  # noqa: E402
 
 #------------------------------------------------------------------------------
 
+
 async def test():
     bittrex = ccxt.bittrex({
         'apiKey': "c5af1d0ceeaa4729ad87da1b05d9dfc3",

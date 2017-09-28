@@ -20,6 +20,7 @@ import ccxt.async as ccxt # noqa: E402
 
 # ------------------------------------------------------------------------------
 
+
 class Argv(object):
     pass
 
@@ -38,33 +39,43 @@ exchanges = {}
 # ------------------------------------------------------------------------------
 # string coloring functions
 
+
 def style(s, style):
     return str(s) # style + str (s) + '\033[0m'
+
 
 def green(s):
     return style(s, '\033[92m')
 
+
 def blue(s):
     return style(s, '\033[94m')
+
 
 def yellow(s):
     return style(s, '\033[93m')
 
+
 def red(s):
     return style(s, '\033[91m')
+
 
 def pink(s):
     return style(s, '\033[95m')
 
+
 def bold(s):
     return style(s, '\033[1m')
+
 
 def underline(s):
     return style(s, '\033[4m')
 
+
 # print a colored string
 def dump(*args):
     print(' '.join([str(arg) for arg in args]))
+
 
 # print an error string
 def dump_error(*args):
@@ -72,7 +83,9 @@ def dump_error(*args):
     print(string)
     sys.stderr.write(string + "\n")
 
+
 # ------------------------------------------------------------------------------
+
 
 def handle_all_unhandled_exceptions(type, value, traceback):
 
@@ -83,6 +96,7 @@ def handle_all_unhandled_exceptions(type, value, traceback):
 sys.excepthook = handle_all_unhandled_exceptions
 
 # ------------------------------------------------------------------------------
+
 
 async def test_order_book(exchange, symbol):
     if exchange.hasFetchOrderBook:
@@ -104,6 +118,7 @@ async def test_order_book(exchange, symbol):
 
 # ------------------------------------------------------------------------------
 
+
 async def test_ohlcv(exchange, symbol):
     if exchange.hasFetchOHLCV:
         delay = int(exchange.rateLimit / 1000)
@@ -114,6 +129,7 @@ async def test_ohlcv(exchange, symbol):
         dump(yellow(exchange.id), 'fetching OHLCV not supported')
 
 # ------------------------------------------------------------------------------
+
 
 async def test_tickers(exchange):
     if exchange.hasFetchTickers:
@@ -126,6 +142,7 @@ async def test_tickers(exchange):
         dump(yellow(exchange.id), 'fetching all tickers at once not supported')
 
 # ------------------------------------------------------------------------------
+
 
 async def test_ticker(exchange, symbol):
     if exchange.hasFetchTicker:
@@ -148,6 +165,7 @@ async def test_ticker(exchange, symbol):
 
 # ------------------------------------------------------------------------------
 
+
 async def test_trades(exchange, symbol):
     if exchange.hasFetchTrades:
         delay = int(exchange.rateLimit / 1000)
@@ -159,6 +177,7 @@ async def test_trades(exchange, symbol):
         dump(green(exchange.id), green(symbol), 'fetch_trades() not supported')
 
 # ------------------------------------------------------------------------------
+
 
 async def test_symbol(exchange, symbol):
     dump(green('SYMBOL: ' + symbol))
@@ -175,8 +194,10 @@ async def test_symbol(exchange, symbol):
 
 # ------------------------------------------------------------------------------
 
+
 async def load_exchange(exchange):
     await exchange.load_markets()
+
 
 async def test_exchange(exchange):
 
@@ -251,6 +272,7 @@ async def test_exchange(exchange):
 
 # ------------------------------------------------------------------------------
 
+
 async def try_all_proxies(exchange, proxies):
     current_proxy = 0
     max_retries = len(proxies)
@@ -309,6 +331,7 @@ for (id, params) in tuples:
 
 # ------------------------------------------------------------------------------
 
+
 async def main():
 
     if argv.exchange:
@@ -337,5 +360,6 @@ async def main():
                     await try_all_proxies(exchange, proxies)
 
 # ------------------------------------------------------------------------------
+
 
 asyncio.get_event_loop().run_until_complete(main())

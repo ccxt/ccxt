@@ -15,6 +15,7 @@ import ccxt.async as ccxt  # noqa: E402
 
 #------------------------------------------------------------------------------
 
+
 async def test():
     gdax = ccxt.gdax({
         'apiKey': "a43edfe629bc5991acc83a536ac6358e",

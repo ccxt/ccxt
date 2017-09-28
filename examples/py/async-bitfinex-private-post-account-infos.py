@@ -15,6 +15,7 @@ import ccxt.async as ccxt  # noqa: E402
 
 #------------------------------------------------------------------------------
 
+
 async def test(exchange):
     print(await exchange.private_post_account_infos())
 

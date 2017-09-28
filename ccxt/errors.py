@@ -38,29 +38,38 @@ __all__ = [
 
 # -----------------------------------------------------------------------------
 
+
 class CCXTError(Exception):
     pass
+
 
 class ExchangeError(CCXTError):
     pass
 
+
 class NotSupported(ExchangeError):
     pass
+
 
 class AuthenticationError(ExchangeError):
     pass
 
+
 class InsufficientFunds(ExchangeError):
     pass
+
 
 class NetworkError(CCXTError):
     pass
 
+
 class DDoSProtection(NetworkError):
     pass
 
+
 class RequestTimeout(NetworkError):
     pass
+
 
 class ExchangeNotAvailable(NetworkError):
     pass
