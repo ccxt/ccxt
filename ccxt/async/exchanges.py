@@ -61,7 +61,7 @@ __all__ = exchanges + [
     'exchanges',
 ]
 
-#==============================================================================
+# =============================================================================
 
 
 class _1broker (Exchange):
@@ -293,7 +293,7 @@ class _1broker (Exchange):
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class cryptocapital (Exchange):
@@ -486,7 +486,7 @@ class cryptocapital (Exchange):
             raise ExchangeError(self.id + ' ' + errors)
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class _1btcxe (cryptocapital):
@@ -539,7 +539,7 @@ class _1btcxe (cryptocapital):
         params.update(config)
         super(_1btcxe, self).__init__(params)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class acx (Exchange):
@@ -826,7 +826,7 @@ class acx (Exchange):
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class anxpro (Exchange):
@@ -1007,7 +1007,7 @@ class anxpro (Exchange):
                 return response
         raise ExchangeError(self.id + ' ' + self.json(response))
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class binance (Exchange):
@@ -1401,7 +1401,7 @@ class binance (Exchange):
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class bit2c (Exchange):
@@ -1563,7 +1563,7 @@ class bit2c (Exchange):
             }
         return self.fetch(url, method, headers, body)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class bitbay (Exchange):
@@ -1760,7 +1760,7 @@ class bitbay (Exchange):
             }
         return self.fetch(url, method, headers, body)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class bitcoincoid (Exchange):
@@ -1932,7 +1932,7 @@ class bitcoincoid (Exchange):
             raise ExchangeError(self.id + ' ' + response['error'])
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class bitfinex (Exchange):
@@ -2272,7 +2272,7 @@ class bitfinex (Exchange):
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class bitfinex2 (bitfinex):
@@ -2549,7 +2549,7 @@ class bitfinex2 (bitfinex):
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class bitflyer (Exchange):
@@ -2780,7 +2780,7 @@ class bitflyer (Exchange):
             }
         return self.fetch(url, method, headers, body)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class bithumb (Exchange):
@@ -2946,20 +2946,20 @@ class bithumb (Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         raise NotSupported(self.id + ' private API not implemented yet')
-        # prefix = ''
-        # if type == 'market':
-        #     prefix = 'market_'
-        # order = {
-        #     'pair': self.market_id(symbol),
-        #     'quantity': amount,
-        #     'price': price or 0,
-        #     'type': prefix + side,
-        #}
-        # response = await self.privatePostOrderCreate(self.extend(order, params))
-        # return {
-        #     'info': response,
-        #     'id': str(response['order_id']),
-        #}
+        #     prefix = ''
+        #     if type == 'market':
+        #         prefix = 'market_'
+        #     order = {
+        #         'pair': self.market_id(symbol),
+        #         'quantity': amount,
+        #         'price': price or 0,
+        #         'type': prefix + side,
+        #     }
+        #     response = await self.privatePostOrderCreate(self.extend(order, params))
+        #     return {
+        #         'info': response,
+        #         'id': str(response['order_id']),
+        #     }
 
     def cancel_order(self, id, params={}):
         side = ('side' in list(params.keys()))
@@ -3004,7 +3004,7 @@ class bithumb (Exchange):
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class bitlish (Exchange):
@@ -3266,7 +3266,7 @@ class bitlish (Exchange):
             headers = {'Content-Type': 'application/json'}
         return self.fetch(url, method, headers, body)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class bitmarket (Exchange):
@@ -3539,7 +3539,7 @@ class bitmarket (Exchange):
             }
         return self.fetch(url, method, headers, body)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class bitmex (Exchange):
@@ -3885,7 +3885,7 @@ class bitmex (Exchange):
             }
         return self.fetch(url, method, headers, body)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class bitso (Exchange):
@@ -4094,7 +4094,7 @@ class bitso (Exchange):
                 return response
         raise ExchangeError(self.id + ' ' + self.json(response))
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class bitstamp1 (Exchange):
@@ -4315,7 +4315,7 @@ class bitstamp1 (Exchange):
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class bitstamp (Exchange):
@@ -4550,7 +4550,7 @@ class bitstamp (Exchange):
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class bittrex (Exchange):
@@ -4935,7 +4935,7 @@ class bittrex (Exchange):
                 raise InsufficientFunds(self.id + ' ' + self.json(response))
         raise ExchangeError(self.id + ' ' + self.json(response))
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class blinktrade (Exchange):
@@ -5104,7 +5104,7 @@ class blinktrade (Exchange):
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class bl3p (Exchange):
@@ -5283,7 +5283,7 @@ class bl3p (Exchange):
             }
         return self.fetch(url, method, headers, body)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class bleutrade (bittrex):
@@ -5322,7 +5322,7 @@ class bleutrade (bittrex):
         orderbook = response['result']
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class btcchina (Exchange):
@@ -5632,7 +5632,7 @@ class btcchina (Exchange):
                 url += '?' + self.urlencode(params)
         return self.fetch(url, method, headers, body)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class btcmarkets (Exchange):
@@ -5835,7 +5835,7 @@ class btcmarkets (Exchange):
             return response
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class btctrader (Exchange):
@@ -6013,7 +6013,7 @@ class btctrader (Exchange):
             }
         return self.fetch(url, method, headers, body)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class btcexchange (btctrader):
@@ -6038,7 +6038,7 @@ class btcexchange (btctrader):
         params.update(config)
         super(btcexchange, self).__init__(params)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class btctradeua (Exchange):
@@ -6248,7 +6248,7 @@ class btctradeua (Exchange):
             }
         return self.fetch(url, method, headers, body)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class btcturk (btctrader):
@@ -6273,7 +6273,7 @@ class btcturk (btctrader):
         params.update(config)
         super(btcturk, self).__init__(params)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class btcx (Exchange):
@@ -6426,7 +6426,7 @@ class btcx (Exchange):
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class bter (Exchange):
@@ -6648,7 +6648,7 @@ class bter (Exchange):
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class bxinth (Exchange):
@@ -6876,7 +6876,7 @@ class bxinth (Exchange):
                 return response
         raise ExchangeError(self.id + ' ' + self.json(response))
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class ccex (Exchange):
@@ -7098,7 +7098,7 @@ class ccex (Exchange):
                 return response
         raise ExchangeError(self.id + ' ' + self.json(response))
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class cex (Exchange):
@@ -7330,7 +7330,7 @@ class cex (Exchange):
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class chbtc (Exchange):
@@ -7533,7 +7533,7 @@ class chbtc (Exchange):
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class chilebit (blinktrade):
@@ -7561,7 +7561,7 @@ class chilebit (blinktrade):
         params.update(config)
         super(chilebit, self).__init__(params)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class coincheck (Exchange):
@@ -7768,7 +7768,7 @@ class coincheck (Exchange):
                 return response
         raise ExchangeError(self.id + ' ' + self.json(response))
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class coinfloor (Exchange):
@@ -7926,7 +7926,7 @@ class coinfloor (Exchange):
             }
         return self.fetch(url, method, headers, body)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class coingi (Exchange):
@@ -8112,7 +8112,7 @@ class coingi (Exchange):
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class coinmarketcap (Exchange):
@@ -8269,7 +8269,7 @@ class coinmarketcap (Exchange):
             url += '?' + self.urlencode(query)
         return self.fetch(url, method, headers, body)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class coinmate (Exchange):
@@ -8447,7 +8447,7 @@ class coinmate (Exchange):
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class coinsecure (Exchange):
@@ -8699,7 +8699,7 @@ class coinsecure (Exchange):
                 return response
         raise ExchangeError(self.id + ' ' + self.json(response))
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class coinspot (Exchange):
@@ -8842,7 +8842,7 @@ class coinspot (Exchange):
             }
         return self.fetch(url, method, headers, body)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class cryptopia (Exchange):
@@ -9119,7 +9119,7 @@ class cryptopia (Exchange):
                     return response
         raise ExchangeError(self.id + ' ' + self.json(response))
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class dsx (Exchange):
@@ -9315,7 +9315,7 @@ class dsx (Exchange):
                 return response
         raise ExchangeError(self.id + ' ' + self.json(response))
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class exmo (Exchange):
@@ -9530,7 +9530,7 @@ class exmo (Exchange):
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class flowbtc (Exchange):
@@ -9727,7 +9727,7 @@ class flowbtc (Exchange):
                 return response
         raise ExchangeError(self.id + ' ' + self.json(response))
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class foxbit (blinktrade):
@@ -9755,7 +9755,7 @@ class foxbit (blinktrade):
         params.update(config)
         super(foxbit, self).__init__(params)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class fyb (Exchange):
@@ -9895,7 +9895,7 @@ class fyb (Exchange):
                     raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class fybse (fyb):
@@ -9919,7 +9919,7 @@ class fybse (fyb):
         params.update(config)
         super(fybse, self).__init__(params)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class fybsg (fyb):
@@ -9943,7 +9943,7 @@ class fybsg (fyb):
         params.update(config)
         super(fybsg, self).__init__(params)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class gatecoin (Exchange):
@@ -10314,7 +10314,7 @@ class gatecoin (Exchange):
                     return response
         raise ExchangeError(self.id + ' ' + self.json(response))
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class gdax (Exchange):
@@ -10598,7 +10598,7 @@ class gdax (Exchange):
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class gemini (Exchange):
@@ -10792,7 +10792,7 @@ class gemini (Exchange):
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class hitbtc (Exchange):
@@ -11095,7 +11095,7 @@ class hitbtc (Exchange):
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class hitbtc2 (hitbtc):
@@ -11347,7 +11347,7 @@ class hitbtc2 (hitbtc):
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class huobi1 (Exchange):
@@ -11630,7 +11630,7 @@ class huobi1 (Exchange):
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class huobicny (huobi1):
@@ -11647,16 +11647,11 @@ class huobicny (huobi1):
                 'www': 'https://www.huobi.com',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
             },
-            # 'markets': {
-            #     'ETH/CNY': {'id': 'ethcny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY'},
-            #     'ETC/CNY': {'id': 'etccny', 'symbol': 'ETC/CNY', 'base': 'ETC', 'quote': 'CNY'},
-            #     'BCH/CNY': {'id': 'bcccny', 'symbol': 'BCH/CNY', 'base': 'BCH', 'quote': 'CNY'},
-            #},
         }
         params.update(config)
         super(huobicny, self).__init__(params)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class huobipro (huobi1):
@@ -11673,17 +11668,11 @@ class huobipro (huobi1):
                 'www': 'https://www.huobi.pro',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
             },
-            # 'markets': {
-            #     'ETH/BTC': {'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC'},
-            #     'ETC/BTC': {'id': 'etccny', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC'},
-            #     'LTC/BTC': {'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
-            #     'BCH/BTC': {'id': 'bcccny', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC'},
-            #},
         }
         params.update(config)
         super(huobipro, self).__init__(params)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class huobi (Exchange):
@@ -11912,7 +11901,7 @@ class huobi (Exchange):
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class independentreserve (Exchange):
@@ -12135,7 +12124,7 @@ class independentreserve (Exchange):
         # todo error handling
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class itbit (Exchange):
@@ -12336,7 +12325,7 @@ class itbit (Exchange):
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class jubi (Exchange):
@@ -12538,7 +12527,7 @@ class jubi (Exchange):
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class kraken (Exchange):
@@ -12968,7 +12957,7 @@ class kraken (Exchange):
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class lakebtc (Exchange):
@@ -13165,7 +13154,7 @@ class lakebtc (Exchange):
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class livecoin (Exchange):
@@ -13392,7 +13381,7 @@ class livecoin (Exchange):
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class liqui (Exchange):
@@ -13740,7 +13729,7 @@ class liqui (Exchange):
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class luno (Exchange):
@@ -13968,7 +13957,7 @@ class luno (Exchange):
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class mercado (Exchange):
@@ -14160,7 +14149,7 @@ class mercado (Exchange):
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class mixcoins (Exchange):
@@ -14319,7 +14308,7 @@ class mixcoins (Exchange):
                 return response
         raise ExchangeError(self.id + ' ' + self.json(response))
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class nova (Exchange):
@@ -14521,7 +14510,7 @@ class nova (Exchange):
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class okcoin (Exchange):
@@ -14878,7 +14867,7 @@ class okcoin (Exchange):
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class okcoincny (okcoin):
@@ -14906,7 +14895,7 @@ class okcoincny (okcoin):
         params.update(config)
         super(okcoincny, self).__init__(params)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class okcoinusd (okcoin):
@@ -14936,7 +14925,7 @@ class okcoinusd (okcoin):
         params.update(config)
         super(okcoinusd, self).__init__(params)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class okex (okcoin):
@@ -14970,7 +14959,7 @@ class okex (okcoin):
             'order_id': id,
         }, params))
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class paymium (Exchange):
@@ -15147,7 +15136,7 @@ class paymium (Exchange):
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class poloniex (Exchange):
@@ -15532,7 +15521,7 @@ class poloniex (Exchange):
             raise ExchangeError(error)
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class quadrigacx (Exchange):
@@ -15696,7 +15685,7 @@ class quadrigacx (Exchange):
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class qryptos (Exchange):
@@ -15926,7 +15915,7 @@ class qryptos (Exchange):
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class quoine (qryptos):
@@ -15950,7 +15939,7 @@ class quoine (qryptos):
         params.update(config)
         super(quoine, self).__init__(params)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class southxchange (Exchange):
@@ -16148,7 +16137,7 @@ class southxchange (Exchange):
         #     raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class surbitcoin (blinktrade):
@@ -16176,7 +16165,7 @@ class surbitcoin (blinktrade):
         params.update(config)
         super(surbitcoin, self).__init__(params)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class tidex (liqui):
@@ -16204,7 +16193,7 @@ class tidex (liqui):
         params.update(config)
         super(tidex, self).__init__(params)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class therock (Exchange):
@@ -16423,7 +16412,7 @@ class therock (Exchange):
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class urdubit (blinktrade):
@@ -16451,7 +16440,7 @@ class urdubit (blinktrade):
         params.update(config)
         super(urdubit, self).__init__(params)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class vaultoro (Exchange):
@@ -16644,7 +16633,7 @@ class vaultoro (Exchange):
             }
         return self.fetch(url, method, headers, body)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class vbtc (blinktrade):
@@ -16672,7 +16661,7 @@ class vbtc (blinktrade):
         params.update(config)
         super(vbtc, self).__init__(params)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class virwox (Exchange):
@@ -16890,7 +16879,7 @@ class virwox (Exchange):
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class wex (liqui):
@@ -16966,7 +16955,7 @@ class wex (liqui):
             'info': ticker,
         }
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class xbtce (Exchange):
@@ -17270,7 +17259,7 @@ class xbtce (Exchange):
             headers['Authorization'] = 'HMAC ' + credentials
         return self.fetch(url, method, headers, body)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class yobit (Exchange):
@@ -17476,7 +17465,7 @@ class yobit (Exchange):
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class yunbi (acx):
@@ -17551,7 +17540,7 @@ class yunbi (acx):
         params.update(config)
         super(yunbi, self).__init__(params)
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class zaif (Exchange):
@@ -17770,11 +17759,10 @@ class zaif (Exchange):
     async def fetch_open_orders(self, symbol=None, params={}):
         await self.load_markets()
         market = None
-        # request = {
-        #     'is_token': False,
-        #     'is_token_both': False,
-        #}
-        request = {}
+        request = {
+            # 'is_token': False,
+            # 'is_token_both': False,
+        }
         if symbol:
             market = self.market(symbol)
             request['currency_pair'] = market['id']
@@ -17784,17 +17772,16 @@ class zaif (Exchange):
     async def fetchClosedOrders(self, symbol=None, params={}):
         await self.load_markets()
         market = None
-        # request = {
-        #     'from': 0,
-        #     'count': 1000,
-        #     'from_id': 0,
-        #     'end_id': 1000,
-        #     'order': 'DESC',
-        #     'since': 1503821051,
-        #     'end': 1503821051,
-        #     'is_token': False,
-        #}
-        request = {}
+        request = {
+            # 'from': 0,
+            # 'count': 1000,
+            # 'from_id': 0,
+            # 'end_id': 1000,
+            # 'order': 'DESC',
+            # 'since': 1503821051,
+            # 'end': 1503821051,
+            # 'is_token': False,
+        }
         if symbol:
             market = self.market(symbol)
             request['currency_pair'] = market['id']

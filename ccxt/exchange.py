@@ -24,11 +24,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from ccxt.version import __version__
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from ccxt.errors import CCXTError
 from ccxt.errors import ExchangeError
@@ -40,13 +40,13 @@ from ccxt.errors import DDoSProtection
 from ccxt.errors import RequestTimeout
 from ccxt.errors import ExchangeNotAvailable
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 __all__ = [
     'Exchange',
 ]
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # Python 2 & 3
 import base64
@@ -68,7 +68,7 @@ import time
 import zlib
 import decimal
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 try:
     import urllib.parse as _urlencode # Python 3
@@ -79,14 +79,14 @@ except ImportError:
     import urllib2 as _urllib
     import httplib
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 try:
     basestring # Python 3
 except NameError:
     basestring = str # Python 2
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 class Exchange(object):
@@ -881,7 +881,7 @@ class Exchange(object):
     def createMarketSellOrder(self, symbol, *args):
         return self.create_market_sell_order(symbol, *args)
 
-#==============================================================================
+# =============================================================================
 
 # This comment is a placeholder for transpiled derived exchange implementations
 # See https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md for details

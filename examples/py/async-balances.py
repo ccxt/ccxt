@@ -4,22 +4,15 @@ import asyncio
 import os
 import sys
 
-#------------------------------------------------------------------------------
-
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root)
 
-#------------------------------------------------------------------------------
-
 import ccxt.async as ccxt  # noqa: E402
-
-#------------------------------------------------------------------------------
 
 
 async def test(exchange):
     print(await exchange.fetch_balance())
 
-#------------------------------------------------------------------------------
 
 kraken = ccxt.kraken({
     'apiKey': "hEvQNMDIeoCJbr7W/ZBb5CGOrx3G0lWF5B3zqa1JBxdZlEaL8EK+D0Mw",

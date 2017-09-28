@@ -5,16 +5,10 @@ import functools
 import os
 import sys
 
-#------------------------------------------------------------------------------
-
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root)
 
-#------------------------------------------------------------------------------
-
 import ccxt.async as ccxt  # noqa: E402
-
-#------------------------------------------------------------------------------
 
 
 async def print_ticker(symbol, id):

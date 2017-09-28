@@ -409,10 +409,10 @@ while (exchanges = regex.exec (contents)) {
 function transpile (oldName, newName, content, comment = '//') {
     log.bright.cyan ('Transpiling ' + oldName.yellow + ' → ' + newName.yellow)
     let fileContents = fs.readFileSync (oldName, 'utf8')
-    fileContents = fileContents.split ("\n" + comment + "====") [0]
+    fileContents = fileContents.split ("\n" + comment + " ===") [0]
     fileContents +=
-        "\n" + comment + "==============================================================================\n" +
-        content.join ("\n" + comment + "------------------------------------------------------------------------------\n")
+        "\n" + comment + " =============================================================================\n" +
+        content.join ("\n" + comment + " -----------------------------------------------------------------------------\n")
     fs.truncateSync (newName)
     fs.writeFileSync (newName, fileContents)
 }

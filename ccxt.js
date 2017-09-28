@@ -3961,20 +3961,20 @@ var bithumb = {
 
     createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         throw new NotSupported (this.id + ' private API not implemented yet');
-        // let prefix = '';
-        // if (type == 'market')
-        //     prefix = 'market_';
-        // let order = {
-        //     'pair': this.marketId (symbol),
-        //     'quantity': amount,
-        //     'price': price || 0,
-        //     'type': prefix + side,
-        // };
-        // let response = await this.privatePostOrderCreate (this.extend (order, params));
-        // return {
-        //     'info': response,
-        //     'id': response['order_id'].toString (),
-        // };
+        //     let prefix = '';
+        //     if (type == 'market')
+        //         prefix = 'market_';
+        //     let order = {
+        //         'pair': this.marketId (symbol),
+        //         'quantity': amount,
+        //         'price': price || 0,
+        //         'type': prefix + side,
+        //     };
+        //     let response = await this.privatePostOrderCreate (this.extend (order, params));
+        //     return {
+        //         'info': response,
+        //         'id': response['order_id'].toString (),
+        //     };
     },
 
     cancelOrder (id, params = {}) {
@@ -13018,11 +13018,6 @@ var huobicny = extend (huobi1, {
         'www': 'https://www.huobi.com',
         'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
     },
-    // 'markets': {
-    //     'ETH/CNY': { 'id': 'ethcny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY' },
-    //     'ETC/CNY': { 'id': 'etccny', 'symbol': 'ETC/CNY', 'base': 'ETC', 'quote': 'CNY' },
-    //     'BCH/CNY': { 'id': 'bcccny', 'symbol': 'BCH/CNY', 'base': 'BCH', 'quote': 'CNY' },
-    // },
 })
 
 //-----------------------------------------------------------------------------
@@ -13039,12 +13034,6 @@ var huobipro = extend (huobi1, {
         'www': 'https://www.huobi.pro',
         'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
     },
-    // 'markets': {
-    //     'ETH/BTC': { 'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
-    //     'ETC/BTC': { 'id': 'etccny', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC' },
-    //     'LTC/BTC': { 'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
-    //     'BCH/BTC': { 'id': 'bcccny', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
-    // },
 })
 
 //-----------------------------------------------------------------------------
@@ -19366,11 +19355,10 @@ var zaif = {
     async fetchOpenOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        // let request = {
-        //     'is_token': false,
-        //     'is_token_both': false,
-        // };
-        let request = {};
+        let request = {
+            // 'is_token': false,
+            // 'is_token_both': false,
+        };
         if (symbol) {
             market = this.market (symbol);
             request['currency_pair'] = market['id'];
@@ -19382,17 +19370,16 @@ var zaif = {
     async fetchClosedOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        // let request = {
-        //     'from': 0,
-        //     'count': 1000,
-        //     'from_id': 0,
-        //     'end_id': 1000,
-        //     'order': 'DESC',
-        //     'since': 1503821051,
-        //     'end': 1503821051,
-        //     'is_token': false,
-        // };
-        let request = {};
+        let request = {
+            // 'from': 0,
+            // 'count': 1000,
+            // 'from_id': 0,
+            // 'end_id': 1000,
+            // 'order': 'DESC',
+            // 'since': 1503821051,
+            // 'end': 1503821051,
+            // 'is_token': false,
+        };
         if (symbol) {
             market = this.market (symbol);
             request['currency_pair'] = market['id'];

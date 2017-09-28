@@ -1167,7 +1167,7 @@ class Exchange {
     }
 }
 
-//=============================================================================
+// ============================================================================
 
 // This comment is a placeholder for transpiled derived exchange implementations
 // See https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md for details

@@ -3,16 +3,10 @@
 import os
 import sys
 
-#------------------------------------------------------------------------------
-
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root)
 
-#------------------------------------------------------------------------------
-
 import ccxt  # noqa: E402
-
-#------------------------------------------------------------------------------
 
 gdax = ccxt.gdax({
     'apiKey': "a43edfe629bc5991acc83a536ac6358e",
@@ -20,6 +14,8 @@ gdax = ccxt.gdax({
     'password': 'zdmj8o7byla',
     'verbose': True, # switch it to False if you don't want the HTTP log
 })
+
 # move gdax to sandbox
 gdax.urls['api'] = 'https://api-public.sandbox.gdax.com'
+
 print(gdax.fetch_balance())
