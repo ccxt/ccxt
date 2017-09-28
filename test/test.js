@@ -121,20 +121,6 @@ let testOrderBook = async (exchange, symbol) => {
     const bids = orderbook.bids
     const asks = orderbook.asks
 
-    const [ uniqueBidPrices, uniqueAskPrices ] = [ 'bids', 'asks' ].map (side =>
-        orderbook[side]
-            .map (bidask => bidask[0])
-            .filter ((item, i, array) => array.indexOf (item) === i))
-
-    log (bids.length, uniqueBidPrices.length)
-    log (asks.length, uniqueAskPrices.length)
-
-    console.log (orderbook['bids'])
-    console.log (orderbook['asks'])
-
-    assert (bids.length == uniqueBidPrices.length)
-    assert (asks.length == uniqueAskPrices.length)
-
     log (symbol.green,
         orderbook['datetime'],
         'bid: '       + ((bids.length > 0) ? human_value (bids[0][0]) : 'N/A'),
