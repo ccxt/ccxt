@@ -30,12 +30,9 @@ from ccxt.version import __version__
 
 # -----------------------------------------------------------------------------
 
-# from ccxt.errors import CCXTError
 from ccxt.errors import ExchangeError
 from ccxt.errors import NotSupported
 from ccxt.errors import AuthenticationError
-# from ccxt.errors import InsufficientFunds
-# from ccxt.errors import NetworkError
 from ccxt.errors import DDoSProtection
 from ccxt.errors import RequestTimeout
 from ccxt.errors import ExchangeNotAvailable
@@ -59,7 +56,6 @@ import hashlib
 import hmac
 import io
 import json
-# import math
 import re
 import socket
 import ssl
@@ -95,7 +91,7 @@ class Exchange(object):
     version = None
     enableRateLimit = False
     rateLimit = 2000  # milliseconds = seconds * 1000
-    timeout = 10000  # milliseconds = seconds * 1000
+    timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_session = None
     userAgent = False

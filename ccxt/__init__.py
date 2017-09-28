@@ -26,28 +26,24 @@ SOFTWARE.
 
 # -----------------------------------------------------------------------------
 
-# from ccxt.version import __version__
-
-# -----------------------------------------------------------------------------
-
 from ccxt import version
 from ccxt import errors
 
 # -----------------------------------------------------------------------------
 
-from ccxt.errors import CCXTError  # noqa: F401
-from ccxt.errors import ExchangeError  # noqa: F401
-from ccxt.errors import NotSupported  # noqa: F401
-from ccxt.errors import AuthenticationError  # noqa: F401
-from ccxt.errors import InsufficientFunds  # noqa: F401
-from ccxt.errors import NetworkError  # noqa: F401
-from ccxt.errors import DDoSProtection  # noqa: F401
-from ccxt.errors import RequestTimeout  # noqa: F401
+from ccxt.errors import CCXTError             # noqa: F401
+from ccxt.errors import ExchangeError         # noqa: F401
+from ccxt.errors import NotSupported          # noqa: F401
+from ccxt.errors import AuthenticationError   # noqa: F401
+from ccxt.errors import InsufficientFunds     # noqa: F401
+from ccxt.errors import NetworkError          # noqa: F401
+from ccxt.errors import DDoSProtection        # noqa: F401
+from ccxt.errors import RequestTimeout        # noqa: F401
 from ccxt.errors import ExchangeNotAvailable  # noqa: F401
 
 # -----------------------------------------------------------------------------
 
-from ccxt.exchange import *  # noqa: F403
+from ccxt.exchange import *   # noqa: F403
 from ccxt.exchanges import *  # noqa: F403
 
 # -----------------------------------------------------------------------------

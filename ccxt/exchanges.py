@@ -28,26 +28,15 @@ SOFTWARE.
 
 # Python 2 & 3
 import base64
-# import calendar
-# import datetime
 import hashlib
-# import json
 import math
-# import sys
-# import time
-# import decimal
 
 # -----------------------------------------------------------------------------
 
-# from ccxt.errors import CCXTError
 from ccxt.errors import ExchangeError
 from ccxt.errors import NotSupported
 from ccxt.errors import AuthenticationError
 from ccxt.errors import InsufficientFunds
-# from ccxt.errors import NetworkError
-# from ccxt.errors import DDoSProtection
-# from ccxt.errors import RequestTimeout
-# from ccxt.errors import ExchangeNotAvailable
 
 # -----------------------------------------------------------------------------
 

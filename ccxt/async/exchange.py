@@ -28,35 +28,12 @@ SOFTWARE.
 
 import aiohttp
 import asyncio
-# import base64
-# import calendar
-# import collections
 import concurrent
-# import datetime
-# import hashlib
-# import json
-# import math
-# import re
-# import socket
-# import ssl
-# import sys
-# import time
 
 # -----------------------------------------------------------------------------
 
-# from ccxt.version import __version__
-
-# -----------------------------------------------------------------------------
-
-# from ccxt.errors import CCXTError
 from ccxt.errors import ExchangeError
-# from ccxt.errors import NotSupported
-# from ccxt.errors import AuthenticationError
-# from ccxt.errors import InsufficientFunds
-# from ccxt.errors import NetworkError
-# from ccxt.errors import DDoSProtection
 from ccxt.errors import RequestTimeout
-# from ccxt.errors import ExchangeNotAvailable
 
 # -----------------------------------------------------------------------------
 
