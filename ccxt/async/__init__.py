@@ -26,25 +26,25 @@ SOFTWARE.
 
 # -----------------------------------------------------------------------------
 
-from ccxt.version import __version__
+# from ccxt.version import __version__
 
 # -----------------------------------------------------------------------------
 
 import ccxt.errors as errors
 import ccxt.async.exchange
-import ccxt.async.exchanges
+# import ccxt.async.exchanges
 
 # -----------------------------------------------------------------------------
 
-from ccxt.errors import CCXTError
-from ccxt.errors import ExchangeError
-from ccxt.errors import NotSupported
-from ccxt.errors import AuthenticationError
-from ccxt.errors import InsufficientFunds
-from ccxt.errors import NetworkError
-from ccxt.errors import DDoSProtection
-from ccxt.errors import RequestTimeout
-from ccxt.errors import ExchangeNotAvailable
+# from ccxt.errors import CCXTError
+# from ccxt.errors import ExchangeError
+# from ccxt.errors import NotSupported
+# from ccxt.errors import AuthenticationError
+# from ccxt.errors import InsufficientFunds
+# from ccxt.errors import NetworkError
+# from ccxt.errors import DDoSProtection
+# from ccxt.errors import RequestTimeout
+# from ccxt.errors import ExchangeNotAvailable
 
 # -----------------------------------------------------------------------------
 
