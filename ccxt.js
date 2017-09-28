@@ -1252,9 +1252,7 @@ var cryptocapital = {
         let response = await this.publicGetOrderBook (this.extend ({
             'currency': this.marketId (market),
         }, params));
-        let timestamp = this.milliseconds ();
-        let orderbook = response['order-book'];
-        return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'order_amount');
+        return this.parseOrderBook (response['order-book'], undefined, 'bid', 'ask', 'price', 'order_amount');
     },
 
     async fetchTicker (market) {
@@ -3502,7 +3500,6 @@ var bitfinex2 = extend (bitfinex, {
     },
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        let market = this.market (symbol);
         throw new NotSupported (this.id + ' createOrder not implemented yet');
     },
 
@@ -4169,7 +4166,7 @@ var bitlish = {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        // let market = this.market (symbol);
         let now = this.seconds ();
         let start = now - 86400 * 30; // last 30 days
         let interval = [ start.toString (), undefined ];
@@ -4190,13 +4187,15 @@ var bitlish = {
     parseTrade (trade, market = undefined) {
         let side = (trade['dir'] == 'bid') ? 'buy' : 'sell';
         let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         let timestamp = parseInt (trade['created'] / 1000);
         return {
             'id': undefined,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': undefined,
             'type': undefined,
             'side': side,
@@ -4828,7 +4827,7 @@ var bitmex = {
         await this.loadMarkets ();
         // send JSON key/value pairs, such as {"key": "value"}
         // filter by individual fields and do advanced queries on timestamps
-        let filter = { 'key': 'value' };
+        // let filter = { 'key': 'value' };
         // send a bare series (e.g. XBU) to nearest expiring contract in that series
         // you can also send a timeframe, e.g. XBU:monthly
         // timeframes: daily, weekly, monthly, quarterly, and biquarterly
@@ -4858,12 +4857,14 @@ var bitmex = {
             if ('symbol' in trade)
                 market = this.markets_by_id[trade['symbol']];
         }
+        if (market)
+            symbol = market['symbol'];
         return {
             'id': trade['trdMatchID'],
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': undefined,
             'type': undefined,
             'side': trade['side'].toLowerCase (),
@@ -5098,12 +5099,14 @@ var bitso = {
             if ('book' in trade)
                 market = this.markets_by_id[trade['book']];
         }
+        if (market)
+            symbol = market['symbol'];
         return {
             'id': trade['tid'].toString (),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': undefined,
             'type': undefined,
             'side': trade['maker_side'],
@@ -5853,7 +5856,6 @@ var bittrex = {
         } else if (trade['OrderType'] == 'SELL') {
             side = 'sell';
         }
-        let type = undefined;
         let id = undefined;
         if ('Id' in trade)
             id = trade['Id'].toString ();
@@ -5863,7 +5865,7 @@ var bittrex = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'type': undefined,
+            'type': 'limit',
             'side': side,
             'price': trade['Price'],
             'amount': trade['Quantity'],
@@ -7103,7 +7105,7 @@ var btctrader = {
 
     async fetchTrades (symbol, params = {}) {
         let market = this.market (symbol);
-        let maxCount = 50;
+        // let maxCount = 50;
         let response = await this.publicGetTrades (params);
         return this.parseTrades (response, market);
     },
@@ -8974,11 +8976,8 @@ var coincheck = {
                 url += '?' + this.urlencode (query);
         } else {
             let nonce = this.nonce ().toString ();
-            let length = 0;
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length)
                 body = this.urlencode (this.keysort (query));
-                length = body.length;
-            }
             let auth = nonce + url + (body || '');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -9623,7 +9622,6 @@ var coinmate = {
     },
 
     parseTrade (trade, market = undefined) {
-        let timestamp = trade['timestamp'] * 1000;
         if (!market)
             market = this.markets_by_id[trade['currencyPair']];
         return {
@@ -10035,7 +10033,6 @@ var coinspot = {
         let orderbook = await this.privatePostOrders (this.extend ({
             'cointype': market['id'],
         }, params));
-        let timestamp = this.milliseconds ();
         let result = this.parseOrderBook (orderbook, undefined, 'buyorders', 'sellorders', 'rate', 'amount');
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
@@ -11789,7 +11786,7 @@ var gdax = {
 
     parseTrade (trade, market) {
         let timestamp = this.parse8601 (['time']);
-        let type = undefined;
+        // let type = undefined;
         return {
             'id': trade['trade_id'].toString (),
             'info': trade,
@@ -11846,7 +11843,7 @@ var gdax = {
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let oid = this.nonce ().toString ();
+        // let oid = this.nonce ().toString ();
         let order = {
             'product_id': this.marketId (market),
             'side': side,
@@ -13498,7 +13495,7 @@ var independentreserve = {
                 'nonce=' + nonce.toString (),
             ];
             let keysorted = this.keysort (params);
-            let keys = Object.keys (params);
+            let keys = Object.keys (keysorted);
             for (let i = 0; i < keys.length; i++) {
                 let key = keys[i];
                 auth.push (key + '=' + params[key]);
@@ -15713,7 +15710,6 @@ var mixcoins = {
         let response = await this.publicGetDepth (this.extend ({
             'market': this.marketId (symbol),
         }, params));
-        let orderbook = response['result'];
         return this.parseOrderBook (response['result']);
     },
 
@@ -16334,7 +16330,7 @@ var okcoin = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': 'limit',
+            'type': type,
             'side': side,
             'price': order['price'],
             'average': order['avg_price'],
@@ -17559,7 +17555,7 @@ var southxchange = {
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let currency = balance['Currency'];
-            let uppercase = currency.uppercase;
+            let uppercase = currency.toUpperCase ();
             let free = parseFloat (balance['Available']);
             let used = parseFloat (balance['Unconfirmed']);
             let total = this.sum (free, used);
@@ -17568,7 +17564,7 @@ var southxchange = {
                 'used': used,
                 'total': total,
             };
-            result[currency] = account;
+            result[uppercase] = account;
         }
         return this.parseBalance (result);
     },
@@ -18082,7 +18078,7 @@ var vaultoro = {
                 'used': used,
                 'total': total,
             };
-            result[currency] = account;
+            result[uppercase] = account;
         }
         return this.parseBalance (result);
     },
@@ -18641,7 +18637,6 @@ var xbtce = {
             // xbtce names DASH incorrectly as DSH
             if (uppercase == 'DSH')
                 uppercase = 'DASH';
-            let total = balance['balance'];
             let account = {
                 'free': balance['FreeAmount'],
                 'used': balance['LockedAmount'],
@@ -18770,7 +18765,7 @@ var xbtce = {
             limit = 1000; // default
         let response = await this.privateGetQuotehistorySymbolPeriodicityBarsBid (this.extend ({
             'symbol': market['id'],
-            'periodicity': '5m', // periodicity,
+            'periodicity': periodicity,
             'timestamp': since,
             'count': limit,
         }, params));
@@ -18998,7 +18993,6 @@ var yobit = {
         await this.loadMarkets ();
         if (type == 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
-        let rate = price.toString ();
         let response = await this.tapiPostTrade (this.extend ({
             'pair': this.marketId (symbol),
             'type': side,

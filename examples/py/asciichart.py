@@ -16,7 +16,7 @@ def plot(series, cfg={}):
 
     interval = abs(float(maximum) - float(minimum))
     offset = cfg['offset'] if 'offset' in cfg else 3
-    padding = cfg['padding'] if 'padding' in cfg else '       '
+    # padding = cfg['padding'] if 'padding' in cfg else '       '
     height = cfg['height'] if 'height' in cfg else interval
     ratio = height / interval
     # print(minimum,ratio,type(minimum))

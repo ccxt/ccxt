@@ -212,7 +212,8 @@ def test_exchange(exchange):
         return
 
     dump(green(exchange.id), 'fetching balance...')
-    balance = exchange.fetch_balance()
+    # balance = exchange.fetch_balance()
+    exchange.fetch_balance()
     dump(green(exchange.id), 'fetched balance')
 
     if exchange.hasFetchOrders:

@@ -359,9 +359,7 @@ class cryptocapital (Exchange):
         response = await self.publicGetOrderBook(self.extend({
             'currency': self.market_id(market),
         }, params))
-        timestamp = self.milliseconds()
-        orderbook = response['order-book']
-        return self.parse_order_book(orderbook, None, 'bid', 'ask', 'price', 'order_amount')
+        return self.parse_order_book(response['order-book'], None, 'bid', 'ask', 'price', 'order_amount')
 
     async def fetch_ticker(self, market):
         response = await self.publicGetStats({
@@ -2501,7 +2499,6 @@ class bitfinex2 (bitfinex):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        market = self.market(symbol)
         raise NotSupported(self.id + ' createOrder not implemented yet')
 
     async def cancel_order(self, id):
@@ -3133,7 +3130,7 @@ class bitlish (Exchange):
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
-        market = self.market(symbol)
+        # market = self.market(symbol)
         now = self.seconds()
         start = now - 86400 * 30 # last 30 days
         interval = [str(start), None]
@@ -3152,13 +3149,15 @@ class bitlish (Exchange):
     def parse_trade(self, trade, market=None):
         side = 'buy' if (trade['dir'] == 'bid') else 'sell'
         symbol = None
+        if market:
+            symbol = market['symbol']
         timestamp = int(trade['created'] / 1000)
         return {
             'id': None,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': None,
             'type': None,
             'side': side,
@@ -3756,7 +3755,7 @@ class bitmex (Exchange):
         await self.load_markets()
         # send JSON key/value pairs, such as {"key": "value"}
         # filter by individual fields and do advanced queries on timestamps
-        filter = {'key': 'value'}
+        # filter = {'key': 'value'}
         # send a bare series(e.g. XBU) to nearest expiring contract in that series
         # you can also send a timeframe, e.g. XBU:monthly
         # timeframes: daily, weekly, monthly, quarterly, and biquarterly
@@ -3784,12 +3783,14 @@ class bitmex (Exchange):
         if not market:
             if 'symbol' in trade:
                 market = self.markets_by_id[trade['symbol']]
+        if market:
+            symbol = market['symbol']
         return {
             'id': trade['trdMatchID'],
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': None,
             'type': None,
             'side': trade['side'].lower(),
@@ -4013,12 +4014,14 @@ class bitso (Exchange):
         if not market:
             if 'book' in trade:
                 market = self.markets_by_id[trade['book']]
+        if market:
+            symbol = market['symbol']
         return {
             'id': str(trade['tid']),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': None,
             'type': None,
             'side': trade['maker_side'],
@@ -4730,7 +4733,6 @@ class bittrex (Exchange):
             side = 'buy'
         elif trade['OrderType'] == 'SELL':
             side = 'sell'
-        type = None
         id = None
         if 'Id' in trade:
             id = str(trade['Id'])
@@ -4740,7 +4742,7 @@ class bittrex (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
-            'type': None,
+            'type': 'limit',
             'side': side,
             'price': trade['Price'],
             'amount': trade['Quantity'],
@@ -5918,7 +5920,7 @@ class btctrader (Exchange):
 
     async def fetch_trades(self, symbol, params={}):
         market = self.market(symbol)
-        maxCount = 50
+        # maxCount = 50
         response = await self.publicGetTrades(params)
         return self.parse_trades(response, market)
 
@@ -7712,10 +7714,8 @@ class coincheck (Exchange):
                 url += '?' + self.urlencode(query)
         else:
             nonce = str(self.nonce())
-            length = 0
             if query:
                 body = self.urlencode(self.keysort(query))
-                length = len(body)
             auth = nonce + url + (body or '')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -8334,7 +8334,6 @@ class coinmate (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        timestamp = trade['timestamp'] * 1000
         if not market:
             market = self.markets_by_id[trade['currencyPair']]
         return {
@@ -8734,7 +8733,6 @@ class coinspot (Exchange):
         orderbook = await self.privatePostOrders(self.extend({
             'cointype': market['id'],
         }, params))
-        timestamp = self.milliseconds()
         result = self.parse_order_book(orderbook, None, 'buyorders', 'sellorders', 'rate', 'amount')
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
@@ -10427,7 +10425,7 @@ class gdax (Exchange):
 
     def parse_trade(self, trade, market):
         timestamp = self.parse8601(['time'])
-        type = None
+        # type = None
         return {
             'id': str(trade['trade_id']),
             'info': trade,
@@ -10478,7 +10476,7 @@ class gdax (Exchange):
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
         await self.load_markets()
-        oid = str(self.nonce())
+        # oid = str(self.nonce())
         order = {
             'product_id': self.market_id(market),
             'side': side,
@@ -12059,7 +12057,7 @@ class independentreserve (Exchange):
                 'nonce=' + str(nonce),
             ]
             keysorted = self.keysort(params)
-            keys = list(params.keys())
+            keys = list(keysorted.keys())
             for i in range(0, len(keys)):
                 key = keys[i]
                 auth.append(key + '=' + params[key])
@@ -14161,7 +14159,6 @@ class mixcoins (Exchange):
         response = await self.publicGetDepth(self.extend({
             'market': self.market_id(symbol),
         }, params))
-        orderbook = response['result']
         return self.parse_order_book(response['result'])
 
     async def fetch_ticker(self, symbol):
@@ -14738,7 +14735,7 @@ class okcoin (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'type': 'limit',
+            'type': type,
             'side': side,
             'price': order['price'],
             'average': order['avg_price'],
@@ -15919,7 +15916,7 @@ class southxchange (Exchange):
         for b in range(0, len(balances)):
             balance = balances[b]
             currency = balance['Currency']
-            uppercase = currency.uppercase
+            uppercase = currency.upper()
             free = float(balance['Available'])
             used = float(balance['Unconfirmed'])
             total = self.sum(free, used)
@@ -15928,7 +15925,7 @@ class southxchange (Exchange):
                 'used': used,
                 'total': total,
             }
-            result[currency] = account
+            result[uppercase] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
@@ -16435,7 +16432,7 @@ class vaultoro (Exchange):
                 'used': used,
                 'total': total,
             }
-            result[currency] = account
+            result[uppercase] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):
@@ -16984,7 +16981,6 @@ class xbtce (Exchange):
             # xbtce names DASH incorrectly as DSH
             if uppercase == 'DSH':
                 uppercase = 'DASH'
-            total = balance['balance']
             account = {
                 'free': balance['FreeAmount'],
                 'used': balance['LockedAmount'],
@@ -17101,7 +17097,7 @@ class xbtce (Exchange):
             limit = 1000 # default
         response = await self.privateGetQuotehistorySymbolPeriodicityBarsBid(self.extend({
             'symbol': market['id'],
-            'periodicity': '5m', # periodicity,
+            'periodicity': periodicity,
             'timestamp': since,
             'count': limit,
         }, params))
@@ -17317,7 +17313,6 @@ class yobit (Exchange):
         await self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
-        rate = str(price)
         response = await self.tapiPostTrade(self.extend({
             'pair': self.market_id(symbol),
             'type': side,

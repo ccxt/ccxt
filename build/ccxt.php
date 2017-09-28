@@ -486,6 +486,11 @@ class Exchange {
         $this->hasFetchOpenOrders   = false;
         $this->hasFetchClosedOrders = false;
         $this->hasFetchMyTrades     = false;
+        $this->lastRestRequestTimestamp = 0;
+        $this->lastRestPollTimestamp    = 0;
+        $this->restRequestQueue         = null;
+        $this->restPollerLoopIsRunning  = false;
+        $this->enableRateLimit          = false;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -574,7 +579,20 @@ class Exchange {
         )));
     }
 
+    // this method is experimental
+    public function throttle () {
+        $now = $this->milliseconds ();
+        $elapsed = $now - $this->lastRestRequestTimestamp;
+        if ($elapsed < $this->rateLimit) {
+            $delay = $this->rateLimit - $elapsed;
+            usleep (delay * 1000.0)
+        }
+    }
+
     public function fetch ($url, $method = 'GET', $headers = null, $body = null) {
+
+        if ($this->enableRateLimit)
+            $this->throttle ();
 
         if (strlen ($this->proxy))
             $headers['Origin'] = '*';
@@ -1463,9 +1481,7 @@ class cryptocapital extends Exchange {
         $response = $this->publicGetOrderBook (array_merge (array (
             'currency' => $this->market_id ($market),
         ), $params));
-        $timestamp = $this->milliseconds ();
-        $orderbook = $response['order-book'];
-        return $this->parse_order_book ($orderbook, null, 'bid', 'ask', 'price', 'order_amount');
+        return $this->parse_order_book ($response['order-book'], null, 'bid', 'ask', 'price', 'order_amount');
     }
 
     public function fetch_ticker ($market) {
@@ -3749,7 +3765,6 @@ class bitfinex2 extends bitfinex {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $market = $this->market ($symbol);
         throw new NotSupported ($this->id . ' createOrder not implemented yet');
     }
 
@@ -4428,7 +4443,7 @@ class bitlish extends Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets ();
-        $market = $this->market ($symbol);
+        // $market = $this->market ($symbol);
         $now = $this->seconds ();
         $start = $now - 86400 * 30; // last 30 days
         $interval = array ((string) $start, null);
@@ -4449,13 +4464,15 @@ class bitlish extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $side = ($trade['dir'] == 'bid') ? 'buy' : 'sell';
         $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
         $timestamp = intval ($trade['created'] / 1000);
         return array (
             'id' => null,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'order' => null,
             'type' => null,
             'side' => $side,
@@ -5095,7 +5112,7 @@ class bitmex extends Exchange {
         $this->load_markets ();
         // send JSON key/value pairs, such as array ("key" => "value")
         // $filter by individual fields and do advanced queries on timestamps
-        $filter = array ( 'key' => 'value' );
+        // $filter = array ( 'key' => 'value' );
         // send a bare series (e.g. XBU) to nearest expiring contract in that series
         // you can also send a $timeframe, e.g. XBU:monthly
         // timeframes => daily, weekly, monthly, quarterly, and biquarterly
@@ -5125,12 +5142,14 @@ class bitmex extends Exchange {
             if (array_key_exists ('symbol', $trade))
                 $market = $this->markets_by_id[$trade['symbol']];
         }
+        if ($market)
+            $symbol = $market['symbol'];
         return array (
             'id' => $trade['trdMatchID'],
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'order' => null,
             'type' => null,
             'side' => strtolower ($trade['side']),
@@ -5369,12 +5388,14 @@ class bitso extends Exchange {
             if (array_key_exists ('book', $trade))
                 $market = $this->markets_by_id[$trade['book']];
         }
+        if ($market)
+            $symbol = $market['symbol'];
         return array (
             'id' => (string) $trade['tid'],
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'order' => null,
             'type' => null,
             'side' => $trade['maker_side'],
@@ -6136,7 +6157,6 @@ class bittrex extends Exchange {
         } else if ($trade['OrderType'] == 'SELL') {
             $side = 'sell';
         }
-        $type = null;
         $id = null;
         if (array_key_exists ('Id', $trade))
             $id = (string) $trade['Id'];
@@ -6146,7 +6166,7 @@ class bittrex extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
-            'type' => null,
+            'type' => 'limit',
             'side' => $side,
             'price' => $trade['Price'],
             'amount' => $trade['Quantity'],
@@ -7410,7 +7430,7 @@ class btctrader extends Exchange {
 
     public function fetch_trades ($symbol, $params = array ()) {
         $market = $this->market ($symbol);
-        $maxCount = 50;
+        // $maxCount = 50;
         $response = $this->publicGetTrades ($params);
         return $this->parse_trades ($response, $market);
     }
@@ -9328,11 +9348,8 @@ class coincheck extends Exchange {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $nonce = (string) $this->nonce ();
-            $length = 0;
-            if ($query) {
+            if ($query)
                 $body = $this->urlencode ($this->keysort ($query));
-                $length = count ($body);
-            }
             $auth = $nonce . $url . ($body || '');
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
@@ -9993,7 +10010,6 @@ class coinmate extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $trade['timestamp'] * 1000;
         if (!$market)
             $market = $this->markets_by_id[$trade['currencyPair']];
         return array (
@@ -10413,7 +10429,6 @@ class coinspot extends Exchange {
         $orderbook = $this->privatePostOrders (array_merge (array (
             'cointype' => $market['id'],
         ), $params));
-        $timestamp = $this->milliseconds ();
         $result = $this->parse_order_book ($orderbook, null, 'buyorders', 'sellorders', 'rate', 'amount');
         $result['bids'] = $this->sort_by ($result['bids'], 0, true);
         $result['asks'] = $this->sort_by ($result['asks'], 0);
@@ -12211,7 +12226,7 @@ class gdax extends Exchange {
 
     public function parse_trade ($trade, $market) {
         $timestamp = $this->parse8601 (['time']);
-        $type = null;
+        // $type = null;
         return array (
             'id' => (string) $trade['trade_id'],
             'info' => $trade,
@@ -12268,7 +12283,7 @@ class gdax extends Exchange {
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
-        $oid = (string) $this->nonce ();
+        // $oid = (string) $this->nonce ();
         $order = array (
             'product_id' => $this->market_id ($market),
             'side' => $side,
@@ -13952,7 +13967,7 @@ class independentreserve extends Exchange {
                 'nonce=' . (string) $nonce,
            );
             $keysorted = $this->keysort ($params);
-            $keys = array_keys ($params);
+            $keys = array_keys ($keysorted);
             for ($i = 0; $i < count ($keys); $i++) {
                 $key = $keys[$i];
                 $auth[] = $key . '=' . $params[$key];
@@ -16203,7 +16218,6 @@ class mixcoins extends Exchange {
         $response = $this->publicGetDepth (array_merge (array (
             'market' => $this->market_id ($symbol),
         ), $params));
-        $orderbook = $response['result'];
         return $this->parse_order_book ($response['result']);
     }
 
@@ -16824,7 +16838,7 @@ class okcoin extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'type' => 'limit',
+            'type' => $type,
             'side' => $side,
             'price' => $order['price'],
             'average' => $order['avg_price'],
@@ -18084,7 +18098,7 @@ class southxchange extends Exchange {
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['Currency'];
-            $uppercase = $currency.uppercase;
+            $uppercase = strtoupper ($currency);
             $free = floatval ($balance['Available']);
             $used = floatval ($balance['Unconfirmed']);
             $total = $this->sum ($free, $used);
@@ -18093,7 +18107,7 @@ class southxchange extends Exchange {
                 'used' => $used,
                 'total' => $total,
             );
-            $result[$currency] = $account;
+            $result[$uppercase] = $account;
         }
         return $this->parse_balance ($result);
     }
@@ -18630,7 +18644,7 @@ class vaultoro extends Exchange {
                 'used' => $used,
                 'total' => $total,
             );
-            $result[$currency] = $account;
+            $result[$uppercase] = $account;
         }
         return $this->parse_balance ($result);
     }
@@ -19205,7 +19219,6 @@ class xbtce extends Exchange {
             // xbtce names DASH incorrectly as DSH
             if ($uppercase == 'DSH')
                 $uppercase = 'DASH';
-            $total = $balance['balance'];
             $account = array (
                 'free' => $balance['FreeAmount'],
                 'used' => $balance['LockedAmount'],
@@ -19334,7 +19347,7 @@ class xbtce extends Exchange {
             $limit = 1000; // default
         $response = $this->privateGetQuotehistorySymbolPeriodicityBarsBid (array_merge (array (
             'symbol' => $market['id'],
-            'periodicity' => '5m', // $periodicity,
+            'periodicity' => $periodicity,
             'timestamp' => $since,
             'count' => $limit,
         ), $params));
@@ -19566,7 +19579,6 @@ class yobit extends Exchange {
         $this->load_markets ();
         if ($type == 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
-        $rate = (string) $price;
         $response = $this->tapiPostTrade (array_merge (array (
             'pair' => $this->market_id ($symbol),
             'type' => $side,

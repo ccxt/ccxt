@@ -214,7 +214,8 @@ async def test_exchange(exchange):
         return
 
     dump(green(exchange.id), 'fetching balance...')
-    balance = await exchange.fetch_balance()
+    # balance = await exchange.fetch_balance()
+    await exchange.fetch_balance()
     dump(green(exchange.id), 'fetched balance')
 
     if exchange.hasFetchOrders:
