@@ -30,6 +30,7 @@ __all__ = [
     'CCXTError',
     'ExchangeError',
     'AuthenticationError',
+    'InsufficientFunds',
     'NetworkError',
     'DDoSProtection',
     'RequestTimeout',

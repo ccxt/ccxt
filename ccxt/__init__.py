@@ -36,15 +36,15 @@ from ccxt import exchange
 
 # -----------------------------------------------------------------------------
 
-# from ccxt.errors import CCXTError
-# from ccxt.errors import ExchangeError
-# from ccxt.errors import NotSupported
-# from ccxt.errors import AuthenticationError
-# from ccxt.errors import InsufficientFunds
-# from ccxt.errors import NetworkError
-# from ccxt.errors import DDoSProtection
-# from ccxt.errors import RequestTimeout
-# from ccxt.errors import ExchangeNotAvailable
+from ccxt.errors import CCXTError  # noqa: F401
+from ccxt.errors import ExchangeError  # noqa: F401
+from ccxt.errors import NotSupported  # noqa: F401
+from ccxt.errors import AuthenticationError  # noqa: F401
+from ccxt.errors import InsufficientFunds  # noqa: F401
+from ccxt.errors import NetworkError  # noqa: F401
+from ccxt.errors import DDoSProtection  # noqa: F401
+from ccxt.errors import RequestTimeout  # noqa: F401
+from ccxt.errors import ExchangeNotAvailable  # noqa: F401
 
 # -----------------------------------------------------------------------------
 
