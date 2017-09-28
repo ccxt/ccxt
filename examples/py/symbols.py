@@ -27,6 +27,7 @@ def dump(*args):
 def print_supported_exchanges():
     dump('Supported exchanges:', green(', '.join(ccxt.exchanges)))
 
+
 try:
 
     id = sys.argv[1]  # get exchange id from command line arguments

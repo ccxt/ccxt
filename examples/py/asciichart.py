@@ -56,6 +56,7 @@ def plot(series, cfg={}):
 
     return '\n'.join([''.join(row) for row in result])
 
+
 if __name__ == '__main__':
     width = 180
     series = [15 * cos(i * ((pi * 4) / width)) for i in range(width)]

@@ -43,6 +43,7 @@ def print_ticker(exchange, symbol):
         'ask: ' + str(ticker['ask']),
         'volume: ' + str(ticker['quoteVolume']))
 
+
 try:
 
     id = sys.argv[1]  # get exchange id from command line arguments

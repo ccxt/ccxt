@@ -58,5 +58,6 @@ class TestRequestHandler(SimpleHTTPRequestHandler):
         # self.send_error(504, 'Gateway Timeout')
         # self.send_error(505, 'HTTP Version Not Supported')
 
+
 if __name__ == '__main__':
     test(TestRequestHandler, HTTPServer)

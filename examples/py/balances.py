@@ -19,6 +19,7 @@ def underline(s): return style(s, '\033[4m')
 def dump(*args):
     print(' '.join([str(arg) for arg in args]))
 
+
 # instantiate exchanges
 
 gdax = ccxt.gdax({

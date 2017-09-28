@@ -25,6 +25,7 @@ def print_exchanges():
 def print_usage():
     dump("Usage: python " + sys.argv[0], green('id1'), yellow('id2'), blue('id3'), '...')
 
+
 proxies = [
     '',  # no proxy by default
     'https://crossorigin.me/',

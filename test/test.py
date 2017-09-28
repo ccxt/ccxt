@@ -25,6 +25,7 @@ from traceback import format_tb
 class Argv(object):
     pass
 
+
 argv = Argv()
 
 parser = argparse.ArgumentParser()
@@ -63,6 +64,7 @@ def dump_error(*args):
 def handle_all_unhandled_exceptions(type, value, traceback):
     dump_error(yellow(str(type) + ' ' + value + '\n\n' + '\n'.join(format_tb(traceback))))
     _exit(1) # unrecoverable crash
+
 
 sys.excepthook = handle_all_unhandled_exceptions
 
@@ -260,6 +262,7 @@ def try_all_proxies(exchange, proxies):
         except ccxt.ExchangeError as e:
             dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
 
+
 # ------------------------------------------------------------------------------
 
 proxies = [
@@ -318,6 +321,7 @@ def main():
                     dump(green(exchange.id), 'skipped')
                 else:
                     try_all_proxies(exchange, proxies)
+
 
 # ------------------------------------------------------------------------------
 

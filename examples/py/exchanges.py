@@ -16,14 +16,15 @@ def pink(s): return style(s, '\033[95m')
 def bold(s): return style(s, '\033[1m')
 def underline(s): return style(s, '\033[4m')
 
+def log(*args):
+    print(' '.join([str(arg) for arg in args]))
+
+
 exchanges = {}
 
 for id in ccxt.exchanges:
     exchange = getattr(ccxt, id)
     exchanges[id] = exchange()
-
-def log(*args):
-    print(' '.join([str(arg) for arg in args]))
 
 log('The ccxt library supports', green(str(len(ccxt.exchanges))), 'exchanges:')
 
