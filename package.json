@@ -47,7 +47,7 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/kroitor/ccxt/issues"
+    "url": "https://github.com/ccxt-dev/ccxt/issues"
   },
   "runkitExampleFilename": "example.js",
   "homepage": "https://ccxt.trade",
