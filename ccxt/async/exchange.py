@@ -24,7 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import aiohttp
 import asyncio
@@ -42,11 +42,11 @@ import ssl
 import sys
 import time
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from ccxt.version import __version__
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from ccxt.errors import CCXTError
 from ccxt.errors import ExchangeError
@@ -58,18 +58,18 @@ from ccxt.errors import DDoSProtection
 from ccxt.errors import RequestTimeout
 from ccxt.errors import ExchangeNotAvailable
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from ccxt.exchange import Exchange as BaseExchange
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 __all__ = [
     'BaseExchange',
     'Exchange',
 ]
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 class Exchange (BaseExchange):
 
@@ -81,6 +81,17 @@ class Exchange (BaseExchange):
     def __del__(self):
         if self.aiohttp_session:
             self.aiohttp_session.close()
+
+    # this method is experimental
+    async def throttle(self):
+        now = self.milliseconds()
+        elapsed = now - self.lastRestRequestTimestamp
+        if elapsed < self.rateLimit:
+            delay = self.rateLimit - elapsed
+            await asyncio.sleep(delay / 1000.0)
+
+    # def run_rest_poller_loop
+    #     await asyncio.sleep (exchange.rateLimit / 1000.0)
 
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""

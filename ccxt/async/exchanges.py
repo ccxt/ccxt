@@ -24,7 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # Python 2 & 3
 import base64
@@ -38,7 +38,7 @@ import sys
 import time
 import decimal
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from ccxt.errors import CCXTError
 from ccxt.errors import ExchangeError
@@ -50,12 +50,12 @@ from ccxt.errors import DDoSProtection
 from ccxt.errors import RequestTimeout
 from ccxt.errors import ExchangeNotAvailable
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from ccxt.async.exchange import Exchange
 from ccxt.exchanges import exchanges
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 __all__ = exchanges + [
     'exchanges',

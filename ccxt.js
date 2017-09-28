@@ -452,34 +452,39 @@ const Exchange = function (config) {
       , lastRestPollTimestamp = 0
       , restRequestQueue = []
       , restPollerLoopIsRunning = false
+
+      , throttle = async () => {
+
+            let elapsed = this.milliseconds () - lastRestPollTimestamp
+            let delay = this.rateLimit - elapsed
+
+            if (delay > 0) {
+                await sleep (delay)
+            }
+        }
+
       , runRestPollerLoop = async () => {
 
-        if (!restPollerLoopIsRunning) {
+            if (!restPollerLoopIsRunning) {
 
-            restPollerLoopIsRunning = true
-            lastRestPollTimestamp = Math.max (lastRestPollTimestamp, lastRestRequestTimestamp)
+                restPollerLoopIsRunning = true
+                lastRestPollTimestamp = Math.max (lastRestPollTimestamp, lastRestRequestTimestamp)
 
-            while (restRequestQueue.length > 0) {
+                while (restRequestQueue.length > 0) {
 
-                // rate limiter
+                    await throttle ()
 
-                let elapsed = this.milliseconds () - lastRestPollTimestamp
-                let delay = this.rateLimit - elapsed
-                if (delay > 0) {
-                    await sleep (delay)
+                    let { args, resolve, reject } = restRequestQueue.shift ()
+                    lastRestPollTimestamp = this.milliseconds ()
+
+                    this.executeRestRequest (...args)
+                        .then (resolve)
+                        .catch (reject)
                 }
 
-                let { args, resolve, reject } = restRequestQueue.shift ()
-                lastRestPollTimestamp = this.milliseconds ()
-
-                this.executeRestRequest (...args)
-                     .then (resolve)
-                     .catch (reject)
+                restPollerLoopIsRunning = false
             }
-
-            restPollerLoopIsRunning = false
         }
-    }
 
     const issueRestRequest = (...args) => {
 
