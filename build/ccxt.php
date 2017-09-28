@@ -585,7 +585,7 @@ class Exchange {
         $elapsed = $now - $this->lastRestRequestTimestamp;
         if ($elapsed < $this->rateLimit) {
             $delay = $this->rateLimit - $elapsed;
-            usleep (delay * 1000.0)
+            usleep (delay * 1000.0);
         }
     }
 
