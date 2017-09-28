@@ -239,6 +239,20 @@ const safeFloat = (object, key, defaultValue = undefined) => {
 
 const ordered = x => x // a stub to keep assoc keys in order, in JS it does nothing, it's mostly for Python
 
+const aggregate = function (bidasks) {
+
+    let result = {}
+
+    bidasks.forEach (([ price, volume ]) => {
+        result[price] = (result[price] || 0) + volume
+    })
+
+    return Object.keys (result).map (price => [
+        parseFloat (price),
+        parseFloat (result[price]),
+    ])
+}
+
 //-----------------------------------------------------------------------------
 // a cross-platform Fetch API
 
@@ -369,6 +383,7 @@ const Exchange = function (config) {
     this.json = JSON.stringify
     this.sum = sum
     this.ordered = ordered
+    this.aggregate = aggregate
 
     this.encode = string => string
     this.decode = string => string
@@ -19577,6 +19592,8 @@ const ccxt = Object.assign (defineAllExchanges (exchanges), {
     sum,
     decimal,
     safeFloat,
+    ordered,
+    aggregate,
 
     // underscore aliases
 

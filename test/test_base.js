@@ -15,8 +15,9 @@ describe ('ccxt base code', () => {
             const before = Date.now ()
             await ccxt.sleep (10)
             const now = Date.now ()
-            assert ((now - before) >= 10) // not too fast
-            assert ((now - before) < 20)  // but not too slow...
+            const elapsed = now - before
+            assert (elapsed >= 9) // not too fast
+            assert (elapsed < 20) // but not too slow either...
         }
     })
 
@@ -55,7 +56,7 @@ describe ('ccxt base code', () => {
         })
     })
 
-    it.skip ('rate limiting works', async () => {
+    it ('rate limiting works', async () => {
 
         const calls = []
         const rateLimit = 100
@@ -81,10 +82,38 @@ describe ('ccxt base code', () => {
         assert.deepEqual (calls.map (x => x.path), ['foo', 'bar', 'baz', 'qux', 'zap', 'lol'])
 
         calls.reduce ((prevTime, call) => {
-            log ('delta T:', call.when - prevTime)
-            assert ((call.when - prevTime) >= rateLimit)
+            // log ('delta T:', call.when - prevTime)
+            assert ((call.when - prevTime) >= (rateLimit - 1))
             return call.when
         }, 0)
+    })
+
+    it ('aggregate() works', () => {
+
+        const bids = [
+            [ 789.1, 123.0 ],
+            [ 123.0, 456.0 ],
+            [ 789.0, 123.0 ],
+            [ 789.10, 123.0 ],
+        ]
+
+        const asks = [
+            [ 123.0, 456.0 ],
+            [ 789.0, 123.0 ],
+            [ 789.10, 123.0 ],
+        ]
+
+        assert.deepEqual (ccxt.aggregate (bids.sort ()), [
+            [ 123.0, 456.0 ],
+            [ 789.1, 246.0 ],
+            [ 789.0, 123.0 ],
+        ].sort ())
+
+        assert.deepEqual (ccxt.aggregate (asks.sort ()), [
+            [ 123.0, 456.0 ],
+            [ 789.0, 123.0 ],
+            [ 789.10, 123.0 ],
+        ].sort ())
     })
 
     it ('groupBy() works', () => {

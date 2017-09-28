@@ -339,6 +339,25 @@ class Exchange {
         return $array;
     }
 
+    public function aggregate ($bidasks) {
+
+        $result = array ();
+
+        foreach ($bidasks as $bidask) {
+            $price = (string) $bidask[0];
+            $result[$price] = array_key_exists ($price, $result) ? $result[$price] : 0;
+            $result[$price] += $bidask[1];
+        }
+
+        $output = array ();
+
+        foreach ($result as $key => $value) {
+            $output[] = array (floatval ($key), floatval ($value));
+        }
+
+        return $output;
+    }
+
     public static function urlencodeBase64 ($string) {
         return preg_replace (array ('#[=]+$#u', '#\+#u', '#\\/#'), array ('', '-', '_'), base64_encode ($string));
     }

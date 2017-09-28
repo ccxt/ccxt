@@ -118,15 +118,30 @@ let testOrderBook = async (exchange, symbol) => {
 
     expect (orderbook).to.have.all.keys (format)
 
-    log (symbol.green,
-        orderbook['datetime'],
-        'bid: '       + ((orderbook.bids.length > 0) ? human_value (orderbook.bids[0][0]) : 'N/A'),
-        'bidVolume: ' + ((orderbook.bids.length > 0) ? human_value (orderbook.bids[0][1]) : 'N/A'),
-        'ask: '       + ((orderbook.asks.length > 0) ? human_value (orderbook.asks[0][0]) : 'N/A'),
-        'askVolume: ' + ((orderbook.asks.length > 0) ? human_value (orderbook.asks[0][1]) : 'N/A'))
-
     const bids = orderbook.bids
     const asks = orderbook.asks
+
+    const [ uniqueBidPrices, uniqueAskPrices ] = [ 'bids', 'asks' ].map (side =>
+        orderbook[side]
+            .map (bidask => bidask[0])
+            .filter ((item, i, array) => array.indexOf (item) === i))
+
+    log (bids.length, uniqueBidPrices.length)
+    log (asks.length, uniqueAskPrices.length)
+
+    console.log (orderbook['bids'])
+    console.log (orderbook['asks'])
+
+    assert (bids.length == uniqueBidPrices.length)
+    assert (asks.length == uniqueAskPrices.length)
+
+    log (symbol.green,
+        orderbook['datetime'],
+        'bid: '       + ((bids.length > 0) ? human_value (bids[0][0]) : 'N/A'),
+        'bidVolume: ' + ((bids.length > 0) ? human_value (bids[0][1]) : 'N/A'),
+        'ask: '       + ((asks.length > 0) ? human_value (asks[0][0]) : 'N/A'),
+        'askVolume: ' + ((asks.length > 0) ? human_value (asks[0][1]) : 'N/A'))
+
 
     if (bids.length > 1)
         assert (bids[0][0] >= bids[bids.length - 1][0])
