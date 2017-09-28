@@ -438,9 +438,11 @@ class Exchange(object):
         for arg in args:
             if type(arg) is list:
                 for key in arg:
-                    if key in result: del result[key]
+                    if key in result:
+                        del result[key]
             else:
-                if arg in result: del result[arg]
+                if arg in result:
+                    del result[arg]
         return result
 
     @staticmethod
