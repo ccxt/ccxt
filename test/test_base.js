@@ -11,13 +11,17 @@ describe ('ccxt base code', () => {
 
     it ('sleep() is robust', async () => {
 
+        const delay = 10
+
         for (let i = 0; i < 30; i++) {
+
             const before = Date.now ()
-            await ccxt.sleep (10)
+            await ccxt.sleep (delay)
             const now = Date.now ()
+
             const elapsed = now - before
-            assert (elapsed >= 9) // not too fast
-            assert (elapsed < 20) // but not too slow either...
+            assert (elapsed >= (delay - 1)) // not too fast
+            assert (elapsed < (delay * 2)) // but not too slow either...
         }
     })
 
