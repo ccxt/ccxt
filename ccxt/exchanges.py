@@ -14074,8 +14074,8 @@ class mercado (Exchange):
             },
             'api': {
                 'public': {
-                    'get': [ # last slash critical
-                        'orderbook/',
+                    'get': [
+                        'orderbook/',  # last slash critical
                         'orderbook_litecoin/',
                         'ticker/',
                         'ticker_litecoin/',

@@ -17,7 +17,7 @@ async def test(exchange):
 bitfinex = ccxt.bitfinex({
     'apiKey': "4FlEDtxDl35gdEiobnfZ72vJeZteE4Bb7JdvqzjIjHq",
     'secret': "D4DXM8DZdHuAq9YptUsb42aWT1XBnGlIJgLi8a7tzFH",
-    'verbose': True, # switch it to False if you don't want the HTTP log
+    'verbose': True,  # switch it to False if you don't want the HTTP log
 })
 
 [asyncio.ensure_future(test(exchange)) for exchange in [bitfinex]]

@@ -15,7 +15,7 @@ sys.path.append(root)
 
 # ------------------------------------------------------------------------------
 
-import ccxt # noqa: E402
+import ccxt  # noqa: E402
 
 # ------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ exchanges = {}
 
 
 def style(s, style):
-    return str(s) # style + str (s) + '\033[0m'
+    return str(s)  # style + str (s) + '\033[0m'
 
 
 def green(s):
@@ -88,7 +88,7 @@ def dump_error(*args):
 
 def handle_all_unhandled_exceptions(type, value, traceback):
     dump_error(yellow(str(type) + ' ' + value + '\n\n' + '\n'.join(format_tb(traceback))))
-    _exit(1) # unrecoverable crash
+    _exit(1)  # unrecoverable crash
 
 
 sys.excepthook = handle_all_unhandled_exceptions

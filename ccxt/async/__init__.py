@@ -49,7 +49,7 @@ from ccxt.errors import ExchangeNotAvailable
 # -----------------------------------------------------------------------------
 
 from ccxt.async.exchange import *  # noqa: F403
-from ccxt.async.exchanges import * # noqa: F403
+from ccxt.async.exchanges import *  # noqa: F403
 
 # -----------------------------------------------------------------------------
 

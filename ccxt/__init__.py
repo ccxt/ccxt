@@ -47,8 +47,8 @@ from ccxt.errors import ExchangeNotAvailable
 
 # -----------------------------------------------------------------------------
 
-from ccxt.exchange import * # noqa: F403
-from ccxt.exchanges import * # noqa: F403
+from ccxt.exchange import *  # noqa: F403
+from ccxt.exchanges import *  # noqa: F403
 
 # -----------------------------------------------------------------------------
 

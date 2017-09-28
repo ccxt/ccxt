@@ -17,12 +17,12 @@ async def test(exchange):
 kraken = ccxt.kraken({
     'apiKey': "hEvQNMDIeoCJbr7W/ZBb5CGOrx3G0lWF5B3zqa1JBxdZlEaL8EK+D0Mw",
     'secret': "JaE9wI6Nwgh5oRxiHcVxurwzwBxwc05W/qv/k1srGg4s3EYuXPpNkLLM5NYbbWpM8rCyijIeDavRuqWbU0ZV9A==",
-    'verbose': True, # switch it to False if you don't want the HTTP log
+    'verbose': True,  # switch it to False if you don't want the HTTP log
 })
 bitfinex = ccxt.bitfinex({
     'apiKey': "4FlEDtxDl35gdEiobnfZ72vJeZteE4Bb7JdvqzjIjHq",
     'secret': "D4DXM8DZdHuAq9YptUsb42aWT1XBnGlIJgLi8a7tzFH",
-    'verbose': True, # switch it to False if you don't want the HTTP log
+    'verbose': True,  # switch it to False if you don't want the HTTP log
 })
 
 [asyncio.ensure_future(test(exchange)) for exchange in [kraken, bitfinex]]

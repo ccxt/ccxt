@@ -15960,8 +15960,8 @@ class mercado extends Exchange {
             ),
             'api' => array (
                 'public' => array (
-                    'get' => array ( // last slash critical
-                        'orderbook/',
+                    'get' => array (
+                        'orderbook/', // last slash critical
                         'orderbook_litecoin/',
                         'ticker/',
                         'ticker_litecoin/',

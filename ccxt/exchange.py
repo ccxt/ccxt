@@ -71,20 +71,20 @@ import decimal
 # -----------------------------------------------------------------------------
 
 try:
-    import urllib.parse as _urlencode # Python 3
+    import urllib.parse as _urlencode  # Python 3
     import urllib.request as _urllib
     import http.client as httplib
 except ImportError:
-    import urllib as _urlencode       # Python 2
+    import urllib as _urlencode        # Python 2
     import urllib2 as _urllib
     import httplib
 
 # -----------------------------------------------------------------------------
 
 try:
-    basestring # Python 3
+    basestring  # Python 3
 except NameError:
-    basestring = str # Python 2
+    basestring = str  # Python 2
 
 # -----------------------------------------------------------------------------
 
@@ -94,8 +94,8 @@ class Exchange(object):
     id = None
     version = None
     enableRateLimit = False
-    rateLimit = 2000 # milliseconds = seconds * 1000
-    timeout = 10000 # milliseconds = seconds * 1000
+    rateLimit = 2000  # milliseconds = seconds * 1000
+    timeout = 10000  # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_session = None
     userAgent = False
@@ -241,7 +241,7 @@ class Exchange(object):
         request.get_method = lambda: method
         response = None
         text = None
-        try: # send request and load response
+        try:  # send request and load response
             handler = _urllib.HTTPHandler if url.startswith('http://') else _urllib.HTTPSHandler
             opener = _urllib.build_opener(handler)
             response = opener.open(request, timeout=int(self.timeout / 1000))
@@ -336,7 +336,7 @@ class Exchange(object):
         return default_value
 
     @staticmethod
-    def capitalize(string): # first character only, rest characters unchanged
+    def capitalize(string):  # first character only, rest characters unchanged
         if len(string) > 1:
             return "%s%s" % (string[0].upper(), string[1:])
         return string.upper()
