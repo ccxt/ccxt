@@ -245,7 +245,7 @@ while (exchanges = regex.exec (contents)) {
             [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs($1)' ],
             [ /Math\.round\s*\(([^\)]+)\)/g, 'int(round($1))' ],
             [ /(\([^\)]+\)|[^\s]+)\s*\?\s*(\([^\)]+\)|[^\s]+)\s*\:\s*(\([^\)]+\)|[^\s]+)/g, '$2 if $1 else $3'],
-            [/ \/\//g, ' #' ],
+            [/ \/\//g, '  #' ],
             [ /\.indexOf/g, '.find'],
             [ /\strue/g, ' True'],
             [ /\sfalse/g, ' False'],
