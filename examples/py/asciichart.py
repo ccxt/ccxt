@@ -4,7 +4,7 @@
 # https://github.com/kroitor/asciichart
 
 from math import cos
-from math import sin
+# from math import sin
 from math import pi
 from math import floor
 from math import ceil

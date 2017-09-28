@@ -28,10 +28,12 @@ SOFTWARE.
 
 # from ccxt.version import __version__
 
+from ccxt import version
+
 # -----------------------------------------------------------------------------
 
 import ccxt.errors as errors
-import ccxt.async.exchange
+# import ccxt.async.exchange
 # import ccxt.async.exchanges
 
 # -----------------------------------------------------------------------------
@@ -54,5 +56,6 @@ from ccxt.async.exchanges import *  # noqa: F403
 # -----------------------------------------------------------------------------
 
 __all__ = exchange.__all__ + exchanges + errors.__all__
+__version__ = version.__version__
 
 # =============================================================================

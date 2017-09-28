@@ -30,6 +30,7 @@ SOFTWARE.
 
 # -----------------------------------------------------------------------------
 
+from ccxt import version
 from ccxt import errors
 from ccxt import exchange
 
@@ -53,5 +54,6 @@ from ccxt.exchanges import *  # noqa: F403
 # -----------------------------------------------------------------------------
 
 __all__ = exchange.__all__ + exchanges + errors.__all__
+__version__ = version.__version__
 
 # =============================================================================
