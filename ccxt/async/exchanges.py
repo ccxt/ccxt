@@ -15699,21 +15699,21 @@ class quadrigacx (Exchange):
 #------------------------------------------------------------------------------
 
 
-class quoine (Exchange):
+class qryptos (Exchange):
 
     def __init__(self, config={}):
         params = {
-            'id': 'quoine',
-            'name': 'QUOINE',
-            'countries': ['JP', 'SG', 'VN'],
+            'id': 'qryptos',
+            'name': 'QRYPTOS',
+            'countries': ['CN', 'TW'],
             'version': '2',
             'rateLimit': 1000,
             'hasFetchTickers': True,
             'hasCORS': False,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766844-9615a4e8-5ee8-11e7-8814-fcd004db8cdd.jpg',
-                'api': 'https://api.quoine.com',
-                'www': 'https://www.quoine.com',
+                'logo': 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
+                'api': 'https://api.qryptos.com',
+                'www': 'https://www.qryptos.com',
                 'doc': 'https://developers.quoine.com',
             },
             'api': {
@@ -15761,7 +15761,7 @@ class quoine (Exchange):
             },
         }
         params.update(config)
-        super(quoine, self).__init__(params)
+        super(qryptos, self).__init__(params)
 
     async def fetch_markets(self):
         markets = await self.publicGetProducts()
@@ -15925,6 +15925,30 @@ class quoine (Exchange):
         if 'message' in response:
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
+
+#------------------------------------------------------------------------------
+
+
+class quoine (qryptos):
+
+    def __init__(self, config={}):
+        params = {
+            'id': 'quoine',
+            'name': 'QUOINE',
+            'countries': ['JP', 'SG', 'VN'],
+            'version': '2',
+            'rateLimit': 1000,
+            'hasFetchTickers': True,
+            'hasCORS': False,
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/27766844-9615a4e8-5ee8-11e7-8814-fcd004db8cdd.jpg',
+                'api': 'https://api.quoine.com',
+                'www': 'https://www.quoine.com',
+                'doc': 'https://developers.quoine.com',
+            },
+        }
+        params.update(config)
+        super(quoine, self).__init__(params)
 
 #------------------------------------------------------------------------------
 

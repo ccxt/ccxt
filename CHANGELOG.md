@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Added support for a new exchange: [QRYPTOS](https://www.qryptos.com) (China, Taiwan, a property of QUOINE)
 - Added fetchOpenOrders and fetchClosedOrders to Bitfinex v1 (experimental)
 - Added fetchOrder and fetchOrders to OKCoin CNY, OKCoin USD and OKEX (experimental)
 - Added withdraw method to Exmo (experimental)

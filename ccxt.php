@@ -208,6 +208,7 @@ class Exchange {
         'paymium',
         'poloniex',
         'quadrigacx',
+        'qryptos',
         'quoine',
         'southxchange',
         'surbitcoin',

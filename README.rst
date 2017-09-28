@@ -23,7 +23,7 @@ Current featurelist:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 86 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 87 cryptocurrency exchange markets and trading APIs:
 
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                           | ver   | doc                                                                                              | countries                                  |
@@ -171,6 +171,8 @@ The ccxt library currently supports the following 86 cryptocurrency exchange mar
 | |poloniex|             | poloniex             | `Poloniex <https://poloniex.com>`__                            | \*    | `API <https://poloniex.com/support/api/>`__                                                      | US                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |quadrigacx|           | quadrigacx           | `QuadrigaCX <https://www.quadrigacx.com>`__                    | 2     | `API <https://www.quadrigacx.com/api_info>`__                                                    | Canada                                     |
++------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |qryptos|              | qryptos              | `QRYPTOS <https://www.qryptos.com>`__                          | 2     | `API <https://developers.quoine.com>`__                                                          | China, Taiwan, Province of China           |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |quoine|               | quoine               | `QUOINE <https://www.quoine.com>`__                            | 2     | `API <https://developers.quoine.com>`__                                                          | Japan, Singapore, Vietnam                  |
 +------------------------+----------------------+----------------------------------------------------------------+-------+--------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -478,7 +480,7 @@ Please read the `CONTRIBUTING <https://github.com/ccxt-dev/ccxt/blob/master/CONT
    :target: https://npm.runkit.com/ccxt
 .. |Gitter| image:: https://badges.gitter.im/ccxt-dev/ccxt.svg
    :target: https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
-.. |Supported Exchanges| image:: https://img.shields.io/badge/exchanges-86-blue.svg
+.. |Supported Exchanges| image:: https://img.shields.io/badge/exchanges-87-blue.svg
    :target: https://github.com/ccxt-dev/ccxt/wiki/Exchange-Markets
 .. |\_1broker| image:: https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg
 .. |\_1btcxe| image:: https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg
@@ -552,6 +554,7 @@ Please read the `CONTRIBUTING <https://github.com/ccxt-dev/ccxt/blob/master/CONT
 .. |paymium| image:: https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg
 .. |poloniex| image:: https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg
 .. |quadrigacx| image:: https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg
+.. |qryptos| image:: https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg
 .. |quoine| image:: https://user-images.githubusercontent.com/1294454/27766844-9615a4e8-5ee8-11e7-8814-fcd004db8cdd.jpg
 .. |southxchange| image:: https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg
 .. |surbitcoin| image:: https://user-images.githubusercontent.com/1294454/27991511-f0a50194-6481-11e7-99b5-8f02932424cc.jpg
