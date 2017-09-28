@@ -5,6 +5,8 @@ import os
 import sys
 import json
 import time
+from os import _exit
+from traceback import format_tb
 
 # ------------------------------------------------------------------------------
 
@@ -13,12 +15,7 @@ sys.path.append(root)
 
 # ------------------------------------------------------------------------------
 
-import ccxt
-
-# ------------------------------------------------------------------------------
-
-from os import _exit
-from traceback import format_tb
+import ccxt # noqa: E402
 
 # ------------------------------------------------------------------------------
 
