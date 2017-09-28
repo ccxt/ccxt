@@ -71,11 +71,11 @@ import decimal
 #------------------------------------------------------------------------------
 
 try:
-    import urllib.parse   as _urlencode # Python 3
+    import urllib.parse as _urlencode # Python 3
     import urllib.request as _urllib
     import http.client as httplib
 except ImportError:
-    import urllib  as _urlencode        # Python 2
+    import urllib as _urlencode       # Python 2
     import urllib2 as _urllib
     import httplib
 

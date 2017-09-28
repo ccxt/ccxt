@@ -17,8 +17,8 @@ import ccxt
 
 # ------------------------------------------------------------------------------
 
-from os         import _exit
-from traceback  import format_tb
+from os import _exit
+from traceback import format_tb
 
 # ------------------------------------------------------------------------------
 

@@ -24,7 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 __all__ = [
     'CCXTError',
@@ -36,7 +36,7 @@ __all__ = [
     'ExchangeNotAvailable',
 ]
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 class CCXTError(Exception): pass
 class ExchangeError(CCXTError): pass
@@ -48,4 +48,4 @@ class DDoSProtection(NetworkError): pass
 class RequestTimeout(NetworkError): pass
 class ExchangeNotAvailable(NetworkError): pass
 
-#==============================================================================
+# =============================================================================
