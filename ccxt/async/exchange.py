@@ -83,12 +83,12 @@ class Exchange (BaseExchange):
             self.aiohttp_session.close()
 
     # this method is experimental
-    async def throttle(self):
-        now = self.milliseconds()
-        elapsed = now - self.lastRestRequestTimestamp
-        if elapsed < self.rateLimit:
-            delay = self.rateLimit - elapsed
-            await asyncio.sleep(delay / 1000.0)
+    # async def throttle(self):
+    #     now = self.milliseconds()
+    #     elapsed = now - self.lastRestRequestTimestamp
+    #     if elapsed < self.rateLimit:
+    #         delay = self.rateLimit - elapsed
+    #         await asyncio.sleep(delay / 1000.0)
 
     # def run_rest_poller_loop
     #     await asyncio.sleep (exchange.rateLimit / 1000.0)
