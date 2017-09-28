@@ -55,7 +55,7 @@ from ccxt.async.exchanges import *  # noqa: F403
 
 # -----------------------------------------------------------------------------
 
-__all__ = exchange.__all__ + exchanges + errors.__all__
+__all__ = exchange.__all__ + exchanges + errors.__all__  # noqa: F405
 __version__ = version.__version__
 
 # =============================================================================
