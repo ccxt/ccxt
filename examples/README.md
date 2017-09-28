@@ -1,9 +1,5 @@
 # CCXT Cryptocurrency Trading Library Examples
 
-```diff
-- this is a work in progress, more examples coming soon!
-```
-
 To run the ccxt examples from any folder type one of the following commands in console.
 
 ## JavaScript
