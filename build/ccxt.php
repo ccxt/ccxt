@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.50';
+$version = '1.8.51';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -585,7 +585,7 @@ class Exchange {
         $elapsed = $now - $this->lastRestRequestTimestamp;
         if ($elapsed < $this->rateLimit) {
             $delay = $this->rateLimit - $elapsed;
-            usleep (delay * 1000.0);
+            usleep (delay * 1000.0)
         }
     }
 
