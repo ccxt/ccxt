@@ -47,11 +47,11 @@ from ccxt.errors import ExchangeNotAvailable
 
 #------------------------------------------------------------------------------
 
-from ccxt.exchange import *  # noqa: F403
+from ccxt.exchange import * # noqa: F403
 from ccxt.exchanges import * # noqa: F403
 
 #------------------------------------------------------------------------------
 
-__all__ = exchange.__all__ + exchanges +  errors.__all__
+__all__ = exchange.__all__ + exchanges + errors.__all__
 
 #==============================================================================

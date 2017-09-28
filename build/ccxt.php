@@ -8741,7 +8741,7 @@ class cex extends Exchange {
 
     public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets ();
-        $orderbook =  $this->publicGetOrderBookPair (array_merge (array (
+        $orderbook = $this->publicGetOrderBookPair (array_merge (array (
             'pair' => $this->market_id ($symbol),
         ), $params));
         $timestamp = $orderbook['timestamp'] * 1000;
@@ -9241,7 +9241,7 @@ class coincheck extends Exchange {
     public function fetch_order_book ($symbol, $params = array ()) {
         if ($symbol != 'BTC/JPY')
             throw new NotSupported ($this->id . ' fetchOrderBook () supports BTC/JPY only');
-        $orderbook =  $this->publicGetOrderBooks ($params);
+        $orderbook = $this->publicGetOrderBooks ($params);
         return $this->parse_order_book ($orderbook);
     }
 
@@ -15662,7 +15662,7 @@ class liqui extends Exchange {
         $url = $this->urls['api'][$api];
         $query = $this->omit ($params, $this->extract_params ($path));
         if ($api == 'public') {
-            $url .=  '/' . $this->version . '/' . $this->implode_params ($path, $params);
+            $url .= '/' . $this->version . '/' . $this->implode_params ($path, $params);
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {

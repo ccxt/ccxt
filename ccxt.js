@@ -8396,7 +8396,7 @@ var cex = {
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await  this.publicGetOrderBookPair (this.extend ({
+        let orderbook = await this.publicGetOrderBookPair (this.extend ({
             'pair': this.marketId (symbol),
         }, params));
         let timestamp = orderbook['timestamp'] * 1000;
@@ -8882,7 +8882,7 @@ var coincheck = {
     async fetchOrderBook (symbol, params = {}) {
         if (symbol != 'BTC/JPY')
             throw new NotSupported (this.id + ' fetchOrderBook () supports BTC/JPY only');
-        let orderbook = await  this.publicGetOrderBooks (params);
+        let orderbook = await this.publicGetOrderBooks (params);
         return this.parseOrderBook (orderbook);
     },
 
@@ -15179,7 +15179,7 @@ var liqui = {
         let url = this.urls['api'][api];
         let query = this.omit (params, this.extractParams (path));
         if (api == 'public') {
-            url +=  '/' + this.version + '/' + this.implodeParams (path, params);
+            url += '/' + this.version + '/' + this.implodeParams (path, params);
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {

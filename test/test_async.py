@@ -18,8 +18,8 @@ import ccxt.async as ccxt
 
 # ------------------------------------------------------------------------------
 
-from os         import _exit
-from traceback  import format_tb
+from os import _exit
+from traceback import format_tb
 
 # ------------------------------------------------------------------------------
 
@@ -81,9 +81,9 @@ async def test_order_book(exchange, symbol):
             green(symbol),
             'order book',
             orderbook['datetime'],
-            'bid: ' +       str(orderbook['bids'][0][0] if len(orderbook['bids']) else 'N/A'),
+            'bid: ' + str(orderbook['bids'][0][0] if len(orderbook['bids']) else 'N/A'),
             'bidVolume: ' + str(orderbook['bids'][0][1] if len(orderbook['bids']) else 'N/A'),
-            'ask: ' +       str(orderbook['asks'][0][0] if len(orderbook['asks']) else 'N/A'),
+            'ask: ' + str(orderbook['asks'][0][0] if len(orderbook['asks']) else 'N/A'),
             'askVolume: ' + str(orderbook['asks'][0][1] if len(orderbook['asks']) else 'N/A'))
     else:
         dump(yellow(exchange.id), 'fetch_order_book() supported')
@@ -124,10 +124,10 @@ async def test_ticker(exchange, symbol):
             green(symbol),
             'ticker',
             ticker['datetime'],
-            'high: ' +   str(ticker['high']),
-            'low: ' +    str(ticker['low']),
-            'bid: ' +    str(ticker['bid']),
-            'ask: ' +    str(ticker['ask']),
+            'high: ' + str(ticker['high']),
+            'low: ' + str(ticker['low']),
+            'bid: ' + str(ticker['bid']),
+            'ask: ' + str(ticker['ask']),
             'volume: ' + str(ticker['quoteVolume']))
     else:
         dump(green(exchange.id), green(symbol), 'fetch_ticker() not supported')

@@ -37,10 +37,10 @@ def print_ticker(exchange, symbol):
         yellow(symbol),
         'ticker',
         ticker['datetime'],
-        'high: ' +   str(ticker['high']),
-        'low: ' +    str(ticker['low']),
-        'bid: ' +    str(ticker['bid']),
-        'ask: ' +    str(ticker['ask']),
+        'high: ' + str(ticker['high']),
+        'low: ' + str(ticker['low']),
+        'bid: ' + str(ticker['bid']),
+        'ask: ' + str(ticker['ask']),
         'volume: ' + str(ticker['quoteVolume']))
 
 try:
