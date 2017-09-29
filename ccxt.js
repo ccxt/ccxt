@@ -16956,12 +16956,14 @@ var poloniex = {
             result = this.parseTrades (response, market);
         } else {
             result = { 'info': response };
-            let ids = Object.keys (response);
-            for (let i = 0; i < ids.length; i++) {
-                let id = ids[i];
-                let market = this.markets_by_id[id];
-                let symbol = market['symbol'];
-                result[symbol] = this.parseTrades (response[id], market);
+            if (Object.keys (response).length) {
+                let ids = Object.keys (response);
+                for (let i = 0; i < ids.length; i++) {
+                    let id = ids[i];
+                    let market = this.markets_by_id[id];
+                    let symbol = market['symbol'];
+                    result[symbol] = this.parseTrades (response[id], market);
+                }
             }
         }
         return result;
