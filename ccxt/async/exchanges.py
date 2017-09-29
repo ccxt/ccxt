@@ -1244,6 +1244,7 @@ class binance (Exchange):
             'type': None,
             'side': side,
             'price': price,
+            'cost': None,
             'amount': amount,
             'fee': fee,
         }
@@ -8843,7 +8844,7 @@ class cryptopia (Exchange):
             'rateLimit': 1500,
             'countries': 'NZ',  # New Zealand
             'hasFetchTickers': True,
-            # 'hasFetchMyTrades': True,
+            'hasFetchMyTrades': True,
             'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
@@ -8975,15 +8976,31 @@ class cryptopia (Exchange):
             price = trade['Price']
         elif 'Rate' in trade:
             price = trade['Rate']
-        # todo fee parsing
+        if 'Total' in trade:
+            cost = trade['Total']
+        id = None
+        if 'TradeId' in trade:
+            id = str(trade['TradeId'])
+        if not market:
+            if 'TradePairId' in trade:
+                if trade['TradePairId'] in self.markets_by_id:
+                    market = self.markets_by_id[trade['TradePairId']]
+        symbol = None
         fee = None
+        if market:
+            symbol = market['symbol']
+            if 'Fee' in trade:
+                fee = {
+                    'currency': market['quote'],
+                    'cost': trade['Fee'],
+                }
         return {
-            'id': None,
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'type': None,
+            'symbol': symbol,
+            'type': 'limit',
             'side': trade['Type'].lower(),
             'price': price,
             'cost': cost,
@@ -13596,6 +13613,7 @@ class liqui (Exchange):
         order = None
         if 'order_id' in trade:
             order = str(trade['order_id'])
+        fee = None
         return {
             'id': id,
             'order': order,
@@ -13607,6 +13625,7 @@ class liqui (Exchange):
             'side': side,
             'price': price,
             'amount': trade['amount'],
+            'fee': fee,
         }
 
     async def fetch_trades(self, symbol, params={}):
@@ -13647,6 +13666,10 @@ class liqui (Exchange):
             status = 'closed'
         timestamp = order['timestamp_created'] * 1000
         market = self.markets_by_id[order['pair']]
+        amount = order['start_amount']
+        remaining = order['amount']
+        filled = amount - remaining
+        fee = None
         result = {
             'info': order,
             'id': str(order['id']),
@@ -13656,9 +13679,11 @@ class liqui (Exchange):
             'type': 'limit',
             'side': order['type'],
             'price': order['rate'],
-            'amount': order['start_amount'],
-            'remaining': order['amount'],
+            'amount': amount,
+            'remaining': remaining,
+            'filled': filled,
             'status': status,
+            'fee': fee,
         }
         return result
 
@@ -15382,6 +15407,7 @@ class poloniex (Exchange):
         pair = market['id'] if market else 'all'
         request = self.extend({
             'currencyPair': pair,
+            # 'start': self.seconds() - 86400,  # last 24 hours by default
             # 'end': self.seconds(),  # last 50000 trades by default
         }, params)
         response = await self.privatePostReturnTradeHistory(request)

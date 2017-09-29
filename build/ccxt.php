@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.74';
+$version = '1.8.75';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2460,6 +2460,7 @@ class binance extends Exchange {
             'type' => null,
             'side' => $side,
             'price' => $price,
+            'cost' => null,
             'amount' => $amount,
             'fee' => $fee,
         );
@@ -10547,7 +10548,7 @@ class cryptopia extends Exchange {
             'rateLimit' => 1500,
             'countries' => 'NZ', // New Zealand
             'hasFetchTickers' => true,
-            // 'hasFetchMyTrades' => true,
+            'hasFetchMyTrades' => true,
             'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
@@ -10687,15 +10688,34 @@ class cryptopia extends Exchange {
         } else if (array_key_exists ('Rate', $trade)) {
             $price = $trade['Rate'];
         }
-        // todo $fee parsing
+        if (array_key_exists ('Total', $trade))
+            $cost = $trade['Total'];
+        $id = null;
+        if (array_key_exists ('TradeId', $trade))
+            $id = (string) $trade['TradeId'];
+        if (!$market) {
+            if (array_key_exists ('TradePairId', $trade))
+                if (array_key_exists ($trade['TradePairId'], $this->markets_by_id))
+                    $market = $this->markets_by_id[$trade['TradePairId']];
+        }
+        $symbol = null;
         $fee = null;
+        if ($market) {
+            $symbol = $market['symbol'];
+            if (array_key_exists ('Fee', $trade)) {
+                $fee = array (
+                    'currency' => $market['quote'],
+                    'cost' => $trade['Fee'],
+                );
+            }
+        }
         return array (
-            'id' => null,
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
-            'type' => null,
+            'symbol' => $symbol,
+            'type' => 'limit',
             'side' => strtolower ($trade['Type']),
             'price' => $price,
             'cost' => $cost,
@@ -15588,6 +15608,7 @@ class liqui extends Exchange {
         $order = null;
         if (array_key_exists ('order_id', $trade))
             $order = (string) $trade['order_id'];
+        $fee = null;
         return array (
             'id' => $id,
             'order' => $order,
@@ -15599,6 +15620,7 @@ class liqui extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $trade['amount'],
+            'fee' => $fee,
         );
     }
 
@@ -15644,6 +15666,10 @@ class liqui extends Exchange {
         }
         $timestamp = $order['timestamp_created'] * 1000;
         $market = $this->markets_by_id[$order['pair']];
+        $amount = $order['start_amount'];
+        $remaining = $order['amount'];
+        $filled = $amount - $remaining;
+        $fee = null;
         $result = array (
             'info' => $order,
             'id' => (string) $order['id'],
@@ -15653,9 +15679,11 @@ class liqui extends Exchange {
             'type' => 'limit',
             'side' => $order['type'],
             'price' => $order['rate'],
-            'amount' => $order['start_amount'],
-            'remaining' => $order['amount'],
+            'amount' => $amount,
+            'remaining' => $remaining,
+            'filled' => $filled,
             'status' => $status,
+            'fee' => $fee,
         );
         return $result;
     }
@@ -17487,6 +17515,7 @@ class poloniex extends Exchange {
         $pair = $market ? $market['id'] : 'all';
         $request = array_merge (array (
             'currencyPair' => $pair,
+            // 'start' => $this->seconds () - 86400, // last 24 hours by default
             // 'end' => $this->seconds (), // last 50000 $trades by default
         ), $params);
         $response = $this->privatePostReturnTradeHistory ($request);
