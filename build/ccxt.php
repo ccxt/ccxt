@@ -8553,14 +8553,14 @@ class cex extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'currency_limits',
-                        'last_price/{pair}',
-                        'last_prices/{currencies}',
-                        'ohlcv/hd/{yyyymmdd}/{pair}',
-                        'order_book/{pair}',
-                        'ticker/{pair}',
-                        'tickers/{currencies}',
-                        'trade_history/{pair}',
+                        'currency_limits/',
+                        'last_price/{pair}/',
+                        'last_prices/{currencies}/',
+                        'ohlcv/hd/{yyyymmdd}/{pair}/',
+                        'order_book/{pair}/',
+                        'ticker/{pair}/',
+                        'tickers/{currencies}/',
+                        'trade_history/{pair}/',
                     ),
                     'post' => array (
                         'convert/{pair}',
