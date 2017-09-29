@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.71';
+$version = '1.8.72';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10680,6 +10680,13 @@ class cryptopia extends Exchange {
         } else if (array_key_exists ('TimeStamp', $trade)) {
             $timestamp = $this->parse8601 ($trade['TimeStamp']);
         }
+        $price = null;
+        $cost = null;
+        if (array_key_exists ('Price', $trade)) {
+            $price = $trade['Price'];
+        } else if (array_key_exists ('Rate', $trade)) {
+            $price = $trade['Rate'];
+        }
         // todo $fee parsing
         $fee = null;
         return array (
@@ -10690,7 +10697,8 @@ class cryptopia extends Exchange {
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => strtolower ($trade['Type']),
-            'price' => $trade['Price'],
+            'price' => $price,
+            'cost' => $cost,
             'amount' => $trade['Amount'],
             'fee' => $fee,
         );
@@ -17250,6 +17258,7 @@ class poloniex extends Exchange {
             'countries' => 'US',
             'rateLimit' => 500, // up to 6 calls per second
             'hasCORS' => true,
+            'hasFetchMyTrades' => true,
             'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
@@ -17453,7 +17462,7 @@ class poloniex extends Exchange {
             'symbol' => $symbol,
             'id' => $id,
             'order' => $order,
-            'type' => null,
+            'type' => 'limit',
             'side' => $trade['type'],
             'price' => floatval ($trade['rate']),
             'amount' => floatval ($trade['amount']),
@@ -17486,12 +17495,14 @@ class poloniex extends Exchange {
             $result = $this->parse_trades ($response, $market);
         } else {
             $result = array ( 'info' => $response );
-            $ids = array_keys ($response);
-            for ($i = 0; $i < count ($ids); $i++) {
-                $id = $ids[$i];
-                $market = $this->markets_by_id[$id];
-                $symbol = $market['symbol'];
-                $result[$symbol] = $this->parse_trades ($response[$id], $market);
+            if ($response) {
+                $ids = array_keys ($response);
+                for ($i = 0; $i < count ($ids); $i++) {
+                    $id = $ids[$i];
+                    $market = $this->markets_by_id[$id];
+                    $symbol = $market['symbol'];
+                    $result[$symbol] = $this->parse_trades ($response[$id], $market);
+                }
             }
         }
         return $result;
