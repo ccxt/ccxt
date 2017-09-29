@@ -234,10 +234,19 @@ class Exchange {
     }
 
     public static function safe_float ($object, $key, $default_value = null) {
-        if (array_key_exists ($key, $object))
-            if ($object[$key])
-                return floatval ($object[$key]);
-        return $default_value;
+        return (array_key_exists ($key, $object) && $object[$key]) ? floatval ($object[$key]) : $default_value;
+    }
+
+    public static function safe_string ($object, $key, $default_value = null) {
+        return (array_key_exists ($key, $object) && $object[$key]) ? strval ($object[$key]) : $default_value;
+    }
+
+    public static function safe_integer ($object, $key, $default_value = null) {
+        return (array_key_exists ($key, $object) && $object[$key]) ? intval ($object[$key]) : $default_value;
+    }
+
+    public static function safe_value ($object, $key, $default_value = null) {
+        return (array_key_exists ($key, $object) && $object[$key]) ? $object[$key] : $default_value;
     }
 
     public static function capitalize ($string) {

@@ -234,7 +234,19 @@ const sum = (...args) => {
 }
 
 const safeFloat = (object, key, defaultValue = undefined) => {
-    return ((key in object) && (object[key])) ? parseFloat (object[key]) : defaultValue
+    return ((key in object) && object[key]) ? parseFloat (object[key]) : defaultValue
+}
+
+const safeString = (object, key, defaultValue = undefined) => {
+    return ((key in object) && object[key]) ? object[key].toString () : defaultValue
+}
+
+const safeInteger = (object, key, defaultValue = undefined) => {
+    return ((key in object) && object[key]) ? parseInt (object[key]) : defaultValue
+}
+
+const safeValue = (object, key, defaultValue = undefined) => {
+    return ((key in object) && object[key]) ? object[key] : defaultValue
 }
 
 const ordered = x => x // a stub to keep assoc keys in order, in JS it does nothing, it's mostly for Python
@@ -359,6 +371,7 @@ const Exchange = function (config) {
     this.hash = hash
     this.hmac = hmac
     this.jwt = jwt // JSON Web Token
+
     this.binaryConcat = binaryConcat
     this.stringToBinary = stringToBinary
     this.stringToBase64 = stringToBase64
@@ -366,24 +379,28 @@ const Exchange = function (config) {
     this.base64ToString = base64ToString
     this.binaryToString = binaryToString
     this.utf16ToBase64 = utf16ToBase64
-    this.urlencode = urlencode
+
     this.encodeURIComponent = encodeURIComponent
-    this.omit = omit
-    this.pluck = pluck
-    this.unique = unique
-    this.extend = extend
-    this.flatten = flatten
-    this.groupBy = groupBy
-    this.indexBy = indexBy
-    this.sortBy = sortBy
-    this.keysort = keysort
-    this.decimal = decimal
-    this.safeFloat = safeFloat
-    this.capitalize = capitalize
-    this.json = JSON.stringify
-    this.sum = sum
-    this.ordered = ordered
-    this.aggregate = aggregate
+    this.urlencode   = urlencode
+    this.omit        = omit
+    this.pluck       = pluck
+    this.unique      = unique
+    this.extend      = extend
+    this.flatten     = flatten
+    this.groupBy     = groupBy
+    this.indexBy     = indexBy
+    this.sortBy      = sortBy
+    this.keysort     = keysort
+    this.decimal     = decimal
+    this.safeFloat   = safeFloat
+    this.safeString  = safeString
+    this.safeInteger = safeInteger
+    this.safeValue   = safeValue
+    this.capitalize  = capitalize
+    this.json        = JSON.stringify
+    this.sum         = sum
+    this.ordered     = ordered
+    this.aggregate   = aggregate
 
     this.encode = string => string
     this.decode = string => string
@@ -19672,6 +19689,9 @@ const ccxt = Object.assign (defineAllExchanges (exchanges), {
     sum,
     decimal,
     safeFloat,
+    safeString,
+    safeInteger,
+    safeValue,
     ordered,
     aggregate,
 
@@ -19679,6 +19699,10 @@ const ccxt = Object.assign (defineAllExchanges (exchanges), {
 
     index_by: indexBy,
     sort_by: sortBy,
+    safe_float: safeFloat,
+    safe_string: safeString,
+    safe_integer: safeInteger,
+    safe_value: safeValue,
 
     // crypto functions
 

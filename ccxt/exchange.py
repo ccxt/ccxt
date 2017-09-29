@@ -326,10 +326,19 @@ class Exchange(object):
 
     @staticmethod
     def safe_float(object, key, default_value=None):
-        if key in object:
-            if object[key]:
-                return float(object[key])
-        return default_value
+        return float(object[key]) if (key in object) and object[key] else default_value
+
+    @staticmethod
+    def safe_string(object, key, default_value=None):
+        return str(object[key]) if (key in object) and object[key] else default_value
+
+    @staticmethod
+    def safe_integer(object, key, default_value=None):
+        return int(object[key]) if (key in object) and object[key] else default_value
+
+    @staticmethod
+    def safe_value(object, key, default_value=None):
+        return object[key] if (key in object) and object[key] else default_value
 
     @staticmethod
     def capitalize(string):  # first character only, rest characters unchanged
