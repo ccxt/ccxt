@@ -8844,6 +8844,7 @@ class cryptopia (Exchange):
             'rateLimit': 1500,
             'countries': 'NZ',  # New Zealand
             'hasFetchTickers': True,
+            'hasFetchOpenOrders': True,
             'hasFetchMyTrades': True,
             'hasCORS': False,
             'urls': {
@@ -10949,20 +10950,20 @@ class hitbtc (Exchange):
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
-            'ask': float(ticker['ask']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
+            'ask': self.safe_float(ticker, 'ask'),
             'vwap': None,
-            'open': float(ticker['open']),
+            'open': self.safe_float(ticker, 'open'),
             'close': None,
             'first': None,
-            'last': float(ticker['last']),
+            'last': self.safe_float(ticker, 'last'),
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume']),
-            'quoteVolume': float(ticker['volume_quote']),
+            'baseVolume': self.safe_float(ticker, 'volume'),
+            'quoteVolume': self.safe_float(ticker, 'volume_quote'),
             'info': ticker,
         }
 
@@ -13429,6 +13430,7 @@ class liqui (Exchange):
             'version': '3',
             'hasCORS': False,
             'hasFetchOrder': True,
+            'hasFetchOpenOrders': True,
             'hasFetchTickers': True,
             'hasFetchMyTrades': True,
             'urls': {
@@ -15192,6 +15194,8 @@ class poloniex (Exchange):
             'rateLimit': 500,  # up to 6 calls per second
             'hasCORS': True,
             'hasFetchMyTrades': True,
+            'hasFetchOrder': True,
+            'hasFetchOpenOrders': True,
             'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',

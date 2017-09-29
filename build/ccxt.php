@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.75';
+$version = '1.8.76';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10548,6 +10548,7 @@ class cryptopia extends Exchange {
             'rateLimit' => 1500,
             'countries' => 'NZ', // New Zealand
             'hasFetchTickers' => true,
+            'hasFetchOpenOrders' => true,
             'hasFetchMyTrades' => true,
             'hasCORS' => false,
             'urls' => array (
@@ -12775,20 +12776,20 @@ class hitbtc extends Exchange {
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['bid']),
-            'ask' => floatval ($ticker['ask']),
+            'high' => $this->safe_float ($ticker, 'high'),
+            'low' => $this->safe_float ($ticker, 'low'),
+            'bid' => $this->safe_float ($ticker, 'bid'),
+            'ask' => $this->safe_float ($ticker, 'ask'),
             'vwap' => null,
-            'open' => floatval ($ticker['open']),
+            'open' => $this->safe_float ($ticker, 'open'),
             'close' => null,
             'first' => null,
-            'last' => floatval ($ticker['last']),
+            'last' => $this->safe_float ($ticker, 'last'),
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['volume']),
-            'quoteVolume' => floatval ($ticker['volume_quote']),
+            'baseVolume' => $this->safe_float ($ticker, 'volume'),
+            'quoteVolume' => $this->safe_float ($ticker, 'volume_quote'),
             'info' => $ticker,
         );
     }
@@ -15413,6 +15414,7 @@ class liqui extends Exchange {
             'version' => '3',
             'hasCORS' => false,
             'hasFetchOrder' => true,
+            'hasFetchOpenOrders' => true,
             'hasFetchTickers' => true,
             'hasFetchMyTrades' => true,
             'urls' => array (
@@ -17287,6 +17289,8 @@ class poloniex extends Exchange {
             'rateLimit' => 500, // up to 6 calls per second
             'hasCORS' => true,
             'hasFetchMyTrades' => true,
+            'hasFetchOrder' => true,
+            'hasFetchOpenOrders' => true,
             'hasFetchTickers' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
