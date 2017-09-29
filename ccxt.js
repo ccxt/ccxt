@@ -2207,6 +2207,7 @@ var binance = {
             'type': undefined,
             'side': side,
             'price': price,
+            'cost': undefined,
             'amount': amount,
             'fee': fee,
         };
@@ -10141,7 +10142,7 @@ var cryptopia = {
     'rateLimit': 1500,
     'countries': 'NZ', // New Zealand
     'hasFetchTickers': true,
-    // 'hasFetchMyTrades': true,
+    'hasFetchMyTrades': true,
     'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
@@ -10279,15 +10280,34 @@ var cryptopia = {
         } else if ('Rate' in trade) {
             price = trade['Rate'];
         }
-        // todo fee parsing
+        if ('Total' in trade)
+            cost = trade['Total'];
+        let id = undefined;
+        if ('TradeId' in trade)
+            id = trade['TradeId'].toString ();
+        if (!market) {
+            if ('TradePairId' in trade)
+                if (trade['TradePairId'] in this.markets_by_id)
+                    market = this.markets_by_id[trade['TradePairId']];
+        }
+        let symbol = undefined;
         let fee = undefined;
+        if (market) {
+            symbol = market['symbol'];
+            if ('Fee' in trade) {
+                fee = {
+                    'currency': market['quote'],
+                    'cost': trade['Fee'],
+                };
+            }
+        }
         return {
-            'id': undefined,
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
+            'symbol': symbol,
+            'type': 'limit',
             'side': trade['Type'].toLowerCase (),
             'price': price,
             'cost': cost,
@@ -15084,6 +15104,7 @@ var liqui = {
         let order = undefined;
         if ('order_id' in trade)
             order = trade['order_id'].toString ();
+        let fee = undefined;
         return {
             'id': id,
             'order': order,
@@ -15095,6 +15116,7 @@ var liqui = {
             'side': side,
             'price': price,
             'amount': trade['amount'],
+            'fee': fee,
         };
     },
 
@@ -15140,6 +15162,10 @@ var liqui = {
         }
         let timestamp = order['timestamp_created'] * 1000;
         let market = this.markets_by_id[order['pair']];
+        let amount = order['start_amount'];
+        let remaining = order['amount'];
+        let filled = amount - remaining;
+        let fee = undefined;
         let result = {
             'info': order,
             'id': order['id'].toString (),
@@ -15149,9 +15175,11 @@ var liqui = {
             'type': 'limit',
             'side': order['type'],
             'price': order['rate'],
-            'amount': order['start_amount'],
-            'remaining': order['amount'],
+            'amount': amount,
+            'remaining': remaining,
+            'filled': filled,
             'status': status,
+            'fee': fee,
         };
         return result;
     },
@@ -16948,6 +16976,7 @@ var poloniex = {
         let pair = market ? market['id'] : 'all';
         let request = this.extend ({
             'currencyPair': pair,
+            // 'start': this.seconds () - 86400, // last 24 hours by default
             // 'end': this.seconds (), // last 50000 trades by default
         }, params);
         let response = await this.privatePostReturnTradeHistory (request);
