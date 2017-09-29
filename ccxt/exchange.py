@@ -465,11 +465,11 @@ class Exchange(object):
     @staticmethod
     def aggregate(bidasks):
         ordered = Exchange.ordered({})
-        for [ price, volume ] in bidasks:
+        for [price, volume] in bidasks:
             ordered[price] = (ordered[price] if price in ordered else 0) + volume
         result = []
         for price, volume in ordered.iteritems():
-            result.append([ price, volume ])
+            result.append([price, volume])
         return result
 
     @staticmethod
