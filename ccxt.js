@@ -16952,26 +16952,18 @@ var poloniex = {
 
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['date']);
-        let id = undefined;
-        let order = undefined;
         let symbol = undefined;
-        if (market) {
+        if ((!market) && ('currencyPair' in trade))
+            market = this.markets_by_id[trade['currencyPair']]['symbol'];
+        if (market)
             symbol = market['symbol'];
-        } else if ('currencyPair' in trade) {
-            let marketId = trade['currencyPair'];
-            symbol = this.markets_by_id[marketId]['symbol'];
-        }
-        if ('tradeID' in trade)
-            id = trade['tradeID'];
-        if ('orderNumber' in trade)
-            order = trade['orderNumber'];
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': id,
-            'order': order,
+            'id': this.safeString (trade, 'tradeID'),
+            'order': this.safeString (trade, 'orderNumber'),
             'type': 'limit',
             'side': trade['type'],
             'price': parseFloat (trade['rate']),
@@ -19045,8 +19037,8 @@ var yobit = {
         }, params));
         let orderbook = response[market['id']];
         let timestamp = this.milliseconds ();
-        let bids = ('bids' in orderbook) ? orderbook['bids'] : [];
-        let asks = ('asks' in orderbook) ? orderbook['asks'] : [];
+        let bids = this.safeValue (orderbook, 'bids', []);
+        let asks = this.safeValue (orderbook, 'asks', []);
         return {
             'bids': bids,
             'asks': asks,
