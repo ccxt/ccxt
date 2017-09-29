@@ -578,11 +578,11 @@ const Exchange = function (config) {
                 return text
             let error = undefined
             let details = text
-            if ([ 429 ].indexOf (response.status) >= 0) {
+            if ([ 429 ].includes (response.status)) {
                 error = DDoSProtection
-            } else if ([ 404, 409, 422, 500, 501, 502, 520, 521, 522, 525 ].indexOf (response.status) >= 0) {
+            } else if ([ 404, 409, 422, 500, 501, 502, 520, 521, 522, 525 ].includes (response.status)) {
                 error = ExchangeNotAvailable
-            } else if ([ 400, 403, 405, 503 ].indexOf (response.status) >= 0) {
+            } else if ([ 400, 403, 405, 503 ].includes (response.status)) {
                 let ddosProtection = text.match (/cloudflare|incapsula/i)
                 if (ddosProtection) {
                     error = DDoSProtection
@@ -597,9 +597,9 @@ const Exchange = function (config) {
                         'rate-limiting',
                     ].join (', ') + ')'
                 }
-            } else if ([ 408, 504 ].indexOf (response.status) >= 0) {
+            } else if ([ 408, 504 ].includes (response.status)) {
                 error = RequestTimeout
-            } else if ([ 401, 511 ].indexOf (response.status) >= 0) {
+            } else if ([ 401, 511 ].includes (response.status)) {
                 error = AuthenticationError
             } else {
                 error = ExchangeError
