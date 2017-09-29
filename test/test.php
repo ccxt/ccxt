@@ -48,7 +48,9 @@ foreach ($config as $id => $params)
 // $exchanges['gdax']->urls['api'] = 'https://api-public.sandbox.gdax.com';
 $exchanges['anxpro']->proxy = 'https://cors-anywhere.herokuapp.com/';
 
-function test_exchange_symbol_ticker ($exchange, $symbol) {
+function test_ticker ($exchange, $symbol) {
+    $delay = $exchange->rateLimit * 1000;
+    usleep ($delay);
     dump (green ($exchange->id), green ($symbol), 'fetching ticker...');
     $ticker = $exchange->fetch_ticker ($symbol);
     dump (green ($exchange->id), green ($symbol), 'ticker:', implode (' ', array (
@@ -60,7 +62,9 @@ function test_exchange_symbol_ticker ($exchange, $symbol) {
         'volume: '  . $ticker['quoteVolume'])));
 }
 
-function test_exchange_symbol_orderbook ($exchange, $symbol) {
+function test_order_book ($exchange, $symbol) {
+    $delay = $exchange->rateLimit * 1000;
+    usleep ($delay);
     dump (green ($exchange->id), green ($symbol), 'fetching order book...');
     $orderbook = $exchange->fetch_order_book ($symbol);
     dump (green ($exchange->id), green ($symbol), 'order book:', implode (' ', array (
@@ -71,15 +75,33 @@ function test_exchange_symbol_orderbook ($exchange, $symbol) {
         'askVolume: ' . @$orderbook['asks'][0][1])));
 }
 
-function test_exchange_symbol ($exchange, $symbol) {
-    $delay = $exchange->rateLimit * 1000;
-    usleep ($delay);
-    test_exchange_symbol_ticker ($exchange, $symbol);
-    usleep ($delay);
+//-----------------------------------------------------------------------------
+
+function test_trades ($exchange, $symbol) {
+
+    if ($exchange->hasFetchTrades) {
+
+        $delay = $exchange->rateLimit * 1000;
+        usleep ($delay);
+
+        dump (green ($symbol), 'fetching trades...');
+        $trades = $exchange->fetch_trades ($symbol);
+        dump (green ($symbol), 'fetched', green (count ($trades)), 'trades');
+
+    } else {
+
+        dump (green ($symbol), 'fetchTrades () not supported');
+    }
+}
+
+function test_symbol ($exchange, $symbol) {
+    test_ticker ($exchange, $symbol);
     if ($exchange->id == 'coinmarketcap')
         dump (var_export ($exchange->fetchGlobal ()));
     else
-        test_exchange_symbol_orderbook ($exchange, $symbol);
+        test_order_book ($exchange, $symbol);
+
+    test_trades ($exchange, $symbol);
 }
 
 function load_exchange ($exchange) {
@@ -154,7 +176,7 @@ function test_exchange ($exchange) {
 
         dump (green ('SYMBOL:'), green ($symbol));
 
-        test_exchange_symbol ($exchange, $symbol);
+        test_symbol ($exchange, $symbol);
     }
 
     // usleep ($delay);
@@ -188,7 +210,7 @@ if (count ($argv) > 1) {
         if (count ($argv) > 2) {
 
             load_exchange ($exchange);
-            test_exchange_symbol ($exchange, $argv[2]);
+            test_symbol ($exchange, $argv[2]);
 
         } else {
 

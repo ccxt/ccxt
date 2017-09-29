@@ -17732,11 +17732,8 @@ class zaif (Exchange):
     def parse_trade(self, trade, market=None):
         side = 'buy' if (trade['trade_type'] == 'bid') else 'sell'
         timestamp = trade['date'] * 1000
-        id = None
-        if 'id' in trade:
-            id = trade['id']
-        elif 'tid' in trade:
-            id = trade['tid']
+        id = self.safe_string(trade, 'id')
+        id = self.safe_string(trade, 'tid', id)
         if not market:
             market = self.markets_by_id[trade['currency_pair']]
         return {

@@ -19381,12 +19381,8 @@ var zaif = {
     parseTrade (trade, market = undefined) {
         let side = (trade['trade_type'] == 'bid') ? 'buy' : 'sell';
         let timestamp = trade['date'] * 1000;
-        let id = undefined;
-        if ('id' in trade) {
-            id = trade['id'];
-        } else if ('tid' in trade) {
-            id = trade['tid'];
-        }
+        let id = this.safeString (trade, 'id');
+        id = this.safeString (trade, 'tid', id);
         if (!market)
             market = this.markets_by_id[trade['currency_pair']];
         return {

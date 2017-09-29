@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.75';
+$version = '1.8.76';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -19979,12 +19979,8 @@ class zaif extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $side = ($trade['trade_type'] == 'bid') ? 'buy' : 'sell';
         $timestamp = $trade['date'] * 1000;
-        $id = null;
-        if (array_key_exists ('id', $trade)) {
-            $id = $trade['id'];
-        } else if (array_key_exists ('tid', $trade)) {
-            $id = $trade['tid'];
-        }
+        $id = $this->safe_string ($trade, 'id');
+        $id = $this->safe_string ($trade, 'tid', $id);
         if (!$market)
             $market = $this->markets_by_id[$trade['currency_pair']];
         return array (
