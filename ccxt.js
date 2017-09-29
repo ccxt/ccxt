@@ -16956,7 +16956,7 @@ var poloniex = {
             result = this.parseTrades (response, market);
         } else {
             result = { 'info': response };
-            if (Object.keys (response).length) {
+            if (response) {
                 let ids = Object.keys (response);
                 for (let i = 0; i < ids.length; i++) {
                     let id = ids[i];
