@@ -15369,25 +15369,18 @@ class poloniex (Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['date'])
-        id = None
-        order = None
         symbol = None
+        if (not market) and('currencyPair' in list(trade.keys())):
+            market = self.markets_by_id[trade['currencyPair']]['symbol']
         if market:
             symbol = market['symbol']
-        elif 'currencyPair' in trade:
-            marketId = trade['currencyPair']
-            symbol = self.markets_by_id[marketId]['symbol']
-        if 'tradeID' in trade:
-            id = trade['tradeID']
-        if 'orderNumber' in trade:
-            order = trade['orderNumber']
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': id,
-            'order': order,
+            'id': self.safe_string(trade, 'tradeID'),
+            'order': self.safe_string(trade, 'orderNumber'),
             'type': 'limit',
             'side': trade['type'],
             'price': float(trade['rate']),
@@ -17403,8 +17396,8 @@ class yobit (Exchange):
         }, params))
         orderbook = response[market['id']]
         timestamp = self.milliseconds()
-        bids = orderbook['bids'] if ('bids' in list(orderbook.keys())) else []
-        asks = orderbook['asks'] if ('asks' in list(orderbook.keys())) else []
+        bids = self.safe_value(orderbook, 'bids', [])
+        asks = self.safe_value(orderbook, 'asks', [])
         return {
             'bids': bids,
             'asks': asks,

@@ -17483,26 +17483,18 @@ class poloniex extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $timestamp = $this->parse8601 ($trade['date']);
-        $id = null;
-        $order = null;
         $symbol = null;
-        if ($market) {
+        if ((!$market) && (array_key_exists ('currencyPair', $trade)))
+            $market = $this->markets_by_id[$trade['currencyPair']]['symbol'];
+        if ($market)
             $symbol = $market['symbol'];
-        } else if (array_key_exists ('currencyPair', $trade)) {
-            $marketId = $trade['currencyPair'];
-            $symbol = $this->markets_by_id[$marketId]['symbol'];
-        }
-        if (array_key_exists ('tradeID', $trade))
-            $id = $trade['tradeID'];
-        if (array_key_exists ('orderNumber', $trade))
-            $order = $trade['orderNumber'];
         return array (
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'id' => $id,
-            'order' => $order,
+            'id' => $this->safe_string ($trade, 'tradeID'),
+            'order' => $this->safe_string ($trade, 'orderNumber'),
             'type' => 'limit',
             'side' => $trade['type'],
             'price' => floatval ($trade['rate']),
@@ -19635,8 +19627,8 @@ class yobit extends Exchange {
         ), $params));
         $orderbook = $response[$market['id']];
         $timestamp = $this->milliseconds ();
-        $bids = (array_key_exists ('bids', $orderbook)) ? $orderbook['bids'] : array ();
-        $asks = (array_key_exists ('asks', $orderbook)) ? $orderbook['asks'] : array ();
+        $bids = $this->safe_value ($orderbook, 'bids', array ());
+        $asks = $this->safe_value ($orderbook, 'asks', array ());
         return array (
             'bids' => $bids,
             'asks' => $asks,
