@@ -719,6 +719,16 @@ class Exchange(object):
     def parseBidAsks(self, bidask, price_key=0, amount_key=1):
         return self.parse_bidasks(bidask, price_key, amount_key)
 
+    def fetch_aggregated_order_book(self, symbol, params={}):
+        orderbook = self.fetch_order_book(symbol, params)
+        return self.extend(orderbook, {
+            'bids': self.sort_by(self.aggregate(orderbook['bids']), 0, True),
+            'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
+        })
+
+    def fetchAggregatedOrderBook(self, *args):
+        return self.fetch_aggregated_order_book(*args)
+
     def parse_order_book(self, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
         timestamp = timestamp or self.milliseconds()
         return {

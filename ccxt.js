@@ -754,6 +754,14 @@ const Exchange = function (config) {
         return Object.values (bidasks).map (bidask => this.parseBidAsk (bidask, priceKey, amountKey))
     }
 
+    this.fetchAggregatedOrderBook = async function (symbol, params = {}) {
+        let orderbook = await this.fetchOrderBook (symbol, params)
+        return extend (orderbook, {
+            'bids': sortBy (aggregate (orderbook.bids), 0, true),
+            'asks': sortBy (aggregate (orderbook.asks), 0),
+        })
+    }
+
     this.parseOrderBook = function (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
         timestamp = timestamp || this.milliseconds ();
         return {
@@ -921,41 +929,42 @@ const Exchange = function (config) {
         this[property] = config[property]
 
     this.account                  = this.account
-    this.fetch_balance            = this.fetchBalance
-    this.fetch_free_balance       = this.fetchFreeBalance
-    this.fetch_used_balance       = this.fetchUsedBalance
-    this.fetch_total_balance      = this.fetchTotalBalance
-    this.fetch_order_book         = this.fetchOrderBook
-    this.fetch_tickers            = this.fetchTickers
-    this.fetch_ticker             = this.fetchTicker
-    this.fetch_trades             = this.fetchTrades
-    this.fetch_order              = this.fetchOrder
-    this.fetch_orders             = this.fetchOrders
-    this.fetch_open_orders        = this.fetchOpenOrders
-    this.fetch_closed_orders      = this.fetchClosedOrders
-    this.fetch_order_status       = this.fetchOrderStatus
-    this.fetch_markets            = this.fetchMarkets
-    this.load_markets             = this.loadMarkets
-    this.set_markets              = this.setMarkets
-    this.parse_balance            = this.parseBalance
-    this.parse_bidask             = this.parseBidAsk
-    this.parse_bidasks            = this.parseBidAsks
-    this.parse_order_book         = this.parseOrderBook
-    this.parse_trades             = this.parseTrades
-    this.parse_orders             = this.parseOrders
-    this.parse_ohlcv              = this.parseOHLCV
-    this.parse_ohlcvs             = this.parseOHLCVs
-    this.update_limit_buy_order   = this.updateLimitBuyOrder
-    this.update_limit_sell_order  = this.updateLimitSellOrder
-    this.update_limit_order       = this.updateLimitOrder
-    this.update_order             = this.updateOrder
-    this.create_limit_buy_order   = this.createLimitBuyOrder
-    this.create_limit_sell_order  = this.createLimitSellOrder
-    this.create_market_buy_order  = this.createMarketBuyOrder
-    this.create_market_sell_order = this.createMarketSellOrder
-    this.create_order             = this.createOrder
-    this.calculate_fee            = this.calculateFee
-    this.calculate_fee_rate       = this.calculateFeeRate
+    this.fetch_balance               = this.fetchBalance
+    this.fetch_free_balance          = this.fetchFreeBalance
+    this.fetch_used_balance          = this.fetchUsedBalance
+    this.fetch_total_balance         = this.fetchTotalBalance
+    this.fetch_aggregated_order_book = this.fetchAggregatedOrderBook
+    this.fetch_order_book            = this.fetchOrderBook
+    this.fetch_tickers               = this.fetchTickers
+    this.fetch_ticker                = this.fetchTicker
+    this.fetch_trades                = this.fetchTrades
+    this.fetch_order                 = this.fetchOrder
+    this.fetch_orders                = this.fetchOrders
+    this.fetch_open_orders           = this.fetchOpenOrders
+    this.fetch_closed_orders         = this.fetchClosedOrders
+    this.fetch_order_status          = this.fetchOrderStatus
+    this.fetch_markets               = this.fetchMarkets
+    this.load_markets                = this.loadMarkets
+    this.set_markets                 = this.setMarkets
+    this.parse_balance               = this.parseBalance
+    this.parse_bidask                = this.parseBidAsk
+    this.parse_bidasks               = this.parseBidAsks
+    this.parse_order_book            = this.parseOrderBook
+    this.parse_trades                = this.parseTrades
+    this.parse_orders                = this.parseOrders
+    this.parse_ohlcv                 = this.parseOHLCV
+    this.parse_ohlcvs                = this.parseOHLCVs
+    this.update_limit_buy_order      = this.updateLimitBuyOrder
+    this.update_limit_sell_order     = this.updateLimitSellOrder
+    this.update_limit_order          = this.updateLimitOrder
+    this.update_order                = this.updateOrder
+    this.create_limit_buy_order      = this.createLimitBuyOrder
+    this.create_limit_sell_order     = this.createLimitSellOrder
+    this.create_market_buy_order     = this.createMarketBuyOrder
+    this.create_market_sell_order    = this.createMarketSellOrder
+    this.create_order                = this.createOrder
+    this.calculate_fee               = this.calculateFee
+    this.calculate_fee_rate          = this.calculateFeeRate
 
     this.init ()
 }
