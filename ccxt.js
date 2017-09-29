@@ -5683,6 +5683,7 @@ var bittrex = {
     'hasCORS': false,
     'hasFetchTickers': true,
     'hasFetchOHLCV': true,
+    'hasFetchOrder': true,
     'hasFetchOrders': true,
     'hasFetchOpenOrders': true,
     'hasFetchMyTrades': false,
@@ -10140,6 +10141,7 @@ var cryptopia = {
     'rateLimit': 1500,
     'countries': 'NZ', // New Zealand
     'hasFetchTickers': true,
+    'hasFetchMyTrades': true,
     'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
@@ -10263,8 +10265,16 @@ var cryptopia = {
         return result;
     },
 
-    parseTrade (trade, market) {
-        let timestamp = trade['Timestamp'] * 1000;
+    parseTrade (trade, market = undefined) {
+        console.log (trade);
+        process.exit ();
+        let timestamp = undefined;
+        if ('Timestamp' in trade) {
+            timestamp = trade['Timestamp'] * 1000;
+        } else if ('TimeStamp' in trade) {
+            timestamp = this.parse8601 (trade['TimeStamp']);
+        }
+        let fee = undefined;
         return {
             'id': undefined,
             'info': trade,
@@ -10275,6 +10285,7 @@ var cryptopia = {
             'side': trade['Type'].toLowerCase (),
             'price': trade['Price'],
             'amount': trade['Amount'],
+            'fee': fee,
         };
     },
 
@@ -10287,6 +10298,19 @@ var cryptopia = {
         }, params));
         let trades = response['Data'];
         return this.parseTrades (trades, market);
+    },
+
+    async fetchMyTrades (symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.privatePostGetTradeHistory (this.extend ({
+            // 'Market': market['id'],
+            'TradePairId': market['id'], // Cryptopia identifier (not required if 'Market' supplied)
+            // 'Count': 10, // max = 100
+        }, params));
+        return this.parseTrades (response['Data'], market);
     },
 
     async fetchBalance (params = {}) {
@@ -13962,6 +13986,7 @@ var kraken = {
     'hasCORS': false,
     'hasFetchTickers': true,
     'hasFetchOHLCV': true,
+    'hasFetchOrder': true,
     'hasFetchOpenOrders': true,
     'hasFetchClosedOrders': true,
     'marketsByAltname': {},
@@ -14858,6 +14883,7 @@ var liqui = {
     'rateLimit': 2000,
     'version': '3',
     'hasCORS': false,
+    'hasFetchOrder': true,
     'hasFetchTickers': true,
     'hasFetchMyTrades': true,
     'urls': {
@@ -15092,7 +15118,7 @@ var liqui = {
 
     async cancelOrder (id) {
         await this.loadMarkets ();
-        return await this.privatePostCancelOrder ({ 'order_id': id });
+        return await this.privatePostCancelOrder ({ 'order_id': parseInt (id) });
     },
 
     parseOrder (order) {
@@ -15109,7 +15135,7 @@ var liqui = {
         let market = this.markets_by_id[order['pair']];
         let result = {
             'info': order,
-            'id': order['id'],
+            'id': order['id'].toString (),
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
