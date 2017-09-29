@@ -109,15 +109,15 @@ describe ('ccxt base code', () => {
 
         assert.deepEqual (ccxt.aggregate (bids.sort ()), [
             [ 123.0, 456.0 ],
-            [ 789.1, 246.0 ],
             [ 789.0, 123.0 ],
-        ].sort ())
+            [ 789.1, 246.0 ],
+        ])
 
         assert.deepEqual (ccxt.aggregate (asks.sort ()), [
             [ 123.0, 456.0 ],
             [ 789.0, 123.0 ],
             [ 789.10, 123.0 ],
-        ].sort ())
+        ])
     })
 
     it ('groupBy() works', () => {
