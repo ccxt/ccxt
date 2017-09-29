@@ -8969,6 +8969,12 @@ class cryptopia (Exchange):
             timestamp = trade['Timestamp'] * 1000
         elif 'TimeStamp' in trade:
             timestamp = self.parse8601(trade['TimeStamp'])
+        price = None
+        cost = None
+        if 'Price' in trade:
+            price = trade['Price']
+        elif 'Rate' in trade:
+            price = trade['Rate']
         # todo fee parsing
         fee = None
         return {
@@ -8979,7 +8985,8 @@ class cryptopia (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': trade['Type'].lower(),
-            'price': trade['Price'],
+            'price': price,
+            'cost': cost,
             'amount': trade['Amount'],
             'fee': fee,
         }
@@ -15159,6 +15166,7 @@ class poloniex (Exchange):
             'countries': 'US',
             'rateLimit': 500,  # up to 6 calls per second
             'hasCORS': True,
+            'hasFetchMyTrades': True,
             'hasFetchTickers': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
@@ -15351,7 +15359,7 @@ class poloniex (Exchange):
             'symbol': symbol,
             'id': id,
             'order': order,
-            'type': None,
+            'type': 'limit',
             'side': trade['type'],
             'price': float(trade['rate']),
             'amount': float(trade['amount']),
@@ -15382,12 +15390,13 @@ class poloniex (Exchange):
             result = self.parse_trades(response, market)
         else:
             result = {'info': response}
-            ids = list(response.keys())
-            for i in range(0, len(ids)):
-                id = ids[i]
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
-                result[symbol] = self.parse_trades(response[id], market)
+            if response:
+                ids = list(response.keys())
+                for i in range(0, len(ids)):
+                    id = ids[i]
+                    market = self.markets_by_id[id]
+                    symbol = market['symbol']
+                    result[symbol] = self.parse_trades(response[id], market)
         return result
 
     def parse_order(self, order, market):
