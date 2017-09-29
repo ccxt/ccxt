@@ -549,11 +549,12 @@ const Exchange = function (config) {
 
     this.fetch = function (url, method = 'GET', headers = undefined, body = undefined) {
 
-        if (isNode && this.userAgent)
+        if (isNode && this.userAgent) {
             if (typeof this.userAgent == 'string')
                 headers = extend ({ 'User-Agent': this.userAgent }, headers)
             else if ((typeof this.userAgent == 'object') && ('User-Agent' in this.userAgent))
                 headers = extend (this.userAgent, headers)
+        }
 
         if (this.proxy.length)
             headers = extend ({ 'Origin': '*' }, headers)
