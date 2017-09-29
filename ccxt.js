@@ -16961,9 +16961,9 @@ var poloniex = {
                     let id = ids[i];
                     let market = this.markets_by_id[id];
                     let symbol = market['symbol'];
-                    let parsedTrades = this.parseTrades (response[id], market);
-                    for (let j = 0; j < parseTrades.length; j++) {
-                        result.push (parsedTrades[j]);
+                    let trades = this.parseTrades (response[id], market);
+                    for (let j = 0; j < trades.length; j++) {
+                        result.push (trades[j]);
                     }
                 }
             }
