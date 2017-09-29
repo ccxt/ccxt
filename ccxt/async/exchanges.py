@@ -7824,10 +7824,10 @@ class coinfloor (Exchange):
             'id': self.market_id(symbol),
         })
 
-    async def fetch_order_book(self, symbol):
-        orderbook = await self.publicGetIdOrderBook({
+    async def fetch_order_book(self, symbol, params={}):
+        orderbook = await self.publicGetIdOrderBook(self.extend({
             'id': self.market_id(symbol),
-        })
+        }, params))
         return self.parse_order_book(orderbook)
 
     def parse_ticker(self, ticker, market):

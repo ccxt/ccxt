@@ -76,10 +76,10 @@ def dump(*args):
     print(' '.join([str(arg) for arg in args]))
 
 
-# print a n error string
+# print an error string
 def dump_error(*args):
     string = ' '.join([str(arg) for arg in args])
-    # print(string)
+    print(string)
     sys.stderr.write(string + "\n")
 
 
@@ -87,7 +87,7 @@ def dump_error(*args):
 
 
 def handle_all_unhandled_exceptions(type, value, traceback):
-    dump_error(yellow(str(type) + ' ' + value + '\n\n' + '\n'.join(format_tb(traceback))))
+    dump_error(yellow(type, value, '\n\n' + '\n'.join(format_tb(traceback))))
     _exit(1)  # unrecoverable crash
 
 
@@ -124,7 +124,7 @@ def test_ohlcv(exchange, symbol):
         ohlcvs = exchange.fetch_ohlcv(symbol)
         dump(green(exchange.id), 'fetched', green(len(ohlcvs)), 'OHLCVs')
     else:
-        dump(yellow(exchange.id), 'fetch_ohlcv() not supported')
+        dump(yellow(exchange.id), 'fetching OHLCV not supported')
 
 # ------------------------------------------------------------------------------
 
@@ -137,7 +137,7 @@ def test_tickers(exchange):
         tickers = exchange.fetch_tickers()
         dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
     else:
-        dump(yellow(exchange.id), 'fetch_tickers() not supported')
+        dump(yellow(exchange.id), 'fetching all tickers at once not supported')
 
 # ------------------------------------------------------------------------------
 
@@ -274,8 +274,9 @@ def test_exchange(exchange):
 def try_all_proxies(exchange, proxies):
     current_proxy = 0
     max_retries = len(proxies)
-    if exchange.proxy:
-        current_proxy = proxies.index(exchange.proxy)
+    # a special case for ccex
+    if exchange.id == 'ccex':
+        current_proxy = 1
     for num_retries in range(0, max_retries):
         try:
             exchange.proxy = proxies[current_proxy]
@@ -296,7 +297,6 @@ def try_all_proxies(exchange, proxies):
             dump_error(yellow('[' + type(e).__name__ + ']'), str(e))
         except ccxt.ExchangeError as e:
             dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
-
 
 # ------------------------------------------------------------------------------
 
@@ -357,7 +357,6 @@ def main():
                     dump(green(exchange.id), 'skipped')
                 else:
                     try_all_proxies(exchange, proxies)
-
 
 # ------------------------------------------------------------------------------
 

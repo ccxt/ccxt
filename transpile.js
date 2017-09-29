@@ -434,9 +434,33 @@ function copyFile (oldName, newName) {
 
 //-----------------------------------------------------------------------------
 
+function transpilePythonAsyncToSync (oldName, newName) {
+    log.magenta ('Transpiling ' + oldName.yellow + ' → ' + newName.yellow)
+    const fileContents = fs.readFileSync (oldName, 'utf8')
+    let lines = fileContents.split ("\n")
+
+    lines = lines.filter (line => ![ 'import asyncio' ].includes (line))
+                .map (line => {
+                    return (
+                        line.replace ('asyncio.get_event_loop().run_until_complete(main())', 'main()')
+                            .replace ('import ccxt.async as ccxt', 'import ccxt')
+                            .replace ('async ', '')
+                            .replace ('await ', ''))
+                })
+
+    // lines.forEach (line => log (line))
+
+    fs.truncateSync (newName)
+    fs.writeFileSync (newName, lines.join ('\n'))
+}
+
+//-----------------------------------------------------------------------------
+
 transpile ('./ccxt/exchanges.py',       './ccxt/exchanges.py',       python,      '#')
 transpile ('./ccxt/async/exchanges.py', './ccxt/async/exchanges.py', pythonAsync, '#')
 transpile ('./ccxt.php',                './build/ccxt.php',          php,         '//')
+
+transpilePythonAsyncToSync ('./test/test_async.py', './test/test.py')
 
 //-----------------------------------------------------------------------------
 

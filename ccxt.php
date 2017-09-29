@@ -1025,16 +1025,16 @@ class Exchange {
         return $this->fetch_balance ();
     }
 
-    public function fetchOrderBook ($symbol) {
-        return $this->fetch_order_book ($symbol);
+    public function fetchOrderBook ($symbol, $params = array ()) {
+        return $this->fetch_order_book ($symbol, $params);
     }
 
     public function fetchTicker ($symbol) {
         return $this->fetch_ticker ($symbol);
     }
 
-    public function fetchTrades ($symbol) {
-        return $this->fetch_trades ($symbol);
+    public function fetchTrades ($symbol, $params = array ()) {
+        return $this->fetch_trades ($symbol, $params);
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

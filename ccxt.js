@@ -9083,10 +9083,10 @@ var coinfloor = {
         });
     },
 
-    async fetchOrderBook (symbol) {
-        let orderbook = await this.publicGetIdOrderBook ({
+    async fetchOrderBook (symbol, params = {}) {
+        let orderbook = await this.publicGetIdOrderBook (this.extend ({
             'id': this.marketId (symbol),
-        });
+        }, params));
         return this.parseOrderBook (orderbook);
     },
 

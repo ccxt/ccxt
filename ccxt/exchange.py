@@ -815,14 +815,14 @@ class Exchange(object):
     def fetchTotalBalance(self, params={}):
         return self.fetch_total_balance(params)
 
-    def fetchOrderBook(self, symbol):
-        return self.fetch_order_book(symbol)
+    def fetchOrderBook(self, symbol, params={}):
+        return self.fetch_order_book(symbol, params)
 
     def fetchTicker(self, symbol):
         return self.fetch_ticker(symbol)
 
-    def fetchTrades(self, symbol):
-        return self.fetch_trades(symbol)
+    def fetchTrades(self, symbol, params={}):
+        return self.fetch_trades(symbol, params)
 
     def calculate_fee_rate(self, symbol, type, side, amount, price, fee='taker', params={}):
         return {
