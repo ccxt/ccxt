@@ -4644,6 +4644,7 @@ class bittrex (Exchange):
             'hasCORS': False,
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
+            'hasFetchOrder': True,
             'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
             'hasFetchMyTrades': False,
@@ -8933,6 +8934,7 @@ class cryptopia (Exchange):
             'rateLimit': 1500,
             'countries': 'NZ',  # New Zealand
             'hasFetchTickers': True,
+            # 'hasFetchMyTrades': True,
             'hasCORS': False,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
@@ -9052,8 +9054,14 @@ class cryptopia (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def parse_trade(self, trade, market):
-        timestamp = trade['Timestamp'] * 1000
+    def parse_trade(self, trade, market=None):
+        timestamp = None
+        if 'Timestamp' in trade:
+            timestamp = trade['Timestamp'] * 1000
+        elif 'TimeStamp' in trade:
+            timestamp = self.parse8601(trade['TimeStamp'])
+        # todo fee parsing
+        fee = None
         return {
             'id': None,
             'info': trade,
@@ -9064,6 +9072,7 @@ class cryptopia (Exchange):
             'side': trade['Type'].lower(),
             'price': trade['Price'],
             'amount': trade['Amount'],
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, params={}):
@@ -9075,6 +9084,18 @@ class cryptopia (Exchange):
         }, params))
         trades = response['Data']
         return self.parse_trades(trades, market)
+
+    def fetch_my_trades(self, symbol=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol')
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.privatePostGetTradeHistory(self.extend({
+            # 'Market': market['id'],
+            'TradePairId': market['id'],  # Cryptopia identifier(not required if 'Market' supplied)
+            # 'Count': 10,  # max = 100
+        }, params))
+        return self.parse_trades(response['Data'], market)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -12621,6 +12642,7 @@ class kraken (Exchange):
             'hasCORS': False,
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
+            'hasFetchOrder': True,
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
             'marketsByAltname': {},
@@ -13473,6 +13495,7 @@ class liqui (Exchange):
             'rateLimit': 2000,
             'version': '3',
             'hasCORS': False,
+            'hasFetchOrder': True,
             'hasFetchTickers': True,
             'hasFetchMyTrades': True,
             'urls': {
@@ -13695,7 +13718,7 @@ class liqui (Exchange):
 
     def cancel_order(self, id):
         self.load_markets()
-        return self.privatePostCancelOrder({'order_id': id})
+        return self.privatePostCancelOrder({'order_id': int(id)})
 
     def parse_order(self, order):
         statusCode = order['status']
@@ -13710,7 +13733,7 @@ class liqui (Exchange):
         market = self.markets_by_id[order['pair']]
         result = {
             'info': order,
-            'id': order['id'],
+            'id': str(order['id']),
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -15442,7 +15465,7 @@ class poloniex (Exchange):
         pair = market['id'] if market else 'all'
         request = self.extend({
             'currencyPair': pair,
-            'end': self.seconds(),  # last 50000 trades by default
+            # 'end': self.seconds(),  # last 50000 trades by default
         }, params)
         response = self.privatePostReturnTradeHistory(request)
         result = None

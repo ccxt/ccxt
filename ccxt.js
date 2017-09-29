@@ -10141,7 +10141,7 @@ var cryptopia = {
     'rateLimit': 1500,
     'countries': 'NZ', // New Zealand
     'hasFetchTickers': true,
-    'hasFetchMyTrades': true,
+    // 'hasFetchMyTrades': true,
     'hasCORS': false,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
@@ -10266,14 +10266,20 @@ var cryptopia = {
     },
 
     parseTrade (trade, market = undefined) {
-        console.log (trade);
-        process.exit ();
         let timestamp = undefined;
         if ('Timestamp' in trade) {
             timestamp = trade['Timestamp'] * 1000;
         } else if ('TimeStamp' in trade) {
             timestamp = this.parse8601 (trade['TimeStamp']);
         }
+        let price = undefined;
+        let cost = undefined;
+        if ('Price' in trade) {
+            price = trade['Price'];
+        } else if ('Rate' in trade) {
+            price = trade['Rate'];
+        }
+        // todo fee parsing
         let fee = undefined;
         return {
             'id': undefined,
@@ -10283,7 +10289,8 @@ var cryptopia = {
             'symbol': market['symbol'],
             'type': undefined,
             'side': trade['Type'].toLowerCase (),
-            'price': trade['Price'],
+            'price': price,
+            'cost': cost,
             'amount': trade['Amount'],
             'fee': fee,
         };
@@ -16714,6 +16721,7 @@ var poloniex = {
     'countries': 'US',
     'rateLimit': 500, // up to 6 calls per second
     'hasCORS': true,
+    'hasFetchMyTrades': true,
     'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
@@ -16915,7 +16923,7 @@ var poloniex = {
             'symbol': symbol,
             'id': id,
             'order': order,
-            'type': undefined,
+            'type': 'limit',
             'side': trade['type'],
             'price': parseFloat (trade['rate']),
             'amount': parseFloat (trade['amount']),
@@ -16940,7 +16948,7 @@ var poloniex = {
         let pair = market ? market['id'] : 'all';
         let request = this.extend ({
             'currencyPair': pair,
-            'end': this.seconds (), // last 50000 trades by default
+            // 'end': this.seconds (), // last 50000 trades by default
         }, params);
         let response = await this.privatePostReturnTradeHistory (request);
         let result = undefined;

@@ -5990,6 +5990,7 @@ class bittrex extends Exchange {
             'hasCORS' => false,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
+            'hasFetchOrder' => true,
             'hasFetchOrders' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchMyTrades' => false,
@@ -10546,6 +10547,7 @@ class cryptopia extends Exchange {
             'rateLimit' => 1500,
             'countries' => 'NZ', // New Zealand
             'hasFetchTickers' => true,
+            // 'hasFetchMyTrades' => true,
             'hasCORS' => false,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
@@ -10671,8 +10673,15 @@ class cryptopia extends Exchange {
         return $result;
     }
 
-    public function parse_trade ($trade, $market) {
-        $timestamp = $trade['Timestamp'] * 1000;
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = null;
+        if (array_key_exists ('Timestamp', $trade)) {
+            $timestamp = $trade['Timestamp'] * 1000;
+        } else if (array_key_exists ('TimeStamp', $trade)) {
+            $timestamp = $this->parse8601 ($trade['TimeStamp']);
+        }
+        // todo $fee parsing
+        $fee = null;
         return array (
             'id' => null,
             'info' => $trade,
@@ -10683,6 +10692,7 @@ class cryptopia extends Exchange {
             'side' => strtolower ($trade['Type']),
             'price' => $trade['Price'],
             'amount' => $trade['Amount'],
+            'fee' => $fee,
         );
     }
 
@@ -10695,6 +10705,19 @@ class cryptopia extends Exchange {
         ), $params));
         $trades = $response['Data'];
         return $this->parse_trades ($trades, $market);
+    }
+
+    public function fetch_my_trades ($symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchMyTrades requires a symbol');
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $response = $this->privatePostGetTradeHistory (array_merge (array (
+            // 'Market' => $market['id'],
+            'TradePairId' => $market['id'], // Cryptopia identifier (not required if 'Market' supplied)
+            // 'Count' => 10, // max = 100
+        ), $params));
+        return $this->parse_trades ($response['Data'], $market);
     }
 
     public function fetch_balance ($params = array ()) {
@@ -14451,6 +14474,7 @@ class kraken extends Exchange {
             'hasCORS' => false,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
+            'hasFetchOrder' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchClosedOrders' => true,
             'marketsByAltname' => array (),
@@ -15360,6 +15384,7 @@ class liqui extends Exchange {
             'rateLimit' => 2000,
             'version' => '3',
             'hasCORS' => false,
+            'hasFetchOrder' => true,
             'hasFetchTickers' => true,
             'hasFetchMyTrades' => true,
             'urls' => array (
@@ -15596,7 +15621,7 @@ class liqui extends Exchange {
 
     public function cancel_order ($id) {
         $this->load_markets ();
-        return $this->privatePostCancelOrder (array ( 'order_id' => $id ));
+        return $this->privatePostCancelOrder (array ( 'order_id' => intval ($id) ));
     }
 
     public function parse_order ($order) {
@@ -15613,7 +15638,7 @@ class liqui extends Exchange {
         $market = $this->markets_by_id[$order['pair']];
         $result = array (
             'info' => $order,
-            'id' => $order['id'],
+            'id' => (string) $order['id'],
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -17453,7 +17478,7 @@ class poloniex extends Exchange {
         $pair = $market ? $market['id'] : 'all';
         $request = array_merge (array (
             'currencyPair' => $pair,
-            'end' => $this->seconds (), // last 50000 trades by default
+            // 'end' => $this->seconds (), // last 50000 trades by default
         ), $params);
         $response = $this->privatePostReturnTradeHistory ($request);
         $result = null;
