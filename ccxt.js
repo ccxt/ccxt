@@ -871,7 +871,7 @@ const Exchange = function (config) {
     this.id              = undefined
     this.enableRateLimit = false
     this.rateLimit       = 2000  // milliseconds = seconds * 1000
-    this.timeout         = 10000 // milliseconds = seconds * 1000
+    this.timeout         = 10000 // milliseconds
     this.verbose         = false
     this.userAgent       = false
     this.twofa           = false // two-factor authentication
@@ -10142,6 +10142,7 @@ var cryptopia = {
     'rateLimit': 1500,
     'countries': 'NZ', // New Zealand
     'hasFetchTickers': true,
+    'hasFetchOpenOrders': true,
     'hasFetchMyTrades': true,
     'hasCORS': false,
     'urls': {
@@ -14911,6 +14912,7 @@ var liqui = {
     'version': '3',
     'hasCORS': false,
     'hasFetchOrder': true,
+    'hasFetchOpenOrders': true,
     'hasFetchTickers': true,
     'hasFetchMyTrades': true,
     'urls': {
@@ -16750,6 +16752,8 @@ var poloniex = {
     'rateLimit': 500, // up to 6 calls per second
     'hasCORS': true,
     'hasFetchMyTrades': true,
+    'hasFetchOrder': true,
+    'hasFetchOpenOrders': true,
     'hasFetchTickers': true,
     'urls': {
         'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
