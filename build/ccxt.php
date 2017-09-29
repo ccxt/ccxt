@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.73';
+$version = '1.8.74';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -17487,21 +17487,23 @@ class poloniex extends Exchange {
         $pair = $market ? $market['id'] : 'all';
         $request = array_merge (array (
             'currencyPair' => $pair,
-            // 'end' => $this->seconds (), // last 50000 trades by default
+            // 'end' => $this->seconds (), // last 50000 $trades by default
         ), $params);
         $response = $this->privatePostReturnTradeHistory ($request);
-        $result = null;
+        $result = array ();
         if ($market) {
             $result = $this->parse_trades ($response, $market);
         } else {
-            $result = array ( 'info' => $response );
             if ($response) {
                 $ids = array_keys ($response);
                 for ($i = 0; $i < count ($ids); $i++) {
                     $id = $ids[$i];
                     $market = $this->markets_by_id[$id];
                     $symbol = $market['symbol'];
-                    $result[$symbol] = $this->parse_trades ($response[$id], $market);
+                    $trades = $this->parse_trades ($response[$id], $market);
+                    for ($j = 0; $j < count ($trades); $j++) {
+                        $result[] = $trades[$j];
+                    }
                 }
             }
         }

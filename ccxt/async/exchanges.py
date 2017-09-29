@@ -15385,18 +15385,19 @@ class poloniex (Exchange):
             # 'end': self.seconds(),  # last 50000 trades by default
         }, params)
         response = await self.privatePostReturnTradeHistory(request)
-        result = None
+        result = []
         if market:
             result = self.parse_trades(response, market)
         else:
-            result = {'info': response}
             if response:
                 ids = list(response.keys())
                 for i in range(0, len(ids)):
                     id = ids[i]
                     market = self.markets_by_id[id]
                     symbol = market['symbol']
-                    result[symbol] = self.parse_trades(response[id], market)
+                    trades = self.parse_trades(response[id], market)
+                    for j in range(0, len(trades)):
+                        result.append(trades[j])
         return result
 
     def parse_order(self, order, market):
