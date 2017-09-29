@@ -754,7 +754,7 @@ const Exchange = function (config) {
         return Object.values (bidasks).map (bidask => this.parseBidAsk (bidask, priceKey, amountKey))
     }
 
-    this.fetchAggregatedOrderBook = async function (symbol, params = {}) {
+    this.fetchL2OrderBook = async function (symbol, params = {}) {
         let orderbook = await this.fetchOrderBook (symbol, params)
         return extend (orderbook, {
             'bids': sortBy (aggregate (orderbook.bids), 0, true),
@@ -933,7 +933,7 @@ const Exchange = function (config) {
     this.fetch_free_balance          = this.fetchFreeBalance
     this.fetch_used_balance          = this.fetchUsedBalance
     this.fetch_total_balance         = this.fetchTotalBalance
-    this.fetch_aggregated_order_book = this.fetchAggregatedOrderBook
+    this.fetch_l2_order_book         = this.fetchL2OrderBook
     this.fetch_order_book            = this.fetchOrderBook
     this.fetch_tickers               = this.fetchTickers
     this.fetch_ticker                = this.fetchTicker

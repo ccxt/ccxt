@@ -104,7 +104,7 @@ while (exchanges = regex.exec (contents)) {
                         // .replace ('fetchCategories',       'fetch_categories')
                         .replace ('loadMarkets',              'load_markets')
                         .replace ('fetchMarkets',             'fetch_markets')
-                        .replace ('fetchAggregatedOrderBook', 'fetch_aggregated_order_book')
+                        .replace ('fetchL2OrderBook',         'fetch_l2_order_book')
                         .replace ('fetchOrderBook',           'fetch_order_book')
                         .replace ('fetchOHLCV',               'fetch_ohlcv')
                         .replace ('parseOHLCVs',              'parse_ohlcvs')
@@ -189,7 +189,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.sortBy\s/g, '.sort_by'],
             [ /\.marketIds\s/g, '.market_ids'],
             [ /\.marketId\s/g, '.market_id'],
-            [ /\.fetchAggregatedOrderBook\s/g, '.fetch_aggregated_order_book'],
+            [ /\.fetchL2OrderBook\s/g, '.fetch_l2_order_book'],
             [ /\.fetchOrderBook\s/g, '.fetch_order_book'],
             [ /\.fetchMyTrades\s/g, '.fetch_my_trades'],
             [ /\.fetchOrderStatus\s/g, '.fetch_order_status'],
@@ -295,7 +295,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.sortBy/g, '.sort_by'],
             [ /\.marketIds/g, '.market_ids'],
             [ /\.marketId/g, '.market_id'],
-            [ /\.fetchAggregatedOrderBook/g, '.fetch_aggregated_order_book'],
+            [ /\.fetchL2OrderBook/g, '.fetch_l2_order_book'],
             [ /\.fetchOrderBook/g, '.fetch_order_book'],
             [ /\.fetchMyTrades/g, '.fetch_my_trades'],
             [ /\.fetchOrderStatus/g, '.fetch_order_status'],

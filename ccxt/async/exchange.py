@@ -118,7 +118,7 @@ class Exchange (BaseExchange):
         balance = await self.fetch_balance(params)
         return balance[part]
 
-    async def fetch_aggregated_order_book(self, symbol, params={}):
+    async def fetch_l2_order_book(self, symbol, params={}):
         orderbook = await self.fetch_order_book(symbol, params)
         return self.extend(orderbook, {
             'bids': self.sort_by(self.aggregate(orderbook['bids']), 0, True),
