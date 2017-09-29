@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.69';
+$version = '1.8.70';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -861,7 +861,7 @@ class Exchange {
         return $this->parse_bidasks ($bidasks, $price_key, $amount_key);
     }
 
-    public function fetch_aggregated_order_book ($symbol, $params = array ()) {
+    public function fetch_l2_order_book ($symbol, $params = array ()) {
         $orderbook = $this->fetch_order_book ($symbol, $params);
         return $this->extend ($orderbook, array (
             'bids' => $this->sort_by ($this->aggregate ($orderbook['bids']), 0, true),
@@ -869,8 +869,8 @@ class Exchange {
         ));
     }
 
-    public function fetchAggregatedOrderBook ($symbol, $params = array ()) {
-        return $this->fetch_aggregated_order_book ($symbol, $params);
+    public function fetchL2OrderBook ($symbol, $params = array ()) {
+        return $this->fetch_l2_order_book ($symbol, $params);
     }
 
     public function parse_order_book ($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
