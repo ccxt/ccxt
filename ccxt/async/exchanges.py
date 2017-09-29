@@ -197,7 +197,7 @@ class _1broker (Exchange):
             'resolution': 60,
             'limit': 1,
         })
-        orderbook = await self.fetchOrderBook(symbol)
+        orderbook = await self.fetch_order_book(symbol)
         ticker = result['response'][0]
         timestamp = self.parse8601(ticker['date'])
         return {
@@ -6129,7 +6129,7 @@ class btctradeua (Exchange):
         response = await self.publicGetJapanStatHighSymbol({
             'symbol': self.market_id(symbol),
         })
-        orderbook = await self.fetchOrderBook(symbol)
+        orderbook = await self.fetch_order_book(symbol)
         bid = None
         numBids = len(orderbook['bids'])
         if numBids > 0:

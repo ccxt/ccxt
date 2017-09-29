@@ -288,7 +288,7 @@ class _1broker (Exchange):
             'resolution': 60,
             'limit': 1,
         })
-        orderbook = self.fetchOrderBook(symbol)
+        orderbook = self.fetch_order_book(symbol)
         ticker = result['response'][0]
         timestamp = self.parse8601(ticker['date'])
         return {
@@ -6220,7 +6220,7 @@ class btctradeua (Exchange):
         response = self.publicGetJapanStatHighSymbol({
             'symbol': self.market_id(symbol),
         })
-        orderbook = self.fetchOrderBook(symbol)
+        orderbook = self.fetch_order_book(symbol)
         bid = None
         numBids = len(orderbook['bids'])
         if numBids > 0:

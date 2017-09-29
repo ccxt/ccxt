@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.68';
+$version = '1.8.69';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -861,6 +861,18 @@ class Exchange {
         return $this->parse_bidasks ($bidasks, $price_key, $amount_key);
     }
 
+    public function fetch_aggregated_order_book ($symbol, $params = array ()) {
+        $orderbook = $this->fetch_order_book ($symbol, $params);
+        return $this->extend ($orderbook, array (
+            'bids' => $this->sort_by ($this->aggregate ($orderbook['bids']), 0, true),
+            'asks' => $this->sort_by ($this->aggregate ($orderbook['asks']), 0),
+        ));
+    }
+
+    public function fetchAggregatedOrderBook ($symbol, $params = array ()) {
+        return $this->fetch_aggregated_order_book ($symbol, $params);
+    }
+
     public function parse_order_book ($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
         $timestamp = $timestamp ? $timestamp : $this->milliseconds ();
         return array (
@@ -1342,7 +1354,7 @@ class _1broker extends Exchange {
             'resolution' => 60,
             'limit' => 1,
         ));
-        $orderbook = $this->fetch_orderBook ($symbol);
+        $orderbook = $this->fetch_order_book ($symbol);
         $ticker = $result['response'][0];
         $timestamp = $this->parse8601 ($ticker['date']);
         return array (
@@ -7658,7 +7670,7 @@ class btctradeua extends Exchange {
         $response = $this->publicGetJapanStatHighSymbol (array (
             'symbol' => $this->market_id ($symbol),
         ));
-        $orderbook = $this->fetch_orderBook ($symbol);
+        $orderbook = $this->fetch_order_book ($symbol);
         $bid = null;
         $numBids = count ($orderbook['bids']);
         if ($numBids > 0)
