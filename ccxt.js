@@ -16951,18 +16951,20 @@ var poloniex = {
             // 'end': this.seconds (), // last 50000 trades by default
         }, params);
         let response = await this.privatePostReturnTradeHistory (request);
-        let result = undefined;
+        let result = [];
         if (market) {
             result = this.parseTrades (response, market);
         } else {
-            result = { 'info': response };
             if (response) {
                 let ids = Object.keys (response);
                 for (let i = 0; i < ids.length; i++) {
                     let id = ids[i];
                     let market = this.markets_by_id[id];
                     let symbol = market['symbol'];
-                    result[symbol] = this.parseTrades (response[id], market);
+                    let parsedTrades = this.parseTrades (response[id], market);
+                    for (let j = 0; j < parseTrades.length; j++) {
+                        result.push (parsedTrades[j]);
+                    }
                 }
             }
         }
