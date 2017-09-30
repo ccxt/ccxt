@@ -12520,7 +12520,7 @@ var hitbtc = {
         };
     },
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + 'api' + '/' + this.version + '/' + api + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api == 'public') {
@@ -12540,7 +12540,11 @@ var hitbtc = {
             };
         }
         url = this.urls['api'] + url;
-        let response = await this.fetch (url, method, headers, body);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('code' in response) {
             if ('ExecutionReport' in response) {
                 if (response['ExecutionReport']['orderRejectReason'] == 'orderExceedsLimit')
