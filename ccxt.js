@@ -11998,7 +11998,7 @@ var gdax = {
         throw new ExchangeError (this.id + " withdraw requires a 'payment_method_id' parameter");
     },
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         let url = this.urls['api'] + request;
         let query = this.omit (params, this.extractParams (path));
@@ -12026,7 +12026,11 @@ var gdax = {
                 'Content-Type': 'application/json',
             };
         }
-        let response = await this.fetch (url, method, headers, body);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('message' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
@@ -12202,7 +12206,7 @@ var gemini = {
         return await this.privatePostCancelOrder ({ 'order_id': id });
     },
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api == 'public') {
@@ -12225,7 +12229,11 @@ var gemini = {
             };
         }
         url = this.urls['api'] + url;
-        let response = await this.fetch (url, method, headers, body);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('result' in response)
             if (response['result'] == 'error')
                 throw new ExchangeError (this.id + ' ' + this.json (response));
