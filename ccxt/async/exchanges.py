@@ -4897,7 +4897,7 @@ class bittrex (Exchange):
             'id': response['result']['uuid'],
         }
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/'
         if api != 'v2':
             url += self.version + '/'
@@ -4920,7 +4920,10 @@ class bittrex (Exchange):
             }, params))
             signature = self.hmac(self.encode(url), self.encode(self.secret), hashlib.sha512)
             headers = {'apisign': signature}
-        response = await self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
         if 'success' in response:
             if response['success']:
                 return response
@@ -12972,7 +12975,7 @@ class kraken (Exchange):
         response = await self.privatePostClosedOrders(params)
         return self.parse_orders(response['result']['closed'], market)
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.version + '/' + api + '/' + path
         if api == 'public':
             if params:
@@ -12992,7 +12995,10 @@ class kraken (Exchange):
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
         url = self.urls['api'] + url
-        response = await self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
         if 'error' in response:
             numErrors = len(response['error'])
             if numErrors:
@@ -13756,7 +13762,7 @@ class liqui (Exchange):
             'id': response['return']['tId'],
         }
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -13775,7 +13781,10 @@ class liqui (Exchange):
                 'Key': self.apiKey,
                 'Sign': signature,
             }
-        response = await self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
         if 'success' in response:
             if not response['success']:
                 raise ExchangeError(self.id + ' ' + self.json(response))
@@ -15550,7 +15559,7 @@ class poloniex (Exchange):
             'id': result['response'],
         }
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         query = self.extend({'command': path}, params)
         if api == 'public':
@@ -15563,7 +15572,10 @@ class poloniex (Exchange):
                 'Key': self.apiKey,
                 'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
-        response = await self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
         if 'error' in response:
             error = self.id + ' ' + self.json(response)
             failed = response['error'].find('Not enough') >= 0
