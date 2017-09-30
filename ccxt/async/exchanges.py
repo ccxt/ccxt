@@ -9130,7 +9130,7 @@ class cryptopia (Exchange):
             'id': response['Data'],
         }
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -9150,7 +9150,10 @@ class cryptopia (Exchange):
                 'Content-Type': 'application/json',
                 'Authorization': auth,
             }
-        response = await self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
         if response:
             if 'Success' in response:
                 if response['Success']:
