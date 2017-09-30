@@ -9218,13 +9218,6 @@ var coinfloor = {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     },
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('errors' in response)
-            throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;
-    },
-
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         return this.fetch2 (path, api, method, params, headers, body);
     },
