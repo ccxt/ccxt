@@ -5894,7 +5894,7 @@ class btcmarkets (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         uri = '/' + self.implode_params(path, params)
         url = self.urls['api'] + uri
         query = self.omit(params, self.extract_params(path))
@@ -5915,7 +5915,10 @@ class btcmarkets (Exchange):
             secret = base64.b64decode(self.secret)
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
             headers['signature'] = self.decode(signature)
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if api == 'private':
             if 'success' in response:
                 if not response['success']:
@@ -6081,7 +6084,7 @@ class btctrader (Exchange):
     def cancel_order(self, id):
         return self.privatePostCancelOrder({'id': id})
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if self.id == 'btctrader':
             raise ExchangeError(self.id + ' is an abstract base API for BTCExchange, BTCTurk')
         url = self.urls['api'] + '/' + path
@@ -6099,7 +6102,10 @@ class btctrader (Exchange):
                 'X-Signature': self.hmac(self.encode(auth), secret, hashlib.sha256, 'base64'),
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        return self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        return self.fetch2(path, api, method, params, headers, body)
 
 # -----------------------------------------------------------------------------
 
@@ -6316,7 +6322,7 @@ class btctradeua (Exchange):
     def cancel_order(self, id):
         return self.privatePostRemoveOrderId({'id': id})
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -6334,7 +6340,10 @@ class btctradeua (Exchange):
                 'api-sign': self.hash(self.encode(auth), 'sha256'),
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        return self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        return self.fetch2(path, api, method, params, headers, body)
 
 # -----------------------------------------------------------------------------
 
@@ -6493,7 +6502,7 @@ class btcx (Exchange):
     def cancel_order(self, id):
         return self.privatePostCancel({'order': id})
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/'
         if api == 'public':
             url += self.implode_params(path, params)
@@ -6509,7 +6518,10 @@ class btcx (Exchange):
                 'Key': self.apiKey,
                 'Signature': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if 'error' in response:
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
@@ -6713,7 +6725,7 @@ class bter (Exchange):
         self.load_markets()
         return self.privatePostCancelOrder({'orderNumber': id})
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         prefix = (api + '/') if (api == 'private') else ''
         url = self.urls['api'][api] + self.version + '/1/' + prefix + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -6730,7 +6742,10 @@ class bter (Exchange):
                 'Sign': signature,
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if 'result' in response:
             if response['result'] != 'true':
                 raise ExchangeError(self.id + ' ' + self.json(response))
@@ -6937,7 +6952,7 @@ class bxinth (Exchange):
             'pairing': pairing,
         })
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/'
         if path:
             url += path + '/'
@@ -6956,7 +6971,10 @@ class bxinth (Exchange):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if api == 'public':
             return response
         if 'success' in response:
@@ -7161,7 +7179,7 @@ class ccex (Exchange):
         self.load_markets()
         return self.privateGetCancel({'uuid': id})
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         if api == 'private':
             nonce = str(self.nonce())
@@ -7178,7 +7196,10 @@ class ccex (Exchange):
             }, params))
         else:
             url += '/' + self.implode_params(path, params) + '.json'
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if api == 'tickers':
             return response
         if 'success' in response:
@@ -7387,7 +7408,7 @@ class cex (Exchange):
         self.load_markets()
         return self.privatePostCancelOrder({'id': id})
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -7407,7 +7428,10 @@ class cex (Exchange):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if 'e' in response:
             if 'ok' in response:
                 if response['ok'] == 'ok':
@@ -7599,7 +7623,7 @@ class chbtc (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         if api == 'public':
             url += '/' + self.version + '/' + path
@@ -7615,7 +7639,10 @@ class chbtc (Exchange):
             signature = self.hmac(self.encode(auth), self.encode(secret), hashlib.md5)
             suffix = 'sign=' + signature + '&reqTime=' + str(nonce)
             url += '/' + path + '?' + auth + '&' + suffix
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if api == 'private':
             if 'code' in response:
                 raise ExchangeError(self.id + ' ' + self.json(response))
@@ -7831,7 +7858,7 @@ class coincheck (Exchange):
     def cancel_order(self, id):
         return self.privateDeleteExchangeOrdersId({'id': id})
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -7848,7 +7875,10 @@ class coincheck (Exchange):
                 'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': self.hmac(self.encode(auth), self.encode(self.secret)),
             }
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if api == 'public':
             return response
         if 'success' in response:
@@ -7996,7 +8026,7 @@ class coinfloor (Exchange):
     def cancel_order(self, id):
         return self.privatePostIdCancelOrder({'id': id})
 
-    def request(self, path, type='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         # curl -k -u '[User ID]/[API key]:[Passphrase]' https://webapi.coinfloor.co.uk:8090/bist/XBT/GBP/balance/
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -8012,7 +8042,10 @@ class coinfloor (Exchange):
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Authorization': 'Basic ' + signature,
             }
-        return self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, type='public', method='GET', params={}, headers=None, body=None):
+        return self.fetch2(path, api, method, params, headers, body)
 
 # -----------------------------------------------------------------------------
 
@@ -8177,7 +8210,7 @@ class coingi (Exchange):
     def cancel_order(self, id):
         return self.userPostCancelOrder({'orderId': id})
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + api + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'current':
@@ -8195,7 +8228,10 @@ class coingi (Exchange):
             headers = {
                 'Content-Type': 'application/json',
             }
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if 'errors' in response:
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
@@ -8509,7 +8545,7 @@ class coinmate (Exchange):
     def cancel_order(self, id):
         return self.privatePostCancelOrder({'orderId': id})
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + path
         if api == 'public':
             if params:
@@ -8529,7 +8565,10 @@ class coinmate (Exchange):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if 'error' in response:
             if response['error']:
                 raise ExchangeError(self.id + ' ' + self.json(response))
@@ -8773,7 +8812,7 @@ class coinsecure (Exchange):
         method = 'privateDeleteUserExchangeAskCancelOrderId'  # TODO fixme, have to specify order side here
         return getattr(self, method)({'orderID': id})
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
@@ -8781,7 +8820,10 @@ class coinsecure (Exchange):
             if query:
                 body = self.json(query)
                 headers['Content-Type'] = 'application/json'
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if 'success' in response:
             if response['success']:
                 return response
@@ -8916,7 +8958,7 @@ class coinspot (Exchange):
         method = 'privatePostMyBuy'
         return getattr(self, method)({'id': id})
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if not self.apiKey:
             raise AuthenticationError(self.id + ' requires apiKey for all requests')
         url = self.urls['api'][api] + '/' + path
@@ -8928,7 +8970,10 @@ class coinspot (Exchange):
                 'key': self.apiKey,
                 'sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
-        return self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        return self.fetch2(path, api, method, params, headers, body)
 
 # -----------------------------------------------------------------------------
 
@@ -9422,7 +9467,7 @@ class dsx (Exchange):
         self.load_markets()
         return self.tapiPostCancelOrder({'orderId': id})
 
-    def request(self, path, api='mapi', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         if (api == 'mapi') or (api == 'dwapi'):
             url += '/' + self.implode_params(path, params)
@@ -9442,7 +9487,10 @@ class dsx (Exchange):
                 'Key': self.apiKey,
                 'Sign': self.decode(signature),
             }
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='mapi', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if api == 'mapi':
             return response
         if 'success' in response:
@@ -9645,7 +9693,7 @@ class exmo (Exchange):
             'id': result['task_id'],
         }
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
             if params:
@@ -9658,7 +9706,10 @@ class exmo (Exchange):
                 'Key': self.apiKey,
                 'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if 'result' in response:
             if response['result']:
                 return response
@@ -9837,7 +9888,7 @@ class flowbtc (Exchange):
             }, params))
         raise ExchangeError(self.id + ' requires `ins` symbol parameter for cancelling an order')
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
             if params:
@@ -9856,7 +9907,10 @@ class flowbtc (Exchange):
             headers = {
                 'Content-Type': 'application/json',
             }
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if 'isAccepted' in response:
             if response['isAccepted']:
                 return response
@@ -10011,7 +10065,7 @@ class fyb (Exchange):
     def cancel_order(self, id):
         return self.privatePostCancelpendingorder({'orderNo': id})
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + path
         if api == 'public':
             url += '.json'
@@ -10023,7 +10077,10 @@ class fyb (Exchange):
                 'key': self.apiKey,
                 'sig': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha1)
             }
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if api == 'private':
             if 'error' in response:
                 if response['error']:
@@ -10422,7 +10479,7 @@ class gatecoin (Exchange):
         self.load_markets()
         return self.privateDeleteTradeOrdersOrderID({'OrderID': id})
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -10442,7 +10499,10 @@ class gatecoin (Exchange):
             if method != 'GET':
                 headers['Content-Type'] = contentType
                 body = self.json(self.extend({'nonce': nonce}, params))
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if 'responseStatus' in response:
             if 'message' in response['responseStatus']:
                 if response['responseStatus']['message'] == 'OK':
@@ -10701,7 +10761,7 @@ class gdax (Exchange):
             }
         raise ExchangeError(self.id + " withdraw requires a 'payment_method_id' parameter")
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + self.implode_params(path, params)
         url = self.urls['api'] + request
         query = self.omit(params, self.extract_params(path))
@@ -10728,7 +10788,10 @@ class gdax (Exchange):
                 'CB-ACCESS-PASSPHRASE': self.password,
                 'Content-Type': 'application/json',
             }
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if 'message' in response:
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
@@ -10899,7 +10962,7 @@ class gemini (Exchange):
         self.load_markets()
         return self.privatePostCancelOrder({'order_id': id})
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -10921,7 +10984,10 @@ class gemini (Exchange):
                 'X-GEMINI-SIGNATURE': signature,
             }
         url = self.urls['api'] + url
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if 'result' in response:
             if response['result'] == 'error':
                 raise ExchangeError(self.id + ' ' + self.json(response))
@@ -11203,7 +11269,7 @@ class hitbtc (Exchange):
             'id': response['transaction'],
         }
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + 'api' + '/' + self.version + '/' + api + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -11222,7 +11288,10 @@ class hitbtc (Exchange):
                 'X-Signature': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512).lower(),
             }
         url = self.urls['api'] + url
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if 'code' in response:
             if 'ExecutionReport' in response:
                 if response['ExecutionReport']['orderRejectReason'] == 'orderExceedsLimit':
@@ -11458,7 +11527,7 @@ class hitbtc2 (hitbtc):
             'id': response['id'],
         }
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/api' + '/' + self.version + '/'
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -11477,7 +11546,10 @@ class hitbtc2 (hitbtc):
                 'Content-Type': 'application/json',
             }
         url = self.urls['api'] + url
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if 'error' in response:
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response

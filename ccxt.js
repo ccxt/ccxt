@@ -9258,7 +9258,7 @@ var coinfloor = {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     },
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         return this.fetch2 (path, api, method, params, headers, body);
     },
 }
