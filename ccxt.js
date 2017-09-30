@@ -18315,7 +18315,7 @@ var vaultoro = {
         }, params));
     },
 
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/';
         if (api == 'public') {
             url += path;
@@ -18332,7 +18332,11 @@ var vaultoro = {
                 'X-Signature': this.hmac (this.encode (url), this.encode (this.secret))
             };
         }
-        return this.fetch (url, method, headers, body);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    },
+
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
     },
 }
 
