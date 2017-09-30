@@ -7635,7 +7635,7 @@ var btcx = {
         return await this.privatePostCancel ({ 'order': id });
     },
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/';
         if (api == 'public') {
             url += this.implodeParams (path, params);
@@ -7652,7 +7652,11 @@ var btcx = {
                 'Signature': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
-        let response = await this.fetch (url, method, headers, body);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('error' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
