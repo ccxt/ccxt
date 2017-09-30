@@ -614,7 +614,7 @@ class Exchange {
         $elapsed = $now - $this->lastRestRequestTimestamp;
         if ($elapsed < $this->rateLimit) {
             $delay = $this->rateLimit - $elapsed;
-            usleep (delay * 1000.0);
+            usleep ($delay * 1000.0);
         }
     }
 
@@ -698,6 +698,8 @@ class Exchange {
             var_dump ($url, $method, $url, "\nRequest:\n", $verbose_headers, $body);
 
         $result = curl_exec ($this->curl);
+        
+        $this->lastRestRequestTimestamp = $this->milliseconds();
 
         if ($result === false) {
 
