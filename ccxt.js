@@ -7217,7 +7217,7 @@ var btctrader = {
         return await this.privatePostCancelOrder ({ 'id': id });
     },
 
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (this.id == 'btctrader')
             throw new ExchangeError (this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         let url = this.urls['api'] + '/' + path;
@@ -7236,7 +7236,11 @@ var btctrader = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        return this.fetch (url, method, headers, body);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    },
+
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        return this.fetch2 (path, api, method, params, headers, body);
     },
 }
 
