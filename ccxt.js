@@ -15294,7 +15294,7 @@ var liqui = {
         };
     },
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         let query = this.omit (params, this.extractParams (path));
         if (api == 'public') {
@@ -15314,7 +15314,11 @@ var liqui = {
                 'Sign': signature,
             };
         }
-        let response = await this.fetch (url, method, headers, body);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('success' in response)
             if (!response['success'])
                 throw new ExchangeError (this.id + ' ' + this.json (response));
