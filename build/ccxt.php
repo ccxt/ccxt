@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.81';
+$version = '1.8.82';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -4162,6 +4162,7 @@ class bithumb extends Exchange {
                 'XRP/KRW' => array ( 'id' => 'XRP', 'symbol' => 'XRP/KRW', 'base' => 'XRP', 'quote' => 'KRW' ),
                 'BCH/KRW' => array ( 'id' => 'BCH', 'symbol' => 'BCH/KRW', 'base' => 'BCH', 'quote' => 'KRW' ),
                 'XMR/KRW' => array ( 'id' => 'XMR', 'symbol' => 'XMR/KRW', 'base' => 'XMR', 'quote' => 'KRW' ),
+                'ZEC/KRW' => array ( 'id' => 'ZEC', 'symbol' => 'ZEC/KRW', 'base' => 'ZEC', 'quote' => 'KRW' ),
                 'DASH/KRW' => array ( 'id' => 'DASH', 'symbol' => 'DASH/KRW', 'base' => 'DASH', 'quote' => 'KRW' ),
             ),
         ), $options));
