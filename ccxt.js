@@ -573,6 +573,10 @@ const Exchange = function (config) {
         return this.fetch (request.url, request.method, request.headers, request.body)
     }
 
+    this.request = function (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        return this.fetch2 (path, api, method, params, headers, body);
+    }
+
     this.handleRestErrors = function (response, url, method = 'GET', headers = undefined, body = undefined) {
 
         if (typeof response == 'string')
@@ -2582,10 +2586,6 @@ var bit2c = {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     },
-
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body);
-    },
 }
 
 //-----------------------------------------------------------------------------
@@ -2791,10 +2791,6 @@ var bitbay = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
-
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body);
     },
 }
 
@@ -3879,10 +3875,6 @@ var bitflyer = {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     },
-
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body);
-    },
 }
 
 //-----------------------------------------------------------------------------
@@ -4402,10 +4394,6 @@ var bitlish = {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     },
-
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body);
-    },
 }
 
 //-----------------------------------------------------------------------------
@@ -4691,10 +4679,6 @@ var bitmarket = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
-
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body);
     },
 }
 
@@ -5055,10 +5039,6 @@ var bitmex = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
-
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body);
     },
 }
 
@@ -6550,10 +6530,6 @@ var bl3p = {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     },
-
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body);
-    },
 }
 
 //-----------------------------------------------------------------------------
@@ -6915,10 +6891,6 @@ var btcchina = {
                 url += '?' + this.urlencode (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
-
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body);
     },
 }
 
@@ -7322,10 +7294,6 @@ var btctrader = {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     },
-
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body);
-    },
 }
 
 //-----------------------------------------------------------------------------
@@ -7566,10 +7534,6 @@ var btctradeua = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
-
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body);
     },
 }
 
@@ -9337,10 +9301,6 @@ var coinfloor = {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     },
-
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body);
-    },
 }
 
 //-----------------------------------------------------------------------------
@@ -10299,10 +10259,6 @@ var coinspot = {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
-
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body);
     },
 }
 
@@ -18579,10 +18535,6 @@ var vaultoro = {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     },
-
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body);
-    },
 }
 
 //-----------------------------------------------------------------------------
@@ -19228,10 +19180,6 @@ var xbtce = {
             headers['Authorization'] = 'HMAC ' + credentials;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    },
-
-    request (path, api = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body);
     },
 }
 
