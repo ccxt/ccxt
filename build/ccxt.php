@@ -1202,6 +1202,9 @@ class Exchange {
         return $this->market_id ($symbol);
     }
 
+    public function request ($path, $type, $method, $params, $headers = null, $body = null) { // stub
+    }
+
     function __call ($function, $params) {
 
         if (array_key_exists ($function, $this))
@@ -2903,19 +2906,22 @@ class bitbay extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostInfo ();
-        $balance = $response['balances'];
-        $result = array ( 'info' => $balance );
-        for ($c = 0; $c < count ($this->currencies); $c++) {
-            $currency = $this->currencies[$c];
-            $account = $this->account ();
-            if (array_key_exists ($currency, $balance)) {
-                $account['free'] = floatval ($balance[$currency]['available']);
-                $account['used'] = floatval ($balance[$currency]['locked']);
-                $account['total'] = $this->sum ($account['free'], $account['used']);
+        if (array_key_exists ('balances', $response)) {
+            $balance = $response['balances'];
+            $result = array ( 'info' => $balance );
+            for ($c = 0; $c < count ($this->currencies); $c++) {
+                $currency = $this->currencies[$c];
+                $account = $this->account ();
+                if (array_key_exists ($currency, $balance)) {
+                    $account['free'] = floatval ($balance[$currency]['available']);
+                    $account['used'] = floatval ($balance[$currency]['locked']);
+                    $account['total'] = $this->sum ($account['free'], $account['used']);
+                }
+                $result[$currency] = $account;
             }
-            $result[$currency] = $account;
+            return $this->parse_balance ($result);
         }
-        return $this->parse_balance ($result);
+        throw new ExchangeError ($this->id . ' empty $balance $response ' . $this->json ($response));
     }
 
     public function fetch_order_book ($market, $params = array ()) {

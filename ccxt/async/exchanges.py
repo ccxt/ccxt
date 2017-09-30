@@ -1640,17 +1640,19 @@ class bitbay (Exchange):
 
     async def fetch_balance(self, params={}):
         response = await self.privatePostInfo()
-        balance = response['balances']
-        result = {'info': balance}
-        for c in range(0, len(self.currencies)):
-            currency = self.currencies[c]
-            account = self.account()
-            if currency in balance:
-                account['free'] = float(balance[currency]['available'])
-                account['used'] = float(balance[currency]['locked'])
-                account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
-        return self.parse_balance(result)
+        if 'balances' in response:
+            balance = response['balances']
+            result = {'info': balance}
+            for c in range(0, len(self.currencies)):
+                currency = self.currencies[c]
+                account = self.account()
+                if currency in balance:
+                    account['free'] = float(balance[currency]['available'])
+                    account['used'] = float(balance[currency]['locked'])
+                    account['total'] = self.sum(account['free'], account['used'])
+                result[currency] = account
+            return self.parse_balance(result)
+        raise ExchangeError(self.id + ' empty balance response ' + self.json(response))
 
     async def fetch_order_book(self, market, params={}):
         orderbook = await self.publicGetIdOrderbook(self.extend({
