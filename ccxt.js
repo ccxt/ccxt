@@ -3279,7 +3279,7 @@ var bitfinex = {
         return this.milliseconds ();
     },
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + request;
@@ -3303,7 +3303,11 @@ var bitfinex = {
                 'X-BFX-SIGNATURE': signature,
             };
         }
-        let response = await this.fetch (url, method, headers, body);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('message' in response) {
             if (response['message'].indexOf ('not enough exchange balance') >= 0)
                 throw new InsufficientFunds (this.id + ' ' + this.json (response));
