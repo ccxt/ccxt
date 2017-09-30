@@ -121,7 +121,7 @@ The library is under [MIT license](https://github.com/ccxt-dev/ccxt/blob/master/
 
 The easiest way to install the ccxt library is to use builtin package managers:
 
-- [ccxt in **NPM**](http://npmjs.com/package/ccxt) (JavaScript / Node)
+- [ccxt in **NPM**](http://npmjs.com/package/ccxt) (JavaScript / Node v7.6+)
 - [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 2 and 3)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
