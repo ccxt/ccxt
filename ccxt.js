@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.8.79'
+const version = '1.8.84'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -3892,6 +3892,7 @@ var bithumb = {
         'XRP/KRW': { 'id': 'XRP', 'symbol': 'XRP/KRW', 'base': 'XRP', 'quote': 'KRW' },
         'BCH/KRW': { 'id': 'BCH', 'symbol': 'BCH/KRW', 'base': 'BCH', 'quote': 'KRW' },
         'XMR/KRW': { 'id': 'XMR', 'symbol': 'XMR/KRW', 'base': 'XMR', 'quote': 'KRW' },
+        'ZEC/KRW': { 'id': 'ZEC', 'symbol': 'ZEC/KRW', 'base': 'ZEC', 'quote': 'KRW' },
         'DASH/KRW': { 'id': 'DASH', 'symbol': 'DASH/KRW', 'base': 'DASH', 'quote': 'KRW' },
     },
 
@@ -8370,14 +8371,14 @@ var cex = {
     'api': {
         'public': {
             'get': [
-                'currency_limits',
-                'last_price/{pair}',
-                'last_prices/{currencies}',
-                'ohlcv/hd/{yyyymmdd}/{pair}',
-                'order_book/{pair}',
-                'ticker/{pair}',
-                'tickers/{currencies}',
-                'trade_history/{pair}',
+                'currency_limits/',
+                'last_price/{pair}/',
+                'last_prices/{currencies}/',
+                'ohlcv/hd/{yyyymmdd}/{pair}/',
+                'order_book/{pair}/',
+                'ticker/{pair}/',
+                'tickers/{currencies}/',
+                'trade_history/{pair}/',
             ],
             'post': [
                 'convert/{pair}',
@@ -8387,22 +8388,22 @@ var cex = {
         'private': {
             'post': [
                 'active_orders_status/',
-                'archived_orders/{pair}',
+                'archived_orders/{pair}/',
                 'balance/',
                 'cancel_order/',
-                'cancel_orders/{pair}',
-                'cancel_replace_order/{pair}',
-                'close_position/{pair}',
+                'cancel_orders/{pair}/',
+                'cancel_replace_order/{pair}/',
+                'close_position/{pair}/',
                 'get_address/',
                 'get_myfee/',
                 'get_order/',
                 'get_order_tx/',
-                'open_orders/{pair}',
+                'open_orders/{pair}/',
                 'open_orders/',
-                'open_position/{pair}',
-                'open_positions/{pair}',
-                'place_order/{pair}',
-                'place_order/{pair}',
+                'open_position/{pair}/',
+                'open_positions/{pair}/',
+                'place_order/{pair}/',
+                'place_order/{pair}/',
             ],
         }
     },

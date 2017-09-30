@@ -86,7 +86,7 @@ except NameError:
 
 
 class Exchange(object):
-
+    """Base exchange class"""
     id = None
     version = None
     enableRateLimit = False
@@ -215,10 +215,10 @@ class Exchange(object):
             time.sleep(delay / 1000.0)
 
     def fetch(self, url, method='GET', headers=None, body=None):
+        """Perform a HTTP request and return decoded JSON data"""
         if self.enableRateLimit:
             self.throttle()
         self.lastRestRequestTimestamp = self.milliseconds()
-        """Perform a HTTP request and return decoded JSON data"""
         headers = headers or {}
         if self.userAgent:
             if type(self.userAgent) is str:
@@ -325,20 +325,20 @@ class Exchange(object):
         return str(decimal.Decimal(str(number)))
 
     @staticmethod
-    def safe_float(object, key, default_value=None):
-        return float(object[key]) if (key in object) and object[key] else default_value
+    def safe_float(dictionary, key, default_value=None):
+        return float(dictionary[key]) if (key in dictionary) and dictionary[key] else default_value
 
     @staticmethod
-    def safe_string(object, key, default_value=None):
-        return str(object[key]) if (key in object) and object[key] else default_value
+    def safe_string(dictionary, key, default_value=None):
+        return str(dictionary[key]) if (key in dictionary) and dictionary[key] else default_value
 
     @staticmethod
-    def safe_integer(object, key, default_value=None):
-        return int(object[key]) if (key in object) and object[key] else default_value
+    def safe_integer(dictionary, key, default_value=None):
+        return int(dictionary[key]) if (key in dictionary) and dictionary[key] else default_value
 
     @staticmethod
-    def safe_value(object, key, default_value=None):
-        return object[key] if (key in object) and object[key] else default_value
+    def safe_value(dictionary, key, default_value=None):
+        return dictionary[key] if (key in dictionary) and dictionary[key] else default_value
 
     @staticmethod
     def capitalize(string):  # first character only, rest characters unchanged
@@ -482,24 +482,12 @@ class Exchange(object):
         return result
 
     @staticmethod
-    def s():
-        return Exchange.seconds()
-
-    @staticmethod
     def sec():
         return Exchange.seconds()
 
     @staticmethod
-    def ms():
-        return Exchange.milliseconds()
-
-    @staticmethod
     def msec():
         return Exchange.milliseconds()
-
-    @staticmethod
-    def us():
-        return Exchange.microseconds()
 
     @staticmethod
     def usec():

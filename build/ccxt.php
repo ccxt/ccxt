@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.79';
+$version = '1.8.84';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -4162,6 +4162,7 @@ class bithumb extends Exchange {
                 'XRP/KRW' => array ( 'id' => 'XRP', 'symbol' => 'XRP/KRW', 'base' => 'XRP', 'quote' => 'KRW' ),
                 'BCH/KRW' => array ( 'id' => 'BCH', 'symbol' => 'BCH/KRW', 'base' => 'BCH', 'quote' => 'KRW' ),
                 'XMR/KRW' => array ( 'id' => 'XMR', 'symbol' => 'XMR/KRW', 'base' => 'XMR', 'quote' => 'KRW' ),
+                'ZEC/KRW' => array ( 'id' => 'ZEC', 'symbol' => 'ZEC/KRW', 'base' => 'ZEC', 'quote' => 'KRW' ),
                 'DASH/KRW' => array ( 'id' => 'DASH', 'symbol' => 'DASH/KRW', 'base' => 'DASH', 'quote' => 'KRW' ),
             ),
         ), $options));
@@ -8725,14 +8726,14 @@ class cex extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'currency_limits',
-                        'last_price/{pair}',
-                        'last_prices/{currencies}',
-                        'ohlcv/hd/{yyyymmdd}/{pair}',
-                        'order_book/{pair}',
-                        'ticker/{pair}',
-                        'tickers/{currencies}',
-                        'trade_history/{pair}',
+                        'currency_limits/',
+                        'last_price/{pair}/',
+                        'last_prices/{currencies}/',
+                        'ohlcv/hd/{yyyymmdd}/{pair}/',
+                        'order_book/{pair}/',
+                        'ticker/{pair}/',
+                        'tickers/{currencies}/',
+                        'trade_history/{pair}/',
                     ),
                     'post' => array (
                         'convert/{pair}',
@@ -8742,22 +8743,22 @@ class cex extends Exchange {
                 'private' => array (
                     'post' => array (
                         'active_orders_status/',
-                        'archived_orders/{pair}',
+                        'archived_orders/{pair}/',
                         'balance/',
                         'cancel_order/',
-                        'cancel_orders/{pair}',
-                        'cancel_replace_order/{pair}',
-                        'close_position/{pair}',
+                        'cancel_orders/{pair}/',
+                        'cancel_replace_order/{pair}/',
+                        'close_position/{pair}/',
                         'get_address/',
                         'get_myfee/',
                         'get_order/',
                         'get_order_tx/',
-                        'open_orders/{pair}',
+                        'open_orders/{pair}/',
                         'open_orders/',
-                        'open_position/{pair}',
-                        'open_positions/{pair}',
-                        'place_order/{pair}',
-                        'place_order/{pair}',
+                        'open_position/{pair}/',
+                        'open_positions/{pair}/',
+                        'place_order/{pair}/',
+                        'place_order/{pair}/',
                     ),
                 )
             ),
