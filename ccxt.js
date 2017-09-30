@@ -18348,7 +18348,7 @@ var vaultoro = {
     },
 
     request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
+        return this.fetch2 (path, api, method, params, headers, body);
     },
 }
 
@@ -18998,7 +18998,7 @@ var xbtce = {
     },
 
     request (path, api = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
+        return this.fetch2 (path, api, method, params, headers, body);
     },
 }
 
