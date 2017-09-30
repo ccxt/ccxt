@@ -10684,7 +10684,7 @@ var dsx = {
         return await this.tapiPostCancelOrder ({ 'orderId': id });
     },
 
-    async request (path, api = 'mapi', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         if ((api == 'mapi') || (api == 'dwapi'))
             url += '/' + this.implodeParams (path, params);
@@ -10705,7 +10705,11 @@ var dsx = {
                 'Sign': this.decode (signature),
             };
         }
-        let response = await this.fetch (url, method, headers, body);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    },
+
+    async request (path, api = 'mapi', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
         if (api == 'mapi')
             return response;
         if ('success' in response)
