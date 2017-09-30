@@ -11637,7 +11637,7 @@ class huobi1 (Exchange):
     async def cancel_order(self, id):
         return await self.privatePostOrderOrdersIdSubmitcancel({'id': id})
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'
         if api == 'market':
             url += api
@@ -11668,7 +11668,10 @@ class huobi1 (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         url = self.urls['api'] + url
-        response = await self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
         if 'status' in response:
             if response['status'] == 'error':
                 raise ExchangeError(self.id + ' ' + self.json(response))
