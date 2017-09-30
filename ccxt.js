@@ -2668,10 +2668,10 @@ var bitbay = {
                 }
                 result[currency] = account;
             }
+            return this.parseBalance (result);
         } else {
             throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
         }
-        return this.parseBalance (result);
     },
 
     async fetchOrderBook (market, params = {}) {
