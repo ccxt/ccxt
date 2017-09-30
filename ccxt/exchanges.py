@@ -1351,7 +1351,7 @@ class binance (Exchange):
         }, params))
         return self.parse_trades(response, market)
 
-    def parse_orderStatus(self, status):
+    def parse_order_status(self, status):
         if status == 'NEW':
             return 'open'
         if status == 'PARTIALLY_FILLED':
@@ -1363,7 +1363,7 @@ class binance (Exchange):
         return status.lower()
 
     def parse_order(self, order, market=None):
-        status = self.parseOrderStatus(order['status'])
+        status = self.parse_order_status(order['status'])
         symbol = None
         if market:
             symbol = market['symbol']
@@ -1456,7 +1456,7 @@ class binance (Exchange):
         }, params))
         return self.parse_trades(response, market)
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
             if params:
@@ -1475,7 +1475,10 @@ class binance (Exchange):
             else:
                 body = query
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if 'code' in response:
             if response['code'] < 0:
                 raise ExchangeError(self.id + ' ' + self.json(response))
@@ -4343,7 +4346,7 @@ class bitstamp1 (Exchange):
     def cancel_order(self, id):
         return self.privatePostCancelOrder({'id': id})
 
-    def parse_orderStatus(self, order):
+    def parse_order_status(self, order):
         if (order['status'] == 'Queue') or (order['status'] == 'Open'):
             return 'open'
         if order['status'] == 'Finished':
@@ -4353,7 +4356,7 @@ class bitstamp1 (Exchange):
     def fetch_order_status(self, id, symbol=None):
         self.load_markets()
         response = self.privatePostOrderStatus({'id': id})
-        return self.parseOrderStatus(response)
+        return self.parse_order_status(response)
 
     def fetch_my_trades(self, symbol=None, params={}):
         self.load_markets()
@@ -4578,7 +4581,7 @@ class bitstamp (Exchange):
     def cancel_order(self, id):
         return self.privatePostCancelOrder({'id': id})
 
-    def parse_orderStatus(self, order):
+    def parse_order_status(self, order):
         if (order['status'] == 'Queue') or (order['status'] == 'Open'):
             return 'open'
         if order['status'] == 'Finished':
@@ -4588,7 +4591,7 @@ class bitstamp (Exchange):
     def fetch_order_status(self, id, symbol=None):
         self.load_markets()
         response = self.privatePostOrderStatus({'id': id})
-        return self.parseOrderStatus(response)
+        return self.parse_order_status(response)
 
     def fetch_my_trades(self, symbol=None, params={}):
         self.load_markets()

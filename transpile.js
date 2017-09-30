@@ -120,6 +120,7 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('parseBidAsks',             'parse_bidasks')
                         .replace ('parseBidAsk',              'parse_bidask')
                         .replace ('parseOrders',              'parse_orders')
+                        .replace ('parseOrderStatus',         'parse_order_status')
                         .replace ('parseOrder',               'parse_order')
                         .replace ('fetchTrades',              'fetch_trades')
                         .replace ('fetchOrderStatus',         'fetch_order_status')
@@ -187,6 +188,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.parseBidAsks\s/g, '.parse_bidasks'],
             [ /\.parseBidAsk\s/g, '.parse_bidask'],
             [ /\.parseOrders\s/g, '.parse_orders'],
+            [ /\.parseOrderStatus\s/g, '.parse_order_status'],
             [ /\.parseOrder\s/g, '.parse_order'],
             [ /\.indexBy\s/g, '.index_by'],
             [ /\.sortBy\s/g, '.sort_by'],
@@ -213,6 +215,7 @@ while (exchanges = regex.exec (contents)) {
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /([^a-zA-Z0-9_])let\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
+            [ /([^a-zA-Z0-9_])let\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
             [ /([^a-zA-Z0-9_])let\s/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)/g, 'list($1.keys())' ],
@@ -311,6 +314,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\.fetchTickers/g, '.fetch_tickers'],
             [ /\.fetchTicker/g, '.fetch_ticker'],
             [ /\.parseOrders/g, '.parse_orders'],
+            [ /\.parseOrderStatus/g, '.parse_order_status'],
             [ /\.parseOrder/g, '.parse_order'],
             [ /\.loadMarkets/g, '.load_markets'],
             [ /\.calculateFeeRate/g, '.calculate_fee_rate'],
@@ -327,6 +331,7 @@ while (exchanges = regex.exec (contents)) {
             [ /\[\]/g, 'array ()' ],
             [ /\{([^\n\}]+)\}/g, 'array ($1)' ],
             [ /([^a-zA-Z0-9_])let\s\[\s*([^\]]+)\s\]/g, '$1list ($2)' ],
+            [ /([^a-zA-Z0-9_])let\s\{\s*([^\}]+)\s\}/g, '$1array_values (list ($2))' ],
             [ /([^a-zA-Z0-9_])let\s/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)/g, 'array_keys ($1)' ],

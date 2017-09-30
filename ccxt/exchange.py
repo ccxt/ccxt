@@ -214,6 +214,11 @@ class Exchange(object):
             delay = self.rateLimit - elapsed
             time.sleep(delay / 1000.0)
 
+    def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        """A better wrapper over request for deferred signing"""
+        request = self.sign(path, api, method, params, headers, body)
+        return self.fetch(request['url'], request['method'], request['headers'], request['body'])
+
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         if self.enableRateLimit:

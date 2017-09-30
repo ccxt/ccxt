@@ -566,6 +566,12 @@ const Exchange = function (config) {
         return issueRestRequest (url, method, headers, body)
     }
 
+    this.fetch2 = function (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+
+        let request = this.sign (path, api, method, params, headers, body)
+        return this.fetch (request.url, request.method, request.headers, request.body)
+    }
+
     this.handleRestErrors = function (response, url, method = 'GET', headers = undefined, body = undefined) {
 
         if (typeof response == 'string')
@@ -2358,7 +2364,7 @@ var binance = {
         return this.parseTrades (response, market);
     },
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (api == 'public') {
             if (Object.keys (params).length)
@@ -2379,7 +2385,11 @@ var binance = {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         }
-        let response = await this.fetch (url, method, headers, body);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('code' in response) {
             if (response['code'] < 0)
                 throw new ExchangeError (this.id + ' ' + this.json (response));

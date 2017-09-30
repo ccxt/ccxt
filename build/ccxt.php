@@ -618,6 +618,11 @@ class Exchange {
         }
     }
 
+    public function fetch2 ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $request = $this->sign ($path, $api, $method, $params, $headers, $body);
+        return $this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']);
+    }
+
     public function fetch ($url, $method = 'GET', $headers = null, $body = null) {
 
         if ($this->enableRateLimit)
@@ -2487,7 +2492,7 @@ class binance extends Exchange {
         return $this->parse_trades ($response, $market);
     }
 
-    public function parse_orderStatus ($status) {
+    public function parse_order_status ($status) {
         if ($status == 'NEW')
             return 'open';
         if ($status == 'PARTIALLY_FILLED')
@@ -2500,7 +2505,7 @@ class binance extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $status = $this->parse_orderStatus ($order['status']);
+        $status = $this->parse_order_status ($order['status']);
         $symbol = null;
         if ($market) {
             $symbol = $market['symbol'];
@@ -2603,7 +2608,7 @@ class binance extends Exchange {
         return $this->parse_trades ($response, $market);
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api == 'public') {
             if ($params)
@@ -2624,7 +2629,11 @@ class binance extends Exchange {
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         }
-        $response = $this->fetch ($url, $method, $headers, $body);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (array_key_exists ('code', $response)) {
             if ($response['code'] < 0)
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
@@ -5677,7 +5686,7 @@ class bitstamp1 extends Exchange {
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
-    public function parse_orderStatus ($order) {
+    public function parse_order_status ($order) {
         if (($order['status'] == 'Queue') || ($order['status'] == 'Open'))
             return 'open';
         if ($order['status'] == 'Finished')
@@ -5688,7 +5697,7 @@ class bitstamp1 extends Exchange {
     public function fetch_order_status ($id, $symbol = null) {
         $this->load_markets ();
         $response = $this->privatePostOrderStatus (array ( 'id' => $id ));
-        return $this->parse_orderStatus ($response);
+        return $this->parse_order_status ($response);
     }
 
     public function fetch_my_trades ($symbol = null, $params = array ()) {
@@ -5927,7 +5936,7 @@ class bitstamp extends Exchange {
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
-    public function parse_orderStatus ($order) {
+    public function parse_order_status ($order) {
         if (($order['status'] == 'Queue') || ($order['status'] == 'Open'))
             return 'open';
         if ($order['status'] == 'Finished')
@@ -5938,7 +5947,7 @@ class bitstamp extends Exchange {
     public function fetch_order_status ($id, $symbol = null) {
         $this->load_markets ();
         $response = $this->privatePostOrderStatus (array ( 'id' => $id ));
-        return $this->parse_orderStatus ($response);
+        return $this->parse_order_status ($response);
     }
 
     public function fetch_my_trades ($symbol = null, $params = array ()) {

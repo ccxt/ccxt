@@ -240,7 +240,7 @@ def test_exchange(exchange):
     if exchange.hasFetchOrders:
         try:
             dump(green(exchange.id), 'fetching orders...')
-            orders = exchange.fetch_orders()
+            orders = exchange.fetch_orders(symbol)
             dump(green(exchange.id), 'fetched', green(str(len(orders))), 'orders')
         except (ccxt.ExchangeError, ccxt.NotSupported) as e:
             dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
