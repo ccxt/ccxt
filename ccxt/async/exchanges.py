@@ -1567,9 +1567,6 @@ class bit2c (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        return self.fetch2(path, api, method, params, headers, body)
-
 # -----------------------------------------------------------------------------
 
 
@@ -1766,9 +1763,6 @@ class bitbay (Exchange):
                 'API-Hash': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        return self.fetch2(path, api, method, params, headers, body)
 
 # -----------------------------------------------------------------------------
 
@@ -2799,9 +2793,6 @@ class bitflyer (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        return self.fetch2(path, api, method, params, headers, body)
-
 # -----------------------------------------------------------------------------
 
 
@@ -3292,9 +3283,6 @@ class bitlish (Exchange):
             headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        return self.fetch2(path, api, method, params, headers, body)
-
 # -----------------------------------------------------------------------------
 
 
@@ -3567,9 +3555,6 @@ class bitmarket (Exchange):
                 'API-Hash': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        return self.fetch2(path, api, method, params, headers, body)
 
 # -----------------------------------------------------------------------------
 
@@ -3916,9 +3901,6 @@ class bitmex (Exchange):
                 'api-signature': self.hmac(self.encode(request), self.encode(self.secret)),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        return self.fetch2(path, api, method, params, headers, body)
 
 # -----------------------------------------------------------------------------
 
@@ -5334,9 +5316,6 @@ class bl3p (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        return self.fetch2(path, api, method, params, headers, body)
-
 # -----------------------------------------------------------------------------
 
 
@@ -5685,9 +5664,6 @@ class btcchina (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        return self.fetch2(path, api, method, params, headers, body)
 
 # -----------------------------------------------------------------------------
 
@@ -6073,9 +6049,6 @@ class btctrader (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        return self.fetch2(path, api, method, params, headers, body)
-
 # -----------------------------------------------------------------------------
 
 
@@ -6310,9 +6283,6 @@ class btctradeua (Exchange):
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        return self.fetch2(path, api, method, params, headers, body)
 
 # -----------------------------------------------------------------------------
 
@@ -8013,9 +7983,6 @@ class coinfloor (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        return self.fetch2(path, api, method, params, headers, body)
-
 # -----------------------------------------------------------------------------
 
 
@@ -8940,9 +8907,6 @@ class coinspot (Exchange):
                 'sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        return self.fetch2(path, api, method, params, headers, body)
 
 # -----------------------------------------------------------------------------
 
@@ -16880,9 +16844,6 @@ class vaultoro (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        return self.fetch2(path, api, method, params, headers, body)
-
 # -----------------------------------------------------------------------------
 
 
@@ -17511,9 +17472,6 @@ class xbtce (Exchange):
             credentials = self.uid + ':' + self.apiKey + ':' + nonce + ':' + self.binary_to_string(signature)
             headers['Authorization'] = 'HMAC ' + credentials
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def request(self, path, api='api', method='GET', params={}, headers=None, body=None):
-        return self.fetch2(path, api, method, params, headers, body)
 
 # -----------------------------------------------------------------------------
 

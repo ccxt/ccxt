@@ -623,6 +623,10 @@ class Exchange {
         return $this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']);
     }
 
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+    }
+
     public function fetch ($url, $method = 'GET', $headers = null, $body = null) {
 
         if ($this->enableRateLimit)
@@ -2829,10 +2833,6 @@ class bit2c extends Exchange {
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -3042,10 +3042,6 @@ class bitbay extends Exchange {
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
     }
 }
 
@@ -4146,10 +4142,6 @@ class bitflyer extends Exchange {
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -4677,10 +4669,6 @@ class bitlish extends Exchange {
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -4970,10 +4958,6 @@ class bitmarket extends Exchange {
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
     }
 }
 
@@ -5338,10 +5322,6 @@ class bitmex extends Exchange {
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
     }
 }
 
@@ -6857,10 +6837,6 @@ class bl3p extends Exchange {
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -7230,10 +7206,6 @@ class btcchina extends Exchange {
                 $url .= '?' . $this->urlencode ($params);
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
     }
 }
 
@@ -7645,10 +7617,6 @@ class btctrader extends Exchange {
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -7897,10 +7865,6 @@ class btctradeua extends Exchange {
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
     }
 }
 
@@ -9711,10 +9675,6 @@ class coinfloor extends Exchange {
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -10693,10 +10653,6 @@ class coinspot extends Exchange {
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
     }
 }
 
@@ -19147,10 +19103,6 @@ class vaultoro extends Exchange {
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -19812,10 +19764,6 @@ class xbtce extends Exchange {
             $headers['Authorization'] = 'HMAC ' . $credentials;
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
-    public function request ($path, $api = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
     }
 }
 
