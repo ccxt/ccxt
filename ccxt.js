@@ -4341,7 +4341,7 @@ var bitlish = {
         };
     },
 
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (api == 'public') {
             if (method == 'GET') {
@@ -4356,7 +4356,11 @@ var bitlish = {
             body = this.json (this.extend ({ 'token': this.apiKey }, params));
             headers = { 'Content-Type': 'application/json' };
         }
-        return this.fetch (url, method, headers, body);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    },
+
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        return this.fetch2 (path, api, method, params, headers, body);
     },
 }
 
