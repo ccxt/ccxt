@@ -12006,7 +12006,7 @@ class huobi (Exchange):
     def cancel_order(self, id):
         return self.tradePostCancelOrder({'id': id})
 
-    def request(self, path, api='trade', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api']
         if api == 'trade':
             url += '/api' + self.version
@@ -12028,7 +12028,10 @@ class huobi (Exchange):
             query = self.omit(params, self.extract_params(path))
             if query:
                 url += '?' + self.urlencode(query)
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='trade', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if 'status' in response:
             if response['status'] == 'error':
                 raise ExchangeError(self.id + ' ' + self.json(response))
@@ -12229,7 +12232,7 @@ class independentreserve (Exchange):
         self.load_markets()
         return self.privatePostCancelOrder({'orderGuid': id})
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + path
         if api == 'public':
             if params:
@@ -12255,7 +12258,10 @@ class independentreserve (Exchange):
             }, params))
             body = self.json(query)
             headers = {'Content-Type': 'application/json'}
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         # todo error handling
         return response
 
@@ -12431,7 +12437,7 @@ class itbit (Exchange):
             'id': id,
         }, params))
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -12455,7 +12461,10 @@ class itbit (Exchange):
                 'X-Auth-Timestamp': timestamp,
                 'X-Auth-Nonce': nonce,
             }
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if 'code' in response:
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
@@ -12638,7 +12647,7 @@ class jubi (Exchange):
             'id': id,
         }, params))
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
             if params:
@@ -12656,7 +12665,10 @@ class jubi (Exchange):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if 'result' in response:
             if not response['result']:
                 raise ExchangeError(self.id + ' ' + self.json(response))
@@ -13257,7 +13269,7 @@ class lakebtc (Exchange):
         self.load_markets()
         return self.privatePostCancelOrder({'params': id})
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version
         if api == 'public':
             url += '/' + path
@@ -13288,7 +13300,10 @@ class lakebtc (Exchange):
                 'Authorization': "Basic " + self.apiKey + ':' + signature,
                 'Content-Type': 'application/json',
             }
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if 'error' in response:
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
@@ -13495,7 +13510,7 @@ class livecoin (Exchange):
             'orderId': id,
         }, params))
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + path
         if api == 'public':
             if params:
@@ -13514,7 +13529,10 @@ class livecoin (Exchange):
                 'Sign': signature.upper(),
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        response = self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
         if 'success' in response:
             if not response['success']:
                 raise ExchangeError(self.id + ' ' + self.json(response))
