@@ -1,5 +1,9 @@
 # Сhangelog
 
+- Added new ZEC/KRW market to Bithumb
+- Fixed CEX.io endpoint URLs for extra params, [#250](https://github.com/kroitor/ccxt/issues/250), [#251](https://github.com/kroitor/ccxt/pull/251)
+- Fixed Poloniex fetchTrades, [#246](https://github.com/kroitor/ccxt/issues/246)
+- Fixed all PEP8-conformance issues entirely, [#244](https://github.com/kroitor/ccxt/issues/244)
 - Added support for a new exchange: [QRYPTOS](https://www.qryptos.com) (China, Taiwan, a property of QUOINE)
 - Added fetchOpenOrders and fetchClosedOrders to Bitfinex v1 (experimental)
 - Added fetchOrder and fetchOrders to OKCoin CNY, OKCoin USD and OKEX (experimental)
@@ -25,7 +29,7 @@
 ## Version 1.8.x 2017-09-24
 
 - Added support for a new exchange: [Tidex](https://tidex.com) (United Kingdom)
-- Added missing new markets to Bitcoin.co.id, [#228](https://github.com/kroitor/ccxt/issues/228)
+- Added missing new markets to Bitcoin.co.id, [#228](https://github.com/kroitor/ccxt/issues/228), , [#229](https://github.com/kroitor/ccxt/pull/229)
 - Restored Bistamp v2 fetchOrderStatus, [#226](https://github.com/kroitor/ccxt/issues/226)
 - Added `hasCORS` property to base exchange class, [#225](https://github.com/kroitor/ccxt/issues/225)
 - Minor fix to GDAX OHLCV, [#221](https://github.com/kroitor/ccxt/issues/221)
