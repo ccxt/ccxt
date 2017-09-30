@@ -7021,7 +7021,7 @@ var btcmarkets = {
         return this.milliseconds ();
     },
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let uri = '/' + this.implodeParams (path, params);
         let url = this.urls['api'] + uri;
         let query = this.omit (params, this.extractParams (path));
@@ -7044,7 +7044,11 @@ var btcmarkets = {
             let signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers['signature'] = this.decode (signature);
         }
-        let response = await this.fetch (url, method, headers, body);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
         if (api == 'private') {
             if ('success' in response)
                 if (!response['success'])
