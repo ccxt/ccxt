@@ -2655,17 +2655,21 @@ var bitbay = {
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostInfo ();
-        let balance = response['balances'];
-        let result = { 'info': balance };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
-            let account = this.account ();
-            if (currency in balance) {
-                account['free'] = parseFloat (balance[currency]['available']);
-                account['used'] = parseFloat (balance[currency]['locked']);
-                account['total'] = this.sum (account['free'], account['used']);
+        if ('balances' in response) {
+            let balance = response['balances'];
+            let result = { 'info': balance };
+            for (let c = 0; c < this.currencies.length; c++) {
+                let currency = this.currencies[c];
+                let account = this.account ();
+                if (currency in balance) {
+                    account['free'] = parseFloat (balance[currency]['available']);
+                    account['used'] = parseFloat (balance[currency]['locked']);
+                    account['total'] = this.sum (account['free'], account['used']);
+                }
+                result[currency] = account;
             }
-            result[currency] = account;
+        } else {
+            throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
         }
         return this.parseBalance (result);
     },
