@@ -5592,7 +5592,7 @@ class btcchina (Exchange):
     def nonce(self):
         return self.microseconds()
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + path
         if api == 'private':
             if not self.apiKey:
@@ -5627,7 +5627,10 @@ class btcchina (Exchange):
         else:
             if params:
                 url += '?' + self.urlencode(params)
-        return self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        return self.fetch2(path, api, method, params, headers, body)
 
 # -----------------------------------------------------------------------------
 
@@ -7953,7 +7956,7 @@ class coinfloor (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, type='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         return self.fetch2(path, api, method, params, headers, body)
 
 # -----------------------------------------------------------------------------

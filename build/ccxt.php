@@ -7117,7 +7117,7 @@ class btcchina extends Exchange {
         return $this->microseconds ();
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api == 'private') {
             if (!$this->apiKey)
@@ -7153,7 +7153,11 @@ class btcchina extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
     }
 }
 
@@ -9632,8 +9636,8 @@ class coinfloor extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        return $this->fetch2 ($path, api, $method, $params, $headers, $body);
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
     }
 }
 
