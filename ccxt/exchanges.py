@@ -8033,7 +8033,7 @@ class coinfloor (Exchange):
         # curl -k -u '[User ID]/[API key]:[Passphrase]' https://webapi.coinfloor.co.uk:8090/bist/XBT/GBP/balance/
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if type == 'public':
+        if api == 'public':
             if query:
                 url += '?' + self.urlencode(query)
         else:
