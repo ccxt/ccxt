@@ -2549,7 +2549,7 @@ var bit2c = {
         return await this.privatePostOrderCancelOrder ({ 'id': id });
     },
 
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         if (api == 'public') {
             url += '.json';
@@ -2564,7 +2564,11 @@ var bit2c = {
                 'sign': this.decode (signature),
             };
         }
-        return this.fetch (url, method, headers, body);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    },
+
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        return this.fetch2 (path, api, method, params, headers, body);
     },
 }
 
