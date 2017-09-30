@@ -5425,7 +5425,7 @@ var bitstamp1 = {
         await this.loadMarkets ();
     },
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api == 'public') {
@@ -5447,7 +5447,11 @@ var bitstamp1 = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        let response = await this.fetch (url, method, headers, body);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('status' in response)
             if (response['status'] == 'error')
                 throw new ExchangeError (this.id + ' ' + this.json (response));
