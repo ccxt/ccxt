@@ -11119,7 +11119,7 @@ var flowbtc = {
         throw new ExchangeError (this.id + ' requires `ins` symbol parameter for cancelling an order');
     },
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (api == 'public') {
             if (Object.keys (params).length) {
@@ -11140,7 +11140,11 @@ var flowbtc = {
                 'Content-Type': 'application/json',
             };
         }
-        let response = await this.fetch (url, method, headers, body);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('isAccepted' in response)
             if (response['isAccepted'])
                 return response;
