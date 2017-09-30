@@ -38,7 +38,7 @@ const CryptoJS = require ('crypto-js')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.8.83'
+const version = '1.8.85'
 
 //-----------------------------------------------------------------------------
 // platform detection
@@ -549,11 +549,12 @@ const Exchange = function (config) {
 
     this.fetch = function (url, method = 'GET', headers = undefined, body = undefined) {
 
-        if (isNode && this.userAgent)
+        if (isNode && this.userAgent) {
             if (typeof this.userAgent == 'string')
                 headers = extend ({ 'User-Agent': this.userAgent }, headers)
             else if ((typeof this.userAgent == 'object') && ('User-Agent' in this.userAgent))
                 headers = extend (this.userAgent, headers)
+        }
 
         if (this.proxy.length)
             headers = extend ({ 'Origin': '*' }, headers)
@@ -584,11 +585,11 @@ const Exchange = function (config) {
                 return text
             let error = undefined
             let details = text
-            if ([ 429 ].indexOf (response.status) >= 0) {
+            if ([ 429 ].includes (response.status)) {
                 error = DDoSProtection
-            } else if ([ 404, 409, 422, 500, 501, 502, 520, 521, 522, 525 ].indexOf (response.status) >= 0) {
+            } else if ([ 404, 409, 422, 500, 501, 502, 520, 521, 522, 525 ].includes (response.status)) {
                 error = ExchangeNotAvailable
-            } else if ([ 400, 403, 405, 503 ].indexOf (response.status) >= 0) {
+            } else if ([ 400, 403, 405, 503 ].includes (response.status)) {
                 let ddosProtection = text.match (/cloudflare|incapsula/i)
                 if (ddosProtection) {
                     error = DDoSProtection
@@ -603,9 +604,9 @@ const Exchange = function (config) {
                         'rate-limiting',
                     ].join (', ') + ')'
                 }
-            } else if ([ 408, 504 ].indexOf (response.status) >= 0) {
+            } else if ([ 408, 504 ].includes (response.status)) {
                 error = RequestTimeout
-            } else if ([ 401, 511 ].indexOf (response.status) >= 0) {
+            } else if ([ 401, 511 ].includes (response.status)) {
                 error = AuthenticationError
             } else {
                 error = ExchangeError
