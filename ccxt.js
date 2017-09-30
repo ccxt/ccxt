@@ -9732,7 +9732,7 @@ var coinmate = {
         return await this.privatePostCancelOrder ({ 'orderId': id });
     },
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
         if (api == 'public') {
             if (Object.keys (params).length)
@@ -9753,7 +9753,11 @@ var coinmate = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        let response = await this.fetch (url, method, headers, body);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('error' in response)
             if (response['error'])
                 throw new ExchangeError (this.id + ' ' + this.json (response));
