@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.94';
+$version = '1.8.95';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -1442,13 +1442,17 @@ class _1broker extends Exchange {
         return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!$this->apiKey)
             throw new AuthenticationError ($this->id . ' requires apiKey for all requests');
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path . '.php';
         $query = array_merge (array ( 'token' => $this->apiKey ), $params);
         $url .= '?' . $this->urlencode ($query);
-        $response = $this->fetch ($url, $method);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (array_key_exists ('warning', $response))
             if ($response['warning'])
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
@@ -1635,7 +1639,7 @@ class cryptocapital extends Exchange {
         );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if ($this->id == 'cryptocapital')
             throw new ExchangeError ($this->id . ' is an abstract base API for _1btcxe');
         $url = $this->urls['api'] . '/' . $path;
@@ -1652,7 +1656,11 @@ class cryptocapital extends Exchange {
             $body = $this->json ($query);
             $headers = array ( 'Content-Type' => 'application/json' );
         }
-        $response = $this->fetch ($url, $method, $headers, $body);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (array_key_exists ('errors', $response)) {
             $errors = array ();
             for ($e = 0; $e < count ($response['errors']); $e++) {
@@ -1995,7 +2003,7 @@ class acx extends Exchange {
         );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/api' . '/' . $this->version . '/' . $this->implode_params ($path, $params) . '.json';
         $query = $this->omit ($params, $this->extract_params ($path));
         $url = $this->urls['api'] . $request;
@@ -2018,7 +2026,11 @@ class acx extends Exchange {
                 $headers = array ( 'Content-Type' => 'application/x-www-form-urlencoded' );
             }
         }
-        $response = $this->fetch ($url, $method, $headers, $body);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (array_key_exists ('error', $response))
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
@@ -2190,7 +2202,7 @@ class anxpro extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
         $url = $this->urls['api'] . '/' . $this->version . '/' . $request;
@@ -2209,7 +2221,11 @@ class anxpro extends Exchange {
                 'Rest-Sign' => $this->decode ($signature),
             );
         }
-        $response = $this->fetch ($url, $method, $headers, $body);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (array_key_exists ('result', $response))
             if ($response['result'] == 'success')
                 return $response;
@@ -2796,7 +2812,7 @@ class bit2c extends Exchange {
         return $this->privatePostOrderCancelOrder (array ( 'id' => $id ));
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params ($path, $params);
         if ($api == 'public') {
             $url .= '.json';
@@ -2811,7 +2827,11 @@ class bit2c extends Exchange {
                 'sign' => $this->decode ($signature),
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
     }
 }
 
@@ -3006,7 +3026,7 @@ class bitbay extends Exchange {
         );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         if ($api == 'public') {
             $url .= '/' . $this->implode_params ($path, $params) . '.json';
@@ -3021,7 +3041,11 @@ class bitbay extends Exchange {
                 'API-Hash' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
-        return $this->fetch ($url, $method, $headers, $body);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
     }
 }
 
@@ -3184,7 +3208,7 @@ class bitcoincoid extends Exchange {
         ), $params));
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         if ($api == 'public') {
             $url .= '/' . $this->implode_params ($path, $params);
@@ -3199,7 +3223,11 @@ class bitcoincoid extends Exchange {
                 'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
-        $response = $this->fetch ($url, $method, $headers, $body);
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (array_key_exists ('error', $response))
             throw new ExchangeError ($this->id . ' ' . $response['error']);
         return $response;

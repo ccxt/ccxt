@@ -266,13 +266,16 @@ class _1broker (Exchange):
         await self.load_markets()
         return await self.privatePostOrderCancel({'order_id': id})
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if not self.apiKey:
             raise AuthenticationError(self.id + ' requires apiKey for all requests')
         url = self.urls['api'] + '/' + self.version + '/' + path + '.php'
         query = self.extend({'token': self.apiKey}, params)
         url += '?' + self.urlencode(query)
-        response = await self.fetch(url, method)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
         if 'warning' in response:
             if response['warning']:
                 raise ExchangeError(self.id + ' ' + self.json(response))
@@ -448,7 +451,7 @@ class cryptocapital (Exchange):
             'id': response['result']['uuid'],
         }
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if self.id == 'cryptocapital':
             raise ExchangeError(self.id + ' is an abstract base API for _1btcxe')
         url = self.urls['api'] + '/' + path
@@ -464,7 +467,10 @@ class cryptocapital (Exchange):
             query['signature'] = self.hmac(self.encode(request), self.encode(self.secret))
             body = self.json(query)
             headers = {'Content-Type': 'application/json'}
-        response = await self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
         if 'errors' in response:
             errors = []
             for e in range(0, len(response['errors'])):
@@ -788,7 +794,7 @@ class acx (Exchange):
             'id': None,
         }
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/api' + '/' + self.version + '/' + self.implode_params(path, params) + '.json'
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'] + request
@@ -809,7 +815,10 @@ class acx (Exchange):
             else:
                 body = suffix
                 headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-        response = await self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
         if 'error' in response:
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
@@ -971,7 +980,7 @@ class anxpro (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'] + '/' + self.version + '/' + request
@@ -989,7 +998,10 @@ class anxpro (Exchange):
                 'Rest-Key': self.apiKey,
                 'Rest-Sign': self.decode(signature),
             }
-        response = await self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
         if 'result' in response:
             if response['result'] == 'success':
                 return response
@@ -1539,7 +1551,7 @@ class bit2c (Exchange):
     async def cancel_order(self, id):
         return await self.privatePostOrderCancelOrder({'id': id})
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         if api == 'public':
             url += '.json'
@@ -1553,7 +1565,10 @@ class bit2c (Exchange):
                 'key': self.apiKey,
                 'sign': self.decode(signature),
             }
-        return self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        return self.fetch2(path, api, method, params, headers, body)
 
 # -----------------------------------------------------------------------------
 
@@ -1736,7 +1751,7 @@ class bitbay (Exchange):
             'id': None,
         }
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         if api == 'public':
             url += '/' + self.implode_params(path, params) + '.json'
@@ -1750,7 +1765,10 @@ class bitbay (Exchange):
                 'API-Key': self.apiKey,
                 'API-Hash': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
-        return self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        return self.fetch2(path, api, method, params, headers, body)
 
 # -----------------------------------------------------------------------------
 
@@ -1905,7 +1923,7 @@ class bitcoincoid (Exchange):
             'id': id,
         }, params))
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         if api == 'public':
             url += '/' + self.implode_params(path, params)
@@ -1919,7 +1937,10 @@ class bitcoincoid (Exchange):
                 'Key': self.apiKey,
                 'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
-        response = await self.fetch(url, method, headers, body)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
         if 'error' in response:
             raise ExchangeError(self.id + ' ' + response['error'])
         return response
