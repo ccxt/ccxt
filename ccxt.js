@@ -8795,7 +8795,7 @@ var chbtc = {
         return this.milliseconds ();
     },
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         if (api == 'public') {
             url += '/' + this.version + '/' + path;
@@ -8812,7 +8812,11 @@ var chbtc = {
             let suffix = 'sign=' + signature + '&reqTime=' + nonce.toString ();
             url += '/' + path + '?' + auth + '&' + suffix;
         }
-        let response = await this.fetch (url, method, headers, body);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
         if (api == 'private')
             if ('code' in response)
                 throw new ExchangeError (this.id + ' ' + this.json (response));
