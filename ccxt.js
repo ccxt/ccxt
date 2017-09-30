@@ -6802,7 +6802,7 @@ var btcchina = {
         return this.microseconds ();
     },
 
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         if (api == 'private') {
             if (!this.apiKey)
@@ -6838,7 +6838,11 @@ var btcchina = {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         }
-        return this.fetch (url, method, headers, body);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    },
+
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        return this.fetch2 (path, api, method, params, headers, body);
     },
 }
 
