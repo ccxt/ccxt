@@ -14467,7 +14467,7 @@ var kraken = {
         return this.parseOrders (response['result']['closed'], market);
     },
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.version + '/' + api + '/' + path;
         if (api == 'public') {
             if (Object.keys (params).length)
@@ -14488,7 +14488,11 @@ var kraken = {
             };
         }
         url = this.urls['api'] + url;
-        let response = await this.fetch (url, method, headers, body);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    },
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('error' in response) {
             let numErrors = response['error'].length;
             if (numErrors)
