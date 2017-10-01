@@ -2130,9 +2130,9 @@ var binance = {
         let rate = market[takerOrMaker];
         let cost = amount * rate;
         if (side == 'sell') {
-            key = 'base';
-        } else {
             cost *= price;
+        } else {
+            key = 'base';
         }
         return {
             'currency': market[key],
@@ -2351,7 +2351,7 @@ var binance = {
         let market = this.market (symbol);
         let response = await this.privateGetOrder (this.extend ({
             'symbol': market['id'],
-            'orderId': id.toString (),
+            'orderId': parseInt (id),
         }, params));
         return this.parseOrder (response, market);
     },
@@ -2377,7 +2377,7 @@ var binance = {
     },
 
     async cancelOrder (id, params = {}) {
-        return await this.privatePostOrderCancel (this.extend ({
+        return await this.privateDeleteOrder (this.extend ({
             'orderId': parseInt (id),
             // 'origClientOrderId': id,
         }, params));
