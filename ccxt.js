@@ -2331,13 +2331,12 @@ var binance = {
             'quantity': amount.toFixed (8),
             'type': type.toUpperCase (),
             'side': side.toUpperCase (),
-
         };
         if (type == 'limit') {
             order = this.extend (order, {
                 'price': price.toFixed (8),
                 'timeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-            })
+            });
         }
         let response = await this.privatePostOrder (this.extend (order, params));
         return {

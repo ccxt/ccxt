@@ -1140,10 +1140,20 @@ class binance (Exchange):
         params.update(config)
         super(binance, self).__init__(params)
 
-    def calculate_fee_rate(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        key = 'base' if (side == 'sell') else 'quote'
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
-        return {'currency': market[key], 'rate': market[takerOrMaker]}
+        key = 'quote'
+        rate = market[takerOrMaker]
+        cost = amount * rate
+        if side == 'sell':
+            key = 'base'
+        else:
+            cost *= price
+        return {
+            'currency': market[key],
+            'rate': rate,
+            'cost': cost,
+        }
 
     async def fetch_balance(self, params={}):
         response = await self.privateGetAccount()
@@ -1299,7 +1309,7 @@ class binance (Exchange):
         remaining = max(amount - filled, 0.0)
         result = {
             'info': order,
-            'id': order['orderId'],
+            'id': str(order['orderId']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
@@ -1318,12 +1328,14 @@ class binance (Exchange):
         order = {
             'symbol': self.market_id(symbol),
             'quantity': '{:.8f}'.format(amount),
-            'price': '{:.8f}'.format(price),
             'type': type.upper(),
             'side': side.upper(),
-            'timeInForce': 'GTC',  # Good To Cancel(default)
-            # 'timeInForce': 'IOC',  # Immediate Or Cancel
         }
+        if type == 'limit':
+            order = self.extend(order, {
+                'price': '{:.8f}'.format(price),
+                'timeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+            })
         response = await self.privatePostOrder(self.extend(order, params))
         return {
             'info': response,

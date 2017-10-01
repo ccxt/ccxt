@@ -2370,10 +2370,21 @@ class binance extends Exchange {
         ), $options));
     }
 
-    public function calculate_fee_rate ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $key = ($side == 'sell') ? 'base' : 'quote';
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
-        return array ( 'currency' => $market[$key], 'rate' => $market[$takerOrMaker] );
+        $key = 'quote';
+        $rate = $market[$takerOrMaker];
+        $cost = $amount * $rate;
+        if ($side == 'sell') {
+            $key = 'base';
+        } else {
+            $cost *= $price;
+        }
+        return array (
+            'currency' => $market[$key],
+            'rate' => $rate,
+            'cost' => $cost,
+        );
     }
 
     public function fetch_balance ($params = array ()) {
@@ -2544,7 +2555,7 @@ class binance extends Exchange {
         $remaining = max ($amount - $filled, 0.0);
         $result = array (
             'info' => $order,
-            'id' => $order['orderId'],
+            'id' => (string) $order['orderId'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
@@ -2564,12 +2575,15 @@ class binance extends Exchange {
         $order = array (
             'symbol' => $this->market_id ($symbol),
             'quantity' => sprintf ('%8f', $amount),
-            'price' => sprintf ('%8f', $price),
             'type' => strtoupper ($type),
             'side' => strtoupper ($side),
-            'timeInForce' => 'GTC', // Good To Cancel (default)
-            // 'timeInForce' => 'IOC', // Immediate Or Cancel
         );
+        if ($type == 'limit') {
+            $order = array_merge ($order, array (
+                'price' => sprintf ('%8f', $price),
+                'timeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            ));
+        }
         $response = $this->privatePostOrder (array_merge ($order, $params));
         return array (
             'info' => $response,
