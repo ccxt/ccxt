@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.102';
+$version = '1.8.103';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10996,7 +10996,7 @@ class cryptopia extends Exchange {
         for ($j = 0; $j < count ($parsed); $j++) {
             $order = $parsed[$j];
             $id = $order['id'];
-            $this->orders['id'] = $order;
+            $this->orders[$id] = $order;
         }
         return $parsed;
     }

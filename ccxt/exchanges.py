@@ -9310,7 +9310,7 @@ class cryptopia (Exchange):
         for j in range(0, len(parsed)):
             order = parsed[j]
             id = order['id']
-            self.orders['id'] = order
+            self.orders[id] = order
         return parsed
 
     def fetchClosedOrders(self, symbol=None, params={}):
