@@ -12837,7 +12837,7 @@ var hitbtc2 = extend (hitbtc, {
         return result;
     },
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privateGetTradingBalance ();
         let result = { 'info': balances };
