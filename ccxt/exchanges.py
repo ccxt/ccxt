@@ -1237,9 +1237,9 @@ class binance (Exchange):
         rate = market[takerOrMaker]
         cost = amount * rate
         if side == 'sell':
-            key = 'base'
-        else:
             cost *= price
+        else:
+            key = 'base'
         return {
             'currency': market[key],
             'rate': rate,
@@ -1439,7 +1439,7 @@ class binance (Exchange):
         market = self.market(symbol)
         response = self.privateGetOrder(self.extend({
             'symbol': market['id'],
-            'orderId': str(id),
+            'orderId': int(id),
         }, params))
         return self.parse_order(response, market)
 
@@ -1462,7 +1462,7 @@ class binance (Exchange):
         return self.parse_orders(response, market)
 
     def cancel_order(self, id, params={}):
-        return self.privatePostOrderCancel(self.extend({
+        return self.privateDeleteOrder(self.extend({
             'orderId': int(id),
             # 'origClientOrderId': id,
         }, params))
