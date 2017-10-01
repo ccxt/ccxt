@@ -11478,7 +11478,7 @@ class hitbtc2 (hitbtc):
             })
         return result
 
-    def fetch_balance(self):
+    def fetch_balance(self, params={}):
         self.load_markets()
         balances = self.privateGetTradingBalance()
         result = {'info': balances}

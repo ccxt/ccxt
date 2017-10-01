@@ -11387,7 +11387,7 @@ class hitbtc2 (hitbtc):
             })
         return result
 
-    async def fetch_balance(self):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         balances = await self.privateGetTradingBalance()
         result = {'info': balances}
