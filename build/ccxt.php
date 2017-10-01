@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.111';
+$version = '1.9.1';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -10755,6 +10755,18 @@ class cryptopia extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             );
+            $amountLimits = array (
+                'min' => $market['MinimumTrade'],
+                'max' => $market['MaximumTrade']
+            );
+            $priceLimits = array (
+                'min' => $market['MinimumPrice'],
+                'max' => $market['MaximumPrice'],
+            );
+            $limits = array (
+                'amount' => $amountLimits,
+                'price' => $priceLimits,
+            );
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -10764,6 +10776,7 @@ class cryptopia extends Exchange {
                 'maker' => $market['TradeFee'] / 100,
                 'taker' => $market['TradeFee'] / 100,
                 'precision' => $precision,
+                'limits' => $limits,
             );
         }
         return $result;
