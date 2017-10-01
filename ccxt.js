@@ -10353,6 +10353,18 @@ var cryptopia = {
                 'amount': 8,
                 'price': 8,
             };
+            let amountLimits = {
+                'min': market['MinimumTrade'],
+                'max': market['MaximumTrade']
+            };
+            let priceLimits = {
+                'min': market['MinimumPrice'],
+                'max': market['MaximumPrice'],
+            };
+            let limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -10362,6 +10374,7 @@ var cryptopia = {
                 'maker': market['TradeFee'] / 100,
                 'taker': market['TradeFee'] / 100,
                 'precision': precision,
+                'limits': limits,
             });
         }
         return result;

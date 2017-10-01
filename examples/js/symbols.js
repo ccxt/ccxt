@@ -24,7 +24,7 @@ let printSymbols = async (id) => {
         log ('Instantiating', id.green, 'exchange exchange')
 
         // instantiate the exchange by id
-        let exchange = new ccxt[id] ()
+        let exchange = new ccxt[id] ({verbose:true})
 
         // load all markets from the exchange
         let markets = await exchange.loadMarkets ()
