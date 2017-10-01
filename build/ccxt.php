@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.100';
+$version = '1.8.101';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -698,7 +698,7 @@ class Exchange {
             var_dump ($url, $method, $url, "\nRequest:\n", $verbose_headers, $body);
 
         $result = curl_exec ($this->curl);
-        
+
         $this->lastRestRequestTimestamp = $this->milliseconds();
 
         if ($result === false) {
@@ -1083,8 +1083,12 @@ class Exchange {
             $exception = '\\ccxt\\ExchangeError';
             throw new $exception ($this->id . ' updateOrder() requires enableRateLimit = true');
         }
-        $this->cancel_order ($id);
+        $this->cancel_order ($id, $symbol, $params);
         return $this->create_order ($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    public function cancelOrder ($id, $symbol = null, $params = array ()) {
+        return $this->cancel_order ($id, $symbol, $params);
     }
 
     public function updateLimitBuyOrder ($id, $symbol, $amount, $price, $params = array ()) {
@@ -1443,7 +1447,7 @@ class _1broker extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
     }
@@ -1628,7 +1632,7 @@ class cryptocapital extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostOrdersCancel (array ( 'id' => $id ));
     }
 
@@ -1991,7 +1995,7 @@ class acx extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostOrderDelete (array ( 'id' => $id ));
     }
@@ -2187,7 +2191,7 @@ class anxpro extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCurrencyPairOrderCancel (array ( 'oid' => $id ));
     }
 
@@ -2622,7 +2626,7 @@ class binance extends Exchange {
         return $this->parse_orders ($response, $market);
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privateDeleteOrder (array_merge (array (
             'orderId' => intval ($id),
             // 'origClientOrderId' => $id,
@@ -2828,7 +2832,7 @@ class bit2c extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostOrderCancelOrder (array ( 'id' => $id ));
     }
 
@@ -3007,7 +3011,7 @@ class bitbay extends Exchange {
         ), $params));
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancel (array ( 'id' => $id ));
     }
 
@@ -3217,7 +3221,7 @@ class bitcoincoid extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancelOrder (array_merge (array (
             'id' => $id,
         ), $params));
@@ -3462,7 +3466,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostOrderCancel (array ( 'order_id' => intval ($id) ));
     }
@@ -3866,7 +3870,7 @@ class bitfinex2 extends bitfinex {
         throw new NotSupported ($this->id . ' createOrder not implemented yet');
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         throw new NotSupported ($this->id . ' cancelOrder not implemented yet');
     }
 
@@ -4118,7 +4122,7 @@ class bitflyer extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostCancelchildorder (array_merge (array (
             'parent_order_id' => $id,
@@ -4353,7 +4357,7 @@ class bithumb extends Exchange {
         //     );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $side = (array_key_exists ('side', $params));
         if (!$side)
             throw new ExchangeError ($this->id . ' cancelOrder requires a $side parameter (sell or buy)');
@@ -4648,7 +4652,7 @@ class bitlish extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostCancelTrade (array ( 'id' => $id ));
     }
@@ -4911,7 +4915,7 @@ class bitmarket extends Exchange {
         return $result;
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancel (array ( 'id' => $id ));
     }
 
@@ -5291,7 +5295,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privateDeleteOrder (array ( 'orderID' => $id ));
     }
@@ -5537,7 +5541,7 @@ class bitso extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privateDeleteOrders (array ( 'oid' => $id ));
     }
@@ -5741,7 +5745,7 @@ class bitstamp1 extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
@@ -5995,7 +5999,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
@@ -6354,7 +6358,7 @@ class bittrex extends Exchange {
         return $result;
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->marketGetCancel (array ( 'uuid' => $id ));
     }
@@ -6628,7 +6632,7 @@ class blinktrade extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostF (array_merge (array (
             'ClOrdID' => $id,
         ), $params));
@@ -6831,7 +6835,7 @@ class bl3p extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostMarketMoneyOrderCancel (array ( 'order_id' => $id ));
     }
 
@@ -7176,7 +7180,7 @@ class btcchina extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         $market = $params['market']; // TODO fixme
         return $this->privatePostCancelOrder (array_merge (array (
@@ -7402,7 +7406,7 @@ class btcmarkets extends Exchange {
         return $this->privatePostOrderCancel (array ( 'order_ids' => $ids ));
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->cancelOrders (array ($id));
     }
@@ -7611,7 +7615,7 @@ class btctrader extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
@@ -7860,7 +7864,7 @@ class btctradeua extends Exchange {
         return $this->$method (array_merge ($order, $params));
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostRemoveOrderId (array ( 'id' => $id ));
     }
 
@@ -8045,7 +8049,7 @@ class btcx extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancel (array ( 'order' => $id ));
     }
 
@@ -8286,7 +8290,7 @@ class bter extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostCancelOrder (array ( 'orderNumber' => $id ));
     }
@@ -8525,7 +8529,7 @@ class bxinth extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         $pairing = null; // TODO fixme
         return $this->privatePostCancel (array (
@@ -8772,7 +8776,7 @@ class ccex extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privateGetCancel (array ( 'uuid' => $id ));
     }
@@ -9018,7 +9022,7 @@ class cex extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
@@ -9233,7 +9237,7 @@ class chbtc extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $paramString = '&$id=' . (string) $id;
         if (array_key_exists ('currency', $params))
             $paramString .= '&currency=' . $params['currency'];
@@ -9492,7 +9496,7 @@ class coincheck extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privateDeleteExchangeOrdersId (array ( 'id' => $id ));
     }
 
@@ -9671,7 +9675,7 @@ class coinfloor extends Exchange {
         return $this->$method (array_merge ($order, $params));
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostIdCancelOrder (array ( 'id' => $id ));
     }
 
@@ -9865,7 +9869,7 @@ class coingi extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->userPostCancelOrder (array ( 'orderId' => $id ));
     }
 
@@ -10221,7 +10225,7 @@ class coinmate extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancelOrder (array ( 'orderId' => $id ));
     }
 
@@ -10495,7 +10499,7 @@ class coinsecure extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         throw new ExchangeError ($this->id . ' cancelOrder () is not fully implemented yet');
         $method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
         return $this->$method (array ( 'orderID' => $id ));
@@ -10652,7 +10656,7 @@ class coinspot extends Exchange {
         return $this->$method (array_merge ($order, $params));
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         throw new ExchangeError ($this->id . ' cancelOrder () is not fully implemented yet');
         $method = 'privatePostMyBuy';
         return $this->$method (array ( 'id' => $id ));
@@ -10921,7 +10925,7 @@ class cryptopia extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostCancelTrade (array (
             'Type' => 'Trade',
@@ -11196,7 +11200,7 @@ class dsx extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->tapiPostCancelOrder (array ( 'orderId' => $id ));
     }
@@ -11425,7 +11429,7 @@ class exmo extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
     }
@@ -11642,14 +11646,14 @@ class flowbtc extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         if (array_key_exists ('ins', $params)) {
             return $this->privatePostCancelOrder (array_merge (array (
                 'serverOrderId' => $id,
             ), $params));
         }
-        throw new ExchangeError ($this->id . ' requires `ins` symbol parameter for cancelling an order');
+        throw new ExchangeError ($this->id . ' requires `ins` $symbol parameter for cancelling an order');
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -11834,7 +11838,7 @@ class fyb extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancelpendingorder (array ( 'orderNo' => $id ));
     }
 
@@ -12264,7 +12268,7 @@ class gatecoin extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privateDeleteTradeOrdersOrderID (array ( 'OrderID' => $id ));
     }
@@ -12545,7 +12549,7 @@ class gdax extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privateDeleteOrdersId (array ( 'id' => $id ));
     }
@@ -12779,7 +12783,7 @@ class gemini extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostCancelOrder (array ( 'order_id' => $id ));
     }
@@ -13053,7 +13057,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->tradingPostCancelOrder (array_merge (array (
             'clientOrderId' => $id,
@@ -13366,7 +13370,7 @@ class hitbtc2 extends hitbtc {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privateDeleteOrderClientOrderId (array_merge (array (
             'clientOrderId' => $id,
@@ -13678,7 +13682,7 @@ class huobi1 extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostOrderOrdersIdSubmitcancel (array ( 'id' => $id ));
     }
 
@@ -13970,7 +13974,7 @@ class huobi extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->tradePostCancelOrder (array ( 'id' => $id ));
     }
 
@@ -14209,7 +14213,7 @@ class independentreserve extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostCancelOrder (array ( 'orderGuid' => $id ));
     }
@@ -14422,7 +14426,7 @@ class itbit extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $walletIdInParams = (array_key_exists ('walletId', $params));
         if (!$walletIdInParams)
             throw new ExchangeError ($this->id . ' cancelOrder requires a walletId parameter');
@@ -14649,7 +14653,7 @@ class jubi extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostTradeCancel (array_merge (array (
             'id' => $id,
@@ -15080,7 +15084,7 @@ class kraken extends Exchange {
         return $this->parse_trades ($trades);
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostCancelOrder (array ( 'txid' => $id ));
     }
@@ -15318,7 +15322,7 @@ class lakebtc extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostCancelOrder (array ( 'params' => $id ));
     }
@@ -15572,7 +15576,7 @@ class livecoin extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostExchangeCancellimit (array_merge (array (
             'orderId' => $id,
@@ -15861,7 +15865,7 @@ class liqui extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostCancelOrder (array ( 'order_id' => intval ($id) ));
     }
@@ -16220,7 +16224,7 @@ class luno extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostStoporder (array ( 'order_id' => $id ));
     }
@@ -16396,7 +16400,7 @@ class mercado extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancelOrder (array_merge (array (
             'order_id' => $id,
         ), $params));
@@ -16596,7 +16600,7 @@ class mixcoins extends Exchange {
         );
     }
 
-    public function cancel_order ($id) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancel (array ( 'id' => $id ));
     }
 
@@ -16807,7 +16811,7 @@ class nova extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancelorder (array_merge (array (
             'orderid' => $id,
         ), $params));
@@ -17104,7 +17108,7 @@ class okcoin extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancelOrder (array_merge (array (
             'order_id' => $id,
         ), $params));
@@ -17318,7 +17322,7 @@ class okex extends okcoin {
         ), $options));
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostFutureCancel (array_merge (array (
             'order_id' => $id,
         ), $params));
@@ -17481,7 +17485,7 @@ class paymium extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancelOrder (array_merge (array (
             'orderNumber' => $id,
         ), $params));
@@ -17885,7 +17889,7 @@ class poloniex extends Exchange {
         return $this->parse_trades ($trades);
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostCancelOrder (array_merge (array (
             'orderNumber' => $id,
@@ -18075,7 +18079,7 @@ class quadrigacx extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancelOrder (array_merge (array (
             'id' => $id,
         ), $params));
@@ -18322,7 +18326,7 @@ class qryptos extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePutOrdersIdCancel (array_merge (array (
             'id' => $id,
@@ -18569,7 +18573,7 @@ class southxchange extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostCancelOrder (array_merge (array (
             'orderCode' => $id,
@@ -18860,7 +18864,7 @@ class therock extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privateDeleteFundsFundIdOrdersId (array_merge (array (
             'id' => $id,
@@ -19096,7 +19100,7 @@ class vaultoro extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostCancelId (array_merge (array (
             'id' => $id,
@@ -19345,7 +19349,7 @@ class virwox extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancelOrder (array_merge (array (
             'orderID' => $id,
         ), $params));
@@ -19740,7 +19744,7 @@ class xbtce extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privateDeleteTrade (array_merge (array (
             'Type' => 'Cancel',
             'Id' => $id,
@@ -19961,7 +19965,7 @@ class yobit extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->tapiPostCancelOrder (array_merge (array (
             'order_id' => $id,
         ), $params));
@@ -20271,7 +20275,7 @@ class zaif extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $params = array ()) {
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancelOrder (array_merge (array (
             'order_id' => $id,
         ), $params));

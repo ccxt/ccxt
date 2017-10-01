@@ -353,7 +353,7 @@ class _1broker (Exchange):
             'id': result['response']['order_id'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostOrderCancel({'order_id': id})
 
@@ -527,7 +527,7 @@ class cryptocapital (Exchange):
             'id': result,
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostOrdersCancel({'id': id})
 
     def withdraw(self, currency, amount, address, params={}):
@@ -869,7 +869,7 @@ class acx (Exchange):
             'id': str(response['id']),
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostOrderDelete({'id': id})
 
@@ -1053,7 +1053,7 @@ class anxpro (Exchange):
             'id': result['data']
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCurrencyPairOrderCancel({'oid': id})
 
     def withdraw(self, currency, amount, address, params={}):
@@ -1461,7 +1461,7 @@ class binance (Exchange):
         }, params))
         return self.parse_orders(response, market)
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privateDeleteOrder(self.extend({
             'orderId': int(id),
             # 'origClientOrderId': id,
@@ -1651,7 +1651,7 @@ class bit2c (Exchange):
             'id': result['NewOrder']['id'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostOrderCancelOrder({'id': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -1819,7 +1819,7 @@ class bitbay (Exchange):
             'rate': price,
         }, params))
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancel({'id': id})
 
     def isFiat(self, currency):
@@ -2017,7 +2017,7 @@ class bitcoincoid (Exchange):
             'id': str(result['return']['order_id']),
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancelOrder(self.extend({
             'id': id,
         }, params))
@@ -2248,7 +2248,7 @@ class bitfinex (Exchange):
             'id': str(result['order_id']),
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostOrderCancel({'order_id': int(id)})
 
@@ -2627,7 +2627,7 @@ class bitfinex2 (bitfinex):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder not implemented yet')
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' cancelOrder not implemented yet')
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -2859,7 +2859,7 @@ class bitflyer (Exchange):
             'id': result['child_order_acceptance_id'],
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostCancelchildorder(self.extend({
             'parent_order_id': id,
@@ -3080,7 +3080,7 @@ class bithumb (Exchange):
         #         'id': str(response['order_id']),
         #     }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         side = ('side' in list(params.keys()))
         if not side:
             raise ExchangeError(self.id + ' cancelOrder requires a side parameter(sell or buy)')
@@ -3354,7 +3354,7 @@ class bitlish (Exchange):
             'id': result['id'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostCancelTrade({'id': id})
 
@@ -3602,7 +3602,7 @@ class bitmarket (Exchange):
             result['id'] = response['id']
         return result
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancel({'id': id})
 
     def isFiat(self, currency):
@@ -3960,7 +3960,7 @@ class bitmex (Exchange):
             'id': response['orderID'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privateDeleteOrder({'orderID': id})
 
@@ -4192,7 +4192,7 @@ class bitso (Exchange):
             'id': response['payload']['oid'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privateDeleteOrders({'oid': id})
 
@@ -4384,7 +4384,7 @@ class bitstamp1 (Exchange):
             'id': response['id'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancelOrder({'id': id})
 
     def parse_order_status(self, order):
@@ -4622,7 +4622,7 @@ class bitstamp (Exchange):
             'id': response['id'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancelOrder({'id': id})
 
     def parse_order_status(self, order):
@@ -4955,7 +4955,7 @@ class bittrex (Exchange):
         }
         return result
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.marketGetCancel({'uuid': id})
 
@@ -5212,7 +5212,7 @@ class blinktrade (Exchange):
             'id': execution['OrderID'],
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostF(self.extend({
             'ClOrdID': id,
         }, params))
@@ -5398,7 +5398,7 @@ class bl3p (Exchange):
             'id': str(response['order_id']),
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostMarketMoneyOrderCancel({'order_id': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -5723,7 +5723,7 @@ class btcchina (Exchange):
             'id': response['id'],
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         market = params['market']  # TODO fixme
         return self.privatePostCancelOrder(self.extend({
@@ -5937,7 +5937,7 @@ class btcmarkets (Exchange):
         self.load_markets()
         return self.privatePostOrderCancel({'order_ids': ids})
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.cancelOrders([id])
 
@@ -6131,7 +6131,7 @@ class btctrader (Exchange):
             'id': response['id'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancelOrder({'id': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -6366,7 +6366,7 @@ class btctradeua (Exchange):
         }
         return getattr(self, method)(self.extend(order, params))
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostRemoveOrderId({'id': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -6543,7 +6543,7 @@ class btcx (Exchange):
             'id': response['order']['id'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancel({'order': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -6765,7 +6765,7 @@ class bter (Exchange):
             'id': response['orderNumber'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostCancelOrder({'orderNumber': id})
 
@@ -6988,7 +6988,7 @@ class bxinth (Exchange):
             'id': str(response['order_id']),
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         pairing = None  # TODO fixme
         return self.privatePostCancel({
@@ -7219,7 +7219,7 @@ class ccex (Exchange):
             'id': response['result']['uuid'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privateGetCancel({'uuid': id})
 
@@ -7448,7 +7448,7 @@ class cex (Exchange):
             'id': response['id'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostCancelOrder({'id': id})
 
@@ -7652,7 +7652,7 @@ class chbtc (Exchange):
             'id': response['id'],
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         paramString = '&id=' + str(id)
         if 'currency' in params:
             paramString += '&currency=' + params['currency']
@@ -7899,7 +7899,7 @@ class coincheck (Exchange):
             'id': str(response['id']),
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privateDeleteExchangeOrdersId({'id': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -8067,7 +8067,7 @@ class coinfloor (Exchange):
             order['amount'] = amount
         return getattr(self, method)(self.extend(order, params))
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostIdCancelOrder({'id': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -8248,7 +8248,7 @@ class coingi (Exchange):
             'id': response['result'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.userPostCancelOrder({'orderId': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -8583,7 +8583,7 @@ class coinmate (Exchange):
             'id': str(response['data']),
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancelOrder({'orderId': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -8848,7 +8848,7 @@ class coinsecure (Exchange):
             'id': response['message']['orderID'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         raise ExchangeError(self.id + ' cancelOrder() is not fully implemented yet')
         method = 'privateDeleteUserExchangeAskCancelOrderId'  # TODO fixme, have to specify order side here
         return getattr(self, method)({'orderID': id})
@@ -8994,7 +8994,7 @@ class coinspot (Exchange):
         }
         return getattr(self, method)(self.extend(order, params))
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         raise ExchangeError(self.id + ' cancelOrder() is not fully implemented yet')
         method = 'privatePostMyBuy'
         return getattr(self, method)({'id': id})
@@ -9243,7 +9243,7 @@ class cryptopia (Exchange):
             'id': str(response['Data']['OrderId']),
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostCancelTrade({
             'Type': 'Trade',
@@ -9501,7 +9501,7 @@ class dsx (Exchange):
             'id': str(response['return']['orderId']),
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.tapiPostCancelOrder({'orderId': id})
 
@@ -9715,7 +9715,7 @@ class exmo (Exchange):
             'id': str(response['order_id']),
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostOrderCancel({'order_id': id})
 
@@ -9918,7 +9918,7 @@ class flowbtc (Exchange):
             'id': response['serverOrderId'],
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         if 'ins' in params:
             return self.privatePostCancelOrder(self.extend({
@@ -10100,7 +10100,7 @@ class fyb (Exchange):
             'id': response['pending_oid'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancelpendingorder({'orderNo': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -10513,7 +10513,7 @@ class gatecoin (Exchange):
             'id': response['clOrderId'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privateDeleteTradeOrdersOrderID({'OrderID': id})
 
@@ -10777,7 +10777,7 @@ class gdax (Exchange):
             'id': response['id'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privateDeleteOrdersId({'id': id})
 
@@ -10996,7 +10996,7 @@ class gemini (Exchange):
             'id': response['order_id'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostCancelOrder({'order_id': id})
 
@@ -11255,7 +11255,7 @@ class hitbtc (Exchange):
             'id': response['ExecutionReport']['clientOrderId'],
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.tradingPostCancelOrder(self.extend({
             'clientOrderId': id,
@@ -11546,7 +11546,7 @@ class hitbtc2 (hitbtc):
             'id': response['clientOrderId'],
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privateDeleteOrderClientOrderId(self.extend({
             'clientOrderId': id,
@@ -11835,7 +11835,7 @@ class huobi1 (Exchange):
             'id': response['data'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostOrderOrdersIdSubmitcancel({'id': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -12116,7 +12116,7 @@ class huobi (Exchange):
             'id': response['id'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.tradePostCancelOrder({'id': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -12341,7 +12341,7 @@ class independentreserve (Exchange):
             'id': response['OrderGuid'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostCancelOrder({'orderGuid': id})
 
@@ -12542,7 +12542,7 @@ class itbit (Exchange):
             'id': response['id'],
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         walletIdInParams = ('walletId' in list(params.keys()))
         if not walletIdInParams:
             raise ExchangeError(self.id + ' cancelOrder requires a walletId parameter')
@@ -12754,7 +12754,7 @@ class jubi (Exchange):
             'id': response['id'],
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostTradeCancel(self.extend({
             'id': id,
@@ -13157,7 +13157,7 @@ class kraken (Exchange):
             trades[ids[i]]['id'] = ids[i]
         return self.parse_trades(trades)
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostCancelOrder({'txid': id})
 
@@ -13378,7 +13378,7 @@ class lakebtc (Exchange):
             'id': str(response['id']),
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostCancelOrder({'params': id})
 
@@ -13617,7 +13617,7 @@ class livecoin (Exchange):
             'id': str(response['id']),
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostExchangeCancellimit(self.extend({
             'orderId': id,
@@ -13888,7 +13888,7 @@ class liqui (Exchange):
             'id': response['return']['order_id'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostCancelOrder({'order_id': int(id)})
 
@@ -14222,7 +14222,7 @@ class luno (Exchange):
             'id': response['order_id'],
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostStoporder({'order_id': id})
 
@@ -14387,7 +14387,7 @@ class mercado (Exchange):
             'id': str(response['response_data']['order']['order_id']),
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancelOrder(self.extend({
             'order_id': id,
         }, params))
@@ -14573,7 +14573,7 @@ class mixcoins (Exchange):
             'id': str(response['result']['id']),
         }
 
-    def cancel_order(self, id):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancel({'id': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -14771,7 +14771,7 @@ class nova (Exchange):
             'id': None,
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancelorder(self.extend({
             'orderid': id,
         }, params))
@@ -15048,7 +15048,7 @@ class okcoin (Exchange):
             'id': str(response['order_id']),
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancelOrder(self.extend({
             'order_id': id,
         }, params))
@@ -15252,7 +15252,7 @@ class okex (okcoin):
         params.update(config)
         super(okex, self).__init__(params)
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostFutureCancel(self.extend({
             'order_id': id,
         }, params))
@@ -15408,7 +15408,7 @@ class paymium (Exchange):
             'id': response['uuid'],
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancelOrder(self.extend({
             'orderNumber': id,
         }, params))
@@ -15781,7 +15781,7 @@ class poloniex (Exchange):
         }, params))
         return self.parse_trades(trades)
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostCancelOrder(self.extend({
             'orderNumber': id,
@@ -15959,7 +15959,7 @@ class quadrigacx (Exchange):
             'id': str(response['id']),
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancelOrder(self.extend({
             'id': id,
         }, params))
@@ -16189,7 +16189,7 @@ class qryptos (Exchange):
             'id': str(response['id']),
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePutOrdersIdCancel(self.extend({
             'id': id,
@@ -16422,7 +16422,7 @@ class southxchange (Exchange):
             'id': str(response),
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostCancelOrder(self.extend({
             'orderCode': id,
@@ -16700,7 +16700,7 @@ class therock (Exchange):
             'id': str(response['id']),
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privateDeleteFundsFundIdOrdersId(self.extend({
             'id': id,
@@ -16925,7 +16925,7 @@ class vaultoro (Exchange):
             'id': response['data']['Order_ID'],
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostCancelId(self.extend({
             'id': id,
@@ -17164,7 +17164,7 @@ class virwox (Exchange):
             'id': str(response['orderID']),
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancelOrder(self.extend({
             'orderID': id,
         }, params))
@@ -17539,7 +17539,7 @@ class xbtce (Exchange):
             'id': str(response['Id']),
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privateDeleteTrade(self.extend({
             'Type': 'Cancel',
             'Id': id,
@@ -17746,7 +17746,7 @@ class yobit (Exchange):
             'id': str(response['return']['order_id']),
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.tapiPostCancelOrder(self.extend({
             'order_id': id,
         }, params))
@@ -18042,7 +18042,7 @@ class zaif (Exchange):
             'id': str(response['return']['order_id']),
         }
 
-    def cancel_order(self, id, params={}):
+    def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancelOrder(self.extend({
             'order_id': id,
         }, params))
