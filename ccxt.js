@@ -2326,15 +2326,16 @@ var binance = {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         price = parseFloat (price);
+        let market = this.market (symbol);
         let order = {
-            'symbol': this.marketId (symbol),
-            'quantity': amount.toFixed (8),
+            'symbol': market['id'],
+            'quantity': amount.toFixed (market['precision']['amount']),
             'type': type.toUpperCase (),
             'side': side.toUpperCase (),
         };
         if (type == 'limit') {
             order = this.extend (order, {
-                'price': price.toFixed (8),
+                'price': price.toFixed (market['precision']['price']),
                 'timeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             });
         }
@@ -5868,12 +5869,17 @@ var bittrex = {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
+            let precision = {
+                'amount': 8,
+                'price': 8,
+            };
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
+                'precision': precision,
             }));
         }
         return result;
@@ -10343,6 +10349,10 @@ var cryptopia = {
             let id = market['Id'];
             let symbol = market['Label'];
             let [ base, quote ] = symbol.split ('/');
+            let precision = {
+                'amount': 8,
+                'price': 8,
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -10351,6 +10361,7 @@ var cryptopia = {
                 'info': market,
                 'maker': market['TradeFee'] / 100,
                 'taker': market['TradeFee'] / 100,
+                'precision': precision,
             });
         }
         return result;

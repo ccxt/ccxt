@@ -78,7 +78,9 @@ while (exchanges = regex.exec (contents)) {
         .replace (/': /g, "' => ")
         .replace (/ {/g, ' array (')
         .replace (/ \[/g, ' array (')
+        .replace (/\}\}([\,\n]|$)/g, '))$1')
         .replace (/\}([\,\n]|$)/g, ')$1')
+        .replace (/\]\]/g, '))')
         .replace (/\]/g, ')')
 
     ph.push ('')
@@ -245,7 +247,8 @@ while (exchanges = regex.exec (contents)) {
             [ /\.toLowerCase\s*/g, '.lower' ],
             [ /JSON\.stringify\s*/g, 'json.dumps' ],
             // [ /\'%([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "'{:$1}'.format($2)" ],
-            [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "'{:.$2f}'.format($1)" ],
+            [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "'{:.$2f}'.format($1)" ],
+            [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "('{:.' + str($2) + 'f}').format($1)" ],
             [ /parseFloat\s*/g, 'float'],
             [ /parseInt\s*/g, 'int'],
             [ /self\[([^\]+]+)\]/g, 'getattr(self, $1)' ],
@@ -267,7 +270,7 @@ while (exchanges = regex.exec (contents)) {
             [ /Math\.(max|min)\s/g, '$1' ],
             [ /console\.log\s/g, 'print'],
             [ /process\.exit\s+/g, 'sys.exit'],
-            [ /([^+=\s]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
+            [ /([^:+=\s]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
             [ /\[ /g, '[' ],             // PEP8 E201 remove whitespaces after left [ square bracket
             [ /\{ /g, '{' ],             // PEP8 E201 remove whitespaces after left { bracket
             [ /([^\s]+) \]/g, '$1]' ],   // PEP8 E202 remove whitespaces before right ] square bracket
@@ -350,7 +353,8 @@ while (exchanges = regex.exec (contents)) {
             [ /\[\s([^\]]+?)\s\]/g, 'array ($1)' ],
             [ /JSON\.stringify/g, 'json_encode' ],
             // [ /\'([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "sprintf ('$1', $2)" ],
-            [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "sprintf ('%$2f', $1)" ],
+            [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "sprintf ('%$2f', $1)" ],
+            [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "sprintf ('%' . $2 . 'f', $1)" ],
             [ /parseFloat\s/g, 'floatval '],
             [ /parseInt\s/g, 'intval '],
             [ / \+ /g, ' . ' ],

@@ -20,7 +20,7 @@ let printSymbols = async (id) => {
     // check if the exchange is supported by ccxt
     let exchangeFound = ccxt.exchanges.indexOf (id) > -1
     if (exchangeFound) {
-        
+
         log ('Instantiating', id.green, 'exchange exchange')
 
         // instantiate the exchange by id
@@ -34,7 +34,7 @@ let printSymbols = async (id) => {
 
         // make a table of all markets
         let table = asTable.configure ({ delimiter: ' | ' }) (Object.values (markets))
-        log (table) 
+        log (table)
 
     } else {
 

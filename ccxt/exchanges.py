@@ -1416,15 +1416,16 @@ class binance (Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         price = float(price)
+        market = self.market(symbol)
         order = {
-            'symbol': self.market_id(symbol),
-            'quantity': '{:.8f}'.format(amount),
+            'symbol': market['id'],
+            'quantity': ('{:.' + str(market['precision']['amount']) + 'f}').format(amount),
             'type': type.upper(),
             'side': side.upper(),
         }
         if type == 'limit':
             order = self.extend(order, {
-                'price': '{:.8f}'.format(price),
+                'price': ('{:.' + str(market['precision']['price']) + 'f}').format(price),
                 'timeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
             })
         response = self.privatePostOrder(self.extend(order, params))
@@ -4790,12 +4791,17 @@ class bittrex (Exchange):
             base = self.commonCurrencyCode(base)
             quote = self.commonCurrencyCode(quote)
             symbol = base + '/' + quote
+            precision = {
+                'amount': 8,
+                'price': 8,
+            }
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
+                'precision': precision,
             }))
         return result
 
@@ -9084,6 +9090,10 @@ class cryptopia (Exchange):
             id = market['Id']
             symbol = market['Label']
             base, quote = symbol.split('/')
+            precision = {
+                'amount': 8,
+                'price': 8,
+            }
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -9092,6 +9102,7 @@ class cryptopia (Exchange):
                 'info': market,
                 'maker': market['TradeFee'] / 100,
                 'taker': market['TradeFee'] / 100,
+                'precision': precision,
             })
         return result
 

@@ -2347,26 +2347,26 @@ class binance extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BNB/BTC' => array ( 'id' => 'BNBBTC', 'symbol' => 'BNB/BTC', 'base' => 'BNB', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 }),
-                'NEO/BTC' => array ( 'id' => 'NEOBTC', 'symbol' => 'NEO/BTC', 'base' => 'NEO', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 }),
-                'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 }),
-                'HSR/BTC' => array ( 'id' => 'HSRBTC', 'symbol' => 'HSR/BTC', 'base' => 'HSR', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 }),
-                'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 }),
-                'GAS/BTC' => array ( 'id' => 'GASBTC', 'symbol' => 'GAS/BTC', 'base' => 'GAS', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 }),
-                'HCC/BTC' => array ( 'id' => 'HCCBTC', 'symbol' => 'HCC/BTC', 'base' => 'HCC', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 }),
-                'BCH/BTC' => array ( 'id' => 'BCCBTC', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 }),
-                'BNB/ETH' => array ( 'id' => 'BNBETH', 'symbol' => 'BNB/ETH', 'base' => 'BNB', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 }),
-                'DNT/ETH' => array ( 'id' => 'DNTETH', 'symbol' => 'DNT/ETH', 'base' => 'DNT', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 }),
-                'OAX/ETH' => array ( 'id' => 'OAXETH', 'symbol' => 'OAX/ETH', 'base' => 'OAX', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 }),
-                'MCO/ETH' => array ( 'id' => 'MCOETH', 'symbol' => 'MCO/ETH', 'base' => 'MCO', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 }),
-                'BTM/ETH' => array ( 'id' => 'BTMETH', 'symbol' => 'BTM/ETH', 'base' => 'BTM', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 }),
-                'SNT/ETH' => array ( 'id' => 'SNTETH', 'symbol' => 'SNT/ETH', 'base' => 'SNT', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 }),
-                'EOS/ETH' => array ( 'id' => 'EOSETH', 'symbol' => 'EOS/ETH', 'base' => 'EOS', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 }),
-                'BNT/ETH' => array ( 'id' => 'BNTETH', 'symbol' => 'BNT/ETH', 'base' => 'BNT', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 }),
-                'ICN/ETH' => array ( 'id' => 'ICNETH', 'symbol' => 'ICN/ETH', 'base' => 'ICN', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 }),
-                'BTC/USDT' => array ( 'id' => 'BTCUSDT', 'symbol' => 'BTC/USDT', 'base' => 'BTC', 'quote' => 'USDT', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 }),
-                'ETH/USDT' => array ( 'id' => 'ETHUSDT', 'symbol' => 'ETH/USDT', 'base' => 'ETH', 'quote' => 'USDT', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 }),
-                'QTUM/ETH' => array ( 'id' => 'QTUMETH', 'symbol' => 'QTUM/ETH', 'base' => 'QTUM', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 }),
+                'BNB/BTC' => array ( 'id' => 'BNBBTC', 'symbol' => 'BNB/BTC', 'base' => 'BNB', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
+                'NEO/BTC' => array ( 'id' => 'NEOBTC', 'symbol' => 'NEO/BTC', 'base' => 'NEO', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
+                'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
+                'HSR/BTC' => array ( 'id' => 'HSRBTC', 'symbol' => 'HSR/BTC', 'base' => 'HSR', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
+                'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
+                'GAS/BTC' => array ( 'id' => 'GASBTC', 'symbol' => 'GAS/BTC', 'base' => 'GAS', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
+                'HCC/BTC' => array ( 'id' => 'HCCBTC', 'symbol' => 'HCC/BTC', 'base' => 'HCC', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
+                'BCH/BTC' => array ( 'id' => 'BCCBTC', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
+                'BNB/ETH' => array ( 'id' => 'BNBETH', 'symbol' => 'BNB/ETH', 'base' => 'BNB', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
+                'DNT/ETH' => array ( 'id' => 'DNTETH', 'symbol' => 'DNT/ETH', 'base' => 'DNT', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
+                'OAX/ETH' => array ( 'id' => 'OAXETH', 'symbol' => 'OAX/ETH', 'base' => 'OAX', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
+                'MCO/ETH' => array ( 'id' => 'MCOETH', 'symbol' => 'MCO/ETH', 'base' => 'MCO', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
+                'BTM/ETH' => array ( 'id' => 'BTMETH', 'symbol' => 'BTM/ETH', 'base' => 'BTM', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
+                'SNT/ETH' => array ( 'id' => 'SNTETH', 'symbol' => 'SNT/ETH', 'base' => 'SNT', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
+                'EOS/ETH' => array ( 'id' => 'EOSETH', 'symbol' => 'EOS/ETH', 'base' => 'EOS', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
+                'BNT/ETH' => array ( 'id' => 'BNTETH', 'symbol' => 'BNT/ETH', 'base' => 'BNT', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
+                'ICN/ETH' => array ( 'id' => 'ICNETH', 'symbol' => 'ICN/ETH', 'base' => 'ICN', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
+                'BTC/USDT' => array ( 'id' => 'BTCUSDT', 'symbol' => 'BTC/USDT', 'base' => 'BTC', 'quote' => 'USDT', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
+                'ETH/USDT' => array ( 'id' => 'ETHUSDT', 'symbol' => 'ETH/USDT', 'base' => 'ETH', 'quote' => 'USDT', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
+                'QTUM/ETH' => array ( 'id' => 'QTUMETH', 'symbol' => 'QTUM/ETH', 'base' => 'QTUM', 'quote' => 'ETH', 'taker' => 0.001, 'maker' => 0.001, 'precision' => array ( 'amount' => 6, 'price' => 6 )),
             ),
         ), $options));
     }
@@ -2573,15 +2573,16 @@ class binance extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $price = floatval ($price);
+        $market = $this->market ($symbol);
         $order = array (
-            'symbol' => $this->market_id ($symbol),
-            'quantity' => sprintf ('%8f', $amount),
+            'symbol' => $market['id'],
+            'quantity' => sprintf ('%' . $market['precision']['amount'] . 'f', $amount),
             'type' => strtoupper ($type),
             'side' => strtoupper ($side),
         );
         if ($type == 'limit') {
             $order = array_merge ($order, array (
-                'price' => sprintf ('%8f', $price),
+                'price' => sprintf ('%' . $market['precision']['price'] . 'f', $price),
                 'timeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             ));
         }
@@ -6171,12 +6172,17 @@ class bittrex extends Exchange {
             $base = $this->commonCurrencyCode ($base);
             $quote = $this->commonCurrencyCode ($quote);
             $symbol = $base . '/' . $quote;
+            $precision = array (
+                'amount' => 8,
+                'price' => 8,
+            );
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
+                'precision' => $precision,
             ));
         }
         return $result;
@@ -10745,6 +10751,10 @@ class cryptopia extends Exchange {
             $id = $market['Id'];
             $symbol = $market['Label'];
             list ($base, $quote) = explode ('/', $symbol);
+            $precision = array (
+                'amount' => 8,
+                'price' => 8,
+            );
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -10753,6 +10763,7 @@ class cryptopia extends Exchange {
                 'info' => $market,
                 'maker' => $market['TradeFee'] / 100,
                 'taker' => $market['TradeFee'] / 100,
+                'precision' => $precision,
             );
         }
         return $result;
