@@ -5873,6 +5873,16 @@ var bittrex = {
                 'amount': 8,
                 'price': 8,
             };
+            let amountLimits = {
+                'min': market['MinTradeSize'],
+                'max': undefined,
+            };
+            let priceLimits = { 'min': undefined, 'max': undefined };
+            let limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+            };
+            {"MarketCurrency":"ADA","BaseCurrency":"BTC","MarketCurrencyLong":"Ada","BaseCurrencyLong":"Bitcoin","MinTradeSize":0.00000001,"MarketName":"BTC-ADA","IsActive":true,"Created":"2017-09-29T07:01:58.873","Notice":null,"IsSponsored":null,"LogoUrl":null}
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -5880,6 +5890,7 @@ var bittrex = {
                 'quote': quote,
                 'info': market,
                 'precision': precision,
+                'limits': limits,
             }));
         }
         return result;
