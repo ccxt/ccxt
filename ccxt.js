@@ -879,15 +879,14 @@ const Exchange = function (config) {
         return this.createOrder (symbol, 'market', 'sell', amount, undefined, params)
     }
 
-    this.calculateFeeRate = function (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol]
-        return { 'currency': market['quote'], 'rate': market[takerOrMaker] }
-    }
-
     this.calculateFee = function (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        let fee = this.calculateFeeRate (symbol, type, side, amount, price, takerOrMaker, params)
-        fee['cost'] = amount * price * fee['rate']
-        return fee
+        let market = this.markets[symbol]
+        let rate = market[takerOrMaker]
+        return {
+            'currency': market['quote'],
+            'rate': rate,
+            'cost': amount * price * rate,
+        }
     }
 
     this.iso8601         = timestamp => new Date (timestamp).toISOString ()
@@ -2125,10 +2124,21 @@ var binance = {
         'QTUM/ETH': { 'id': 'QTUMETH', 'symbol': 'QTUM/ETH', 'base': 'QTUM', 'quote': 'ETH', 'taker': 0.001, 'maker': 0.001 },
     },
 
-    calculateFeeRate (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        let key = (side == 'sell') ? 'base' : 'quote';
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
-        return { 'currency': market[key], 'rate': market[takerOrMaker] };
+        let key = 'quote';
+        let rate = market[takerOrMaker];
+        let cost = amount * rate;
+        if (side == 'sell') {
+            key = 'base';
+        } else {
+            cost *= price;
+        }
+        return {
+            'currency': market[key],
+            'rate': rate,
+            'cost': cost,
+        };
     },
 
     async fetchBalance (params = {}) {
@@ -2299,7 +2309,7 @@ var binance = {
         let remaining = Math.max (amount - filled, 0.0);
         let result = {
             'info': order,
-            'id': order['orderId'],
+            'id': order['orderId'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -2319,12 +2329,16 @@ var binance = {
         let order = {
             'symbol': this.marketId (symbol),
             'quantity': amount.toFixed (8),
-            'price': price.toFixed (8),
             'type': type.toUpperCase (),
             'side': side.toUpperCase (),
-            'timeInForce': 'GTC', // Good To Cancel (default)
-            // 'timeInForce': 'IOC', // Immediate Or Cancel
+
         };
+        if (type == 'limit') {
+            order = this.extend (order, {
+                'price': price.toFixed (8),
+                'timeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            })
+        }
         let response = await this.privatePostOrder (this.extend (order, params));
         return {
             'info': response,
