@@ -6043,13 +6043,14 @@ var bittrex = {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let method = 'marketGet' + this.capitalize (side) + type;
         let order = {
-            'market': this.marketId (symbol),
-            'quantity': amount,
+            'market': market['id'],
+            'quantity': amount.toFixed (market['precision']['amount']),
         };
         if (type == 'limit')
-            order['rate'] = price;
+            order['rate'] = price.toFixed (market['precision']['price']);
         let response = await this[method] (this.extend (order, params));
         let result = {
             'info': response,
