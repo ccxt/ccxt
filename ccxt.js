@@ -10591,7 +10591,7 @@ var cryptopia = {
         for (let j = 0; j < parsed.length; j++) {
             let order = parsed[j];
             let id = order['id'];
-            this.orders['id'] = order;
+            this.orders[id] = order;
         }
         return parsed;
     },

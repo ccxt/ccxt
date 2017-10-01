@@ -10691,6 +10691,7 @@ class cryptopia extends Exchange {
             'countries' => 'NZ', // New Zealand
             'hasFetchTickers' => true,
             'hasFetchOpenOrders' => true,
+            'hasFetchClosedOrders' => true,
             'hasFetchMyTrades' => true,
             'hasCORS' => false,
             'urls' => array (
@@ -10824,18 +10825,11 @@ class cryptopia extends Exchange {
         } else if (array_key_exists ('TimeStamp', $trade)) {
             $timestamp = $this->parse8601 ($trade['TimeStamp']);
         }
-        $price = null;
-        $cost = null;
-        if (array_key_exists ('Price', $trade)) {
-            $price = $trade['Price'];
-        } else if (array_key_exists ('Rate', $trade)) {
-            $price = $trade['Rate'];
-        }
-        if (array_key_exists ('Total', $trade))
-            $cost = $trade['Total'];
-        $id = null;
-        if (array_key_exists ('TradeId', $trade))
-            $id = (string) $trade['TradeId'];
+        $price = $this->safe_float ($trade, 'Price');
+        if (!$price)
+            $price = $this->safe_float ($trade, 'Rate');
+        $cost = $this->safe_float ($trade, 'Total');
+        $id = $this->safe_string ($trade, 'TradeId');
         if (!$market) {
             if (array_key_exists ('TradePairId', $trade))
                 if (array_key_exists ($trade['TradePairId'], $this->markets_by_id))
@@ -10910,19 +10904,37 @@ class cryptopia extends Exchange {
         return $this->parse_balance ($result);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
-        $order = array (
-            'TradePairId' => $this->market_id ($market),
+        $market = $this->market ($symbol);
+        $price = floatval ($price);
+        $amount = floatval ($amount);
+        $request = array (
+            'TradePairId' => $market['id'],
             'Type' => $this->capitalize ($side),
-            'Rate' => $price,
-            'Amount' => $amount,
+            'Rate' => sprintf ('%10f', $price),
+            'Amount' => sprintf ('%10f', $amount),
         );
-        $response = $this->privatePostSubmitTrade (array_merge ($order, $params));
-        return array (
-            'info' => $response,
-            'id' => (string) $response['Data']['OrderId'],
+        $response = $this->privatePostSubmitTrade (array_merge ($request, $params));
+        $id = (string) $response['Data']['OrderId'];
+        $timestamp = $this->milliseconds ();
+        $order = array (
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'status' => 'open',
+            'symbol' => $market['symbol'],
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'cost' => 0.0,
+            'amount' => $amount,
+            'remaining' => $amount,
+            'filled' => 0.0,
+            // 'trades' => $this->parse_trades ($order['trades'], $market),
         );
+        $this->orders[$id] = $order;
+        return array_merge (array ( 'info' => $response ), $order);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -10957,6 +10969,7 @@ class cryptopia extends Exchange {
             'type' => 'limit',
             'side' => strtolower ($order['Type']),
             'price' => $order['Rate'],
+            'cost' => $order['Total'],
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
@@ -10977,10 +10990,44 @@ class cryptopia extends Exchange {
         $orders = $response['Data'];
         $result = array ();
         for ($i = 0; $i < count ($orders); $i++) {
-            $order = $orders[$i];
-            $result[] = array_merge ($order, array ( 'status' => 'open' ));
+            $result[] = array_merge ($orders[$i], array ( 'status' => 'open' ));
         }
-        return $this->parse_orders ($result, $market);
+        $parsed = $this->parse_orders ($result, $market);
+        for ($j = 0; $j < count ($parsed); $j++) {
+            $order = $parsed[$j];
+            $id = $order['id'];
+            $this->orders['id'] = $order;
+        }
+        return $parsed;
+    }
+
+    public function fetchClosedOrders ($symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchClosedOrders requires a $symbol param');
+        $openOrders = $this->fetch_open_orders ($symbol, $params);
+        $openOrdersIndexedById = $this->index_by ($openOrders, 'id');
+        $cachedOrderIds = array_keys ($this->orders);
+        $result = array ();
+        for ($i = 0; $i < count ($cachedOrderIds); $i++) {
+            $id = $cachedOrderIds[$i];
+            if (array_key_exists ($id, $openOrdersIndexedById)) {
+                $this->orders[$id] = $openOrdersIndexedById[$id];
+            } else {
+                $order = $this->orders[$id];
+                if ($order['status'] != 'canceled') {
+                    $this->orders[$id] = array_merge ($order, array (
+                        'status' => 'closed',
+                        'cost' => $order['amount'] * $order['price'],
+                        'filled' => $order['amount'],
+                        'remaining' => 0.0,
+                    ));
+                }
+            }
+            $order = $this->orders[$id];
+            if ($order['status'] == 'closed')
+                $result[] = $order;
+        }
+        return $result;
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {

@@ -9026,6 +9026,7 @@ class cryptopia (Exchange):
             'countries': 'NZ',  # New Zealand
             'hasFetchTickers': True,
             'hasFetchOpenOrders': True,
+            'hasFetchClosedOrders': True,
             'hasFetchMyTrades': True,
             'hasCORS': False,
             'urls': {
@@ -9152,17 +9153,11 @@ class cryptopia (Exchange):
             timestamp = trade['Timestamp'] * 1000
         elif 'TimeStamp' in trade:
             timestamp = self.parse8601(trade['TimeStamp'])
-        price = None
-        cost = None
-        if 'Price' in trade:
-            price = trade['Price']
-        elif 'Rate' in trade:
-            price = trade['Rate']
-        if 'Total' in trade:
-            cost = trade['Total']
-        id = None
-        if 'TradeId' in trade:
-            id = str(trade['TradeId'])
+        price = self.safe_float(trade, 'Price')
+        if not price:
+            price = self.safe_float(trade, 'Rate')
+        cost = self.safe_float(trade, 'Total')
+        id = self.safe_string(trade, 'TradeId')
         if not market:
             if 'TradePairId' in trade:
                 if trade['TradePairId'] in self.markets_by_id:
@@ -9229,19 +9224,37 @@ class cryptopia (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        order = {
-            'TradePairId': self.market_id(market),
+        market = self.market(symbol)
+        price = float(price)
+        amount = float(amount)
+        request = {
+            'TradePairId': market['id'],
             'Type': self.capitalize(side),
-            'Rate': price,
-            'Amount': amount,
+            'Rate': '{:.10f}'.format(price),
+            'Amount': '{:.10f}'.format(amount),
         }
-        response = self.privatePostSubmitTrade(self.extend(order, params))
-        return {
-            'info': response,
-            'id': str(response['Data']['OrderId']),
+        response = self.privatePostSubmitTrade(self.extend(request, params))
+        id = str(response['Data']['OrderId'])
+        timestamp = self.milliseconds()
+        order = {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'status': 'open',
+            'symbol': market['symbol'],
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': 0.0,
+            'amount': amount,
+            'remaining': amount,
+            'filled': 0.0,
+            # 'trades': self.parse_trades(order['trades'], market),
         }
+        self.orders[id] = order
+        return self.extend({'info': response}, order)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -9272,6 +9285,7 @@ class cryptopia (Exchange):
             'type': 'limit',
             'side': order['Type'].lower(),
             'price': order['Rate'],
+            'cost': order['Total'],
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -9291,9 +9305,38 @@ class cryptopia (Exchange):
         orders = response['Data']
         result = []
         for i in range(0, len(orders)):
-            order = orders[i]
-            result.append(self.extend(order, {'status': 'open'}))
-        return self.parse_orders(result, market)
+            result.append(self.extend(orders[i], {'status': 'open'}))
+        parsed = self.parse_orders(result, market)
+        for j in range(0, len(parsed)):
+            order = parsed[j]
+            id = order['id']
+            self.orders['id'] = order
+        return parsed
+
+    def fetchClosedOrders(self, symbol=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchClosedOrders requires a symbol param')
+        openOrders = self.fetch_open_orders(symbol, params)
+        openOrdersIndexedById = self.index_by(openOrders, 'id')
+        cachedOrderIds = list(self.orders.keys())
+        result = []
+        for i in range(0, len(cachedOrderIds)):
+            id = cachedOrderIds[i]
+            if id in openOrdersIndexedById:
+                self.orders[id] = openOrdersIndexedById[id]
+            else:
+                order = self.orders[id]
+                if order['status'] != 'canceled':
+                    self.orders[id] = self.extend(order, {
+                        'status': 'closed',
+                        'cost': order['amount'] * order['price'],
+                        'filled': order['amount'],
+                        'remaining': 0.0,
+                    })
+            order = self.orders[id]
+            if order['status'] == 'closed':
+                result.append(order)
+        return result
 
     def withdraw(self, currency, amount, address, params={}):
         self.load_markets()
