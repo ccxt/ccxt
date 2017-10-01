@@ -53,8 +53,8 @@ while (exchanges = regex.exec (contents)) {
         .replace (/([^\n\s]) \#/g, '$1  #') // PEP8 E261
         .replace (/\{ /g, '{')              // PEP8 E201
         .replace (/\[ /g, '[')              // PEP8 E201
-        .replace (/([^\s]+) \]/g, '$1]')    // PEP8 E202
-        .replace (/([^\s]+) \}\,/g, '$1},') // PEP8 E202
+        .replace (/([^\s]+) (\]+)/g, '$1$2')    // PEP8 E202
+        .replace (/([^\s]+) (\}+)\,/g, '$1$2,') // PEP8 E202
 
     function pyAddClass (py) {
         py.push ('')
