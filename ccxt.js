@@ -10288,6 +10288,7 @@ var cryptopia = {
     'countries': 'NZ', // New Zealand
     'hasFetchTickers': true,
     'hasFetchOpenOrders': true,
+    'hasFetchClosedOrders': true,
     'hasFetchMyTrades': true,
     'hasCORS': false,
     'urls': {
@@ -10419,18 +10420,11 @@ var cryptopia = {
         } else if ('TimeStamp' in trade) {
             timestamp = this.parse8601 (trade['TimeStamp']);
         }
-        let price = undefined;
-        let cost = undefined;
-        if ('Price' in trade) {
-            price = trade['Price'];
-        } else if ('Rate' in trade) {
-            price = trade['Rate'];
-        }
-        if ('Total' in trade)
-            cost = trade['Total'];
-        let id = undefined;
-        if ('TradeId' in trade)
-            id = trade['TradeId'].toString ();
+        let price = this.safeFloat (trade, 'Price');
+        if (!price)
+            price = this.safeFloat (trade, 'Rate');
+        let cost = this.safeFloat (trade, 'Total');
+        let id = this.safeString (trade, 'TradeId');
         if (!market) {
             if ('TradePairId' in trade)
                 if (trade['TradePairId'] in this.markets_by_id)
@@ -10505,19 +10499,37 @@ var cryptopia = {
         return this.parseBalance (result);
     },
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let order = {
-            'TradePairId': this.marketId (market),
+        let market = this.market (symbol);
+        price = parseFloat (price);
+        amount = parseFloat (amount);
+        let request = {
+            'TradePairId': market['id'],
             'Type': this.capitalize (side),
-            'Rate': price,
-            'Amount': amount,
+            'Rate': price.toFixed (10),
+            'Amount': amount.toFixed (10),
         };
-        let response = await this.privatePostSubmitTrade (this.extend (order, params));
-        return {
-            'info': response,
-            'id': response['Data']['OrderId'].toString (),
+        let response = await this.privatePostSubmitTrade (this.extend (request, params));
+        let id = response['Data']['OrderId'].toString ();
+        let timestamp = this.milliseconds ();
+        let order = {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'status': 'open',
+            'symbol': market['symbol'],
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': 0.0,
+            'amount': amount,
+            'remaining': amount,
+            'filled': 0.0,
+            // 'trades': this.parseTrades (order['trades'], market),
         };
+        this.orders[id] = order;
+        return this.extend ({ 'info': response }, order);
     },
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -10552,6 +10564,7 @@ var cryptopia = {
             'type': 'limit',
             'side': order['Type'].toLowerCase (),
             'price': order['Rate'],
+            'cost': order['Total'],
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -10572,10 +10585,44 @@ var cryptopia = {
         let orders = response['Data'];
         let result = [];
         for (let i = 0; i < orders.length; i++) {
-            let order = orders[i];
-            result.push (this.extend (order, { 'status': 'open' }));
+            result.push (this.extend (orders[i], { 'status': 'open' }));
         }
-        return this.parseOrders (result, market);
+        let parsed = this.parseOrders (result, market);
+        for (let j = 0; j < parsed.length; j++) {
+            let order = parsed[j];
+            let id = order['id'];
+            this.orders['id'] = order;
+        }
+        return parsed;
+    },
+
+    async fetchClosedOrders (symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchClosedOrders requires a symbol param');
+        let openOrders = await this.fetchOpenOrders (symbol, params);
+        let openOrdersIndexedById = this.indexBy (openOrders, 'id');
+        let cachedOrderIds = Object.keys (this.orders);
+        let result = [];
+        for (let i = 0; i < cachedOrderIds.length; i++) {
+            let id = cachedOrderIds[i];
+            if (id in openOrdersIndexedById) {
+                this.orders[id] = openOrdersIndexedById[id];
+            } else {
+                let order = this.orders[id];
+                if (order['status'] != 'canceled') {
+                    this.orders[id] = this.extend (order, {
+                        'status': 'closed',
+                        'cost': order['amount'] * order['price'],
+                        'filled': order['amount'],
+                        'remaining': 0.0,
+                    });
+                }
+            }
+            let order = this.orders[id];
+            if (order['status'] == 'closed')
+                result.push (order);
+        }
+        return result;
     },
 
     async withdraw (currency, amount, address, params = {}) {
