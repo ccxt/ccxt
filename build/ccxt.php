@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.99';
+$version = '1.8.100';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2376,9 +2376,9 @@ class binance extends Exchange {
         $rate = $market[$takerOrMaker];
         $cost = $amount * $rate;
         if ($side == 'sell') {
-            $key = 'base';
-        } else {
             $cost *= $price;
+        } else {
+            $key = 'base';
         }
         return array (
             'currency' => $market[$key],
@@ -2597,7 +2597,7 @@ class binance extends Exchange {
         $market = $this->market ($symbol);
         $response = $this->privateGetOrder (array_merge (array (
             'symbol' => $market['id'],
-            'orderId' => (string) $id,
+            'orderId' => intval ($id),
         ), $params));
         return $this->parse_order ($response, $market);
     }
@@ -2623,7 +2623,7 @@ class binance extends Exchange {
     }
 
     public function cancel_order ($id, $params = array ()) {
-        return $this->privatePostOrderCancel (array_merge (array (
+        return $this->privateDeleteOrder (array_merge (array (
             'orderId' => intval ($id),
             // 'origClientOrderId' => $id,
         ), $params));
