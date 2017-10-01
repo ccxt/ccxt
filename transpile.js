@@ -130,10 +130,10 @@ while (exchanges = regex.exec (contents)) {
                         .replace ('fetchOpenOrders',          'fetch_open_orders')
                         .replace ('fetchMyTrades',            'fetch_my_trades')
                         .replace ('fetchAllMyTrades',         'fetch_all_my_trades')
-                        .replace ('updateLimitBuyOrder',      'update_limit_buy_order')
-                        .replace ('updateLimitSellOrder',     'update_limit_sell_order')
-                        .replace ('updateLimitOrder',         'update_limit_order')
-                        .replace ('updateOrder',              'update_order')
+                        .replace ('editLimitBuyOrder',        'edit_limit_buy_order')
+                        .replace ('editLimitSellOrder',       'edit_limit_sell_order')
+                        .replace ('editLimitOrder',           'edit_limit_order')
+                        .replace ('editOrder',                'edit_order')
                         .replace ('createOrder',              'create_order')
                         .replace ('cancelOrder',              'cancel_order')
                         .replace ('calculateFeeRate',         'calculate_fee_rate')
@@ -206,10 +206,10 @@ while (exchanges = regex.exec (contents)) {
             [ /\.loadMarkets\s/g, '.load_markets'],
             [ /\.calculateFeeRate\s/g, '.calculate_fee_rate'],
             [ /\.calculateFee\s/g, '.calculate_fee'],
-            [ /\.updateLimitBuyOrder\s/g, '.update_limit_buy_order'],
-            [ /\.updateLimitSellOrder\s/g, '.update_limit_sell_order'],
-            [ /\.updateLimitOrder\s/g, '.update_limit_order'],
-            [ /\.updateOrder\s/g, '.update_order'],
+            [ /\.editLimitBuyOrder\s/g, '.edit_limit_buy_order'],
+            [ /\.editLimitSellOrder\s/g, '.edit_limit_sell_order'],
+            [ /\.editLimitOrder\s/g, '.edit_limit_order'],
+            [ /\.editOrder\s/g, '.edit_order'],
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
             [ /this\./g, 'self.' ],
@@ -319,10 +319,10 @@ while (exchanges = regex.exec (contents)) {
             [ /\.loadMarkets/g, '.load_markets'],
             [ /\.calculateFeeRate/g, '.calculate_fee_rate'],
             [ /\.calculateFee/g, '.calculate_fee'],
-            [ /\.updateLimitBuyOrder/g, '.update_limit_buy_order'],
-            [ /\.updateLimitSellOrder/g, '.update_limit_sell_order'],
-            [ /\.updateLimitOrder/g, '.update_limit_order'],
-            [ /\.updateOrder/g, '.update_order'],
+            [ /\.editLimitBuyOrder/g, '.edit_limit_buy_order'],
+            [ /\.editLimitSellOrder/g, '.edit_limit_sell_order'],
+            [ /\.editLimitOrder/g, '.edit_limit_order'],
+            [ /\.editOrder/g, '.edit_order'],
             [ /\.encodeURIComponent/g, '.encode_uri_component'],
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],

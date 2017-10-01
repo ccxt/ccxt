@@ -12932,6 +12932,10 @@ class kraken (Exchange):
             maker = None
             if 'fees_maker' in market:
                 maker = market['fees_maker'][0][1]
+            precision = {
+                'amount': market['lot_decimals'],
+                'price': market['pair_decimals'],
+            }
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -12942,6 +12946,7 @@ class kraken (Exchange):
                 'altname': market['altname'],
                 'maker': maker,
                 'taker': market['fees'][0][1],
+                'precision': precision,
             })
         self.marketsByAltname = self.index_by(result, 'altname')
         return result

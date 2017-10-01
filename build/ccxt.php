@@ -1066,22 +1066,22 @@ class Exchange {
         return $this->fetch_ohlcv ($symbol, $timeframe, $since, $limit, $params);
     }
 
-    public function update_limit_buy_order ($id, $symbol, $amount, $price, $params = array ()) {
-        return $this->update_limit_order ($symbol, 'buy', $amount, $price, $params);
+    public function edit_limit_buy_order ($id, $symbol, $amount, $price, $params = array ()) {
+        return $this->edit_limit_order ($symbol, 'buy', $amount, $price, $params);
     }
 
-    public function update_limit_sell_order ($id, $symbol, $amount, $price, $params = array ()) {
-        return $this->update_limit_order ($symbol, 'sell', $amount, $price, $params);
+    public function edit_limit_sell_order ($id, $symbol, $amount, $price, $params = array ()) {
+        return $this->edit_limit_order ($symbol, 'sell', $amount, $price, $params);
     }
 
-    public function update_limit_order ($id, $symbol, $side, $amount, $price, $params = array ()) {
-        return $this->update_order ($id, $symbol, 'limit', $side, $amount, $price, $params);
+    public function edit_limit_order ($id, $symbol, $side, $amount, $price, $params = array ()) {
+        return $this->edit_order ($id, $symbol, 'limit', $side, $amount, $price, $params);
     }
 
-    public function update_order ($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
+    public function edit_order ($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
         if (!$this->enableRateLimit) {
             $exception = '\\ccxt\\ExchangeError';
-            throw new $exception ($this->id . ' updateOrder() requires enableRateLimit = true');
+            throw new $exception ($this->id . ' edit_order() requires enableRateLimit = true');
         }
         $this->cancel_order ($id, $symbol, $params);
         return $this->create_order ($symbol, $type, $side, $amount, $price, $params);
@@ -1091,20 +1091,20 @@ class Exchange {
         return $this->cancel_order ($id, $symbol, $params);
     }
 
-    public function updateLimitBuyOrder ($id, $symbol, $amount, $price, $params = array ()) {
-        return $this->update_limit_buy_order ($id, $symbol, $amount, $price, $params);
+    public function editLimitBuyOrder ($id, $symbol, $amount, $price, $params = array ()) {
+        return $this->edit_limit_buy_order ($id, $symbol, $amount, $price, $params);
     }
 
-    public function updateLimitSellOrder ($id, $symbol, $amount, $price, $params = array ()) {
-        return $this->update_limit_sell_order ($id, $symbol, $amount, $price, $params);
+    public function editLimitSellOrder ($id, $symbol, $amount, $price, $params = array ()) {
+        return $this->edit_limit_sell_order ($id, $symbol, $amount, $price, $params);
     }
 
-    public function updateLimitOrder ($id, $symbol, $side, $amount, $price, $params = array ()) {
-        return $this->update_limit_order ($id, $symbol, $side, $amount, $price, $params);
+    public function editLimitOrder ($id, $symbol, $side, $amount, $price, $params = array ()) {
+        return $this->edit_limit_order ($id, $symbol, $side, $amount, $price, $params);
     }
 
-    public function updateOrder ($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
-        return $this->update_order ($id, $symbol, $type, $side, $amount, $price, $params);
+    public function editOrder ($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
+        return $this->edit_order ($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
     public function create_limit_buy_order ($symbol, $amount, $price, $params = array ()) {
@@ -14835,6 +14835,10 @@ class kraken extends Exchange {
             $maker = null;
             if (array_key_exists ('fees_maker', $market))
                 $maker = $market['fees_maker'][0][1];
+            $precision = array (
+                'amount' => $market['lot_decimals'],
+                'price' => $market['pair_decimals'],
+            );
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -14845,6 +14849,7 @@ class kraken extends Exchange {
                 'altname' => $market['altname'],
                 'maker' => $maker,
                 'taker' => $market['fees'][0][1],
+                'precision' => $precision,
             );
         }
         $this->marketsByAltname = $this->index_by ($result, 'altname');

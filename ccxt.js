@@ -844,21 +844,21 @@ const Exchange = function (config) {
         return Object.values (ohlcvs).map (ohlcv => this.parseOHLCV (ohlcv, market, timeframe, since, limit))
     }
 
-    this.updateLimitBuyOrder = function (id, symbol, ...args) {
-        return this.updateLimitOrder (symbol, 'buy', ...args)
+    this.editLimitBuyOrder = function (id, symbol, ...args) {
+        return this.editLimitOrder (symbol, 'buy', ...args)
     }
 
-    this.updateLimitSellOrder = function (id, symbol, ...args) {
-        return this.updateLimitOrder (symbol, 'sell', ...args)
+    this.editLimitSellOrder = function (id, symbol, ...args) {
+        return this.editLimitOrder (symbol, 'sell', ...args)
     }
 
-    this.updateLimitOrder = function (id, symbol, ...args) {
-        return this.updateOrder (id, symbol, 'limit', ...args)
+    this.editLimitOrder = function (id, symbol, ...args) {
+        return this.editOrder (id, symbol, 'limit', ...args)
     }
 
-    this.updateOrder = async function (id, symbol, ...args) {
+    this.editOrder = async function (id, symbol, ...args) {
         if (!this.enableRateLimit)
-            throw new ExchangeError (this.id + ' updateOrder() requires enableRateLimit = true')
+            throw new ExchangeError (this.id + ' editOrder() requires enableRateLimit = true')
         await this.cancelOrder (id, symbol);
         return this.createOrder (symbol, ...args)
     }
@@ -981,10 +981,10 @@ const Exchange = function (config) {
     this.parse_orders                = this.parseOrders
     this.parse_ohlcv                 = this.parseOHLCV
     this.parse_ohlcvs                = this.parseOHLCVs
-    this.update_limit_buy_order      = this.updateLimitBuyOrder
-    this.update_limit_sell_order     = this.updateLimitSellOrder
-    this.update_limit_order          = this.updateLimitOrder
-    this.update_order                = this.updateOrder
+    this.edit_limit_buy_order        = this.editLimitBuyOrder
+    this.edit_limit_sell_order       = this.editLimitSellOrder
+    this.edit_limit_order            = this.editLimitOrder
+    this.edit_order                  = this.editOrder
     this.create_limit_buy_order      = this.createLimitBuyOrder
     this.create_limit_sell_order     = this.createLimitSellOrder
     this.create_market_buy_order     = this.createMarketBuyOrder
@@ -14350,6 +14350,10 @@ var kraken = {
             let maker = undefined;
             if ('fees_maker' in market)
                 maker = market['fees_maker'][0][1];
+            let precision = {
+                'amount': market['lot_decimals'],
+                'price': market['pair_decimals'],
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -14360,6 +14364,7 @@ var kraken = {
                 'altname': market['altname'],
                 'maker': maker,
                 'taker': market['fees'][0][1],
+                'precision': precision,
             });
         }
         this.marketsByAltname = this.indexBy (result, 'altname');

@@ -851,35 +851,35 @@ class Exchange(object):
     def calculateFee(self, symbol, type, side, amount, price, fee='taker', params={}):
         return self.calculate_fee(symbol, type, side, amount, price, fee, params)
 
-    def update_limit_buy_order(self, id, symbol, *args):
-        return self.update_limit_order(symbol, 'buy', *args)
+    def edit_limit_buy_order(self, id, symbol, *args):
+        return self.edit_limit_order(symbol, 'buy', *args)
 
-    def update_limit_sell_order(self, id, symbol, *args):
-        return self.update_limit_order(symbol, 'sell', *args)
+    def edit_limit_sell_order(self, id, symbol, *args):
+        return self.edit_limit_order(symbol, 'sell', *args)
 
-    def update_limit_order(self, id, symbol, *args):
-        return self.update_order(id, symbol, 'limit', *args)
+    def edit_limit_order(self, id, symbol, *args):
+        return self.edit_order(id, symbol, 'limit', *args)
 
-    def update_order(self, id, symbol, *args):
+    def edit_order(self, id, symbol, *args):
         if not self.enableRateLimit:
-            raise ExchangeError(self.id + ' updateOrder() requires enableRateLimit = true')
+            raise ExchangeError(self.id + ' edit_order() requires enableRateLimit = true')
         self.cancel_order(id, symbol)
         return self.create_order(symbol, *args)
 
     def cancelOrder(self, id, symbol=None, params={}):
         return self.cancel_order(id, symbol, params)
 
-    def updateLimitSellOrder(self, *args):
-        return self.update_limit_sell_order(*args)
+    def editLimitSellOrder(self, *args):
+        return self.edit_limit_sell_order(*args)
 
-    def updateLimitBuyOrder(self, *args):
-        return self.update_limit_buy_order(*args)
+    def editLimitBuyOrder(self, *args):
+        return self.edit_limit_buy_order(*args)
 
-    def updateLimitOrder(self, *args):
-        return self.update_limit_order(*args)
+    def editLimitOrder(self, *args):
+        return self.edit_limit_order(*args)
 
-    def updateOrder(self, *args):
-        return self.update_order(*args)
+    def editOrder(self, *args):
+        return self.edit_order(*args)
 
     def create_limit_buy_order(self, symbol, *args):
         return self.create_order(symbol, 'limit', 'buy', *args)
