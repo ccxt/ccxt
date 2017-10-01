@@ -971,7 +971,7 @@ class Exchange {
     public function parse_orders ($orders, $market = null) {
         $result = array ();
         foreach ($orders as $order)
-            $result[] = $this->parse_order ($orders[$t], $market);
+            $result[] = $this->parse_order ($order, $market);
         return $result;
     }
 
