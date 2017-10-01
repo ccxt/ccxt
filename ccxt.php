@@ -1208,9 +1208,6 @@ class Exchange {
         return $this->market_id ($symbol);
     }
 
-    public function request ($path, $type, $method, $params, $headers = null, $body = null) { // stub
-    }
-
     function __call ($function, $params) {
 
         if (array_key_exists ($function, $this))
