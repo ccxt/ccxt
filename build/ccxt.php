@@ -13292,7 +13292,7 @@ class hitbtc2 extends hitbtc {
         return $result;
     }
 
-    public function fetch_balance () {
+    public function fetch_balance ($params = array ()) {
         $this->load_markets ();
         $balances = $this->privateGetTradingBalance ();
         $result = array ( 'info' => $balances );
