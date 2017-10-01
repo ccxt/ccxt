@@ -860,11 +860,14 @@ class Exchange(object):
     def update_limit_order(self, id, symbol, *args):
         return self.update_order(id, symbol, 'limit', *args)
 
-    def update_order(self, id, *args):
+    def update_order(self, id, symbol, *args):
         if not self.enableRateLimit:
             raise ExchangeError(self.id + ' updateOrder() requires enableRateLimit = true')
-        self.cancelOrder(id)
-        return self.createOrder(*args)
+        self.cancel_order(id, symbol)
+        return self.create_order(symbol, *args)
+
+    def cancelOrder(self, id, symbol=None, params={}):
+        return self.cancel_order(id, symbol, params)
 
     def updateLimitSellOrder(self, *args):
         return self.update_limit_sell_order(*args)

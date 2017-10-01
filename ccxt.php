@@ -698,7 +698,7 @@ class Exchange {
             var_dump ($url, $method, $url, "\nRequest:\n", $verbose_headers, $body);
 
         $result = curl_exec ($this->curl);
-        
+
         $this->lastRestRequestTimestamp = $this->milliseconds();
 
         if ($result === false) {
@@ -1083,8 +1083,12 @@ class Exchange {
             $exception = '\\ccxt\\ExchangeError';
             throw new $exception ($this->id . ' updateOrder() requires enableRateLimit = true');
         }
-        $this->cancel_order ($id);
+        $this->cancel_order ($id, $symbol, $params);
         return $this->create_order ($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    public function cancelOrder ($id, $symbol = null, $params = array ()) {
+        return $this->cancel_order ($id, $symbol, $params);
     }
 
     public function updateLimitBuyOrder ($id, $symbol, $amount, $price, $params = array ()) {

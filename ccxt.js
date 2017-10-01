@@ -856,11 +856,11 @@ const Exchange = function (config) {
         return this.updateOrder (id, symbol, 'limit', ...args)
     }
 
-    this.updateOrder = async function (id, ...args) {
+    this.updateOrder = async function (id, symbol, ...args) {
         if (!this.enableRateLimit)
             throw new ExchangeError (this.id + ' updateOrder() requires enableRateLimit = true')
-        await this.cancelOrder (id);
-        return this.createOrder (...args)
+        await this.cancelOrder (id, symbol);
+        return this.createOrder (symbol, ...args)
     }
 
     this.createLimitBuyOrder = function (symbol, ...args) {
@@ -1217,7 +1217,7 @@ var _1broker = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostOrderCancel ({ 'order_id': id });
     },
@@ -1398,7 +1398,7 @@ var cryptocapital = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostOrdersCancel ({ 'id': id });
     },
 
@@ -1753,7 +1753,7 @@ var acx = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostOrderDelete ({ 'id': id });
     },
@@ -1945,7 +1945,7 @@ var anxpro = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCurrencyPairOrderCancel ({ 'oid': id });
     },
 
@@ -2376,7 +2376,7 @@ var binance = {
         return this.parseOrders (response, market);
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privateDeleteOrder (this.extend ({
             'orderId': parseInt (id),
             // 'origClientOrderId': id,
@@ -2578,7 +2578,7 @@ var bit2c = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostOrderCancelOrder ({ 'id': id });
     },
 
@@ -2753,7 +2753,7 @@ var bitbay = {
         }, params));
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancel ({ 'id': id });
     },
 
@@ -2959,7 +2959,7 @@ var bitcoincoid = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder (this.extend ({
             'id': id,
         }, params));
@@ -3200,7 +3200,7 @@ var bitfinex = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostOrderCancel ({ 'order_id': parseInt (id) });
     },
@@ -3600,7 +3600,7 @@ var bitfinex2 = extend (bitfinex, {
         throw new NotSupported (this.id + ' createOrder not implemented yet');
     },
 
-    cancelOrder (id) {
+    cancelOrder (id, symbol = undefined, params = {}) {
         throw new NotSupported (this.id + ' cancelOrder not implemented yet');
     },
 
@@ -3848,7 +3848,7 @@ var bitflyer = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelchildorder (this.extend ({
             'parent_order_id': id,
@@ -4079,7 +4079,7 @@ var bithumb = {
         //     };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         let side = ('side' in params);
         if (!side)
             throw new ExchangeError (this.id + ' cancelOrder requires a side parameter (sell or buy)');
@@ -4370,7 +4370,7 @@ var bitlish = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelTrade ({ 'id': id });
     },
@@ -4629,7 +4629,7 @@ var bitmarket = {
         return result;
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancel ({ 'id': id });
     },
 
@@ -5005,7 +5005,7 @@ var bitmex = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privateDeleteOrder ({ 'orderID': id });
     },
@@ -5247,7 +5247,7 @@ var bitso = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privateDeleteOrders ({ 'oid': id });
     },
@@ -5447,7 +5447,7 @@ var bitstamp1 = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder ({ 'id': id });
     },
 
@@ -5697,7 +5697,7 @@ var bitstamp = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder ({ 'id': id });
     },
 
@@ -6052,7 +6052,7 @@ var bittrex = {
         return result;
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.marketGetCancel ({ 'uuid': id });
     },
@@ -6322,7 +6322,7 @@ var blinktrade = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostF (this.extend ({
             'ClOrdID': id,
         }, params));
@@ -6521,7 +6521,7 @@ var bl3p = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostMarketMoneyOrderCancel ({ 'order_id': id });
     },
 
@@ -6858,7 +6858,7 @@ var btcchina = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = params['market']; // TODO fixme
         return await this.privatePostCancelOrder (this.extend ({
@@ -7080,7 +7080,7 @@ var btcmarkets = {
         return await this.privatePostOrderCancel ({ 'order_ids': ids });
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.cancelOrders ([ id ]);
     },
@@ -7285,7 +7285,7 @@ var btctrader = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder ({ 'id': id });
     },
 
@@ -7526,7 +7526,7 @@ var btctradeua = {
         return this[method] (this.extend (order, params));
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostRemoveOrderId ({ 'id': id });
     },
 
@@ -7703,7 +7703,7 @@ var btcx = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancel ({ 'order': id });
     },
 
@@ -7939,7 +7939,7 @@ var bter = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelOrder ({ 'orderNumber': id });
     },
@@ -8174,7 +8174,7 @@ var bxinth = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let pairing = undefined; // TODO fixme
         return await this.privatePostCancel ({
@@ -8417,7 +8417,7 @@ var ccex = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privateGetCancel ({ 'uuid': id });
     },
@@ -8659,7 +8659,7 @@ var cex = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelOrder ({ 'id': id });
     },
@@ -8869,7 +8869,7 @@ var chbtc = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         let paramString = '&id=' + id.toString ();
         if ('currency' in params)
             paramString += '&currency=' + params['currency'];
@@ -9119,7 +9119,7 @@ var coincheck = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privateDeleteExchangeOrdersId ({ 'id': id });
     },
 
@@ -9294,7 +9294,7 @@ var coinfloor = {
         return this[method] (this.extend (order, params));
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostIdCancelOrder ({ 'id': id });
     },
 
@@ -9484,7 +9484,7 @@ var coingi = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.userPostCancelOrder ({ 'orderId': id });
     },
 
@@ -9832,7 +9832,7 @@ var coinmate = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder ({ 'orderId': id });
     },
 
@@ -10102,7 +10102,7 @@ var coinsecure = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         throw new ExchangeError (this.id + ' cancelOrder () is not fully implemented yet');
         let method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
         return await this[method] ({ 'orderID': id });
@@ -10255,7 +10255,7 @@ var coinspot = {
         return this[method] (this.extend (order, params));
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         throw new ExchangeError (this.id + ' cancelOrder () is not fully implemented yet');
         let method = 'privatePostMyBuy';
         return await this[method] ({ 'id': id });
@@ -10520,7 +10520,7 @@ var cryptopia = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelTrade ({
             'Type': 'Trade',
@@ -10791,7 +10791,7 @@ var dsx = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.tapiPostCancelOrder ({ 'orderId': id });
     },
@@ -11016,7 +11016,7 @@ var exmo = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostOrderCancel ({ 'order_id': id });
     },
@@ -11229,7 +11229,7 @@ var flowbtc = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         if ('ins' in params) {
             return await this.privatePostCancelOrder (this.extend ({
@@ -11412,7 +11412,7 @@ var fyb = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelpendingorder ({ 'orderNo': id });
     },
 
@@ -11828,7 +11828,7 @@ var gatecoin = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privateDeleteTradeOrdersOrderID ({ 'OrderID': id });
     },
@@ -12104,7 +12104,7 @@ var gdax = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privateDeleteOrdersId ({ 'id': id });
     },
@@ -12333,7 +12333,7 @@ var gemini = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelOrder ({ 'order_id': id });
     },
@@ -12603,7 +12603,7 @@ var hitbtc = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.tradingPostCancelOrder (this.extend ({
             'clientOrderId': id,
@@ -12912,7 +12912,7 @@ var hitbtc2 = extend (hitbtc, {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privateDeleteOrderClientOrderId (this.extend ({
             'clientOrderId': id,
@@ -13220,7 +13220,7 @@ var huobi1 = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
     },
 
@@ -13500,7 +13500,7 @@ var huobi = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.tradePostCancelOrder ({ 'id': id });
     },
 
@@ -13735,7 +13735,7 @@ var independentreserve = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelOrder ({ 'orderGuid': id });
     },
@@ -13945,7 +13945,7 @@ var itbit = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         let walletIdInParams = ('walletId' in params);
         if (!walletIdInParams)
             throw new ExchangeError (this.id + ' cancelOrder requires a walletId parameter');
@@ -14168,7 +14168,7 @@ var jubi = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostTradeCancel (this.extend ({
             'id': id,
@@ -14596,7 +14596,7 @@ var kraken = {
         return this.parseTrades (trades);
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelOrder ({ 'txid': id });
     },
@@ -14830,7 +14830,7 @@ var lakebtc = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelOrder ({ 'params': id });
     },
@@ -15080,7 +15080,7 @@ var livecoin = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostExchangeCancellimit (this.extend ({
             'orderId': id,
@@ -15364,7 +15364,7 @@ var liqui = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelOrder ({ 'order_id': parseInt (id) });
     },
@@ -15719,7 +15719,7 @@ var luno = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostStoporder ({ 'order_id': id });
     },
@@ -15891,7 +15891,7 @@ var mercado = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder (this.extend ({
             'order_id': id,
         }, params));
@@ -16087,7 +16087,7 @@ var mixcoins = {
         };
     },
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancel ({ 'id': id });
     },
 
@@ -16294,7 +16294,7 @@ var nova = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelorder (this.extend ({
             'orderid': id,
         }, params));
@@ -16595,7 +16595,7 @@ var okcoin = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder (this.extend ({
             'order_id': id,
         }, params));
@@ -16794,7 +16794,7 @@ var okex = extend (okcoin, {
         'BCH/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'type': 'spot', 'spot': true, 'future': false },
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostFutureCancel (this.extend ({
             'order_id': id,
         }, params));
@@ -16953,7 +16953,7 @@ var paymium = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder (this.extend ({
             'orderNumber': id,
         }, params));
@@ -17353,7 +17353,7 @@ var poloniex = {
         return this.parseTrades (trades);
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelOrder (this.extend ({
             'orderNumber': id,
@@ -17539,7 +17539,7 @@ var quadrigacx = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder (this.extend ({
             'id': id,
         }, params));
@@ -17782,7 +17782,7 @@ var qryptos = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePutOrdersIdCancel (this.extend ({
             'id': id,
@@ -18021,7 +18021,7 @@ var southxchange = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelOrder (this.extend ({
             'orderCode': id,
@@ -18298,7 +18298,7 @@ var therock = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privateDeleteFundsFundIdOrdersId (this.extend ({
             'id': id,
@@ -18525,7 +18525,7 @@ var vaultoro = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelId (this.extend ({
             'id': id,
@@ -18766,7 +18766,7 @@ var virwox = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder (this.extend ({
             'orderID': id,
         }, params));
@@ -19153,7 +19153,7 @@ var xbtce = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privateDeleteTrade (this.extend ({
             'Type': 'Cancel',
             'Id': id,
@@ -19370,7 +19370,7 @@ var yobit = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.tapiPostCancelOrder (this.extend ({
             'order_id': id,
         }, params));
@@ -19672,7 +19672,7 @@ var zaif = {
         };
     },
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder (this.extend ({
             'order_id': id,
         }, params));
