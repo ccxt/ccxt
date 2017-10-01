@@ -1,8 +1,10 @@
 # Сhangelog
 
+- Added min/max trade limits to Bittrex and Cryptopia (experimental)
+
 ## Version 1.9.x 2017-10-01
 
-- Added precision to Binance, Bittrex, Cryptopia, Kraken markets
+- Added precision thresholds to Binance, Bittrex, Cryptopia, Kraken markets
 - Added order cache and emulated fetchClosedOrders workaround to Cryptopia
 - Added a symbol param to `cancelOrder ()` / `cancel_order ()`
 - Added new ZEC/KRW market to Bithumb
