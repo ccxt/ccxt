@@ -9094,6 +9094,18 @@ class cryptopia (Exchange):
                 'amount': 8,
                 'price': 8,
             }
+            amountLimits = {
+                'min': market['MinimumTrade'],
+                'max': market['MaximumTrade']
+            }
+            priceLimits = {
+                'min': market['MinimumPrice'],
+                'max': market['MaximumPrice'],
+            }
+            limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+            }
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -9103,6 +9115,7 @@ class cryptopia (Exchange):
                 'maker': market['TradeFee'] / 100,
                 'taker': market['TradeFee'] / 100,
                 'precision': precision,
+                'limits': limits,
             })
         return result
 
