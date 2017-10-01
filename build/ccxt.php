@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.96';
+$version = '1.8.98';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -614,7 +614,7 @@ class Exchange {
         $elapsed = $now - $this->lastRestRequestTimestamp;
         if ($elapsed < $this->rateLimit) {
             $delay = $this->rateLimit - $elapsed;
-            usleep (delay * 1000.0);
+            usleep ($delay * 1000.0);
         }
     }
 
@@ -698,6 +698,8 @@ class Exchange {
             var_dump ($url, $method, $url, "\nRequest:\n", $verbose_headers, $body);
 
         $result = curl_exec ($this->curl);
+        
+        $this->lastRestRequestTimestamp = $this->milliseconds();
 
         if ($result === false) {
 
@@ -2419,8 +2421,8 @@ class binance extends Exchange {
             'change' => floatval ($ticker['priceChangePercent']),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume']),
+            'baseVolume' => floatval ($ticker['volume']),
+            'quoteVolume' => floatval ($ticker['quoteVolume']),
             'info' => $ticker,
         );
     }

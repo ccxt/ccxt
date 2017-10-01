@@ -1187,8 +1187,8 @@ class binance (Exchange):
             'change': float(ticker['priceChangePercent']),
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['volume']),
+            'baseVolume': float(ticker['volume']),
+            'quoteVolume': float(ticker['quoteVolume']),
             'info': ticker,
         }
 
