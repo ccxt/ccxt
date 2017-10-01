@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Added a symbol param to `cancelOrder ()` / `cancel_order ()`
 - Added new ZEC/KRW market to Bithumb
 - Fixed CEX.io endpoint URLs for extra params, [#250](https://github.com/kroitor/ccxt/issues/250), [#251](https://github.com/kroitor/ccxt/pull/251)
 - Fixed Poloniex fetchTrades, [#246](https://github.com/kroitor/ccxt/issues/246)
