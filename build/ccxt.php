@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.8.103';
+$version = '1.8.104';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -1206,9 +1206,6 @@ class Exchange {
 
     public function marketId ($symbol) {
         return $this->market_id ($symbol);
-    }
-
-    public function request ($path, $type, $method, $params, $headers = null, $body = null) { // stub
     }
 
     function __call ($function, $params) {
