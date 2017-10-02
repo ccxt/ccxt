@@ -562,10 +562,17 @@ const Exchange = function (config) {
                 headers = extend (this.userAgent, headers)
         }
 
-        if (this.proxy.length)
-            headers = extend ({ 'Origin': '*' }, headers)
+        if (typeof this.proxy == 'function') {
 
-        url = this.proxy + url
+            url = this.proxy (url)
+
+        } else if (typeof this.proxy == 'string') {
+
+            if (this.proxy.length)
+                headers = extend ({ 'Origin': '*' }, headers)
+
+            url = this.proxy + url
+        }
 
         if (this.verbose)
             console.log (this.id, method, url, "\nRequest:\n", headers, body)
