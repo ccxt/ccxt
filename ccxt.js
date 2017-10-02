@@ -550,7 +550,11 @@ const Exchange = function (config) {
                 .then (response => this.handleRestErrors (response, url, method, headers, body))
                 .then (response => this.handleRestResponse (response, url, method, headers, body))
 
-        return timeout (this.timeout, promise)
+        return timeout (this.timeout, promise).catch (e => {
+            if (e instanceof RequestTimeout)
+                throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' ' + e.message)
+            throw e
+        })
     }
 
     this.fetch = function (url, method = 'GET', headers = undefined, body = undefined) {
