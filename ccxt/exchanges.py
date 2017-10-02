@@ -1205,6 +1205,20 @@ class binance (Exchange):
                     },
                 },
             },
+            'limits': {
+                'amount': {
+                    'min': 0.000001,
+                    'max': 10000000,
+                },
+                'price': {
+                    'min': 0.000001,
+                    'max': 10000000,
+                },
+                'cost': {
+                    'min': 0.000001,
+                    'max': 10000000,
+                },
+            },
             'markets': {
                 'BNB/BTC': {'id': 'BNBBTC', 'symbol': 'BNB/BTC', 'base': 'BNB', 'quote': 'BTC', 'taker': 0.001, 'maker': 0.001, 'precision': {'amount': 6, 'price': 6}},
                 'NEO/BTC': {'id': 'NEOBTC', 'symbol': 'NEO/BTC', 'base': 'NEO', 'quote': 'BTC', 'taker': 0.001, 'maker': 0.001, 'precision': {'amount': 6, 'price': 6}},
@@ -12971,6 +12985,18 @@ class kraken (Exchange):
                 'amount': market['lot_decimals'],
                 'price': market['pair_decimals'],
             }
+            amountLimits = {
+                'min': math.pow(10, -precision['amount']),
+                'max': math.pow(10, precision['amount']),
+            }
+            priceLimits = {
+                'min': math.pow(10, -precision['price']),
+                'max': None,
+            }
+            limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+            }
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -12982,6 +13008,7 @@ class kraken (Exchange):
                 'maker': maker,
                 'taker': float(market['fees'][0][1]) / 100,
                 'precision': precision,
+                'limits': limits,
             })
         self.marketsByAltname = self.index_by(result, 'altname')
         return result
