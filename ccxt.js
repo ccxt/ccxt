@@ -406,6 +406,7 @@ const Exchange = function (config) {
     this.sum         = sum
     this.ordered     = ordered
     this.aggregate   = aggregate
+    this.truncate    = truncate
 
     this.encode = string => string
     this.decode = string => string
@@ -14302,7 +14303,7 @@ var kraken = {
     'name': 'Kraken',
     'countries': 'US',
     'version': '0',
-    'rateLimit': 2000,
+    'rateLimit': 3000,
     'hasCORS': false,
     'hasFetchTickers': true,
     'hasFetchOHLCV': true,
@@ -20042,6 +20043,7 @@ const ccxt = Object.assign (defineAllExchanges (exchanges), {
     safeValue,
     ordered,
     aggregate,
+    truncate,
 
     // underscore aliases
 
