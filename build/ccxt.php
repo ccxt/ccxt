@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.7';
+$version = '1.9.8';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -17756,6 +17756,20 @@ class poloniex extends Exchange {
                     'taker' => 0.0025,
                 ),
                 'funding' => 0.0,
+            ),
+            'limits' => array (
+                'amount' => array (
+                    'min' => 0.00000001,
+                    'max' => 1000000000,
+                ),
+                'price' => array (
+                    'min' => 0.00000001,
+                    'max' => 1000000000,
+                ),
+            ),
+            'precision' => array (
+                'amount' => 8,
+                'price' => 8,
             ),
         ), $options));
     }

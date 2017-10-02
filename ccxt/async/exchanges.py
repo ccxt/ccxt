@@ -15576,6 +15576,20 @@ class poloniex (Exchange):
                 },
                 'funding': 0.0,
             },
+            'limits': {
+                'amount': {
+                    'min': 0.00000001,
+                    'max': 1000000000,
+                },
+                'price': {
+                    'min': 0.00000001,
+                    'max': 1000000000,
+                },
+            },
+            'precision': {
+                'amount': 8,
+                'price': 8,
+            },
         }
         params.update(config)
         super(poloniex, self).__init__(params)
