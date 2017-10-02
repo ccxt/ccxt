@@ -249,6 +249,11 @@ class Exchange {
         return (array_key_exists ($key, $object) && $object[$key]) ? $object[$key] : $default_value;
     }
 
+    public static function truncate ($number, $precision = 0) {
+        $decimal_precision = pow (10, $precision);
+        return floatval ($number * $decimal_precision) / $decimal_precision;
+    }
+
     public static function capitalize ($string) {
         return mb_strtoupper (mb_substr ($string, 0, 1)) . mb_substr ($string, 1);
     }
@@ -14780,7 +14785,7 @@ class kraken extends Exchange {
             'name' => 'Kraken',
             'countries' => 'US',
             'version' => '0',
-            'rateLimit' => 1500,
+            'rateLimit' => 2000,
             'hasCORS' => false,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
@@ -14868,8 +14873,9 @@ class kraken extends Exchange {
             $darkpool = mb_strpos ($id, '.d') !== false;
             $symbol = $darkpool ? $market['altname'] : ($base . '/' . $quote);
             $maker = null;
-            if (array_key_exists ('fees_maker', $market))
-                $maker = $market['fees_maker'][0][1];
+            if (array_key_exists ('fees_maker', $market)) {
+                $maker = floatval ($market['fees_maker'][0][1]) / 100;
+            }
             $precision = array (
                 'amount' => $market['lot_decimals'],
                 'price' => $market['pair_decimals'],
@@ -14883,7 +14889,7 @@ class kraken extends Exchange {
                 'info' => $market,
                 'altname' => $market['altname'],
                 'maker' => $maker,
-                'taker' => $market['fees'][0][1],
+                'taker' => floatval ($market['fees'][0][1]) / 100,
                 'precision' => $precision,
             );
         }
@@ -15071,14 +15077,15 @@ class kraken extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
+        $market = $this->market ($symbol);
         $order = array (
             'pair' => $this->market_id ($symbol),
             'type' => $side,
             'ordertype' => $type,
-            'volume' => $amount,
+            'volume' => sprintf ('%' . $market['precision']['amount'] . 'f', $amount),
         );
         if ($type == 'limit')
-            $order['price'] = $price;
+            $order['price'] = sprintf ('%' . $market['precision']['price'] . 'f', $price);
         $response = $this->privatePostAddOrder (array_merge ($order, $params));
         $length = count ($response['result']['txid']);
         $id = ($length > 1) ? $response['result']['txid'] : $response['result']['txid'][0];
@@ -15189,22 +15196,27 @@ class kraken extends Exchange {
         throw new ExchangeError ($this->id . " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
     }
 
+    public function filterOrdersBySymbol ($orders, $symbol = null) {
+        $grouped = $this->groupBy ($orders, 'symbol');
+        $result = $orders;
+        if ($symbol)
+            if (array_key_exists ($symbol, $grouped))
+                $result = $grouped[$symbol];
+        return $result;
+    }
+
     public function fetch_open_orders ($symbol = null, $params = array ()) {
         $this->load_markets ();
-        $market = null;
-        if ($symbol)
-            $market = $this->market_id ($symbol);
         $response = $this->privatePostOpenOrders ($params);
-        return $this->parse_orders ($response['result']['open'], $market);
+        $orders = $this->parse_orders ($response['result']['open']);
+        return $this->filterOrdersBySymbol ($orders, $symbol);
     }
 
     public function fetchClosedOrders ($symbol = null, $params = array ()) {
         $this->load_markets ();
-        $market = null;
-        if ($symbol)
-            $market = $this->market_id ($symbol);
         $response = $this->privatePostClosedOrders ($params);
-        return $this->parse_orders ($response['result']['closed'], $market);
+        $orders = $this->parse_orders ($response['result']['closed']);
+        return $this->filterOrdersBySymbol ($orders, $symbol);
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

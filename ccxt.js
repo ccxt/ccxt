@@ -14388,8 +14388,9 @@ var kraken = {
             let darkpool = id.indexOf ('.d') >= 0;
             let symbol = darkpool ? market['altname'] : (base + '/' + quote);
             let maker = undefined;
-            if ('fees_maker' in market)
-                maker = market['fees_maker'][0][1];
+            if ('fees_maker' in market) {
+                maker = parseFloat (market['fees_maker'][0][1]) / 100;
+            }
             let precision = {
                 'amount': market['lot_decimals'],
                 'price': market['pair_decimals'],
@@ -14402,8 +14403,8 @@ var kraken = {
                 'darkpool': darkpool,
                 'info': market,
                 'altname': market['altname'],
-                'maker': maker / 100,
-                'taker': market['fees'][0][1] / 100,
+                'maker': maker,
+                'taker': parseFloat (market['fees'][0][1]) / 100,
                 'precision': precision,
             });
         }

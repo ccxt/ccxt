@@ -12785,7 +12785,7 @@ class kraken (Exchange):
             'name': 'Kraken',
             'countries': 'US',
             'version': '0',
-            'rateLimit': 1500,
+            'rateLimit': 2000,
             'hasCORS': False,
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
@@ -12875,7 +12875,7 @@ class kraken (Exchange):
             symbol = market['altname'] if darkpool else(base + '/' + quote)
             maker = None
             if 'fees_maker' in market:
-                maker = market['fees_maker'][0][1]
+                maker = float(market['fees_maker'][0][1]) / 100
             precision = {
                 'amount': market['lot_decimals'],
                 'price': market['pair_decimals'],
@@ -12889,7 +12889,7 @@ class kraken (Exchange):
                 'info': market,
                 'altname': market['altname'],
                 'maker': maker,
-                'taker': market['fees'][0][1],
+                'taker': float(market['fees'][0][1]) / 100,
                 'precision': precision,
             })
         self.marketsByAltname = self.index_by(result, 'altname')
@@ -13061,14 +13061,15 @@ class kraken (Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
+        market = self.market(symbol)
         order = {
             'pair': self.market_id(symbol),
             'type': side,
             'ordertype': type,
-            'volume': amount,
+            'volume': ('{:.' + str(market['precision']['amount']) + 'f}').format(amount),
         }
         if type == 'limit':
-            order['price'] = price
+            order['price'] = ('{:.' + str(market['precision']['price']) + 'f}').format(price)
         response = await self.privatePostAddOrder(self.extend(order, params))
         length = len(response['result']['txid'])
         id = response['result']['txid'] if (length > 1) else response['result']['txid'][0]
@@ -13167,21 +13168,25 @@ class kraken (Exchange):
             }
         raise ExchangeError(self.id + " withdraw requires a 'key' parameter(withdrawal key name, as set up on your account)")
 
+    def filterOrdersBySymbol(self, orders, symbol=None):
+        grouped = self.groupBy(orders, 'symbol')
+        result = orders
+        if symbol:
+            if symbol in grouped:
+                result = grouped[symbol]
+        return result
+
     async def fetch_open_orders(self, symbol=None, params={}):
         await self.load_markets()
-        market = None
-        if symbol:
-            market = self.market_id(symbol)
         response = await self.privatePostOpenOrders(params)
-        return self.parse_orders(response['result']['open'], market)
+        orders = self.parse_orders(response['result']['open'])
+        return self.filterOrdersBySymbol(orders, symbol)
 
     async def fetchClosedOrders(self, symbol=None, params={}):
         await self.load_markets()
-        market = None
-        if symbol:
-            market = self.market_id(symbol)
         response = await self.privatePostClosedOrders(params)
-        return self.parse_orders(response['result']['closed'], market)
+        orders = self.parse_orders(response['result']['closed'])
+        return self.filterOrdersBySymbol(orders, symbol)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.version + '/' + api + '/' + path
