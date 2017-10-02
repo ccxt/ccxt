@@ -11,9 +11,10 @@ try:
     def test(*args):
         test_orig(*args, port=int(sys.argv[1]) if len(sys.argv) > 1 else 8080)
 
-except ImportError: # Python 2
+except ImportError:  # Python 2
     from BaseHTTPServer import HTTPServer, test
     from SimpleHTTPServer import SimpleHTTPRequestHandler
+
 
 class TestRequestHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -57,6 +58,7 @@ class TestRequestHandler(SimpleHTTPRequestHandler):
         # self.send_error(503, 'Service Unavailable')
         # self.send_error(504, 'Gateway Timeout')
         # self.send_error(505, 'HTTP Version Not Supported')
+
 
 if __name__ == '__main__':
     test(TestRequestHandler, HTTPServer)

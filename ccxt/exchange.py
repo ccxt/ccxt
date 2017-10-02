@@ -24,29 +24,26 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from ccxt.version import __version__
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-from ccxt.errors import CCXTError
 from ccxt.errors import ExchangeError
 from ccxt.errors import NotSupported
 from ccxt.errors import AuthenticationError
-from ccxt.errors import InsufficientFunds
-from ccxt.errors import NetworkError
 from ccxt.errors import DDoSProtection
 from ccxt.errors import RequestTimeout
 from ccxt.errors import ExchangeNotAvailable
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 __all__ = [
     'Exchange',
 ]
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # Python 2 & 3
 import base64
@@ -68,32 +65,34 @@ import time
 import zlib
 import decimal
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 try:
-    import urllib.parse   as _urlencode # Python 3
+    import urllib.parse as _urlencode  # Python 3
     import urllib.request as _urllib
     import http.client as httplib
 except ImportError:
-    import urllib  as _urlencode        # Python 2
+    import urllib as _urlencode        # Python 2
     import urllib2 as _urllib
     import httplib
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 try:
-    basestring # Python 3
+    basestring  # Python 3
 except NameError:
-    basestring = str # Python 2
+    basestring = str  # Python 2
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 class Exchange(object):
-
+    """Base exchange class"""
     id = None
     version = None
-    rateLimit = 2000 # milliseconds = seconds * 1000
-    timeout = 10000 # milliseconds = seconds * 1000
+    enableRateLimit = False
+    rateLimit = 2000  # milliseconds = seconds * 1000
+    timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_session = None
     userAgent = False
@@ -104,6 +103,9 @@ class Exchange(object):
     currencies = None
     tickers = None
     api = None
+    balance = {}
+    orderbooks = {}
+    fees = {}
     orders = {}
     trades = {}
     proxy = ''
@@ -116,6 +118,10 @@ class Exchange(object):
     markets_by_id = None
     hasPublicAPI = True
     hasPrivateAPI = True
+    hasCORS = False
+    hasFetchTicker = True
+    hasFetchOrderBook = True
+    hasFetchTrades = True
     hasFetchTickers = False
     hasFetchOHLCV = False
     hasDeposit = False
@@ -124,7 +130,12 @@ class Exchange(object):
     hasFetchOrders = False
     hasFetchOpenOrders = False
     hasFetchClosedOrders = False
+    hasFetchMyTrades = False
     substituteCommonCurrencyCodes = True
+    lastRestRequestTimestamp = 0
+    lastRestPollTimestamp = 0
+    restRequestQueue = None
+    restPollerLoopIsRunning = False
 
     def __init__(self, config={}):
 
@@ -143,11 +154,12 @@ class Exchange(object):
             self.set_markets(self.markets)
 
     def define_rest_api(self, api, method_name, options={}):
+        delimiters = re.compile('[^a-zA-Z0-9]')
         for api_type, methods in api.items():
             for http_method, urls in methods.items():
                 for url in urls:
                     url = url.strip()
-                    split_path = re.compile('[^a-zA-Z0-9]').split(url)
+                    split_path = delimiters.split(url)
 
                     uppercase_method = http_method.upper()
                     lowercase_method = http_method.lower()
@@ -196,8 +208,26 @@ class Exchange(object):
         else:
             raise exception_type(' '.join([self.id, method, url, details]))
 
+    def throttle(self):
+        now = self.milliseconds()
+        elapsed = now - self.lastRestRequestTimestamp
+        if elapsed < self.rateLimit:
+            delay = self.rateLimit - elapsed
+            time.sleep(delay / 1000.0)
+
+    def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        """A better wrapper over request for deferred signing"""
+        request = self.sign(path, api, method, params, headers, body)
+        return self.fetch(request['url'], request['method'], request['headers'], request['body'])
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        return self.fetch2(path, api, method, params, headers, body)
+
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
+        if self.enableRateLimit:
+            self.throttle()
+        self.lastRestRequestTimestamp = self.milliseconds()
         headers = headers or {}
         if self.userAgent:
             if type(self.userAgent) is str:
@@ -216,7 +246,7 @@ class Exchange(object):
         request.get_method = lambda: method
         response = None
         text = None
-        try: # send request and load response
+        try:  # send request and load response
             handler = _urllib.HTTPHandler if url.startswith('http://') else _urllib.HTTPSHandler
             opener = _urllib.build_opener(handler)
             response = opener.open(request, timeout=int(self.timeout / 1000))
@@ -226,37 +256,8 @@ class Exchange(object):
         except ssl.SSLError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
         except _urllib.HTTPError as e:
-            error = None
-            details = text if text else None
-            if e.code == 429:
-                error = DDoSProtection
-            elif e.code in [404, 409, 422, 500, 501, 502, 520, 521, 522, 525]:
-                details = e.read().decode('utf-8', 'ignore') if e else None
-                error = ExchangeNotAvailable
-            elif e.code in [400, 403, 405, 503]:
-                # special case to detect ddos protection
-                reason = e.read().decode('utf-8', 'ignore')
-                ddos_protection = re.search('(cloudflare|incapsula)', reason, flags=re.IGNORECASE)
-                if ddos_protection:
-                    error = DDoSProtection
-                else:
-                    error = ExchangeNotAvailable
-                    details = '(possible reasons: ' + ', '.join([
-                        'invalid API keys',
-                        'bad or old nonce',
-                        'exchange is down or offline',
-                        'on maintenance',
-                        'DDoS protection',
-                        'rate-limiting',
-                        reason,
-                    ]) + ')'
-            elif e.code in [408, 504]:
-                error = RequestTimeout
-            elif e.code in [401, 511]:
-                error = AuthenticationError
-            else:
-                error = ExchangeError
-            self.raise_error(error, url, method, e, details)
+            self.handle_rest_errors(e, e.code, text, url, method)
+            self.raise_error(ExchangeError, url, method, e, text if text else None)
         except _urllib.URLError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
         except httplib.BadStatusLine as e:
@@ -268,32 +269,64 @@ class Exchange(object):
             else:
                 data = gzip.GzipFile('', 'rb', 9, io.BytesIO(text))
                 text = data.read()
-        body = text.decode('utf-8')
+        decoded_text = text.decode('utf-8')
         if self.verbose:
-            print(method, url, "\nResponse:", headers, body)
-        return self.handle_response(url, method, headers, body)
+            print(method, url, "\nResponse:", response.info().headers, decoded_text)
+        return self.handle_rest_response(decoded_text, url, method, headers, body)
 
-    def handle_response(self, url, method='GET', headers=None, body=None):
-        try:
-            if (len(body) < 2):
-                raise ExchangeError(''.join([self.id, method, url, 'returned empty response']))
-            return json.loads(body)
-        except Exception as e:
-            ddos_protection = re.search('(cloudflare|incapsula)', body, flags=re.IGNORECASE)
-            exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', body, flags=re.IGNORECASE)
+    def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
+        error = None
+        details = response if response else None
+        if http_status_code == 429:
+            error = DDoSProtection
+        elif http_status_code in [404, 409, 422, 500, 501, 502, 520, 521, 522, 525]:
+            details = exception.read().decode('utf-8', 'ignore') if exception else (str(http_status_code) + ' ' + response)
+            error = ExchangeNotAvailable
+        elif http_status_code in [400, 403, 405, 503]:
+            # special case to detect ddos protection
+            reason = exception.read().decode('utf-8', 'ignore') if exception else response
+            ddos_protection = re.search('(cloudflare|incapsula)', reason, flags=re.IGNORECASE)
             if ddos_protection:
-                raise DDoSProtection(' '.join([self.id, method, url, body]))
+                error = DDoSProtection
+            else:
+                error = ExchangeNotAvailable
+                details = '(possible reasons: ' + ', '.join([
+                    'invalid API keys',
+                    'bad or old nonce',
+                    'exchange is down or offline',
+                    'on maintenance',
+                    'DDoS protection',
+                    'rate-limiting',
+                    reason,
+                ]) + ')'
+        elif http_status_code in [408, 504]:
+            error = RequestTimeout
+        elif http_status_code in [401, 511]:
+            error = AuthenticationError
+        if error:
+            self.raise_error(error, url, method, exception if exception else str(http_status_code), details)
+
+    def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
+        try:
+            if (len(response) < 2):
+                raise ExchangeError(''.join([self.id, method, url, 'returned empty response']))
+            return json.loads(response)
+        except Exception as e:
+            ddos_protection = re.search('(cloudflare|incapsula)', response, flags=re.IGNORECASE)
+            exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE)
+            if ddos_protection:
+                raise DDoSProtection(' '.join([self.id, method, url, response]))
             if exchange_not_available:
                 message = 'exchange downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
                 raise ExchangeNotAvailable(' '.join([
                     self.id,
                     method,
                     url,
-                    body,
+                    response,
                     message,
                 ]))
             if isinstance(e, ValueError):
-                raise ExchangeError(' '.join([self.id, method, url, body, str(e)]))
+                raise ExchangeError(' '.join([self.id, method, url, response, str(e)]))
             raise
 
     @staticmethod
@@ -301,7 +334,28 @@ class Exchange(object):
         return str(decimal.Decimal(str(number)))
 
     @staticmethod
-    def capitalize(string): # first character only, rest characters unchanged
+    def safe_float(dictionary, key, default_value=None):
+        return float(dictionary[key]) if (key in dictionary) and dictionary[key] else default_value
+
+    @staticmethod
+    def safe_string(dictionary, key, default_value=None):
+        return str(dictionary[key]) if (key in dictionary) and dictionary[key] else default_value
+
+    @staticmethod
+    def safe_integer(dictionary, key, default_value=None):
+        return int(dictionary[key]) if (key in dictionary) and dictionary[key] else default_value
+
+    @staticmethod
+    def safe_value(dictionary, key, default_value=None):
+        return dictionary[key] if (key in dictionary) and dictionary[key] else default_value
+
+    @staticmethod
+    def truncate(num, precision=0):
+        decimal_precision = math.pow(10, precision)
+        return math.trunc(num * decimal_precision) / decimal_precision
+
+    @staticmethod
+    def capitalize(string):  # first character only, rest characters unchanged
         if len(string) > 1:
             return "%s%s" % (string[0].upper(), string[1:])
         return string.upper()
@@ -324,6 +378,22 @@ class Exchange(object):
         return {}
 
     @staticmethod
+    def group_by(array, key):
+        result = {}
+        if type(array) is dict:
+            array = list(Exchange.keysort(array).items())
+        array = [entry for entry in array if (key in entry) and (entry[key] is not None)]
+        for entry in array:
+            if entry[key] not in result:
+                result[entry[key]] = []
+            result[entry[key]].append(entry)
+        return result
+
+    @staticmethod
+    def groupBy(array, key):
+        return Exchange.group_by(array, key)
+
+    @staticmethod
     def index_by(array, key):
         result = {}
         if type(array) is dict:
@@ -335,16 +405,16 @@ class Exchange(object):
         return result
 
     @staticmethod
-    def indexBy(l, key):
-        return Exchange.index_by(l, key)
+    def indexBy(array, key):
+        return Exchange.index_by(array, key)
 
     @staticmethod
-    def sort_by(l, key, descending=False):
-        return sorted(l, key=lambda k: k[key], reverse=descending)
+    def sort_by(array, key, descending=False):
+        return sorted(array, key=lambda k: k[key], reverse=descending)
 
     @staticmethod
-    def sortBy(l, key, descending=False):
-        return Exchange.sort_by(l, key, descending)
+    def sortBy(array, key, descending=False):
+        return Exchange.sort_by(array, key, descending)
 
     @staticmethod
     def extract_params(string):
@@ -388,9 +458,11 @@ class Exchange(object):
         for arg in args:
             if type(arg) is list:
                 for key in arg:
-                    if key in result: del result[key]
+                    if key in result:
+                        del result[key]
             else:
-                if arg in result: del result[arg]
+                if arg in result:
+                    del result[arg]
         return result
 
     @staticmethod
@@ -399,35 +471,37 @@ class Exchange(object):
 
     @staticmethod
     def pluck(array, key):
-        return [element[key] for element in array if (key in element) and (element[key] is not None)]
+        return [
+            element[key]
+            for element in array
+            if (key in element) and (element[key] is not None)
+        ]
 
     @staticmethod
     def sum(*args):
-        return sum([arg for arg in args if isinstance(arg, int) or isinstance(arg, float)])
+        return sum([arg for arg in args if isinstance(arg, (float, int))])
 
     @staticmethod
     def ordered(array):
         return collections.OrderedDict(array)
 
     @staticmethod
-    def s():
-        return Exchange.seconds()
+    def aggregate(bidasks):
+        ordered = Exchange.ordered({})
+        for [price, volume] in bidasks:
+            ordered[price] = (ordered[price] if price in ordered else 0) + volume
+        result = []
+        for price, volume in ordered.iteritems():
+            result.append([price, volume])
+        return result
 
     @staticmethod
     def sec():
         return Exchange.seconds()
 
     @staticmethod
-    def ms():
-        return Exchange.milliseconds()
-
-    @staticmethod
     def msec():
         return Exchange.milliseconds()
-
-    @staticmethod
-    def us():
-        return Exchange.microseconds()
 
     @staticmethod
     def usec():
@@ -452,7 +526,8 @@ class Exchange(object):
 
     @staticmethod
     def YmdHMS(timestamp, infix=' '):
-        return datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000))).strftime('%Y-%m-%d' + infix + '%H:%M:%S')
+        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
 
     @staticmethod
     def parse8601(timestamp):
@@ -565,8 +640,8 @@ class Exchange(object):
         values = markets
         if type(values) is dict:
             values = list(markets.values())
-        self.markets = self.indexBy(values, 'symbol')
-        self.markets_by_id = Exchange.indexBy(values, 'id')
+        self.markets = self.index_by(values, 'symbol')
+        self.markets_by_id = self.index_by(values, 'id')
         self.marketsById = self.markets_by_id
         self.symbols = sorted(list(self.markets.keys()))
         self.ids = sorted(list(self.markets_by_id.keys()))
@@ -609,29 +684,29 @@ class Exchange(object):
         order = self.fetch_order(id)
         return order['status']
 
-    def fetch_order(self, id, params={}):
+    def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' fetch_order() is not implemented yet')
 
-    def fetchOrder(self, id, params={}):
-        return self.fetch_order(id, params)
+    def fetchOrder(self, id, symbol=None, params={}):
+        return self.fetch_order(id, symbol, params)
 
-    def fetch_orders(self, params={}):
+    def fetch_orders(self, symbol=None, params={}):
         raise NotSupported(self.id + ' fetch_orders() is not implemented yet')
 
-    def fetchOrders(self, params={}):
-        return self.fetch_orders(params)
+    def fetchOrders(self, symbol=None, params={}):
+        return self.fetch_orders(symbol, params)
 
-    def fetch_open_orders(self, market=None, params={}):
+    def fetch_open_orders(self, symbol=None, params={}):
         raise NotSupported(self.id + ' fetch_open_orders() not implemented yet')
 
-    def fetchOpenOrders(self, market=None, params={}):
-        return self.fetch_open_orders(market, params)
+    def fetchOpenOrders(self, symbol=None, params={}):
+        return self.fetch_open_orders(symbol, params)
 
-    def fetch_closed_orders(self, market=None, params={}):
+    def fetch_closed_orders(self, symbol=None, params={}):
         raise NotSupported(self.id + ' fetch_closed_orders() not implemented yet')
 
-    def fetchClosedOrders(self, market=None, params={}):
-        return self.fetch_closed_orders(market, params)
+    def fetchClosedOrders(self, symbol=None, params={}):
+        return self.fetch_closed_orders(symbol, params)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return ohlcv
@@ -655,14 +730,48 @@ class Exchange(object):
     def parseBidAsks(self, bidask, price_key=0, amount_key=1):
         return self.parse_bidasks(bidask, price_key, amount_key)
 
+    def fetch_l2_order_book(self, symbol, params={}):
+        orderbook = self.fetch_order_book(symbol, params)
+        return self.extend(orderbook, {
+            'bids': self.sort_by(self.aggregate(orderbook['bids']), 0, True),
+            'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
+        })
+
+    def fetchL2OrderBook(self, *args):
+        return self.fetch_l2_order_book(*args)
+
     def parse_order_book(self, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
         timestamp = timestamp or self.milliseconds()
         return {
-            'bids': self.parse_bidasks(orderbook[bids_key], price_key, amount_key),
-            'asks': self.parse_bidasks(orderbook[asks_key], price_key, amount_key),
+            'bids': self.parse_bidasks(orderbook[bids_key], price_key, amount_key) if bids_key in orderbook else [],
+            'asks': self.parse_bidasks(orderbook[asks_key], price_key, amount_key) if asks_key in orderbook else [],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
+
+    def parse_balance(self, balance):
+        currencies = self.omit(balance, 'info').keys()
+        for account in ['free', 'used', 'total']:
+            balance[account] = {}
+            for currency in currencies:
+                balance[account][currency] = balance[currency][account]
+        return balance
+
+    def parseBalance(self, balance):
+        return self.parse_balance(balance)
+
+    def fetch_partial_balance(self, part, params={}):
+        balance = self.fetch_balance(params)
+        return balance[part]
+
+    def fetch_free_balance(self, params={}):
+        return self.fetch_partial_balance('free', params)
+
+    def fetch_used_balance(self, params={}):
+        return self.fetch_partial_balance('used', params)
+
+    def fetch_total_balance(self, params={}):
+        return self.fetch_partial_balance('total', params)
 
     def parseOrderBook(self, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
         return self.parse_order_book(orderbook, timestamp, bids_key, asks_key, price_key, amount_key)
@@ -708,20 +817,81 @@ class Exchange(object):
     def fetchBalance(self, params={}):
         return self.fetch_balance(params)
 
-    def fetchOrderBook(self, symbol):
-        return self.fetch_order_book(symbol)
+    def fetchFreeBalance(self, params={}):
+        return self.fetch_free_balance(params)
+
+    def fetchUsedBalance(self, params={}):
+        return self.fetch_used_balance(params)
+
+    def fetchTotalBalance(self, params={}):
+        return self.fetch_total_balance(params)
+
+    def fetchOrderBook(self, symbol, params={}):
+        return self.fetch_order_book(symbol, params)
 
     def fetchTicker(self, symbol):
         return self.fetch_ticker(symbol)
 
-    def fetchTrades(self, symbol):
-        return self.fetch_trades(symbol)
+    def fetchTrades(self, symbol, params={}):
+        return self.fetch_trades(symbol, params)
 
-    def create_limit_buy_order(self, symbol, amount, price, params={}):
-        return self.create_order(symbol, 'limit', 'buy', amount, price, params)
+    def calculate_fee_rate(self, symbol, type, side, amount, price, fee='taker', params={}):
+        return {
+            'base': 0.0,
+            'quote': self.markets[symbol][fee],
+        }
 
-    def create_limit_sell_order(self, symbol, amount, price, params={}):
-        return self.create_order(symbol, 'limit', 'sell', amount, price, params)
+    def calculate_fee(self, symbol, type, side, amount, price, fee='taker', params={}):
+        rate = self.calculateFeeRate(symbol, type, side, amount, price, fee, params)
+        return {
+            'rate': rate,
+            'cost': {
+                'base': amount * rate['base'],
+                'quote': amount * price * rate['quote'],
+            },
+        }
+
+    def calculateFeeRate(self, symbol, type, side, amount, price, fee='taker', params={}):
+        return self.calculate_fee_rate(symbol, type, side, amount, price, fee, params)
+
+    def calculateFee(self, symbol, type, side, amount, price, fee='taker', params={}):
+        return self.calculate_fee(symbol, type, side, amount, price, fee, params)
+
+    def edit_limit_buy_order(self, id, symbol, *args):
+        return self.edit_limit_order(symbol, 'buy', *args)
+
+    def edit_limit_sell_order(self, id, symbol, *args):
+        return self.edit_limit_order(symbol, 'sell', *args)
+
+    def edit_limit_order(self, id, symbol, *args):
+        return self.edit_order(id, symbol, 'limit', *args)
+
+    def edit_order(self, id, symbol, *args):
+        if not self.enableRateLimit:
+            raise ExchangeError(self.id + ' edit_order() requires enableRateLimit = true')
+        self.cancel_order(id, symbol)
+        return self.create_order(symbol, *args)
+
+    def cancelOrder(self, id, symbol=None, params={}):
+        return self.cancel_order(id, symbol, params)
+
+    def editLimitSellOrder(self, *args):
+        return self.edit_limit_sell_order(*args)
+
+    def editLimitBuyOrder(self, *args):
+        return self.edit_limit_buy_order(*args)
+
+    def editLimitOrder(self, *args):
+        return self.edit_limit_order(*args)
+
+    def editOrder(self, *args):
+        return self.edit_order(*args)
+
+    def create_limit_buy_order(self, symbol, *args):
+        return self.create_order(symbol, 'limit', 'buy', *args)
+
+    def create_limit_sell_order(self, symbol, *args):
+        return self.create_order(symbol, 'limit', 'sell', *args)
 
     def create_market_buy_order(self, symbol, amount, params={}):
         return self.create_order(symbol, 'market', 'buy', amount, None, params)
@@ -729,19 +899,19 @@ class Exchange(object):
     def create_market_sell_order(self, symbol, amount, params={}):
         return self.create_order(symbol, 'market', 'sell', amount, None, params)
 
-    def createLimitBuyOrder(self, symbol, amount, price, params={}):
-        return self.create_limit_buy_order(symbol, amount, price, params)
+    def createLimitBuyOrder(self, symbol, *args):
+        return self.create_limit_buy_order(symbol, *args)
 
-    def createLimitSellOrder(self, symbol, amount, price, params={}):
-        return self.create_limit_sell_order(symbol, amount, price, params)
+    def createLimitSellOrder(self, symbol, *args):
+        return self.create_limit_sell_order(symbol, *args)
 
-    def createMarketBuyOrder(self, symbol, amount, params={}):
-        return self.create_market_buy_order(symbol, amount, params)
+    def createMarketBuyOrder(self, symbol, *args):
+        return self.create_market_buy_order(symbol, *args)
 
-    def createMarketSellOrder(self, symbol, amount, params={}):
-        return self.create_market_sell_order(symbol, amount, params)
+    def createMarketSellOrder(self, symbol, *args):
+        return self.create_market_sell_order(symbol, *args)
 
-#==============================================================================
+# =============================================================================
 
 # This comment is a placeholder for transpiled derived exchange implementations
 # See https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md for details

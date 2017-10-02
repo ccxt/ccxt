@@ -3,4 +3,4 @@
         browserify --debug ./ccxt.browser.js > ./build/ccxt.browser.js
  */
 
-window.ccxt = require ('./build/ccxt.es5')
+window.ccxt = require ('./ccxt')

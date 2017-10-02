@@ -3,29 +3,51 @@
 import os
 import sys
 
-#------------------------------------------------------------------------------
-
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root)
 
-#------------------------------------------------------------------------------
-
 import ccxt  # noqa: E402
 
-def style(s, style): return style + s + '\033[0m'
-def green(s): return style(s, '\033[92m')
-def blue(s): return style(s, '\033[94m')
-def yellow(s): return style(s, '\033[93m')
-def red(s): return style(s, '\033[91m')
-def pink(s): return style(s, '\033[95m')
-def bold(s): return style(s, '\033[1m')
-def underline(s): return style(s, '\033[4m')
+
+def style(s, style):
+    return style + s + '\033[0m'
+
+
+def green(s):
+    return style(s, '\033[92m')
+
+
+def blue(s):
+    return style(s, '\033[94m')
+
+
+def yellow(s):
+    return style(s, '\033[93m')
+
+
+def red(s):
+    return style(s, '\033[91m')
+
+
+def pink(s):
+    return style(s, '\033[95m')
+
+
+def bold(s):
+    return style(s, '\033[1m')
+
+
+def underline(s):
+    return style(s, '\033[4m')
+
 
 def dump(*args):
     print(' '.join([str(arg) for arg in args]))
 
+
 def print_supported_exchanges():
     dump('Supported exchanges:', green(', '.join(ccxt.exchanges)))
+
 
 try:
 
@@ -38,7 +60,9 @@ try:
         dump('Instantiating', green(id), 'exchange')
 
         # instantiate the exchange by id
-        exchange = getattr(ccxt, id)()
+        exchange = getattr(ccxt, id)({
+            # 'proxy':'https://cors-anywhere.herokuapp.com/',
+        })
 
         # load all markets from the exchange
         markets = exchange.load_markets()

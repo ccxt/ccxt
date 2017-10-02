@@ -24,28 +24,55 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 __all__ = [
     'CCXTError',
     'ExchangeError',
     'AuthenticationError',
+    'InsufficientFunds',
     'NetworkError',
     'DDoSProtection',
     'RequestTimeout',
     'ExchangeNotAvailable',
 ]
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-class CCXTError            (Exception):     pass
-class ExchangeError        (CCXTError):     pass
-class NotSupported         (ExchangeError): pass
-class AuthenticationError  (ExchangeError): pass
-class InsufficientFunds    (ExchangeError): pass
-class NetworkError         (CCXTError):     pass
-class DDoSProtection       (NetworkError):  pass
-class RequestTimeout       (NetworkError):  pass
-class ExchangeNotAvailable (NetworkError):  pass
 
-#==============================================================================
+class CCXTError(Exception):
+    pass
+
+
+class ExchangeError(CCXTError):
+    pass
+
+
+class NotSupported(ExchangeError):
+    pass
+
+
+class AuthenticationError(ExchangeError):
+    pass
+
+
+class InsufficientFunds(ExchangeError):
+    pass
+
+
+class NetworkError(CCXTError):
+    pass
+
+
+class DDoSProtection(NetworkError):
+    pass
+
+
+class RequestTimeout(NetworkError):
+    pass
+
+
+class ExchangeNotAvailable(NetworkError):
+    pass
+
+# =============================================================================

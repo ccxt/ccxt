@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.7.7';
+$version = '1.9.6';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -147,6 +147,7 @@ class Exchange {
         'bitfinex',
         'bitfinex2',
         'bitflyer',
+        'bithumb',
         'bitlish',
         'bitmarket',
         'bitmex',
@@ -190,6 +191,7 @@ class Exchange {
         'huobi',
         'huobicny',
         'huobipro',
+        'independentreserve',
         'itbit',
         'jubi',
         'kraken',
@@ -199,20 +201,24 @@ class Exchange {
         'luno',
         'mercado',
         'mixcoins',
+        'nova',
         'okcoincny',
         'okcoinusd',
         'okex',
         'paymium',
         'poloniex',
         'quadrigacx',
+        'qryptos',
         'quoine',
         'southxchange',
         'surbitcoin',
+        'tidex',
         'therock',
         'urdubit',
         'vaultoro',
         'vbtc',
         'virwox',
+        'wex',
         'xbtce',
         'yobit',
         'yunbi',
@@ -225,6 +231,27 @@ class Exchange {
 
     public static function decimal ($number) {
         return '' + $number;
+    }
+
+    public static function safe_float ($object, $key, $default_value = null) {
+        return (array_key_exists ($key, $object) && $object[$key]) ? floatval ($object[$key]) : $default_value;
+    }
+
+    public static function safe_string ($object, $key, $default_value = null) {
+        return (array_key_exists ($key, $object) && $object[$key]) ? strval ($object[$key]) : $default_value;
+    }
+
+    public static function safe_integer ($object, $key, $default_value = null) {
+        return (array_key_exists ($key, $object) && $object[$key]) ? intval ($object[$key]) : $default_value;
+    }
+
+    public static function safe_value ($object, $key, $default_value = null) {
+        return (array_key_exists ($key, $object) && $object[$key]) ? $object[$key] : $default_value;
+    }
+
+    public static function truncate ($number, $precision = 0) {
+        $decimal_precision = pow (10, $precision);
+        return floatval ($number * $decimal_precision) / $decimal_precision;
     }
 
     public static function capitalize ($string) {
@@ -250,6 +277,18 @@ class Exchange {
         foreach ($array as $element)
             if (isset ($key, $element))
                 $result[] = $element[$key];
+        return $result;
+    }
+
+    public static function group_by ($array, $key) {
+        $result = array ();
+        foreach ($array as $element) {
+            if (isset ($element[$key]) && !is_null ($element[$key])) {
+                if (!isset ($result[$element[$key]]))
+                    $result[$element[$key]] = array ();
+                $result[$element[$key]][] = $element;
+            }
+        }
         return $result;
     }
 
@@ -312,6 +351,25 @@ class Exchange {
 
     public static function ordered ($array) { // for Python OrderedDicts, does nothing in PHP and JS
         return $array;
+    }
+
+    public function aggregate ($bidasks) {
+
+        $result = array ();
+
+        foreach ($bidasks as $bidask) {
+            $price = (string) $bidask[0];
+            $result[$price] = array_key_exists ($price, $result) ? $result[$price] : 0;
+            $result[$price] += $bidask[1];
+        }
+
+        $output = array ();
+
+        foreach ($result as $key => $value) {
+            $output[] = array (floatval ($key), floatval ($value));
+        }
+
+        return $output;
     }
 
     public static function urlencodeBase64 ($string) {
@@ -422,30 +480,37 @@ class Exchange {
 
         global $version;
 
-        $this->curl       = curl_init ();
-        $this->id         = null;
-        $this->rateLimit  = 2000;
-        $this->timeout    = 10000; // in milliseconds
-        $this->proxy      = '';
-        $this->markets    = null;
-        $this->symbols    = null;
-        $this->ids        = null;
-        $this->currencies = null;
-        $this->orders     = array ();
-        $this->trades     = array ();
-        $this->verbose    = false;
-        $this->apiKey     = '';
-        $this->secret     = '';
-        $this->password   = '';
-        $this->uid        = '';
-        $this->twofa      = false;
+        $this->curl        = curl_init ();
+        $this->id          = null;
+        $this->rateLimit   = 2000;
+        $this->timeout     = 10000; // in milliseconds
+        $this->proxy       = '';
+        $this->markets     = null;
+        $this->symbols     = null;
+        $this->ids         = null;
+        $this->currencies  = null;
+        $this->balance     = array ();
+        $this->orderbooks  = array ();
+        $this->fees        = array ();
+        $this->orders      = array ();
+        $this->trades      = array ();
+        $this->verbose     = false;
+        $this->apiKey      = '';
+        $this->secret      = '';
+        $this->password    = '';
+        $this->uid         = '';
+        $this->twofa       = false;
         $this->marketsById = null;
         $this->markets_by_id = null;
-        $this->userAgent  = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
+        $this->userAgent   = 'ccxt/' . $version . ' (+https://github.com/kroitor/ccxt) PHP/' . PHP_VERSION;
         $this->substituteCommonCurrencyCodes = true;
         $this->timeframes = null;
         $this->hasPublicAPI         = true;
         $this->hasPrivateAPI        = true;
+        $this->hasCORS              = false;
+        $this->hasFetchTicker       = true;
+        $this->hasFetchOrderBook    = true;
+        $this->hasFetchTrades       = true;
         $this->hasFetchTickers      = false;
         $this->hasFetchOHLCV        = false;
         $this->hasDeposit           = false;
@@ -454,6 +519,12 @@ class Exchange {
         $this->hasFetchOrders       = false;
         $this->hasFetchOpenOrders   = false;
         $this->hasFetchClosedOrders = false;
+        $this->hasFetchMyTrades     = false;
+        $this->lastRestRequestTimestamp = 0;
+        $this->lastRestPollTimestamp    = 0;
+        $this->restRequestQueue         = null;
+        $this->restPollerLoopIsRunning  = false;
+        $this->enableRateLimit          = false;
 
         if ($options)
             foreach ($options as $key => $value)
@@ -542,7 +613,29 @@ class Exchange {
         )));
     }
 
+    // this method is experimental
+    public function throttle () {
+        $now = $this->milliseconds ();
+        $elapsed = $now - $this->lastRestRequestTimestamp;
+        if ($elapsed < $this->rateLimit) {
+            $delay = $this->rateLimit - $elapsed;
+            usleep ($delay * 1000.0);
+        }
+    }
+
+    public function fetch2 ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $request = $this->sign ($path, $api, $method, $params, $headers, $body);
+        return $this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']);
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+    }
+
     public function fetch ($url, $method = 'GET', $headers = null, $body = null) {
+
+        if ($this->enableRateLimit)
+            $this->throttle ();
 
         if (strlen ($this->proxy))
             $headers['Origin'] = '*';
@@ -610,6 +703,8 @@ class Exchange {
             var_dump ($url, $method, $url, "\nRequest:\n", $verbose_headers, $body);
 
         $result = curl_exec ($this->curl);
+
+        $this->lastRestRequestTimestamp = $this->milliseconds();
 
         if ($result === false) {
 
@@ -791,11 +886,27 @@ class Exchange {
         return $this->parse_bidasks ($bidasks, $price_key, $amount_key);
     }
 
+    public function fetch_l2_order_book ($symbol, $params = array ()) {
+        $orderbook = $this->fetch_order_book ($symbol, $params);
+        return $this->extend ($orderbook, array (
+            'bids' => $this->sort_by ($this->aggregate ($orderbook['bids']), 0, true),
+            'asks' => $this->sort_by ($this->aggregate ($orderbook['asks']), 0),
+        ));
+    }
+
+    public function fetchL2OrderBook ($symbol, $params = array ()) {
+        return $this->fetch_l2_order_book ($symbol, $params);
+    }
+
     public function parse_order_book ($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
         $timestamp = $timestamp ? $timestamp : $this->milliseconds ();
         return array (
-            'bids' => $this->parse_bidasks ($orderbook[$bids_key], $price_key, $amount_key),
-            'asks' => $this->parse_bidasks ($orderbook[$asks_key], $price_key, $amount_key),
+            'bids' => array_key_exists ($bids_key, $orderbook) ?
+                $this->parse_bidasks ($orderbook[$bids_key], $price_key, $amount_key) :
+                array (),
+            'asks' => array_key_exists ($asks_key, $orderbook) ?
+                $this->parse_bidasks ($orderbook[$asks_key], $price_key, $amount_key) :
+                array (),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
         );
@@ -803,6 +914,51 @@ class Exchange {
 
     public function parseOrderBook ($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
         return $this->parse_order_book ($orderbook, $timestamp, $bids_key, $asks_key, $price_key, $amount_key);
+    }
+
+    public function parse_balance ($balance) {
+        $currencies = array_keys ($this->omit ($balance, 'info'));
+        $accounts = array ('free', 'used', 'total');
+        foreach ($accounts as $account) {
+            $balance[$account] = array ();
+            foreach ($currencies as $currency) {
+                $balance[$account][$currency] = $balance[$currency][$account];
+            }
+        }
+        return $balance;
+    }
+
+    public function parseBalance ($balance) {
+        return $this->parse_balance ($balance);
+    }
+
+    public function fetch_partial_balance ($part, $params = array ()) {
+        $balance = $this->fetch_balance ($params);
+        return $balance[$part];
+    }
+
+    public function fetch_free_balance ($params = array ()) {
+        return $this->fetch_partial_balance ('free', $params);
+    }
+
+    public function fetch_used_balance ($params = array ()) {
+        return $this->fetch_partial_balance ('used', $params);
+    }
+
+    public function fetch_total_balance ($params = array ()) {
+        return $this->fetch_partial_balance ('total', $params);
+    }
+
+    public function fetchFreeBalance ($params = array ()) {
+        return $this->fetch_free_balance ($params);
+    }
+
+    public function fetchUsedBalance ($params = array ()) {
+        return $this->fetch_used_balance ($params);
+    }
+
+    public function fetchTotalBalance ($params = array ()) {
+        return $this->fetch_total_balance ($params);
     }
 
     public function parse_trades ($trades, $market = null) {
@@ -820,7 +976,7 @@ class Exchange {
     public function parse_orders ($orders, $market = null) {
         $result = array ();
         foreach ($orders as $order)
-            $result[] = $this->parse_order ($orders[$t], $market);
+            $result[] = $this->parse_order ($order, $market);
         return $result;
     }
 
@@ -846,40 +1002,40 @@ class Exchange {
         return $this->fetch_order_status ($id);
     }
 
-    public function fetch_order ($id = null, $params = array ()) {
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
         $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' fetch_order() not implemented yet');
     }
 
-    public function fetchOrder ($id = null, $params = array ()) {
-        return $this->fetch_order ($id, $params);
+    public function fetchOrder ($id, $symbol = null, $params = array ()) {
+        return $this->fetch_order ($id, $symbol, $params);
     }
 
-    public function fetch_orders ($params = array ()) {
+    public function fetch_orders ($symbol = null, $params = array ()) {
         $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' fetch_orders() not implemented yet');
     }
 
-    public function fetchOrders ($params = array ()) {
-        return $this->fetch_orders ($params);
+    public function fetchOrders ($symbol = null, $params = array ()) {
+        return $this->fetch_orders ($symbol, $params);
     }
 
-    public function fetch_open_orders ($market = null, $params = array ()) {
+    public function fetch_open_orders ($symbol = null, $params = array ()) {
         $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' fetch_open_orders() not implemented yet');
     }
 
-    public function fetchOpenOrders ($market = null, $params = array ()) {
-        return $this->fetch_open_orders ($market, $params);
+    public function fetchOpenOrders ($symbol = null, $params = array ()) {
+        return $this->fetch_open_orders ($symbol, $params);
     }
 
-    public function fetch_closed_orders ($market = null, $params = array ()) {
+    public function fetch_closed_orders ($symbol = null, $params = array ()) {
         $exception = '\\ccxt\\NotSupported';
         throw new $exception ($this->id . ' fetch_closed_orders() not implemented yet');
     }
 
-    public function fetchClosedOrders ($market = null, $params = array ()) {
-        return $this->fetch_closed_orders ($market, $params);
+    public function fetchClosedOrders ($symbol = null, $params = array ()) {
+        return $this->fetch_closed_orders ($symbol, $params);
     }
 
     public function fetch_markets () { // stub
@@ -894,16 +1050,16 @@ class Exchange {
         return $this->fetch_balance ();
     }
 
-    public function fetchOrderBook ($market) {
-        return $this->fetch_order_book ($market);
+    public function fetchOrderBook ($symbol, $params = array ()) {
+        return $this->fetch_order_book ($symbol, $params);
     }
 
-    public function fetchTicker ($market) {
-        return $this->fetch_ticker ($market);
+    public function fetchTicker ($symbol) {
+        return $this->fetch_ticker ($symbol);
     }
 
-    public function fetchTrades ($market) {
-        return $this->fetch_trades ($market);
+    public function fetchTrades ($symbol, $params = array ()) {
+        return $this->fetch_trades ($symbol, $params);
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -915,36 +1071,103 @@ class Exchange {
         return $this->fetch_ohlcv ($symbol, $timeframe, $since, $limit, $params);
     }
 
-    public function create_limit_buy_order ($market, $amount, $price, $params = array ()) {
-        return $this->create_order ($market, 'limit', 'buy',  $amount, $price, $params);
+    public function edit_limit_buy_order ($id, $symbol, $amount, $price, $params = array ()) {
+        return $this->edit_limit_order ($symbol, 'buy', $amount, $price, $params);
     }
 
-    public function create_limit_sell_order ($market, $amount, $price, $params = array ()) {
-        return $this->create_order ($market, 'limit', 'sell', $amount, $price, $params);
+    public function edit_limit_sell_order ($id, $symbol, $amount, $price, $params = array ()) {
+        return $this->edit_limit_order ($symbol, 'sell', $amount, $price, $params);
     }
 
-    public function create_market_buy_order ($market, $amount, $params = array ()) {
-        return $this->create_order ($market, 'market', 'buy', $amount, null, $params);
+    public function edit_limit_order ($id, $symbol, $side, $amount, $price, $params = array ()) {
+        return $this->edit_order ($id, $symbol, 'limit', $side, $amount, $price, $params);
     }
 
-    public function create_market_sell_order ($market, $amount, $params = array ()) {
-        return $this->create_order ($market, 'market', 'sell', $amount, null, $params);
+    public function edit_order ($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
+        if (!$this->enableRateLimit) {
+            $exception = '\\ccxt\\ExchangeError';
+            throw new $exception ($this->id . ' edit_order() requires enableRateLimit = true');
+        }
+        $this->cancel_order ($id, $symbol, $params);
+        return $this->create_order ($symbol, $type, $side, $amount, $price, $params);
     }
 
-    public function createLimitBuyOrder ($market, $amount, $price, $params = array ()) {
-        return $this->create_limit_buy_order ($market, $amount, $price, $params);
+    public function cancelOrder ($id, $symbol = null, $params = array ()) {
+        return $this->cancel_order ($id, $symbol, $params);
     }
 
-    public function createLimitSellOrder ($market, $amount, $price, $params = array ()) {
-        return $this->create_limit_sell_order ($market, $amount, $price, $params);
+    public function editLimitBuyOrder ($id, $symbol, $amount, $price, $params = array ()) {
+        return $this->edit_limit_buy_order ($id, $symbol, $amount, $price, $params);
     }
 
-    public function createMarketBuyOrder ($market, $amount, $params = array ()) {
-        return $this->create_market_buy_order ($market, $amount, $params);
+    public function editLimitSellOrder ($id, $symbol, $amount, $price, $params = array ()) {
+        return $this->edit_limit_sell_order ($id, $symbol, $amount, $price, $params);
     }
 
-    public function createMarketSellOrder ($market, $amount, $params = array ()) {
-        return $this->create_market_sell_order ($market, $amount, $params);
+    public function editLimitOrder ($id, $symbol, $side, $amount, $price, $params = array ()) {
+        return $this->edit_limit_order ($id, $symbol, $side, $amount, $price, $params);
+    }
+
+    public function editOrder ($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
+        return $this->edit_order ($id, $symbol, $type, $side, $amount, $price, $params);
+    }
+
+    public function create_limit_buy_order ($symbol, $amount, $price, $params = array ()) {
+        return $this->create_order ($symbol, 'limit', 'buy',  $amount, $price, $params);
+    }
+
+    public function create_limit_sell_order ($symbol, $amount, $price, $params = array ()) {
+        return $this->create_order ($symbol, 'limit', 'sell', $amount, $price, $params);
+    }
+
+    public function create_market_buy_order ($symbol, $amount, $params = array ()) {
+        return $this->create_order ($symbol, 'market', 'buy', $amount, null, $params);
+    }
+
+    public function create_market_sell_order ($symbol, $amount, $params = array ()) {
+        return $this->create_order ($symbol, 'market', 'sell', $amount, null, $params);
+    }
+
+    public function createLimitBuyOrder ($symbol, $amount, $price, $params = array ()) {
+        return $this->create_limit_buy_order ($symbol, $amount, $price, $params);
+    }
+
+    public function createLimitSellOrder ($symbol, $amount, $price, $params = array ()) {
+        return $this->create_limit_sell_order ($symbol, $amount, $price, $params);
+    }
+
+    public function createMarketBuyOrder ($symbol, $amount, $params = array ()) {
+        return $this->create_market_buy_order ($symbol, $amount, $params);
+    }
+
+    public function createMarketSellOrder ($symbol, $amount, $params = array ()) {
+        return $this->create_market_sell_order ($symbol, $amount, $params);
+    }
+
+    public function calculate_fee_rate ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
+        return array (
+            'base' => 0.0,
+            'quote' => $this->markets[$symbol][$fee],
+        );
+    }
+
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
+        $rate = $this->calculate_fee_rate ($symbol, $type, $side, $amount, $price, $fee, $params);
+        return array (
+            'rate' => $rate,
+            'cost' => array (
+                'base' => $amount * $rate['base'],
+                'quote' => $amount * $price * $rate['quote'],
+            ),
+        );
+    }
+
+    public function createFeeRate ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
+        return $this->calculate_fee_rate ($symbol, $type, $side, $amount, $price, $fee, $params);
+    }
+
+    public function createFee ($symbol, $type, $side, $amount, $price, $fee = 'taker', $params = array ()) {
+        return $this->calculate_fee ($symbol, $type, $side, $amount, $price, $fee, $params);
     }
 
     public static function account () {
@@ -967,11 +1190,11 @@ class Exchange {
         return $currency;
     }
 
-    public function market ($market) {
-        return ((gettype ($market) === 'string') &&
+    public function market ($symbol) {
+        return ((gettype ($symbol) === 'string') &&
                    isset ($this->markets)        &&
-                   isset ($this->markets[$market])) ?
-                        $this->markets[$market] : $market;
+                   isset ($this->markets[$symbol])) ?
+                        $this->markets[$symbol] : $symbol;
     }
 
     public function market_ids ($symbols) {
@@ -990,9 +1213,6 @@ class Exchange {
         return $this->market_id ($symbol);
     }
 
-    public function request ($path, $type, $method, $params, $headers = null, $body = null) { // stub
-    }
-
     function __call ($function, $params) {
 
         if (array_key_exists ($function, $this))
@@ -1004,7 +1224,7 @@ class Exchange {
     }
 }
 
-//=============================================================================
+// ============================================================================
 
 // This comment is a placeholder for transpiled derived exchange implementations
 // See https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md for details

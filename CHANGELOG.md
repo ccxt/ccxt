@@ -1,6 +1,65 @@
 # Сhangelog
 
-- Fixed empty cex DASH/USD fetchTicker
+- Added min/max trade limits to Bittrex and Cryptopia (experimental)
+
+## Version 1.9.x 2017-10-01
+
+- Added precision thresholds to Binance, Bittrex, Cryptopia, Kraken markets
+- Added order cache and emulated fetchClosedOrders workaround to Cryptopia
+- Added a symbol param to `cancelOrder ()` / `cancel_order ()`
+- Added new ZEC/KRW market to Bithumb
+- Fixed CEX.io endpoint URLs for extra params, [#250](https://github.com/kroitor/ccxt/issues/250), [#251](https://github.com/kroitor/ccxt/pull/251)
+- Fixed Poloniex fetchTrades, [#246](https://github.com/kroitor/ccxt/issues/246)
+- Fixed all PEP8-conformance issues entirely, [#244](https://github.com/kroitor/ccxt/issues/244)
+- Added support for a new exchange: [QRYPTOS](https://www.qryptos.com) (China, Taiwan, a property of QUOINE)
+- Added fetchOpenOrders and fetchClosedOrders to Bitfinex v1 (experimental)
+- Added fetchOrder and fetchOrders to OKCoin CNY, OKCoin USD and OKEX (experimental)
+- Added withdraw method to Exmo (experimental)
+- Added more robust private API error handling for CEX.io
+- Added withdraw method to Mercado Bitcoin (experimental)
+- Fixed Liqui cancelOrder missing await in Python asyncio-version, [#241](https://github.com/kroitor/ccxt/issues/241)
+- Fixed Cryptopia fetchTicker misplaced volumes, [#239](https://github.com/kroitor/ccxt/issues/239)
+- Added HitBTC v1 fetchOrder (experimental)
+- Added more exceptions to coincheck for non-BTC/JPY-markets, [#236](https://github.com/kroitor/ccxt/issues/236)
+- Fixed Liqui balance totals, [#235](https://github.com/kroitor/ccxt/issues/235)
+- Fixed fetchTicker transpilation bug, [#234](https://github.com/kroitor/ccxt/issues/234)
+- Added fetchMyTrades to Kraken
+- Added fetchFreeBalance, fetchUsedBalance, fetchTotalBalance
+- Added `hasFetchTicker`, `hasFetchOrderBook`, `hasFetchTrades` properties
+- Fixed BTCTradeUA fetchTicker for empty bidasks
+- Fixed Kraken fetchTicker baseVolume
+- Fixed BCH support / updated markets for Bit2C
+- Renamed fetchBestPrices to fetchMarketPrice for Virwox
+- Fixed Virwox fetchTicker for empty bidasks
+- Added fetchOrder, fetchOrders, fetchOpenOrders, fetchMyTrades to Binance
+
+## Version 1.8.x 2017-09-24
+
+- Added support for a new exchange: [Tidex](https://tidex.com) (United Kingdom)
+- Added missing new markets to Bitcoin.co.id, [#228](https://github.com/kroitor/ccxt/issues/228), , [#229](https://github.com/kroitor/ccxt/pull/229)
+- Restored Bistamp v2 fetchOrderStatus, [#226](https://github.com/kroitor/ccxt/issues/226)
+- Added `hasCORS` property to base exchange class, [#225](https://github.com/kroitor/ccxt/issues/225)
+- Minor fix to GDAX OHLCV, [#221](https://github.com/kroitor/ccxt/issues/221)
+- Fixed the `since` param in GDAX fetchOHLCV, [#221](https://github.com/kroitor/ccxt/issues/221)
+- Added support for a new exchange: [WEX](https://wex.nz) (New Zealand)
+- Dropped the legacy ECMAScript 5 support for the greater maintainability and performance gains
+- Added missing spot pairs BCC/BTC LTC/BTC ETH/BTC ETC/BTC to OKEX, improved futures support, [#216](https://github.com/kroitor/ccxt/issues/216)
+- Added support for a new exchange: [Bithumb](https://www.bithumb.com) (South Korea, private API in progress)
+- Removed excessive body.encode() from Python 3.5+ asyncio version, [#214](https://github.com/kroitor/ccxt/pull/214)
+- Fixed Bter orderbook in Python3 for empty bidasks in their response, [#213](https://github.com/kroitor/ccxt/issues/213)
+- Added initial test_async.py for testing against Python 3.5+ asyncio
+- Cleaned up for the upcoming refactoring, multiple bugfixes (mostly to Python3.5+ asyncio version)
+- Fixed bitFlyer futures, [#212](https://github.com/kroitor/ccxt/pull/212)
+- Fixed HitBTC v2 cancelOrder, [#211](https://github.com/kroitor/ccxt/issues/211)
+- Added experimental support for a new exchange: [Independent Reserve](https://www.independentreserve.com/) (Australia, New Zealand)
+- Added experimental support for a new exchange: [Nova Exchange](https://novaexchange.com) (Tanzania)
+- Fixed itBit createOrder/cancelOrder for walletId
+- Fixed Jubi cancelOrder
+- Switched HitBTC v2 fetchBalance to trading account by default, [#210](https://github.com/kroitor/ccxt/pull/210)
+- Added an internal rate-limiting REST poller to JS (experimental)
+- Fixed Cryptopia fetchTicker volume, [#206](https://github.com/kroitor/ccxt/issues/206)
+- Fixed Bittrex await cancelOrder, [#205](https://github.com/kroitor/ccxt/issues/205)
+- Fixed empty CEX DASH/USD fetchTicker
 - Added Bittrex v2 fetchOHLCV (alpha-stage of their new API)
 
 ## Version 1.7.x 2017-09-15

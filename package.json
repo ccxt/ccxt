@@ -1,23 +1,26 @@
 {
   "name": "ccxt",
-  "version": "1.7.7",
-  "description": "A library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs",
-  "main": "build/ccxt.es5.js",
+  "version": "1.9.6",
+  "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 85+ exchanges",
+  "main": "./ccxt.js",
   "unpkg": "build/ccxt.browser.js",
+  "engines": {
+    "node": ">=7.6.0"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/kroitor/ccxt.git"
+    "url": "https://github.com/ccxt-dev/ccxt.git"
   },
   "scripts": {
-    "build": "npm run export-exchanges && npm run vss && npm run mdrst && npm run transpile && npm run update-badges && npm run babel && npm run browserify",
+    "build": "npm run export-exchanges && npm run vss && npm run mdrst && npm run transpile && npm run update-badges && npm run browserify",
     "test": "npm run build && node run-tests",
-    "fasttest": "node run-tests --js --es6",
+    "fasttest": "node run-tests --js",
+    "test-base": "mocha --reporter spec test/test_base.js",
     "export-exchanges": "node export-exchanges",
     "update-badges": "node update-badges",
     "mdrst": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=README.rst README.md",
     "transpile": "node transpile",
     "vss": "node vss",
-    "babel": "babel ccxt.js --compact=false --source-maps inline --out-file build/ccxt.es5.js",
     "browserify": "browserify --debug ./ccxt.browser.js > ./build/ccxt.browser.js"
   },
   "dependencies": {
@@ -29,15 +32,13 @@
     "ansicolor": "^1.1.68",
     "as-table": "^1.0.22",
     "asciichart": "^1.5.1",
-    "babel-cli": "^6.24.1",
-    "babel-plugin-async-to-promises": "^1.0.5",
-    "babel-plugin-transform-es2017-object-entries": "0.0.4",
-    "babel-preset-es2015": "^6.24.1",
     "browserify": "^14.4.0",
+    "chai": "^4.1.2",
     "coveralls": "^2.13.1",
     "istanbul": "^0.4.5",
+    "mocha": "^3.5.3",
     "nyc": "^11.0.3",
-    "ololog": "^1.0.16"
+    "ololog": "^1.0.33"
   },
   "author": {
     "name": "Igor Kroitor",
@@ -46,10 +47,10 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/kroitor/ccxt/issues"
+    "url": "https://github.com/ccxt-dev/ccxt/issues"
   },
   "runkitExampleFilename": "example.js",
-  "homepage": "https://kroitor.github.io/ccxt/",
+  "homepage": "https://ccxt.trade",
   "keywords": [
     "algorithmic",
     "algotrading",
@@ -135,6 +136,8 @@
     "Bitfinex",
     "bitFLyer",
     "bitflyer.jp",
+    "bithumb",
+    "bithumb.com",
     "bitlish",
     "BitMarket",
     "BitMEX",
@@ -198,6 +201,10 @@
     "Gemini",
     "HitBTC",
     "Huobi",
+    "HuobiPRO",
+    "huobi.pro",
+    "Independent Reserve",
+    "independentreserve.com",
     "itBit",
     "jubi.com",
     "Kraken",
@@ -210,6 +217,11 @@
     "mercado",
     "MercadoBitcoin",
     "mercadobitcoin.br",
+    "mixcoins",
+    "mixcoins.com",
+    "nova",
+    "novaexchange",
+    "novaexchange.com",
     "OKCoin",
     "OKCoin.com",
     "OKCoin.cn",
@@ -222,6 +234,8 @@
     "Southxchange",
     "SurBitcoin",
     "surbitcoin.com",
+    "Tidex",
+    "tidex.com",
     "TheRockTrading",
     "UrduBit",
     "urdubit.com",
@@ -230,6 +244,8 @@
     "vbtc.exchange",
     "vbtc.vn",
     "VirWoX",
+    "WEX",
+    "wex.nz",
     "xBTCe",
     "xbtce.com",
     "YoBit",

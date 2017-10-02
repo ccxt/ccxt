@@ -1,5 +1,4 @@
 build/ccxt.php linguist-generated=true
-build/ccxt.es5.js linguist-generated=true
 ccxt/exchanges.py linguis-generated=true
 ccxt/async/exchanges.py linguist-generated=true
 ccxt/async/__init__.py linguist-generated=false
