@@ -1,5 +1,7 @@
 # Сhangelog
 
+- Added experimental limits and precision digits  to Kraken, Liqui, Binance, Poloniex
+- Added missing markets to Binance
 - Added min/max trade limits to Bittrex and Cryptopia (experimental)
 
 ## Version 1.9.x 2017-10-01
