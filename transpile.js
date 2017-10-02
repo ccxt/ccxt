@@ -78,6 +78,7 @@ while (exchanges = regex.exec (contents)) {
         .replace (/': /g, "' => ")
         .replace (/ {/g, ' array (')
         .replace (/ \[/g, ' array (')
+        .replace (/\}\s?\}\s?\}([\,\n]|$)/g, ')))$1')
         .replace (/\}\s?\}([\,\n]|$)/g, '))$1')
         .replace (/\}([\,\n]|$)/g, ')$1')
         .replace (/\]\]/g, '))')
