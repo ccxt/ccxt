@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.6';
+$version = '1.9.7';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -2349,6 +2349,20 @@ class binance extends Exchange {
                         'SNGLS' => 1.0,
                         'BQX' => 1.0,
                     ),
+                ),
+            ),
+            'limits' => array (
+                'amount' => array (
+                    'min' => 0.000001,
+                    'max' => 10000000,
+                ),
+                'price' => array (
+                    'min' => 0.000001,
+                    'max' => 10000000,
+                ),
+                'cost' => array (
+                    'min' => 0.000001,
+                    'max' => 10000000,
                 ),
             ),
             'markets' => array (
@@ -14880,6 +14894,18 @@ class kraken extends Exchange {
                 'amount' => $market['lot_decimals'],
                 'price' => $market['pair_decimals'],
             );
+            $amountLimits = array (
+                'min' => pow (10, -$precision['amount']),
+                'max' => pow (10, $precision['amount']),
+            );
+            $priceLimits = array (
+                'min' => pow (10, -$precision['price']),
+                'max' => null,
+            );
+            $limits = array (
+                'amount' => $amountLimits,
+                'price' => $priceLimits,
+            );
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -14891,6 +14917,7 @@ class kraken extends Exchange {
                 'maker' => $maker,
                 'taker' => floatval ($market['fees'][0][1]) / 100,
                 'precision' => $precision,
+                'limits' => $limits,
             );
         }
         $this->marketsByAltname = $this->index_by ($result, 'altname');
