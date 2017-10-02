@@ -666,7 +666,10 @@ const Exchange = function (config) {
     }
 
     this.setMarkets = function (markets) {
-        let values = Object.values (markets)
+        let values = Object.values (markets).map (market => extend ({
+            'limits': this.limits,
+            'precision': this.precision,
+        }, market))
         this.markets = indexBy (values, 'symbol')
         this.marketsById = indexBy (markets, 'id')
         this.markets_by_id = this.marketsById
@@ -2113,6 +2116,20 @@ var binance = {
                 'SNGLS': 1.0,
                 'BQX': 1.0,
             },
+        },
+    },
+    'limits': {
+        'amount': {
+            'min': 0.000001,
+            'max': 10000000,
+        },
+        'price': {
+            'min': 0.000001,
+            'max': 10000000,
+        },
+        'cost': {
+            'min': 0.000001,
+            'max': 10000000,
         },
     },
     'markets': {
