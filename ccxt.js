@@ -15309,19 +15309,19 @@ var liqui = {
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': market['decimal_places'],
-                'price': market['decimal_places'],
+                'amount': this.safeInteger (market, 'decimal_places'),
+                'price': this.safeInteger (market, 'decimal_places'),
             };
             let amountLimits = {
-                'min': market['min_amount'],
-                'max': market['max_amount'],
+                'min': this.safeFloat (market, 'min_amount'),
+                'max': this.safeFloat (market, 'max_amount'),
             };
             let priceLimits = {
-                'min': market['min_price'],
-                'max': market['max_price'],
+                'min': this.safeFloat (market, 'min_price'),
+                'max': this.safeFloat (market, 'max_price'),
             };
             let costLimits = {
-                'min': market['min_total'],
+                'min': this.safeFloat (market, 'min_total'),
             };
             let limits = {
                 'amount': amountLimits,
@@ -15514,9 +15514,11 @@ var liqui = {
         }
         let timestamp = order['timestamp_created'] * 1000;
         let market = this.markets_by_id[order['pair']];
-        let amount = order['start_amount'];
+        let amount = this.safeFloat (order, 'start_amount');
         let remaining = order['amount'];
-        let filled = amount - remaining;
+        let filled = undefined;
+        if (amount)
+            filled = amount - remaining;
         let fee = undefined;
         let result = {
             'info': order,

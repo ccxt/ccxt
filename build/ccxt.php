@@ -15772,10 +15772,21 @@ class liqui extends Exchange {
         ), $options));
     }
 
-    public function calculate_fee_rate ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $key = ($side == 'sell') ? 'quote' : 'base';
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
-        return array ( 'currency' => $market[$key], 'rate' => $market[$takerOrMaker] );
+        $key = 'quote';
+        $rate = $market[$takerOrMaker];
+        $cost = $amount * $rate;
+        if ($side == 'sell') {
+            $cost *= $price;
+        } else {
+            $key = 'base';
+        }
+        return array (
+            'currency' => $market[$key],
+            'rate' => $rate,
+            'cost' => $cost,
+        );
     }
 
     public function fetch_markets () {
@@ -15794,12 +15805,34 @@ class liqui extends Exchange {
             $base = $this->commonCurrencyCode ($base);
             $quote = $this->commonCurrencyCode ($quote);
             $symbol = $base . '/' . $quote;
+            $precision = array (
+                'amount' => $this->safe_integer ($market, 'decimal_places'),
+                'price' => $this->safe_integer ($market, 'decimal_places'),
+            );
+            $amountLimits = array (
+                'min' => $this->safe_float ($market, 'min_amount'),
+                'max' => $this->safe_float ($market, 'max_amount'),
+            );
+            $priceLimits = array (
+                'min' => $this->safe_float ($market, 'min_price'),
+                'max' => $this->safe_float ($market, 'max_price'),
+            );
+            $costLimits = array (
+                'min' => $this->safe_float ($market, 'min_total'),
+            );
+            $limits = array (
+                'amount' => $amountLimits,
+                'price' => $priceLimits,
+                'cost' => $costLimits,
+            );
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'taker' => $market['fee'],
+                'taker' => $market['fee'] / 100,
+                'precision' => $precision,
+                'limits' => $limits,
                 'info' => $market,
             ));
         }
@@ -15957,7 +15990,7 @@ class liqui extends Exchange {
         $response = $this->privatePostTrade (array_merge ($order, $params));
         return array (
             'info' => $response,
-            'id' => $response['return']['order_id'],
+            'id' => (string) $response['return']['order_id'],
         );
     }
 
@@ -15978,9 +16011,11 @@ class liqui extends Exchange {
         }
         $timestamp = $order['timestamp_created'] * 1000;
         $market = $this->markets_by_id[$order['pair']];
-        $amount = $order['start_amount'];
+        $amount = $this->safe_float ($order, 'start_amount');
         $remaining = $order['amount'];
-        $filled = $amount - $remaining;
+        $filled = null;
+        if ($amount)
+            $filled = $amount - $remaining;
         $fee = null;
         $result = array (
             'info' => $order,
@@ -16015,7 +16050,7 @@ class liqui extends Exchange {
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         $response = $this->privatePostOrderInfo (array_merge (array (
-            'order_id' => $id,
+            'order_id' => intval ($id),
         ), $params));
         $order = $response['return'][$id];
         return $this->parse_order (array_merge (array ( 'id' => $id ), $order));

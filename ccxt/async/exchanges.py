@@ -13711,10 +13711,20 @@ class liqui (Exchange):
         params.update(config)
         super(liqui, self).__init__(params)
 
-    def calculate_fee_rate(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        key = 'quote' if (side == 'sell') else 'base'
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
-        return {'currency': market[key], 'rate': market[takerOrMaker]}
+        key = 'quote'
+        rate = market[takerOrMaker]
+        cost = amount * rate
+        if side == 'sell':
+            cost *= price
+        else:
+            key = 'base'
+        return {
+            'currency': market[key],
+            'rate': rate,
+            'cost': cost,
+        }
 
     async def fetch_markets(self):
         response = await self.publicGetInfo()
@@ -13732,12 +13742,34 @@ class liqui (Exchange):
             base = self.commonCurrencyCode(base)
             quote = self.commonCurrencyCode(quote)
             symbol = base + '/' + quote
+            precision = {
+                'amount': self.safe_integer(market, 'decimal_places'),
+                'price': self.safe_integer(market, 'decimal_places'),
+            }
+            amountLimits = {
+                'min': self.safe_float(market, 'min_amount'),
+                'max': self.safe_float(market, 'max_amount'),
+            }
+            priceLimits = {
+                'min': self.safe_float(market, 'min_price'),
+                'max': self.safe_float(market, 'max_price'),
+            }
+            costLimits = {
+                'min': self.safe_float(market, 'min_total'),
+            }
+            limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+                'cost': costLimits,
+            }
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'taker': market['fee'],
+                'taker': market['fee'] / 100,
+                'precision': precision,
+                'limits': limits,
                 'info': market,
             }))
         return result
@@ -13882,7 +13914,7 @@ class liqui (Exchange):
         response = await self.privatePostTrade(self.extend(order, params))
         return {
             'info': response,
-            'id': response['return']['order_id'],
+            'id': str(response['return']['order_id']),
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -13900,9 +13932,11 @@ class liqui (Exchange):
             status = 'closed'
         timestamp = order['timestamp_created'] * 1000
         market = self.markets_by_id[order['pair']]
-        amount = order['start_amount']
+        amount = self.safe_float(order, 'start_amount')
         remaining = order['amount']
-        filled = amount - remaining
+        filled = None
+        if amount:
+            filled = amount - remaining
         fee = None
         result = {
             'info': order,
@@ -13934,7 +13968,7 @@ class liqui (Exchange):
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
         response = await self.privatePostOrderInfo(self.extend({
-            'order_id': id,
+            'order_id': int(id),
         }, params))
         order = response['return'][id]
         return self.parse_order(self.extend({'id': id}, order))
