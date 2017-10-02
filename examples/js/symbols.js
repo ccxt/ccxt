@@ -32,7 +32,7 @@ let printSymbols = async (id) => {
         // output a list of all market symbols
         log (id.green, 'has', exchange.symbols.length, 'symbols:', exchange.symbols.join (', ').yellow)
 
-        Object.values (markets).forEach (market => log (market))
+        // Object.values (markets).forEach (market => log (market))
 
         // make a table of all markets
         let table = asTable.configure ({ delimiter: ' | ' }) (Object.values (markets))
