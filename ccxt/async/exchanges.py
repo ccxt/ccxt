@@ -4704,6 +4704,15 @@ class bittrex (Exchange):
                 'amount': 8,
                 'price': 8,
             }
+            amountLimits = {
+                'min': market['MinTradeSize'],
+                'max': None,
+            }
+            priceLimits = {'min': None, 'max': None}
+            limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+            }
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -4711,6 +4720,7 @@ class bittrex (Exchange):
                 'quote': quote,
                 'info': market,
                 'precision': precision,
+                'limits': limits,
             }))
         return result
 
@@ -4856,13 +4866,14 @@ class bittrex (Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
+        market = self.market(symbol)
         method = 'marketGet' + self.capitalize(side) + type
         order = {
-            'market': self.market_id(symbol),
-            'quantity': amount,
+            'market': market['id'],
+            'quantity': ('{:.' + str(market['precision']['amount']) + 'f}').format(amount),
         }
         if type == 'limit':
-            order['rate'] = price
+            order['rate'] = ('{:.' + str(market['precision']['price']) + 'f}').format(price)
         response = await getattr(self, method)(self.extend(order, params))
         result = {
             'info': response,

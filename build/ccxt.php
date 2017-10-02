@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.1';
+$version = '1.9.2';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -6176,6 +6176,15 @@ class bittrex extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             );
+            $amountLimits = array (
+                'min' => $market['MinTradeSize'],
+                'max' => null,
+            );
+            $priceLimits = array ( 'min' => null, 'max' => null );
+            $limits = array (
+                'amount' => $amountLimits,
+                'price' => $priceLimits,
+            );
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -6183,6 +6192,7 @@ class bittrex extends Exchange {
                 'quote' => $quote,
                 'info' => $market,
                 'precision' => $precision,
+                'limits' => $limits,
             ));
         }
         return $result;
@@ -6346,13 +6356,14 @@ class bittrex extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets ();
+        $market = $this->market ($symbol);
         $method = 'marketGet' . $this->capitalize ($side) . $type;
         $order = array (
-            'market' => $this->market_id ($symbol),
-            'quantity' => $amount,
+            'market' => $market['id'],
+            'quantity' => sprintf ('%' . $market['precision']['amount'] . 'f', $amount),
         );
         if ($type == 'limit')
-            $order['rate'] = $price;
+            $order['rate'] = sprintf ('%' . $market['precision']['price'] . 'f', $price);
         $response = $this->$method (array_merge ($order, $params));
         $result = array (
             'info' => $response,
