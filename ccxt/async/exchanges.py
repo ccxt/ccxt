@@ -15537,7 +15537,7 @@ class poloniex (Exchange):
             'id': 'poloniex',
             'name': 'Poloniex',
             'countries': 'US',
-            'rateLimit': 500,  # up to 6 calls per second
+            'rateLimit': 1000,  # up to 6 calls per second
             'hasCORS': True,
             'hasFetchMyTrades': True,
             'hasFetchOrder': True,

@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.14';
+$version = '1.9.15';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -17718,7 +17718,7 @@ class poloniex extends Exchange {
             'id' => 'poloniex',
             'name' => 'Poloniex',
             'countries' => 'US',
-            'rateLimit' => 500, // up to 6 calls per second
+            'rateLimit' => 1000, // up to 6 calls per second
             'hasCORS' => true,
             'hasFetchMyTrades' => true,
             'hasFetchOrder' => true,
