@@ -15275,10 +15275,21 @@ var liqui = {
         'funding': 0.0,
     },
 
-    calculateFeeRate (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        let key = (side == 'sell') ? 'quote' : 'base';
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
-        return { 'currency': market[key], 'rate': market[takerOrMaker] };
+        let key = 'quote';
+        let rate = market[takerOrMaker];
+        let cost = amount * rate;
+        if (side == 'sell') {
+            cost *= price;
+        } else {
+            key = 'base';
+        }
+        return {
+            'currency': market[key],
+            'rate': rate,
+            'cost': cost,
+        };
     },
 
     async fetchMarkets () {
@@ -15297,12 +15308,34 @@ var liqui = {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
+            let precision = {
+                'amount': market['decimal_places'],
+                'price': market['decimal_places'],
+            };
+            let amountLimits = {
+                'min': market['min_amount'],
+                'max': market['max_amount'],
+            };
+            let priceLimits = {
+                'min': market['min_price'],
+                'max': market['max_price'],
+            };
+            let costLimits = {
+                'min': market['min_total'],
+            };
+            let limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+                'cost': costLimits,
+            };
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'taker': market['fee'],
+                'taker': market['fee'] / 100,
+                'precision': precision,
+                'limits': limits,
                 'info': market,
             }));
         }
@@ -15460,7 +15493,7 @@ var liqui = {
         let response = await this.privatePostTrade (this.extend (order, params));
         return {
             'info': response,
-            'id': response['return']['order_id'],
+            'id': response['return']['order_id'].toString (),
         };
     },
 
@@ -15518,7 +15551,7 @@ var liqui = {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOrderInfo (this.extend ({
-            'order_id': id,
+            'order_id': parseInt (id),
         }, params));
         let order = response['return'][id];
         return this.parseOrder (this.extend ({ 'id': id }, order));
