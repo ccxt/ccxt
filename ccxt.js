@@ -14421,6 +14421,18 @@ var kraken = {
                 'amount': market['lot_decimals'],
                 'price': market['pair_decimals'],
             };
+            let amountLimits = {
+                'min': Math.pow (10, -precision['amount']),
+                'max': Math.pow (10, precision['amount']),
+            };
+            let priceLimits = {
+                'min': Math.pow (10, -precision['price']),
+                'max': undefined,
+            };
+            let limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -14432,6 +14444,7 @@ var kraken = {
                 'maker': maker,
                 'taker': parseFloat (market['fees'][0][1]) / 100,
                 'precision': precision,
+                'limits': limits,
             });
         }
         this.marketsByAltname = this.indexBy (result, 'altname');
