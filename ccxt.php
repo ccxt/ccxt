@@ -249,6 +249,11 @@ class Exchange {
         return (array_key_exists ($key, $object) && $object[$key]) ? $object[$key] : $default_value;
     }
 
+    public static function truncate ($number, $precision = 0) {
+        $decimal_precision = pow (10, $precision);
+        return floatval ($number * $decimal_precision) / $decimal_precision;
+    }
+
     public static function capitalize ($string) {
         return mb_strtoupper (mb_substr ($string, 0, 1)) . mb_substr ($string, 1);
     }

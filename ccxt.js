@@ -249,6 +249,11 @@ const safeValue = (object, key, defaultValue = undefined) => {
     return ((key in object) && object[key]) ? object[key] : defaultValue
 }
 
+const truncate = (num, precision = 0) => {
+    const decimalPrecision = Math.pow (10, precision)
+    return Math.trunc (num * decimalPrecision) / decimalPrecision
+}
+
 const ordered = x => x // a stub to keep assoc keys in order, in JS it does nothing, it's mostly for Python
 
 const aggregate = function (bidasks) {
@@ -14297,7 +14302,7 @@ var kraken = {
     'name': 'Kraken',
     'countries': 'US',
     'version': '0',
-    'rateLimit': 1500,
+    'rateLimit': 2000,
     'hasCORS': false,
     'hasFetchTickers': true,
     'hasFetchOHLCV': true,
@@ -14397,8 +14402,8 @@ var kraken = {
                 'darkpool': darkpool,
                 'info': market,
                 'altname': market['altname'],
-                'maker': maker,
-                'taker': market['fees'][0][1],
+                'maker': maker / 100,
+                'taker': market['fees'][0][1] / 100,
                 'precision': precision,
             });
         }
@@ -14586,14 +14591,15 @@ var kraken = {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let order = {
             'pair': this.marketId (symbol),
             'type': side,
             'ordertype': type,
-            'volume': amount,
+            'volume': amount.toFixed (market['precision']['amount']),
         };
         if (type == 'limit')
-            order['price'] = price;
+            order['price'] = price.toFixed (market['precision']['price']);
         let response = await this.privatePostAddOrder (this.extend (order, params));
         let length = response['result']['txid'].length;
         let id = (length > 1) ? response['result']['txid'] : response['result']['txid'][0];
@@ -14704,22 +14710,27 @@ var kraken = {
         throw new ExchangeError (this.id + " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
     },
 
+    filterOrdersBySymbol (orders, symbol = undefined) {
+        let grouped = this.groupBy (orders, 'symbol');
+        let result = orders;
+        if (symbol)
+            if (symbol in grouped)
+                result = grouped[symbol];
+        return result;
+    },
+
     async fetchOpenOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol)
-            market = this.marketId (symbol);
         let response = await this.privatePostOpenOrders (params);
-        return this.parseOrders (response['result']['open'], market);
+        let orders = this.parseOrders (response['result']['open']);
+        return this.filterOrdersBySymbol (orders, symbol);
     },
 
     async fetchClosedOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol)
-            market = this.marketId (symbol);
         let response = await this.privatePostClosedOrders (params);
-        return this.parseOrders (response['result']['closed'], market);
+        let orders = this.parseOrders (response['result']['closed']);
+        return this.filterOrdersBySymbol (orders, symbol);
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

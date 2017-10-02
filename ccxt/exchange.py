@@ -56,6 +56,7 @@ import hashlib
 import hmac
 import io
 import json
+import math
 import re
 import socket
 import ssl
@@ -347,6 +348,11 @@ class Exchange(object):
     @staticmethod
     def safe_value(dictionary, key, default_value=None):
         return dictionary[key] if (key in dictionary) and dictionary[key] else default_value
+
+    @staticmethod
+    def truncate(num, precision=0):
+        decimal_precision = math.pow(10, precision)
+        return math.trunc(num * decimal_precision) / decimal_precision
 
     @staticmethod
     def capitalize(string):  # first character only, rest characters unchanged
