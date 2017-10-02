@@ -565,6 +565,7 @@ const Exchange = function (config) {
         if (typeof this.proxy == 'function') {
 
             url = this.proxy (url)
+            headers = extend ({ 'Origin': '*' }, headers)
 
         } else if (typeof this.proxy == 'string') {
 
