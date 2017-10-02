@@ -17285,10 +17285,21 @@ var poloniex = {
         'price': 8,
     },
 
-    calculateFeeRate (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        let key = (side == 'sell') ? 'quote' : 'base';
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
-        return { 'currency': market[key], 'rate': market[takerOrMaker] };
+        let key = 'quote';
+        let rate = market[takerOrMaker];
+        let cost = amount * rate;
+        if (side == 'sell') {
+            cost *= price;
+        } else {
+            key = 'base';
+        }
+        return {
+            'currency': market[key],
+            'rate': rate,
+            'cost': cost,
+        };
     },
 
     async fetchMarkets () {
