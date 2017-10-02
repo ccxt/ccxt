@@ -99,13 +99,15 @@ class Exchange(object):
     verbose = False
     markets = None
     symbols = None
+    precision = None
+    limits = None
+    fees = {}
     ids = None
     currencies = None
     tickers = None
     api = None
     balance = {}
     orderbooks = {}
-    fees = {}
     orders = {}
     trades = {}
     proxy = ''
