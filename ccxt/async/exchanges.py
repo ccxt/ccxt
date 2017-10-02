@@ -15626,10 +15626,20 @@ class poloniex (Exchange):
         params.update(config)
         super(poloniex, self).__init__(params)
 
-    def calculate_fee_rate(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        key = 'quote' if (side == 'sell') else 'base'
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
-        return {'currency': market[key], 'rate': market[takerOrMaker]}
+        key = 'quote'
+        rate = market[takerOrMaker]
+        cost = amount * rate
+        if side == 'sell':
+            cost *= price
+        else:
+            key = 'base'
+        return {
+            'currency': market[key],
+            'rate': rate,
+            'cost': cost,
+        }
 
     async def fetch_markets(self):
         markets = await self.publicGetReturnTicker()
