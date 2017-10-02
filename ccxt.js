@@ -669,7 +669,7 @@ const Exchange = function (config) {
         let values = Object.values (markets).map (market => extend ({
             'limits': this.limits,
             'precision': this.precision,
-        }, market))
+        }, this.fees['trading'], market))
         this.markets = indexBy (values, 'symbol')
         this.marketsById = indexBy (markets, 'id')
         this.markets_by_id = this.marketsById
