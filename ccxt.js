@@ -17238,6 +17238,20 @@ var poloniex = {
         },
         'funding': 0.0,
     },
+    'limits': {
+        'amount': {
+            'min': 0.00000001,
+            'max': 1000000000,
+        },
+        'price': {
+            'min': 0.00000001,
+            'max': 1000000000,
+        },
+    },
+    'precision': {
+        'amount': 8,
+        'price': 8,
+    },
 
     calculateFeeRate (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let key = (side == 'sell') ? 'quote' : 'base';
