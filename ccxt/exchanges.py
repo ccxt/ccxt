@@ -1496,7 +1496,11 @@ class binance (Exchange):
         return self.parse_orders(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        if not symbol:
+            raise ExchangeError(self.id + ' fetchOrders requires a symbol param')
+        market = self.market(symbol)
         return self.privateDeleteOrder(self.extend({
+            'symbol': market['id'],
             'orderId': int(id),
             # 'origClientOrderId': id,
         }, params))
