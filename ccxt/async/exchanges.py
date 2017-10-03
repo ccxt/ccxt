@@ -548,6 +548,7 @@ class acx (Exchange):
             'hasCORS': True,
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
+            'hasWithdraw': True,
             'timeframes': {
                 '1m': '1',
                 '5m': '5',
@@ -1999,7 +2000,9 @@ class bitfinex (Exchange):
             'version': 'v1',
             'rateLimit': 1500,
             'hasCORS': False,
+            'hasFetchOrder': True,
             'hasFetchTickers': False,
+            'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
                 'api': 'https://api.bitfinex.com',
@@ -2622,6 +2625,7 @@ class bitflyer (Exchange):
             'version': 'v1',
             'rateLimit': 500,
             'hasCORS': False,
+            'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
                 'api': 'https://api.bitflyer.jp',
@@ -3083,6 +3087,7 @@ class bitlish (Exchange):
             'hasCORS': False,
             'hasFetchTickers': True,
             'hasFetchOHLCV': True,
+            'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
                 'api': 'https://bitlish.com/api',
@@ -3617,6 +3622,7 @@ class bitmex (Exchange):
             'rateLimit': 1500,
             'hasCORS': False,
             'hasFetchOHLCV': True,
+            'hasWithdraw': True,
             'timeframes': {
                 '1m': '1m',
                 '5m': '5m',
@@ -4642,6 +4648,7 @@ class bittrex (Exchange):
             'hasFetchOrders': True,
             'hasFetchOpenOrders': True,
             'hasFetchMyTrades': False,
+            'hasWithdraw': True,
             'timeframes': {
                 '1m': 'oneMin',
                 '5m': 'fiveMin',
@@ -7461,6 +7468,7 @@ class chbtc (Exchange):
             'rateLimit': 1000,
             'version': 'v1',
             'hasCORS': False,
+            'hasFetchOrder': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg',
                 'api': {
@@ -8991,6 +8999,7 @@ class cryptopia (Exchange):
             'hasFetchClosedOrders': True,
             'hasFetchMyTrades': True,
             'hasCORS': False,
+            'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
                 'api': 'https://www.cryptopia.co.nz/api',
@@ -9573,6 +9582,7 @@ class exmo (Exchange):
             'version': 'v1',
             'hasCORS': False,
             'hasFetchTickers': True,
+            'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
                 'api': 'https://api.exmo.com',
@@ -10583,6 +10593,7 @@ class gdax (Exchange):
             'rateLimit': 1000,
             'hasCORS': True,
             'hasFetchOHLCV': True,
+            'hasWithdraw': True,
             'timeframes': {
                 '1m': 60,
                 '5m': 300,
@@ -11068,6 +11079,8 @@ class hitbtc (Exchange):
             'version': '1',
             'hasCORS': False,
             'hasFetchTickers': True,
+            'hasFetchOrder': True,
+            'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api': 'http://api.hitbtc.com',
@@ -11374,6 +11387,7 @@ class hitbtc2 (hitbtc):
             'version': '2',
             'hasCORS': True,
             'hasFetchTickers': True,
+            'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api': 'https://api.hitbtc.com',
@@ -12828,6 +12842,7 @@ class kraken (Exchange):
             'hasFetchOrder': True,
             'hasFetchOpenOrders': True,
             'hasFetchClosedOrders': True,
+            'hasWithdraw': True,
             'marketsByAltname': {},
             'timeframes': {
                 '1m': '1',
@@ -13714,6 +13729,7 @@ class liqui (Exchange):
             'hasFetchOpenOrders': True,
             'hasFetchTickers': True,
             'hasFetchMyTrades': True,
+            'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
                 'api': {
@@ -14336,6 +14352,7 @@ class mercado (Exchange):
             'rateLimit': 1000,
             'version': 'v3',
             'hasCORS': True,
+            'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
                 'api': {
@@ -14895,6 +14912,8 @@ class okcoin (Exchange):
             'version': 'v1',
             'rateLimit': 1000,  # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'hasFetchOHLCV': True,
+            'hasFetchOrder': True,
+            'hasFetchOrders': True,
             'timeframes': {
                 '1m': '1min',
                 '3m': '3min',
@@ -15533,6 +15552,7 @@ class poloniex (Exchange):
             'hasFetchOrder': True,
             'hasFetchOpenOrders': True,
             'hasFetchTickers': True,
+            'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
                 'api': {
@@ -17717,6 +17737,7 @@ class yobit (Exchange):
             'rateLimit': 2000,  # responses are cached every 2 seconds
             'version': '3',
             'hasCORS': False,
+            'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
                 'api': 'https://yobit.net',
@@ -18001,6 +18022,9 @@ class zaif (Exchange):
             'rateLimit': 2000,
             'version': '1',
             'hasCORS': False,
+            'hasFetchOpenOrders': True,
+            'hasFetchClosedOrders': True,
+            'hasWithdraw': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
                 'api': 'https://api.zaif.jp',

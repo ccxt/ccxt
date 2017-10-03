@@ -1761,6 +1761,7 @@ class acx extends Exchange {
             'hasCORS' => true,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
+            'hasWithdraw' => true,
             'timeframes' => array (
                 '1m' => '1',
                 '5m' => '5',
@@ -3309,7 +3310,9 @@ class bitfinex extends Exchange {
             'version' => 'v1',
             'rateLimit' => 1500,
             'hasCORS' => false,
+            'hasFetchOrder' => true,
             'hasFetchTickers' => false,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
                 'api' => 'https://api.bitfinex.com',
@@ -3975,6 +3978,7 @@ class bitflyer extends Exchange {
             'version' => 'v1',
             'rateLimit' => 500,
             'hasCORS' => false,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
                 'api' => 'https://api.bitflyer.jp',
@@ -4468,6 +4472,7 @@ class bitlish extends Exchange {
             'hasCORS' => false,
             'hasFetchTickers' => true,
             'hasFetchOHLCV' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
                 'api' => 'https://bitlish.com/api',
@@ -5041,6 +5046,7 @@ class bitmex extends Exchange {
             'rateLimit' => 1500,
             'hasCORS' => false,
             'hasFetchOHLCV' => true,
+            'hasWithdraw' => true,
             'timeframes' => array (
                 '1m' => '1m',
                 '5m' => '5m',
@@ -6129,6 +6135,7 @@ class bittrex extends Exchange {
             'hasFetchOrders' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchMyTrades' => false,
+            'hasWithdraw' => true,
             'timeframes' => array (
                 '1m' => 'oneMin',
                 '5m' => 'fiveMin',
@@ -9143,6 +9150,7 @@ class chbtc extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v1',
             'hasCORS' => false,
+            'hasFetchOrder' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg',
                 'api' => array (
@@ -10759,6 +10767,7 @@ class cryptopia extends Exchange {
             'hasFetchClosedOrders' => true,
             'hasFetchMyTrades' => true,
             'hasCORS' => false,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
                 'api' => 'https://www.cryptopia.co.nz/api',
@@ -11383,6 +11392,7 @@ class exmo extends Exchange {
             'version' => 'v1',
             'hasCORS' => false,
             'hasFetchTickers' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
                 'api' => 'https://api.exmo.com',
@@ -12450,6 +12460,7 @@ class gdax extends Exchange {
             'rateLimit' => 1000,
             'hasCORS' => true,
             'hasFetchOHLCV' => true,
+            'hasWithdraw' => true,
             'timeframes' => array (
                 '1m' => 60,
                 '5m' => 300,
@@ -12966,6 +12977,8 @@ class hitbtc extends Exchange {
             'version' => '1',
             'hasCORS' => false,
             'hasFetchTickers' => true,
+            'hasFetchOrder' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api' => 'http://api.hitbtc.com',
@@ -13293,6 +13306,7 @@ class hitbtc2 extends hitbtc {
             'version' => '2',
             'hasCORS' => true,
             'hasFetchTickers' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api' => 'https://api.hitbtc.com',
@@ -14838,6 +14852,7 @@ class kraken extends Exchange {
             'hasFetchOrder' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchClosedOrders' => true,
+            'hasWithdraw' => true,
             'marketsByAltname' => array (),
             'timeframes' => array (
                 '1m' => '1',
@@ -15786,6 +15801,7 @@ class liqui extends Exchange {
             'hasFetchOpenOrders' => true,
             'hasFetchTickers' => true,
             'hasFetchMyTrades' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
                 'api' => array (
@@ -16452,6 +16468,7 @@ class mercado extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v3',
             'hasCORS' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
                 'api' => array (
@@ -17049,6 +17066,8 @@ class okcoin extends Exchange {
             'version' => 'v1',
             'rateLimit' => 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'hasFetchOHLCV' => true,
+            'hasFetchOrder' => true,
+            'hasFetchOrders' => true,
             'timeframes' => array (
                 '1m' => '1min',
                 '3m' => '3min',
@@ -17724,6 +17743,7 @@ class poloniex extends Exchange {
             'hasFetchOrder' => true,
             'hasFetchOpenOrders' => true,
             'hasFetchTickers' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
                 'api' => array (
@@ -20043,6 +20063,7 @@ class yobit extends Exchange {
             'rateLimit' => 2000, // responses are cached every 2 seconds
             'version' => '3',
             'hasCORS' => false,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
                 'api' => 'https://yobit.net',
@@ -20339,6 +20360,9 @@ class zaif extends Exchange {
             'rateLimit' => 2000,
             'version' => '1',
             'hasCORS' => false,
+            'hasFetchOpenOrders' => true,
+            'hasFetchClosedOrders' => true,
+            'hasWithdraw' => true,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
                 'api' => 'https://api.zaif.jp',
