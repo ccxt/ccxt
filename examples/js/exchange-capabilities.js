@@ -26,6 +26,8 @@ const ccxt        = require ('../../ccxt.js')
             'hasFetchOrderBook',
             'hasFetchTrades',
             'hasFetchOHLCV',
+            'hasCreateOrder',
+            'hasCancelOrder',
             'hasFetchOrder',
             'hasFetchOrders',
             'hasFetchOpenOrders',

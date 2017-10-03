@@ -940,6 +940,8 @@ const Exchange = function (config) {
     this.hasFetchMyTrades     = false
     this.hasDeposit           = false
     this.hasWithdraw          = false
+    this.hasCreateOrder       = this.hasPrivateAPI
+    this.hasCancelOrder       = this.hasPrivateAPI
 
     this.balance    = {}
     this.orderbooks = {}
