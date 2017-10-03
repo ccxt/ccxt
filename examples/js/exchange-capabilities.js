@@ -25,15 +25,13 @@ const ccxt        = require ('../../ccxt.js')
             'hasFetchOrders',
             'hasFetchOpenOrders',
             'hasFetchClosedOrders',
-            'hasFetchMyTrades'
-            'hasDeposit'
-            'hasWithdraw'
+            'hasFetchMyTrades',
+            'hasDeposit',
+            'hasWithdraw',
 
         ].forEach (key => {
 
-            console.log (key)
-
-            result[key] = (exchange[key].toString ())[exchange[key] ? 'green' : 'red']
+            result[key.slice (3)] = (exchange[key].toString ())[exchange[key] ? 'green' : 'red']
         })
 
         return result
