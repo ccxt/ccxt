@@ -640,8 +640,8 @@ class Exchange(object):
 
     def set_markets(self, markets):
         values = list(markets.values()) if type(markets) is dict else markets
-        for i in range (0, len(values)):
-            values[i] = self.extend (
+        for i in range(0, len(values)):
+            values[i] = self.extend(
                 self.fees['trading'],
                 {'precision': self.precision, 'limits': self.limits},
                 values[i]
