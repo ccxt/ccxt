@@ -6495,7 +6495,11 @@ class bittrex extends Exchange {
 
     public function fetch_orders ($symbol = null, $params = array ()) {
         $this->load_markets ();
-        $response = $this->accountGetOrderhistory ($params);
+        $request = array ();
+        if ($symbol) {
+            $request['market'] = self.market($symbol)['id']
+        }
+        $response = $this->accountGetOrderhistory (self.extend($request, $params));
         return $this->parse_orders ($response['result']);
     }
 
