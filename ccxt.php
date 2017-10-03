@@ -491,7 +491,9 @@ class Exchange {
         $this->currencies  = null;
         $this->balance     = array ();
         $this->orderbooks  = array ();
-        $this->fees        = array ();
+        $this->fees        = array ('trading' => array (), 'funding' => array ());
+        $this->precision   = array ();
+        $this->limits      = array ();
         $this->orders      = array ();
         $this->trades      = array ();
         $this->verbose     = false;
@@ -809,6 +811,13 @@ class Exchange {
 
     public function set_markets ($markets) {
         $values = array_values ($markets);
+        for ($i = 0; $i < count($values); $i++) {
+            $values[$i] = array_merge (
+                $this->fees['trading'],
+                array ('precision' => $this->precision, 'limits' => $this->limits),
+                $values[$i]
+            );
+        }
         $this->markets = $this->indexBy ($values, 'symbol');
         $this->markets_by_id = $this->indexBy ($values, 'id');
         $this->marketsById = $this->markets_by_id;
