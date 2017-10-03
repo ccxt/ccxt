@@ -4994,7 +4994,8 @@ class bittrex (Exchange):
         await self.load_markets()
         request = {}
         if symbol:
-            request['market'] = self.market(symbol)['id']
+            market = self.market(symbol)
+            request['market'] = market['id']
         response = await self.accountGetOrderhistory(self.extend(request, params))
         return self.parse_orders(response['result'])
 

@@ -73,6 +73,10 @@ try:
         # output a table of all markets
         dump(pink('{:<15} {:<15} {:<15} {:<15}'.format('id', 'symbol', 'base', 'quote')))
         tuples = list(ccxt.Exchange.keysort(markets).items())
+
+        for (k, v) in tuples:
+            print(v)
+
         for (k, v) in tuples:
             dump('{:<15} {:<15} {:<15} {:<15}'.format(v['id'], v['symbol'], v['base'], v['quote']))
 
