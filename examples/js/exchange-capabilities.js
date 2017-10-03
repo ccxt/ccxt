@@ -17,11 +17,17 @@ const ccxt        = require ('../../ccxt.js')
             'hasPublicAPI',
             'hasPrivateAPI',
             'hasCORS',
+            'hasFetchTicker',
+            'hasFetchOrderBook',
+            'hasFetchTrades',
+            'hasFetchOHLCV',
             'hasFetchOrder',
             'hasFetchOrders',
             'hasFetchOpenOrders',
             'hasFetchClosedOrders',
             'hasFetchMyTrades'
+            'hasDeposit'
+            'hasWithdraw'
 
         ].forEach (key => {
 
