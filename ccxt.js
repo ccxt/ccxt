@@ -6210,9 +6210,9 @@ var bittrex = {
         await this.loadMarkets ();
         let request = {};
         if (symbol) {
-            request['market'] = self.market(symbol)['id']
+            request['market'] = this.market(symbol)['id']
         }
-        let response = await this.accountGetOrderhistory (self.extend(request, params));
+        let response = await this.accountGetOrderhistory (this.extend(request, params));
         return this.parseOrders (response['result']);
     },
 
