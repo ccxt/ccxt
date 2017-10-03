@@ -9,6 +9,10 @@ const ccxt        = require ('../../ccxt.js')
 
 (async function test () {
 
+    let total = 0
+    let missing = 0
+    let implemented = 0
+
     log (asTable (ccxt.exchanges.map (id => new ccxt[id]()).map (exchange => {
 
         let result = { 'id': exchange.id };
@@ -18,6 +22,7 @@ const ccxt        = require ('../../ccxt.js')
             'hasPrivateAPI',
             'hasCORS',
             'hasFetchTicker',
+            'hasFetchTickers',
             'hasFetchOrderBook',
             'hasFetchTrades',
             'hasFetchOHLCV',
@@ -31,10 +36,24 @@ const ccxt        = require ('../../ccxt.js')
 
         ].forEach (key => {
 
-            result[key.slice (3)] = (exchange[key].toString ())[exchange[key] ? 'green' : 'red']
+            total += 1
+
+            let capability = exchange[key].toString ()
+
+            if (!exchange[key]) {
+                capability = capability.red.dim
+                missing += 1
+            } else {
+                capability = capability.green
+                implemented += 1
+            }
+
+            result[key.slice (3)] = capability
         })
 
         return result
     })))
+
+    log (implemented.toString ().green, 'implemented and', missing.toString ().red, 'missing methods of', total.toString ().yellow, 'methods it total')
 
 }) ()
