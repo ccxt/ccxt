@@ -17524,9 +17524,6 @@ var poloniex = {
     },
 
     async fetchClosedOrders (symbol = undefined, params = {}) {
-        let market = undefined;
-        if (symbol)
-            market = this.symbol (symbol);
         let openOrders = await this.fetchOpenOrders (symbol, params);
         let openOrdersIndexedById = this.indexBy (openOrders, 'id');
         let cachedOrderIds = Object.keys (this.orders);

@@ -15927,9 +15927,6 @@ class poloniex (Exchange):
         return result
 
     def fetchClosedOrders(self, symbol=None, params={}):
-        market = None
-        if symbol:
-            market = self.symbol(symbol)
         openOrders = self.fetch_open_orders(symbol, params)
         openOrdersIndexedById = self.index_by(openOrders, 'id')
         cachedOrderIds = list(self.orders.keys())

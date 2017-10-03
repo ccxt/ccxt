@@ -18050,9 +18050,6 @@ class poloniex extends Exchange {
     }
 
     public function fetchClosedOrders ($symbol = null, $params = array ()) {
-        $market = null;
-        if ($symbol)
-            $market = $this->symbol ($symbol);
         $openOrders = $this->fetch_open_orders ($symbol, $params);
         $openOrdersIndexedById = $this->index_by ($openOrders, 'id');
         $cachedOrderIds = array_keys ($this->orders);
