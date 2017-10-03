@@ -17518,8 +17518,37 @@ var poloniex = {
             let id = ids[i];
             let orders = response[id];
             let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
             this.parseOpenOrders (orders, market, result);
+        }
+        return result;
+    },
+
+    async fetchClosedOrders (symbol = undefined, params = {}) {
+        let market = undefined;
+        if (symbol)
+            market = this.symbol (symbol);
+        let openOrders = await this.fetchOpenOrders (symbol, params);
+        let openOrdersIndexedById = this.indexBy (openOrders, 'id');
+        let cachedOrderIds = Object.keys (this.orders);
+        let result = [];
+        for (let i = 0; i < cachedOrderIds.length; i++) {
+            let id = cachedOrderIds[i];
+            let order = this.orders[id];
+            if (id in openOrdersIndexedById) {
+                order = this.extend (order, openOrdersIndexedById[id]);
+            } else {
+                if (order['status'] != 'canceled') {
+                    order = this.extend (order, {
+                        'status': 'closed',
+                        'cost': order['amount'] * order['price'],
+                        'filled': order['amount'],
+                        'remaining': 0.0,
+                    });
+                }
+            }
+            this.orders[id] = order;
+            if (order['status'] == 'closed')
+                result.push (order);
         }
         return result;
     },

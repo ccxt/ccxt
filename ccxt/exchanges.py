@@ -15923,8 +15923,33 @@ class poloniex (Exchange):
             id = ids[i]
             orders = response[id]
             market = self.markets_by_id[id]
-            symbol = market['symbol']
             self.parseOpenOrders(orders, market, result)
+        return result
+
+    def fetchClosedOrders(self, symbol=None, params={}):
+        market = None
+        if symbol:
+            market = self.symbol(symbol)
+        openOrders = self.fetch_open_orders(symbol, params)
+        openOrdersIndexedById = self.index_by(openOrders, 'id')
+        cachedOrderIds = list(self.orders.keys())
+        result = []
+        for i in range(0, len(cachedOrderIds)):
+            id = cachedOrderIds[i]
+            order = self.orders[id]
+            if id in openOrdersIndexedById:
+                order = self.extend(order, openOrdersIndexedById[id])
+            else:
+                if order['status'] != 'canceled':
+                    order = self.extend(order, {
+                        'status': 'closed',
+                        'cost': order['amount'] * order['price'],
+                        'filled': order['amount'],
+                        'remaining': 0.0,
+                    })
+            self.orders[id] = order
+            if order['status'] == 'closed':
+                result.append(order)
         return result
 
     def fetch_order_status(self, id, symbol=None):

@@ -18044,8 +18044,37 @@ class poloniex extends Exchange {
             $id = $ids[$i];
             $orders = $response[$id];
             $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
             $this->parseOpenOrders ($orders, $market, $result);
+        }
+        return $result;
+    }
+
+    public function fetchClosedOrders ($symbol = null, $params = array ()) {
+        $market = null;
+        if ($symbol)
+            $market = $this->symbol ($symbol);
+        $openOrders = $this->fetch_open_orders ($symbol, $params);
+        $openOrdersIndexedById = $this->index_by ($openOrders, 'id');
+        $cachedOrderIds = array_keys ($this->orders);
+        $result = array ();
+        for ($i = 0; $i < count ($cachedOrderIds); $i++) {
+            $id = $cachedOrderIds[$i];
+            $order = $this->orders[$id];
+            if (array_key_exists ($id, $openOrdersIndexedById)) {
+                $order = array_merge ($order, $openOrdersIndexedById[$id]);
+            } else {
+                if ($order['status'] != 'canceled') {
+                    $order = array_merge ($order, array (
+                        'status' => 'closed',
+                        'cost' => $order['amount'] * $order['price'],
+                        'filled' => $order['amount'],
+                        'remaining' => 0.0,
+                    ));
+                }
+            }
+            $this->orders[$id] = $order;
+            if ($order['status'] == 'closed')
+                $result[] = $order;
         }
         return $result;
     }
