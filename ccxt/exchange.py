@@ -99,9 +99,9 @@ class Exchange(object):
     verbose = False
     markets = None
     symbols = None
-    precision = None
-    limits = None
-    fees = {}
+    precision = {}
+    limits = {}
+    fees = {'trading': {}, 'funding': {}}
     ids = None
     currencies = None
     tickers = None
@@ -639,9 +639,13 @@ class Exchange(object):
         return currency
 
     def set_markets(self, markets):
-        values = markets
-        if type(values) is dict:
-            values = list(markets.values())
+        values = list(markets.values()) if type(markets) is dict else markets
+        for i in range (0, len(values)):
+            values[i] = self.extend (
+                self.fees['trading'],
+                {'precision': self.precision, 'limits': self.limits},
+                values[i]
+            )
         self.markets = self.index_by(values, 'symbol')
         self.markets_by_id = self.index_by(values, 'id')
         self.marketsById = self.markets_by_id

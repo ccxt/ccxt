@@ -70,12 +70,14 @@ try:
         # output a list of all market symbols
         dump(green(id), 'has', len(exchange.symbols), 'symbols:', exchange.symbols)
 
-        # output a table of all markets
-        dump(pink('{:<15} {:<15} {:<15} {:<15}'.format('id', 'symbol', 'base', 'quote')))
         tuples = list(ccxt.Exchange.keysort(markets).items())
 
+        # debug
         for (k, v) in tuples:
             print(v)
+
+        # output a table of all markets
+        dump(pink('{:<15} {:<15} {:<15} {:<15}'.format('id', 'symbol', 'base', 'quote')))
 
         for (k, v) in tuples:
             dump('{:<15} {:<15} {:<15} {:<15}'.format(v['id'], v['symbol'], v['base'], v['quote']))
@@ -85,6 +87,7 @@ try:
         dump('Exchange ' + red(id) + ' not found')
         print_supported_exchanges()
 
-except:
+except Exception as e:
+    dump('[' + type(e).__name__ + ']', str(e))
     dump("Usage: python " + sys.argv[0], green('id'))
     print_supported_exchanges()
