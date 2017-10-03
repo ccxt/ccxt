@@ -5083,7 +5083,11 @@ class bittrex (Exchange):
 
     def fetch_orders(self, symbol=None, params={}):
         self.load_markets()
-        response = self.accountGetOrderhistory(params)
+        request = {}
+        if symbol:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        response = self.accountGetOrderhistory(self.extend(request, params))
         return self.parse_orders(response['result'])
 
     def withdraw(self, currency, amount, address, params={}):

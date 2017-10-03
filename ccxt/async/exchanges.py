@@ -4992,7 +4992,11 @@ class bittrex (Exchange):
 
     async def fetch_orders(self, symbol=None, params={}):
         await self.load_markets()
-        response = await self.accountGetOrderhistory(params)
+        request = {}
+        if symbol:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        response = await self.accountGetOrderhistory(self.extend(request, params))
         return self.parse_orders(response['result'])
 
     async def withdraw(self, currency, amount, address, params={}):
