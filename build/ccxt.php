@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.21';
+$version = '1.9.22';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -522,6 +522,8 @@ class Exchange {
         $this->hasFetchOpenOrders   = false;
         $this->hasFetchClosedOrders = false;
         $this->hasFetchMyTrades     = false;
+        $this->hasCreateOrder       = $this->hasPrivateAPI;
+        $this->hasCancelOrder       = $this->hasPrivateAPI;
         $this->lastRestRequestTimestamp = 0;
         $this->lastRestPollTimestamp    = 0;
         $this->restRequestQueue         = null;
