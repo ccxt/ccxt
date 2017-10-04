@@ -15719,7 +15719,8 @@ var liqui = {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('success' in response) {
             if (!response['success']) {
-                if (response['error'] == 'not available')
+                if (response['error'] == 'not available' ||
+                    response['error'] == 'external service unavailable')
                     throw new DDoSProtection (this.id + ' ' + this.json (response));
                 else
                     throw new ExchangeError (this.id + ' ' + this.json (response));
