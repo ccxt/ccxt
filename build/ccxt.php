@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.26';
+$version = '1.9.27';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -12707,19 +12707,26 @@ class gdax extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $params = array ()) {
+        $this->load_markets ();
+        $response = null;
         if (array_key_exists ('payment_method_id', $params)) {
-            $this->load_markets ();
-            $response = $this->privatePostWithdraw (array_merge (array (
+            $response = $this->privatePostWithdrawalsPaymentMethod (array_merge (array (
                 'currency' => $currency,
                 'amount' => $amount,
-                // 'address' => $address, // they don't allow withdrawals to direct addresses
             ), $params));
-            return array (
-                'info' => $response,
-                'id' => $response['result'],
-            );
+        } else {
+            $response = $this->privatePostWithdrawalsCrypto (array_merge (array (
+                'currency' => $currency,
+                'amount' => $amount,
+                'crypto_address' => $address,
+            ), $params));
         }
-        throw new ExchangeError ($this->id . " withdraw requires a 'payment_method_id' parameter");
+        if (!$response)
+            throw ExchangeError ($this->id . ' withdraw() error => ' . $this->json ($response));
+        return array (
+            'info' => $response,
+            'id' => $response['id'],
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

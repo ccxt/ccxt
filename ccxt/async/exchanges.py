@@ -10825,18 +10825,25 @@ class gdax (Exchange):
         return response
 
     async def withdraw(self, currency, amount, address, params={}):
+        await self.load_markets()
+        response = None
         if 'payment_method_id' in params:
-            await self.load_markets()
-            response = await self.privatePostWithdraw(self.extend({
+            response = await self.privatePostWithdrawalsPaymentMethod(self.extend({
                 'currency': currency,
                 'amount': amount,
-                # 'address': address,  # they don't allow withdrawals to direct addresses
             }, params))
-            return {
-                'info': response,
-                'id': response['result'],
-            }
-        raise ExchangeError(self.id + " withdraw requires a 'payment_method_id' parameter")
+        else:
+            response = await self.privatePostWithdrawalsCrypto(self.extend({
+                'currency': currency,
+                'amount': amount,
+                'crypto_address': address,
+            }, params))
+        if not response:
+            raise ExchangeError(self.id + ' withdraw() error: ' + self.json(response))
+        return {
+            'info': response,
+            'id': response['id'],
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + self.implode_params(path, params)
