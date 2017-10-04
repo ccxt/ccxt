@@ -20,7 +20,7 @@ const asTable   = require ('as-table')
 
 /*  ------------------------------------------------------------------------ */
 
-const warn = log.bright.yellow.error // .error goes to stderr
+const warn = log.bright.yellow.error // .error → stderr
 
 /*  ------------------------------------------------------------------------ */
 
