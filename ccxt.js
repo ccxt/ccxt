@@ -15717,9 +15717,14 @@ var liqui = {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('success' in response)
-            if (!response['success'])
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+        if ('success' in response) {
+            if (!response['success']) {
+                if (response['error'] == 'not available')
+                    throw new DDoSProtection (this.id + ' ' + this.json (response));
+                else
+                    throw new ExchangeError (this.id + ' ' + this.json (response));
+            }
+        }
         return response;
     },
 }
