@@ -123,7 +123,7 @@ describe ('ccxt base code', () => {
         assert.deepEqual (ccxt.aggregate ([]), [])
     })
 
-    it ('deepExtend() works', () => {
+    it.skip ('deepExtend() works', () => {
 
         let count = 0;
 
