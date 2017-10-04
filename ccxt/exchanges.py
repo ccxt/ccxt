@@ -14201,7 +14201,7 @@ class liqui (Exchange):
         response = self.fetch2(path, api, method, params, headers, body)
         if 'success' in response:
             if not response['success']:
-                if response['error'] == 'not available':
+                if (response['error'] == 'not available') or (response['error'] == 'external service unavailable'):
                     raise DDoSProtection(self.id + ' ' + self.json(response))
                 else:
                     raise ExchangeError(self.id + ' ' + self.json(response))
