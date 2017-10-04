@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Fixed GDAX withdraw, [#266](https://github.com/kroitor/ccxt/issues/266)
 - Fixed bittrex fetchOrder market param, [#264](https://github.com/kroitor/ccxt/pull/264)
 - Fixed parseOrders in PHP, [#258](https://github.com/kroitor/ccxt/pull/258)
 - Fixed HitBTC v2 `fetchBalance()` function param signature in PHP, [#257](https://github.com/kroitor/ccxt/pull/257)
