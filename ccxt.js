@@ -12272,19 +12272,24 @@ var gdax = {
     },
 
     async withdraw (currency, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let response = undefined;
         if ('payment_method_id' in params) {
-            await this.loadMarkets ();
-            let response = await this.privatePostWithdraw (this.extend ({
+            response = await this.privatePostWithdrawalsPaymentMethod (this.extend ({
                 'currency': currency,
                 'amount': amount,
-                // 'address': address, // they don't allow withdrawals to direct addresses
             }, params));
-            return {
-                'info': response,
-                'id': response['result'],
-            };
+        } else {
+            let response = await this.privatePostWithdrawalsCrypto (this.extend ({
+                'currency': currency,
+                'amount': amount,
+                'crypto_address': address,
+            }, params));
         }
-        throw new ExchangeError (this.id + " withdraw requires a 'payment_method_id' parameter");
+        return {
+            'info': response,
+            'id': response['id'],
+        };
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
