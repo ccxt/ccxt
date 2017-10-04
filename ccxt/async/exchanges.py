@@ -33,6 +33,7 @@ import math
 
 # -----------------------------------------------------------------------------
 
+from ccxt.errors import DDoSProtection
 from ccxt.errors import ExchangeError
 from ccxt.errors import NotSupported
 from ccxt.errors import AuthenticationError
@@ -14109,7 +14110,10 @@ class liqui (Exchange):
         response = await self.fetch2(path, api, method, params, headers, body)
         if 'success' in response:
             if not response['success']:
-                raise ExchangeError(self.id + ' ' + self.json(response))
+                if response['error'] == 'not available':
+                    raise DDoSProtection(self.id + ' ' + self.json(response))
+                else:
+                    raise ExchangeError(self.id + ' ' + self.json(response))
         return response
 
 # -----------------------------------------------------------------------------
