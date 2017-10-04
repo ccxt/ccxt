@@ -1,5 +1,10 @@
 # Сhangelog
 
+- Fixed bittrex fetchOrder market param, [#264](https://github.com/kroitor/ccxt/pull/264)
+- Fixed parseOrders in PHP, [#258](https://github.com/kroitor/ccxt/pull/258)
+- Fixed HitBTC v2 `fetchBalance()` function param signature in PHP, [#257](https://github.com/kroitor/ccxt/pull/257)
+- Removed a duplicate redefinition of `request()` from PHP, [#256](https://github.com/kroitor/ccxt/pull/256)
+- Fixed `throttle()` in PHP, [#254](https://github.com/kroitor/ccxt/pull/254)
 - Renamed CCXTError base exception class to BaseError
 - Added experimental limits and precision digits  to Kraken, Liqui, Binance, Poloniex
 - Added missing markets to Binance
