@@ -1,5 +1,6 @@
 # Сhangelog
 
+- Renamed CCXTError base exception class to BaseError
 - Added experimental limits and precision digits  to Kraken, Liqui, Binance, Poloniex
 - Added missing markets to Binance
 - Added min/max trade limits to Bittrex and Cryptopia (experimental)
