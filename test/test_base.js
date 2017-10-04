@@ -123,6 +123,91 @@ describe ('ccxt base code', () => {
         assert.deepEqual (ccxt.aggregate ([]), [])
     })
 
+    it ('deepExtend() works', () => {
+
+        let count = 0;
+
+        const deepExtend = function (...args) {
+            let result = undefined
+            for (const arg of args) {
+                if (typeof arg == 'object') {
+
+                    if (Array.isArray (arg)) {
+
+                        result = arg
+
+                    } else {
+
+                        if (typeof result != 'object')
+                            result = {}
+
+                            for (const key in arg) {
+                            // log (key, result[key])
+                            result[key] = deepExtend (result[key], arg[key])
+
+                            count += 1
+                            // if (count > 2)
+                                // process.exit ()
+                        }
+                    }
+
+                } else {
+
+                    // log ('not an object (' + typeof arg + ')')
+                    result = arg
+                }
+            }
+            return result;
+        }
+
+        values = [{
+            a: 1,
+            b: 2,
+            d: {
+                a: 1,
+                b: [],
+                c: { test1: 123, test2: 321 }},
+            f: 5,
+            g: 123,
+            i: 321,
+            j: [1, 2],
+        },
+        {
+            b: 3,
+            c: 5,
+            d: {
+                b: { first: 'one', second: 'two' },
+                c: { test2: 222 }},
+            e: { one: 1, two: 2 },
+            f: [{ 'foo': 'bar' }],
+            g: (void 0),
+            h: /abc/g,
+            i: null,
+            j: [3, 4]
+        }]
+
+        log(values)
+
+        const extended = deepExtend (...values)
+        log (extended)
+        assert.deepEqual ({
+            a: 1,
+            b: 3,
+            d: {
+                a: 1,
+                b: { first: 'one', second: 'two' },
+                c: { test1: 123, test2: 222 }
+            },
+            f: [{ 'foo': 'bar' }],
+            g: undefined,
+            c: 5,
+            e: { one: 1, two: 2 },
+            h: /abc/g,
+            i: null,
+            j: [3, 4]
+        }, extended)
+    })
+
     it ('groupBy() works', () => {
 
         const array = [

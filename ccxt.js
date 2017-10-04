@@ -15318,7 +15318,7 @@ var liqui = {
     'id': 'liqui',
     'name': 'Liqui',
     'countries': 'UA',
-    'rateLimit': 2000,
+    'rateLimit': 2500,
     'version': '3',
     'hasCORS': false,
     'hasFetchOrder': true,
@@ -15726,10 +15726,13 @@ var liqui = {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('success' in response) {
             if (!response['success']) {
-                if ((response['error'] == 'not available') || (response['error'] == 'external service unavailable'))
+                if (response['error'] == 'Requests too often') {
                     throw new DDoSProtection (this.id + ' ' + this.json (response));
-                else
+                } else if ((response['error'] == 'not available') || (response['error'] == 'external service unavailable')) {
+                    throw new DDoSProtection (this.id + ' ' + this.json (response));
+                } else {
                     throw new ExchangeError (this.id + ' ' + this.json (response));
+                }
             }
         }
         return response;

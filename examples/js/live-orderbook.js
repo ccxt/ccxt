@@ -34,6 +34,8 @@ let printOrderBook = async (id, symbol, depth) => {
         if (symbol in exchange.markets) {
 
             const market = exchange.markets[symbol]
+            const pricePrecision = market.precision ? market.precision.price : 8
+            const amountPrecision = market.precision ? market.precision.amount : 8
 
             // Object.values (markets).forEach (market => log (market))
 
