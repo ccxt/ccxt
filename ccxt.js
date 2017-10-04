@@ -48,17 +48,17 @@ const isNode     = (typeof window === 'undefined')
 
 //-----------------------------------------------------------------------------
 
-class CCXTError extends Error {
+class BaseError extends Error {
     constructor (message) {
         super (message)
-        // a workaround to make `instanceof CCXTError` work in ES5
-        this.constructor = CCXTError
-        this.__proto__   = CCXTError.prototype
+        // a workaround to make `instanceof BaseError` work in ES5
+        this.constructor = BaseError
+        this.__proto__   = BaseError.prototype
         this.message     = message
     }
 }
 
-class ExchangeError extends CCXTError {
+class ExchangeError extends BaseError {
     constructor (message) {
         super (message)
         this.constructor = ExchangeError
@@ -94,7 +94,7 @@ class InsufficientFunds extends ExchangeError {
     }
 }
 
-class NetworkError extends CCXTError {
+class NetworkError extends BaseError {
     constructor (message) {
         super (message)
         this.constructor = NetworkError
@@ -20191,7 +20191,7 @@ const ccxt = Object.assign (defineAllExchanges (exchanges), {
 
     // exceptions
 
-    CCXTError,
+    BaseError,
     ExchangeError,
     NotSupported,
     AuthenticationError,

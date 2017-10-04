@@ -27,7 +27,7 @@ SOFTWARE.
 # -----------------------------------------------------------------------------
 
 __all__ = [
-    'CCXTError',
+    'BaseError',
     'ExchangeError',
     'AuthenticationError',
     'InsufficientFunds',
@@ -40,11 +40,11 @@ __all__ = [
 # -----------------------------------------------------------------------------
 
 
-class CCXTError(Exception):
+class BaseError(Exception):
     pass
 
 
-class ExchangeError(CCXTError):
+class ExchangeError(BaseError):
     pass
 
 
@@ -60,7 +60,7 @@ class InsufficientFunds(ExchangeError):
     pass
 
 
-class NetworkError(CCXTError):
+class NetworkError(BaseError):
     pass
 
 

@@ -34,12 +34,12 @@ SOFTWARE.
 
 namespace ccxt;
 
-class CCXTError            extends \Exception    {}
-class ExchangeError        extends CCXTError     {}
+class BaseError            extends \Exception    {}
+class ExchangeError        extends BaseError     {}
 class NotSupported         extends ExchangeError {}
 class AuthenticationError  extends ExchangeError {}
 class InsufficientFunds    extends ExchangeError {}
-class NetworkError         extends CCXTError     {}
+class NetworkError         extends BaseError     {}
 class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
