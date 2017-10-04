@@ -12280,12 +12280,14 @@ var gdax = {
                 'amount': amount,
             }, params));
         } else {
-            let response = await this.privatePostWithdrawalsCrypto (this.extend ({
+            response = await this.privatePostWithdrawalsCrypto (this.extend ({
                 'currency': currency,
                 'amount': amount,
                 'crypto_address': address,
             }, params));
         }
+        if (!response)
+            throw ExchangeError (this.id + ' withdraw() error: ' + this.json (response));
         return {
             'info': response,
             'id': response['id'],
