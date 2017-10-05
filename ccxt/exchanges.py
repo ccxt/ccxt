@@ -4903,8 +4903,8 @@ class bittrex (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['Volume']),
-            'quoteVolume': float(ticker['BaseVolume']),
+            'baseVolume': float(ticker['BaseVolume']),
+            'quoteVolume': float(ticker['Volume']),
             'info': ticker,
         }
 
@@ -11446,6 +11446,9 @@ class hitbtc (Exchange):
             'id': response['transaction'],
         }
 
+    def nonce(self):
+        return self.milliseconds()
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + 'api' + '/' + self.version + '/' + api + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -11455,11 +11458,12 @@ class hitbtc (Exchange):
         else:
             nonce = self.nonce()
             query = self.extend({'nonce': nonce, 'apikey': self.apiKey}, query)
+            url += '?' + self.urlencode({'nonce': nonce, 'apikey': self.apiKey})
+            auth = url
             if method == 'POST':
                 if query:
                     body = self.urlencode(query)
-            url += '?' + self.urlencode(query)
-            auth = url + (body or '')
+                    auth += body
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'X-Signature': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512).lower(),

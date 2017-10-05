@@ -12826,6 +12826,10 @@ var hitbtc = {
         };
     },
 
+    nonce () {
+        return this.milliseconds ();
+    },
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + 'api' + '/' + this.version + '/' + api + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
@@ -12835,11 +12839,14 @@ var hitbtc = {
         } else {
             let nonce = this.nonce ();
             query = this.extend ({ 'nonce': nonce, 'apikey': this.apiKey }, query);
-            if (method == 'POST')
-                if (Object.keys (query).length)
+            url += '?' + this.urlencode ({ 'nonce': nonce, 'apikey': this.apiKey });
+            let auth = url;
+            if (method == 'POST') {
+                if (Object.keys (query).length) {
                     body = this.urlencode (query);
-            url += '?' + this.urlencode (query);
-            let auth = url + (body || '');
+                    auth += body;
+                }
+            }
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'X-Signature': this.hmac (this.encode (auth), this.encode (this.secret), 'sha512').toLowerCase (),

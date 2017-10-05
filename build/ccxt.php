@@ -703,8 +703,11 @@ class Exchange {
         if ($headers)
             curl_setopt ($this->curl, CURLOPT_HTTPHEADER, $headers);
 
-        if ($this->verbose)
-            var_dump ($url, $method, $url, "\nRequest:\n", $verbose_headers, $body);
+        if ($this->verbose) {
+            print_r ("\nRequest:\n");
+            print_r (array ($method, $url, $verbose_headers, $body));
+        }
+
 
         $result = curl_exec ($this->curl);
 
@@ -718,7 +721,7 @@ class Exchange {
             if ($curl_errno == 28) // CURLE_OPERATION_TIMEDOUT
                 $this->raise_error ('RequestTimeout', $url, $method, $curl_errno, $curl_error);
 
-            var_dump ($result);
+            // var_dump ($result);
 
             // all sorts of SSL problems, accessibility
             $this->raise_error ('ExchangeNotAvailable', $url, $method, $curl_errno, $curl_error);
@@ -728,19 +731,19 @@ class Exchange {
 
         if ($http_status_code == 429) {
 
-            $this->raise_error ('DDoSProtection', $url, $method,
+            $this->raise_error ('DDoSProtection', $url, $method, $http_status_code,
                 'not accessible from this location at the moment');
         }
 
         if (in_array ($http_status_code, array (404, 409, 422, 500, 501, 502))) {
 
-            $this->raise_error ('ExchangeNotAvailable', $url, $method,
+            $this->raise_error ('ExchangeNotAvailable', $url, $method, $http_status_code,
                 'not accessible from this location at the moment');
         }
 
         if (in_array ($http_status_code, array (408, 504))) {
 
-            $this->raise_error ('RequestTimeout', $url, $method,
+            $this->raise_error ('RequestTimeout', $url, $method, $http_status_code,
                 'not accessible from this location at the moment');
         }
 
@@ -755,7 +758,7 @@ class Exchange {
                 'rate-limiting in effect',
             )) . ')';
 
-            $this->raise_error ('AuthenticationError', $url, $method,
+            $this->raise_error ('AuthenticationError', $url, $method, $http_status_code,
                 'check your API keys', $details);
         }
 
@@ -763,7 +766,7 @@ class Exchange {
 
             if (preg_match ('#cloudflare|incapsula#i', $result)) {
 
-                $this->raise_error ('DDoSProtection', $url, $method,
+                $this->raise_error ('DDoSProtection', $url, $method, $http_status_code,
                     'not accessible from this location at the moment');
 
             } else {
@@ -777,7 +780,7 @@ class Exchange {
                     'rate-limiting in effect',
                 )) . ')';
 
-                $this->raise_error ('ExchangeNotAvailable', $url, $method,
+                $this->raise_error ('ExchangeNotAvailable', $url, $method, $http_status_code,
                     'not accessible from this location at the moment', $details);
             }
         }
@@ -798,12 +801,12 @@ class Exchange {
                     'rate-limiting in effect',
                 )) . ')';
 
-                $this->raise_error ('ExchangeNotAvailable', $url, $method,
+                $this->raise_error ('ExchangeNotAvailable', $url, $method, $http_status_code,
                     'not accessible from this location at the moment', $details);
             }
 
             if (preg_match ('#cloudflare|incapsula#i', $result)) {
-                $this->raise_error ('DDoSProtection', $url, $method,
+                $this->raise_error ('DDoSProtection', $url, $method, $http_status_code,
                     'not accessible from this location at the moment');
             }
         }
@@ -6305,8 +6308,8 @@ class bittrex extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['Volume']),
-            'quoteVolume' => floatval ($ticker['BaseVolume']),
+            'baseVolume' => floatval ($ticker['BaseVolume']),
+            'quoteVolume' => floatval ($ticker['Volume']),
             'info' => $ticker,
         );
     }
@@ -13270,6 +13273,10 @@ class hitbtc extends Exchange {
         );
     }
 
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . 'api' . '/' . $this->version . '/' . $api . '/' . $this->implode_params ($path, $params);
         $query = $this->omit ($params, $this->extract_params ($path));
@@ -13279,11 +13286,14 @@ class hitbtc extends Exchange {
         } else {
             $nonce = $this->nonce ();
             $query = array_merge (array ( 'nonce' => $nonce, 'apikey' => $this->apiKey ), $query);
-            if ($method == 'POST')
-                if ($query)
+            $url .= '?' . $this->urlencode (array ( 'nonce' => $nonce, 'apikey' => $this->apiKey ));
+            $auth = $url;
+            if ($method == 'POST') {
+                if ($query) {
                     $body = $this->urlencode ($query);
-            $url .= '?' . $this->urlencode ($query);
-            $auth = $url . ($body || '');
+                    $auth .= $body;
+                }
+            }
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'X-Signature' => strtolower ($this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512')),
