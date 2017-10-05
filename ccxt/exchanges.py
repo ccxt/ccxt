@@ -4903,8 +4903,8 @@ class bittrex (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['Volume']),
-            'quoteVolume': float(ticker['BaseVolume']),
+            'baseVolume': float(ticker['BaseVolume']),
+            'quoteVolume': float(ticker['Volume']),
             'info': ticker,
         }
 

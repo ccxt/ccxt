@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.31';
+$version = '1.9.32';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -6305,8 +6305,8 @@ class bittrex extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['Volume']),
-            'quoteVolume' => floatval ($ticker['BaseVolume']),
+            'baseVolume' => floatval ($ticker['BaseVolume']),
+            'quoteVolume' => floatval ($ticker['Volume']),
             'info' => $ticker,
         );
     }
