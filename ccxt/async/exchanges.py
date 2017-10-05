@@ -15739,8 +15739,8 @@ class poloniex (Exchange):
             'change': float(ticker['percentChange']),
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['baseVolume']),
-            'quoteVolume': float(ticker['quoteVolume']),
+            'baseVolume': float(ticker['quoteVolume']),
+            'quoteVolume': float(ticker['baseVolume']),
             'info': ticker,
         }
 
