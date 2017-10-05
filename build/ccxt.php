@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.31';
+$version = '1.9.33';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -707,7 +707,6 @@ class Exchange {
             print_r ("\nRequest:\n");
             print_r (array ($method, $url, $verbose_headers, $body));
         }
-
 
         $result = curl_exec ($this->curl);
 
