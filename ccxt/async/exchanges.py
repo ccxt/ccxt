@@ -13734,7 +13734,7 @@ class liqui (Exchange):
             'id': 'liqui',
             'name': 'Liqui',
             'countries': 'UA',
-            'rateLimit': 2000,
+            'rateLimit': 2500,
             'version': '3',
             'hasCORS': False,
             'hasFetchOrder': True,
@@ -14117,7 +14117,9 @@ class liqui (Exchange):
         response = await self.fetch2(path, api, method, params, headers, body)
         if 'success' in response:
             if not response['success']:
-                if (response['error'] == 'not available') or (response['error'] == 'external service unavailable'):
+                if response['error'] == 'Requests too often':
+                    raise DDoSProtection(self.id + ' ' + self.json(response))
+                elif (response['error'] == 'not available') or (response['error'] == 'external service unavailable'):
                     raise DDoSProtection(self.id + ' ' + self.json(response))
                 else:
                     raise ExchangeError(self.id + ' ' + self.json(response))

@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.28';
+$version = '1.9.29';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -15807,7 +15807,7 @@ class liqui extends Exchange {
             'id' => 'liqui',
             'name' => 'Liqui',
             'countries' => 'UA',
-            'rateLimit' => 2000,
+            'rateLimit' => 2500,
             'version' => '3',
             'hasCORS' => false,
             'hasFetchOrder' => true,
@@ -16217,10 +16217,13 @@ class liqui extends Exchange {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (array_key_exists ('success', $response)) {
             if (!$response['success']) {
-                if (($response['error'] == 'not available') || ($response['error'] == 'external service unavailable'))
+                if ($response['error'] == 'Requests too often') {
                     throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
-                else
+                } else if (($response['error'] == 'not available') || ($response['error'] == 'external service unavailable')) {
+                    throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
+                } else {
                     throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                }
             }
         }
         return $response;
