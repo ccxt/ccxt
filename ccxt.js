@@ -611,7 +611,7 @@ const Exchange = function (config) {
                 error = DDoSProtection
             } else if ([ 404, 409, 422, 500, 501, 502, 520, 521, 522, 525 ].includes (response.status)) {
                 error = ExchangeNotAvailable
-            } else if ([ 400, 403, 405, 503 ].includes (response.status)) {
+            } else if ([ 400, 403, 405, 503, 530 ].includes (response.status)) {
                 let ddosProtection = text.match (/cloudflare|incapsula/i)
                 if (ddosProtection) {
                     error = DDoSProtection

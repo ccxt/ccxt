@@ -286,7 +286,7 @@ class Exchange(object):
         elif http_status_code in [404, 409, 422, 500, 501, 502, 520, 521, 522, 525]:
             details = exception.read().decode('utf-8', 'ignore') if exception else (str(http_status_code) + ' ' + response)
             error = ExchangeNotAvailable
-        elif http_status_code in [400, 403, 405, 503]:
+        elif http_status_code in [400, 403, 405, 503, 530]:
             # special case to detect ddos protection
             reason = exception.read().decode('utf-8', 'ignore') if exception else response
             ddos_protection = re.search('(cloudflare|incapsula)', reason, flags=re.IGNORECASE)
