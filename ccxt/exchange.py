@@ -388,8 +388,8 @@ class Exchange(object):
     def deep_extend(*args):
         result = None
         for arg in args:
-            if type(arg) is dict:
-                if type(result) is not dict:
+            if isinstance(arg, dict):
+                if isinstance(result, dict):
                     result = {}
                 for key in arg:
                     result[key] = Exchange.deep_extend(result[key] if key in result else None, arg[key])
