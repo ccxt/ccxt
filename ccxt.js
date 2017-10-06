@@ -3052,7 +3052,7 @@ var bitcoincoid = {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder (this.extend ({
-            'id': id,
+            'order_id': id,
         }, params));
     },
 
