@@ -44,7 +44,7 @@ class DDoSProtection       extends NetworkError  {}
 class RequestTimeout       extends NetworkError  {}
 class ExchangeNotAvailable extends NetworkError  {}
 
-$version = '1.9.42';
+$version = '1.9.43';
 
 $curl_errors = array (
     0 => 'CURLE_OK',
@@ -9343,6 +9343,13 @@ class cex extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets ();
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets ();
+        return $this->privatePostGetOrder (array_merge (array (
+            'id' => (string) $id,
+        ), $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

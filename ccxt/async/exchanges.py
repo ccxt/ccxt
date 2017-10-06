@@ -7650,6 +7650,12 @@ class cex (Exchange):
         await self.load_markets()
         return await self.privatePostCancelOrder({'id': id})
 
+    async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        return await self.privatePostGetOrder(self.extend({
+            'id': str(id),
+        }, params))
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -7861,7 +7867,7 @@ class chbtc (Exchange):
         paramString = '&id=' + str(id)
         if 'currency' in params:
             paramString += '&currency=' + params['currency']
-        return self.privatePostGetOrder(paramString)
+        return await self.privatePostGetOrder(paramString)
 
     def nonce(self):
         return self.milliseconds()

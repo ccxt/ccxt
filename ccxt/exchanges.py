@@ -7742,6 +7742,12 @@ class cex (Exchange):
         self.load_markets()
         return self.privatePostCancelOrder({'id': id})
 
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        return self.privatePostGetOrder(self.extend({
+            'id': str(id),
+        }, params))
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
